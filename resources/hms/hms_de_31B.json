@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "de": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich überschüssiger Filamentrest oben am Hotend befindet, schneiden Sie den Rückstand ab, installieren Sie das Hotend erneut in Steckplatz 2 im Gestell und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt. Stellen Sie bitte sicher, dass kein Hotend am Werkzeugkopf montiert ist und dass ein Hotend im Steckplatz 2 am Gestell vorhanden ist, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt: Kein Hotend am Werkzeugkopf erkannt. Bitte montieren Sie das Hotend auf den Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 5 festgestellt: Der Halter konnte das Hotend nicht ordnungsgemäß montieren. Bitte überprüfen Sie, ob sich zu viel Filament oben am Hotend befindet, ob sich Schmutz im Kontaktbereich zwischen dem Werkzeugkopf und dem Hotend befindet oder ob der Verriegelungshebel in der freigegebenen Position ist. Nach Behebung des Problems klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 3 festgestellt. Stellen Sie bitte sicher, dass kein Hotend am Werkzeugkopf montiert ist und dass ein Hotend im Steckplatz 3 im Gestell vorhanden ist, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Der Gestell konnte das Hotend am Werkzeugkopf nicht erkennen. Bitte überprüfen Sie, ob sich Schmutz auf der Oberfläche des Hotend-Kühlers befindet oder ob der vordere Magnet abgefallen ist. Falls nicht, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Kein Hotend am Werkzeugkopf erkannt. Bitte montieren Sie das Hotend auf den Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 3 festgestellt: Der Halter konnte das Hotend nicht vom Werkzeugkopf lösen. Stellen Sie bitte sicher, dass der Verriegelungshebel in der freigegebenen Position ist."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt. Stellen Sie bitte sicher, dass kein Hotend am Werkzeugkopf montiert ist und dass ein Hotend im Steckplatz 6 im Gestell vorhanden ist, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Fehler beim Abrufen des Hotends aus Slot 1 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 5 festgestellt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie auf überschüssiges Filament oder andere Ablagerungen an der Spitze des Hotends, schneiden oder entfernen Sie es, und installieren Sie dann das Hotend erneut in Steckplatz 5 im Gestell und klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 3 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 4 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 3 festgestellt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich überschüssiger Filamentrest oben am Hotend befindet, schneiden Sie den Rückstand ab, installieren Sie das Hotend erneut in Steckplatz 3 im Gestell und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "Die Bewegung des Hotend-Racks wurde unterbrochen. Bitte überprüfen Sie, ob sich Fremdkörper oder Hindernisse befinden, die das Rack blockieren könnten."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 6 festgestellt: Der Halter konnte das Hotend nicht ordnungsgemäß montieren. Bitte überprüfen Sie, ob sich zu viel Filament oben am Hotend befindet, ob sich Schmutz im Kontaktbereich zwischen dem Werkzeugkopf und dem Hotend befindet oder ob der Verriegelungshebel in der freigegebenen Position ist. Nach Behebung des Problems klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Abnormale Bedingung festgestellt beim Einsetzen des Hotends in Steckplatz 3: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 5 festgestellt: Das Werkzeug konnte das Hotend im Gestell nicht erkennen. Bitte überprüfen Sie, ob sich Schmutz im Induktions-Hotend-Montageschlitz am Werkzeugkopf befindet. Wenn keiner gefunden wird, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 4 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Abnormale Bedingung festgestellt beim Abrufen des Hotends aus Slot 2: Kein Hotend in dieser Position gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 5 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Fehler beim Abrufen des Hotends aus Fach 6 festgestellt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie auf überschüssiges Filament oder andere Ablagerungen an der Spitze des Hotends, schneiden oder entfernen Sie es, und installieren Sie dann das Hotend erneut in Fach 6 am Gestell und klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 2 festgestellt: Der Träger konnte das Hotend nicht ordnungsgemäß montieren. Bitte überprüfen Sie, ob sich zu viel Filament oben am Hotend befindet, ob sich Schmutz im Kontaktbereich zwischen dem Werkzeugkopf und dem Hotend befindet oder ob der Verriegelungshebel in der freigegebenen Position ist. Nach Behebung des Problems klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich überschüssiger Filamentrest oben am Hotend befindet, schneiden Sie den Rückstand ab, installieren Sie das Hotend erneut in Steckplatz 1 im Gestell und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt. Stellen Sie bitte sicher, dass kein Hotend am Werkzeugkopf montiert ist und dass ein Hotend im Steckplatz 4 am Gestell vorhanden ist, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Abnormale Bedingung beim Abrufen des Hotends aus Slot 5 festgestellt: Kein Hotend an dieser Position gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Abnormale Bedingung festgestellt beim Abrufen des Hotends aus Slot 1: Kein Hotend in dieser Position gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Abnormale Bedingung festgestellt beim Abrufen des Hotends aus Slot 6: Kein Hotend in dieser Position gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 3 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 4 festgestellt: Der Träger konnte das Hotend nicht ordnungsgemäß montieren. Bitte überprüfen Sie, ob sich zu viel Filament oben am Hotend befindet, ob sich Schmutz im Kontaktbereich zwischen dem Werkzeugkopf und dem Hotend befindet oder ob der Verriegelungshebel in der freigegebenen Position ist. Nach Behebung des Problems klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 3 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Abnormale Bedingung festgestellt beim Einsetzen des Hotends in Steckplatz 5: Der Halter konnte das Hotend nicht vom Werkzeugkopf lösen. Stellen Sie bitte sicher, dass der Verriegelungshebel in der freigegebenen Position ist."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Abnormale Bedingung beim Abrufen des Hotends aus Steckplatz 5 festgestellt: Ein Hotend ist bereits am Werkzeugkopf montiert. Bitte entfernen Sie das Hotend vom Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt: Der Gestell konnte das Hotend am Werkzeugkopf nicht erkennen. Bitte überprüfen Sie, ob sich Schmutz auf der Oberfläche des Hotend-Kühlers befindet oder ob der vordere Magnet abgefallen ist. Falls nicht, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Abnormale Bedingung festgestellt beim Einsetzen des Hotends in Steckplatz 4: Der Halter konnte das Hotend nicht vom Werkzeugkopf lösen. Stellen Sie bitte sicher, dass der Verriegelungshebel in der freigegebenen Position ist."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 6 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "Die Position der Verriegelungsstange des Hotend-Rack-Werkzeugs ist abnormal. Bitte überprüfen Sie, ob Fremdkörper oder Hindernisse vorhanden sind, die dazu führen könnten, dass die Verriegelungsstange blockiert."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 1 festgestellt: Das Werkzeug konnte das Hotend im Gestell nicht erkennen. Bitte überprüfen Sie, ob sich Schmutz im Induktions-Hotend-Montageschlitz am Werkzeugkopf befindet. Wenn nichts gefunden wird, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 1 festgestellt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie auf überschüssiges Filament oder andere Ablagerungen an der Spitze des Hotends, schneiden oder entfernen Sie es, dann installieren Sie das Hotend erneut in Steckplatz 1 am Gestell und klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 6 festgestellt: Das Werkzeug konnte das Hotend im Gestell nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen im Induktions-Hotend-Montageschlitz am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt. Stellen Sie bitte sicher, dass kein Hotend am Werkzeugkopf montiert ist und dass ein Hotend im Steckplatz 1 im Gestell vorhanden ist, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Abnormale Bedingung festgestellt beim Abrufen des Hotends aus Slot 4: Kein Hotend an dieser Position gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 3 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Bauplatte und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 4 festgestellt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie auf überschüssiges Filament oder andere Ablagerungen an der Spitze des Hotends, schneiden oder entfernen Sie es, und installieren Sie dann das Hotend erneut in Steckplatz 4 im Gestell und klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Induktions-Heizblock-Verriegelungshebel oder Gestängehebel-Freigabemechanismusfehler. Bitte beachten Sie das Wiki für die Inspektion."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 2 festgestellt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie auf überschüssiges Filament oder andere Ablagerungen an der Spitze des Hotends, schneiden oder entfernen Sie es, und installieren Sie dann das Hotend erneut in Steckplatz 2 im Gestell und klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt: Der Gestell konnte das Hotend am Werkzeugkopf nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen auf der Oberfläche des Hotend-Kühlers befinden oder ob der vordere Magnet abgefallen ist. Falls nicht, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Fehler beim Abrufen des Hotends aus Slot 1 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Abnormale Bedingung beim Abrufen des Hotends aus Steckplatz 1 festgestellt: Ein Hotend ist bereits am Werkzeugkopf montiert. Bitte entfernen Sie das Hotend vom Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt: Gestellbewegung ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt. Stellen Sie bitte sicher, dass kein Hotend am Werkzeugkopf montiert ist und dass ein Hotend im Steckplatz 5 im Gestell vorhanden ist, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt: Kein Hotend am Werkzeugkopf erkannt. Bitte montieren Sie das Hotend auf den Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt: Der Gestell konnte das Hotend am Werkzeugkopf nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen auf der Oberfläche des Hotend-Kühlers befinden oder ob der vordere Magnet abgefallen ist. Falls nicht, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Abnormale Bedingung beim Abrufen des Hotends aus Steckplatz 4 festgestellt: Ein Hotend ist bereits am Werkzeugkopf montiert. Bitte entfernen Sie das Hotend vom Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 3 festgestellt: Der Träger konnte das Hotend nicht ordnungsgemäß montieren. Bitte überprüfen Sie, ob sich zu viel Filament oben am Hotend befindet, ob sich Schmutz im Kontaktbereich zwischen dem Werkzeugkopf und dem Hotend befindet oder ob der Verriegelungshebel in der freigegebenen Position ist. Nach Behebung des Problems klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt: Kein Hotend am Werkzeugkopf erkannt. Bitte montieren Sie das Hotend auf den Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 2 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Fehler beim Abrufen des Hotends aus Slot 2 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Abnormale Bedingung festgestellt beim Einsetzen des Hotends in Steckplatz 6: Der Halter konnte das Hotend nicht vom Werkzeugkopf lösen. Stellen Sie bitte sicher, dass der Verriegelungshebel in der freigegebenen Position ist."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 3 festgestellt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie auf überschüssiges Filament oder andere Ablagerungen an der Spitze des Hotends, schneiden oder entfernen Sie es, und installieren Sie dann das Hotend erneut in Steckplatz 3 im Gestell und klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt: Der Gestell konnte das Hotend am Werkzeugkopf nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen auf der Oberfläche des Hotend-Kühlers befinden oder ob der vordere Magnet abgefallen ist. Falls nicht, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Abnormale Bedingung beim Entnehmen des Hotends aus Slot 6 festgestellt: Ein Hotend ist bereits am Werkzeugkopf montiert. Bitte entfernen Sie das Hotend vom Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "Die Kalibrierung des Hotend-Racks ist fehlgeschlagen. Markierungsmerkmal nicht erkannt. Bitte überprüfen Sie, ob die visuelle Markierung auf dem Rack beschädigt oder durch Schmutz verdeckt ist."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 3 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 1 erkannt."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 1 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 4 erkannt."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 2 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 1 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 3 installiert."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 6 erkannt."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 5 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 2 installiert."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 4 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 2 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 3 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 4 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 4 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 6 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 4 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 1 installiert."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 5 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 5 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 6 installiert."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 4 installiert."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 3 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 1 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 5 installiert."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 3 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 6 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 1 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 5 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 3 erkannt."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 6 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 5 erkannt."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 2 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 2 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 2 erkannt."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 6 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 4 festgestellt: Das Werkzeug konnte das Hotend im Gestell nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen im Induktions-Hotend-Montageschlitz am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 1 festgestellt: Der Halter konnte das Hotend nicht ordnungsgemäß montieren. Bitte überprüfen Sie, ob sich zu viel Filament oben am Hotend befindet, ob sich Schmutz im Kontaktbereich zwischen dem Werkzeugkopf und dem Hotend befindet oder ob der Verriegelungshebel in der freigegebenen Position ist. Nach Behebung des Problems klicken Sie auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich überschüssiger Filamentrest oben am Hotend befindet, schneiden Sie den Rückstand ab, installieren Sie das Hotend erneut in Steckplatz 5 im Gestell und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 2 festgestellt: Das Werkzeug konnte das Hotend im Gestell nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen im Induktions-Hotend-Montageschlitz am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 3 festgestellt: Das Werkzeug konnte das Hotend im Gestell nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen im Induktions-Hotend-Montageschlitz am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Abnormale Bedingung beim Entnehmen des Hotends aus Steckplatz 3 festgestellt: Ein Hotend ist bereits am Werkzeugkopf montiert. Bitte entfernen Sie das Hotend vom Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 3 festgestellt: Der Gestell konnte das Hotend am Werkzeugkopf nicht erkennen. Bitte überprüfen Sie, ob sich Ablagerungen auf der Oberfläche des Hotend-Kühlers befinden oder ob der vordere Magnet abgefallen ist. Falls nicht, kalibrieren Sie das Induktions-Hotend-Gestell neu."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Abnormale Bedingung festgestellt beim Einsetzen des Hotends in Steckplatz 2: Der Halter konnte das Hotend nicht vom Werkzeugkopf lösen. Stellen Sie bitte sicher, dass der Verriegelungshebel in der freigegebenen Position ist."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Abnormale Bedingung beim Abrufen des Hotends aus Steckplatz 2 festgestellt: Ein Hotend ist bereits am Werkzeugkopf montiert. Bitte entfernen Sie das Hotend vom Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich überschüssiger Filamentrest oben am Hotend befindet, schneiden Sie den Rückstand ab, installieren Sie das Hotend erneut in Steckplatz 6 im Gestell und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Bauplatte und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 6 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Bauplatte und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 5 festgestellt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Abnormale Bedingung festgestellt beim Abrufen des Hotends aus Slot 3: Kein Hotend an dieser Position gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Gestellbewegung ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 4 festgestellt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich überschüssiger Filamentrest oben am Hotend befindet, schneiden Sie den Rückstand ab, installieren Sie das Hotend erneut in Steckplatz 4 im Gestell und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 1 festgestellt: Der Halter konnte das Hotend nicht vom Werkzeugkopf lösen. Stellen Sie bitte sicher, dass der Verriegelungshebel in der freigegebenen Position ist."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 2 festgestellt: Werkzeugkopf-Neuzentrierungsversuch fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte des Bauplattes und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Fehler beim Abrufen des Hotends aus Steckplatz 5 festgestellt: Bewegung des Gestells ist blockiert. Bitte überprüfen Sie auf Fremdkörper, entfernen Sie diese und klicken Sie dann auf \"Weiter\"."
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Abnormale Bedingung festgestellt beim Einsetzen des Hotends in Steckplatz 3: kein Hotend am Werkzeugkopf erkannt. Bitte montieren Sie das Hotend auf den Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Abnormale Bedingung beim Einsetzen des Hotends in Steckplatz 6 festgestellt: Kein Hotend am Werkzeugkopf erkannt. Bitte montieren Sie das Hotend auf den Werkzeugkopf, bevor Sie auf \"Weiter\" klicken."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Kalibrierung des Induktions-Hotend-Racks fehlgeschlagen: Ergebnis hat den Verfahrbereich überschritten. Bitte überprüfen Sie, ob die Rack-Struktur verformt ist."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Die Kalibrierung des Hotend-Racks ist fehlgeschlagen: Die Kamerakalibrierungsdaten sind fehlerhaft. Bitte reinigen Sie die Düse von Rückständen, überprüfen Sie, ob das Thermopapier des Heizbetts unbeschädigt ist, und entfernen Sie eventuelle Rückstände von dessen Oberfläche."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "AMS-HT F: Heizelement 2 Kühlungslüfter kann nicht starten, da das Netzteil nicht angeschlossen ist."
@@ -18595,6 +18067,406 @@
                     "intro": "Das AMS-HT H RFID 1 Board hat einen Fehler."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "Das Rotationsgravur-Zusatzgerät ist falsch positioniert. Bitte justieren und neu positionieren."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 5 des Hotend-Racks korrekt installiert ist."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 4 des Hotend-Racks korrekt installiert ist."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 6 des Hotend-Racks korrekt installiert ist."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 3 des Hotend-Racks korrekt installiert ist."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 2 des Hotend-Racks korrekt installiert ist."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 4: Der Werkzeugkopf konnte das Hotend im Rack nicht erkennen. Bitte überprüfen Sie, ob sich Verunreinigungen im Induktions-Hotend-Montageslot am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 1: Das Rack konnte das Hotend nicht ordnungsgemäß anbringen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, ob sich Verunreinigungen im Kontaktbereich zwischen Werkzeugkopf und Hotend befinden oder ob sich der Verriegelungshebel in der gelösten Position befindet. Klicken Sie nach Behebung des Problems auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Beim Absetzen des Hotends in Slot 6 wurde ein Fehler erkannt: Es ist bereits ein Hotend installiert. Bitte entfernen Sie das vorhandene Hotend, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Beim Absetzen des Hotends in Slot 5 wurde ein Fehler erkannt: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, entfernen Sie die Rückstände, setzen Sie das Hotend wieder in Slot 5 des Racks ein und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 2: Der Werkzeugkopf konnte das Hotend im Rack nicht erkennen. Bitte überprüfen Sie, ob sich Verunreinigungen im Induktions-Hotend-Montageslot am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 3: Der Werkzeugkopf konnte das Hotend im Rack nicht erkennen. Bitte überprüfen Sie, ob sich Verunreinigungen im Induktions-Hotend-Montageslot am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 3 wurde ein Fehler erkannt: Ein Hotend ist bereits im Werkzeugkopf montiert. Bitte entfernen Sie das Hotend aus dem Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Das Rack hat das Hotend am Werkzeugkopf nicht erkannt. Bitte überprüfen Sie, ob sich Rückstände am Kühlkörper des Hotends befinden oder ob der vordere Magnet abgefallen ist. Ist dies nicht der Fall, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Das Rack konnte das Hotend nicht vom Werkzeugkopf lösen. Bitte stellen Sie sicher, dass sich die Verriegelung in der gelösten Position befindet."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 2 erkannt: Ein Hotend ist bereits im Werkzeugkopf montiert. Bitte entfernen Sie das Hotend aus dem Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, schneiden Sie die Rückstände ab, setzen Sie das Hotend wieder in Slot 6 des Racks ein und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt: Versuch zur Neuzentrierung des Werkzeugkopfs fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 6 ist ein Fehler aufgetreten: Der Versuch, den Werkzeugkopf neu zu zentrieren, ist fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene Hotend, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Versuch zur Neuzentrierung des Werkzeugkopfs fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 3 erkannt: In dieser Position wurde kein Hotend gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene Hotend, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, schneiden Sie die Rückstände ab, setzen Sie das Hotend wieder in Slot 4 des Racks ein und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Das Rack konnte das Hotend nicht vom Werkzeugkopf lösen. Bitte stellen Sie sicher, dass sich die Verriegelung in der gelösten Position befindet."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Versuch zur Neuzentrierung des Werkzeugkopfs fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 5 wurde ein Fehler erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Kein Hotend im Werkzeugkopf erkannt. Bitte montieren Sie das Hotend im Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt: Kein Hotend im Werkzeugkopf erkannt. Bitte montieren Sie das Hotend im Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, schneiden Sie die Rückstände ab, setzen Sie das Hotend wieder in Slot 2 des Racks ein und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt. Bitte stellen Sie sicher, dass kein Hotend im Werkzeugkopf montiert ist und dass sich ein Hotend in Slot 2 des Racks befindet, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Kein Hotend im Werkzeugkopf erkannt. Bitte montieren Sie das Hotend im Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 5: Das Rack konnte das Hotend nicht ordnungsgemäß anbringen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, ob sich Verunreinigungen im Kontaktbereich zwischen Werkzeugkopf und Hotend befinden oder ob sich der Verriegelungshebel in der gelösten Position befindet. Klicken Sie nach Behebung des Problems auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt. Bitte stellen Sie sicher, dass kein Hotend im Werkzeugkopf montiert ist und dass sich ein Hotend in Slot 3 des Racks befindet, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Das Rack hat das Hotend am Werkzeugkopf nicht erkannt. Bitte überprüfen Sie, ob sich Rückstände am Kühlkörper des Hotends befinden oder ob der vordere Magnet abgefallen ist. Ist dies nicht der Fall, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Kein Hotend im Werkzeugkopf erkannt. Bitte montieren Sie das Hotend im Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Das Rack konnte das Hotend nicht vom Werkzeugkopf lösen. Bitte stellen Sie sicher, dass sich die Verriegelung in der gelösten Position befindet."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt. Bitte stellen Sie sicher, dass kein Hotend im Werkzeugkopf montiert ist und dass sich ein Hotend in Slot 6 des Racks befindet, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 1 wurde ein Fehler erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 5 ist ein Fehler aufgetreten: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament oder andere Rückstände befinden, schneiden Sie diese ab oder entfernen Sie diese, setzen Sie das Hotend dann wieder in Slot 5 des Racks ein und klicken Sie auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 4 ist ein Fehler aufgetreten: Der Versuch, den Werkzeugkopf neu zu zentrieren, ist fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, schneiden Sie die Rückstände ab, setzen Sie das Hotend wieder in Slot 3 des Racks ein und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "Zeitüberschreitung bei der Bewegung des Hotend-Racks. Bitte überprüfen Sie, ob Fremdkörper oder Hindernisse vorhanden sind, die zu einer Blockierung des Racks führen könnten."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 6: Das Rack konnte das Hotend nicht ordnungsgemäß anbringen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, ob sich Verunreinigungen im Kontaktbereich zwischen Werkzeugkopf und Hotend befinden oder ob sich der Verriegelungshebel in der gelösten Position befindet. Klicken Sie nach Behebung des Problems auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene Hotend, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 5: Der Werkzeugkopf konnte das Hotend im Rack nicht erkennen. Bitte überprüfen Sie, ob sich Verunreinigungen im Induktions-Hotend-Montageslot am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 4 wurde ein Fehler erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 2 erkannt: In dieser Position wurde kein Hotend gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene Hotend, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 5 ist ein Fehler aufgetreten: Der Versuch, den Werkzeugkopf neu zu zentrieren, ist fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Versuch zur Neuzentrierung des Werkzeugkopfs fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 6 ist ein Fehler aufgetreten: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament oder andere Rückstände befinden, schneiden Sie diese ab oder entfernen Sie diese, setzen Sie das Hotend dann wieder in Slot 6 des Racks ein und klicken Sie auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 2: Das Rack konnte das Hotend nicht ordnungsgemäß anbringen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, ob sich Verunreinigungen im Kontaktbereich zwischen Werkzeugkopf und Hotend befinden oder ob sich der Verriegelungshebel in der gelösten Position befindet. Klicken Sie nach Behebung des Problems auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt: Das Hotend ist heruntergefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, schneiden Sie die Rückstände ab, setzen Sie das Hotend wieder in Slot 1 des Racks ein und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt. Bitte stellen Sie sicher, dass kein Hotend im Werkzeugkopf montiert ist und dass sich ein Hotend in Slot 4 des Racks befindet, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 5 erkannt: In dieser Position wurde kein Hotend gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 1 erkannt: In dieser Position wurde kein Hotend gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Ein Hotend ist bereits installiert. Bitte entfernen Sie das vorhandene Hotend, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 6 erkannt: In dieser Position wurde kein Hotend gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 3 wurde ein Fehler erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 4: Das Rack konnte das Hotend nicht ordnungsgemäß anbringen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, ob sich Verunreinigungen im Kontaktbereich zwischen Werkzeugkopf und Hotend befinden oder ob sich der Verriegelungshebel in der gelösten Position befindet. Klicken Sie nach Behebung des Problems auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 3 erkannt: Versuch zur Neuzentrierung des Werkzeugkopfs fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt: Das Rack konnte das Hotend nicht vom Werkzeugkopf lösen. Bitte stellen Sie sicher, dass sich die Verriegelung in der gelösten Position befindet."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 5 erkannt: Ein Hotend ist bereits im Werkzeugkopf montiert. Bitte entfernen Sie das Hotend aus dem Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Das Rack hat das Hotend am Werkzeugkopf nicht erkannt. Bitte überprüfen Sie, ob sich Rückstände am Kühlkörper des Hotends befinden oder ob der vordere Magnet abgefallen ist. Ist dies nicht der Fall, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Das Rack konnte das Hotend nicht vom Werkzeugkopf lösen. Bitte stellen Sie sicher, dass sich die Verriegelung in der gelösten Position befindet."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 6 wurde ein Fehler erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "Die Position der Verriegelungsstange des Hotend-Rack-Werkzeugs ist abnormal. Bitte überprüfen Sie, ob Fremdkörper oder Hindernisse vorhanden sind, die dazu führen könnten, dass sich die Verriegelungsstange verklemmt."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 1: Der Werkzeugkopf konnte das Hotend im Rack nicht erkennen. Bitte überprüfen Sie, ob sich Verunreinigungen im Induktions-Hotend-Montageslot am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 1 ist ein Fehler aufgetreten: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament oder andere Rückstände befinden, schneiden Sie diese ab oder entfernen Sie diese, setzen Sie das Hotend dann wieder in Slot 1 des Racks ein und klicken Sie auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 6: Der Werkzeugkopf konnte das Hotend im Rack nicht erkennen. Bitte überprüfen Sie, ob sich Verunreinigungen im Induktions-Hotend-Montageslot am Werkzeugkopf befinden. Wenn keine gefunden werden, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 1 erkannt. Bitte stellen Sie sicher, dass kein Hotend im Werkzeugkopf montiert ist und dass sich ein Hotend in Slot 1 des Racks befindet, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 4 erkannt: In dieser Position wurde kein Hotend gefunden. Bitte installieren Sie ein Hotend im entsprechenden Slot, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 3 ist ein Fehler aufgetreten: Der Versuch, den Werkzeugkopf neu zu zentrieren, ist fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 4 ist ein Fehler aufgetreten: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament oder andere Rückstände befinden, schneiden Sie diese ab oder entfernen Sie diese, setzen Sie das Hotend dann wieder in Slot 4 des Racks ein und klicken Sie auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Fehler am Verriegelungshebel des Induktions-Hotends oder am Entriegelungsmechanismus des Racks. Informationen zur Überprüfung finden Sie im Wiki."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 2 ist ein Fehler aufgetreten: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament oder andere Rückstände befinden, schneiden Sie diese ab oder entfernen Sie diese, setzen Sie das Hotend dann wieder in Slot 2 des Racks ein und klicken Sie auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt: Das Rack hat das Hotend am Werkzeugkopf nicht erkannt. Bitte überprüfen Sie, ob sich Rückstände am Kühlkörper des Hotends befinden oder ob der vordere Magnet abgefallen ist. Ist dies nicht der Fall, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 1 ist ein Fehler aufgetreten: Der Versuch, den Werkzeugkopf neu zu zentrieren, ist fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 1 erkannt: Ein Hotend ist bereits im Werkzeugkopf montiert. Bitte entfernen Sie das Hotend aus dem Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt. Bitte stellen Sie sicher, dass kein Hotend im Werkzeugkopf montiert ist und dass sich ein Hotend in Slot 5 des Racks befindet, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt: Kein Hotend im Werkzeugkopf erkannt. Bitte montieren Sie das Hotend im Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 4 erkannt: Das Rack hat das Hotend am Werkzeugkopf nicht erkannt. Bitte überprüfen Sie, ob sich Rückstände am Kühlkörper des Hotends befinden oder ob der vordere Magnet abgefallen ist. Ist dies nicht der Fall, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt: Versuch zur Neuzentrierung des Werkzeugkopfs fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 4 erkannt: Ein Hotend ist bereits im Werkzeugkopf montiert. Bitte entfernen Sie das Hotend aus dem Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Fehler beim Aufnehmen des Hotends aus Slot 3: Das Rack konnte das Hotend nicht ordnungsgemäß anbringen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament befindet, ob sich Verunreinigungen im Kontaktbereich zwischen Werkzeugkopf und Hotend befinden oder ob sich der Verriegelungshebel in der gelösten Position befindet. Klicken Sie nach Behebung des Problems auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 2 erkannt: Kein Hotend im Werkzeugkopf erkannt. Bitte montieren Sie das Hotend im Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 2 wurde ein Fehler erkannt: Die Bewegung des Racks ist blockiert. Bitte überprüfen Sie, ob Fremdkörper vorhanden sind, entfernen Sie diese und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 2 ist ein Fehler aufgetreten: Der Versuch, den Werkzeugkopf neu zu zentrieren, ist fehlgeschlagen. Bitte bewegen Sie den Werkzeugkopf manuell in die Mitte der Druckplatte und klicken Sie dann auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 6 erkannt: Das Rack konnte das Hotend nicht vom Werkzeugkopf lösen. Bitte stellen Sie sicher, dass sich die Verriegelung in der gelösten Position befindet."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Beim Aufnehmen des Hotends aus Slot 3 ist ein Fehler aufgetreten: Das Hotend ist abgefallen. Bitte überprüfen Sie, ob sich oben am Hotend überschüssiges Filament oder andere Rückstände befinden, schneiden Sie diese ab oder entfernen Sie diese, setzen Sie das Hotend dann wieder in Slot 3 des Racks ein und klicken Sie auf „Weiter“."
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Abnormaler Zustand beim Absetzen des Hotends in Slot 5 erkannt: Das Rack hat das Hotend am Werkzeugkopf nicht erkannt. Bitte überprüfen Sie, ob sich Rückstände am Kühlkörper des Hotends befinden oder ob der vordere Magnet abgefallen ist. Ist dies nicht der Fall, kalibrieren Sie das Induktions-Hotend-Rack neu."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Abnormaler Zustand beim Aufnehmen des Hotends aus Slot 6 erkannt: Ein Hotend ist bereits im Werkzeugkopf montiert. Bitte entfernen Sie das Hotend aus dem Werkzeugkopf, bevor Sie auf „Weiter“ klicken."
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Induktions-Heizblock wurde vor dem Verriegeln nicht erkannt. Bitte überprüfen Sie die Installation am Werkzeugkopf."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A: Die Spannung des Netzteils ist zu hoch, wodurch das Heizelement beschädigt werden kann. Bitte ersetzen Sie das Netzteil."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "Die Erkennung von Fremdkörpern hat nicht funktioniert, möglicherweise aufgrund einer manuellen Unterbrechung (z. B. durch Antippen der Stopp-Taste oder Öffnen der Tür im Lasermodus). In diesem Fall können Sie diesen Fehler ignorieren. Andernfalls versuchen Sie, den Drucker neu zu starten oder die Firmware zu aktualisieren, um die Funktion wiederherzustellen."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "Der Stromsensor von AMS-HT C Auslassventil 2 ist defekt. Wenden Sie sich bitte an den Kundendienst, um die AMS-HT-Hauptplatine auszutauschen."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 3 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 1 erkannt."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "Die Temperaturregelung des rechten Düse ist abnormal, möglicherweise aufgrund einer fehlerhaften Installation des Hotend oder einer Fehlfunktion der drahtlosen Temperaturmessplatine."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 1 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 1 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Phasenkurzschluss am Motor des Hotend-Halters. Wenn das Problem durch einen Neustart nicht behoben werden kann, wenden Sie sich bitte an den Support."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 4 erkannt."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 2 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 1 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 5 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Fehler beim Aufnehmen/Absetzen des Hotends in Slot 2 des Racks. Stellen Sie sicher, dass im Hotend-Halter kein Hotend installiert ist, dass der entsprechende Rack-Slot ein Hotend enthält, und bewegen Sie den Werkzeugkopf manuell zur Maschinenmitte, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 3 installiert."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 6 erkannt."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 5 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 2 installiert."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 4 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Fehler beim Aufnehmen/Absetzen des Hotends in Slot 5 des Racks. Stellen Sie sicher, dass im Hotend-Halter kein Hotend installiert ist, dass der entsprechende Rack-Slot ein Hotend enthält, und bewegen Sie den Werkzeugkopf manuell zur Maschinenmitte, bevor Sie fortfahren."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 2 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Fehler beim Aufnehmen/Absetzen des Hotends in Slot 6 des Racks. Stellen Sie sicher, dass im Hotend-Halter kein Hotend installiert ist, dass der entsprechende Rack-Slot ein Hotend enthält, und bewegen Sie den Werkzeugkopf manuell zur Maschinenmitte, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 3 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "Die XY-Achse des Werkzeugkopfes oder das Hotend-Rack hat die Referenzfahrt noch nicht abgeschlossen. Der Austausch des Hotends kann nicht durchgeführt werden."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 4 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 4 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "Der Referenzierweg des Induktions-Hotend-Racks ist zu groß. Der Riemen ist möglicherweise locker. Bitte überprüfen und spannen."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 6 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 4 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Fehler beim Aufnehmen/Absetzen des Hotends in Slot 3 des Racks. Stellen Sie sicher, dass im Hotend-Halter kein Hotend installiert ist, dass der entsprechende Rack-Slot ein Hotend enthält, und bewegen Sie den Werkzeugkopf manuell zur Maschinenmitte, bevor Sie fortfahren."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 1 installiert."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Fehler beim Aufnehmen/Absetzen des Hotends in Slot 1 des Racks. Stellen Sie sicher, dass im Hotend-Halter kein Hotend installiert ist, dass der entsprechende Rack-Slot ein Hotend enthält, und bewegen Sie den Werkzeugkopf manuell zur Maschinenmitte, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 5 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 3 erkannt."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 5 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 6 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 5 erkannt."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 6 installiert."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 4 installiert."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 3 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 1 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "Das Induktions-Hotend-Rack funktioniert nicht richtig. Bitte schalten Sie das Gerät aus, überprüfen Sie die Verbindung und starten Sie es neu."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: Ein Hotend ist bereits in Slot 5 installiert."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 2 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 3 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "Das Induktions-Hotend-Rack wird während der Referenzfahrt durch ein Hindernis blockiert. Bitte entfernen Sie alle Hindernisse aus dem Bewegungsweg."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 2 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "Der Motor des Hotend-Halters ist nicht angeschlossen oder weist einen Kurzschlussfehler auf. Bitte überprüfen Sie die Flachbandkabelverbindung des Motors."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Hotend-Austauschprüfung fehlgeschlagen: kein Hotend in Slot 2 erkannt."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "Der erweiterte Kühlungslüfter des Werkzeugkopfs ist nicht richtig installiert. Er ist möglicherweise nicht fest angebracht oder hat sich gelöst."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "Während der Aufnahme des Hotends aus dem Rack ist ein Stromausfall aufgetreten. Bitte bringen Sie das Hotend zurück zu Rackstation 6 und bewegen Sie den Werkzeugkopf in die Mitte der Druckplatte, um eine Kollision mit dem Hotend-Rack zu vermeiden."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "Beim Andocken des Hotends an das Hotend-Rack ist ein Stromausfall aufgetreten. Bitte installieren Sie das Hotend erneut von Position 6 am Werkzeugkopf und bewegen Sie den Werkzeugkopf zur Mitte des Heizbetts, um eine Kollision mit dem Rack zu vermeiden."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "Die Authentifizierung von Hotend 1 ist fehlgeschlagen. Bitte wechseln Sie das Hotend oder starten Sie den Drucker neu."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Die Kalibrierung des Hotend-Racks ist fehlgeschlagen. Markierungsmerkmal nicht erkannt. Bitte überprüfen Sie, ob die visuelle Markierung auf dem Rack beschädigt oder durch Schmutz verdeckt ist."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "Die Authentifizierung von Hotend 5 ist fehlgeschlagen. Bitte wechseln Sie das Hotend oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Kalibrierung des Induktions-Hotend-Racks fehlgeschlagen: Ergebnis hat den Verfahrbereich überschritten. Bitte überprüfen Sie, ob die Rack-Struktur verformt ist."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "Die Authentifizierung von Hotend 3 ist fehlgeschlagen. Bitte wechseln Sie das Hotend oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Die Kalibrierung des Hotend-Racks ist fehlgeschlagen: Die Kamerakalibrierungsdaten sind fehlerhaft. Bitte reinigen Sie die Düse von Rückständen, überprüfen Sie, ob das Thermopapier des Heizbetts unbeschädigt ist, und entfernen Sie eventuelle Rückstände von dessen Oberfläche."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "Der Temperatursensor am rechten Hotend-Heatbreak ist defekt. Um Verstopfungen der Düse zu vermeiden, läuft der Kühlungslüfter weiterhin mit hoher Drehzahl. Sie können das Problem mit dem Sensor beheben, wenn der Drucker im Leerlauf ist."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "Das Rotationsgravur-Zusatzgerät ist falsch positioniert. Bitte justieren und neu positionieren."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 5 des Hotend-Racks korrekt installiert ist."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 4 des Hotend-Racks korrekt installiert ist."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 6 des Hotend-Racks korrekt installiert ist."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 3 des Hotend-Racks korrekt installiert ist."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Die Zuordnung von Filament und Hotend ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend in Slot 2 des Hotend-Racks korrekt installiert ist."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "de": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "AMS-HT C: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "Die Firmware des Lasermoduls passt nicht zum Drucker. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "Nicht zertifiziertes AMS-HT H erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "AMS-HT E: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "Die Firmware des Schneidmoduls passt nicht zum Drucker. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "AMS-HT A: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "Die Offset-Kalibrierung des Schneidmoduls ist fehlgeschlagen, was zu ungenauen Schnitten führen kann. Bitte stellen Sie sicher, dass das Schneidematerial richtig positioniert ist, und überprüfen Sie, ob die Schneidklinge abgenutzt ist."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Das Gerät kann die Luftpumpe nicht erkennen.  Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "AMS C: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "AMS-HT B: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "Nicht zertifiziertes AMS-HT E erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "Die KI hat eine Düsenverklumpung festgestellt. Bitte überprüfen Sie den Zustand der Düse. Wenden Sie sich für Lösungen an den Assistenten."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "Die Initialisierung der BirdsEye-Kamera ist fehlgeschlagen. Die Werkzeugkopfkamera hat die Merkmale des Heizbetts nicht erkannt. Bitte reinigen Sie das Heizbett, entfernen Sie alle Objekte und Pads und stellen Sie sicher, dass die Bettmarkierungen sichtbar sind. Eine detaillierte Lösung finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "AMS D: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "Die KI-Drucküberwachung hat einen Spaghetti-Fehler erkannt. Bitte überprüfen Sie den Druck und ergreifen Sie die erforderlichen Maßnahmen."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "Nicht zertifiziertes AMS-HT D erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "Die Linse der Düsenkamera ist verschmutzt, was die KI-Überwachung beeinträchtigt. Reinigen Sie die Linse mit einem Mikrofasertuch und etwas Alkohol. Achten Sie auf die Hitze des Hotends. Warten Sie, bis es abgekühlt ist, bevor Sie es anfassen."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "Nicht zertifiziertes AMS-HT B erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "Nicht zertifiziertes AMS D erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "AMS-HT H: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "AMS-HT D: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "Nicht zertifiziertes AMS B erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "Nicht zertifiziertes AMS A erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "AMS-HT G: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "Nicht zertifiziertes AMS-HT C erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "AMS-HT F: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "AMS B: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Zeitüberschreitung bei der Kalibrierung der Liveview-Kamera. Bitte starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "AMS A: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "Nicht zertifiziertes AMS-HT A erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "Nicht zertifiziertes AMS C erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Das Gerät kann das Lasermodul nicht erkennen. Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "Nicht zertifiziertes AMS-HT G erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "Nicht zertifiziertes AMS-HT F erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "Die Firmware der Luftpumpe stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "Die Initialisierung der Liveview-Kamera ist fehlgeschlagen. Der Druckvorgang kann fortgesetzt werden, einige KI-Funktionen sind jedoch deaktiviert. Wenn das Problem nach dem Neustart erneut auftritt, wenden Sie sich bitte an den Kundensupport."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Das Gerät kann das Schneidmodul nicht erkennen. Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "Die visuelle Encoderplatte wurde nicht erkannt. Bitte überprüfen Sie, ob die Platte richtig eingesetzt und an allen vier Ecken ausgerichtet ist, und stellen Sie sicher, dass die Positionierungsmarkierungen deutlich und unbeschädigt sind."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Referenzierung der Z-Achse fehlgeschlagen: Temperaturregelung fehlerhaft."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Fehler beim Starten einer neuen Aufgabe: Der Cold Pull der Düse wurde nicht abgeschlossen."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "Aufgrund von Leistungsbeschränkungen des Druckers können während des AMS-Trocknungsvorgangs kein Druck, keine Kalibrierung, keine Steuerungsfunktionen und keine anderen Aktionen ausgeführt werden. Bitte stoppen Sie den Trocknungsvorgang, bevor Sie mit anderen Vorgängen fortfahren."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Eine neue Aufgabe konnte nicht gestartet werden: Filament wird geladen/entladen."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Bitte befestigen Sie das 80 g weiße Druckpapier in der Mitte der Plattform."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "Das Gerät ist beschäftigt und kann keine Düsenidentifizierung durchführen."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Das Heizbett ist möglicherweise beim Absenken blockiert. Entfernen Sie alle Gegenstände unter dem Heizbett und überprüfen Sie, ob es beim Absenken Widerstand oder Blockaden gibt."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Hotend konnte nicht in Halter Position 2 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Hotend konnte nicht aus Position 6 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "Die Referenzfahrt des Induktions- Hotend-Rack ist aufgrund einer Behinderung fehlgeschlagen. Bitte entfernen Sie das Hindernis, bevor Sie den Druckvorgang fortsetzen."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Hotend konnte nicht aus Position 5 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Hotend konnte nicht in Halter Position 5 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "Der Referenzabstand des Hotend-Racks ist ungewöhnlich groß. Bitte überprüfen Sie, ob der Riemen locker oder gerissen ist."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Hotend konnte nicht aus Position 4 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Hotend konnte nicht aus Position 1 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Hotend konnte nicht aus Position 4 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Hotend konnte nicht in Halter Position 5 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Vor der Verwendung des Lasermodus oder der Kalibrierung der Hotend-Rack-Position entfernen Sie bitte alle Hotends aus dem Rack."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Hotend konnte nicht aus Position 3 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Hotend konnte nicht aus Position 3 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Verriegelung fehlgeschlagen. Bitte prüfen Sie, ob sich klebriges Material an der Düse befindet."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Hotend konnte nicht aus Position 2 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Hotend konnte nicht aus Position 2 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "Hotend konnte nicht in Halter Position 3 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Hotend konnte nicht aus Position 6 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Verriegelung fehlgeschlagen. Bitte überprüfen Sie, ob sich an der Düse klebriges Material befindet."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Entriegelung fehlgeschlagen. Bitte überprüfen Sie die Einbauposition der Auswurfstange."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "Das Kühlungslüftermodul des Werkzeugkopfes funktioniert nicht richtig."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Hotend konnte nicht aus Position 1 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Die Grobreferenzierung des Hotend-Racks ist fehlgeschlagen. Der Druckvorgang wurde abgebrochen. Bitte überprüfen Sie, ob die Bewegung des Racks durch ein Hindernis blockiert wird."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Hotend konnte nicht in Halter Position 3 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Hotend konnte nicht in Halter Position 6 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Hotend konnte nicht in Halter Position 4 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Hotend konnte nicht aus Position 5 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "Hotend konnte nicht in Halter Position 1 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "Hotend konnte nicht in Halter Position 2 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Hotend konnte nicht in Halter Position 1 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Entriegelung fehlgeschlagen. Bitte überprüfen Sie die Einbauposition der Auswurfstange."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Hotend konnte nicht in Halter Position 4 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Hotend konnte nicht in Halter Position 6 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS trocknet gerade und kann momentan nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "Der Drucker lädt oder entlädt gerade Filament und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Das Gerät druckt gerade und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "AMS wird initialisiert und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS ist in Betrieb und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es erneut, wenn das System nicht verwendet wird."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Bitte erhitzen Sie die Düse auf über 170°C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "Das Gerät kann keinen Feuerlöscher erkennen.  Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "Das Gerät kann die vierte Laserachse nicht erkennen.  Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Das Gerät wird derzeit aktualisiert. Bitte versuchen Sie es erneut, wenn es wieder verfügbar ist."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "In der Kammer wurde ein kleines Feuer entdeckt, und der automatische Feuerlöschvorgang wurde abgebrochen."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Derzeit im 2D-Produktionsmodus. Bitte setzen Sie den Vorgang auf dem Drucker fort."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Der Feuerlöscherzylinder ist nicht installiert. Bitte überprüfen Sie dies auf der Feuerlöscher-Seite."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Feuerlöscher nicht erkannt, die automatische Löschfunktion ist nicht verfügbar."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Der Feuerlöscher funktioniert nicht richtig."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "Die Gasflasche des Feuerlöschers ist leer."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Anomalie des Sensorsignals für die Kalibrierung des Düsenversatzes erkannt. Bitte überprüfen Sie den Sensor und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Reset des Feuerlöschermotors fehlgeschlagen."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Feuerlöscher nicht erkannt, die automatische Löschfunktion ist nicht verfügbar."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "Die Aufgabe kann nicht angehalten werden."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "Die Offset-Kalibrierung des Schneidmoduls ist fehlgeschlagen, was zu ungenauen Schnitten führen kann. Bitte stellen Sie sicher, dass das 80g weiße Druckerpapier (Briefpapierstärke) richtig positioniert ist, und überprüfen Sie, ob die Schneidklinge abgenutzt ist."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Aufgabe abgebrochen, weil die Vordertür oder die obere Abdeckung geöffnet ist."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Fehler des Sensors zur Kalibrierung des Düsenversatzes. Wenn Sie ein einzelnes Hotend verwenden oder die Kalibrierungsfunktion deaktiviert ist, können Sie dies ignorieren und mit dem Drucken fortfahren. Andernfalls wird empfohlen, den Sensor zu überprüfen, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Das Filament im Hotend ist zu kalt. Die Extrusion kann den Extruder beschädigen. Wird das Filament weiterhin zugeführt/ausgegeben?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "Der Feuerlöscher wurde erkannt und ist nach dem Anschließen des Lasermoduls einsatzbereit."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "Die Silikonsocke der Düse ist nicht installiert. Es besteht die Gefahr einer Fehlfunktion der Temperaturregelung. Bitte installieren Sie diese korrekt und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Die Initialisierung der Werkzeugkopfkamera ist fehlgeschlagen. Der Druck kann fortgesetzt werden, jedoch sind einige AI-Funktionen deaktiviert. Wenn dieses Problem nach dem Neustart erneut auftritt, wenden Sie sich bitte an den Kundendienst."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "Die Referenzfahrt des XY-Motors ist während der Referenzfahrt des Hotend-Halters fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind, und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "Das Hotend ist während des Druckvorgangs aus der Halterung gefallen. Bitte bringen Sie es wieder in seine ursprüngliche Position zurück, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "Hotend-Halterung blockiert. Bitte auf Hindernisse überprüfen und erneut versuchen."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Laser-/Kalibrierungsmodus: Bitte entfernen Sie alle Hotends aus der Halterung, bevor Sie es erneut versuchen."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "Die Referenzfahrt des Hotend-Halters ist zu lang. Bitte überprüfen Sie den Riemen und das Motorgetriebe auf Lockerung oder Beschädigungen."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "Das Hotend-Wechselsystem ist beschäftigt. Bitte führen Sie das Upgrade durch, wenn es inaktiv ist."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Bitte legen Sie eine StrongGrip Schnittmatte auf die Schnittschutzbasis."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "Der Druckvorgang wurde unterbrochen, da die 3MF-Datei ungültig ist. Bitte überprüfen Sie, ob beim Slicen das richtige Druckermodell ausgewählt wurde, oder aktualisieren Sie Studio und slicen Sie die Datei erneut."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "Die AMS-Schätzung des verbleibenden Filament ist standardmäßig aktiviert und kann nicht deaktiviert werden."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "Der Druckvorgang wurde unterbrochen, da die verfügbare Hotend-Menge oder das Hotend-Modell nicht mit der geslicten Datei übereinstimmt. Bitte überprüfen Sie das Hotend-Modell und die Menge, bevor Sie den Druckauftrag neu starten."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "Die Hotend Authentifizierung ist fehlgeschlagen. Bitte wechseln Sie das Hotend oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "Die Überprüfung des Induktions-Hotends ist aufgrund einer Zeitüberschreitung beim Hotend-Wechsel fehlgeschlagen. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "Es wurde kein Hotend im Induktions-Hotendhalter oder im Hotend-Rack erkannt. Bitte installieren Sie ein Hotend und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "Die Kalibrierung des Induktions-Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie den Assistenten."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Lasermodul erkannt. Bitte installieren Sie die rechte Düse korrekt, um eine ordnungsgemäße Kalibrierung der Lasermodulbefestigung sicherzustellen."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "Die Temperatur des rechten Hotend-Heatbreaks ist zu hoch, was zu Verstopfungen führen kann. Öffnen Sie bitte die obere Abdeckung und die Vordertür des Druckers, um die Kammertemperatur zu senken, oder senken Sie die Umgebungstemperatur."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "Das Hotend-Rack ist vollständig belegt, und ein Hotend-Wechsel kann nicht durchgeführt werden. Bitte entfernen Sie ein Hotend, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "Das Gerät ist beschäftigt und kann derzeit keine Hotend-Rack-Aufgaben ausführen. Bitte versuchen Sie es später erneut."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "Das rechte Hotend ist nicht installiert, und der Werkzeugkopf kann keine Referenzfahrt durchführen. Bitte installieren Sie das Hotend und fahren Sie dann fort."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Das Hotend-Rack wurde nicht kalibriert, und der Wechsel des Hotends kann nicht durchgeführt werden. Bitte führen Sie die Rack-Kalibrierung am Gerät durch."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "Das Hotend-Rack ist vollständig belegt. Bitte entfernen Sie ein Hotend, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Das Auslesen der Induktions-Hotend-Informationen ist fehlgeschlagen. Bitte ersetzen Sie das Hotend oder starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Die Düsenreinigung ist fehlgeschlagen. Klicken Sie bitte auf den Assistenten, um das Problem zu beheben."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Fehler am Hotend-Rack-Motor. Bitte überprüfen Sie die Bewegung des Racks auf Hindernisse und entfernen Sie diese, bevor Sie fortfahren."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "MC–Hotend-Rack-Kommunikationsfehler. Bitte überprüfen Sie, ob das Kabel der Rack-Hauptplatine locker ist."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Die Induktions-Hotend-Überprüfung ist fehlgeschlagen. Bitte ersetzen Sie das Hotend und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Fehler beim Positionssensor des Hotend-Rack-Motors. Wenn das Problem nach erneuten Versuchen weiterhin besteht, starten Sie den Drucker neu."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Das Hotend-Rack wurde nicht eingerichtet. Bitte schließen Sie die Einrichtung ab, bevor Sie einen Hotend-Wechsel vornehmen."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Lasermodul erkannt. Bitte entfernen Sie das Hotend aus dem Hotend-Rack, um zu verhindern, dass Rückstände aus der Laserbearbeitung die Druckleistung beeinträchtigen."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Fehler bei der Erkennung des Induktions-Hotends festgestellt. Bitte gehen Sie zur Seite „Hotends & Rack“ und klicken Sie auf „Alle lesen“, um die Erkennung erneut durchzuführen. Wenn das Problem weiterhin besteht, versuchen Sie, die Firmware auf der Seite „Firmware“ zu aktualisieren."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
+                },
+                {
                     "ecode": "0502C024",
-                    "intro": "Die Strömungsdynamik-Kalibrierungsdatensätze haben das Speicherlimit überschritten. Bitte löschen Sie einige historische Datensätze in der Slicer-Software, bevor Sie neue Kalibrierungsdaten hinzufügen."
+                    "intro": "Die Aufzeichnungen zur Flussdynamik-Kalibrierung haben die Speichergrenze überschritten. Bitte löschen Sie einige ältere Aufzeichnungen in der Slicer-Software, bevor Sie neue Kalibrierungsdaten hinzufügen."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "Während der Düsenversatzkalibrierung wurde ein Hotend-Informationen-Update erkannt. Bitte gehen Sie zur Seite \"Hotends & Rack\" und klicken Sie auf \"Alle lesen\", um die Neuerkennung durchzuführen. Wenn das Problem weiterhin besteht, versuchen Sie ein Update von der Seite \"Firmware\" aus."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "Versatz der Druckplatte erkannt. Bitte richten Sie die Druckplatte am Heizbett aus und fahren Sie dann fort."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Während des Druckens wurde ein Hotend-Typenfehlanpassung festgestellt. Bitte ersetzen Sie das Hotend im Steckplatz 3 auf dem Gestell durch den im Slicer angegebenen Typ, bevor Sie mit dem Druckvorgang fortfahren."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Während des Druckens wurde ein Hotend-Typenfehlanpassung festgestellt. Bitte ersetzen Sie das Hotend in Steckplatz 4 im Gestell durch den im Slicer angegebenen Typ, bevor Sie mit dem Druckvorgang fortfahren."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Während des Druckens wurde ein Hotend-Typenfehlanpassung festgestellt. Bitte ersetzen Sie das Hotend im Steckplatz 2 im Gestell durch den im Slicer angegebenen Typ, bevor Sie mit dem Druckvorgang fortfahren."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Während des Druckens wurde ein Hotend-Typenfehlanpassung festgestellt. Bitte ersetzen Sie das Hotend im Steckplatz 1 im Gestell durch den im Slicer angegebenen Typ, bevor Sie mit dem Druckvorgang fortfahren."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Während des Druckens wurde ein Hotend-Typenfehlanpassung festgestellt. Bitte ersetzen Sie das Hotend im Steckplatz 5 im Gestell durch den im Slicer angegebenen Typ, bevor Sie mit dem Druckvorgang fortfahren."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Während des Druckens wurde ein Hotend-Typenfehlanpassung festgestellt. Bitte ersetzen Sie das Hotend in Steckplatz 6 im Gestell durch den im Slicer angegebenen Typ, bevor Sie mit dem Druckvorgang fortfahren."
                 },
                 {
                     "ecode": "05008078",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "Der Flammensensor ist nicht in Ordnung. Der Sensor kann kurzgeschlossen sein. Bitte beheben Sie das Problem, bevor Sie einen Druckauftrag starten."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "AMS-HT C: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "Die Firmware des Lasermoduls passt nicht zum Drucker. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "Nicht zertifiziertes AMS-HT H erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "AMS-HT E: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "Die Firmware des Schneidmoduls passt nicht zum Drucker. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "AMS-HT A: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "Die Offset-Kalibrierung des Schneidmoduls ist fehlgeschlagen, was zu ungenauen Schnitten führen kann. Bitte stellen Sie sicher, dass das Schneidematerial richtig positioniert ist, und überprüfen Sie, ob die Schneidklinge abgenutzt ist."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "Das Gerät kann die Luftpumpe nicht erkennen.  Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "AMS C: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "AMS-HT B: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "Nicht zertifiziertes AMS-HT E erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "Die KI hat eine Düsenverklumpung festgestellt. Bitte überprüfen Sie den Zustand der Düse. Wenden Sie sich für Lösungen an den Assistenten."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "Die Initialisierung der BirdsEye-Kamera ist fehlgeschlagen. Die Werkzeugkopfkamera hat die Merkmale des Heizbetts nicht erkannt. Bitte reinigen Sie das Heizbett, entfernen Sie alle Objekte und Pads und stellen Sie sicher, dass die Bettmarkierungen sichtbar sind. Eine detaillierte Lösung finden Sie im Assistenten."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "AMS D: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "Die KI-Drucküberwachung hat einen Spaghetti-Fehler erkannt. Bitte überprüfen Sie den Druck und ergreifen Sie die erforderlichen Maßnahmen."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "Nicht zertifiziertes AMS-HT D erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "Die Linse der Düsenkamera ist verschmutzt, was die KI-Überwachung beeinträchtigt. Reinigen Sie die Linse mit einem Mikrofasertuch und etwas Alkohol. Achten Sie auf die Hitze des Hotends. Warten Sie, bis es abgekühlt ist, bevor Sie es anfassen."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "Nicht zertifiziertes AMS-HT B erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "Nicht zertifiziertes AMS D erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "AMS-HT H: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "AMS-HT D: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "Nicht zertifiziertes AMS B erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "Nicht zertifiziertes AMS A erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "AMS-HT G: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "Nicht zertifiziertes AMS-HT C erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "AMS-HT F: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "AMS B: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Zeitüberschreitung bei der Kalibrierung der Liveview-Kamera. Bitte starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "AMS A: Die Firmware stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "Nicht zertifiziertes AMS-HT A erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "Nicht zertifiziertes AMS C erkannt. Bitte schließen Sie das AMS-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "Das Gerät kann das Lasermodul nicht erkennen. Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "Nicht zertifiziertes AMS-HT G erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "Nicht zertifiziertes AMS-HT F erkannt. Bitte schließen Sie das AMS-HT-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "Die Firmware der Luftpumpe stimmt nicht mit dem Drucker überein. Das Gerät kann nicht weiterverwendet werden. Bitte aktualisieren Sie diese auf der Seite „Firmware“."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "Die Initialisierung der Liveview-Kamera ist fehlgeschlagen. Der Druckvorgang kann fortgesetzt werden, einige KI-Funktionen sind jedoch deaktiviert. Wenn das Problem nach dem Neustart erneut auftritt, wenden Sie sich bitte an den Kundensupport."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Das Gerät kann das Schneidmodul nicht erkennen. Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "Die visuelle Encoderplatte wurde nicht erkannt. Bitte überprüfen Sie, ob die Platte richtig eingesetzt und an allen vier Ecken ausgerichtet ist, und stellen Sie sicher, dass die Positionierungsmarkierungen deutlich und unbeschädigt sind."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Referenzierung der Z-Achse fehlgeschlagen: Temperaturregelung fehlerhaft."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Fehler beim Starten einer neuen Aufgabe: Der Cold Pull der Düse wurde nicht abgeschlossen."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "Aufgrund von Leistungsbeschränkungen des Druckers können während des AMS-Trocknungsvorgangs kein Druck, keine Kalibrierung, keine Steuerungsfunktionen und keine anderen Aktionen ausgeführt werden. Bitte stoppen Sie den Trocknungsvorgang, bevor Sie mit anderen Vorgängen fortfahren."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Eine neue Aufgabe konnte nicht gestartet werden: Filament wird geladen/entladen."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Bitte befestigen Sie das 80 g weiße Druckpapier in der Mitte der Plattform."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "Das Gerät ist beschäftigt und kann keine Düsenidentifizierung durchführen."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Das Heizbett ist möglicherweise beim Absenken blockiert. Entfernen Sie alle Gegenstände unter dem Heizbett und überprüfen Sie, ob es beim Absenken Widerstand oder Blockaden gibt."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Hotend konnte nicht in Halter Position 2 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Hotend konnte nicht aus Position 6 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "Die Referenzfahrt des Induktions- Hotend-Rack ist aufgrund einer Behinderung fehlgeschlagen. Bitte entfernen Sie das Hindernis, bevor Sie den Druckvorgang fortsetzen."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Hotend konnte nicht aus Position 5 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Hotend konnte nicht in Halter Position 5 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "Der Referenzabstand des Hotend-Racks ist ungewöhnlich groß. Bitte überprüfen Sie, ob der Riemen locker oder gerissen ist."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Hotend konnte nicht aus Position 4 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Hotend konnte nicht aus Position 1 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Hotend konnte nicht aus Position 4 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Hotend konnte nicht in Halter Position 5 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Vor der Verwendung des Lasermodus oder der Kalibrierung der Hotend-Rack-Position entfernen Sie bitte alle Hotends aus dem Rack."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Hotend konnte nicht aus Position 3 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Hotend konnte nicht aus Position 3 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Verriegelung fehlgeschlagen. Bitte prüfen Sie, ob sich klebriges Material an der Düse befindet."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Hotend konnte nicht aus Position 2 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Hotend konnte nicht aus Position 2 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "Hotend konnte nicht in Halter Position 3 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Hotend konnte nicht aus Position 6 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Verriegelung fehlgeschlagen. Bitte überprüfen Sie, ob sich an der Düse klebriges Material befindet."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Entriegelung fehlgeschlagen. Bitte überprüfen Sie die Einbauposition der Auswurfstange."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "Das Kühlungslüftermodul des Werkzeugkopfes funktioniert nicht richtig."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Hotend konnte nicht aus Position 1 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Die Grobreferenzierung des Hotend-Racks ist fehlgeschlagen. Der Druckvorgang wurde abgebrochen. Bitte überprüfen Sie, ob die Bewegung des Racks durch ein Hindernis blockiert wird."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Hotend konnte nicht in Halter Position 3 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Hotend konnte nicht in Halter Position 6 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Hotend konnte nicht in Halter Position 4 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Hotend konnte nicht aus Position 5 der Halterung entnommen werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "Hotend konnte nicht in Halter Position 1 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Hotend konnte nicht in Halter Position 2 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Hotend konnte nicht in Halter Position 1 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Entriegelung fehlgeschlagen. Bitte überprüfen Sie die Einbauposition der Auswurfstange."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Hotend konnte nicht in Halter Position 4 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Hotend konnte nicht in Halter Position 6 platziert werden. Bitte überprüfen Sie, ob Filamentreste oder anhaftendes Material vorhanden ist."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "AMS trocknet gerade und kann momentan nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "Der Drucker lädt oder entlädt gerade Filament und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "Das Gerät druckt gerade und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "AMS wird initialisiert und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "AMS ist in Betrieb und kann derzeit nicht aktualisiert werden. Bitte versuchen Sie es erneut, wenn das System nicht verwendet wird."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Bitte erhitzen Sie die Düse auf über 170°C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "Das Gerät kann keinen Feuerlöscher erkennen.  Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "Das Gerät kann die vierte Laserachse nicht erkennen.  Bitte schließen Sie das Modul-Kabel erneut an oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "Das Gerät wird derzeit aktualisiert. Bitte versuchen Sie es erneut, wenn es wieder verfügbar ist."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "In der Kammer wurde ein kleines Feuer entdeckt, und der automatische Feuerlöschvorgang wurde abgebrochen."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "Derzeit im 2D-Produktionsmodus. Bitte setzen Sie den Vorgang auf dem Drucker fort."
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "Der Feuerlöscherzylinder ist nicht installiert. Bitte überprüfen Sie dies auf der Feuerlöscher-Seite."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Feuerlöscher nicht erkannt, die automatische Löschfunktion ist nicht verfügbar."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "Der Feuerlöscher funktioniert nicht richtig."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "Die Gasflasche des Feuerlöschers ist leer."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Anomalie des Sensorsignals für die Kalibrierung des Düsenversatzes erkannt. Bitte überprüfen Sie den Sensor und versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Reset des Feuerlöschermotors fehlgeschlagen."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Feuerlöscher nicht erkannt, die automatische Löschfunktion ist nicht verfügbar."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "Die Aufgabe kann nicht angehalten werden."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "Die Offset-Kalibrierung des Schneidmoduls ist fehlgeschlagen, was zu ungenauen Schnitten führen kann. Bitte stellen Sie sicher, dass das 80g weiße Druckerpapier (Briefpapierstärke) richtig positioniert ist, und überprüfen Sie, ob die Schneidklinge abgenutzt ist."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Aufgabe abgebrochen, weil die Vordertür oder die obere Abdeckung geöffnet ist."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Fehler des Sensors zur Kalibrierung des Düsenversatzes. Wenn Sie ein einzelnes Hotend verwenden oder die Kalibrierungsfunktion deaktiviert ist, können Sie dies ignorieren und mit dem Drucken fortfahren. Andernfalls wird empfohlen, den Sensor zu überprüfen, bevor Sie fortfahren."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "Das Filament im Hotend ist zu kalt. Die Extrusion kann den Extruder beschädigen. Wird das Filament weiterhin zugeführt/ausgegeben?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "Der Feuerlöscher wurde erkannt und ist nach dem Anschließen des Lasermoduls einsatzbereit."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "Die Silikonsocke der Düse ist nicht installiert. Es besteht die Gefahr einer Fehlfunktion der Temperaturregelung. Bitte installieren Sie diese korrekt und versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "Die Initialisierung der Werkzeugkopfkamera ist fehlgeschlagen. Der Druck kann fortgesetzt werden, jedoch sind einige AI-Funktionen deaktiviert. Wenn dieses Problem nach dem Neustart erneut auftritt, wenden Sie sich bitte an den Kundendienst."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "Die Referenzfahrt des XY-Motors ist während der Referenzfahrt des Hotend-Halters fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind, und versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "Das Hotend ist während des Druckvorgangs aus der Halterung gefallen. Bitte bringen Sie es wieder in seine ursprüngliche Position zurück, bevor Sie fortfahren."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "Hotend-Halterung blockiert. Bitte auf Hindernisse überprüfen und erneut versuchen."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Laser-/Kalibrierungsmodus: Bitte entfernen Sie alle Hotends aus der Halterung, bevor Sie es erneut versuchen."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "Die Referenzfahrt des Hotend-Halters ist zu lang. Bitte überprüfen Sie den Riemen und das Motorgetriebe auf Lockerung oder Beschädigungen."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "Das Hotend-Wechselsystem ist beschäftigt. Bitte führen Sie das Upgrade durch, wenn es inaktiv ist."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Bitte legen Sie eine StrongGrip Schnittmatte auf die Schnittschutzbasis."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "Der Druckvorgang wurde unterbrochen, da die 3MF-Datei ungültig ist. Bitte überprüfen Sie, ob beim Slicen das richtige Druckermodell ausgewählt wurde, oder aktualisieren Sie Studio und slicen Sie die Datei erneut."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "Die AMS-Schätzung des verbleibenden Filament ist standardmäßig aktiviert und kann nicht deaktiviert werden."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "Der Druckvorgang wurde unterbrochen, da die verfügbare Hotend-Menge oder das Hotend-Modell nicht mit der geslicten Datei übereinstimmt. Bitte überprüfen Sie das Hotend-Modell und die Menge, bevor Sie den Druckauftrag neu starten."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "Die Hotend Authentifizierung ist fehlgeschlagen. Bitte wechseln Sie das Hotend oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "Die Überprüfung des Induktions-Hotends ist aufgrund einer Zeitüberschreitung beim Hotend-Wechsel fehlgeschlagen. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "Es wurde kein Hotend im Induktions-Hotendhalter oder im Hotend-Rack erkannt. Bitte installieren Sie ein Hotend und versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "Die Kalibrierung des Induktions-Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie den Assistenten."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Die Zuordnungstabelle für Filament und Hotend konnte nicht aus der Slicing-Datei abgerufen werden. Bitte versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Lasermodul erkannt. Bitte installieren Sie die rechte Düse korrekt, um eine ordnungsgemäße Kalibrierung der Lasermodulbefestigung sicherzustellen."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "Die Temperatur des rechten Hotend-Heatbreaks ist zu hoch, was zu Verstopfungen führen kann. Öffnen Sie bitte die obere Abdeckung und die Vordertür des Druckers, um die Kammertemperatur zu senken, oder senken Sie die Umgebungstemperatur."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "Das Hotend-Rack ist vollständig belegt, und ein Hotend-Wechsel kann nicht durchgeführt werden. Bitte entfernen Sie ein Hotend, bevor Sie fortfahren."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "Das Gerät ist beschäftigt und kann derzeit keine Hotend-Rack-Aufgaben ausführen. Bitte versuchen Sie es später erneut."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "Das rechte Hotend ist nicht installiert, und der Werkzeugkopf kann keine Referenzfahrt durchführen. Bitte installieren Sie das Hotend und fahren Sie dann fort."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Das Hotend-Rack wurde nicht kalibriert, und der Wechsel des Hotends kann nicht durchgeführt werden. Bitte führen Sie die Rack-Kalibrierung am Gerät durch."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "Das Hotend-Rack ist vollständig belegt. Bitte entfernen Sie ein Hotend, bevor Sie fortfahren."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Das Auslesen der Induktions-Hotend-Informationen ist fehlgeschlagen. Bitte ersetzen Sie das Hotend oder starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Die Düsenreinigung ist fehlgeschlagen. Klicken Sie bitte auf den Assistenten, um das Problem zu beheben."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Fehler am Hotend-Rack-Motor. Bitte überprüfen Sie die Bewegung des Racks auf Hindernisse und entfernen Sie diese, bevor Sie fortfahren."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "MC–Hotend-Rack-Kommunikationsfehler. Bitte überprüfen Sie, ob das Kabel der Rack-Hauptplatine locker ist."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "Die Induktions-Hotend-Überprüfung ist fehlgeschlagen. Bitte ersetzen Sie das Hotend und versuchen Sie es erneut."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Fehler beim Positionssensor des Hotend-Rack-Motors. Wenn das Problem nach erneuten Versuchen weiterhin besteht, starten Sie den Drucker neu."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "Die Grobreferenzierung des Hotend-Rack ist fehlgeschlagen. Bitte überprüfen Sie, ob Hindernisse vorhanden sind oder ob die Druckplatte falsch ausgerichtet ist."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "Das Hotend-Rack wurde nicht eingerichtet. Bitte schließen Sie die Einrichtung ab, bevor Sie einen Hotend-Wechsel vornehmen."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Lasermodul erkannt. Bitte entfernen Sie das Hotend aus dem Hotend-Rack, um zu verhindern, dass Rückstände aus der Laserbearbeitung die Druckleistung beeinträchtigen."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Fehler bei der Erkennung des Induktions-Hotends festgestellt. Bitte gehen Sie zur Seite „Hotends & Rack“ und klicken Sie auf „Alle lesen“, um die Erkennung erneut durchzuführen. Wenn das Problem weiterhin besteht, versuchen Sie, die Firmware auf der Seite „Firmware“ zu aktualisieren."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "Die Überprüfung vor dem Hotendtausch ist fehlgeschlagen. Bitte überprüfen Sie, ob das Hotend korrekt platziert ist."
                 }
             ]
         }

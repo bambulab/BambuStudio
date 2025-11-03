@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "sv": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 2: hotenden har fallit. Vänligen kontrollera om det finns överdriven filament kvar högst upp på hotenden, trimma resterna, installera om hotenden i plats 2 på hyllan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 2. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i plats 2 på hyllan innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 4: ingen hotend upptäckt på verktygshuvudet. Montera hotenden på verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 5: stället misslyckades med att montera hotend korrekt. Vänligen kontrollera för överdriven filament längst upp på hotend, skräp i kontaktytan mellan verktygshuvudet och hotend, eller om låsspaken är i frisläppt läge. Efter att ha löst problemet, klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 3. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i plats 3 på hyllan innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 1: stativet misslyckades med att upptäcka hotend på verktygshuvudet. Vänligen kontrollera om det finns något skräp på hotend-kylflänsytan eller om den främre magneten har fallit av. Om inte, kalibrera om induktionshotend-stativet."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 1: ingen hotend upptäckt på verktygshuvudet. Vänligen montera hotenden på verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 3: stället misslyckades med att lossa hotenden från verktygshuvudet. Se till att låsspaken är i frisläppt läge."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 6. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i plats 6 på hyllan innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 1: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 5: hotend har fallit. Vänligen kontrollera för överdriven filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera hotend i plats 5 på hyllan och klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 3: rackrörelsen är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 4: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 3: hotenden har fallit. Vänligen kontrollera om det finns överdriven filament kvar överst på hotenden, trimma resterna, installera om hotenden i plats 3 på hyllan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "Värmehuvudets rackrörelse har timat ut. Vänligen kontrollera om det finns några främmande föremål eller hinder som kan orsaka att racken fastnar."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 6: stället misslyckades med att montera hotend korrekt. Vänligen kontrollera för överdriven filament längst upp på hotend, skräp i kontaktytan mellan verktygshuvudet och hotend, eller om låsspaken är i frigörda läget. Efter att ha löst problemet, klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 3: en hotend är redan installerad. Vänligen ta bort den befintliga innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 5: verktygshuvudet misslyckades med att upptäcka hotend på hyllan. Vänligen kontrollera om det finns några skräp i monteringsspåret för induktionshotend på verktygshuvudet. Om inget hittas, kalibrera om induktionshotend-hyllan."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 4: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 2: ingen hotend hittades på denna position. Installera en hotend i motsvarande plats innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 4: en hotend är redan installerad. Vänligen ta bort den befintliga innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 5: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Onormalt tillstånd upptäckt vid inbäddning av hotend i plats 1: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 6: hotend har fallit. Kontrollera för överdriven filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera hotend i plats 6 på hyllan och klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 2: stativet misslyckades med att montera hotend korrekt. Vänligen kontrollera för överdriven filament längst upp på hotend, skräp i kontaktytan mellan verktygshuvudet och hotend, eller om låsspaken är i frisläppt läge. Efter att ha löst problemet, klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 1: hotenden har fallit. Kontrollera om det finns överdriven filament kvar högst upp på hotenden, trimma resterna, installera hotenden i plats 1 på hyllan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 4. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i plats 4 på hyllan innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 5: ingen hotend hittades på denna position. Installera en hotend i motsvarande plats innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 1: ingen hotend hittades på denna position. Installera en hotend i motsvarande plats innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 2: en hotend är redan installerad. Vänligen ta bort den befintliga innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 6: ingen hotend hittades på denna position. Installera en hotend i motsvarande plats innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 4: rackrörelsen är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 5: rackrörelsen är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 3: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 4: stativet misslyckades med att montera hotend korrekt. Kontrollera om det finns överdriven filament längst upp på hotend, skräp i kontaktytan mellan verktygshuvudet och hotend, eller om låsspaken är i frigörda läget. Efter att ha löst problemet, klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 3: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Onormalt tillstånd upptäckt vid placering av hotend i plats 6: rackrörelsen är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 5: stället misslyckades med att lossa hotenden från verktygshuvudet. Se till att låsspaken är i frisläppt läge."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 5: en hotend är redan monterad på verktygshuvudet. Ta bort hotenden från verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 2: stativet misslyckades med att upptäcka hotend på verktygshuvudet. Vänligen kontrollera om det finns några skräp på hotend-värmeavledarens yta eller om den främre magneten har fallit av. Om inte, kalibrera om induktionshotend-stativet."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 4: stället misslyckades med att lossa hotend från verktygshuvudet. Se till att låsspaken är i frisläppt läge."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 6: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "Värmehuvudets verktygsfäste låsstångens position är onormal. Vänligen kontrollera om det finns några främmande föremål eller hinder som kan orsaka att låsstången fastnar."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 1: verktygshuvudet misslyckades med att upptäcka hotend på hyllan. Vänligen kontrollera om det finns något skräp i monteringsspåret för induktionshotend på verktygshuvudet. Om inget hittas, kalibrera om induktionshotend-hyllan."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 1: hotend har fallit. Vänligen kontrollera för överdriven filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera hotend i plats 1 på hyllan och klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 6: verktygshuvudet misslyckades med att upptäcka hotend på hyllan. Vänligen kontrollera om det finns några skräp i monteringsspåret för induktionshotend på verktygshuvudet. Om inget hittas, kalibrera om induktionshotend-hyllan."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 1. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i plats 1 på hyllan innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 4: ingen hotend hittades på denna position. Installera en hotend i motsvarande plats innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 3: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 4: hotend har fallit. Vänligen kontrollera för överdriven filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera hotend i plats 4 på hyllan och klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Felaktigt låsningsspak eller rackspakutlösningsmekanism för induktionsvarmända. Vänligen se Wiki för inspektion."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 2: hotend har fallit. Vänligen kontrollera för överdriven filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera hotend i plats 2 på hyllan och klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 6: stativet misslyckades med att upptäcka hotend på verktygshuvudet. Vänligen kontrollera om det finns något skräp på hotend-kylflänsytan eller om den främre magneten har fallit av. Om inte, kalibrera om induktionshotend-stativet."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 1: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 1: en hotend är redan monterad på verktygshuvudet. Ta bort hotenden från verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 2: rackrörelsen är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 5. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i plats 5 på hyllan innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 5: ingen hotend upptäckt på verktygshuvudet. Montera hotenden på verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 4: stativet misslyckades med att upptäcka hotend på verktygshuvudet. Vänligen kontrollera om det finns några skräp på ytan av hotend-kylflänsen eller om den främre magneten har lossnat. Om inte, kalibrera om induktionshotend-stativet."
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 5: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 4: en hotend är redan monterad på verktygshuvudet. Ta bort hotenden från verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 3: stället misslyckades med att montera hotenden korrekt. Vänligen kontrollera för överdriven filament längst upp på hotenden, skräp i kontaktytan mellan verktygshuvudet och hotenden, eller om låsspaken är i frisläppt läge. Efter att ha löst problemet, klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 2: ingen hotend upptäckt på verktygshuvudet. Montera hotenden på verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 2: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 2: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 6: stället misslyckades med att lossa hotenden från verktygshuvudet. Se till att låsspaken är i frisläppt läge."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 3: hotend har fallit. Vänligen kontrollera för överdriven filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera hotend i plats 3 på hyllan och klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 5: stativet misslyckades med att upptäcka hotend på verktygshuvudet. Vänligen kontrollera om det finns något skräp på hotend-värmeavledarens yta eller om den främre magneten har lossnat. Om inte, kalibrera om induktionshotend-stativet."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 6: en hotend är redan monterad på verktygshuvudet. Ta bort hotenden från verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "Kalibreringen av hotend ställningen misslyckades. Markeringsfunktionen upptäcktes inte. Kontrollera om den visuella markeringen på ställningen är skadad eller täckt av smuts."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 3 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 1."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 1 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 4."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 2 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 1 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 3."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 6."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 5 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 2."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 4 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 2 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 3 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 6 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 1."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 5 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 5 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 6."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 4."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 3 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 1 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 5."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 3 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 6 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 1 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 5 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 3."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 6 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 5."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 2 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 2 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 2."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 6 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 4: verktygshuvudet misslyckades med att upptäcka hotend på hyllan. Vänligen kontrollera om det finns något skräp i monteringsspåret för induktionshotend på verktygshuvudet. Om inget hittas, kalibrera om induktionshotend-hyllan."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 1: stället misslyckades med att montera hotend korrekt. Vänligen kontrollera för överdriven filament längst upp på hotend, skräp i kontaktytan mellan verktygshuvudet och hotend, eller om låsspaken är i frisläppt läge. Efter att ha löst problemet, klicka på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 6: en hotend är redan installerad. Vänligen ta bort den befintliga innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 5: hotenden har fallit. Vänligen kontrollera om det finns överdriven filament kvar högst upp på hotenden, trimma resterna, installera hotenden i plats 5 på hyllan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 2: verktygshuvudet misslyckades med att upptäcka hotend på hyllan. Vänligen kontrollera om det finns några skräp i induktionshotendmonteringsspåret på verktygshuvudet. Om inget hittas, kalibrera om induktionshotendhyllan."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 3: verktygshuvudet misslyckades med att upptäcka hotend på hyllan. Vänligen kontrollera om det finns några skräp i monteringsspåret för induktionshotend på verktygshuvudet. Om inget hittas, kalibrera om induktionshotend-hyllan."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 3: en hotend är redan monterad på verktygshuvudet. Ta bort hotenden från verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 3: stativet misslyckades med att upptäcka hotend på verktygshuvudet. Vänligen kontrollera om det finns något skräp på hotend-kylflänsytan eller om den främre magneten har fallit av. Om inte, kalibrera om induktionshotend-stativet."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 2: stället misslyckades med att lossa hotend från verktygshuvudet. Se till att låsspaken är i frisläppt läge."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 2: en hotend är redan monterad på verktygshuvudet. Ta bort hotenden från verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i lucka 6: hotenden har fallit. Vänligen kontrollera om det finns överdriven filament kvar högst upp på hotenden, trimma resterna, installera hotenden i lucka 6 på hyllan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 6: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 6: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 5: en hotend är redan installerad. Vänligen ta bort den befintliga innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 4: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Onormalt tillstånd upptäckt vid hämtning av hotend från plats 3: ingen hotend hittades på denna position. Installera en hotend i motsvarande plats innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 1: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 1: en hotend är redan installerad. Vänligen ta bort den befintliga innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 4: hotenden har fallit. Vänligen kontrollera om det finns överdriven filament kvar överst på hotenden, trimma resterna, installera om hotenden i plats 4 på hyllan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 1: stället misslyckades med att lossa hotend från verktygshuvudet. Se till att låsspaken är i frisläppt läge."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Onormalt tillstånd upptäckt vid inläggning av hotend i plats 2: verktygshuvudets återcentrering misslyckades. Flytta verktygshuvudet manuellt till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Fel upptäckt vid hämtning av hotend från plats 5: rackrörelse är blockerad. Vänligen kontrollera eventuella främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 3: ingen hotend upptäckt på verktygshuvudet. Montera hotenden på verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Avvikande tillstånd upptäckt vid inläggning av hotend i plats 6: inget hotend upptäckt på verktygshuvudet. Montera hotenden på verktygshuvudet innan du klickar på \"Fortsätt\"."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Kalibreringen av induktionsvärme enhetens ställning misslyckades: resultatet överskred rörelseområdet. Kontrollera om ställningens struktur är deformerad."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Kalibrering av Hotend ställningen misslyckades: kamerans kalibreringsdata är onormala. Rengör nozzle rester, kontrollera om det värmebäddens termiska papperet är intakt och ta bort skräp från dess yta."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "Kylfläkten AMS-HT F värmare 2 kan inte starta eftersom nätadaptern inte är ansluten."
@@ -18595,6 +18067,406 @@
                     "intro": "AMS-HT H RFID 1 kortet har ett fel."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "Det roterande gravyr tillbehöret placeras felaktigt. Vänligen justera och flytta om det."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 5 är korrekt installerad."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 4 är korrekt installerad."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 6 är korrekt installerad."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 3 är korrekt installerad."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 2 är korrekt installerad."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Fel vid hämtning av hotend från fack 4: verktygshuvudet misslyckades med att upptäcka hotend i ställningen. Kontrollera om skräp i induktions hotend monteringsplats på verktygshuvudet. Om inget hittas, omkalibrera induktions hotend ställningen."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 1: ställningen kunde inte montera hotend korrekt. Kontrollera om det finns för mycket filament högst upp på hotend, skräp i kontakt området mellan verktygshuvudet och hotend, eller om låsspaken är i upplåst läge. Klicka på \"Fortsätt\" efter att du har löst problemet."
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Onormalt tillstånd upptäcktes när hotend kopplas i fack 6: en hotend är redan installerad. Ta bort den befintliga innan du klickar på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Onormalt tillstånd upptäcktes under koppling av hotend i fack 5: hotend har tappats. Kontrollera om det finns för mycket filament högst upp på hotend, trimma resterna, installera om hotend till fack 5 på stället, och klicka sedan på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Fel vid hämtning av hotend från fack 2: verktygshuvudet misslyckades med att upptäcka hotend i ställningen. Kontrollera om skräp i induktions hotend monteringsplats på verktygshuvudet. Om inget hittas, omkalibrera induktions hotend ställningen."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Fel vid hämtning av hotend från fack 3: verktygshuvudet misslyckades med att upptäcka hotend i ställningen. Kontrollera om skräp i induktions hotend monteringsplats på verktygshuvudet. Om inget hittas, omkalibrera induktions hotend ställningen."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Onormalt tillstånd upptäcks vid hämtning av hotend från fack 3: en hotend är redan monterad på verktygshuvudet. Ta bort hotend från verktygshuvudet innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 3: ställningen misslyckades att upptäcka hotend på verktygshuvudet. Kontrollera om det finns några skräp på hotend kylfläns eller om den främre magneten har fallit av. Om inte, omkalibrera induktion hotend ställningen."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 2: ställningen misslyckades att lossa hotend från verktygshuvudet. Se till att låsspaken är i det frigjorda läget."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Onormalt tillstånd upptäcks vid hämtning av hotend från fack 2: en hotend är redan monterad på verktygshuvudet. Ta bort hotend från verktygshuvudet innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Onormalt tillstånd upptäcktes under koppling av hotend i fack 6: hotend har tappats. Kontrollera om det finns för mycket filament högst upp på hotend, trimma resterna, installera om hotend till fack 6 på stället, och klicka sedan på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 6: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Fel upptäcktes medan hotend kopplas i fack 6: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Onormalt tillstånd upptäcktes när hotend kopplas i fack 5: en hotend är redan installerad. Ta bort den befintliga innan du klickar på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 4: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Onormalt tillstånd upptäcktes vid hämtning av hotend från fack 3: ingen hotend hittades i den här positionen. Installera en hotend i motsvarande fack innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 1: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Onormalt tillstånd upptäcktes när hotend kopplas i fack 1: en hotend är redan installerad. Ta bort den befintliga innan du klickar på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Onormalt tillstånd upptäcktes under koppling av hotend i fack 4: hotend har tappats. Kontrollera om det finns för mycket filament högst upp på hotend, trimma resterna, installera om hotend till fack 4 på stället, och klicka sedan på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 1: ställningen misslyckades att lossa hotend från verktygshuvudet. Se till att låsspaken är i det frigjorda läget."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 2: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Fel upptäcktes vid hämtning av hotend i fack 5: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 3: ingen hotend upptäcktes på verktygshuvudet. Vänligen montera hotend på verktygshuvudet innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 6: ingen hotend upptäcktes på verktygshuvudet. Vänligen montera hotend på verktygshuvudet innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Onormalt tillstånd upptäcktes under koppling av hotend i fack 2: hotend har tappats. Kontrollera om det finns för mycket filament högst upp på hotend, trimma resterna, installera om hotend till fack 2 på stället, och klicka sedan på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Onormalt tillstånd upptäcks vid koppling av hotend i fack 2. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i fack 2 på ställningen innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 4: ingen hotend upptäcktes på verktygshuvudet. Vänligen montera hotend på verktygshuvudet innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 5: ställningen kunde inte montera hotend korrekt. Kontrollera om det finns för mycket filament högst upp på hotend, skräp i kontakt området mellan verktygshuvudet och hotend, eller om låsspaken är i upplåst läge. Klicka på \"Fortsätt\" efter att du har löst problemet."
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Onormalt tillstånd upptäcks vid koppling av hotend i fack 3. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i fack 3 på ställningen innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 1: ställningen misslyckades att upptäcka hotend på verktygshuvudet. Kontrollera om det finns några skräp på hotend kylfläns eller om den främre magneten har fallit av. Om inte, omkalibrera induktion hotend ställningen."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 1: ingen hotend upptäcktes på verktygshuvudet. Vänligen montera hotend på verktygshuvudet innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 3: ställningen misslyckades att lossa hotend från verktygshuvudet. Se till att låsspaken är i det frigjorda läget."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Onormalt tillstånd upptäcks vid koppling av hotend i fack 6. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i fack 6 på ställningen innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Fel upptäcktes vid hämtning av hotend i fack 1: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 5: hotend har tappats. Kontrollera om det finns för mycket filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera om hotend till fack 5 på ställningen och klicka på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 3: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Fel upptäcktes vid hämtning av hotend från fack 4: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Onormalt tillstånd upptäcktes under koppling av hotend i fack 3: hotend har tappats. Kontrollera om det finns för mycket filament högst upp på hotend, trimma resterna, installera om hotend till fack 3 på stället, och klicka sedan på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "Hotend ställningens rörelse timeout. Kontrollera om det finns några främmande föremål eller hinder som kan orsaka att ställningen fastnar."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 6: ställningen kunde inte montera hotend korrekt. Kontrollera om det finns för mycket filament högst upp på hotend, skräp i kontakt området mellan verktygshuvudet och hotend, eller om låsspaken är i upplåst läge. Klicka på \"Fortsätt\" efter att du har löst problemet."
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Onormalt tillstånd upptäcktes när hotend kopplas i fack 3: en hotend är redan installerad. Ta bort den befintliga innan du klickar på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Fel vid hämtning av hotend från fack 5: verktygshuvudet misslyckades med att upptäcka hotend i ställningen. Kontrollera om skräp i induktions hotend monteringsplats på verktygshuvudet. Om inget hittas, omkalibrera induktions hotend ställningen."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Fel upptäcktes vid hämtning av hotend i fack 4: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Onormalt tillstånd upptäcktes vid hämtning av hotend från fack 2: ingen hotend hittades i den här positionen. Installera en hotend i motsvarande fack innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Onormalt tillstånd upptäcktes när hotend kopplas i fack 4: en hotend är redan installerad. Ta bort den befintliga innan du klickar på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Fel upptäcktes vid hämtning av hotend från fack 5: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 1: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 6: hotend har tappats. Kontrollera om det finns för mycket filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera om hotend till fack 6 på ställningen och klicka på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 2: ställningen kunde inte montera hotend korrekt. Kontrollera om det finns för mycket filament högst upp på hotend, skräp i kontakt området mellan verktygshuvudet och hotend, eller om låsspaken är i upplåst läge. Klicka på \"Fortsätt\" efter att du har löst problemet."
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Onormalt tillstånd upptäcktes under koppling av hotend i fack 1: hotend har tappats. Kontrollera om det finns för mycket filament högst upp på hotend, trimma resterna, installera om hotend till fack 1 på stället, och klicka sedan på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Onormalt tillstånd upptäcks vid koppling av hotend i fack 4. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i fack 4 på ställningen innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Onormalt tillstånd upptäcktes vid hämtning av hotend från fack 5: ingen hotend hittades i den här positionen. Installera en hotend i motsvarande fack innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Onormalt tillstånd upptäcktes vid hämtning av hotend från fack 1: ingen hotend hittades i den här positionen. Installera en hotend i motsvarande fack innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Onormalt tillstånd upptäcktes när hotend kopplas i fack 2: en hotend är redan installerad. Ta bort den befintliga innan du klickar på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Onormalt tillstånd upptäcktes vid hämtning av hotend från fack 6: ingen hotend hittades i den här positionen. Installera en hotend i motsvarande fack innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 4: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 5: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Fel upptäcktes vid hämtning av hotend i fack 3: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 4: ställningen kunde inte montera hotend korrekt. Kontrollera om det finns för mycket filament högst upp på hotend, skräp i kontakt området mellan verktygshuvudet och hotend, eller om låsspaken är i upplåst läge. Klicka på \"Fortsätt\" efter att du har löst problemet."
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 3: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 6: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 5: ställningen misslyckades att lossa hotend från verktygshuvudet. Se till att låsspaken är i det frigjorda läget."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Onormalt tillstånd upptäcks vid hämtning av hotend från fack 5: en hotend är redan monterad på verktygshuvudet. Ta bort hotend från verktygshuvudet innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 2: ställningen misslyckades att upptäcka hotend på verktygshuvudet. Kontrollera om det finns några skräp på hotend kylfläns eller om den främre magneten har fallit av. Om inte, omkalibrera induktion hotend ställningen."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 4: ställningen misslyckades att lossa hotend från verktygshuvudet. Se till att låsspaken är i det frigjorda läget."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Fel upptäcktes vid hämtning av hotend i fack 6: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "Den hotend ställningens verktyg lås stångens position är onormal. Kontrollera eventuella främmande föremål eller hinder som kan orsaka låstången till att fastna."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Fel vid hämtning av hotend från fack 1: verktygshuvudet misslyckades med att upptäcka hotend i ställningen. Kontrollera om skräp i induktions hotend monteringsplats på verktygshuvudet. Om inget hittas, omkalibrera induktions hotend ställningen."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 1: hotend har tappats. Kontrollera om det finns för mycket filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera om hotend till fack 1 på ställningen och klicka på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Fel vid hämtning av hotend från fack 6: verktygshuvudet misslyckades med att upptäcka hotend i ställningen. Kontrollera om skräp i induktions hotend monteringsplats på verktygshuvudet. Om inget hittas, omkalibrera induktions hotend ställningen."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 1. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i fack 1 på ställningen innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Onormalt tillstånd upptäcktes vid hämtning av hotend från fack 4: ingen hotend hittades i den här positionen. Installera en hotend i motsvarande fack innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Fel upptäcktes vid hämtning av hotend från fack 3: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 4: hotend har tappats. Kontrollera om det finns för mycket filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera om hotend till fack 4 på ställningen och klicka på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Fel vid induktions hotend låsspak eller frigöringsmekanism. Se Wiki för inspektion."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 2: hotend har tappats. Kontrollera om det finns för mycket filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera om hotend till fack 2 på ställningen och klicka på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 6: ställningen misslyckades att upptäcka hotend på verktygshuvudet. Kontrollera om det finns några skräp på hotend kylfläns eller om den främre magneten har fallit av. Om inte, omkalibrera induktion hotend ställningen."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Fel upptäcktes vid hämtning av hotend från fack 1: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Onormalt tillstånd upptäcks vid hämtning av hotend från fack 1: en hotend är redan monterad på verktygshuvudet. Ta bort hotend från verktygshuvudet innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 2: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 5. Se till att ingen hotend är monterad på verktygshuvudet och att en hotend finns i fack 5 på ställningen innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 5: ingen hotend upptäcktes på verktygshuvudet. Vänligen montera hotend på verktygshuvudet innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 4: ställningen misslyckades att upptäcka hotend på verktygshuvudet. Kontrollera om det finns några skräp på hotend kylfläns eller om den främre magneten har fallit av. Om inte, omkalibrera induktion hotend ställningen."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 5: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Onormalt tillstånd upptäcks vid hämtning av hotend från fack 4: en hotend är redan monterad på verktygshuvudet. Ta bort hotend från verktygshuvudet innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 3: ställningen kunde inte montera hotend korrekt. Kontrollera om det finns för mycket filament högst upp på hotend, skräp i kontakt området mellan verktygshuvudet och hotend, eller om låsspaken är i upplåst läge. Klicka på \"Fortsätt\" efter att du har löst problemet."
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Onormalt tillstånd upptäcktes vid koppling av hotend i fack 2: ingen hotend upptäcktes på verktygshuvudet. Vänligen montera hotend på verktygshuvudet innan du klickar på ”Fortsätt”."
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Fel upptäcktes vid hämtning av hotend i fack 2: ställningens rörelse är blockerad. Kontrollera om det finns några främmande föremål, ta bort dem och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Fel upptäcktes vid hämtning av hotend från fack 2: verktygshuvudets centrering misslyckades. Vänligen manuellt flytta verktygshuvudet till mitten av byggplattan och klicka sedan på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 6: ställningen misslyckades att lossa hotend från verktygshuvudet. Se till att låsspaken är i det frigjorda läget."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Fel upptäcktes när hotend hämtades från fack 3: hotend har tappats. Kontrollera om det finns för mycket filament eller annat skräp på toppen av hotend, trimma eller ta bort det, sedan installera om hotend till fack 3 på ställningen och klicka på “Fortsätt”."
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Onormalt tillstånd upptäcktes medan hotend kopplas i fack 5: ställningen misslyckades att upptäcka hotend på verktygshuvudet. Kontrollera om det finns några skräp på hotend kylfläns eller om den främre magneten har fallit av. Om inte, omkalibrera induktion hotend ställningen."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Onormalt tillstånd upptäcks vid hämtning av hotend från fack 6: en hotend är redan monterad på verktygshuvudet. Ta bort hotend från verktygshuvudet innan du klickar på \"Fortsätt\"."
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Induktionsvärmen detekterades inte före låsning. Kontrollera dess installation på verktygshuvudet."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A Nätadapterns spänning är för hög, vilket kan skada värmekretsen. Byt ut nätadaptern."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "Detektering av främmande föremål fungerade inte, möjligen på grund av ett manuellt avbrott (t.ex. tryck på stoppknappen eller öppna dörren i laserläge). Du kan ignorera detta om så är fallet. Annars kan du försöka starta om printern eller uppdatera firmware för att återställa funktionen."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "Strömsensorn för AMS-HT C utblåsventil 2 är onormal; vänligen kontakta kundsupport för att byta ut AMS moderkortet."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 3 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 1."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "Höger extruder nozzle temperaturkontroll är onormal, möjligen på grund av att hotenden inte är korrekt installerad eller på grund av ett fel på det trådlösa temperaturmätnings kortet."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 1 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 1 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Kortslutning mellan faserna på motorn till hotend hållaren. Om problemet inte löses genom omstart, kontakta support."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 4."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 2 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 1 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 5 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Fel vid hämtning/koppling av hotend i ställets fack 2. Se till att hotend hållaren inte har hotend installerad, motsvarande ställets fack innehåller en hotend, och manuellt flytta verktygshuvudet till maskinens centrum innan du fortsätter."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 3."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 6."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 5 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 2."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 4 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Fel vid hämtning/koppling av hotend i ställets fack 5. Se till att hotend hållaren inte har hotend installerad, motsvarande ställets fack innehåller en hotend, och manuellt flytta verktygshuvudet till maskinens centrum innan du fortsätter."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 2 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Fel vid hämtning/koppling av hotend i ställets fack 6. Se till att hotend hållaren inte har hotend installerad, motsvarande ställets fack innehåller en hotend, och manuellt flytta verktygshuvudet till maskinens centrum innan du fortsätter."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 3 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "Verktygshuvudets XY-axel eller hotend ställningen har inte slutfört hempositioneringen. Hotend bytet kan inte fortsätta."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "Induktionsvärme huvudets hempositionerings avstånd är för långt. Kuggremmen kan vara lös. Kontrollera och dra åt den."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 6 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 4 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Fel vid hämtning/koppling av hotend i ställets fack 3. Se till att hotend hållaren inte har hotend installerad, motsvarande ställets fack innehåller en hotend, och manuellt flytta verktygshuvudet till maskinens centrum innan du fortsätter."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 1."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Fel vid hämtning/koppling av hotend i ställets fack 1. Se till att hotend hållaren inte har hotend installerad, motsvarande ställets fack innehåller en hotend, och manuellt flytta verktygshuvudet till maskinens centrum innan du fortsätter."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 5 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 3."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 5 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 6 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 5."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 6."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 4."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 3 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 1 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "Induktionen hotend stället fungerar inte. Stäng av, kontrollera anslutningen och starta om enheten."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Kontroll av hotend byte misslyckades: en hotend är redan installerad i plats 5."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 2 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 3 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "Induktionsvärme huvudet blockeras av ett hinder under nollställning. Ta bort eventuella hinder från dess rörelsebana."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 2 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "Motorn till hotend hållaren är frånkopplad eller har ett öppet kretsfel. Kontrollera motorns platta kabelanslutning."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Kontroll av hotend byte misslyckades: ingen hotend upptäckt på plats 2."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "Den förbättrade kylfläkten för verktygshuvudet är inte korrekt installerad; den kanske inte är ordentligt fastsatt eller har fallit av."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "Strömavbrott inträffade när hotend enheten hämtades från ställningen. Vänligen returnera hotend enheten till position 6 och flytta verktygshuvudet till mitten av byggplattan för att undvika störningar med hotend ställningen."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "Strömavbrott inträffade när hotend dockades till hotend ställningen. Installera om hotend från position 6 till verktygshuvudet och flytta verktygshuvudet till mitten av värmebädden för att undvika störningar med ställningen."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "Autentisering av hotend 1 misslyckades. Växla hotend eller starta om printern."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Kalibreringen av hotend ställningen misslyckades. Markeringsfunktionen upptäcktes inte. Kontrollera om den visuella markeringen på ställningen är skadad eller täckt av smuts."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "Autentisering av hotend 5 misslyckades. Byt hotend eller starta om printern."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Kalibreringen av induktionsvärme enhetens ställning misslyckades: resultatet överskred rörelseområdet. Kontrollera om ställningens struktur är deformerad."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "Hotend 3-autentisering misslyckades. Byt hotend eller starta om printern."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Kalibrering av Hotend ställningen misslyckades: kamerans kalibreringsdata är onormala. Rengör nozzle rester, kontrollera om det värmebäddens termiska papperet är intakt och ta bort skräp från dess yta."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "Temperatur sensorn på höger hotend heatbreak är onormala. För att förhindra att nozzle sätter igen fortsätter kylfläkten att köras i hög hastighet. Du kan felsöka sensor problemet när utskriften är inaktiv."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "Det roterande gravyr tillbehöret placeras felaktigt. Vänligen justera och flytta om det."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 5 är korrekt installerad."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 4 är korrekt installerad."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 6 är korrekt installerad."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 3 är korrekt installerad."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Filament och matchning av hotend misslyckades. Kontrollera att hotend i hotend ställets fack 2 är korrekt installerad."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "sv": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "AMS-HT C firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "Lasermodulens firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "Enheten kan inte identifiera AMS-HT H. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "AMS-HT E firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "Skärmodulens firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "AMS-HT A firmware matchar inte skrivaren, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "Kalibreringen av skärmodulens offset misslyckades, vilket kan resultera i felaktiga snitt. Se till att det 80 g vita skrivarpapperet är korrekt placerat och kontrollera om skärbladets spets är sliten."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Enheten  kan inte identifiera luftpumpen. Anslut modulkabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "AMS C firmware matchar inte printern; enheten kan inte fortsätta att fungera. Uppdatera den på sidan \"Firmware\"."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "AMS-HT B firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "Enheten kan inte identifiera AMS-HT E. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "AI upptäckte klumpbildning på nozzle. Kontrollera nozzlens skick. Se assistenten för lösningar."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "Det gick inte att initiera BirdsEye kameran. Verktygshuvud kameran upptäckte inte värmebäddens funktioner. Rengör värmebädden, ta bort alla föremål och dynor och se till att bädd markeringarna är synliga. Kontrollera assistenten för en detaljerad lösning."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "AMS D firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "AI utskrifts monitorn har upptäckt en spaghetti defekt. Kontrollera utskriften och vidta nödvändiga åtgärder."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "Enheten kan inte identifiera AMS-HT D. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "Nozzlens kameralins är smutsig, vilket påverkar AI-övervakningen. Rengör linsen med en fiberduk och en liten mängd alkohol. Akta dig för hotendens värme; vänta tills den har svalnat innan du hanterar den."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "Enheten kan inte identifiera AMS-HT B. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "Enheten kan inte identifiera AMS D. Anslut AMS-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "AMS-HT H firmware matchar inte printern; enheten kan inte fortsätta att fungera. Uppdatera den på sidan \"Firmware\"."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "AMS-HT D firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "Enheten kan inte identifiera AMS B. Anslut AMS-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "Enheten kan inte identifiera AMS A. Anslut AMS kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "AMS-HT G firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "Enheten kan inte identifiera AMS-HT C. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "AMS-HT F firmaware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "AMS B firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Timeout för kalibrering av Liveview kameran; starta om printern."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "AMS A firmware matchar inte printern; enheten kan inte fortsätta att fungera. Uppdatera den på sidan \"Firmware\"."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "Enheten kan inte identifiera AMS-HT A. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "Enheten kan inte identifiera AMS C. Anslut AMS-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Enheten kan inte upptäcka lasermodulen. Anslut modulkabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "Enheten kan inte identifiera AMS-HT G. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "Enheten kan inte identifiera AMS-HT F. Anslut AMS-HT-kabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "Luftpumpens firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "Initialiseringen av Liveview kameran misslyckades. Utskriften kan fortfarande fortsätta, men vissa AI funktioner kommer att inaktiveras. Om du stöter på problemet igen efter omstart, kontakta kundsupport."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Enheten kan inte identifiera skärmodulen. Anslut modulkabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "Vision Encoder Plattan upptäcktes inte. Kontrollera att plattan är korrekt placerat och inriktat i alla fyra hörnen, och se till att positionerings markeringarna är tydliga och fria från slitage."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Nollställning av Z-axeln misslyckades: avvikelse i temperatur kontrollen."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Misslyckades med att starta en ny uppgift: Kalldragningen av nozzle slutfördes inte."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "På grund av begränsningar i printerns effekt kan utskrift, kalibrering, kontroller och andra åtgärder inte utföras under AMS torkning. Stoppa torkningsprocessen innan du fortsätter med någon annan operation."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Det gick inte att starta en ny uppgift: laddning/lossning av filament har inte slutförts."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Fäst det 80 g vita utskrifts papperet i mitten av plattformen."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "Enheten är upptagen och kan inte utföra identifiering av nozzle."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Värmebädden kan vara blockerad när den rör sig nedåt. Avlägsna eventuella föremål under värmebädden och kontrollera om det finns något motstånd eller om den fastnar under rörelsen."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 2. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Det gick inte att ta upp hotenden från hållaren i position 6. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "Induktionsvärme elementets ställnings positionering misslyckades på grund av ett hinder. Ta bort hindret innan du fortsätter utskriften."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Det gick inte att ta upp hotenden från hållaren i position 5. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 5. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "Hotend ställningens noll avståndet är onormalt långt. Kontrollera om kuggremmen är lös eller trasig."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 4. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 1. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 4. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 5. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Innan du använder laser läge eller kalibrerar hotend ställningens position, ta bort alla hotends från ställningen."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 3. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 3. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Låsning misslyckades; kontrollera om det finns något klibbigt material på nozzeln."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 2. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 2. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 3. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 6. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Låsningen misslyckades; kontrollera om det finns något klibbigt material på nozzle."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Låsningen misslyckades; kontrollera utskjutnings stångens monteringsposition."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "Fläktmodulen för verktygshuvudets kylning fungerar inte som den ska."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 1. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Hotend ställningens hempositionering misslyckades. Utskriften har avbrutits. Kontrollera om något hindrar ställningens rörelse."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 3. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 4. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Det gick inte att ta upp hotend från hållaren i position 5. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 1. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "Det gick inte att placera hotend i hållare position 2. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Det gick inte att placera hotenden i hållare position 1. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Upplåsningen misslyckades; kontrollera monteringsläget för ejektor stången."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Det gick inte att placera hotend i hållare position 4. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Det gick inte att placera hotend i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS torkar och kan inte uppgraderas just nu. Försök igen senare."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "Printern laddar eller lossar filament och kan inte uppgraderas för tillfället. Försök igen senare."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Enheten skriver ut och kan inte uppgraderas för tillfället. Försök igen senare."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "AMS initieras och kan inte uppgraderas just nu. Försök igen senare."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS är i drift och kan inte uppgraderas för tillfället. Försök igen när den är inaktiv."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Värm nozzle till över 170°C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "Enheten  kan inte identifiera brandsläckaren. Anslut modulkabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "Enheten  kan inte detektera laserns fjärde axel. Anslut modulkabeln igen eller starta om printern."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Enheten uppgraderas för närvarande. Försök igen när den är inaktiv."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Det filament som anges i skäraren har förbrukats. Utskriften är pausad. Gå till maskinen för att byta ut materialet och återuppta utskriften."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Det filament som anges i skäraren har förbrukats. Utskriften är pausad. Gå till maskinen för att byta ut materialet och återuppta utskriften."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "En mindre brand upptäcktes inuti kammaren, och den automatiska brandsläcknings processen har avbrutits."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "För närvarande i 2D produktionsläge. Använd direkt på printern."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Brandsläckarens gascylinder är felaktigt installerad. Bekräfta på brandsläckarsidan."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Brandsläckare detekteras inte."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Brandsläckare fungerar inte."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "Brandsläckarens gas cylinder är tom."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Signalen från kalibrerings sensorn för nozzle offset är onormal."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Återställning av brandsläckarens motor misslyckades."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Brandsläckaren inte upptäckt, den automatiska släckningsfunktionen kommer att vara otillgänglig."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "Uppgiften kan inte pausas."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "Kalibreringen av skärmaskinens offsetmodul misslyckades, vilket kan resultera i felaktiga snitt. Se till att det 80g vita skrivarpapperet (brevpapperstjocklek) är korrekt positionerat och kontrollera om skärbladets spets är slitet."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Uppgiften avbröts eftersom framsidan eller topplocket är öppet."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Dysfunktion i munstyckets offsetkalibreringssensor. Om du använder en enda varmända eller om kalibreringsfunktionen är inaktiverad kan du ignorera detta och fortsätta skriva ut; annars rekommenderas det att kontrollera sensorn innan du fortsätter."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Tråden i hotend är för kall. Extruderingen kan skada extrudern. Fortfarande matar in/ut tråden?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "Brandsläckaren har upptäckts och är redo för användning efter att lasermodulen är ansluten."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "Silikonhylsan på munstycket är inte installerad; det finns en risk för temperaturkontrollfel. Installera den korrekt och försök igen."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Toolhead-kamerainitiering misslyckades. Denna utskrift kan fortfarande fortsätta, men vissa AI-funktioner kommer att inaktiveras. Om du stöter på detta problem igen efter omstart, vänligen kontakta kundsupport."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "XY-motorns noll positionering misslyckades under hempositionering av hotend hållaren. Kontrollera om det finns hinder och försök igen."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "Hotenden har fallit ur hållaren under utskriften. Sätt tillbaka den på sin ursprungliga plats innan du fortsätter."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "Hotend hållarens hempositionering blockerad. Kontrollera om det finns hinder och försök igen."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Laser/kalibrerings läge: Ta bort alla hotends från hållaren innan du försöker igen."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "Hotend hållarens hempositionerings avstånd är för långt. Kontrollera att kuggremmen och motorns kugghjul inte är lösa eller skadade."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "Hotend växlings systemet är upptaget; utför uppgraderingen när den är inaktiv."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Placera en StrongGrip skärmatta på skärskyddets bas."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "Utskriften har avbrutits eftersom 3MF filen är ogiltig. Kontrollera att rätt printer modell valdes under beredningen, eller uppdatera Studio och bered filen på nytt."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "AMS uppskattningen av återstående filament är aktiverad som standard och kan inte inaktiveras."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "Utskriften har avbrutits eftersom den tillgängliga mängden eller modellen av hotend inte stämmer överens med den beredda filen. Kontrollera hotend modellen och antalet innan du startar om utskriftsjobbet."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "Hotend autentisering misslyckades. Byt hotend eller starta om printern."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "Induktions hotend verifieringen misslyckades på grund av timeout för hotend omkopplaren. Försök igen."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "Ingen tillgänglig hotend upptäcktes i induktions hotend hållaren eller hotend ställningen. Installera en hotend och försök igen."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "Kalibreringen av induktions hotend ställningen misslyckades. Kontrollera assistenten."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Lasermodul upptäckt. Installera rätt nozzle korrekt för att säkerställa korrekt kalibrering av lasermodulens montering."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "Höger hotend heatbreak temperatur är för hög, vilket kan orsaka igensättning. Öppna printerns övre lock och frontlucka för att sänka kammarens temperatur, eller sänk omgivningstemperaturen."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "Hotend stället är fullt och det går inte att byta hotend. Ta bort en hotend innan du fortsätter."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "Enheten är upptagen och kan inte utföra hotend ställnings uppgifter just nu. Försök igen senare."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "Höger hotend är inte installerad och verktygshuvudet kan inte utföra nollställning. Installera hotend och fortsätt sedan."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Hotend stället har inte kalibrerats och hotend växling kan inte utföras. Slutför ställnings kalibreringen på enheten."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "Hotend stället är fullt. Ta bort en hotend innan du fortsätter."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Det gick inte att läsa informationen från induktions hotend. Byt ut hotend eller starta om printern."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Nozzle rengöringen misslyckades. Klicka på Assistenten för felsökning."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Fel på motorn i hotend stället. Kontrollera och ta bort eventuella hinder som påverkar ställnings rörelsen innan du fortsätter."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Kommunikationsfel mellan MC och hotend ställ. Kontrollera om kabeln till ställets moderkort är lös."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Verifiering av induktionsvärmaren misslyckades. Byt ut värme enheten och försök igen."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Fel på motorpositions sensorn för hotend ställningen. Om problemet kvarstår efter ett nytt försök, starta om printern."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Hotend stället har inte konfigurerats. Slutför installationen innan du byter ut hotend."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Lasermodul upptäckt. Ta bort hotend från hotend stället för att förhindra laser rester från att påverka utskriftsprestanda."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Fel vid igenkänning av induktions hotend upptäcktes. Gå till sidan \"Hotends & Ställ\" och klicka på \"Läs alla\" för att upptäcka igen. Om problemet kvarstår kan du försöka uppdatera firmware på sidan \"Firmware\"."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
+                },
+                {
                     "ecode": "0502C024",
-                    "intro": "Flödesdynamiska kalibreringsposter har överskridit lagringsgränsen. Vänligen radera några historiska poster i skivprogramvaran innan du lägger till ny kalibreringsdata."
+                    "intro": "Kalibreringsdata för flödesdynamik har överskridit lagringsgränsen. Ta bort några historiska poster i berednings programvaran innan du lägger till ny kalibreringsdata."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "En hotend information uppdatering upptäcktes under nozzle offset kalibrering. Gå till sidan \"Hotend & Ställning\" och klicka på \"Läs Allt\" för att identifiera om. Om problemet kvarstår, prova att uppdatera från sidan \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "Detekterad offset av byggplattan. Rikta in byggplattan mot värmebädden och fortsätt sedan."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Varmändningstypmismatch upptäckt under utskrift. Vänligen byt varmändningen i plats 3 på hyllan med den typ som anges i slicern innan du fortsätter utskriften."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Varmändningstypmismatch upptäckt under utskrift. Vänligen byt varmändningen i plats 4 på hyllan med den typ som anges i slicern innan du fortsätter utskriften."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Varmändningstypmismatch upptäckt under utskrift. Vänligen byt varmändningen i plats 2 på hyllan med den typ som anges i slicern innan du fortsätter utskriften."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Varmändningstypmismatch upptäckt under utskrift. Vänligen byt ut varmändningen i plats 1 på stativet med den typ som anges i slicern innan du fortsätter utskriften."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Varmändningstypmismatch upptäckt under utskrift. Vänligen byt varmändningen i plats 5 på hyllan med den typ som anges i slicern innan du fortsätter utskriften."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Varmändningstypmismatch upptäckt under utskrift. Vänligen byt varmändningen i plats 6 på hyllan med den typ som anges i slicern innan du fortsätter utskriften."
                 },
                 {
                     "ecode": "05008078",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "Flamsensorn är onormal. Sensorn kan vara kortsluten. Felsök problemet innan du påbörjar ett utskriftsjobb."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "AMS-HT C firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "Lasermodulens firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "Enheten kan inte identifiera AMS-HT H. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "AMS-HT E firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "Skärmodulens firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "AMS-HT A firmware matchar inte skrivaren, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "Kalibreringen av skärmodulens offset misslyckades, vilket kan resultera i felaktiga snitt. Se till att det 80 g vita skrivarpapperet är korrekt placerat och kontrollera om skärbladets spets är sliten."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "Enheten  kan inte identifiera luftpumpen. Anslut modulkabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "AMS C firmware matchar inte printern; enheten kan inte fortsätta att fungera. Uppdatera den på sidan \"Firmware\"."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "AMS-HT B firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "Enheten kan inte identifiera AMS-HT E. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "AI upptäckte klumpbildning på nozzle. Kontrollera nozzlens skick. Se assistenten för lösningar."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "Det gick inte att initiera BirdsEye kameran. Verktygshuvud kameran upptäckte inte värmebäddens funktioner. Rengör värmebädden, ta bort alla föremål och dynor och se till att bädd markeringarna är synliga. Kontrollera assistenten för en detaljerad lösning."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "AMS D firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "AI utskrifts monitorn har upptäckt en spaghetti defekt. Kontrollera utskriften och vidta nödvändiga åtgärder."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "Enheten kan inte identifiera AMS-HT D. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "Nozzlens kameralins är smutsig, vilket påverkar AI-övervakningen. Rengör linsen med en fiberduk och en liten mängd alkohol. Akta dig för hotendens värme; vänta tills den har svalnat innan du hanterar den."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "Enheten kan inte identifiera AMS-HT B. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "Enheten kan inte identifiera AMS D. Anslut AMS-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "AMS-HT H firmware matchar inte printern; enheten kan inte fortsätta att fungera. Uppdatera den på sidan \"Firmware\"."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "AMS-HT D firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "Enheten kan inte identifiera AMS B. Anslut AMS-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "Enheten kan inte identifiera AMS A. Anslut AMS kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "AMS-HT G firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "Enheten kan inte identifiera AMS-HT C. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "AMS-HT F firmaware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "AMS B firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Timeout för kalibrering av Liveview kameran; starta om printern."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "AMS A firmware matchar inte printern; enheten kan inte fortsätta att fungera. Uppdatera den på sidan \"Firmware\"."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "Enheten kan inte identifiera AMS-HT A. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "Enheten kan inte identifiera AMS C. Anslut AMS-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "Enheten kan inte upptäcka lasermodulen. Anslut modulkabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "Enheten kan inte identifiera AMS-HT G. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "Enheten kan inte identifiera AMS-HT F. Anslut AMS-HT-kabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "Luftpumpens firmware matchar inte printern, enheten kan inte fortsätta fungera. Uppdatera den på sidan ”Firmware”."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "Initialiseringen av Liveview kameran misslyckades. Utskriften kan fortfarande fortsätta, men vissa AI funktioner kommer att inaktiveras. Om du stöter på problemet igen efter omstart, kontakta kundsupport."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Enheten kan inte identifiera skärmodulen. Anslut modulkabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "Vision Encoder Plattan upptäcktes inte. Kontrollera att plattan är korrekt placerat och inriktat i alla fyra hörnen, och se till att positionerings markeringarna är tydliga och fria från slitage."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Nollställning av Z-axeln misslyckades: avvikelse i temperatur kontrollen."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Misslyckades med att starta en ny uppgift: Kalldragningen av nozzle slutfördes inte."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "På grund av begränsningar i printerns effekt kan utskrift, kalibrering, kontroller och andra åtgärder inte utföras under AMS torkning. Stoppa torkningsprocessen innan du fortsätter med någon annan operation."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Det gick inte att starta en ny uppgift: laddning/lossning av filament har inte slutförts."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Fäst det 80 g vita utskrifts papperet i mitten av plattformen."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "Enheten är upptagen och kan inte utföra identifiering av nozzle."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Värmebädden kan vara blockerad när den rör sig nedåt. Avlägsna eventuella föremål under värmebädden och kontrollera om det finns något motstånd eller om den fastnar under rörelsen."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 2. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Det gick inte att ta upp hotenden från hållaren i position 6. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "Induktionsvärme elementets ställnings positionering misslyckades på grund av ett hinder. Ta bort hindret innan du fortsätter utskriften."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Det gick inte att ta upp hotenden från hållaren i position 5. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 5. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "Hotend ställningens noll avståndet är onormalt långt. Kontrollera om kuggremmen är lös eller trasig."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 4. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 1. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 4. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 5. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Innan du använder laser läge eller kalibrerar hotend ställningens position, ta bort alla hotends från ställningen."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 3. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 3. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Låsning misslyckades; kontrollera om det finns något klibbigt material på nozzeln."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 2. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 2. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 3. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 6. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Låsningen misslyckades; kontrollera om det finns något klibbigt material på nozzle."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Låsningen misslyckades; kontrollera utskjutnings stångens monteringsposition."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "Fläktmodulen för verktygshuvudets kylning fungerar inte som den ska."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 1. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Hotend ställningens hempositionering misslyckades. Utskriften har avbrutits. Kontrollera om något hindrar ställningens rörelse."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 3. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 4. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Det gick inte att ta upp hotend från hållaren i position 5. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 1. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Det gick inte att placera hotend i hållare position 2. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Det gick inte att placera hotenden i hållare position 1. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Upplåsningen misslyckades; kontrollera monteringsläget för ejektor stången."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Det gick inte att placera hotend i hållare position 4. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Det gick inte att placera hotend i hållare position 6. Kontrollera om det finns filament rester eller fastnat material."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "AMS torkar och kan inte uppgraderas just nu. Försök igen senare."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "Printern laddar eller lossar filament och kan inte uppgraderas för tillfället. Försök igen senare."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "Enheten skriver ut och kan inte uppgraderas för tillfället. Försök igen senare."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "AMS initieras och kan inte uppgraderas just nu. Försök igen senare."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "AMS är i drift och kan inte uppgraderas för tillfället. Försök igen när den är inaktiv."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Värm nozzle till över 170°C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "Enheten  kan inte identifiera brandsläckaren. Anslut modulkabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "Enheten  kan inte detektera laserns fjärde axel. Anslut modulkabeln igen eller starta om printern."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "Enheten uppgraderas för närvarande. Försök igen när den är inaktiv."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "Det filament som anges i skäraren har förbrukats. Utskriften är pausad. Gå till maskinen för att byta ut materialet och återuppta utskriften."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "Det filament som anges i skäraren har förbrukats. Utskriften är pausad. Gå till maskinen för att byta ut materialet och återuppta utskriften."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "En mindre brand upptäcktes inuti kammaren, och den automatiska brandsläcknings processen har avbrutits."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "För närvarande i 2D produktionsläge. Använd direkt på printern."
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "Brandsläckarens gascylinder är felaktigt installerad. Bekräfta på brandsläckarsidan."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Brandsläckare detekteras inte."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "Brandsläckare fungerar inte."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "Brandsläckarens gas cylinder är tom."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Signalen från kalibrerings sensorn för nozzle offset är onormal."
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Återställning av brandsläckarens motor misslyckades."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Brandsläckaren inte upptäckt, den automatiska släckningsfunktionen kommer att vara otillgänglig."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "Uppgiften kan inte pausas."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "Kalibreringen av skärmaskinens offsetmodul misslyckades, vilket kan resultera i felaktiga snitt. Se till att det 80g vita skrivarpapperet (brevpapperstjocklek) är korrekt positionerat och kontrollera om skärbladets spets är slitet."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Uppgiften avbröts eftersom framsidan eller topplocket är öppet."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Dysfunktion i munstyckets offsetkalibreringssensor. Om du använder en enda varmända eller om kalibreringsfunktionen är inaktiverad kan du ignorera detta och fortsätta skriva ut; annars rekommenderas det att kontrollera sensorn innan du fortsätter."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "Tråden i hotend är för kall. Extruderingen kan skada extrudern. Fortfarande matar in/ut tråden?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "Brandsläckaren har upptäckts och är redo för användning efter att lasermodulen är ansluten."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "Silikonhylsan på munstycket är inte installerad; det finns en risk för temperaturkontrollfel. Installera den korrekt och försök igen."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "Toolhead-kamerainitiering misslyckades. Denna utskrift kan fortfarande fortsätta, men vissa AI-funktioner kommer att inaktiveras. Om du stöter på detta problem igen efter omstart, vänligen kontakta kundsupport."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "XY-motorns noll positionering misslyckades under hempositionering av hotend hållaren. Kontrollera om det finns hinder och försök igen."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "Hotenden har fallit ur hållaren under utskriften. Sätt tillbaka den på sin ursprungliga plats innan du fortsätter."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "Hotend hållarens hempositionering blockerad. Kontrollera om det finns hinder och försök igen."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Laser/kalibrerings läge: Ta bort alla hotends från hållaren innan du försöker igen."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "Hotend hållarens hempositionerings avstånd är för långt. Kontrollera att kuggremmen och motorns kugghjul inte är lösa eller skadade."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "Hotend växlings systemet är upptaget; utför uppgraderingen när den är inaktiv."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Placera en StrongGrip skärmatta på skärskyddets bas."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "Utskriften har avbrutits eftersom 3MF filen är ogiltig. Kontrollera att rätt printer modell valdes under beredningen, eller uppdatera Studio och bered filen på nytt."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "AMS uppskattningen av återstående filament är aktiverad som standard och kan inte inaktiveras."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "Utskriften har avbrutits eftersom den tillgängliga mängden eller modellen av hotend inte stämmer överens med den beredda filen. Kontrollera hotend modellen och antalet innan du startar om utskriftsjobbet."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "Hotend autentisering misslyckades. Byt hotend eller starta om printern."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "Induktions hotend verifieringen misslyckades på grund av timeout för hotend omkopplaren. Försök igen."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "Ingen tillgänglig hotend upptäcktes i induktions hotend hållaren eller hotend ställningen. Installera en hotend och försök igen."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "Kalibreringen av induktions hotend ställningen misslyckades. Kontrollera assistenten."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Det gick inte att hämta filament hotend mappningstabell från beredningsfilen, försök igen."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Lasermodul upptäckt. Installera rätt nozzle korrekt för att säkerställa korrekt kalibrering av lasermodulens montering."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "Höger hotend heatbreak temperatur är för hög, vilket kan orsaka igensättning. Öppna printerns övre lock och frontlucka för att sänka kammarens temperatur, eller sänk omgivningstemperaturen."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "Hotend stället är fullt och det går inte att byta hotend. Ta bort en hotend innan du fortsätter."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "Enheten är upptagen och kan inte utföra hotend ställnings uppgifter just nu. Försök igen senare."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "Höger hotend är inte installerad och verktygshuvudet kan inte utföra nollställning. Installera hotend och fortsätt sedan."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Hotend stället har inte kalibrerats och hotend växling kan inte utföras. Slutför ställnings kalibreringen på enheten."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "Hotend stället är fullt. Ta bort en hotend innan du fortsätter."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Det gick inte att läsa informationen från induktions hotend. Byt ut hotend eller starta om printern."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Nozzle rengöringen misslyckades. Klicka på Assistenten för felsökning."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Fel på motorn i hotend stället. Kontrollera och ta bort eventuella hinder som påverkar ställnings rörelsen innan du fortsätter."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "Kommunikationsfel mellan MC och hotend ställ. Kontrollera om kabeln till ställets moderkort är lös."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "Verifiering av induktionsvärmaren misslyckades. Byt ut värme enheten och försök igen."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Fel på motorpositions sensorn för hotend ställningen. Om problemet kvarstår efter ett nytt försök, starta om printern."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "Hotend hållarens grova hempositionering misslyckades. Kontrollera om det finns hinder eller om byggplattan är feljusterad."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "Hotend stället har inte konfigurerats. Slutför installationen innan du byter ut hotend."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Lasermodul upptäckt. Ta bort hotend från hotend stället för att förhindra laser rester från att påverka utskriftsprestanda."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Fel vid igenkänning av induktions hotend upptäcktes. Gå till sidan \"Hotends & Ställ\" och klicka på \"Läs alla\" för att upptäcka igen. Om problemet kvarstår kan du försöka uppdatera firmware på sidan \"Firmware\"."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "Kontrollen före byte av hotend misslyckades. Kontrollera att hotend är korrekt placerad."
                 }
             ]
         }

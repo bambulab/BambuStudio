@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "en": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 2 on the rack, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 2 on the rack before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Error detected while fetching the hotend from slot 5: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 3 on the rack before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 6 on the rack before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Error detected while fetching the hotend from slot 1: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Error detected while fetching the hotend from slot 5: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 5 on the rack and click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Error detected while fetching the hotend from slot 4: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 3 on the rack, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "The hotend rack motion timed out. Please check for any foreign objects or obstructions that may be causing the rack to jam."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Error detected while fetching the hotend from slot 6: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Error detected while fetching the hotend from slot 5: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Error detected while fetching the hotend from slot 4: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 2: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Error detected while fetching the hotend from slot 5: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Error detected while fetching the hotend from slot 6: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 6 on the rack and click “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Error detected while fetching the hotend from slot 2: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 1 on the rack, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 4 on the rack before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 5: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 1: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 6: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Error detected while fetching the hotend from slot 3: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Error detected while fetching the hotend from slot 4: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 5: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Error detected while fetching the hotend from slot 6: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "The hotend rack tool lock rod position is abnormal. Please check for any foreign objects or obstructions that may be causing the lock rod to jam."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Error detected while fetching the hotend from slot 1: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Error detected while fetching the hotend from slot 1: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 1 on the rack and click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Error detected while fetching the hotend from slot 6: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 1 on the rack before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 4: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Error detected while fetching the hotend from slot 3: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Error detected while fetching the hotend from slot 4: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 4 on the rack and click “Continue.”"
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Induction hotend locking lever or rack lever release mechanism error. Please refer to the Wiki for inspection."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Error detected while fetching the hotend from slot 2: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 2 on the rack and click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Error detected while fetching the hotend from slot 1: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 1: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 5 on the rack before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 4: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Error detected while fetching the hotend from slot 3: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Error detected while fetching the hotend from slot 2: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Error detected while fetching the hotend from slot 2: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Error detected while fetching the hotend from slot 3: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 3 on the rack and click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 6: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "Induction hotend rack calibration failed: the white marker on the rack’s induction hotend docking module was not detected. Please refer to the Wiki to check if the marker is damaged or covered by dirt."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 3 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 1 on the rack."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 1 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 4 on the rack."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 2 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 1 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 3 on the rack. Please remove it before continuing."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 6 on the rack."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 5 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 2 on the rack. Please remove it before continuing."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 4 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 2 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 3 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 4 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 4 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 6 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 4 on the rack, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 1 on the rack. Please remove it before continuing."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 5 on the rack, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 5 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 6 on the rack. Please remove it before continuing."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 4 on the rack. Please remove it before continuing."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 3 on the rack, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 1 on the rack, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 5 on the rack. Please remove it before continuing."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 3 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 6 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 1 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 5 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 3 on the rack."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 6 on the rack, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 5 on the rack."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 2 on the rack, then move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 2 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 2 on the rack."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 6 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Error detected while fetching the hotend from slot 4: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Error detected while fetching the hotend from slot 1: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 5 on the rack, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Error detected while fetching the hotend from slot 2: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Error detected while fetching the hotend from slot 3: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 3: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 2: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 6 on the rack, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Error detected while fetching the hotend from slot 6: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Abnormal condition detected while fetching the hotend from slot 3: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 4 on the rack, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Error detected while fetching the hotend from slot 5: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Induction hotend rack calibration failed: abnormal calibration result. Please refer to the Wiki to check if the rack structure is deformed."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Induction hotend rack calibration failed: camera position calibration error. Please clean any debris from the thermal paper surface at the rear of the build plate and remove residue from the nozzle."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "The AMS-HT F heater 2 cooling fan cannot start because the power adapter is not connected."
@@ -18595,6 +18067,406 @@
                     "intro": "The AMS-HT H RFID 1 board has an error."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "The rotary engraving accessory is placed incorrectly. Please adjust and reposition it."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 5 is correctly installed."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 4 is correctly installed."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 6 is correctly installed."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 3 is correctly installed."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 2 is correctly installed."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Error detected while fetching the hotend from slot 4: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Error detected while fetching the hotend from slot 1: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 5 on the rack, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Error detected while fetching the hotend from slot 2: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Error detected while fetching the hotend from slot 3: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 3: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 2: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 6 on the rack, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Error detected while fetching the hotend from slot 6: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 3: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 4 on the rack, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Error detected while fetching the hotend from slot 5: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 2 on the rack, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 2 on the rack before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Error detected while fetching the hotend from slot 5: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 3 on the rack before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 6 on the rack before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Error detected while fetching the hotend from slot 1: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Error detected while fetching the hotend from slot 5: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 5 on the rack and click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Error detected while fetching the hotend from slot 4: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 3 on the rack, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "The hotend rack motion timed out. Please check for any foreign objects or obstructions that may be causing the rack to jam."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Error detected while fetching the hotend from slot 6: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Error detected while fetching the hotend from slot 5: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Error detected while fetching the hotend from slot 4: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 2: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Error detected while fetching the hotend from slot 5: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Error detected while fetching the hotend from slot 6: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 6 on the rack and click “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Error detected while fetching the hotend from slot 2: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1: the hotend has dropped. Please check for excessive filament remaining at the top of the hotend, trim the residue, reinstall the hotend into slot 1 on the rack, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 4 on the rack before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 5: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 1: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: a hotend is already installed. Please remove the existing one before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 6: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Error detected while fetching the hotend from slot 3: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Error detected while fetching the hotend from slot 4: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 3: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 5: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Error detected while fetching the hotend from slot 6: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "The hotend rack tool lock rod position is abnormal. Please check for any foreign objects or obstructions that may be causing the lock rod to jam."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Error detected while fetching the hotend from slot 1: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Error detected while fetching the hotend from slot 1: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 1 on the rack and click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Error detected while fetching the hotend from slot 6: the toolhead failed to detect the hotend on the rack. Please check for any debris in the induction hotend mounting slot on the toolhead. If none is found, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 1. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 1 on the rack before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 4: no hotend found in this position. Please install a hotend in the corresponding slot before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Error detected while fetching the hotend from slot 3: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Error detected while fetching the hotend from slot 4: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 4 on the rack and click “Continue.”"
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Induction hotend locking lever or rack lever release mechanism error. Please refer to the Wiki for inspection."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Error detected while fetching the hotend from slot 2: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 2 on the rack and click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Error detected while fetching the hotend from slot 1: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 1: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5. Please ensure no hotend is mounted on the toolhead and that a hotend is present in slot 5 on the rack before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 4: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 4: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Error detected while fetching the hotend from slot 3: the rack failed to mount the hotend properly. Please check for excessive filament at the top of the hotend, debris in the contact area between the toolhead and the hotend, or if the locking lever is in the released position. After resolving the issue, click “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 2: no hotend detected on the toolhead. Please mount the hotend onto the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Error detected while fetching the hotend from slot 2: rack movement is blocked. Please check for any foreign objects, remove them, and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Error detected while fetching the hotend from slot 2: toolhead recentering retry failed. Please manually move the toolhead to the center of the build plate and then click “Continue.”"
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 6: the rack failed to detach the hotend from the toolhead. Please make sure the locking lever is in the released position."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Error detected while fetching the hotend from slot 3: the hotend has dropped. Please check for excessive filament or other debris at the top of the hotend, trim or remove it, then reinstall the hotend into slot 3 on the rack and click “Continue.”"
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Abnormal condition detected while nesting the hotend in slot 5: the rack failed to detect the hotend on the toolhead. Please check whether there is any debris on the hotend heatsink surface or if the front magnet has fallen off. If not, recalibrate the induction hotend rack."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Abnormal condition detected while fetching the hotend from slot 6: a hotend is already mounted on the toolhead. Please remove the hotend from the toolhead before clicking “Continue.”"
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Induction hotend not detected before locking. Please check its installation on the toolhead."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A The power adapter voltage is too high, which may damage the heater circuit. Please replace the power adapter."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "Foreign object detection did not work, possibly due to manual interruption (e.g., tapping stop or opening the door in laser mode). You can ignore this if that's the case. Otherwise, try restarting the printer or updating the firmware to restore the function."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "The current sensor of AMS-HT C exhaust valve 2 is abnormal; please get in touch with customer support to replace the AMS-HT mainboard."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 3 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 1 on the rack."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "The right extruder nozzle temperature control is abnormal, possibly due to the hotend not being properly installed or a malfunction of the wireless temperature measurement board."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 1 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 1 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Inter-phase short circuit on hotend holder motor. If restarting doesn’t resolve the issue, please contact support."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 4 on the rack."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 2 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 1 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 5 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Error fetching/nesting the hotend in rack slot 2. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 3 on the rack. Please remove it before continuing."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 6 on the rack."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 5 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 2 on the rack. Please remove it before continuing."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 4 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Error fetching/nesting the hotend in rack slot 5. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 2 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Error fetching/nesting the hotend in rack slot 6. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 3 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "Toolhead XY axis or hotend rack has not finished homing. Hotend replacement cannot proceed."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 4 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 4 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "Induction Hotend Rack homing distance is too long. The timing belt may be loose. Please check and tighten."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend from slot 6 on the rack back onto the toolhead, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 4 on the rack, then move the toolhead to the center of the build plate."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Error fetching/nesting the hotend in rack slot 3. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 1 on the rack. Please remove it before continuing."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Error fetching/nesting the hotend in rack slot 1. Ensure the hotend holder has no hotend installed, the corresponding rack slot contains a hotend, and manually move the toolhead to the machine center before continuing."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 5 on the rack, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 3 on the rack."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 5 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 6 on the rack, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 5 on the rack."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 6 on the rack. Please remove it before continuing."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 4 on the rack. Please remove it before continuing."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 3 on the rack, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 1 on the rack, then move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "The induction hotend rack is malfunctioning. Please power off, check the connection, and restart the device."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Error detected before induction hotend replacement: a hotend is already installed in slot 5 on the rack. Please remove it before continuing."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Please nest the hotend back to slot 2 on the rack, then move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 3 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "The Induction Hotend Rack is blocked by an obstacle during homing. Please clear any obstructions from its movement path."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 2 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "Hotend holder motor is disconnected or has an open-circuit fault. Please check the motor’s flat cable connection."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Error detected before induction hotend replacement: no hotend installed in slot 2 on the rack."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "The Toolhead Enhanced Cooling Fan is not properly installed; it may not be securely fastened or may have fallen off."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "Power loss occurred while fetching/nesting hotend. Check if the hotend is in slot 6 on the rack. If not, nest it back to that slot and move the toolhead to the center of the build plate."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "Power loss occurred while fetching/nesting the hotend. Check if it’s mounted on the toolhead. If not, fetch it from slot 6 on the rack, nest it onto the toolhead, and move the toolhead to the center of the build plate."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "Hotend 1 authentication failed. Please switch the hotend or restart the printer."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Induction hotend rack calibration failed: the white marker on the rack’s induction hotend docking module was not detected. Please refer to the Wiki to check if the marker is damaged or covered by dirt."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "Hotend 5 authentication failed. Please switch the hotend or restart the printer."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Induction hotend rack calibration failed: abnormal calibration result. Please refer to the Wiki to check if the rack structure is deformed."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "Hotend 3 authentication failed. Please switch the hotend or restart the printer."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Induction hotend rack calibration failed: camera position calibration error. Please clean any debris from the thermal paper surface at the rear of the build plate and remove residue from the nozzle."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "The temperature sensor on the right hotend heatbreak is abnormal. To prevent nozzle clogs, the cooling fan will continue running at high speed. You can troubleshoot the sensor issue when the print is idle."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "The rotary engraving accessory is placed incorrectly. Please adjust and reposition it."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 5 is correctly installed."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 4 is correctly installed."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 6 is correctly installed."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 3 is correctly installed."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Filament and hotend matching failed. Please verify that the hotend in the hotend rack slot 2 is correctly installed."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "en": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "The firmware of AMS-HT C does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "The firmware of Laser Module does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "The device cannot detect AMS-HT H. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "The firmware of AMS-HT E does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "The firmware of Cutting Module does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "The firmware of AMS-HT A does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "The Cutting Module offset calibration failed, which may result in inaccurate cuts. Please ensure the cutting material is properly positioned and check whether the cutting blade tip is worn."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "The device cannot detect the Air Pump.  Please reconnect the module cable or restart the printer."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "The firmware of AMS C does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "The firmware of AMS-HT B does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "The device cannot detect AMS-HT E. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "AI detected nozzle clumping. Please check the nozzle condition. Refer to assistant for solutions."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "BirdsEye Camera initialization failed. The toolhead camera did not detect the Heatbed features. Please clean the Heatbed, remove all objects and pads, and ensure the bed markings are visible. Check Assistant for a detailed solution."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "The firmware of AMS D does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "The AI print monitor has detected a spaghetti defect. Please check the print and take the necessary action."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "The device cannot detect AMS-HT D. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "Nozzle camera lens is dirty, affecting AI monitoring. Clean the lens with a non-woven cloth and a small amount of alcohol. Beware of hotend heat; wait for it to cool before handling."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "The device cannot detect AMS-HT B. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "The device cannot detect AMS D. Please reconnect the AMS cable or restart the printer."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "The firmware of AMS-HT H does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "The firmware of AMS-HT D does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "The device cannot detect AMS B. Please reconnect the AMS cable or restart the printer."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "The device cannot detect AMS A. Please reconnect the AMS cable or restart the printer."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "The firmware of AMS-HT G does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "The device cannot detect AMS-HT C. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "The firmware of AMS-HT F does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "The firmware of AMS B does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Liveview Camera calibration timeout; please restart the printer."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "The firmware of AMS A does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "The device cannot detect AMS-HT A. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "The device cannot detect AMS C. Please reconnect the AMS cable or restart the printer."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "The device cannot detect the Laser Module. Please reconnect the module cable or restart the printer."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "The device cannot detect AMS-HT G. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "The device cannot detect AMS-HT F. Please reconnect the AMS-HT cable or restart the printer."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "The firmware of Air Pump does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "Liveview Camera initialization failed. This print can still continue, but some AI functions will be disabled. If you encounter this issue again after restarting, please contact customer support."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "The device cannot detect the Cutting Module. Please reconnect the module cable or restart the printer."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "The visual encoder board was not detected. Please check if the board is properly placed and aligned at all four corners, and ensure the positioning markings are clear and free from wear."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Homing Z axis failed: temperature control abnormality."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Failed to start a new task: The nozzle cold pull was not completed."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "Due to printer power limitations, printing, calibration, controls and other actions cannot be performed during AMS drying. Please stop the drying process before proceeding with any other operation."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Failed to start a new task: filament loading/unloading not completed."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Please attach the 80g White Printing Paper to the center area of the platform."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "The device is busy and cannot perform nozzle identification."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "The heatbed may be obstructed while moving downward. Please clear any objects beneath the heatbed and check for any resistance or jamming during its movement."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Failed to nest hotend into slot 2 on the rack."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Failed to fetch induction hotend from slot 6 on the rack."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "Induction Hotend Rack homing failed due to an obstruction. Please remove the obstacle before resuming printing."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Failed to fetch induction hotend from slot 5 on the rack."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Failed to nest hotend into slot 5 on the rack."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "The Hotend Rack homing distance is abnormally long. Please check whether the timing belt is loose or broken."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Failed to fetch induction hotend from slot 4 on the rack."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Failed to fetch induction hotend from slot 1 on the rack."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Hotend Rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Failed to fetch induction hotend from slot 4 on the rack."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Failed to nest hotend into slot 5 on the rack."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Before using Laser Mode or calibrating the Hotend Rack position, please remove all hotends from the rack."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Failed to fetch induction hotend from slot 3 on the rack."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Failed to fetch induction hotend from slot 3 on the rack."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Failed to lock the induction hotend."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Failed to fetch induction hotend from slot 2 on the rack."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Failed to fetch induction hotend from slot 2 on the rack."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Hotend Rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "Failed to nest hotend into slot 3 on the rack."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Failed to fetch induction hotend from slot 6 on the rack."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Failed to lock the induction hotend."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Failed to unlock the induction hotend."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "The Toolhead Enhanced Cooling Fan module is malfunctioning."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Failed to fetch induction hotend from slot 1 on the rack."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Hotend rack coarse homing failed. Printing has been canceled. Please check if any obstruction is blocking the rack movement."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Failed to nest hotend into slot 3 on the rack."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Failed to nest hotend into slot 6 on the rack."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Failed to nest hotend into slot 4 on the rack."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Failed to fetch induction hotend from slot 5 on the rack."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "Failed to nest hotend into slot 1 on the rack."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "Failed to nest hotend into slot 2 on the rack."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Failed to nest hotend into slot 1 on the rack."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Failed to unlock the induction hotend."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Failed to nest hotend into slot 4 on the rack."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Failed to nest hotend into slot 6 on the rack."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS is drying and cannot be upgraded at the moment. Please try again later."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "The printer is loading or unloading filament and cannot be upgraded at the moment. Please try again later."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "The device is printing and cannot be upgraded at the moment. Please try again later."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "AMS is initializing and cannot be upgraded at the moment. Please try again later."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS is in operation and cannot be upgraded at the moment. Please try again when it is idle."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Please heat the nozzle to above 170°C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "The device cannot detect Fire Extinguisher.  Please reconnect the module cable or restart the printer."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "The device cannot detect Laser Fourth Axis.  Please reconnect the module cable or restart the printer."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "The device is currently upgrading. Please try again when it is idle."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "A minor fire was detected inside the chamber, and the Auto Fire Extinguishing process has been aborted."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Currently in 2D production mode. Please continue the operation on the printer"
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Fire extinguisher cylinder not installed. Please confirm on the extinguisher page."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Fire Extinguisher not detected, the automatic extinguishing function will be unavailable."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Fire Extinguisher is malfunctioning."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "The Fire Extinguisher Gas Cylinder is empty."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Nozzle offset calibration sensor signal abnormality detected. Please check the sensor and retry."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Fire extinguisher motor reset failed."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Fire Extinguisher not detected, the automatic extinguishing function will be unavailable."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "The task cannot be paused."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "The Cutting Module offset calibration failed, which may result in inaccurate cuts. Please ensure the 80g white printer paper(letter paper thickness) is properly positioned and check whether the cutting blade tip is worn."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Task aborted because the front door or top cover is open."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Nozzle offset calibration sensor error. If using a single hotend or the calibration function is disabled, you may ignore this and continue printing; otherwise, it is recommended to check the sensor before proceeding."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "The filament in hotend is too cold. Extrusion may damage the extruder. Still feeding in/out the filament?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "The fire extinguisher has been detected and is ready for use after the laser module is connected."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "The nozzle silicone sleeve is not installed; there is a risk of temperature control failure. Please install it correctly and try again."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Toolhead Camera initialization failed. This print can still continue, but some AI functions will be disabled. If you encounter this issue again after restarting, please contact customer support."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "XY motor homing failed during hotend holder homing. Please check for obstructions and retry."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "Hotend dropped from the holder during printing. Please return it to the original position before continuing."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "Hotend holder homing blocked. Please check for obstructions and retry."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Laser/Calibration mode: Please remove all hotends from the holder before retrying."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "Hotend holder homing distance too long. Please inspect the timing belt and motor gear for looseness or damage."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "Hotend Change System is busy; please perform the upgrade when it is idle."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Please place a StrongGrip cutting mat on the cutting protection base."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "The print has stopped because the 3MF file is invalid. Please verify that the correct printer model was selected during slicing, or update Studio and re-slice the file."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "The AMS Remaining Filament Estimation is enabled by default and cannot be disabled."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "The print has stopped because the available hotend quantity or model does not match the sliced file. Please verify the hotend model and quantity before restarting the print job."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "Hotend authentication failed. Please switch the hotend or restart the printer."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "The task failed due to a timeout on the induction hotend switch. Please go to the \"Hotend & Rack\" page and click \"Read All\" to switch manually."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "No available hotend was detected in the induction hotend holder or the hotend rack. Please install a hotend and try again."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "Induction hotend rack calibration failed, please check the Assistant."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Laser module detected. Please install the right nozzle correctly to ensure proper Laser Module Mounting Calibration."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "The right hotend heatbreak temperature is too high, which may cause clogging. Please open the printer’s top cover and front door to reduce the chamber temperature, or lower the ambient temperature."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "The hotend rack is fully occupied, and hotend switching cannot be performed. Please remove one hotend before proceeding."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "The device is busy and cannot perform hotend rack tasks at this moment. Please try again later."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "The right hotend is not installed, and the toolhead cannot perform homing. Please install the hotend and then continue."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "The hotend rack has not been calibrated, and hotend switching cannot be performed. Please complete the rack calibration on the device."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "The hotend rack is fully occupied. Please remove one hotend before proceeding."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Failed to read induction hotend information. Please replace the hotend or restart the printer."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Nozzle cleaning failed. Please click the Assistant for troubleshooting."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Hotend rack motor error. Please check and remove any obstructions affecting rack movement before continuing."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "MC–hotend rack communication error. Please check if the rack mainboard cable is loose."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Induction hotend verification failed. Please replace the hotend and try again."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Hotend rack motor position sensor error. If the issue persists after retrying, restart the printer."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Hotend rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Hotend rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "The hotend rack has not been set up. Please complete the setup before performing a hotend replacement."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Laser module detected. Please remove the hotend from the hotend rack to prevent laser processing debris from affecting printing performance."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Induction hotend recognition error detected. Please go to the \"Hotends & Rack\" page and click \"Read All\" to re-detect. If the issue persists, try updating the firmware on the \"Firmware\" page."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "Hotend pre-swap check failed."
+                },
+                {
                     "ecode": "0502C024",
                     "intro": "The flow dynamic calibration records have exceeded the storage limit. Please delete some historical records in the slicer software before adding new calibration data."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "A hotend information update was detected during nozzle offset calibration. Please go to the \"Hotends & Rack\" page and click “Read All” to reidentify. If the issue persists, try updating from the “Firmware” page."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "Detected build plate offset or debris. Please align the build plate with the heatbed and remove all debris from the plate surface before continuing."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Hotend type mismatch detected during printing. Please replace the hotend in slot 3 on the rack with the type specified in the slicer before continuing the print."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Hotend type mismatch detected during printing. Please replace the hotend in slot 4 on the rack with the type specified in the slicer before continuing the print."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Hotend type mismatch detected during printing. Please replace the hotend in slot 2 on the rack with the type specified in the slicer before continuing the print."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Hotend type mismatch detected during printing. Please replace the hotend in slot 1 on the rack with the type specified in the slicer before continuing the print."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Hotend type mismatch detected during printing. Please replace the hotend in slot 5 on the rack with the type specified in the slicer before continuing the print."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Hotend type mismatch detected during printing. Please replace the hotend in slot 6 on the rack with the type specified in the slicer before continuing the print."
                 },
                 {
                     "ecode": "05008078",
@@ -21113,7 +21877,7 @@
                 },
                 {
                     "ecode": "03008013",
-                    "intro": "Printing was paused by the user. You can select \"Resume\" to continue printing."
+                    "intro": "Printing paused due to the pause command added to the printing file."
                 },
                 {
                     "ecode": "18008011",
@@ -21661,7 +22425,7 @@
                 },
                 {
                     "ecode": "03008001",
-                    "intro": "Printing paused due to the pause command added to the printing file."
+                    "intro": "Printing was paused by the user. You can select \"Resume\" to continue printing."
                 },
                 {
                     "ecode": "0500806E",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "The Flame Sensor is abnormal. The sensor may be short-circuited. Please troubleshoot the issue before starting a print job."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "The firmware of AMS-HT C does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "The firmware of Laser Module does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "The device cannot detect AMS-HT H. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "The firmware of AMS-HT E does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "The firmware of Cutting Module does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "The firmware of AMS-HT A does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "The Cutting Module offset calibration failed, which may result in inaccurate cuts. Please ensure the cutting material is properly positioned and check whether the cutting blade tip is worn."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "The device cannot detect the Air Pump.  Please reconnect the module cable or restart the printer."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "The firmware of AMS C does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "The firmware of AMS-HT B does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "The device cannot detect AMS-HT E. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "AI detected nozzle clumping. Please check the nozzle condition. Refer to assistant for solutions."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "BirdsEye Camera initialization failed. The toolhead camera did not detect the Heatbed features. Please clean the Heatbed, remove all objects and pads, and ensure the bed markings are visible. Check Assistant for a detailed solution."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "The firmware of AMS D does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "The AI print monitor has detected a spaghetti defect. Please check the print and take the necessary action."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "The device cannot detect AMS-HT D. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "Nozzle camera lens is dirty, affecting AI monitoring. Clean the lens with a non-woven cloth and a small amount of alcohol. Beware of hotend heat; wait for it to cool before handling."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "The device cannot detect AMS-HT B. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "The device cannot detect AMS D. Please reconnect the AMS cable or restart the printer."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "The firmware of AMS-HT H does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "The firmware of AMS-HT D does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "The device cannot detect AMS B. Please reconnect the AMS cable or restart the printer."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "The device cannot detect AMS A. Please reconnect the AMS cable or restart the printer."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "The firmware of AMS-HT G does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "The device cannot detect AMS-HT C. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "The firmware of AMS-HT F does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "The firmware of AMS B does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Liveview Camera calibration timeout; please restart the printer."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "The firmware of AMS A does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "The device cannot detect AMS-HT A. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "The device cannot detect AMS C. Please reconnect the AMS cable or restart the printer."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "The device cannot detect the Laser Module. Please reconnect the module cable or restart the printer."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "The device cannot detect AMS-HT G. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "The device cannot detect AMS-HT F. Please reconnect the AMS-HT cable or restart the printer."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "The firmware of Air Pump does not match the printer; the device cannot continue working. Please upgrade it on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "Liveview Camera initialization failed. This print can still continue, but some AI functions will be disabled. If you encounter this issue again after restarting, please contact customer support."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "The device cannot detect the Cutting Module. Please reconnect the module cable or restart the printer."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "The visual encoder board was not detected. Please check if the board is properly placed and aligned at all four corners, and ensure the positioning markings are clear and free from wear."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Homing Z axis failed: temperature control abnormality."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Failed to start a new task: The nozzle cold pull was not completed."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "Due to printer power limitations, printing, calibration, controls and other actions cannot be performed during AMS drying. Please stop the drying process before proceeding with any other operation."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Failed to start a new task: filament loading/unloading not completed."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Please attach the 80g White Printing Paper to the center area of the platform."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "The device is busy and cannot perform nozzle identification."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "The heatbed may be obstructed while moving downward. Please clear any objects beneath the heatbed and check for any resistance or jamming during its movement."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Failed to place hotend into holder Position 2. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Failed to pick up hotend from holder Position 6. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "Induction Hotend Rack homing failed due to an obstruction. Please remove the obstacle before resuming printing."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Failed to pick up hotend from holder Position 5. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Failed to place hotend into holder Position 5. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "The Hotend Rack homing distance is abnormally long. Please check whether the timing belt is loose or broken."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Failed to pick up hotend from holder Position 4. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Failed to pick up hotend from holder Position 1. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "Hotend Rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Failed to pick up hotend from holder Position 4. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Failed to place hotend into holder Position 5. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Before using Laser Mode or calibrating the Hotend Rack position, please remove all hotends from the rack."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Failed to pick up hotend from holder Position 3. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Failed to pick up hotend from holder Position 3. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Locking failed; please check if there is any sticky material on the nozzle."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Failed to pick up hotend from holder Position 2. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Failed to pick up hotend from holder Position 2. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "Hotend Rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "Failed to place hotend into holder Position 3. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Failed to pick up hotend from holder Position 6. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Locking failed; please check if there is any sticky material on the nozzle."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Unlock failed; please check the installation position of the ejector rod."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "The Toolhead Enhanced Cooling Fan module is malfunctioning."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Failed to pick up hotend from holder Position 1. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Hotend rack coarse homing failed. Printing has been canceled. Please check if any obstruction is blocking the rack movement."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Failed to place hotend into holder Position 3. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Failed to place hotend into holder Position 6. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Failed to place hotend into holder Position 4. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Failed to pick up hotend from holder Position 5. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "Failed to place hotend into holder Position 1. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Failed to place hotend into holder Position 2. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Failed to place hotend into holder Position 1. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Unlock failed; please check the installation position of the ejector rod."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Failed to place hotend into holder Position 4. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Failed to place hotend into holder Position 6. Please check for filament residue or sticking material."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "AMS is drying and cannot be upgraded at the moment. Please try again later."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "The printer is loading or unloading filament and cannot be upgraded at the moment. Please try again later."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "The device is printing and cannot be upgraded at the moment. Please try again later."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "AMS is initializing and cannot be upgraded at the moment. Please try again later."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "AMS is in operation and cannot be upgraded at the moment. Please try again when it is idle."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Please heat the nozzle to above 170°C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "The device cannot detect Fire Extinguisher.  Please reconnect the module cable or restart the printer."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "The device cannot detect Laser Fourth Axis.  Please reconnect the module cable or restart the printer."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "The device is currently upgrading. Please try again when it is idle."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "A minor fire was detected inside the chamber, and the Auto Fire Extinguishing process has been aborted."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "Currently in 2D production mode. Please continue the operation on the printer"
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "Fire extinguisher cylinder not installed. Please confirm on the extinguisher page."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Fire Extinguisher not detected, the automatic extinguishing function will be unavailable."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "Fire Extinguisher is malfunctioning."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "The Fire Extinguisher Gas Cylinder is empty."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Nozzle offset calibration sensor signal abnormality detected. Please check the sensor and retry."
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Fire extinguisher motor reset failed."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Fire Extinguisher not detected, the automatic extinguishing function will be unavailable."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "The task cannot be paused."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "The Cutting Module offset calibration failed, which may result in inaccurate cuts. Please ensure the 80g white printer paper(letter paper thickness) is properly positioned and check whether the cutting blade tip is worn."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Task aborted because the front door or top cover is open."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Nozzle offset calibration sensor error. If using a single hotend or the calibration function is disabled, you may ignore this and continue printing; otherwise, it is recommended to check the sensor before proceeding."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "The filament in hotend is too cold. Extrusion may damage the extruder. Still feeding in/out the filament?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "The fire extinguisher has been detected and is ready for use after the laser module is connected."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "The nozzle silicone sleeve is not installed; there is a risk of temperature control failure. Please install it correctly and try again."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "Toolhead Camera initialization failed. This print can still continue, but some AI functions will be disabled. If you encounter this issue again after restarting, please contact customer support."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "XY motor homing failed during hotend holder homing. Please check for obstructions and retry."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "Hotend dropped from the holder during printing. Please return it to the original position before continuing."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "Hotend holder homing blocked. Please check for obstructions and retry."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Laser/Calibration mode: Please remove all hotends from the holder before retrying."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "Hotend holder homing distance too long. Please inspect the timing belt and motor gear for looseness or damage."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "Hotend Change System is busy; please perform the upgrade when it is idle."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Please place a StrongGrip cutting mat on the cutting protection base."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "The print has stopped because the 3MF file is invalid. Please verify that the correct printer model was selected during slicing, or update Studio and re-slice the file."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "The AMS Remaining Filament Estimation is enabled by default and cannot be disabled."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "The print has stopped because the available hotend quantity or model does not match the sliced file. Please verify the hotend model and quantity before restarting the print job."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "Hotend authentication failed. Please switch the hotend or restart the printer."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "The task failed due to a timeout on the induction hotend switch. Please go to the \"Hotend & Rack\" page and click \"Read All\" to switch manually."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "No available hotend was detected in the induction hotend holder or the hotend rack. Please install a hotend and try again."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "Induction hotend rack calibration failed, please check the Assistant."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Failed to get filament-hotend mapping table from the slicing file, please retry."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Laser module detected. Please install the right nozzle correctly to ensure proper Laser Module Mounting Calibration."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "The right hotend heatbreak temperature is too high, which may cause clogging. Please open the printer’s top cover and front door to reduce the chamber temperature, or lower the ambient temperature."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "The hotend rack is fully occupied, and hotend switching cannot be performed. Please remove one hotend before proceeding."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "The device is busy and cannot perform hotend rack tasks at this moment. Please try again later."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "The right hotend is not installed, and the toolhead cannot perform homing. Please install the hotend and then continue."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "The hotend rack has not been calibrated, and hotend switching cannot be performed. Please complete the rack calibration on the device."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "The hotend rack is fully occupied. Please remove one hotend before proceeding."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Failed to read induction hotend information. Please replace the hotend or restart the printer."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Nozzle cleaning failed. Please click the Assistant for troubleshooting."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Hotend rack motor error. Please check and remove any obstructions affecting rack movement before continuing."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "MC–hotend rack communication error. Please check if the rack mainboard cable is loose."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "Induction hotend verification failed. Please replace the hotend and try again."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Hotend rack motor position sensor error. If the issue persists after retrying, restart the printer."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "Hotend rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "Hotend rack coarse homing failed. Please check for obstructions or if the build plate is misaligned."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "The hotend rack has not been set up. Please complete the setup before performing a hotend replacement."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Laser module detected. Please remove the hotend from the hotend rack to prevent laser processing debris from affecting printing performance."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Induction hotend recognition error detected. Please go to the \"Hotends & Rack\" page and click \"Read All\" to re-detect. If the issue persists, try updating the firmware on the \"Firmware\" page."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "Hotend pre-swap check failed. Please verify that the hotend is correctly placed."
                 }
             ]
         }
