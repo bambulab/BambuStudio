@@ -19,11 +19,11 @@ void Filler::_fill_surface_single(
     
     // Apply multiline offset if needed
     multiline_fill(fill_lines, params, spacing);
-
-    if (params.dont_connect() || fill_lines.size() <= 1) {
-        append(polylines_out, chain_polylines(std::move(fill_lines)));
+    Polylines all_polylines = intersection_pl(std::move(fill_lines), expolygon);
+    if (params.dont_connect() || all_polylines.size() <= 1) {
+        append(polylines_out, chain_polylines(std::move(all_polylines)));
     } else
-        connect_infill(std::move(fill_lines), expolygon, polylines_out, this->spacing, params);
+        connect_infill(std::move(all_polylines), expolygon, polylines_out, this->spacing, params);
 }
 
 void GeneratorDeleter::operator()(Generator *p) {
