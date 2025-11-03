@@ -3265,7 +3265,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
         float real_travel_dis         = tpu_line_count * (xr - xl - 2 * m_perimeter_width);
         if (real_travel_dis < need_reverse_travel_dis)
             nozzle_change_speed *= real_travel_dis / need_reverse_travel_dis;
-        writer.travel(writer.x(), writer.y() + m_nozzle_change_perimeter_width);
+        writer.travel(writer.x(), writer.y() + dy/2);
 
         for (int i = 0; true; ++i) {
             need_reverse_travel_dis -= (xr - xl - 2 * m_perimeter_width);
