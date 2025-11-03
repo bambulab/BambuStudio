@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "pl": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 2: głowica spadła. Proszę sprawdzić, czy na górze głowicy pozostało zbyt wiele filamentu, przyciąć pozostałości, ponownie zainstalować głowicę w szczelinie 2 na stojaku, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 2. Upewnij się, że żadna gorąca głowica nie jest zamontowana na głowicy narzędzia i że gorąca głowica znajduje się w szczelinie 2 na stojaku przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Wykryto nietypowy stan podczas osadzania gorącej głowicy w gnieździe 4: nie wykryto gorącej głowicy na głowicy narzędzia. Proszę zamocować gorącą głowicę na głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: stojak nie zamocował hotendu prawidłowo. Proszę sprawdzić czy na górze hotendu nie ma nadmiernego filamentu, czy nie ma zanieczyszczeń w obszarze kontaktu między głowicą narzędzia a hotendem, lub czy dźwignia blokująca nie jest w pozycji zwolnionej. Po rozwiązaniu problemu, kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 3. Upewnij się, że żadna gorąca głowica nie jest zamontowana na głowicy narzędzia i że gorąca głowica znajduje się w szczelinie 3 na stojaku przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 1: stojak nie wykrył gorącej głowicy na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora gorącej głowicy nie ma żadnych zanieczyszczeń ani czy przedni magnes nie odpadł. Jeśli nie, przekalibruj stojak indukcyjnej gorącej głowicy."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w slocie 1: nie wykryto hotendu na głowicy narzędzia. Proszę zamocować hotend na głowicę narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w szczelinie 3: stojak nie był w stanie odłączyć hotendu od głowicy narzędzia. Upewnij się, że dźwignia blokująca jest w pozycji zwolnionej."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 6. Upewnij się, że żadna gorąca głowica nie jest zamontowana na głowicy narzędzia i że gorąca głowica znajduje się w szczelinie 6 na stojaku przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Wykryto błąd podczas pobierania gorącej głowicy z gniazda 5: gorąca głowica spadła. Proszę sprawdzić czy na górze gorącej głowicy nie ma nadmiernego filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, a następnie ponownie zainstalować gorącą głowicę w gnieździe 5 na stojaku i kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 3: ruch regału jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 3: głowica spadła. Proszę sprawdzić, czy na górze głowicy pozostało zbyt dużo filamentu, przyciąć pozostałości, ponownie zainstalować głowicę w szczelinie 3 na stojaku, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "Wyczerpano czas ruchu stojaka hotendu. Proszę sprawdzić, czy nie ma żadnych obcych przedmiotów ani przeszkód, które mogą powodować zacięcie stojaka."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: stojak nie został poprawnie zamocowany na hotendzie. Proszę sprawdzić czy na górze hotendu nie ma nadmiernego filamentu, czy nie ma zanieczyszczeń w obszarze kontaktu między głowicą narzędzia a hotendem, lub czy dźwignia blokująca nie jest w pozycji zwolnionej. Po rozwiązaniu problemu, kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 3: gorąca głowica jest już zainstalowana. Proszę usunąć istniejącą przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: narzędzie nie wykryło hotendu na stojaku. Proszę sprawdzić, czy nie ma żadnych zanieczyszczeń w gnieździe montażowym indukcyjnego hotendu na narzędziu. Jeśli żadne nie zostaną znalezione, przekalibruj stojak indukcyjnego hotendu."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 2: nie znaleziono hotendu na tej pozycji. Zainstaluj hotend w odpowiednim gnieździe przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 4: gorąca głowica jest już zainstalowana. Proszę usunąć istniejącą przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 1: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Wykryto błąd podczas pobierania gorącej głowicy z gniazda 6: gorąca głowica spadła. Proszę sprawdzić czy na górze gorącej głowicy nie ma nadmiernego filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, a następnie ponownie zainstalować gorącą głowicę w gnieździe 6 na stojaku i kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: stojak nie zamontował hotendu poprawnie. Proszę sprawdzić czy na górze hotendu nie ma nadmiernego filamentu, czy nie ma zanieczyszczeń w obszarze kontaktu między głowicą narzędzia a hotendem, lub czy dźwignia blokująca nie jest w pozycji zwolnionej. Po rozwiązaniu problemu, kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 1: głowica spadła. Proszę sprawdzić, czy na górze głowicy pozostało zbyt dużo filamentu, przyciąć pozostałości, ponownie zainstalować głowicę w szczelinie 1 na stojaku, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 4. Upewnij się, że żadna gorąca głowica nie jest zamontowana na głowicy narzędzia i że gorąca głowica znajduje się w szczelinie 4 na stojaku przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Wykryto nietypową sytuację podczas pobierania hotendu z gniazda 5: nie znaleziono hotendu na tej pozycji. Zainstaluj hotend w odpowiednim gnieździe przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 1: nie znaleziono hotendu na tej pozycji. Zainstaluj hotend w odpowiednim gnieździe przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 2: gorąca głowica jest już zainstalowana. Proszę usunąć istniejącą przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 6: nie znaleziono hotendu na tej pozycji. Zainstaluj hotend w odpowiednim gnieździe przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 4: ruch regału jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 5: ruch regału jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: stojak nie został poprawnie zamocowany na hotendzie. Proszę sprawdzić czy na górze hotendu nie ma nadmiernego filamentu, czy nie ma zanieczyszczeń w obszarze kontaktu między głowicą narzędzia a hotendem, lub czy dźwignia blokująca nie jest w pozycji zwolnionej. Po rozwiązaniu problemu, kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 3: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 6: ruch regału jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w szczelinie 5: stojak nie był w stanie odłączyć hotendu od głowicy narzędzia. Upewnij się, że dźwignia blokująca jest w pozycji zwolnionej."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 5: hotend jest już zamontowany na głowicy narzędzia. Proszę usunąć hotend z głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 2: stojak nie wykrył gorącej głowicy na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora gorącej głowicy nie ma żadnych zanieczyszczeń ani czy przedni magnes nie odpadł. Jeśli nie, przekalibruj stojak indukcyjnej gorącej głowicy."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w slocie 4: stojak nie był w stanie odłączyć hotendu od głowicy narzędzia. Upewnij się, że dźwignia blokująca jest w pozycji zwolnionej."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "Pozycja pręta blokady narzędzia stojaka hotend jest nietypowa. Proszę sprawdzić, czy nie ma żadnych obcych przedmiotów ani przeszkód, które mogą powodować zablokowanie pręta blokady."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: narzędzie nie wykryło hotendu na stojaku. Proszę sprawdzić, czy nie ma żadnych zanieczyszczeń w gnieździe montażowym indukcyjnego hotendu na narzędziu. Jeśli żadnych nie zostanie znalezionych, przekalibruj stojak indukcyjnego hotendu."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Wykryto błąd podczas pobierania gorącej głowicy z gniazda 1: gorąca głowica spadła. Proszę sprawdzić czy na górze gorącej głowicy nie ma nadmiernego filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, a następnie ponownie zainstalować gorącą głowicę w gnieździe 1 na stojaku i kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: narzędzie nie wykryło hotendu na stojaku. Proszę sprawdzić, czy nie ma żadnych zanieczyszczeń w gnieździe montażowym indukcyjnego hotendu na głowicy narzędzia. Jeśli żadnych nie zostanie znalezionych, przekalibruj stojak indukcyjnego hotendu."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w szczelinie 1. Upewnij się, że na głowicy narzędzia nie jest zamontowany żaden hotend i że hotend znajduje się w szczelinie 1 na stojaku przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Wykryto nietypową sytuację podczas pobierania hotendu z gniazda 4: nie znaleziono hotendu na tej pozycji. Zainstaluj hotend w odpowiednim gnieździe przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka blatu budowlanego, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Wykryto błąd podczas pobierania gorącej głowicy z gniazda 4: gorąca głowica spadła. Proszę sprawdzić czy na górze gorącej głowicy nie ma nadmiernego filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, a następnie ponownie zainstalować gorącą głowicę w gnieździe 4 na stojaku i kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Błąd mechanizmu zwalniania dźwigni blokady gorącego końcówki indukcyjnej lub dźwigni stojaka. Proszę zajrzeć do Wiki w celu inspekcji."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Wykryto błąd podczas pobierania gorącej głowicy z gniazda 2: gorąca głowica spadła. Proszę sprawdzić czy na górze gorącej głowicy nie ma nadmiernego filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, a następnie ponownie zainstalować gorącą głowicę w gnieździe 2 na stojaku i kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 6: stojak nie wykrył gorącej głowicy na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora gorącej głowicy nie ma żadnych zanieczyszczeń ani czy przedni magnes nie odpadł. Jeśli nie, przekalibruj stojak indukcyjnej gorącej głowicy."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka blatu budowy, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 1: hotend jest już zamontowany na głowicy narzędzia. Proszę usunąć hotend z głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 2: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w szczelinie 5. Upewnij się, że na głowicy narzędzia nie jest zamontowany żaden hotend i że hotend znajduje się w szczelinie 5 na stojaku przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Wykryto nietypowy stan podczas osadzania gorącej głowicy w gnieździe 5: nie wykryto gorącej głowicy na głowicy narzędzia. Proszę zamocować gorącą głowicę na głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 4: stojak nie wykrył gorącej głowicy na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora gorącej głowicy nie ma żadnych zanieczyszczeń ani czy przedni magnes nie odpadł. Jeśli nie, przekalibruj stojak indukcyjnej gorącej głowicy."
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 5: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 4: hotend jest już zamontowany na głowicy narzędzia. Proszę usunąć hotend z głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: stojak nie zamontował hotendu prawidłowo. Proszę sprawdzić czy na górze hotendu nie ma nadmiernego filamentu, czy nie ma zanieczyszczeń w obszarze kontaktu między głowicą narzędzia a hotendem, lub czy dźwignia blokująca nie jest w pozycji zwolnionej. Po rozwiązaniu problemu, kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w slocie 2: nie wykryto hotendu na głowicy narzędzia. Proszę zamocować hotend na głowicę narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka blatu budowy, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w szczelinie 6: stojak nie był w stanie odłączyć hotendu od głowicy narzędzia. Upewnij się, że dźwignia blokująca jest w pozycji zwolnionej."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Wykryto błąd podczas pobierania gorącej głowicy z gniazda 3: gorąca głowica spadła. Proszę sprawdzić czy na górze gorącej głowicy nie ma nadmiernego filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, a następnie ponownie zainstalować gorącą głowicę w gnieździe 3 na stojaku i kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 5: stojak nie wykrył gorącej głowicy na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora gorącej głowicy nie ma żadnych zanieczyszczeń ani czy przedni magnes nie odpadł. Jeśli nie, przekalibruj stojak indukcyjnej gorącej głowicy."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 6: hotend jest już zamontowany na głowicy narzędzia. Proszę usunąć hotend z głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "Kalibracja stojaka na hotendy nie powiodła się. Nie wykryto znacznika. Sprawdź, czy znacznik wizualny na stojaku nie jest uszkodzony lub zasłonięty przez zanieczyszczenia."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 3 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 1."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 1 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 4."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 2 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 1 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 3 jest już zainstalowany."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 6."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 5 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 2 jest już zainstalowany."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 4 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 2 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 3 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 6 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 1 jest już zainstalowany."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 5 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 5 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 6 jest już zainstalowany."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 4 jest już zainstalowany."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 3 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 1 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 5 jest już zainstalowany."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 3 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 6 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 1 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 5 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 3."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 6 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 5."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 2 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 2 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 2."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 6 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: narzędzie nie wykryło hotendu na stojaku. Proszę sprawdzić, czy nie ma żadnych zanieczyszczeń w gnieździe montażowym indukcyjnego hotendu na narzędziu. Jeśli żadnych nie zostanie znalezionych, przekalibruj stojak indukcyjnego hotendu."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: stojak nie został poprawnie zamocowany na hotendzie. Proszę sprawdzić czy na górze hotendu nie ma nadmiernego filamentu, czy nie ma zanieczyszczeń w obszarze kontaktu między głowicą narzędzia a hotendem, lub czy dźwignia blokująca nie jest w pozycji zwolnionej. Po rozwiązaniu problemu, kliknij \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 6: gorąca głowica jest już zainstalowana. Proszę usunąć istniejącą przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 5: głowica spadła. Proszę sprawdzić, czy na górze głowicy pozostało zbyt dużo filamentu, przyciąć pozostałości, ponownie zainstalować głowicę w szczelinie 5 na stojaku, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: narzędzie nie wykryło hotendu na stojaku. Proszę sprawdzić, czy nie ma żadnych zanieczyszczeń w gnieździe montażowym indukcyjnego hotendu na narzędziu. Jeśli żadnych nie zostanie znalezionych, przekalibruj stojak indukcyjnego hotendu."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: narzędzie nie wykryło hotendu na stojaku. Proszę sprawdzić, czy nie ma żadnych zanieczyszczeń w gnieździe montażowym indukcyjnego hotendu na narzędziu. Jeśli żadnych nie znaleziono, przekalibruj stojak indukcyjnego hotendu."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 3: hotend jest już zamontowany na głowicy narzędzia. Proszę usunąć hotend z głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 3: stojak nie wykrył gorącej głowicy na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora gorącej głowicy nie ma żadnych zanieczyszczeń ani czy przedni magnes nie odpadł. Jeśli nie, przekalibruj stojak indukcyjnej gorącej głowicy."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w slocie 2: stojak nie był w stanie odłączyć hotendu od głowicy narzędzia. Upewnij się, że dźwignia blokująca jest w pozycji zwolnionej."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 2: hotend jest już zamontowany na głowicy narzędzia. Proszę usunąć hotend z głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 6: gorąca głowica spadła. Proszę sprawdzić, czy na górze gorącej głowicy pozostało zbyt wiele filamentu, przyciąć pozostałości, ponownie zainstalować gorącą głowicę w szczelinie 6 na stojaku, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 6: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 5: gorąca głowica jest już zainstalowana. Proszę usunąć istniejącą przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 4: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Wykryto nietypowy stan podczas pobierania hotendu z gniazda 3: nie znaleziono hotendu na tej pozycji. Zainstaluj hotend w odpowiednim gnieździe przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 1: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w slocie 1: hotend jest już zainstalowany. Proszę usunąć istniejący przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w szczelinie 4: głowica spadła. Proszę sprawdzić, czy na górze gorącej głowicy nie ma nadmiernego filamentu, przyciąć pozostałości, ponownie zainstalować gorącą głowicę w szczelinie 4 na stojaku, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania hotendu w slocie 1: stojak nie był w stanie odłączyć hotendu od głowicy narzędzia. Upewnij się, że dźwignia blokująca jest w pozycji zwolnionej."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 2: ponowna próba wyśrodkowania głowicy narzędzia nie powiodła się. Proszę ręcznie przenieść głowicę narzędzia do środka płyty budowlanej, a następnie kliknąć „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: ruch stojaka jest zablokowany. Proszę sprawdzić czy nie ma żadnych obcych przedmiotów, usunąć je, a następnie kliknąć \"Kontynuuj\"."
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Wykryto nietypowy stan podczas osadzania gorącej głowicy w gnieździe 3: nie wykryto gorącej głowicy na głowicy narzędzia. Proszę zamocować gorącą głowicę na głowicy narzędzia przed kliknięciem „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Wykryto nietypowy stan podczas gniazdowania gorącej głowicy w slocie 6: nie wykryto gorącej głowicy na głowicy narzędzia. Proszę zamocować gorącą głowicę na głowicy narzędzia przed kliknięciem przycisku „Kontynuuj”."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Kalibracja stojaka na hotendy indukcyjne nie powiodła się: wynik przekroczył zakres ruchu. Sprawdź, czy konstrukcja stojaka nie jest odkształcona."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Kalibracja stojaka na hotendy nie powiodła się: dane kalibracyjne kamery są nieprawidłowe. Proszę oczyścić dysze z resztek, sprawdzić stan papieru termicznego na stole grzewczym i usunąć wszelkie zanieczyszczenia z jego powierzchni."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "AMS-HT F wentylator chłodzący grzałkę 2 nie może zostać uruchomiony, ponieważ zasilacz nie jest podłączony."
@@ -18595,6 +18067,406 @@
                     "intro": "Na płytce RFID 1 w AMS-HT H wystąpił błąd."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "Akcesorium do grawerowania obrotowego jest nieprawidłowo ustawione. Proszę ponownie wyregulować jego położenie."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 5 stojaka jest prawidłowo zainstalowany."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 4 stojaka jest prawidłowo zainstalowany."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 6 stojaka jest prawidłowo zainstalowany."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 3 stojaka jest prawidłowo zainstalowany."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 2 stojaka jest prawidłowo zainstalowany."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: głowica nie wykryła hotendu na stojaku. Sprawdź, czy w gnieździe montażowym głowicy indukcyjnego hotendu nie ma zanieczyszczeń. Jeśli nic nie znajdziesz, skalibruj ponownie indukcyjny stojak hotendu."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: uchwyt nie osadził hotendu prawidłowo. Sprawdź, czy na górze hotendu nie ma nadmiaru filamentu, czy w obszarze styku między głowicą a hotendem nie znajdują się zanieczyszczenia oraz czy dźwignia blokująca jest w pozycji otwartej. Po rozwiązaniu problemu kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6: hotend jest już zainstalowany. Usuń go przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5: hotend wypadł. Sprawdź, czy na górze hotendu nie pozostała nadmierna ilość filamentu, usuń ewentualne pozostałości, ponownie zamontuj hotend na stojaku w gnieździe 5, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: głowica nie wykryła hotendu na stojaku. Sprawdź, czy w gnieździe montażowym głowicy indukcyjnego hotendu nie ma zanieczyszczeń. Jeśli nic nie znajdziesz, skalibruj ponownie indukcyjny stojak hotendu."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: głowica nie wykryła hotendu na stojaku. Sprawdź, czy w gnieździe montażowym głowicy indukcyjnego hotendu nie ma zanieczyszczeń. Jeśli nic nie znajdziesz, skalibruj ponownie indukcyjny stojak hotendu."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 3: hotend jest już zamontowany na głowicy. Proszę zdjąć hotend z głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3: stojak nie wykrył hotendu na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora hotendu nie znajdują się zanieczyszczenia lub czy przedni magnes nie odpadł. Jeśli nie stwierdzisz żadnych problemów, przeprowadź ponowną kalibrację stojaka indukcyjnego hotendu."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w slocie 2: uchwyt nie odłączył hotendu od głowicy. Upewnij się, że dźwignia blokująca jest w pozycji otwartej."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 2: hotend jest już zamontowany na głowicy. Proszę zdjąć hotend z głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6: hotend wypadł. Sprawdź, czy na górze hotendu nie pozostała nadmierna ilość filamentu, usuń ewentualne pozostałości, ponownie zamontuj hotend na stojaku w gnieździe 6, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5: hotend jest już zainstalowany. Usuń go przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 3: w tej pozycji nie znaleziono hotendu. Proszę zainstalować hotend w odpowiednim gnieździe przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1: hotend jest już zainstalowany. Usuń go przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4: hotend wypadł. Sprawdź, czy na górze hotendu nie pozostała nadmierna ilość filamentu, usuń ewentualne pozostałości, ponownie zamontuj hotend na stojaku w gnieździe 4, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w slocie 1: uchwyt nie odłączył hotendu od głowicy. Upewnij się, że dźwignia blokująca jest w pozycji otwartej."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3: nie wykryto hotendu na głowicy. Zamontuj hotend na głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6: nie wykryto hotendu na głowicy. Zamontuj hotend na głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2: hotend wypadł. Sprawdź, czy na górze hotendu nie pozostała nadmierna ilość filamentu, usuń ewentualne pozostałości, ponownie zamontuj hotend na stojaku w gnieździe 2, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2. Upewnij się, że na głowicy nie ma zamontowanego hotendu oraz że na stojaku w gnieździe 2 znajduje się hotend, zanim klikniesz \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4: nie wykryto hotendu na głowicy. Zamontuj hotend na głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: uchwyt nie osadził hotendu prawidłowo. Sprawdź, czy na górze hotendu nie ma nadmiaru filamentu, czy w obszarze styku między głowicą a hotendem nie znajdują się zanieczyszczenia oraz czy dźwignia blokująca jest w pozycji otwartej. Po rozwiązaniu problemu kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3. Upewnij się, że na głowicy nie ma zamontowanego hotendu oraz że na stojaku w gnieździe 3 znajduje się hotend, zanim klikniesz \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1: stojak nie wykrył hotendu na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora hotendu nie znajdują się zanieczyszczenia lub czy przedni magnes nie odpadł. Jeśli nie stwierdzisz żadnych problemów, przeprowadź ponowną kalibrację stojaka indukcyjnego hotendu."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1: nie wykryto hotendu na głowicy. Zamontuj hotend na głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w slocie 3: uchwyt nie odłączył hotendu od głowicy. Upewnij się, że dźwignia blokująca jest w pozycji otwartej."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6. Upewnij się, że na głowicy nie ma zamontowanego hotendu oraz że na stojaku w gnieździe 6 znajduje się hotend, zanim klikniesz \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: hotend wypadł. Proszę sprawdzić, czy na górze hotendu nie ma nadmiaru filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, następnie ponownie zainstalować hotend na stojaku w gnieździe 5 i kliknąć \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3: hotend wypadł. Sprawdź, czy na górze hotendu nie pozostała nadmierna ilość filamentu, usuń ewentualne pozostałości, ponownie zamontuj hotend na stojaku w gnieździe 3, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "Ruch stojaka na hotendy przekroczył limit czasu. Sprawdź, czy nie ma żadnych obcych elementów lub przeszkód, które mogą blokować stojak."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: uchwyt nie osadził hotendu prawidłowo. Sprawdź, czy na górze hotendu nie ma nadmiaru filamentu, czy w obszarze styku między głowicą a hotendem nie znajdują się zanieczyszczenia oraz czy dźwignia blokująca jest w pozycji otwartej. Po rozwiązaniu problemu kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3: hotend jest już zainstalowany. Usuń go przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: głowica nie wykryła hotendu na stojaku. Sprawdź, czy w gnieździe montażowym głowicy indukcyjnego hotendu nie ma zanieczyszczeń. Jeśli nic nie znajdziesz, skalibruj ponownie indukcyjny stojak hotendu."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 2: w tej pozycji nie znaleziono hotendu. Proszę zainstalować hotend w odpowiednim gnieździe przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4: hotend jest już zainstalowany. Usuń go przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 5: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: hotend wypadł. Proszę sprawdzić, czy na górze hotendu nie ma nadmiaru filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, następnie ponownie zainstalować hotend na stojaku w gnieździe 6 i kliknąć \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: uchwyt nie osadził hotendu prawidłowo. Sprawdź, czy na górze hotendu nie ma nadmiaru filamentu, czy w obszarze styku między głowicą a hotendem nie znajdują się zanieczyszczenia oraz czy dźwignia blokująca jest w pozycji otwartej. Po rozwiązaniu problemu kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1: hotend wypadł. Sprawdź, czy na górze hotendu nie pozostała nadmierna ilość filamentu, usuń ewentualne pozostałości, ponownie zamontuj hotend na stojaku w gnieździe 1, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4. Upewnij się, że na głowicy nie ma zamontowanego hotendu oraz że na stojaku w gnieździe 4 znajduje się hotend, zanim klikniesz \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 5: w tej pozycji nie znaleziono hotendu. Proszę zainstalować hotend w odpowiednim gnieździe przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 1: w tej pozycji nie znaleziono hotendu. Proszę zainstalować hotend w odpowiednim gnieździe przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2: hotend jest już zainstalowany. Usuń go przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 6: w tej pozycji nie znaleziono hotendu. Proszę zainstalować hotend w odpowiednim gnieździe przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: uchwyt nie osadził hotendu prawidłowo. Sprawdź, czy na górze hotendu nie ma nadmiaru filamentu, czy w obszarze styku między głowicą a hotendem nie znajdują się zanieczyszczenia oraz czy dźwignia blokująca jest w pozycji otwartej. Po rozwiązaniu problemu kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 3: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w slocie 5: uchwyt nie odłączył hotendu od głowicy. Upewnij się, że dźwignia blokująca jest w pozycji otwartej."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 4: hotend jest już zamontowany na głowicy. Proszę zdjąć hotend z głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2: stojak nie wykrył hotendu na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora hotendu nie znajdują się zanieczyszczenia lub czy przedni magnes nie odpadł. Jeśli nie stwierdzisz żadnych problemów, przeprowadź ponowną kalibrację stojaka indukcyjnego hotendu."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w slocie 4: uchwyt nie odłączył hotendu od głowicy. Upewnij się, że dźwignia blokująca jest w pozycji otwartej."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "Pozycja pręta blokady narzędzia stojaka hotendu jest nieprawidłowa. Sprawdź, czy nie ma żadnych obcych elementów lub przeszkód, które mogą blokować pręt blokujący."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: głowica nie wykryła hotendu na stojaku. Sprawdź, czy w gnieździe montażowym głowicy indukcyjnego hotendu nie ma zanieczyszczeń. Jeśli nic nie znajdziesz, skalibruj ponownie indukcyjny stojak hotendu."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: hotend wypadł. Proszę sprawdzić, czy na górze hotendu nie ma nadmiaru filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, następnie ponownie zainstalować hotend na stojaku w gnieździe 1 i kliknąć \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 6: głowica nie wykryła hotendu na stojaku. Sprawdź, czy w gnieździe montażowym głowicy indukcyjnego hotendu nie ma zanieczyszczeń. Jeśli nic nie znajdziesz, skalibruj ponownie indukcyjny stojak hotendu."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 1. Upewnij się, że na głowicy nie ma zamontowanego hotendu oraz że na stojaku w gnieździe 1 znajduje się hotend, zanim klikniesz \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 4: w tej pozycji nie znaleziono hotendu. Proszę zainstalować hotend w odpowiednim gnieździe przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 4: hotend wypadł. Proszę sprawdzić, czy na górze hotendu nie ma nadmiaru filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, następnie ponownie zainstalować hotend na stojaku w gnieździe 4 i kliknąć \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Błąd mechanizmu dźwigni blokującej hotend indukcyjny lub dźwigni stojaka. Prosimy o zapoznanie się z Wiki w celu przeprowadzenia inspekcji."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: hotend wypadł. Proszę sprawdzić, czy na górze hotendu nie ma nadmiaru filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, następnie ponownie zainstalować hotend na stojaku w gnieździe 2 i kliknąć \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 6: stojak nie wykrył hotendu na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora hotendu nie znajdują się zanieczyszczenia lub czy przedni magnes nie odpadł. Jeśli nie stwierdzisz żadnych problemów, przeprowadź ponowną kalibrację stojaka indukcyjnego hotendu."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 1: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 1: hotend jest już zamontowany na głowicy. Proszę zdjąć hotend z głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5. Upewnij się, że na głowicy nie ma zamontowanego hotendu oraz że na stojaku w gnieździe 5 znajduje się hotend, zanim klikniesz \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5: nie wykryto hotendu na głowicy. Zamontuj hotend na głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 4: stojak nie wykrył hotendu na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora hotendu nie znajdują się zanieczyszczenia lub czy przedni magnes nie odpadł. Jeśli nie stwierdzisz żadnych problemów, przeprowadź ponowną kalibrację stojaka indukcyjnego hotendu."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 4: hotend jest już zamontowany na głowicy. Proszę zdjąć hotend z głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: uchwyt nie osadził hotendu prawidłowo. Sprawdź, czy na górze hotendu nie ma nadmiaru filamentu, czy w obszarze styku między głowicą a hotendem nie znajdują się zanieczyszczenia oraz czy dźwignia blokująca jest w pozycji otwartej. Po rozwiązaniu problemu kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 2: nie wykryto hotendu na głowicy. Zamontuj hotend na głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: ruch stojaka jest zablokowany. Sprawdź, czy nie ma żadnych ciał obcych, usuń je, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 2: ponowna próba wyśrodkowania głowicy nie powiodła się. Przesuń głowicę ręcznie na środek stołu roboczego, a następnie kliknij \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w slocie 6: uchwyt nie odłączył hotendu od głowicy. Upewnij się, że dźwignia blokująca jest w pozycji otwartej."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Wykryto błąd podczas pobierania hotendu z gniazda 3: hotend wypadł. Proszę sprawdzić, czy na górze hotendu nie ma nadmiaru filamentu lub innych zanieczyszczeń, przyciąć lub usunąć je, następnie ponownie zainstalować hotend na stojaku w gnieździe 3 i kliknąć \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Wykryto nieprawidłowy stan podczas osadzania hotendu w gnieździe 5: stojak nie wykrył hotendu na głowicy narzędzia. Sprawdź, czy na powierzchni radiatora hotendu nie znajdują się zanieczyszczenia lub czy przedni magnes nie odpadł. Jeśli nie stwierdzisz żadnych problemów, przeprowadź ponowną kalibrację stojaka indukcyjnego hotendu."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Wykryto nieprawidłowy stan podczas pobierania hotendu z gniazda 6: hotend jest już zamontowany na głowicy. Proszę zdjąć hotend z głowicy przed kliknięciem \"Kontynuuj\"."
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Hotend indukcyjny nie został wykryty przed jego zablokowaniem. Upewnij się, że jest poprawnie zainstalowany na głowicy."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A Napięcie zasilacza jest zbyt wysokie, co może uszkodzić obwód grzałki. Wymień zasilacz."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "Wykrywanie obcych obiektów nie zadziałało, prawdopodobnie z powodu ręcznego przerwania (np. stuknięcie stop lub otwarcie drzwiczek w trybie lasera). W takim wypadku możesz to zignorować. W przeciwnym razie spróbuj ponownie uruchomić drukarkę lub zaktualizować firmware, aby przywrócić funkcję."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "Czujnik prądu zaworu wylotowego 2 w AMS-HT C jest uszkodzony. Proszę skontaktować się z obsługą klienta w celu wymiany płyty głównej AMS-HT."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 3 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 1."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "Kontrola temperatury dyszy prawego ekstrudera działa nieprawidłowo, co może wynikać z nieprawidłowego montażu hotendu lub awarią płytki bezprzewodowego odczytu temperatury."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 1 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 1 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Zwarcie międzyfazowe silnika uchwytu hotendu. Jeśli ponowne uruchomienie nie rozwiąże problemu, prosimy o kontakt z pomocą techniczną."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 4."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 2 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 1 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 5 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu w gnieździe 2 stojaka. Upewnij się, że uchwyt hotendu jest pusty, a w odpowiednim gnieździe stojaka znajduje się hotend. Następnie ręcznie przesuń głowicę do środka urządzenia przed kontynuacją."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 3 jest już zainstalowany."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 6."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 5 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 2 jest już zainstalowany."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 4 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu w gnieździe 5 stojaka. Upewnij się, że uchwyt hotendu jest pusty, a w odpowiednim gnieździe stojaka znajduje się hotend. Następnie ręcznie przesuń głowicę do środka urządzenia przed kontynuacją."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 2 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu w gnieździe 6 stojaka. Upewnij się, że uchwyt hotendu jest pusty, a w odpowiednim gnieździe stojaka znajduje się hotend. Następnie ręcznie przesuń głowicę do środka urządzenia przed kontynuacją."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 3 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "Bazowanie w osi XY głowicy lub stojaka na hotendy nie zostało zakończone. Nie można kontynuować wymiany hotendu."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "Odległość bazowania stojaka na hotendy indukcyjne jest zbyt duża. Pasek zębaty może być luźny. Proszę sprawdzić i go naciągnąć."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 6 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 4 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu w gnieździe 3 stojaka. Upewnij się, że uchwyt hotendu jest pusty, i że w odpowiednim gnieździe stojaka znajduje się hotend, a następnie ręcznie przesuń głowicę do środka urządzenia przed kontynuacją."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 1 jest już zainstalowany."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Wystąpił błąd podczas pobierania/osadzania hotendu w gnieździe 1 stojaka. Upewnij się, że uchwyt hotendu jest pusty, a w odpowiednim gnieździe stojaka znajduje się hotend. Następnie ręcznie przesuń głowicę do środka urządzenia przed kontynuacją."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 5 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 3."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 5 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 6 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 5."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 6 jest już zainstalowany."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 4 jest już zainstalowany."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 3 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 1 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "Stojak na hotendy indukcyjne działa nieprawidłowo. Wyłącz zasilanie, sprawdź połączenie i uruchom urządzenie ponownie."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Kontrola wymiany hotendu nieudana: hotend w slocie 5 jest już zainstalowany."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 2 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 3 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "Stojak na hotendy indukcyjne został zablokowany przez przeszkody podczas powrotu do pozycji bazowej. Proszę usunąć wszelkie przeszkody na jego drodze."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 2 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "Silnik uchwytu hotendu nie jest podłączony lub obwód silnika jest otwarty. Sprawdź, czy płaski przewód silnika jest prawidłowo podłączony."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Kontrola wymiany hotendu nieudana: brak hotendu w slocie 2."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "Wentylator chłodzący głowicę nie został prawidłowo zainstalowany. Mógł nie zostać odpowiednio zamontowany lub odpaść."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "W trakcie pobierania hotendu ze stojaka nastąpiła przerwa w zasilaniu. Umieść go ponownie na pozycji 6 stojaka, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "W trakcie odkładania hotendu na stojak nastąpiła przerwa w zasilaniu. Umieść hotend z pozycji 6 ponownie na głowicy, a następnie przesuń głowicę na środek stołu roboczego, aby uniknąć kolizji ze stojakiem."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "Hotend 1 nie przeszedł autoryzacji. Wymień hotend lub uruchom ponownie drukarkę."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Kalibracja stojaka na hotendy nie powiodła się. Nie wykryto znacznika. Sprawdź, czy znacznik wizualny na stojaku nie jest uszkodzony lub zasłonięty przez zanieczyszczenia."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "Hotend 5 nie przeszedł autoryzacji. Wymień hotend lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Kalibracja stojaka na hotendy indukcyjne nie powiodła się: wynik przekroczył zakres ruchu. Sprawdź, czy konstrukcja stojaka nie jest odkształcona."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "Hotend 3 nie przeszedł autoryzacji. Wymień hotend lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Kalibracja stojaka na hotendy nie powiodła się: dane kalibracyjne kamery są nieprawidłowe. Proszę oczyścić dysze z resztek, sprawdzić stan papieru termicznego na stole grzewczym i usunąć wszelkie zanieczyszczenia z jego powierzchni."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "Czujnik temperatury na heatbreaku prawego hotendu działa nieprawidłowo. Aby zapobiec zatkaniu dyszy, wentylator chłodzący będzie nadal pracował z dużą prędkością. Usterkę czujnika możesz usunąć, gdy drukarka nie będzie zajęta."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "Akcesorium do grawerowania obrotowego jest nieprawidłowo ustawione. Proszę ponownie wyregulować jego położenie."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 5 stojaka jest prawidłowo zainstalowany."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 4 stojaka jest prawidłowo zainstalowany."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 6 stojaka jest prawidłowo zainstalowany."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 3 stojaka jest prawidłowo zainstalowany."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Nie udało się dopasować filamentu do hotendu. Upewnij się, że hotend w gnieździe 2 stojaka jest prawidłowo zainstalowany."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "pl": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "Firmware AMS-HT C nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "Firmware modułu lasera nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "AMS-HT H nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "Firmware AMS-HT E nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "Firmware modułu tnącego nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "Firmware AMS-HT A nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "Kalibracja offsetu modułu tnącego nie powiodła się, co może wpłynąć na dokładność cięcia. Upewnij się, że biały papier do drukarki o gramaturze 80 g jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego nie jest zużyta."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Urządzenie nie może wykryć pompy powietrza.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "Firmware AMS C nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "Firmware AMS-HT B nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "AMS-HT E nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "AI wykryło zlepianie się dyszy. Sprawdź stan dyszy. Rozwiązania można znaleźć w Asystencie."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "Nieudana inicjalizacja kamery BirdsEye. Kamera głowicy nie wykryła cech stołu grzewczego. Wyczyść stół grzewczy, usuń wszystkie obiekty oraz podkładki i upewnij się, że znaczniki na stole są widoczne. Sprawdź Asystenta, aby uzyskać szczegółowe rozwiązanie."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "Firmware AMS D nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "System monitorowania druku AI wykrył wadę spaghetti. Sprawdź wydruk i podejmij niezbędne działania."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "AMS-HT D nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "Wykryto, że soczewka kamery dyszy jest brudna, co może mieć wpływ na funkcje monitorowania AI. Wyczyść powierzchnię soczewki za pomocą miękką ściereczką z niewielką ilością alkoholu. Uważaj na temperaturę hotendu, poczekaj aż się schłodzi."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "AMS-HT B nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "AMS D nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "Firmware AMS-HT H nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "Firmware AMS-HT D nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "AMS B nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "AMS A nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "Firmware AMS-HT G nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "AMS-HT C nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "Firmware AMS-HT F nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "Firmware AMS B nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Upłynął limit czasu kalibracji kamery Liveview. Uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "Firmware AMS A nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "AMS-HT A nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "AMS C nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Urządzenie nie może wykryć modułu lasera. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "AMS-HT G nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "AMS-HT F nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "Firmware pompy powietrza nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "Inicjalizacja kamery Liveview nie powiodła się. Ten wydruk może być kontynuowany, ale niektóre funkcje AI zostaną wyłączone. Jeśli problem pojawi się znowu po ponownym uruchomieniu, skontaktuj się z działem obsługi klienta."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Urządzenie nie może wykryć modułu tnącego. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "Płyta Vision Encoder nie została wykryta. Sprawdź, czy jest ona prawidłowo umieszczona na podgrzewanym stole."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Bazowanie osi Z nie powiodło się: awaria sterowania temperaturą."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Nie udało się rozpocząć nowego zadania: Cold pull dyszy nie został ukończony."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "Ze względu na ograniczenia mocy drukarki, drukowanie, kalibracja, sterowanie i inne czynności nie mogą być wykonywane podczas suszenia w AMS. Zatrzymaj proces suszenia przed wykonaniem innych czynności."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Nie udało się rozpocząć nowego zadania: załadunek/rozładunek filamentu nie został ukończony."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Proszę przymocować biały papier do drukowania 80g na środku platformy."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "Urządzenie jest zajęte i nie może przeprowadzić identyfikacji dyszy."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Podgrzewany stół może zostać zablokowany podczas jego opuszczania. Usuń wszelkie przedmioty znajdujące się pod stołem grzewczym i sprawdź, czy nie stawia on oporu lub nie blokuje się podczas ruchu."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "Bazowanie stojaka na hotendy indukcyjne zakończył się niepowodzeniem z powodu napotkania przeszkody. Proszę ją usunąć i wznowić drukowanie."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "Odległość powrotu do pozycji bazowej stojaka na hotendy jest nietypowo długa. Sprawdź, czy pasek zębaty nie jest luźny lub uszkodzony."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Przed uruchomieniem trybu lasera lub przed kalibracją stojaka na hotendy usuń wszystkie hotendy ze stojaka."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Blokowanie nie powiodło się. Proszę sprawdzić, czy na dyszy nie ma przyklejonego materiału."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Blokowanie nie powiodło się. Proszę sprawdzić, czy na dyszy nie ma przyklejonego materiału."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Nie udało się odblokować. Sprawdź pozycję montażu drążka wyrzutnika."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "Moduł wentylatora chłodzącego głowicy działa nieprawidłowo."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Wstępne bazowanie stojaka na hotendy nie powiodło się. Drukowanie zostało anulowane. Proszę upewnić się, że nic nie blokuje jego ruchu."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Nie udało się pobrać hotendu z pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Nie udało się odblokować. Sprawdź pozycję montażu drążka wyrzutnika."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS jest w trakcie suszenia i nie można go obecnie zaktualizować. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "Drukarka jest w trakcie załadunku lub rozładunku filamentu i nie można jej w tej chwili zaktualizować. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Urządzenie jest w trakcie druku i nie można go w tej chwili zaktualizować. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "Obecnie trwa inicjalizacja AMS, dlatego nie można przeprowadzić aktualizacji. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS jest w trakcie działania i nie można w tej chwili przeprowadzić aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Podgrzej dyszę do temperatury powyżej 170°C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "Urządzenie nie wykryło gaśnicy.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "Urządzenie nie może wykryć 4 osi lasera.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Urządzenie jest w trakcie aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "Wewnątrz komory wykryto niewielki pożar, w wyniku czego proces automatycznego gaszenia został przerwany."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Aktualny tryb to produkcja 2D. Proszę operować bezpośrednio na drukarce."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Zbiornik gaśnicy nie został zainstalowany. Proszę potwierdzić to na stronie gaśnicy."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Gaśnica nie została wykryta."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Gaśnica działa nieprawidłowo."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "Zbiornik gaśnicy jest pusty."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Sygnał z czujnika kalibracji offsetu dyszy jest nieprawidłowy."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Reset silnika gaśnicy nie powiodło się."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Nie wykryto gaśnicy, funkcja automatycznego gaszenia będzie niedostępna."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "Zadanie nie można zostać wstrzymane."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "Kalibracja przesunięcia modułu cięcia nie powiodła się, co może skutkować niedokładnymi cięciami. Upewnij się, że biały papier drukarki o gramaturze 80g (grubość papieru listowego) jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego jest zużyta."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Zadanie zostało przerwane, ponieważ drzwi frontowe lub górna pokrywa są otwarte."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Błąd czujnika kalibracji przesunięcia dyszy. Jeśli używasz pojedynczej dyszy lub funkcja kalibracji jest wyłączona, możesz zignorować ten komunikat i kontynuować drukowanie; w przeciwnym razie zaleca się sprawdzenie czujnika przed kontynuacją."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Filament w hotendzie jest zbyt zimny. Ekstruzja może uszkodzić ekstruder. Nadal podajesz/wyjmujesz filament?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "Gaśnica została wykryta i jest gotowa do użycia po podłączeniu modułu laserowego."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "Osłona silikonowa dyszy nie jest zamontowana; istnieje ryzyko awarii kontroli temperatury. Proszę zamontować ją poprawnie i spróbować ponownie."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Inicjalizacja kamery narzędziowej nie powiodła się. Drukowanie może nadal trwać, ale niektóre funkcje sztucznej inteligencji zostaną wyłączone. Jeśli napotkasz ten problem ponownie po ponownym uruchomieniu, skontaktuj się z obsługą klienta."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "Silnik XY nie ukończył bazowania w trakcie procedury bazowania uchwytu hotendu. Proszę sprawdzić, czy nie ma przeszkód, i spróbować ponownie."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "Hotend wypadł z uchwytu podczas drukowania. Proszę umieścić go w pierwotnej pozycji przed kontynuacją."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "Procedura bazowania uchwytu hotendu została zatrzymana przez przeszkodę. Sprawdź, czy nie ma przeszkód i spróbuj ponownie."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Tryb lasera/kalibracji: Przed ponowną próbą wyjmij wszystkie głowice z uchwytu."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "Odległość bazowania uchwytu hotendu jest zbyt duża. Proszę sprawdzić pasek zębaty i przekładnię silnika pod kątem luzów lub uszkodzeń."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "System wymiany hotendu jest zajęty. Proszę wykonać aktualizację w stanie bezczynności."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Proszę położyć matę StrongGrip na podstawie ochronnej do cięcia."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "Drukowanie zostało zatrzymane, ponieważ plik 3MF jest nieprawidłowy. Sprawdź, czy podczas cięcia wybrano prawidłowy model drukarki, lub zaktualizuj program Studio i potnij plik ponownie."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "Funkcja szacowania pozostałej ilości filamentu w AMS jest domyślnie włączona i nie można jej wyłączyć."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "Druk został zatrzymany, ponieważ dostępna liczba lub model hotendu nie zgadza się z plikiem przygotowanym do druku. Sprawdź model i ilość hotendów przed ponownym uruchomieniem druku."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "Hotend nie przeszedł autoryzacji. Wymień hotend lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "Weryfikacja hotendu indukcyjnego nie powiodła się z powodu przekroczenia czasu na jego zmianę. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "Nie wykryto żadnego dostępnego hotendu w uchwycie hotendu indukcyjnego ani w stojaku na hotendy. Proszę zainstalować hotend i spróbować ponownie."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "Kalibracja stojaka na indukcyjne hotendy nie powiodła się. Sprawdź Asystenta."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Wykryto moduł lasera. Proszę prawidłowo zamontować prawą dyszę, aby zapewnić poprawną kalibrację montażu modułu laserowego."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "Wysoka temperatura heatbreaku w prawym hotendzie może prowadzić do jego zatkania. Aby temu zapobiec, otwórz górną pokrywę oraz drzwi frontowe drukarki, by schłodzić komorę, lub obniż temperaturę otoczenia."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "Stojak na hotendy jest pełny i nie można przeprowadzić zmiany hotendu. Proszę usunąć jeden hotend przed kontynuacją."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "Urządzenie jest zajęte i nie może w tej chwili wykonać zadań związanych z hotendem. Spróbuj ponownie później."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "Prawy hotend nie został zamontowany, przez co głowica nie może wykonać procedury bazowania. Zainstaluj hotend, a następnie kontynuuj."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Stojak na hotendy nie został skalibrowany, dlatego nie można zmienić hotendu. Proszę zakończyć kalibrację stojaka na urządzeniu."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "Stojak na hotendy jest pełny. Przed kontynuacją proszę wyjąć jeden hotend."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Nie udało się odczytać informacji o hotendzie indukcyjnym. Wymień hotend lub uruchom ponownie drukarkę."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Nie udało się wyczyścić dyszy. Kliknij Asystenta, aby rozwiązać problem."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Błąd silnika stojaka na hotendy. Proszę sprawdzić i usunąć wszelkie przeszkody utrudniające ruch stojaka przed kontynuacją."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Błąd komunikacji między MC a stojakiem na hotendy. Sprawdź, czy kabel płyty głównej stojaka nie jest poluzowany."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Weryfikacja hotendu indukcyjnego nie powiodła się. Wymień hotend i spróbuj ponownie."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Błąd czujnika położenia silnika stojaka na hotendy. Jeśli problem będzie się powtarzał po ponownej próbie, należy zrestartować drukarkę."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Stojak na hotendy nie został skonfigurowany. Proszę dokończyć konfigurację przed wymianą hotendu."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Wykryto moduł lasera. Usuń hotend ze stojaka, aby zapobiec wpływowi zanieczyszczeń powstałych podczas obróbki laserowej na jakość druku."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Wykryto błąd rozpoznawania hotendu indukcyjnego. Przejdź do strony \"Hotendy i stojak\" i kliknij \"Odczytaj wszystko\", aby ponowić detekcję. Jeśli problem będzie się powtarzał, spróbuj zaktualizować oprogramowanie układowe na stronie „Firmware”."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
+                },
+                {
                     "ecode": "0502C024",
-                    "intro": "Rejestr kalibracji dynamicznego przepływu przekroczył limit przechowywania. Proszę usunąć kilka historycznych rekordów w oprogramowaniu do krojenia przed dodaniem nowych danych kalibracyjnych."
+                    "intro": "Dane kalibracji dynamiki przepływu przekroczyły limit pamięci. Proszę usunąć część historycznych wpisów w oprogramowaniu slicera przed dodaniem nowych danych kalibracyjnych."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "Podczas kalibracji offsetu dyszy wykryto aktualizację informacji o hotendzie. Przejdź do strony \"Hotendy i stojak\" i kliknij \"Odczytaj wszystko\" w celu ponownej identyfikacji. Jeśli problem będzie się powtarzał, spróbuj zaktualizować oprogramowanie na stronie \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "Wykryto przesunięcie płyty roboczej. Wyrównaj płytę roboczą ze stołem roboczym, a następnie kontynuuj."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Wykryto niezgodność typu hotend podczas drukowania. Proszę wymień hotend w slocie 3 na stojaku na typ określony w slicerze przed kontynuowaniem drukowania."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Wykryto niezgodność typu hotend podczas drukowania. Proszę wymień hotend w slocie 4 na stojaku na typ określony w slicerze przed kontynuowaniem druku."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Wykryto niezgodność typu hotend podczas drukowania. Proszę wymień hotend w slocie 2 na stojaku na typ określony w programie do krojenia przed kontynuowaniem drukowania."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Wykryto niezgodność typu hotend podczas drukowania. Proszę wymień hotend w slocie 1 na stojaku na typ określony w slicerze przed kontynuowaniem drukowania."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Wykryto niezgodność typu hotend podczas drukowania. Proszę wymień hotend w slocie 5 na stojaku na typ określony w programie do krojenia przed kontynuowaniem drukowania."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Wykryto niezgodność typu hotend podczas drukowania. Proszę wymień hotend w slocie 6 na stojaku na typ określony w slicerze przed kontynuowaniem druku."
                 },
                 {
                     "ecode": "05008078",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "Czujnik płomienia nie działa prawidłowo. Czujnik może być zwarty. Proszę rozwiązać problem przed rozpoczęciem drukowania."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "Firmware AMS-HT C nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "Firmware modułu lasera nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "AMS-HT H nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "Firmware AMS-HT E nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "Firmware modułu tnącego nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "Firmware AMS-HT A nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "Kalibracja offsetu modułu tnącego nie powiodła się, co może wpłynąć na dokładność cięcia. Upewnij się, że biały papier do drukarki o gramaturze 80 g jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego nie jest zużyta."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "Urządzenie nie może wykryć pompy powietrza.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "Firmware AMS C nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "Firmware AMS-HT B nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "AMS-HT E nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "AI wykryło zlepianie się dyszy. Sprawdź stan dyszy. Rozwiązania można znaleźć w Asystencie."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "Nieudana inicjalizacja kamery BirdsEye. Kamera głowicy nie wykryła cech stołu grzewczego. Wyczyść stół grzewczy, usuń wszystkie obiekty oraz podkładki i upewnij się, że znaczniki na stole są widoczne. Sprawdź Asystenta, aby uzyskać szczegółowe rozwiązanie."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "Firmware AMS D nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "System monitorowania druku AI wykrył wadę spaghetti. Sprawdź wydruk i podejmij niezbędne działania."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "AMS-HT D nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "Wykryto, że soczewka kamery dyszy jest brudna, co może mieć wpływ na funkcje monitorowania AI. Wyczyść powierzchnię soczewki za pomocą miękką ściereczką z niewielką ilością alkoholu. Uważaj na temperaturę hotendu, poczekaj aż się schłodzi."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "AMS-HT B nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "AMS D nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "Firmware AMS-HT H nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "Firmware AMS-HT D nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "AMS B nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "AMS A nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "Firmware AMS-HT G nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "AMS-HT C nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "Firmware AMS-HT F nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "Firmware AMS B nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Upłynął limit czasu kalibracji kamery Liveview. Uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "Firmware AMS A nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "AMS-HT A nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "AMS C nie został wykryty. Podłącz ponownie kabel AMS lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "Urządzenie nie może wykryć modułu lasera. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "AMS-HT G nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "AMS-HT F nie został wykryty. Podłącz ponownie kabel AMS-HT lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "Firmware pompy powietrza nie jest zgodny z drukarką, urządzenie nie może kontynuować pracy. Zaktualizuj go na stronie \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "Inicjalizacja kamery Liveview nie powiodła się. Ten wydruk może być kontynuowany, ale niektóre funkcje AI zostaną wyłączone. Jeśli problem pojawi się znowu po ponownym uruchomieniu, skontaktuj się z działem obsługi klienta."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Urządzenie nie może wykryć modułu tnącego. Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "Płyta Vision Encoder nie została wykryta. Sprawdź, czy jest ona prawidłowo umieszczona na podgrzewanym stole."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Bazowanie osi Z nie powiodło się: awaria sterowania temperaturą."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Nie udało się rozpocząć nowego zadania: Cold pull dyszy nie został ukończony."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "Ze względu na ograniczenia mocy drukarki, drukowanie, kalibracja, sterowanie i inne czynności nie mogą być wykonywane podczas suszenia w AMS. Zatrzymaj proces suszenia przed wykonaniem innych czynności."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Nie udało się rozpocząć nowego zadania: załadunek/rozładunek filamentu nie został ukończony."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Proszę przymocować biały papier do drukowania 80g na środku platformy."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "Urządzenie jest zajęte i nie może przeprowadzić identyfikacji dyszy."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Podgrzewany stół może zostać zablokowany podczas jego opuszczania. Usuń wszelkie przedmioty znajdujące się pod stołem grzewczym i sprawdź, czy nie stawia on oporu lub nie blokuje się podczas ruchu."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "Bazowanie stojaka na hotendy indukcyjne zakończył się niepowodzeniem z powodu napotkania przeszkody. Proszę ją usunąć i wznowić drukowanie."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "Odległość powrotu do pozycji bazowej stojaka na hotendy jest nietypowo długa. Sprawdź, czy pasek zębaty nie jest luźny lub uszkodzony."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Przed uruchomieniem trybu lasera lub przed kalibracją stojaka na hotendy usuń wszystkie hotendy ze stojaka."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Blokowanie nie powiodło się. Proszę sprawdzić, czy na dyszy nie ma przyklejonego materiału."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Blokowanie nie powiodło się. Proszę sprawdzić, czy na dyszy nie ma przyklejonego materiału."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Nie udało się odblokować. Sprawdź pozycję montażu drążka wyrzutnika."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "Moduł wentylatora chłodzącego głowicy działa nieprawidłowo."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Wstępne bazowanie stojaka na hotendy nie powiodło się. Drukowanie zostało anulowane. Proszę upewnić się, że nic nie blokuje jego ruchu."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 3 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Nie udało się pobrać hotendu z pozycji 5 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 2 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 1 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Nie udało się odblokować. Sprawdź pozycję montażu drążka wyrzutnika."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 4 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Nie udało się umieścić hotendu w pozycji 6 uchwytu. Sprawdź, czy nie ma resztek filamentu lub przywierającego materiału."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "AMS jest w trakcie suszenia i nie można go obecnie zaktualizować. Spróbuj ponownie później."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "Drukarka jest w trakcie załadunku lub rozładunku filamentu i nie można jej w tej chwili zaktualizować. Spróbuj ponownie później."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "Urządzenie jest w trakcie druku i nie można go w tej chwili zaktualizować. Spróbuj ponownie później."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "Obecnie trwa inicjalizacja AMS, dlatego nie można przeprowadzić aktualizacji. Spróbuj ponownie później."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "AMS jest w trakcie działania i nie można w tej chwili przeprowadzić aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Podgrzej dyszę do temperatury powyżej 170°C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "Urządzenie nie wykryło gaśnicy.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "Urządzenie nie może wykryć 4 osi lasera.  Podłącz ponownie kabel modułu lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "Urządzenie jest w trakcie aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "Wewnątrz komory wykryto niewielki pożar, w wyniku czego proces automatycznego gaszenia został przerwany."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "Aktualny tryb to produkcja 2D. Proszę operować bezpośrednio na drukarce."
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "Zbiornik gaśnicy nie został zainstalowany. Proszę potwierdzić to na stronie gaśnicy."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Gaśnica nie została wykryta."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "Gaśnica działa nieprawidłowo."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "Zbiornik gaśnicy jest pusty."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Sygnał z czujnika kalibracji offsetu dyszy jest nieprawidłowy."
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Reset silnika gaśnicy nie powiodło się."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Nie wykryto gaśnicy, funkcja automatycznego gaszenia będzie niedostępna."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "Zadanie nie można zostać wstrzymane."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "Kalibracja przesunięcia modułu cięcia nie powiodła się, co może skutkować niedokładnymi cięciami. Upewnij się, że biały papier drukarki o gramaturze 80g (grubość papieru listowego) jest prawidłowo umieszczony i sprawdź, czy końcówka ostrza tnącego jest zużyta."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Zadanie zostało przerwane, ponieważ drzwi frontowe lub górna pokrywa są otwarte."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Błąd czujnika kalibracji przesunięcia dyszy. Jeśli używasz pojedynczej dyszy lub funkcja kalibracji jest wyłączona, możesz zignorować ten komunikat i kontynuować drukowanie; w przeciwnym razie zaleca się sprawdzenie czujnika przed kontynuacją."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "Filament w hotendzie jest zbyt zimny. Ekstruzja może uszkodzić ekstruder. Nadal podajesz/wyjmujesz filament?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "Gaśnica została wykryta i jest gotowa do użycia po podłączeniu modułu laserowego."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "Osłona silikonowa dyszy nie jest zamontowana; istnieje ryzyko awarii kontroli temperatury. Proszę zamontować ją poprawnie i spróbować ponownie."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "Inicjalizacja kamery narzędziowej nie powiodła się. Drukowanie może nadal trwać, ale niektóre funkcje sztucznej inteligencji zostaną wyłączone. Jeśli napotkasz ten problem ponownie po ponownym uruchomieniu, skontaktuj się z obsługą klienta."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "Silnik XY nie ukończył bazowania w trakcie procedury bazowania uchwytu hotendu. Proszę sprawdzić, czy nie ma przeszkód, i spróbować ponownie."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "Hotend wypadł z uchwytu podczas drukowania. Proszę umieścić go w pierwotnej pozycji przed kontynuacją."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "Procedura bazowania uchwytu hotendu została zatrzymana przez przeszkodę. Sprawdź, czy nie ma przeszkód i spróbuj ponownie."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Tryb lasera/kalibracji: Przed ponowną próbą wyjmij wszystkie głowice z uchwytu."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "Odległość bazowania uchwytu hotendu jest zbyt duża. Proszę sprawdzić pasek zębaty i przekładnię silnika pod kątem luzów lub uszkodzeń."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "System wymiany hotendu jest zajęty. Proszę wykonać aktualizację w stanie bezczynności."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Proszę położyć matę StrongGrip na podstawie ochronnej do cięcia."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "Drukowanie zostało zatrzymane, ponieważ plik 3MF jest nieprawidłowy. Sprawdź, czy podczas cięcia wybrano prawidłowy model drukarki, lub zaktualizuj program Studio i potnij plik ponownie."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "Funkcja szacowania pozostałej ilości filamentu w AMS jest domyślnie włączona i nie można jej wyłączyć."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "Druk został zatrzymany, ponieważ dostępna liczba lub model hotendu nie zgadza się z plikiem przygotowanym do druku. Sprawdź model i ilość hotendów przed ponownym uruchomieniem druku."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "Hotend nie przeszedł autoryzacji. Wymień hotend lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "Weryfikacja hotendu indukcyjnego nie powiodła się z powodu przekroczenia czasu na jego zmianę. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "Nie wykryto żadnego dostępnego hotendu w uchwycie hotendu indukcyjnego ani w stojaku na hotendy. Proszę zainstalować hotend i spróbować ponownie."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "Kalibracja stojaka na indukcyjne hotendy nie powiodła się. Sprawdź Asystenta."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Nie udało się odczytać tabeli mapowania filament–hotend z pliku cięcia. Proszę spróbować ponownie."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Wykryto moduł lasera. Proszę prawidłowo zamontować prawą dyszę, aby zapewnić poprawną kalibrację montażu modułu laserowego."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "Wysoka temperatura heatbreaku w prawym hotendzie może prowadzić do jego zatkania. Aby temu zapobiec, otwórz górną pokrywę oraz drzwi frontowe drukarki, by schłodzić komorę, lub obniż temperaturę otoczenia."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "Stojak na hotendy jest pełny i nie można przeprowadzić zmiany hotendu. Proszę usunąć jeden hotend przed kontynuacją."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "Urządzenie jest zajęte i nie może w tej chwili wykonać zadań związanych z hotendem. Spróbuj ponownie później."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "Prawy hotend nie został zamontowany, przez co głowica nie może wykonać procedury bazowania. Zainstaluj hotend, a następnie kontynuuj."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Stojak na hotendy nie został skalibrowany, dlatego nie można zmienić hotendu. Proszę zakończyć kalibrację stojaka na urządzeniu."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "Stojak na hotendy jest pełny. Przed kontynuacją proszę wyjąć jeden hotend."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Nie udało się odczytać informacji o hotendzie indukcyjnym. Wymień hotend lub uruchom ponownie drukarkę."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Nie udało się wyczyścić dyszy. Kliknij Asystenta, aby rozwiązać problem."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Błąd silnika stojaka na hotendy. Proszę sprawdzić i usunąć wszelkie przeszkody utrudniające ruch stojaka przed kontynuacją."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "Błąd komunikacji między MC a stojakiem na hotendy. Sprawdź, czy kabel płyty głównej stojaka nie jest poluzowany."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "Weryfikacja hotendu indukcyjnego nie powiodła się. Wymień hotend i spróbuj ponownie."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Błąd czujnika położenia silnika stojaka na hotendy. Jeśli problem będzie się powtarzał po ponownej próbie, należy zrestartować drukarkę."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "Nie udało się wykonać wstępnego bazowania stojaka na hotendy. Proszę sprawdzić, czy na stole roboczym nie ma przeszkód oraz poprawność ustawienia płyty roboczej."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "Stojak na hotendy nie został skonfigurowany. Proszę dokończyć konfigurację przed wymianą hotendu."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Wykryto moduł lasera. Usuń hotend ze stojaka, aby zapobiec wpływowi zanieczyszczeń powstałych podczas obróbki laserowej na jakość druku."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Wykryto błąd rozpoznawania hotendu indukcyjnego. Przejdź do strony \"Hotendy i stojak\" i kliknij \"Odczytaj wszystko\", aby ponowić detekcję. Jeśli problem będzie się powtarzał, spróbuj zaktualizować oprogramowanie układowe na stronie „Firmware”."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "Kontrola przed wymianą hotendu nie powiodła się. Sprawdź, czy hotend jest prawidłowo osadzony."
                 }
             ]
         }

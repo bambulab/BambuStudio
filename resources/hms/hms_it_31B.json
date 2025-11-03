@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "it": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 2: il hotend è caduto. Si prega di verificare la presenza di eccessivo filamento rimasto nella parte superiore del hotend, tagliare il residuo, reinstallare il hotend nello slot 2 sul supporto, e poi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 2. Assicurarsi che nessun hotend sia montato sull'estrusore e che un hotend sia presente nello slot 2 sul rack prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 4: nessun hotend rilevato sulla testina utensile. Si prega di montare il hotend sulla testina utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 5: il rack non è riuscito a montare correttamente il hotend. Si prega di controllare la presenza di eccessivo filamento nella parte superiore del hotend, detriti nell'area di contatto tra la testina e il hotend, o se la leva di bloccaggio è in posizione rilasciata. Dopo aver risolto il problema, fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 3. Assicurarsi che nessun hotend sia montato sull'estrusore e che un hotend sia presente nello slot 3 sul rack prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Rilevata condizione anomala durante il nesting del hotend nello slot 1: il rack non è riuscito a rilevare il hotend sulla testina utensile. Si prega di verificare se ci sono detriti sulla superficie del dissipatore di calore del hotend o se il magnete anteriore è caduto. In caso contrario, ricalibrare il rack del hotend ad induzione."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 1: nessun hotend rilevato sulla testina utensile. Si prega di montare il hotend sulla testina utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 3: il supporto non è riuscito a staccare il hotend dalla testina utensile. Assicurarsi che la leva di bloccaggio sia nella posizione rilasciata."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 6. Assicurarsi che nessun hotend sia montato sull'estrusore e che un hotend sia presente nello slot 6 sul rack prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 1: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 5: l'hotend è caduto. Si prega di controllare la presenza di eccessivo filamento o altri detriti nella parte superiore dell'hotend, tagliarli o rimuoverli, quindi reinstallare l'hotend nello slot 5 sul rack e fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 3: il movimento del supporto è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 4: il tentativo di recentratura della testina utensile è fallito. Si prega di spostare manualmente la testina utensile al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 3: il hotend è caduto. Si prega di verificare la presenza di eccessivo filamento rimasto nella parte superiore del hotend, tagliare il residuo, reinstallare il hotend nello slot 3 sul supporto, e poi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "Il timeout del movimento del portautensili è scaduto. Si prega di controllare la presenza di eventuali oggetti o ostacoli che potrebbero causare il blocco del portautensili."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 6: il supporto non è riuscito a montare correttamente l'hotend. Si prega di verificare la presenza di eccessivo filamento nella parte superiore dell'hotend, detriti nell'area di contatto tra la testina e l'hotend, o se la leva di bloccaggio è in posizione rilasciata. Dopo aver risolto il problema, fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Rilevata condizione anomala durante l'inserimento del hotend nello slot 3: un hotend è già installato. Si prega di rimuovere quello esistente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 5: il toolhead non è riuscito a rilevare il hotend sul rack. Si prega di controllare la presenza di detriti nello slot di montaggio del hotend a induzione sul toolhead. Se non ne viene trovato, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 4: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Rilevata condizione anomala durante il recupero dell'hotend dallo slot 2: nessun hotend trovato in questa posizione. Si prega di installare un hotend nello slot corrispondente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 4: un hotend è già installato. Si prega di rimuovere quello esistente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 5: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Rilevata condizione anomala durante il nidificamento dell'hotend nello slot 1: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 6: l'hotend è caduto. Si prega di controllare la presenza di eccessivo filamento o altri detriti nella parte superiore dell'hotend, tagliarli o rimuoverli, quindi reinstallare l'hotend nello slot 6 sul rack e fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 2: il supporto non è riuscito a montare correttamente l'hotend. Si prega di verificare la presenza di eccessivo filamento nella parte superiore dell'hotend, detriti nell'area di contatto tra la testina e l'hotend, o se la leva di bloccaggio è in posizione rilasciata. Dopo aver risolto il problema, fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 1: il hotend è caduto. Si prega di verificare la presenza di eccessivo filamento rimasto nella parte superiore del hotend, tagliare il residuo, reinstallare il hotend nello slot 1 sul supporto, e poi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 4. Assicurarsi che nessun hotend sia montato sull'estrusore e che un hotend sia presente nello slot 4 sul rack prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Rilevata condizione anomala durante il recupero dell'hotend dallo slot 5: nessun hotend trovato in questa posizione. Si prega di installare un hotend nello slot corrispondente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Rilevata condizione anomala durante il recupero dell'hotend dallo slot 1: nessun hotend trovato in questa posizione. Si prega di installare un hotend nello slot corrispondente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Rilevata condizione anomala durante il nidificare il hotend nello slot 2: un hotend è già installato. Si prega di rimuovere quello esistente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Rilevata condizione anomala durante il recupero dell'hotend dallo slot 6: nessun hotend trovato in questa posizione. Si prega di installare un hotend nello slot corrispondente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 4: movimento del rack bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 5: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 3: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 4: il supporto non è riuscito a montare correttamente l'hotend. Si prega di verificare la presenza di eccessivo filamento nella parte superiore dell'hotend, detriti nell'area di contatto tra la testina e l'hotend, o se la leva di bloccaggio è in posizione rilasciata. Dopo aver risolto il problema, fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Rilevata condizione anomala durante il nidificare la hotend nello slot 3: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 6: il movimento del supporto è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 5: il supporto non è riuscito a staccare il hotend dalla testina utensile. Assicurarsi che la leva di bloccaggio sia nella posizione rilasciata."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Rilevata condizione anomala durante il recupero del hotend dallo slot 5: un hotend è già montato sull'utensile. Si prega di rimuovere il hotend dall'utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 2: il rack non è riuscito a rilevare il hotend sulla testina utensile. Si prega di verificare se ci sono detriti sulla superficie del dissipatore di calore del hotend o se il magnete anteriore è caduto. In caso contrario, ricalibrare il rack del hotend ad induzione."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 4: il supporto non è riuscito a staccare il hotend dalla testina utensile. Assicurarsi che la leva di bloccaggio sia nella posizione rilasciata."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 6: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "La posizione della barra di blocco dell'attrezzo del supporto del hotend è anomala. Si prega di controllare la presenza di eventuali oggetti estranei o ostacoli che potrebbero causare il blocco della barra."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 1: il toolhead non è riuscito a rilevare il hotend sul rack. Si prega di controllare la presenza di detriti nello slot di montaggio del hotend a induzione sul toolhead. Se non ne viene trovato nessuno, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 1: l'hotend è caduto. Si prega di controllare la presenza di eccessivo filamento o altri detriti nella parte superiore dell'hotend, tagliarli o rimuoverli, quindi reinstallare l'hotend nello slot 1 sul rack e fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 6: il toolhead non è riuscito a rilevare il hotend sul rack. Si prega di controllare la presenza di detriti nello slot di montaggio del hotend a induzione sul toolhead. Se non ne viene trovato, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 1. Assicurarsi che nessun hotend sia montato sulla testina e che un hotend sia presente nello slot 1 sul rack prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Condizione anomala rilevata durante il recupero dell'hotend dallo slot 4: nessun hotend trovato in questa posizione. Si prega di installare un hotend nello slot corrispondente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 3: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 4: l'hotend è caduto. Si prega di controllare la presenza di eccessivo filamento o altri detriti nella parte superiore dell'hotend, tagliarli o rimuoverli, quindi reinstallare l'hotend nello slot 4 sul rack e fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Errore del meccanismo di rilascio della leva di bloccaggio dell'hotend a induzione o della leva del supporto. Si prega di fare riferimento al Wiki per l'ispezione."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 2: l'hotend è caduto. Si prega di controllare la presenza di eccessivo filamento o altri detriti nella parte superiore dell'hotend, tagliarli o rimuoverli, quindi reinstallare l'hotend nello slot 2 sul rack e fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 6: il rack non è riuscito a rilevare il hotend sulla testina utensile. Si prega di verificare se ci sono detriti sulla superficie del dissipatore di calore del hotend o se il magnete anteriore è caduto. In caso contrario, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 1: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Condizione anomala rilevata durante il recupero del hotend dallo slot 1: un hotend è già montato sull'utensile. Si prega di rimuovere l'hotend dall'utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 2: il movimento del supporto è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 5. Assicurarsi che nessun hotend sia montato sulla testina e che un hotend sia presente nello slot 5 sul rack prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 5: nessun hotend rilevato sulla testina utensile. Si prega di montare il hotend sulla testina utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": "Rilevata condizione anomala durante l'inserimento del hotend nello slot 4: il rack non è riuscito a rilevare il hotend sulla testina utensile. Si prega di verificare se ci sono detriti sulla superficie del dissipatore di calore del hotend o se il magnete anteriore è caduto. In caso contrario, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Rilevata condizione anomala durante il nidificare la hotend nello slot 5: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Condizione anomala rilevata durante il recupero del hotend dallo slot 4: un hotend è già montato sull'estrusore. Si prega di rimuovere il hotend dall'estrusore prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 3: il supporto non è riuscito a montare correttamente il hotend. Si prega di verificare la presenza di eccessivo filamento nella parte superiore del hotend, detriti nell'area di contatto tra la testina e il hotend, o se la leva di bloccaggio è in posizione rilasciata. Dopo aver risolto il problema, fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Rilevata condizione anomala durante il nidificare il hotend nello slot 2: nessun hotend rilevato sulla testina utensile. Si prega di montare il hotend sulla testina utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 2: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 2: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 6: il supporto non è riuscito a staccare il hotend dalla testina utensile. Assicurarsi che la leva di bloccaggio sia nella posizione rilasciata."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 3: l'hotend è caduto. Si prega di controllare la presenza di eccessivo filamento o altri detriti nella parte superiore dell'hotend, tagliarli o rimuoverli, quindi reinstallare l'hotend nello slot 3 sul rack e fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Condizione anomala rilevata durante l'inserimento del hotend nello slot 5: il rack non è riuscito a rilevare il hotend sulla testina utensile. Si prega di verificare se ci sono detriti sulla superficie del dissipatore di calore del hotend o se il magnete anteriore è caduto. In caso contrario, ricalibrare il rack del hotend ad induzione."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Rilevata condizione anomala durante il recupero dell'hotend dallo slot 6: un hotend è già montato sull'utensile. Si prega di rimuovere l'hotend dall'utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "Calibrazione rack hotend fallita. Indicatore non rilevato. Verificare che l'indicatore visivo sul rack non sia danneggiato o coperto da sporcizia."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 3 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 1."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 1 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 4."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 2 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 1 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 3."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 6."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 5 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 2."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 4 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 2 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 3 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 6 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 1."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 5 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 5 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 6."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 4."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 3 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 1 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 5."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 3 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 6 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 1 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 5 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 3."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 6 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 5."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 2 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 2 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 2."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 6 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 4: il toolhead non è riuscito a rilevare il hotend sul rack. Si prega di controllare la presenza di detriti nello slot di montaggio del hotend a induzione sul toolhead. Se non ne viene trovato, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 1: il rack non è riuscito a montare correttamente il hotend. Si prega di controllare la presenza di eccessivo filamento nella parte superiore del hotend, detriti nell'area di contatto tra la testina e il hotend, o se la leva di bloccaggio è in posizione rilasciata. Dopo aver risolto il problema, fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 6: un hotend è già installato. Si prega di rimuovere quello esistente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 5: il hotend è caduto. Si prega di verificare la presenza di eccessivo filamento rimasto nella parte superiore del hotend, tagliare il residuo, reinstallare il hotend nello slot 5 sul rack, e poi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 2: il toolhead non è riuscito a rilevare il hotend sul rack. Si prega di controllare la presenza di detriti nello slot di montaggio del hotend a induzione sul toolhead. Se non ne viene trovato, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Errore rilevato durante il recupero del hotend dallo slot 3: il toolhead non è riuscito a rilevare il hotend sul rack. Si prega di controllare la presenza di detriti nello slot di montaggio del hotend a induzione sul toolhead. Se non ne viene trovato, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Condizione anomala rilevata durante il recupero del hotend dallo slot 3: un hotend è già montato sull'utensile. Si prega di rimuovere il hotend dall'utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Rilevata condizione anomala durante l'inserimento del hotend nello slot 3: il rack non è riuscito a rilevare il hotend sulla testina utensile. Si prega di verificare se ci sono detriti sulla superficie del dissipatore di calore del hotend o se il magnete anteriore è caduto. In caso contrario, ricalibrare il rack del hotend a induzione."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 2: il supporto non è riuscito a staccare il hotend dalla testina utensile. Assicurarsi che la leva di bloccaggio sia nella posizione di rilascio."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Condizione anomala rilevata durante il recupero del hotend dallo slot 2: un hotend è già montato sull'utensile. Si prega di rimuovere il hotend dall'utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 6: il hotend è caduto. Si prega di verificare la presenza di eccessivo filamento rimasto nella parte superiore del hotend, tagliare il residuo, reinstallare il hotend nello slot 6 sul rack, e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Rilevata condizione anomala durante il nidificare la hotend nello slot 6: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 6: il tentativo di recentratura della testina utensile è fallito. Si prega di spostare manualmente la testina utensile al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 5: un hotend è già installato. Si prega di rimuovere quello esistente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 4: il tentativo di recentratura della testina utensile è fallito. Si prega di spostare manualmente la testina utensile al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Rilevata condizione anomala durante il recupero dell'hotend dallo slot 3: nessun hotend trovato in questa posizione. Si prega di installare un hotend nello slot corrispondente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 1: movimento del supporto bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Rilevata condizione anomala durante il nidificare il hotend nello slot 1: un hotend è già installato. Si prega di rimuovere quello esistente prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 4: il hotend è caduto. Si prega di verificare la presenza di eccessivo filamento rimasto nella parte superiore del hotend, tagliare il residuo, reinstallare il hotend nello slot 4 sul rack, e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Condizione anomala rilevata durante il posizionamento del hotend nello slot 1: il supporto non è riuscito a staccare il hotend dalla testina utensile. Assicurarsi che la leva di bloccaggio sia nella posizione rilasciata."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Rilevata condizione anomala durante il nidificamento del hotend nello slot 2: il tentativo di recentratura della testina è fallito. Si prega di spostare manualmente la testina al centro del piatto di costruzione e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Errore rilevato durante il recupero dell'hotend dallo slot 5: il movimento del rack è bloccato. Si prega di controllare la presenza di eventuali oggetti estranei, rimuoverli e quindi fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 3: nessun hotend rilevato sulla testina utensile. Si prega di montare il hotend sulla testina utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Rilevata condizione anomala durante il posizionamento del hotend nello slot 6: nessun hotend rilevato sulla testina utensile. Si prega di montare il hotend sulla testina utensile prima di fare clic su \"Continua\"."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Calibrazione Rack Hotend ad Induzione fallita: il risultato ha superato il limite di corsa. Controlla se la struttura del rack è deformata."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Calibrazione del rack hotend non riuscita: i dati di calibrazione della telecamera sono anomali. Pulire i residui del nozzle, verificare che la carta termica del piano sia intatta e rimuovere eventuali detriti dalla sua superficie."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "AMS-HT F riscaldatore 2: La ventola di raffreddamento non può avviarsi perché l'alimentatore non è collegato."
@@ -18595,6 +18067,406 @@
                     "intro": "La scheda RFID 1 dell'AMS-HT H presenta un errore."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "L'accessorio per incisione rotativa non è posizionato correttamente. Regolarlo e riposizionarlo."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 5 del rack sia installato correttamente."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 4 del rack sia installato correttamente."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 6 del rack sia installato correttamente."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 3 del rack hotend sia installato correttamente."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 2 del rack hotend sia installato correttamente."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 4: la testina di stampa non ha rilevato l'hotend nel rack. Verifica la presenza di residui nello supporto di montaggio a induzione dell'hotend sulla testina di stampa. Se non ci sono, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Errore rilevato durante il prelievo dell'hotend dallo slot 1: il rack non è riuscito a montare correttamente l'hotend. Controlla la presenza di eccessivo filamento sulla parte superiore dell'hotend, residui nell'area di contatto tra la testina di stampa e l'hotend o se la leva di bloccaggio è in posizione di rilascio. Dopo aver risolto il problema, fare clic su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Rilevata anomalia durante l'inserimento dell'hotend nello slot 6: un hotend è già installato. Rimuovi prima quello esistente poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Anomalia rilevata durante il posizionamento del hotend nello slot 5: l'hotend è caduto. Verifica l'eventuale eccesso di filamento residuo sulla parte superiore dell' hotend, rimuovi i residui, reinstalla l'hotend nello slot 5 del rack, e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 2: la testina di stampa non ha rilevato l'hotend nel rack. Verifica la presenza di residui nello supporto di montaggio a induzione dell'hotend sulla testina di stampa. Se non ci sono, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 3: la testina di stampa non ha rilevato l'hotend nel rack. Verifica la presenza di residui nello supporto di montaggio a induzione dell'hotend sulla testina di stampa. Se non ci sono, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Anomalia rilevata durante il prelievo dell'hotend dallo slot 3: un hotend è già montato sulla testina di stampa. Rimuovi l'hotend dalla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 3: il rack non è riuscito a rilevare l'hotend sulla testina di stampa. Controlla se ci sono residui sulla superficie del dissipatore dell' hotend o se il magnete anteriore è caduto. In caso contrario, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Anomalia rilevata durante l'inserimento del hotend nello slot 2: l'ingranaggio non è riuscito a staccare l'hotend dalla testina di stampa. Assicurati che la leva di bloccaggio sia in posizione di rilascio."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Anomalia rilevata durante il prelievo dell'hotend dallo slot 2: un hotend è già montato sulla testina di stampa. Rimuovi l'hotend dalla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Anomalia rilevata durante il posizionamento del hotend nello slot 6: l'hotend è caduto. Verifica l'eventuale eccesso di filamento residuo sulla parte superiore dell' hotend, rimuovi i residui, reinstalla l'hotend nello slot 6 del rack, e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 6: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 6: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Rilevata anomalia durante l'inserimento dell'hotend nello slot 5: un hotend è già installato. Rimuovi prima quello esistente poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 4: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Rilevata anomalia durante il prelievo dell'hotend dallo slot 3: nessun hotend trovato in questa posizione. Installa un hotend nello slot corrispondente prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 1: il movimento dell rack è bloccato. Verifica la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Rilevata anomalia durante l'inserimento dell'hotend nello slot 1: un hotend è già installato. Rimuovi prima quello esistente poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Anomalia rilevata durante il posizionamento del hotend nello slot 4: l'hotend è caduto. Verifica l'eventuale eccesso di filamento residuo sulla parte superiore dell' hotend, rimuovi i residui, reinstalla l'hotend nello slot 4 del rack, e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Anomalia rilevata durante l'inserimento del hotend nello slot 1: l'ingranaggio non è riuscito a staccare l'hotend dalla testina di stampa. Assicurati che la leva di bloccaggio sia in posizione di rilascio."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 2: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 5: il movimento del rack è bloccato. Controlla la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 3: hotend non rilevato sulla testina di stampa. Monta l'hotend sulla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 6: hotend non rilevato sulla testina di stampa. Monta l'hotend sulla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Anomalia rilevata durante il posizionamento del hotend nello slot 2: l'hotend è caduto. Verifica l'eventuale eccesso di filamento residuo sulla parte superiore dell' hotend, rimuovi i residui, reinstalla l'hotend nello slot 2 del rack, e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 2. Verifica che nessun hotend sia montato sulla testina di stampa e che un hotend sia presente nello slot 2 sul rack prima cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 4: hotend non rilevato sulla testina di stampa. Monta l'hotend sulla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Errore rilevato durante il prelievo dell'hotend dallo slot 5: il rack non è riuscito a montare correttamente l'hotend. Controlla la presenza di eccessivo filamento sulla parte superiore dell'hotend, residui nell'area di contatto tra la testina di stampa e l'hotend o se la leva di bloccaggio è in posizione di rilascio. Dopo aver risolto il problema, fare clic su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 3. Verifica che nessun hotend sia montato sulla testina di stampa e che un hotend sia presente nello slot 3 sul rack prima cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 1: il rack non è riuscito a rilevare l'hotend sulla testina di stampa. Controlla se ci sono residui sulla superficie del dissipatore dell' hotend o se il magnete anteriore è caduto. In caso contrario, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 1: hotend non rilevato sulla testina di stampa. Monta l'hotend sulla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Anomalia rilevata durante l'inserimento del hotend nello slot 3: l'ingranaggio non è riuscito a staccare l'hotend dalla testina di stampa. Assicurati che la leva di bloccaggio sia in posizione di rilascio."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 6. Verifica che nessun hotend sia montato sulla testina di stampa e che un hotend sia presente nello slot 6 sul rack prima cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 1: il movimento del rack è bloccato. Controlla la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 5: l'hotend è caduto. Verifica la presenza di filamento in eccesso o altri residui sulla parte superiore dell'hotend, rimuovili o tagliali, quindi reinstalla l'hotend nello slot 5 del rack e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 3: il movimento dell rack è bloccato. Verifica la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 4: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Anomalia rilevata durante il posizionamento del hotend nello slot 3: l'hotend è caduto. Verifica l'eventuale eccesso di filamento residuo sulla parte superiore dell' hotend, rimuovi i residui, reinstalla l'hotend nello slot 3 del rack, e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "Time out movimento rack hotend. Verifica la presenza di corpi estranei o ostruzioni che potrebbero causare il blocco del rack."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Errore rilevato durante il prelievo dell'hotend dallo slot 6: il rack non è riuscito a montare correttamente l'hotend. Controlla la presenza di eccessivo filamento sulla parte superiore dell'hotend, residui nell'area di contatto tra la testina di stampa e l'hotend o se la leva di bloccaggio è in posizione di rilascio. Dopo aver risolto il problema, fare clic su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Rilevata anomalia durante l'inserimento dell'hotend nello slot 3: un hotend è già installato. Rimuovi prima quello esistente poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 5: la testina di stampa non ha rilevato l'hotend nel rack. Verifica la presenza di residui nello supporto di montaggio a induzione dell'hotend sulla testina di stampa. Se non ci sono, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 4: il movimento del rack è bloccato. Controlla la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Rilevata anomalia durante il prelievo dell'hotend dallo slot 2: nessun hotend trovato in questa posizione. Installa un hotend nello slot corrispondente prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Rilevata anomalia durante l'inserimento dell'hotend nello slot 4: un hotend è già installato. Rimuovi prima quello esistente poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 5: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 1: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 6: l'hotend è caduto. Verifica la presenza di filamento in eccesso o altri residui sulla parte superiore dell'hotend, rimuovili o tagliali, quindi reinstalla l'hotend nello slot 6 del rack e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Errore rilevato durante il prelievo dell'hotend dallo slot 2: il rack non è riuscito a montare correttamente l'hotend. Controlla la presenza di eccessivo filamento sulla parte superiore dell'hotend, residui nell'area di contatto tra la testina di stampa e l'hotend o se la leva di bloccaggio è in posizione di rilascio. Dopo aver risolto il problema, fare clic su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Anomalia rilevata durante il posizionamento del hotend nello slot 1: l'hotend è caduto. Verifica l'eventuale eccesso di filamento residuo sulla parte superiore dell' hotend, rimuovi i residui, reinstalla l'hotend nello slot 1 del rack, e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 4. Verifica che nessun hotend sia montato sulla testina di stampa e che un hotend sia presente nello slot 4 sul rack prima cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Rilevata anomalia durante il prelievo dell'hotend dallo slot 5: nessun hotend trovato in questa posizione. Installa un hotend nello slot corrispondente prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Rilevata anomalia durante il prelievo dell'hotend dallo slot 1: nessun hotend trovato in questa posizione. Installa un hotend nello slot corrispondente prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Rilevata anomalia durante l'inserimento dell'hotend nello slot 2: un hotend è già installato. Rimuovi prima quello esistente poi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Rilevata anomalia durante il prelievo dell'hotend dallo slot 6: nessun hotend trovato in questa posizione. Installa un hotend nello slot corrispondente prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 4: il movimento dell rack è bloccato. Verifica la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 5: il movimento dell rack è bloccato. Verifica la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 3: il movimento del rack è bloccato. Controlla la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Errore rilevato durante il prelievo dell'hotend dallo slot 4: il rack non è riuscito a montare correttamente l'hotend. Controlla la presenza di eccessivo filamento sulla parte superiore dell'hotend, residui nell'area di contatto tra la testina di stampa e l'hotend o se la leva di bloccaggio è in posizione di rilascio. Dopo aver risolto il problema, fare clic su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 3: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 6: il movimento dell rack è bloccato. Verifica la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Anomalia rilevata durante l'inserimento del hotend nello slot 5: l'ingranaggio non è riuscito a staccare l'hotend dalla testina di stampa. Assicurati che la leva di bloccaggio sia in posizione di rilascio."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Anomalia rilevata durante il prelievo dell'hotend dallo slot 5: un hotend è già montato sulla testina di stampa. Rimuovi l'hotend dalla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 2: il rack non è riuscito a rilevare l'hotend sulla testina di stampa. Controlla se ci sono residui sulla superficie del dissipatore dell' hotend o se il magnete anteriore è caduto. In caso contrario, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Anomalia rilevata durante l'inserimento del hotend nello slot 4: l'ingranaggio non è riuscito a staccare l'hotend dalla testina di stampa. Assicurati che la leva di bloccaggio sia in posizione di rilascio."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 6: il movimento del rack è bloccato. Controlla la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "Anomalia posizione della barra di blocco dello strumento del rack hotend. Verifica la presenza di corpi estranei o ostruzioni che potrebbero causare il blocco della barra di blocco."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 1: la testina di stampa non ha rilevato l'hotend nel rack. Verifica la presenza di residui nello supporto di montaggio a induzione dell'hotend sulla testina di stampa. Se non ci sono, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 1: l'hotend è caduto. Verifica la presenza di filamento in eccesso o altri residui sulla parte superiore dell'hotend, rimuovili o tagliali, quindi reinstalla l'hotend nello slot 1 del rack e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 6: la testina di stampa non ha rilevato l'hotend nel rack. Verifica la presenza di residui nello supporto di montaggio a induzione dell'hotend sulla testina di stampa. Se non ci sono, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 1. Verifica che nessun hotend sia montato sulla testina di stampa e che un hotend sia presente nello slot 1 sul rack prima cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Rilevata anomalia durante il prelievo dell'hotend dallo slot 4: nessun hotend trovato in questa posizione. Installa un hotend nello slot corrispondente prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 3: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 4: l'hotend è caduto. Verifica la presenza di filamento in eccesso o altri residui sulla parte superiore dell'hotend, rimuovili o tagliali, quindi reinstalla l'hotend nello slot 4 del rack e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Errore nel meccanismo di bloccaggio della leva o della leva a cremagliera dell'hotend a induzione. Consulta la Wiki per l'ispezione."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 2: l'hotend è caduto. Verifica la presenza di filamento in eccesso o altri residui sulla parte superiore dell'hotend, rimuovili o tagliali, quindi reinstalla l'hotend nello slot 2 del rack e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 6: il rack non è riuscito a rilevare l'hotend sulla testina di stampa. Controlla se ci sono residui sulla superficie del dissipatore dell' hotend o se il magnete anteriore è caduto. In caso contrario, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 1: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Anomalia rilevata durante il prelievo dell'hotend dallo slot 1: un hotend è già montato sulla testina di stampa. Rimuovi l'hotend dalla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 2: il movimento dell rack è bloccato. Verifica la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 5. Verifica che nessun hotend sia montato sulla testina di stampa e che un hotend sia presente nello slot 5 sul rack prima cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 5: hotend non rilevato sulla testina di stampa. Monta l'hotend sulla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 4: il rack non è riuscito a rilevare l'hotend sulla testina di stampa. Controlla se ci sono residui sulla superficie del dissipatore dell' hotend o se il magnete anteriore è caduto. In caso contrario, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Anomalia rilevata durante l'inserimento dell'hotend nello slot 5: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Anomalia rilevata durante il prelievo dell'hotend dallo slot 4: un hotend è già montato sulla testina di stampa. Rimuovi l'hotend dalla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Errore rilevato durante il prelievo dell'hotend dallo slot 3: il rack non è riuscito a montare correttamente l'hotend. Controlla la presenza di eccessivo filamento sulla parte superiore dell'hotend, residui nell'area di contatto tra la testina di stampa e l'hotend o se la leva di bloccaggio è in posizione di rilascio. Dopo aver risolto il problema, fare clic su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 2: hotend non rilevato sulla testina di stampa. Monta l'hotend sulla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 2: il movimento del rack è bloccato. Controlla la presenza di corpi estranei, rimuoverli, quindi clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 2: tentativo di centratura della testina di stampa fallito. Sposta manualmente la testina di stampa al centro del piano e clicca su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Anomalia rilevata durante l'inserimento del hotend nello slot 6: l'ingranaggio non è riuscito a staccare l'hotend dalla testina di stampa. Assicurati che la leva di bloccaggio sia in posizione di rilascio."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Rilevato errore durante il prelievo dell'hotend dallo slot 3: l'hotend è caduto. Verifica la presenza di filamento in eccesso o altri residui sulla parte superiore dell'hotend, rimuovili o tagliali, quindi reinstalla l'hotend nello slot 3 del rack e clicca su \"Continua.\""
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Anomalia rilevata durante il posizionamento dell'hotend nello slot 5: il rack non è riuscito a rilevare l'hotend sulla testina di stampa. Controlla se ci sono residui sulla superficie del dissipatore dell' hotend o se il magnete anteriore è caduto. In caso contrario, ricalibra il supporto a induzione dell'hotend."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Anomalia rilevata durante il prelievo dell'hotend dallo slot 6: un hotend è già montato sulla testina di stampa. Rimuovi l'hotend dalla testina di stampa prima di cliccare su \"Continua\"."
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Hotend a induzione non rilevato prima del bloccaggio. Verifica l'installazione sulla testa di stampa."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A Tensione adattatore alimentazione troppo elevata può danneggiare il circuito del termistore. Sostituisci l'adattatore d'alimentazione."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "Il rilevamento oggetti estranei non ha funzionato, probabilmente a causa di un'interruzione manuale (ad esempio, toccando l'arresto o aprendo la porta in modalità laser). In tal caso, puoi ignorarlo. Altrimenti, prova a riavviare la stampante o ad aggiornare il firmware per ripristinare la funzione."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "Il sensore di corrente della valvola di scarico 2 dell'AMS-HT C è anomalo; contatta l'assistenza clienti per sostituire la scheda madre dell'AMS-HT."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 3 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 1."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "Temperatura nozzle estrusore destro anomala, forse l'hotend non è montato correttamente o c'è un problema con la scheda di misurazione della temperatura wireless."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 1 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 1 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Corto circuito tra le fasi sul motore supporto hotend. Se il riavvio non risolve il problema, contatta l'assistenza."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 4."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 2 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 1 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 5 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Errore durante il recupero/posizionamento dell'hotend nello slot 2 del rack. Assicurarsi che nel supporto dell'hotend non sia installato alcun hotend, che lo slot del rack corrispondente ne contenga uno e spostare manualmente la Testina di stampa al centro della macchina prima di continuare."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 3."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 6."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 5 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 2."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 4 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Si è verificato un errore durante il prelievo/posizionamento dell'hotend 5. Riposizionalo nella testa di stampa, quindi sposta manualmente la testa di stampa al centro della macchina prima di continuare."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 2 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Errore durante il prelievo/posizionamento dell'hotend nello slot 6 del rack. Assicurarsi che nel supporto dell'hotend non sia installato alcun hotend, che lo slot del rack corrispondente ne contenga uno e spostare manualmente la testa portautensili al centro della macchina prima di continuare."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 3 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "Gli assi XY della testina di stampa o il rack hotend non hanno completato l’homing. La sostituzione dell’hotend non può procedere."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "Distanza di homing del Rack Hotend ad Induzione troppo lunga. La cinghia potrebbe essere allentata. Controlla e tendila."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 6 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 4 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Errore durante il prelievo/posizionamento dell'hotend nello slot 3 del rack. Assicurarsi che nel supporto dell'hotend non sia installato alcun hotend, che lo slot del rack corrispondente ne contenga uno e spostare manualmente la Testina di stampa al centro della macchina prima di continuare."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 1."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Errore durante il recupero/posizionamento dell'hotend nello slot 1 del rack. Assicurarsi che nel supporto dell'hotend non sia installato alcun hotend, che lo slot del rack corrispondente ne contenga uno e spostare manualmente la Testina di stampa al centro della macchina prima di continuare."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 5 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 3."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 5 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 6 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 5."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 6."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 4."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 3 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 1 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "Il supporto hotend a induzione non funziona correttamente. Spegni, verifica la connessione e riavvia il dispositivo."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Controllo sostituzione hotend fallito: hotend già presente su slot 5."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 2 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 3 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "Il Rack Hotend ad Induzione è bloccato da un ostacolo durante l’homing. Rimuovi qualsiasi ostruzione dal suo percorso di movimento."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 2 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "Motore supporto hotend scollegato o presenta un guasto a circuito aperto. Controlla il collegamento del cavo piatto del motore."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Controllo sostituzione hotend fallito: hotend assente su slot 2."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "Ventola raffreddamento della testa porta utensili non è installata correttamente; potrebbe non essere fissata saldamente o potrebbe essere caduta."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "Interruzione di corrente durante il recupero dell’hotend dal rack. Riporta l’hotend alla stazione 6 del rack e porta la testina di stampa al centro del piano per evitare interferenze con il rack hotend."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "Perdita di alimentazione durante l'aggancio dell’hotend nel rack hotend. Reinstalla l’hotend dalla posizione 6 alla testina di stampa e portala al centro del piano per evitare interferenze con il rack."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "Autenticazione hotend 1 fallita. Cambia l'hotend o riavvia la stampante."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Calibrazione rack hotend fallita. Indicatore non rilevato. Verificare che l'indicatore visivo sul rack non sia danneggiato o coperto da sporcizia."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "Autenticazione hotend 5 fallita. Cambia l'hotend o riavvia la stampante."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Calibrazione Rack Hotend ad Induzione fallita: il risultato ha superato il limite di corsa. Controlla se la struttura del rack è deformata."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "Autenticazione hotend 3 fallita. Cambia l'hotend o riavvia la stampante."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Calibrazione del rack hotend non riuscita: i dati di calibrazione della telecamera sono anomali. Pulire i residui del nozzle, verificare che la carta termica del piano sia intatta e rimuovere eventuali detriti dalla sua superficie."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "Il sensore di temperatura sull'heatbreak dell'hotend destro è anomalo. Per evitare l'ostruzione del nozzle, la ventola di raffreddamento continuerà a funzionare ad alta velocità. È possibile risolvere il problema del sensore quando la stampa è inattiva."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "L'accessorio per incisione rotativa non è posizionato correttamente. Regolarlo e riposizionarlo."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 5 del rack sia installato correttamente."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 4 del rack sia installato correttamente."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 6 del rack sia installato correttamente."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 3 del rack hotend sia installato correttamente."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Errore di abbinamento tra filamento e hotend. Verificare che l'hotend nello slot 2 del rack hotend sia installato correttamente."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "it": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "Firmware AMS-HT C non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "Il firmware del Modulo Laser non corrisponde a quello della stampante; il dispositivo non può continuare a funzionare. Aggiornalo nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT H. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "Firmware AMS-HT E non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "Il firmware del Modulo di Taglio non corrisponde alla stampante; il dispositivo non può continuare a funzionare. Aggiornalo nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "Firmware AMS-HT A non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "La calibrazione offset del modulo di taglio è fallita, il che potrebbe causare tagli imprecisi. Assicurati che la carta bianca da 80g sia posizionata correttamente e controlla se la punta della lama di taglio è usurata."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Il dispositivo non riesce a trovare la Pompa Aria. Prova a ricollegare il cavo del modulo o riavviare la stampante."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "Firmware AMS C non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "Firmware AMS-HT B non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT E. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "IA ha rilevato il nozzle intasato. Controlla le condizioni del nozzle. Per soluzioni, consulta l'assistente."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "Inizializzazione della fotocamera BirdsEye non riuscita. La fotocamera della testa non ha rilevato le caratteristiche della piastra. Ti preghiamo di pulire la piastra, rimuovere tutti gli oggetti e i tappetini, e assicurarti che i riferimenti visivi siano ben visibili. Consulta l’Assistente per una soluzione dettagliata."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "Firmware AMS D non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "Il monitor di stampa IA ha rilevato un difetto spaghetti. Controlla la stampa e intraprendi le misure necessarie."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT D. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "La lente della fotocamera del nozzle è sporca, compromettendo il monitoraggio tramite AI. Pulisci la lente con un panno non tessuto e una piccola quantità di alcol. Attenzione al calore dell’hotend: attendi che si raffreddi prima di intervenire."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT B. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "Il dispositivo non riesce a rilevare AMS D. Ricollegare il cavo AMS o riavviare la stampante."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "Firmware AMS-HT H non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina «Firmware»."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "Firmware AMS-HT D non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "Il dispositivo non riesce a rilevare AMS B. Ricollegare il cavo AMS o riavviare la stampante."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "Il dispositivo non riesce a rilevare AMS A. Ricollegare il cavo AMS o riavviare la stampante."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "Firmware AMS-HT G non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT C. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "Firmware AMS-HT F non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "Il firmware di AMS B non corrisponde alla stampante; Il dispositivo non può continuare a funzionare. Si prega di aggiornarlo nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Timeout durante la calibrazione della telecamera Liveview; riavviare la stampante."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "Il firmware di AMS A non corrisponde alla stampante; il dispositivo non può continuare a funzionare. Aggiornalo alla pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT A. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "Il dispositivo non riesce a rilevare AMS C. Ricollegare il cavo AMS o riavviare la stampante."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Il dispositivo non riesce a rilevare il modulo laser. Ricollegare il cavo del modulo o riavviare la stampante."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT G. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "Il dispositivo non riesce a rilevare AMS-HT F. Ricollegare il cavo AMS-HT o riavviare la stampante."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "Il firmware della Pompa d'Aria non corrisponde a quello della stampante; il dispositivo non può continuare a funzionare. Aggiornalo nella pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "Inizializzazione videocamera Liveview fallita. Questa stampa può ancora continuare, ma alcune funzioni IA saranno disabilitate. Se il problema persiste dopo il riavvio, contatta l'assistenza clienti."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Il dispositivo non riesce a rilevare il Modulo Taglio. Ricollegare il cavo del modulo o riavviare la stampante."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "Visual Encoder non rilevato. Controlla se il piatto e allineato correttamente su tutti e quattro gli angoli e assicurati che i segni di posizionamento siano chiari e privi di usura."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Homing dell'asse Z non riuscito: anomalia del controllo della temperatura."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Impossibile iniziare una nuova attività: l'estrazione a freddo dal nozzle non è stata completata."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "A causa delle limitazioni di alimentazione della stampante, la stampa, la calibrazione, i controlli e altre operazioni non possono essere eseguiti durante l’asciugatura AMS. Interrompi il processo di asciugatura prima di procedere con qualsiasi altra operazione."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Impossibile avviare una nuova attività: il caricamento/scaricamento del filamento non è stato completato."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Applica la carta da stampa bianca da 80 g nell'area centrale della piattaforma."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "Il dispositivo è occupato e non è in grado di identificare i nozzle."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Il piano potrebbe essere ostruito durante lo spostamento verso il basso. Rimuovi tutti gli oggetti sotto il piano e verifica l'eventuale resistenza o inceppamento durante il suo movimento."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Posizionamento hotend nel supporto posizione 2 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 6 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "Homing Rack Hotend ad Induzione non riuscito a causa di un’ostruzione. Rimuovi l’ostacolo prima di riprendere la stampa."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 5 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Posizionamento hotend nel supporto posizione 5 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "La distanza di homing del Rack Hotend è insolitamente lunga. Controlla se la cinghia è allentata o rotta."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 4 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 1 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Errore di homing grossolano del rack dell'hotend. Verificare la presenza di ostruzioni o se la piastra di stampa è disallineata."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 4 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Posizionamento hotend nel supporto posizione 5 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Prima di usare la modalità Laser o di regolare la posizione del Rack dell'Hotend, togli tutti gli hotend dal rack."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 3 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 3 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Blocco non riuscito; Si prega di controllare se c'è del materiale appiccicoso sul nozzle."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 2 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 2 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Errore di homing grossolano del rack dell'hotend. Verificare la presenza di ostruzioni o se la piastra di stampa è disallineata."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "Posizionamento hotend nel supporto posizione 3 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 6 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Blocco fallito; controlla se c'è del materiale appiccicoso sul nozzle."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Sblocco fallito; controlla la posizione di installazione dell'asta di espulsione."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "Il modulo della ventola di raffreddamento del gruppo estrusore presenta un malfunzionamento."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 1 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Homing grossolano rack hotend fallito. Stampa annullata. Verifica che non ci siano ostacoli che bloccano il movimento del rack."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Posizionamento hotend nel supporto posizione 3 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Posizionamento hotend nel supporto posizione 4 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Prelevamento hotend dalla supporto nella posizione 5 fallita, Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "Posizionamento hotend nel supporto posizione 1 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "Posizionamento hotend nel supporto posizione 2 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Posizionamento hotend nel supporto posizione 1 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Sblocco fallito; controllare la posizione di installazione dell'asta di espulsione."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Posizionamento hotend nel supporto posizione 4 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS è in fase di asciugatura e non è possibile aggiornarlo. Riprova più tardi."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "La stampante sta caricando o scaricando il filamento e al momento non può essere aggiornata. Riprova più tardi."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Il dispositivo sta stampando e al momento non è possibile aggiornarlo. Riprova più tardi."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "AMS è in fase di inizializzazione e non può essere aggiornato. Riprova più tardi."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS è in funzione e non può essere aggiornato. Riprovare quando sarà inattivo."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Riscalda il Nozzle oltre 170 °C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "Il dispositivo non riesce a rilevare estintore.  Ricollegare il cavo del modulo o riavviare la stampante."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "Il dispositivo non riesce a rilevare il Quarto Asse Laser. Ricollegare il cavo del modulo o riavviare la stampante."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Il dispositivo è in fase di aggiornamento. Riprova quando è inattivo."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Il filamento specificato nello slicer è esaurito. La stampa è in pausa. Vai alla stampante per sostituire il materiale e riprendere la stampa."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Il filamento specificato nello slicer è esaurito. La stampa è in pausa. Vai alla stampante per sostituire il materiale e riprendere la stampa."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "Rilevato un principio di incendio all’interno della camera e il processo di spegnimento antincendio automatico è stato annullato."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Attualmente in modalità produzione 2D. Opera direttamente sulla stampante."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Bombola estintore non installata. Si prega di confermare nella pagina estintore."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Estintore non rilevato."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "L'estintore non funziona correttamente."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "Il cilindro del gas dell’estintore è vuoto."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Il segnale del sensore di calibrazione dell’offset Nozzle è anomalo"
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Reset del motore estintore non riuscito."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Estintore non rilevato, la funzione di spegnimento automatico non sarà disponibile."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "Impossibile mettere in pausa l’attività."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "La calibrazione dell'offset del modulo di taglio è fallita, il che potrebbe causare tagli inaccurati. Assicurati che la carta stampante bianca da 80g (spessore carta da lettera) sia posizionata correttamente e controlla se la punta della lama di taglio è consumata."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Attività interrotta perché la porta anteriore o il coperchio superiore è aperto."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Errore del sensore di calibrazione dell'offset dell'ugello. Se si utilizza un unico hotend o la funzione di calibrazione è disabilitata, è possibile ignorare questo errore e continuare la stampa; in caso contrario, è consigliabile controllare il sensore prima di procedere."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Il filamento nell'hotend è troppo freddo. L'estrusione potrebbe danneggiare l'estrusore. Continua a far entrare/uscire il filamento?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "L'estintore è stato rilevato ed è pronto per l'uso dopo che il modulo laser è stato collegato."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "Il manicotto in silicone della bocchetta non è installato; c'è un rischio di guasto al controllo della temperatura. Si prega di installarlo correttamente e riprovare."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Inizializzazione della fotocamera Toolhead fallita. Questa stampa può comunque continuare, ma alcune funzioni AI saranno disabilitate. Se incontri nuovamente questo problema dopo il riavvio, contatta il supporto clienti."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "Posizionamento motore XY fallito durante il posizionamento del supporto hotend. Controlla se c'è qualcosa che blocca e riprova."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "L'hotend si è sganciato dal supporto in fase di stampa. Riposizionalo prima di continuare."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "Il supporto hotend non riesce a fare l'homing. Controlla che non ci siano ostacoli e riprova."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Modalità laser/calibrazione: togli tutti gli hotend dal supporto prima di riprovare."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "Distanza di ritorno supporto hotend è troppo lunga. Controlla che la cinghia di distribuzione e l'ingranaggio del motore non siano allentati o danneggiati."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "Sistema cambio hotend occupato; aggiorna quando inattivo."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Posiziona un tappetino da taglio StrongGrip sulla base di protezione da taglio."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "Stampa interrotta perché il file 3MF non è valido. Verifica che sia stato selezionato il modello di stampante corretto durante l'elaborazione oppure aggiorna Studio e rieseguire l'elaborazione del file."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "Stima filamento residuo AMS attivata di default e non è disattivabile."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "La stampa si è interrotta perché il numero di hotend o il modello disponibili non corrispondono al file elaborato. Controlla il modello e il numero di hotend prima di riavviare la stampa."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "Autenticazione hotend fallita. Cambia l'hotend o riavvia la stampante."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "Verifica dell’hotend a induzione non riuscita a causa del timeout del cambio hotend. Riprovare."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprova."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "Nessun hotend disponibile rilevato nel supporto hotend a induzione o nel rack hotend. Installare un hotend e riprovare."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "Calibrazione del rack hotend a induzione non riuscita, controllare l’Assistente."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Modulo laser rilevato. Installare correttamente il nozzle destro per garantire la corretta calibrazione del montaggio del modulo laser."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "La temperatura dell’heatbreak dell’hotend destro è troppo alta e potrebbe causare un intasamento. Aprire il coperchio superiore e lo sportello frontale della stampante per ridurre la temperatura della camera, oppure abbassare la temperatura ambiente."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "Il rack hotend è completamente occupato e il cambio hotend non può essere eseguito. Rimuovere un hotend prima di procedere."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "Il dispositivo è occupato e non può eseguire operazioni sul rack hotend in questo momento. Riprovare più tardi."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "L’hotend destro non è installato e la testina di stampa non può eseguire l’homing. Installare l’hotend e poi continuare."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Il rack dell'hotend non è calibrato e non si può cambiare l'hotend. Fai la calibrazione del rack sul dispositivo."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "Il rack hotend è completamente occupato. Rimuovere un hotend prima di procedere."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Impossibile leggere le informazioni sull'hotend a induzione. Sostituisci l'hotend o riavvia la stampante."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Pulizia Nozzle fallita. Clicca sull' assistente per la risoluzione dei problemi."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Errore motore rack hotend. Controlla e togli eventuali ostacoli che bloccano il movimento del rack prima di continuare."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Errore di comunicazione tra MC e rack hotend. Verifica che il cavo della scheda madre del rack non sia allentato."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Verifica hotend a induzione fallita. Sostituisci l'hotend e riprova."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Errore sensore di posizione del motore rack hotend. Se il problema persiste dopo aver riprovato, riavvia la stampante."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Fallito homing grossolano del rack Hotend. Controllare eventuali ostruzioni o se la piastra è disallineata."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Fallito homing grossolano del rack Hotend. Controllare eventuali ostruzioni o se la piastra è disallineata."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Il rack Hotend non è stato configurato. Completare la configurazione prima di eseguire una sostituzione dell'Hotend."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Rilevato modulo Laser. Rimuovere l'Hotend dal rack Hotend per evitare che i detriti della lavorazione laser influiscano sulle prestazioni di stampa."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Rilevato errore di riconoscimento dell'hotend a induzione. Vai alla pagina \"Hotend & Rack\" e clicca su \"Leggi tutto\" per effettuare nuovamente il rilevamento. Se il problema persiste, prova ad aggiornare il firmware dalla pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
+                },
+                {
                     "ecode": "0502C024",
-                    "intro": "I record di calibrazione dinamica del flusso hanno superato il limite di archiviazione. Si prega di eliminare alcuni record storici nel software slicer prima di aggiungere nuovi dati di calibrazione."
+                    "intro": "I record di calibrazione della dinamica del flusso hanno superato il limite di archiviazione. Elimina alcuni record storici nello slicer prima di aggiungere nuovi dati di calibrazione."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "È stato rilevato un aggiornamento delle informazioni dell’hotend durante la calibrazione dell’offset del nozzle. Vai alla pagina “Hotends & Rack” e fai clic su “Leggi Tutto” per rieseguire l’identificazione. Se il problema persiste, prova ad aggiornare dalla pagina “Firmware”."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "È stato rilevato un disallineamento del piano. Allinea il piano di stampa con la piastra, quindi procedi."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Rilevato un mismatch del tipo di Hotend durante la stampa. Si prega di sostituire l'hotend nello slot 3 sul rack con il tipo specificato nel slicer prima di continuare la stampa."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Rilevato un mismatch del tipo di Hotend durante la stampa. Si prega di sostituire l'hotend nello slot 4 sul rack con il tipo specificato nel slicer prima di continuare la stampa."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Rilevato un mismatch del tipo di Hotend durante la stampa. Si prega di sostituire l'hotend nello slot 2 sul rack con il tipo specificato nel slicer prima di continuare la stampa."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Durante la stampa è stata rilevata una discrepanza nel tipo di hotend. Si prega di sostituire l'hotend nello slot 1 del rack con il tipo specificato nel slicer prima di continuare la stampa."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Durante la impresión se detectó una discrepancia en el tipo de hotend. Por favor, reemplace el hotend en la ranura 5 en el rack con el tipo especificado en el slicer antes de continuar con la impresión."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Rilevato un mismatch del tipo di Hotend durante la stampa. Si prega di sostituire l'hotend nello slot 6 sul rack con il tipo specificato nel slicer prima di continuare la stampa."
                 },
                 {
                     "ecode": "05008078",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "Il sensore di fiamma è anomalo. Potrebbe esserci un cortocircuito nel sensore. Ti preghiamo di risolvere il problema prima di avviare una stampa."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "Firmware AMS-HT C non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "Il firmware del Modulo Laser non corrisponde a quello della stampante; il dispositivo non può continuare a funzionare. Aggiornalo nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT H. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "Firmware AMS-HT E non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "Il firmware del Modulo di Taglio non corrisponde alla stampante; il dispositivo non può continuare a funzionare. Aggiornalo nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "Firmware AMS-HT A non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "La calibrazione offset del modulo di taglio è fallita, il che potrebbe causare tagli imprecisi. Assicurati che la carta bianca da 80g sia posizionata correttamente e controlla se la punta della lama di taglio è usurata."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "Il dispositivo non riesce a trovare la Pompa Aria. Prova a ricollegare il cavo del modulo o riavviare la stampante."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "Firmware AMS C non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "Firmware AMS-HT B non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT E. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "IA ha rilevato il nozzle intasato. Controlla le condizioni del nozzle. Per soluzioni, consulta l'assistente."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "Inizializzazione della fotocamera BirdsEye non riuscita. La fotocamera della testa non ha rilevato le caratteristiche della piastra. Ti preghiamo di pulire la piastra, rimuovere tutti gli oggetti e i tappetini, e assicurarti che i riferimenti visivi siano ben visibili. Consulta l’Assistente per una soluzione dettagliata."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "Firmware AMS D non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "Il monitor di stampa IA ha rilevato un difetto spaghetti. Controlla la stampa e intraprendi le misure necessarie."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT D. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "La lente della fotocamera del nozzle è sporca, compromettendo il monitoraggio tramite AI. Pulisci la lente con un panno non tessuto e una piccola quantità di alcol. Attenzione al calore dell’hotend: attendi che si raffreddi prima di intervenire."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT B. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "Il dispositivo non riesce a rilevare AMS D. Ricollegare il cavo AMS o riavviare la stampante."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "Firmware AMS-HT H non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina «Firmware»."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "Firmware AMS-HT D non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "Il dispositivo non riesce a rilevare AMS B. Ricollegare il cavo AMS o riavviare la stampante."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "Il dispositivo non riesce a rilevare AMS A. Ricollegare il cavo AMS o riavviare la stampante."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "Firmware AMS-HT G non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT C. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "Firmware AMS-HT F non corrispondente alla stampante; il dispositivo non può continuare a funzionare. Effettua l'upgrade nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "Il firmware di AMS B non corrisponde alla stampante; Il dispositivo non può continuare a funzionare. Si prega di aggiornarlo nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Timeout durante la calibrazione della telecamera Liveview; riavviare la stampante."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "Il firmware di AMS A non corrisponde alla stampante; il dispositivo non può continuare a funzionare. Aggiornalo alla pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT A. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "Il dispositivo non riesce a rilevare AMS C. Ricollegare il cavo AMS o riavviare la stampante."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "Il dispositivo non riesce a rilevare il modulo laser. Ricollegare il cavo del modulo o riavviare la stampante."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT G. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "Il dispositivo non riesce a rilevare AMS-HT F. Ricollegare il cavo AMS-HT o riavviare la stampante."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "Il firmware della Pompa d'Aria non corrisponde a quello della stampante; il dispositivo non può continuare a funzionare. Aggiornalo nella pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "Inizializzazione videocamera Liveview fallita. Questa stampa può ancora continuare, ma alcune funzioni IA saranno disabilitate. Se il problema persiste dopo il riavvio, contatta l'assistenza clienti."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Il dispositivo non riesce a rilevare il Modulo Taglio. Ricollegare il cavo del modulo o riavviare la stampante."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "Visual Encoder non rilevato. Controlla se il piatto e allineato correttamente su tutti e quattro gli angoli e assicurati che i segni di posizionamento siano chiari e privi di usura."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Homing dell'asse Z non riuscito: anomalia del controllo della temperatura."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Impossibile iniziare una nuova attività: l'estrazione a freddo dal nozzle non è stata completata."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "A causa delle limitazioni di alimentazione della stampante, la stampa, la calibrazione, i controlli e altre operazioni non possono essere eseguiti durante l’asciugatura AMS. Interrompi il processo di asciugatura prima di procedere con qualsiasi altra operazione."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Impossibile avviare una nuova attività: il caricamento/scaricamento del filamento non è stato completato."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Applica la carta da stampa bianca da 80 g nell'area centrale della piattaforma."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "Il dispositivo è occupato e non è in grado di identificare i nozzle."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Il piano potrebbe essere ostruito durante lo spostamento verso il basso. Rimuovi tutti gli oggetti sotto il piano e verifica l'eventuale resistenza o inceppamento durante il suo movimento."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Posizionamento hotend nel supporto posizione 2 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 6 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "Homing Rack Hotend ad Induzione non riuscito a causa di un’ostruzione. Rimuovi l’ostacolo prima di riprendere la stampa."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 5 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Posizionamento hotend nel supporto posizione 5 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "La distanza di homing del Rack Hotend è insolitamente lunga. Controlla se la cinghia è allentata o rotta."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 4 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 1 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "Errore di homing grossolano del rack dell'hotend. Verificare la presenza di ostruzioni o se la piastra di stampa è disallineata."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 4 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Posizionamento hotend nel supporto posizione 5 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Prima di usare la modalità Laser o di regolare la posizione del Rack dell'Hotend, togli tutti gli hotend dal rack."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 3 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 3 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Blocco non riuscito; Si prega di controllare se c'è del materiale appiccicoso sul nozzle."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 2 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 2 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "Errore di homing grossolano del rack dell'hotend. Verificare la presenza di ostruzioni o se la piastra di stampa è disallineata."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "Posizionamento hotend nel supporto posizione 3 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 6 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Blocco fallito; controlla se c'è del materiale appiccicoso sul nozzle."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Sblocco fallito; controlla la posizione di installazione dell'asta di espulsione."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "Il modulo della ventola di raffreddamento del gruppo estrusore presenta un malfunzionamento."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 1 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Homing grossolano rack hotend fallito. Stampa annullata. Verifica che non ci siano ostacoli che bloccano il movimento del rack."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Posizionamento hotend nel supporto posizione 3 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Posizionamento hotend nel supporto posizione 4 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Prelevamento hotend dalla supporto nella posizione 5 fallita, Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "Posizionamento hotend nel supporto posizione 1 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Posizionamento hotend nel supporto posizione 2 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Posizionamento hotend nel supporto posizione 1 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Sblocco fallito; controllare la posizione di installazione dell'asta di espulsione."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Posizionamento hotend nel supporto posizione 4 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Posizionamento hotend nel supporto posizione 6 fallito. Controlla se ci sono residui di filamento o materiale incollato."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "AMS è in fase di asciugatura e non è possibile aggiornarlo. Riprova più tardi."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "La stampante sta caricando o scaricando il filamento e al momento non può essere aggiornata. Riprova più tardi."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "Il dispositivo sta stampando e al momento non è possibile aggiornarlo. Riprova più tardi."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "AMS è in fase di inizializzazione e non può essere aggiornato. Riprova più tardi."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "AMS è in funzione e non può essere aggiornato. Riprovare quando sarà inattivo."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Riscalda il Nozzle oltre 170 °C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "Il dispositivo non riesce a rilevare estintore.  Ricollegare il cavo del modulo o riavviare la stampante."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "Il dispositivo non riesce a rilevare il Quarto Asse Laser. Ricollegare il cavo del modulo o riavviare la stampante."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "Il dispositivo è in fase di aggiornamento. Riprova quando è inattivo."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "Il filamento specificato nello slicer è esaurito. La stampa è in pausa. Vai alla stampante per sostituire il materiale e riprendere la stampa."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "Il filamento specificato nello slicer è esaurito. La stampa è in pausa. Vai alla stampante per sostituire il materiale e riprendere la stampa."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "Rilevato un principio di incendio all’interno della camera e il processo di spegnimento antincendio automatico è stato annullato."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "Attualmente in modalità produzione 2D. Opera direttamente sulla stampante."
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "Bombola estintore non installata. Si prega di confermare nella pagina estintore."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Estintore non rilevato."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "L'estintore non funziona correttamente."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "Il cilindro del gas dell’estintore è vuoto."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Il segnale del sensore di calibrazione dell’offset Nozzle è anomalo"
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Reset del motore estintore non riuscito."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Estintore non rilevato, la funzione di spegnimento automatico non sarà disponibile."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "Impossibile mettere in pausa l’attività."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "La calibrazione dell'offset del modulo di taglio è fallita, il che potrebbe causare tagli inaccurati. Assicurati che la carta stampante bianca da 80g (spessore carta da lettera) sia posizionata correttamente e controlla se la punta della lama di taglio è consumata."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Attività interrotta perché la porta anteriore o il coperchio superiore è aperto."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Errore del sensore di calibrazione dell'offset dell'ugello. Se si utilizza un unico hotend o la funzione di calibrazione è disabilitata, è possibile ignorare questo errore e continuare la stampa; in caso contrario, è consigliabile controllare il sensore prima di procedere."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "Il filamento nell'hotend è troppo freddo. L'estrusione potrebbe danneggiare l'estrusore. Continua a far entrare/uscire il filamento?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "L'estintore è stato rilevato ed è pronto per l'uso dopo che il modulo laser è stato collegato."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "Il manicotto in silicone della bocchetta non è installato; c'è un rischio di guasto al controllo della temperatura. Si prega di installarlo correttamente e riprovare."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "Inizializzazione della fotocamera Toolhead fallita. Questa stampa può comunque continuare, ma alcune funzioni AI saranno disabilitate. Se incontri nuovamente questo problema dopo il riavvio, contatta il supporto clienti."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "Posizionamento motore XY fallito durante il posizionamento del supporto hotend. Controlla se c'è qualcosa che blocca e riprova."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "L'hotend si è sganciato dal supporto in fase di stampa. Riposizionalo prima di continuare."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "Il supporto hotend non riesce a fare l'homing. Controlla che non ci siano ostacoli e riprova."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Modalità laser/calibrazione: togli tutti gli hotend dal supporto prima di riprovare."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "Distanza di ritorno supporto hotend è troppo lunga. Controlla che la cinghia di distribuzione e l'ingranaggio del motore non siano allentati o danneggiati."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "Sistema cambio hotend occupato; aggiorna quando inattivo."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Posiziona un tappetino da taglio StrongGrip sulla base di protezione da taglio."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "Stampa interrotta perché il file 3MF non è valido. Verifica che sia stato selezionato il modello di stampante corretto durante l'elaborazione oppure aggiorna Studio e rieseguire l'elaborazione del file."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "Stima filamento residuo AMS attivata di default e non è disattivabile."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "La stampa si è interrotta perché il numero di hotend o il modello disponibili non corrispondono al file elaborato. Controlla il modello e il numero di hotend prima di riavviare la stampa."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "Autenticazione hotend fallita. Cambia l'hotend o riavvia la stampante."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "Verifica dell’hotend a induzione non riuscita a causa del timeout del cambio hotend. Riprovare."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprova."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "Nessun hotend disponibile rilevato nel supporto hotend a induzione o nel rack hotend. Installare un hotend e riprovare."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "Calibrazione del rack hotend a induzione non riuscita, controllare l’Assistente."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Impossibile ottenere la tabella di mappatura filamento-hotend dal file di slicing. Riprovare."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Modulo laser rilevato. Installare correttamente il nozzle destro per garantire la corretta calibrazione del montaggio del modulo laser."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "La temperatura dell’heatbreak dell’hotend destro è troppo alta e potrebbe causare un intasamento. Aprire il coperchio superiore e lo sportello frontale della stampante per ridurre la temperatura della camera, oppure abbassare la temperatura ambiente."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "Il rack hotend è completamente occupato e il cambio hotend non può essere eseguito. Rimuovere un hotend prima di procedere."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "Il dispositivo è occupato e non può eseguire operazioni sul rack hotend in questo momento. Riprovare più tardi."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "L’hotend destro non è installato e la testina di stampa non può eseguire l’homing. Installare l’hotend e poi continuare."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Il rack dell'hotend non è calibrato e non si può cambiare l'hotend. Fai la calibrazione del rack sul dispositivo."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "Il rack hotend è completamente occupato. Rimuovere un hotend prima di procedere."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Impossibile leggere le informazioni sull'hotend a induzione. Sostituisci l'hotend o riavvia la stampante."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Pulizia Nozzle fallita. Clicca sull' assistente per la risoluzione dei problemi."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Errore motore rack hotend. Controlla e togli eventuali ostacoli che bloccano il movimento del rack prima di continuare."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "Errore di comunicazione tra MC e rack hotend. Verifica che il cavo della scheda madre del rack non sia allentato."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "Verifica hotend a induzione fallita. Sostituisci l'hotend e riprova."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Errore sensore di posizione del motore rack hotend. Se il problema persiste dopo aver riprovato, riavvia la stampante."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "Fallito homing grossolano del rack Hotend. Controllare eventuali ostruzioni o se la piastra è disallineata."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "Fallito homing grossolano del rack Hotend. Controllare eventuali ostruzioni o se la piastra è disallineata."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "Il rack Hotend non è stato configurato. Completare la configurazione prima di eseguire una sostituzione dell'Hotend."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Rilevato modulo Laser. Rimuovere l'Hotend dal rack Hotend per evitare che i detriti della lavorazione laser influiscano sulle prestazioni di stampa."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Rilevato errore di riconoscimento dell'hotend a induzione. Vai alla pagina \"Hotend & Rack\" e clicca su \"Leggi tutto\" per effettuare nuovamente il rilevamento. Se il problema persiste, prova ad aggiornare il firmware dalla pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "Controllo pre-sostituzione hotend fallito. Controlla che l'hotend sia posizionato bene."
                 }
             ]
         }

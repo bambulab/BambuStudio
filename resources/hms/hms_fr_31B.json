@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "fr": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 2 sur le support, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Une condition anormale a été détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 2 sur le rack avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position libérée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Une condition anormale a été détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 3 sur le rack avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support d'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Une condition anormale a été détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 6 sur le rack avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle d'un excès de filament ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 5 sur le support et cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : réessai de recentrage de la tête d'outil échoué. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 3 sur le support, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "Le mouvement du support de l'extrudeuse a expiré. Veuillez vérifier la présence d'objets étrangers ou d'obstructions qui pourraient causer le blocage du support."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position déverrouillée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de la fente 2 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans la fente correspondante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : échec de la nouvelle tentative de recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre du plateau de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle d'un excès de filament ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 6 sur le support et cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position déverrouillée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 1 sur le support, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 4 sur le rack avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans l'emplacement correspondant avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de la fente 1 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans la fente correspondante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans l'emplacement correspondant avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position libérée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "La position de la tige de verrouillage de l'outil du support de l'extrudeuse est anormale. Veuillez vérifier la présence d'objets étrangers ou d'obstructions qui pourraient provoquer le blocage de la tige de verrouillage."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 1 sur le support et cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Une condition anormale a été détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 1 sur le rack avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de la fente 4 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans la fente correspondante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : échec de la nouvelle centrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 4 sur le support et cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Erreur du mécanisme de libération du levier de verrouillage du hotend à induction ou du levier de crémaillère. Veuillez vous référer au Wiki pour l'inspection."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 2 sur le support et cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : réessai de recentrage de la tête d'outil échoué. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 5 sur le rack avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": ""
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position libérée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 3 sur le support et cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support d'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "L’étalonnage du rack du hotend a échoué. La marque de repère n’a pas été détectée. Veuillez vérifier si le repère visuel sur le rack est endommagé ou masqué par de la saleté."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 3 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 1."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 4."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 2 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 3."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 6."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 5 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 2."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 4 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 2 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 3 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 4 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 4 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 6 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 4 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 1."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 5 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 5 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 6."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 4."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 3 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 5."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 3 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 6 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 5 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 3."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 6 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 5."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "En cas de coupure de courant avec le porte-outil en position de dépôt, il y a une forte probabilité que des problèmes surviennent. Veuillez remettre le hotend depuis la position 2 sur la tête d’outil, puis déplacer cette tête d’outil au centre du plateau chauffant afin d’éviter toute interférence avec le porte-outil."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 2 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 2."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 6 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le support. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le support de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position déverrouillée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 5 sur le support, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le support. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le support de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 6 sur le support, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre du plateau de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : échec de la nouvelle tentative de recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre du plateau de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans l'emplacement correspondant avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 4 sur le support, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre du plateau de construction, puis cliquez sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Le homing du Rack du Hotend à induction a échoué : le résultat a dépassé la plage de déplacement. Veuillez vérifier si la structure du rack est déformée."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "L’étalonnage du rack du hotend a échoué : les données de calibration de la caméra sont anormales. Veuillez nettoyer les résidus de la buse, vérifier si le papier thermique du plateau chauffant est intact, et retirer tous les débris de sa surface."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "Le ventilateur de refroidissement de l'AMS-HT F chauffage 2 ne peut pas démarrer parce que l'adaptateur de courant n'est pas connecté."
@@ -18595,6 +18067,406 @@
                     "intro": "La carte RFID 1 de l'AMS HT H a une erreur."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "L'accessoire de gravure rotative est mal placé. Veuillez l'ajuster et le repositionner."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 5 est correctement installé."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 4 est correctement installé."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 6 est correctement installé."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 3 est correctement installé."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 2 est correctement installé est correctement installé."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Erreur détectée lors de la récupération du hotend de l'emplacement 4 : la tête d'outil n'a pas réussi à détecter le hotend sur le rack. Veuillez vérifier la présence de débris dans la fente de montage à induction du hotend sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack hotend."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Erreur détectée lors de la récupération du hotend de l'emplacement 1 : le rack n'a pas réussi à enclencher correctement le hotend. Veuillez vérifier s'il y a un excès de filament en haut du hotend, ou des débris dans la zone de contact entre la tête d'outils et le hotend, ou si le levier de verrouillage est en position relâchée. Après avoir résolu le problème, cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Anomalie détectée lors de l’insertion du hotend dans l’emplacement 6 : un hotend est déjà installé. Veuillez retirer celui en place avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Condition anormale détectée lors de l’insertion du hotend dans l’emplacement 5 : le hotend est tombé. Veuillez vérifier la présence éventuelle d’un excès de filament sur le haut du hotend, couper les résidus, réinstaller le hotend dans l’emplacement 5 du rack, puis cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Erreur détectée lors de la récupération du hotend de l'emplacement 2 : la tête d'outil n'a pas réussi à détecter le hotend sur le rack. Veuillez vérifier la présence de débris dans la fente de montage à induction du hotend sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack à induction du hotend."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Erreur détectée lors de la récupération du hotend de l'emplacement 3 : la tête d'outil n'a pas réussi à détecter le hotend sur le rack. Veuillez vérifier la présence de débris dans la fente de montage à induction du hotend sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack d'induction du hotend."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Condition anormale détectée lors de la récupération du hotend depuis l’emplacement 3 : un hotend est déjà monté sur la tête d’outil. Veuillez retirer le hotend de la tête d’outil avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 3 : le rack n’a pas détecté le hotend sur la tête d’outil. Veuillez vérifier s’il y a des débris sur la surface du dissipateur thermique du hotend ou si l’aimant avant s’est détaché. Sinon, recalibrez le rack hotend à induction."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Anomalie détectée lors de l’insertion du hotend dans l’emplacement 2 : le support n’a pas réussi à détacher le hotend de la tête d’outil. Assurez-vous que le levier de verrouillage est en position déverrouillée."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Une anomalie a été détectée lors de la récupération du hotend depuis l’emplacement 2 : un hotend est déjà installé sur la tête d’outil. Retirez le hotend de la tête d’outil avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 6 : le hotend est tombé. Vérifiez la présence éventuelle d’un excès de filament sur le haut du hotend, coupez les résidus, réinstallez le hotend dans l’emplacement 6 du support, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 6 : la tête d’outil n’a pas pu être recentrée. Déplacez manuellement la tête d’outil vers le centre du plateau d’impression, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Erreur détectée lors de la récupération du hotend depuis l’emplacement 6 : la tête d’outil n’a pas pu être recentrée. Déplacez manuellement la tête d’outil vers le centre du plateau d’impression, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 5 : un hotend est déjà installé. Retirez celui en place avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 4 : la tête d’outil n’a pas pu être recentrée. Déplacez manuellement la tête d’outil vers le centre du plateau d’impression, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Une anomalie a été détectée lors de la récupération du hotend depuis l’emplacement 3 : aucun hotend n’a été détecté à cet emplacement. Installez un hotend dans l’emplacement correspondant avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 1 : le mouvement du rack est bloqué. Vérifiez la présence d’objets étrangers, retirez-les, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 1 : un hotend est déjà installé. Retirez celui en place avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 4 : le hotend est tombé. Vérifiez la présence éventuelle d’un excès de filament sur le haut du hotend, coupez les résidus, réinstallez le hotend dans l’emplacement 4 du rack, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 1 : le rack n’a pas réussi à détacher le hotend de la tête d’outil. Assurez-vous que le levier de verrouillage est en position de déverrouillage."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 2 : la tête d’outil n’a pas pu être recentrée. Déplacez manuellement la tête d’outil vers le centre du plateau d’impression, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Erreur détectée lors de la récupération du hotend depuis l’emplacement 5 : le mouvement du rack est bloqué. Vérifiez la présence d’objets étrangers, retirez-les, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 3 : aucun hotend n’a été détecté sur la tête d’outil. Installez le hotend sur la tête d’outil avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 6 : aucun hotend n’a été détecté sur la tête d’outil. Installez le hotend sur la tête d’outil avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 2 : le hotend est tombé. Vérifiez la présence éventuelle d’un excès de filament sur le haut du hotend, coupez les résidus, réinstallez le hotend dans l’emplacement 2 du rack, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 2. Assurez-vous qu’aucun hotend n’est monté sur la tête d’outil et qu’un hotend est bien présent dans l’emplacement 2 du rack avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 4 : aucun hotend n’a été détecté sur la tête d’outil. Installez le hotend sur la tête d’outil avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Erreur détectée lors de la récupération du hotend depuis l’emplacement 5 : le rack n’a pas réussi à monter correctement le hotend. Vérifiez la présence éventuelle d’un excès de filament sur le haut du hotend, de débris dans la zone de contact entre la tête d’outil et le hotend, ou si le levier de verrouillage est en position de déverrouillage. Après avoir résolu le problème, cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 3. Assurez-vous qu’aucun hotend n’est monté sur la tête d’outil et qu’un hotend est bien présent dans l’emplacement 3 du rack avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 1 : le rack n’a pas détecté le hotend sur la tête d’outil. Vérifiez s’il y a des débris sur la surface du dissipateur thermique du hotend ou si l’aimant avant s’est détaché. Si ce n’est pas le cas, recalibrez le rack à induction du hotend."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 1 : aucun hotend n’a été détecté sur la tête d’outil. Installez le hotend sur la tête d’outil avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 3 : le rack n’a pas réussi à détacher le hotend de la tête d’outil. Assurez-vous que le levier de verrouillage est en position de déverrouillage."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Une anomalie a été détectée lors de l’insertion du hotend dans l’emplacement 6. Assurez-vous qu’aucun hotend n’est monté sur la tête d’outil et qu’un hotend est bien présent dans l’emplacement 6 du rack avant de cliquer sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Erreur détectée lors de la récupération du hotend depuis l’emplacement 1 : le mouvement du rack est bloqué. Vérifiez la présence d’objets étrangers, retirez-les, puis cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Erreur détectée lors de la récupération du hotend depuis l’emplacement 5 : le hotend est tombé. Vérifiez la présence éventuelle d’un excès de filament ou d’autres débris sur le haut du hotend, coupez ou retirez-les, puis réinstallez le hotend dans l’emplacement 5 du rack et cliquez sur « Continuer »."
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 3 sur le support, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "Le mouvement du support de l'extrudeuse a expiré. Veuillez vérifier la présence d'objets étrangers ou d'obstructions qui pourraient causer le blocage du support."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position ouverte. Après avoir résolu le problème, cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de la fente 2 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans la fente correspondante avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre du plateau de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 6 sur le support et cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position déverrouillée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1 : l'extrudeuse est tombée. Veuillez vérifier s'il reste un excès de filament en haut de l'extrudeuse, couper les résidus, réinstaller l'extrudeuse dans l'emplacement 1 sur le support, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 4 sur le rack avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans l'emplacement correspondant avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de la fente 1 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans la fente correspondante avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : une extrudeuse est déjà installée. Veuillez retirer celle existante avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans l'emplacement correspondant avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position déverrouillée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 3 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 5 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "La position de la tige de verrouillage de l'outil du support de l'extrudeuse est anormale. Veuillez vérifier la présence d'objets étrangers ou d'obstructions qui pourraient provoquer le blocage de la tige de verrouillage."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun débris n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle d'un excès de filament ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 1 sur le support et cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : la tête d'outil n'a pas réussi à détecter l'extrudeuse sur le rack. Veuillez vérifier s'il y a des débris dans l'emplacement de montage de l'extrudeuse à induction sur la tête d'outil. Si aucun n'est trouvé, recalibrez le rack de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Une condition anormale a été détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 1. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 1 sur le rack avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de la fente 4 : aucune extrudeuse trouvée à cette position. Veuillez installer une extrudeuse dans la fente correspondante avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : échec de la nouvelle centrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 4 sur le support et cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Erreur du mécanisme de libération du levier de verrouillage du hotend à induction ou du levier de crémaillère. Veuillez vous référer au Wiki pour l'inspection."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 2 sur le support et cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : réessai de recentrage de la tête d'outil échoué. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 1 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5. Veuillez vous assurer qu'aucune extrudeuse n'est montée sur la tête d'outil et qu'une extrudeuse est présente dans l'emplacement 5 sur le rack avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 4 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : échec de la nouvelle tentative de recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 4 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : le support n'a pas réussi à monter correctement l'extrudeuse. Veuillez vérifier s'il y a un excès de filament en haut de l'extrudeuse, des débris dans la zone de contact entre la tête d'outil et l'extrudeuse, ou si le levier de verrouillage est en position libérée. Après avoir résolu le problème, cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 2 : aucune extrudeuse détectée sur la tête d'outil. Veuillez monter l'extrudeuse sur la tête d'outil avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : le mouvement du support est bloqué. Veuillez vérifier la présence d'objets étrangers, les retirer, puis cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 2 : échec de la nouvelle recentrage de la tête d'outil. Veuillez déplacer manuellement la tête d'outil au centre de la plaque de construction, puis cliquez sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 6 : le support n'a pas réussi à détacher l'extrudeuse de la tête d'outil. Veuillez vous assurer que le levier de verrouillage est en position libérée."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Erreur détectée lors de la récupération de l'extrudeuse de l'emplacement 3 : l'extrudeuse est tombée. Veuillez vérifier la présence éventuelle de filament excessif ou d'autres débris en haut de l'extrudeuse, les couper ou les retirer, puis réinstaller l'extrudeuse dans l'emplacement 3 sur le support et cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Condition anormale détectée lors de l'emboîtement de l'extrudeuse dans l'emplacement 5 : le support n'a pas réussi à détecter l'extrudeuse sur la tête d'outil. Veuillez vérifier s'il y a des débris sur la surface du dissipateur de chaleur de l'extrudeuse ou si l'aimant avant est tombé. Sinon, recalibrez le support de l'extrudeuse à induction."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Condition anormale détectée lors de la récupération de l'extrudeuse de l'emplacement 6 : une extrudeuse est déjà montée sur la tête d'outil. Veuillez retirer l'extrudeuse de la tête d'outil avant de cliquer sur \"Continuer\"."
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Hotend d'induction non détecté avant le verrouillage. Veuillez vérifier son installation sur la tête d'outil."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A La tension de l'adaptateur électrique est trop élevée, ce qui risque d'endommager le circuit de chauffage. Remplacer l'adaptateur électrique."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "La détection de corps étrangers n'a pas fonctionné, peut-être en raison d'une interruption manuelle (par exemple, en appuyant sur stop ou en ouvrant la porte en mode laser). Vous pouvez ignorer ce message si c'est le cas. Sinon, essayez de redémarrer l'imprimante ou de mettre à jour le micrologiciel pour rétablir la fonction."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "Le capteur de courant de la valve d'échappement 2 de l'AMS-HT C est anormal ; contacte le service clientèle pour remplacer la carte mère de l'AMS-HT."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 3 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 1."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "Le contrôle de la température de la buse de l’extrudeur droit est anormal, possiblement en raison d’un hotend mal installé ou d’un dysfonctionnement de la carte de mesure de température sans fil."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Court-circuit inter-phase sur le moteur du support de hotend. Si le redémarrage ne résout pas le problème, veuillez contacter l’assistance."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 4."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 2 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 5 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Erreur lors de la récupération ou de l’insertion du hotend dans l’emplacement 2 du rack. Assurez-vous que le support de hotend est vide, que l’emplacement du rack contient bien un hotend et déplacez manuellement la tête d’outil au centre de la machine avant de continuer."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 3."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 6."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 5 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 2."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 4 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Erreur lors de la récupération ou de l’insertion du hotend dans l’emplacement 5 du rack. Assurez-vous que le support de hotend est vide, que l’emplacement du rack contient bien un hotend et déplacez manuellement la tête d’outil au centre de la machine avant de continuer."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 2 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Erreur lors de la récupération ou de l’insertion du hotend dans l’emplacement 6 du rack. Assurez-vous que le support de hotend est vide, que l’emplacement du rack contient bien un hotend et déplacez manuellement la tête d’outil au centre de la machine avant de continuer."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 3 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "L'axe XY de la tête d'outil ou le rack du hotend n'a pas terminé son homing. Le remplacement du hotend ne peut pas être effectué."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 4 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 4 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "La distance de homing du rack du hotend à induction est trop importante. La courroie de transmission peut être desserrée. Veuillez vérifier et resserrer."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 6 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 4 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Erreur lors de la récupération ou de l’insertion du hotend dans l’emplacement 3 du rack. Assurez-vous que le support de hotend est vide, que l’emplacement du rack contient bien un hotend et déplacez manuellement la tête d’outil au centre de la machine avant de continuer."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 1."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Erreur lors de la récupération ou de l’insertion du hotend dans l’emplacement 1 du rack. Assurez-vous que le support de hotend est vide, que l’emplacement du rack contient bien un hotend et déplacez manuellement la tête d’outil au centre de la machine avant de continuer."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 5 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 3."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 5 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 6 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 5."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 6."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 4."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 3 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 1 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "Le rack à hotend à induction ne fonctionne pas correctement. Veuillez éteindre, vérifier la connexion et redémarrer l'imprimante."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Échec de la vérification de la permutation du hotend : un hotend est déjà installé à l'emplacement 5."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "En cas de coupure de courant avec le porte-outil en position de dépôt, il y a une forte probabilité que des problèmes surviennent. Veuillez remettre le hotend depuis la position 2 sur la tête d’outil, puis déplacer cette tête d’outil au centre du plateau chauffant afin d’éviter toute interférence avec le porte-outil."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 3 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "Le rack de la tête chauffante à induction est bloqué par un obstacle lors de sa mise en position initiale. Veuillez dégager tout obstacle sur son chemin de déplacement."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 2 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "Le moteur du support de hotend est déconnecté ou présente un défaut de circuit ouvert. Veuillez vérifier la connexion du câble plat du moteur."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Échec de la vérification de la permutation du hotend : aucun hotend n'a été détecté à l'emplacement 2."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "Le module du ventilateur de refroidissement de la tête d'outil n'est pas correctement installé ; il n'est peut-être pas bien fixé ou est peut-être tombé."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "Une panne de courant s'est produite lors de la récupération de la tête d'impression du rack. Veuillez replacer la tête d'impression au poste de rack 6 et déplacer la tête d'impression au centre de la plaque de construction pour éviter toute interférence avec le rack de la tête d'impression."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "Une coupure de courant s'est produite lors de la connexion de la tête d'impression au rack. Veuillez réinstaller la tête d'impression de la position 6 sur la tête d'impression et déplacer cette dernière vers le centre du plateau chauffant pour éviter toute interférence avec le rack."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "L'authentification du hotend 1 a échoué. Veuillez changer le hotend ou redémarrer l'imprimante."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "L’étalonnage du rack du hotend a échoué. La marque de repère n’a pas été détectée. Veuillez vérifier si le repère visuel sur le rack est endommagé ou masqué par de la saleté."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "L'authentification du hotend 5 a échoué. Veuillez changer le hotend ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Le homing du Rack du Hotend à induction a échoué : le résultat a dépassé la plage de déplacement. Veuillez vérifier si la structure du rack est déformée."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "L'authentification du hotend 3 a échoué. Veuillez changer le hotend ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "L’étalonnage du rack du hotend a échoué : les données de calibration de la caméra sont anormales. Veuillez nettoyer les résidus de la buse, vérifier si le papier thermique du plateau chauffant est intact, et retirer tous les débris de sa surface."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "Le capteur de température situé sur le hotend de la tête d'impression droit est anormal. Pour éviter toute obstruction des buses, le ventilateur de refroidissement continue de tourner à haute vitesse. Vous pouvez résoudre le problème du capteur lorsque l'impression est inactive."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "L'accessoire de gravure rotative est mal placé. Veuillez l'ajuster et le repositionner."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 5 est correctement installé."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 4 est correctement installé."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 6 est correctement installé."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 3 est correctement installé."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Correspondance entre le filament et le hotend échouée. Veuillez vérifier que le hotend du rack hotend à l'emplacement 2 est correctement installé est correctement installé."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "fr": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "Le micrologiciel de l'AMS-HT C ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "Le micrologiciel du module laser ne correspond pas à celui de l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT H. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "Le micrologiciel de l'AMS-HT E ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "Le micrologiciel du module de découpe ne correspond pas à celui de l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "Le micrologiciel de l'AMS-HT A ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "L'étalonnage du décalage du module de découpe a échoué, ce qui peut entraîner des coupes imprécises. Assurez-vous que le papier d'imprimante blanc 80 g est correctement positionné et vérifiez si la pointe de la lame de coupe est usée."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "L'appareil ne détecte pas la Pompe à Air. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "Le micrologiciel de l'AMS C ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "Le micrologiciel de l'AMS-HT B ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "L'appareil ne peut pas détecter l'AMS-HT E. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "L'IA a détecté une agglomération de la buse. Veuillez vérifier l'état de la buse. Se référer à l'assistant pour les solutions."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "L'initialisation de la caméra BirdsEye a échoué. La caméra de la tête d'outil n'a pas détecté les caractéristiques du lit chauffant. Veuillez nettoyer le lit chauffant, retirer tous les objets et tampons, et vous assurer que les marques du lit sont visibles. Consultez l'assistant pour obtenir une solution détaillée."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "Le micrologiciel de l'AMS D ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "Le moniteur d'impression AI a détecté un défaut de spaghetti. Veuillez vérifier l'impression et prendre les mesures nécessaires."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT D. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "L'objectif de la caméra de la buse est sale, ce qui affecte la surveillance de l'IA. Nettoyez l'objectif avec un chiffon non tissé et une petite quantité d'alcool. Attention à la chaleur de l'élément chauffant ; attendez qu'il refroidisse avant de le manipuler."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT B. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "L'appareil ne peut pas détecter AMS D. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "Le micrologiciel de l'AMS-HT H ne correspond pas à l'imprimante， l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "Le micrologiciel de l'AMS-HT D ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "L'appareil ne peut pas détecter AMS B. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "L'appareil ne peut pas détecter AMS A. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "Le micrologiciel de l'AMS-HT G ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT C. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "Le firmware de l'AMS-HT F ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "Le micrologiciel de l'AMS B ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Délai d'étalonnage de la caméra Liveview dépassé ; veuillez redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "Le micrologiciel de l'AMS A ne correspond pas à l'imprimante， l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT A. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "L'appareil ne peut pas détecter AMS C. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "L'appareil ne détecte pas le module laser. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT G. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "L'appareil ne peut pas détecter AMS-HT F. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "Le micrologiciel de la pompe à air ne correspond pas à celui de l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "L'initialisation de la caméra Liveview a échoué. L'impression peut se poursuivre, mais certaines fonctions de l'IA seront désactivées. Si vous rencontrez à nouveau ce problème après le redémarrage, veuillez contacter le service clientèle."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "L'appareil ne détecte pas le module de découpe. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "La carte de l'encodeur visuel n'a pas été détectée. Veuillez vérifier que la carte est correctement placée et alignée aux quatre coins, et que les marques de positionnement sont claires et exemptes d'usure."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Échec du retour 0 de l'axe Z : anomalie de contrôle de la température."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Échec du démarrage d'une nouvelle tâche : Le tirage à froid de la buse n'a pas été effectué."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "En raison des limites de puissance de l'imprimante, l'impression, l'étalonnage, les commandes et autres actions ne peuvent pas être effectués pendant le séchage AMS. Veuillez arrêter le processus de séchage avant de procéder à toute autre opération."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Échec du démarrage d'une nouvelle tâche : le chargement/déchargement du filament n'est pas terminé."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Veuillez fixer le papier d'impression blanc de 80 g au centre de la plate-forme."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "L'appareil est occupé et ne peut pas identifier les buses."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Le plateau peut être obstrué lors du déplacement vers le bas. Enlevez tous les objets qui se trouvent sous le plateau et vérifiez qu'il n'y a pas de résistance ou de blocage pendant son mouvement."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Échec de la prise du hotend depuis le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "L’homing du rack du hotend à induction a échoué en raison d’une obstruction. Veuillez retirer l’obstacle avant de reprendre l’impression."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Échec du placement du hotend dans le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "Le porte-outil n'est pas revenu au centre. La distance de retour est trop longue. Veuillez vérifier la courroie synchrone du porte-outil."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "La mise à l'origine préalable du porte-outil Hotend a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Échec du placement du hotend dans le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Avant de passer en mode laser ou de calibrer la position du rack Hotend, veuillez retirer tous les hotends du rack."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Le verrouillage a échoué ; veuillez vérifier s'il n'y a pas de matière collante sur la buse."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "La mise à l'origine préalable du porte-outil a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "Échec du placement du hotend dans le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Le verrouillage a échoué ; veuillez vérifier s'il n'y a pas de matériau collant sur la buse."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Le déverrouillage a échoué ; veuillez vérifier la position d'installation de la tige d'éjection."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "Le module du ventilateur de refroidissement amélioré de la tête d'outil fonctionne mal."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Le retour à la position initiale du rack Hotend n'a pas marché. L'impression a été annulée. Vérifiez s'il y a quelque chose qui bloque le mouvement du rack."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Échec du placement du hotend dans le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Échec du placement du hotend dans le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Échec du placement du hotend dans le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Échec de la prise du hotend depuis le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "Échec du placement du hotend dans le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "Échec du placement du hotend dans le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Échec de la prise du hotend depuis le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Échec du déverrouillage ; Veuillez vérifier la position d’installation de la tige d’éjection."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Échec du placement du hotend dans le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Échec du placement du hotend dans le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "La vérification préalable au remplacement du hotend a échoué. Veuillez vérifier que le hotend est correctement installé."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "L'AMS est en train de sécher et ne peut pas être amélioré pour le moment. Veuillez réessayer ultérieurement."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "L'imprimante est en train de charger ou de décharger un filament et ne peut pas être mise à jour pour le moment. Veuillez réessayer ultérieurement."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "L'appareil est en cours d'impression et ne peut pas être mis à niveau pour le moment. Veuillez réessayer ultérieurement."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "L'AMS est en cours d'initialisation et ne peut pas être mis à niveau pour le moment. Veuillez réessayer ultérieurement."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "L'AMS est en service et ne peut pas être mise à jour pour le moment. Veuillez réessayer lorsqu'il est inactif."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Veuillez chauffer la buse au delà de 170°C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "L'appareil ne détecte pas l'Extincteur. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "L'appareil ne détecte pas le Laser 4 Axes.  Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "L'appareil est en cours de mise à jour. Veuillez réessayer lorsqu'il est inactif."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Le filament spécifié dans le trancheur est épuisé. L'impression est suspendue. Veuillez vous rendre sur la machine pour remplacer le matériau et reprendre l'impression."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Le filament spécifié dans le trancheur est épuisé. L'impression est suspendue. Veuillez vous rendre sur la machine pour remplacer le matériau et reprendre l'impression."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "Un incendie mineur a été détecté à l'intérieur de la chambre et le processus d'extinction automatique des incendies a été interrompu."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Actuellement en mode de production 2D. Veuillez continuer sur l'imprimante."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "Bouteille d'extincteur non installée. Veuillez vérifier sur la page de l'extincteur."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Extincteur non détecté."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "L'extincteur ne fonctionne pas correctement."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "La bouteille de gaz de l'extincteur est vide."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Le signal du capteur d'étalonnage du décalage de la buse est anormal."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Échec de la réinitialisation du moteur de l'extincteur."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Extincteur non détecté, la fonction d'extinction automatique sera indisponible."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "La tâche ne peut pas être mise en pause."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "L'étalonnage du module de découpe a échoué, ce qui peut entraîner des coupes inexactes. Veuillez vous assurer que le papier d'imprimante blanc de 80g (épaisseur du papier lettre) est correctement positionné et vérifiez si la pointe de la lame de coupe est usée."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Tâche annulée car la porte avant ou le couvercle supérieur est ouvert."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Erreur du capteur de calibration du décalage de la buse. Si vous utilisez un seul extrudeur chaud ou si la fonction de calibration est désactivée, vous pouvez ignorer cela et continuer l'impression ; sinon, il est recommandé de vérifier le capteur avant de continuer."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Le filament dans l'extrudeuse est trop froid. L'extrusion pourrait endommager l'extrudeuse. Toujours en train d'alimenter le filament ?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "L'extincteur a été détecté et est prêt à être utilisé après que le module laser soit connecté."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "Le manchon en silicone de la buse n'est pas installé; il y a un risque de défaillance du contrôle de la température. Veuillez l'installer correctement et réessayer."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "L'initialisation de la caméra de l'outil a échoué. Cette impression peut encore continuer, mais certaines fonctions d'IA seront désactivées. Si vous rencontrez à nouveau ce problème après avoir redémarré, veuillez contacter le support client."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "Le homing du moteur XY a échoué lors du homing du support de hotend. Veuillez vérifier la présence d’obstructions et réessayer."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "Le hotend est tombé du support pendant l'impression. Veuillez le remettre dans sa position d'origine avant de continuer."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "Blocage de homing du support Hotend. Veuillez vérifier qu'il n'y a pas d'obstructions et réessayer."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Mode Laser/Calibration : veuillez retirer tous les hotends du support avant de réessayer."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "La distance de homing du support de hotend est trop importante. Veuillez vérifier que la courroie de transmission et l’engrenage du moteur ne sont pas desserrés ou endommagés."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "Le système de changement de hotend est occupé ; veuillez effectuer la mise à niveau lorsqu'il est inactif."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Veuillez placer un tapis de découpe StrongGrip sur la base de protection contre les coupures."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "L'impression s'est arrêtée car le fichier 3MF n'est pas valide. Veuillez vérifier que le modèle d'imprimante correct a été sélectionné lors du découpage, ou mettez à jour Studio et découpez à nouveau le fichier."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "L'estimation de la quantité de filament restante de l'AMS est activée par défaut et ne peut pas être désactivée."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "L'impression s'est arrêtée car la quantité ou le modèle de hotend disponible ne correspond pas au fichier découpé. Veuillez vérifier le modèle et la quantité de hotend avant de relancer la tâche d'impression."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "L'authentification du hotend a échoué. Veuillez changer le hotend ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "La vérification du Hotend à Induction a échoué en raison d’un délai dépassé lors du changement de Hotend. Veuillez réessayer."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "Aucun hotend disponible n’a été détecté dans le support de hotend à induction ni dans le rack de hotend. Veuillez installer un hotend et réessayer."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "L'étalonnage du rack hotend à induction a échoué, veuillez vérifier l'assistant."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Module laser détecté. Veuillez installer correctement la buse droite pour garantir un étalonnage correct du Montage du Module Laser."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "La température interne du Hotend droit est trop élevée, ce qui peut provoquer un bouchage. Veuillez ouvrir le capot supérieur et la porte avant de l’imprimante pour réduire la température de la chambre, ou abaisser la température ambiante."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "Impossible d’effectuer le changement : le Rack du Hotend est complet. Retirez un Hotend pour continuer."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "L'appareil est occupé et ne peut pas exécuter les tâches du rack hotend pour le moment. Veuillez réessayer ultérieurement."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "Le hotend droit n'est pas installé et la tête d'outil ne peut pas effectuer le retour à l'origine. Installez le hotend, puis continuez."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Le Rack de Hotend à Induction n'a pas été calibré et le changement de hotend est impossible. Veuillez finaliser l'étalonnage du rack sur l'appareil."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "Le rack hotend est entièrement occupé. Veuillez retirer une tête chauffante avant de continuer."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Échec de lecture des informations du hotend à induction. Veuillez le remplacer ou redémarrer l'imprimante."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Le nettoyage de la buse a échoué. Cliquez sur l'Assistant pour voir comment régler le problème."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Erreur du moteur du rack hotend. Veuillez vérifier et éliminer tout obstacle au mouvement du rack avant de continuer."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "Erreur de communication entre la carte MC et le rack hotend. Vérifiez si le câble de la carte mère du rack est bien branché."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "Échec de la vérification du hotend à induction. Veuillez le remplacer et réessayer."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Problème avec le capteur de position du moteur du rack Hotend. Si le problème persiste après une nouvelle tentative, redémarrez l'imprimante."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "La mise à l'origine préalable du porte-outil Hotend a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "La mise à l'origine préalable du porte-outil Hotend a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Le rack de hotend n'a pas été configuré. Veuillez compléter la configuration avant de procéder au remplacement du hotend."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Module laser détecté. Veuillez retirer la tête d'impression de son support pour éviter que des débris de traitement laser n'affectent les performances d'impression."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Erreur de reconnaissance du hotend par induction détectée. Veuillez vous rendre sur la page \"Hotends & Rack\" et cliquer sur \"Lire tout\" pour redétecter. Si le problème persiste, essayez de mettre à jour le firmware sur la page \"Firmware\"."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
+                },
+                {
                     "ecode": "0502C024",
-                    "intro": "Les enregistrements de calibration dynamique du flux ont dépassé la limite de stockage. Veuillez supprimer certains enregistrements historiques dans le logiciel de tranchage avant d'ajouter de nouvelles données de calibration."
+                    "intro": "Les enregistrements de calibration de la dynamique de flux ont dépassé la limite de stockage. Veuillez supprimer certains enregistrements historiques dans le logiciel de tranchage avant d’ajouter de nouvelles données de calibration."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "Une mise à jour des informations de l'extrudeuse a été détectée lors du calibrage du décalage de la buse. Veuillez vous rendre sur la page \"Extrudeuses & Rack\" et cliquer sur \"Lire tout\" pour réidentifier. Si le problème persiste, essayez de mettre à jour depuis la page \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "Un décalage de la plaque d'impression a été détecté. Veuillez aligner la plaque d'impression avec le lit chauffant, puis continuez."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Incompatibilité de type de Hotend détectée pendant l'impression. Veuillez remplacer le Hotend dans l'emplacement 3 sur le support avec le type spécifié dans le slicer avant de continuer l'impression."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Incompatibilité de type de Hotend détectée pendant l'impression. Veuillez remplacer le Hotend dans l'emplacement 4 sur le support avec le type spécifié dans le slicer avant de continuer l'impression."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Incompatibilité de type de Hotend détectée pendant l'impression. Veuillez remplacer le Hotend dans l'emplacement 2 sur le support avec le type spécifié dans le slicer avant de continuer l'impression."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Incompatibilité de type de Hotend détectée pendant l'impression. Veuillez remplacer le Hotend dans l'emplacement 1 sur le support avec le type spécifié dans le slicer avant de continuer l'impression."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Incompatibilité de type de Hotend détectée pendant l'impression. Veuillez remplacer le Hotend dans l'emplacement 5 sur le support avec le type spécifié dans le slicer avant de continuer l'impression."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Incompatibilité de type de Hotend détectée pendant l'impression. Veuillez remplacer le hotend dans l'emplacement 6 sur le support avec le type spécifié dans le slicer avant de continuer l'impression."
                 },
                 {
                     "ecode": "05008078",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "Le capteur de flamme est anormal. Le capteur peut être court-circuité. Veuillez résoudre le problème avant de lancer un travail d'impression."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "Le micrologiciel de l'AMS-HT C ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "Le micrologiciel du module laser ne correspond pas à celui de l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT H. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "Le micrologiciel de l'AMS-HT E ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "Le micrologiciel du module de découpe ne correspond pas à celui de l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "Le micrologiciel de l'AMS-HT A ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "L'étalonnage du décalage du module de découpe a échoué, ce qui peut entraîner des coupes imprécises. Assurez-vous que le papier d'imprimante blanc 80 g est correctement positionné et vérifiez si la pointe de la lame de coupe est usée."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "L'appareil ne détecte pas la Pompe à Air. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "Le micrologiciel de l'AMS C ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "Le micrologiciel de l'AMS-HT B ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "L'appareil ne peut pas détecter l'AMS-HT E. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "L'IA a détecté une agglomération de la buse. Veuillez vérifier l'état de la buse. Se référer à l'assistant pour les solutions."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "L'initialisation de la caméra BirdsEye a échoué. La caméra de la tête d'outil n'a pas détecté les caractéristiques du lit chauffant. Veuillez nettoyer le lit chauffant, retirer tous les objets et tampons, et vous assurer que les marques du lit sont visibles. Consultez l'assistant pour obtenir une solution détaillée."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "Le micrologiciel de l'AMS D ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "Le moniteur d'impression AI a détecté un défaut de spaghetti. Veuillez vérifier l'impression et prendre les mesures nécessaires."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT D. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "L'objectif de la caméra de la buse est sale, ce qui affecte la surveillance de l'IA. Nettoyez l'objectif avec un chiffon non tissé et une petite quantité d'alcool. Attention à la chaleur de l'élément chauffant ; attendez qu'il refroidisse avant de le manipuler."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT B. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "L'appareil ne peut pas détecter AMS D. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "Le micrologiciel de l'AMS-HT H ne correspond pas à l'imprimante， l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "Le micrologiciel de l'AMS-HT D ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "L'appareil ne peut pas détecter AMS B. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "L'appareil ne peut pas détecter AMS A. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "Le micrologiciel de l'AMS-HT G ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT C. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "Le firmware de l'AMS-HT F ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "Le micrologiciel de l'AMS B ne correspond pas à l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Délai d'étalonnage de la caméra Liveview dépassé ; veuillez redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "Le micrologiciel de l'AMS A ne correspond pas à l'imprimante， l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT A. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "L'appareil ne peut pas détecter AMS C. Veuillez reconnecter le câble AMS ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "L'appareil ne détecte pas le module laser. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT G. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "L'appareil ne peut pas détecter AMS-HT F. Veuillez reconnecter le câble AMS-HT ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "Le micrologiciel de la pompe à air ne correspond pas à celui de l'imprimante ; l'appareil ne peut pas continuer à fonctionner. Veuillez le mettre à jour sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "L'initialisation de la caméra Liveview a échoué. L'impression peut se poursuivre, mais certaines fonctions de l'IA seront désactivées. Si vous rencontrez à nouveau ce problème après le redémarrage, veuillez contacter le service clientèle."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "L'appareil ne détecte pas le module de découpe. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "La carte de l'encodeur visuel n'a pas été détectée. Veuillez vérifier que la carte est correctement placée et alignée aux quatre coins, et que les marques de positionnement sont claires et exemptes d'usure."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Échec du retour 0 de l'axe Z : anomalie de contrôle de la température."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Échec du démarrage d'une nouvelle tâche : Le tirage à froid de la buse n'a pas été effectué."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "En raison des limites de puissance de l'imprimante, l'impression, l'étalonnage, les commandes et autres actions ne peuvent pas être effectués pendant le séchage AMS. Veuillez arrêter le processus de séchage avant de procéder à toute autre opération."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Échec du démarrage d'une nouvelle tâche : le chargement/déchargement du filament n'est pas terminé."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Veuillez fixer le papier d'impression blanc de 80 g au centre de la plate-forme."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "L'appareil est occupé et ne peut pas identifier les buses."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Le plateau peut être obstrué lors du déplacement vers le bas. Enlevez tous les objets qui se trouvent sous le plateau et vérifiez qu'il n'y a pas de résistance ou de blocage pendant son mouvement."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Échec de la prise du hotend depuis le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "L’homing du rack du hotend à induction a échoué en raison d’une obstruction. Veuillez retirer l’obstacle avant de reprendre l’impression."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Échec du placement du hotend dans le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "Le porte-outil n'est pas revenu au centre. La distance de retour est trop longue. Veuillez vérifier la courroie synchrone du porte-outil."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "La mise à l'origine préalable du porte-outil Hotend a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Échec du placement du hotend dans le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Avant de passer en mode laser ou de calibrer la position du rack Hotend, veuillez retirer tous les hotends du rack."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Le verrouillage a échoué ; veuillez vérifier s'il n'y a pas de matière collante sur la buse."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "La mise à l'origine préalable du porte-outil a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "Échec du placement du hotend dans le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Le verrouillage a échoué ; veuillez vérifier s'il n'y a pas de matériau collant sur la buse."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Le déverrouillage a échoué ; veuillez vérifier la position d'installation de la tige d'éjection."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "Le module du ventilateur de refroidissement amélioré de la tête d'outil fonctionne mal."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Le retour à la position initiale du rack Hotend n'a pas marché. L'impression a été annulée. Vérifiez s'il y a quelque chose qui bloque le mouvement du rack."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Échec du placement du hotend dans le support Position 3. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Échec du placement du hotend dans le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Échec du placement du hotend dans le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Échec de la prise du hotend depuis le support Position 5. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "Échec du placement du hotend dans le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "Échec du placement du hotend dans le support Position 2. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Échec de la prise du hotend depuis le support Position 1. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Échec du déverrouillage ; Veuillez vérifier la position d’installation de la tige d’éjection."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Échec du placement du hotend dans le support Position 4. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Échec du placement du hotend dans le support Position 6. Veuillez vérifier la présence de résidus de filament ou de matériau collé."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "La vérification préalable au remplacement du hotend a échoué. Veuillez vérifier que le hotend est correctement installé."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "L'AMS est en train de sécher et ne peut pas être amélioré pour le moment. Veuillez réessayer ultérieurement."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "L'imprimante est en train de charger ou de décharger un filament et ne peut pas être mise à jour pour le moment. Veuillez réessayer ultérieurement."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "L'appareil est en cours d'impression et ne peut pas être mis à niveau pour le moment. Veuillez réessayer ultérieurement."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "L'AMS est en cours d'initialisation et ne peut pas être mis à niveau pour le moment. Veuillez réessayer ultérieurement."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "L'AMS est en service et ne peut pas être mise à jour pour le moment. Veuillez réessayer lorsqu'il est inactif."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Veuillez chauffer la buse au delà de 170°C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "L'appareil ne détecte pas l'Extincteur. Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "L'appareil ne détecte pas le Laser 4 Axes.  Veuillez reconnecter le câble du module ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "L'appareil est en cours de mise à jour. Veuillez réessayer lorsqu'il est inactif."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "Le filament spécifié dans le trancheur est épuisé. L'impression est suspendue. Veuillez vous rendre sur la machine pour remplacer le matériau et reprendre l'impression."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "Le filament spécifié dans le trancheur est épuisé. L'impression est suspendue. Veuillez vous rendre sur la machine pour remplacer le matériau et reprendre l'impression."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "Un incendie mineur a été détecté à l'intérieur de la chambre et le processus d'extinction automatique des incendies a été interrompu."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "Actuellement en mode de production 2D. Veuillez continuer sur l'imprimante."
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "Bouteille d'extincteur non installée. Veuillez vérifier sur la page de l'extincteur."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Extincteur non détecté."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "L'extincteur ne fonctionne pas correctement."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "La bouteille de gaz de l'extincteur est vide."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Le signal du capteur d'étalonnage du décalage de la buse est anormal."
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Échec de la réinitialisation du moteur de l'extincteur."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Extincteur non détecté, la fonction d'extinction automatique sera indisponible."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "La tâche ne peut pas être mise en pause."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "L'étalonnage du module de découpe a échoué, ce qui peut entraîner des coupes inexactes. Veuillez vous assurer que le papier d'imprimante blanc de 80g (épaisseur du papier lettre) est correctement positionné et vérifiez si la pointe de la lame de coupe est usée."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Tâche annulée car la porte avant ou le couvercle supérieur est ouvert."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Erreur du capteur de calibration du décalage de la buse. Si vous utilisez un seul extrudeur chaud ou si la fonction de calibration est désactivée, vous pouvez ignorer cela et continuer l'impression ; sinon, il est recommandé de vérifier le capteur avant de continuer."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "Le filament dans l'extrudeuse est trop froid. L'extrusion pourrait endommager l'extrudeuse. Toujours en train d'alimenter le filament ?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "L'extincteur a été détecté et est prêt à être utilisé après que le module laser soit connecté."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "Le manchon en silicone de la buse n'est pas installé; il y a un risque de défaillance du contrôle de la température. Veuillez l'installer correctement et réessayer."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "L'initialisation de la caméra de l'outil a échoué. Cette impression peut encore continuer, mais certaines fonctions d'IA seront désactivées. Si vous rencontrez à nouveau ce problème après avoir redémarré, veuillez contacter le support client."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "Le homing du moteur XY a échoué lors du homing du support de hotend. Veuillez vérifier la présence d’obstructions et réessayer."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "Le hotend est tombé du support pendant l'impression. Veuillez le remettre dans sa position d'origine avant de continuer."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "Blocage de homing du support Hotend. Veuillez vérifier qu'il n'y a pas d'obstructions et réessayer."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Mode Laser/Calibration : veuillez retirer tous les hotends du support avant de réessayer."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "La distance de homing du support de hotend est trop importante. Veuillez vérifier que la courroie de transmission et l’engrenage du moteur ne sont pas desserrés ou endommagés."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "Le système de changement de hotend est occupé ; veuillez effectuer la mise à niveau lorsqu'il est inactif."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Veuillez placer un tapis de découpe StrongGrip sur la base de protection contre les coupures."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "L'impression s'est arrêtée car le fichier 3MF n'est pas valide. Veuillez vérifier que le modèle d'imprimante correct a été sélectionné lors du découpage, ou mettez à jour Studio et découpez à nouveau le fichier."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "L'estimation de la quantité de filament restante de l'AMS est activée par défaut et ne peut pas être désactivée."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "L'impression s'est arrêtée car la quantité ou le modèle de hotend disponible ne correspond pas au fichier découpé. Veuillez vérifier le modèle et la quantité de hotend avant de relancer la tâche d'impression."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "L'authentification du hotend a échoué. Veuillez changer le hotend ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "La vérification du Hotend à Induction a échoué en raison d’un délai dépassé lors du changement de Hotend. Veuillez réessayer."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "Aucun hotend disponible n’a été détecté dans le support de hotend à induction ni dans le rack de hotend. Veuillez installer un hotend et réessayer."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "L'étalonnage du rack hotend à induction a échoué, veuillez vérifier l'assistant."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Impossible de récupérer le tableau de correspondance filament-hotend à partir du fichier de tranchage, veuillez réessayer."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Module laser détecté. Veuillez installer correctement la buse droite pour garantir un étalonnage correct du Montage du Module Laser."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "La température interne du Hotend droit est trop élevée, ce qui peut provoquer un bouchage. Veuillez ouvrir le capot supérieur et la porte avant de l’imprimante pour réduire la température de la chambre, ou abaisser la température ambiante."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "Impossible d’effectuer le changement : le Rack du Hotend est complet. Retirez un Hotend pour continuer."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "L'appareil est occupé et ne peut pas exécuter les tâches du rack hotend pour le moment. Veuillez réessayer ultérieurement."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "Le hotend droit n'est pas installé et la tête d'outil ne peut pas effectuer le retour à l'origine. Installez le hotend, puis continuez."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Le Rack de Hotend à Induction n'a pas été calibré et le changement de hotend est impossible. Veuillez finaliser l'étalonnage du rack sur l'appareil."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "Le rack hotend est entièrement occupé. Veuillez retirer une tête chauffante avant de continuer."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Échec de lecture des informations du hotend à induction. Veuillez le remplacer ou redémarrer l'imprimante."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Le nettoyage de la buse a échoué. Cliquez sur l'Assistant pour voir comment régler le problème."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Erreur du moteur du rack hotend. Veuillez vérifier et éliminer tout obstacle au mouvement du rack avant de continuer."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "Erreur de communication entre la carte MC et le rack hotend. Vérifiez si le câble de la carte mère du rack est bien branché."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "Échec de la vérification du hotend à induction. Veuillez le remplacer et réessayer."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Problème avec le capteur de position du moteur du rack Hotend. Si le problème persiste après une nouvelle tentative, redémarrez l'imprimante."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "La mise à l'origine préalable du porte-outil Hotend a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "La mise à l'origine préalable du porte-outil Hotend a échoué. Vérifiez s'il y a des objets étrangers ou si le plateau d'impression est mal positionné."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "Le rack de hotend n'a pas été configuré. Veuillez compléter la configuration avant de procéder au remplacement du hotend."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Module laser détecté. Veuillez retirer la tête d'impression de son support pour éviter que des débris de traitement laser n'affectent les performances d'impression."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Erreur de reconnaissance du hotend par induction détectée. Veuillez vous rendre sur la page \"Hotends & Rack\" et cliquer sur \"Lire tout\" pour redétecter. Si le problème persiste, essayez de mettre à jour le firmware sur la page \"Firmware\"."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "La vérification préalable au changement de hotend a échoué. Veuillez vérifier que le hotend est correctement placé."
                 }
             ]
         }
