@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4001,6 +4001,9 @@ msgstr ""
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "Nozul Topaklanma Tespit Konumunun Kalibrasyonu"
 
+msgid "Purifying the chamber air"
+msgstr ""
+
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse bu yazıcıda desteklenmez."
 
@@ -6356,23 +6359,38 @@ msgstr "Duraklatma Hassasiyeti:"
 msgid "Spaghetti Detection"
 msgstr "Spagetti Algılama"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "Spagetti hatasını algıla (etrafa dağılmış filament)."
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "Temizleme Kanalı Yığılma Algılama"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "Atıkların boşaltma kanalında birikip birikmediğini kontrol edin."
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "Nozul Toplanması Tespiti"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Nozulun filamentler veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Nozul tıkanması veya filament aşınması nedeniyle oluşan hava basıncını tespit eder."
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "İlk Katman Kontrolü"
@@ -6392,8 +6410,8 @@ msgstr "Uyarı Sesine İzin Ver"
 msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "Açık Kapı Algılama"
@@ -6437,8 +6455,8 @@ msgstr "Yenileniyor"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Isıtma, bakım işlevi açıkken kullanılamaz."
 
-msgid "Idel Heating Protection"
-msgstr "Idel Isıtma Koruması"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Güvenlik için 5 dakika boşta kaldıktan sonra otomatik olarak ısınmayı durdurur."
@@ -11834,6 +11852,12 @@ msgstr "İç duvarın hızı"
 msgid "Number of walls of every layer"
 msgstr "Her katmanın duvar sayısı"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "İşlem Sonrası Komut Dosyaları"
 
@@ -13525,11 +13549,14 @@ msgstr "Kesişim işlemi için en az iki nesne gerekir."
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "Fark işlemleri için, A ve B listelerinde en az birer birim bulunması gerekir."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "Nesnelere göre parçaları gruplandırma ve birleştirme işlemi başarısız oldu. Kendi kendine kesişmeler, manifold olmayan geometri veya açık ağlar olup olmadığını kontrol edin."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "Çakışan bölge bulunamadı. Boolean kesişimi başarısız oldu."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -13569,6 +13596,15 @@ msgstr "Yalnızca nesneler üzerinde Boolean işlemleri gerçekleştirin."
 
 msgid "This object contains non-part components."
 msgstr "Bu nesne, parça olmayan bileşenler içerir."
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
+msgstr ""
 
 msgid "Network Test"
 msgstr "Ağ testi"
@@ -14734,7 +14770,7 @@ msgid "(Sync with printer)"
 msgstr "(Yazıcı ile senkronize edin)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14742,6 +14778,24 @@ msgstr "Bu gruplama yöntemine göre dilimleyeceğiz:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "İpuçları: Filamentleri farklı nozullara yeniden atamak için sürükleyebilirsiniz."
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Mevcut plaka için filament gruplama yöntemi, dilimleme plakası düğmesindeki açılır seçenek tarafından belirlenir."
@@ -15213,6 +15267,24 @@ msgid ""
 msgstr ""
 "Büzülme, Çarpılma ve Gerilim\n"
 "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "Spagetti hatasını algıla (etrafa dağılmış filament)."
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "Atıkların boşaltma kanalında birikip birikmediğini kontrol edin."
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "Nozulun filamentler veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "Idel Isıtma Koruması"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "Nesnelere göre parçaları gruplandırma ve birleştirme işlemi başarısız oldu. Kendi kendine kesişmeler, manifold olmayan geometri veya açık ağlar olup olmadığını kontrol edin."
 
 #~ msgid "Debug Info"
 #~ msgstr "Hata Ayıklama Bilgisi"

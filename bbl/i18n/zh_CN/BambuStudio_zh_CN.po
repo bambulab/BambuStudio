@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -554,55 +554,55 @@ msgid "Align objects to the minimum X position"
 msgstr "将对象或零件对齐到包围盒X轴最小位置"
 
 msgid "Align"
-msgstr ""
+msgstr "对齐"
 
 msgid "Distribute"
 msgstr ""
 
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr ""
+msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
 
 msgid "Align objects to the center X position"
-msgstr ""
+msgstr "将对象或零件对齐到包围盒X轴中心位置"
 
 msgid "Align objects to the maximum X position"
-msgstr ""
+msgstr "将对象或零件对齐到包围盒X轴最大位置"
 
 msgid "Distribute objects evenly along X axis"
-msgstr ""
+msgstr "将对象或零件均匀分布在包围盒X 轴上"
 
 msgid "Please select at least 3 parts or objects"
-msgstr ""
+msgstr "请至少选择 3 个零件或对象"
 
 msgid "Align objects to the maximum Y position"
-msgstr ""
+msgstr "将对象或零件对齐到包围盒Y轴最大位置"
 
 msgid "Align objects to the center Y position"
-msgstr ""
+msgstr "将对象或零件对齐到包围盒Y轴中心位置"
 
 msgid "Align objects to the minimum Y position"
-msgstr ""
+msgstr "将对象或零件对齐到包围盒Y轴最小位置"
 
 msgid "Distribute objects evenly along Y axis"
-msgstr ""
+msgstr "将对象或零件均匀分布在包围盒Y 轴上"
 
 msgid "Align objects to the minimum Z position"
-msgstr ""
+msgstr "将零件对齐到包围盒Z轴最小位置"
 
 msgid "Please select at least 2 parts and do not select entire object"
-msgstr ""
+msgstr "请选择至2个零件，且不要选择整个对象"
 
 msgid "Align objects to the center Z position"
-msgstr ""
+msgstr "将零件对齐到包围盒Z轴中心位置"
 
 msgid "Align objects to the maximum Z position"
-msgstr ""
+msgstr "将零件对齐到包围盒Z轴最大位置"
 
 msgid "Distribute objects evenly along Z axis"
-msgstr ""
+msgstr "将对象或零件均匀分布在包围盒Z 轴上"
 
 msgid "Please select at least 3 parts and do not select entire object"
-msgstr ""
+msgstr "请选择至3个零件，且不要选择整个对象"
 
 msgid "°"
 msgstr "°"
@@ -2085,10 +2085,10 @@ msgid "Mesh boolean operations including union and subtraction"
 msgstr "包括并集和差集的网格布尔运算"
 
 msgid "Merge into Single Part"
-msgstr ""
+msgstr "合并为单个零件"
 
 msgid "Merge the selected parts into one part"
-msgstr ""
+msgstr "将选中的零件合并成一个零件"
 
 msgid "Along X axis"
 msgstr "沿 X 轴"
@@ -2184,7 +2184,7 @@ msgid "Remove the selected plate"
 msgstr "删除所选盘"
 
 msgid "Move Plate"
-msgstr ""
+msgstr "移动盘"
 
 msgid "Clone"
 msgstr "克隆"
@@ -2205,37 +2205,37 @@ msgid "Distribute along Z axis"
 msgstr ""
 
 msgid "Align to Y Max"
-msgstr ""
+msgstr "对齐到包围盒Y轴最大位置"
 
 msgid "Align to Y Min"
-msgstr ""
+msgstr "对齐到包围盒Y轴最小位置"
 
 msgid "Align to Y Center"
-msgstr ""
+msgstr "对齐到包围盒Y轴中心位置"
 
 msgid "Align to X Max"
-msgstr ""
+msgstr "对齐到包围盒X轴最大位置"
 
 msgid "Align to X Min"
-msgstr ""
+msgstr "对齐到包围盒Y轴最小位置"
 
 msgid "Align to X Center"
-msgstr ""
+msgstr "对齐到包围盒X轴中心位置"
 
 msgid "Align to Z Max"
-msgstr ""
+msgstr "对齐到包围盒Z轴最大位置"
 
 msgid "Align to Z Min"
-msgstr ""
+msgstr "对齐到包围盒Z轴最小位置"
 
 msgid "Align to Z Center"
-msgstr ""
+msgstr "对齐到包围盒Z轴中心位置"
 
 msgid "Align/Distribute"
-msgstr ""
+msgstr "对齐/分布"
 
 msgid "Align and distribute objects"
-msgstr ""
+msgstr "对齐/分布对象或零件"
 
 msgid "Sub merge"
 msgstr "子合并"
@@ -3970,6 +3970,9 @@ msgstr ""
 
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "校准喷嘴堵头检测的位置"
+
+msgid "Purifying the chamber air"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "此打印机不支持延时摄影"
@@ -6309,23 +6312,38 @@ msgstr "暂停打印的灵敏度为："
 msgid "Spaghetti Detection"
 msgstr "炒面检测"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "检测到炒面（散落的耗材丝）。"
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "堆料检测"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "监控冲刷料是否在垃圾桶中发生堆积。"
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "裹头检测"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "检测由喷嘴堵塞引起的空打。"
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -6345,8 +6363,8 @@ msgstr "支持提示音"
 msgid "Filament Tangle Detect"
 msgstr "缠料检测"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "检查喷嘴是否被耗材丝或其他异物裹住"
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "开门检测"
@@ -6390,8 +6408,8 @@ msgstr "刷新中"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "因其他加热维护功能已开启，本功能暂不可用。"
 
-msgid "Idel Heating Protection"
-msgstr "空闲加热保护"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "闲置5分钟后自动停止加热以保障安全。"
@@ -6421,7 +6439,7 @@ msgid "Remove current plate (if not last one)"
 msgstr ""
 
 msgid "Auto orient objects on current plate"
-msgstr ""
+msgstr "自动调整当前盘上的对象方向"
 
 msgid "Arrange objects on current plate"
 msgstr ""
@@ -6633,7 +6651,7 @@ msgid "\n"
 msgstr ""
 
 msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
-msgstr ""
+msgstr "“工艺”-”其他“-”特殊模式“-”延时摄影“"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "检测到您使用了延时摄影的平滑模式，但未启用擦料塔，这可能导致打印瑕疵。建议开启擦料塔后重新切片打印。"
@@ -7726,19 +7744,19 @@ msgid "Plate name"
 msgstr "盘名称"
 
 msgid "Move the current plate to"
-msgstr ""
+msgstr "移动当前盘到"
 
 msgid "Move forward"
-msgstr ""
+msgstr "往前移"
 
 msgid "Move backwards"
-msgstr ""
+msgstr "往后移"
 
 msgid "Move to the front"
-msgstr ""
+msgstr "移动到最前面"
 
 msgid "Move to the back"
-msgstr ""
+msgstr "移动到最后面"
 
 msgid "Accept"
 msgstr "接受"
@@ -11770,6 +11788,12 @@ msgstr "内圈墙打印速度"
 msgid "Number of walls of every layer"
 msgstr "每一层的墙层数"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr "将墙体嵌入没有外墙的区域以确保墙体与填充物无缝连接。"
+
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
 
@@ -13461,11 +13485,14 @@ msgstr "交集操作需要至少两个对象。"
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "差集操作需要 A 和 B 列表中至少各有一个对象。"
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "无法按对象分组，及合并零件。请检查是否存在自相交、非流形几何体或开放网格。"
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "未找到重叠区域，交集失败。请确认列表中所有元素存在重叠。"
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "布尔运算"
@@ -13505,6 +13532,15 @@ msgstr "仅对实体执行布尔运算。"
 
 msgid "This object contains non-part components."
 msgstr "该对象包含非实体零件。"
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
+msgstr ""
 
 msgid "Network Test"
 msgstr "网络测试"
@@ -14653,7 +14689,7 @@ msgid "(Sync with printer)"
 msgstr "（请连接打印机）"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14661,6 +14697,24 @@ msgstr "我们将基于当前分配方案切片："
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "提示：您可以拖动耗材以将其重新分配到不同的喷嘴。"
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "当前盘的耗材分组方式由切片按钮处的下拉选项决定。"
@@ -15132,6 +15186,24 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "检测到炒面（散落的耗材丝）。"
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "监控冲刷料是否在垃圾桶中发生堆积。"
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "检查喷嘴是否被耗材丝或其他异物裹住"
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "空闲加热保护"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "无法按对象分组，及合并零件。请检查是否存在自相交、非流形几何体或开放网格。"
 
 #~ msgid "Debug Info"
 #~ msgstr "调试信息"
