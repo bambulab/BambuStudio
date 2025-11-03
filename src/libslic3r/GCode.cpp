@@ -932,8 +932,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (need_travel_after_change_filament_gcode) {
             // After a filament change, the travel path leading to the wipe tower:
             // start_point inside the previous printed object,
-            // end_point at the tower¡¯s start_pos or at the starting point of the tower¡¯s detour path.
-            // In this case, disable ¡°avoid crossing perimeters¡± to prevent inserting additional path points inside the previous printed object.
+            // end_point at the towerâ€™s start_pos or at the starting point of the towerâ€™s detour path.
+            // In this case, disable â€œavoid crossing perimetersâ€ to prevent inserting additional path points inside the previous printed object.
             gcodegen.m_avoid_crossing_perimeters.disable_once();
 
             // move to start_pos for wiping after toolchange
@@ -2402,6 +2402,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("current_object_idx", 0);
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
+    // For the change_filament_gcode to Determine whether the current layer has a wipe tower
+    m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower);   
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
     Vec2f plate_offset = m_writer.get_xy_offset();
@@ -4420,6 +4422,8 @@ GCode::LayerResult GCode::process_layer(
             m_filament_instances_code = _encode_label_ids_to_base64(filament_instances_id);
         }
 
+		// For the change_filament_gcode to Determine whether the current layer has a wipe tower
+        m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower && !m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back()));
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
