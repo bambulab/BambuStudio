@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3999,6 +3999,9 @@ msgstr ""
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
+msgid "Purifying the chamber air"
+msgstr ""
+
 msgid "Timelapse is not supported on this printer."
 msgstr "A timelapse funkció nem támogatott ezen a nyomtatón."
 
@@ -6356,23 +6359,38 @@ msgstr "Szüneteltetés érzékenysége:"
 msgid "Spaghetti Detection"
 msgstr "Spagetti felismerése"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "Spagetti hiba észlelése (elszórt filament)."
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "Anyagfelhamozódás felismerése a kidobónyílásban"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "Az anyagkidobó nyílásban felhalmozódó anyag figyelése."
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "Filament fúvókára való tapadásának észlelése"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Figyeli a fúvókát, hogy elkerülje a filament felhalmozódását."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Érzékeli a fúvóka eltömődése vagy az filament elvékonyodása által okozott levegőben való nyomtatást."
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "Kezdőréteg ellenőrzése"
@@ -6392,8 +6410,8 @@ msgstr "Hangjelzés engedélyezése"
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Ellenőrizd, hogy a fúvókára nem rakódott-e le filament vagy egyéb idegen anyag."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "Nyitott ajtó érzékelése"
@@ -6437,8 +6455,8 @@ msgstr "Frissítés"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Nem működik a fűtéssel kapcsolatos karbantartási funkciók működése közben."
 
-msgid "Idel Heating Protection"
-msgstr "Tétlenségi fűtésvezérlés"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Inaktivitás után 5 perc elteltével automatikusan leáll a fűtés a biztonság érdekében."
@@ -11817,6 +11835,12 @@ msgstr "A belső fal nyomtatási sebessége"
 msgid "Number of walls of every layer"
 msgstr "A falak száma rétegenként"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Utófeldolgozási szkriptek"
 
@@ -13510,11 +13534,14 @@ msgstr "A metszéspont művelethez legalább két tárgy szükséges."
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "A különbség művelethez legalább egy tárgy szükséges mind az A, mind a B listában."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "Nem sikerült csoportosítani és egyesíteni a tárgyakat objektumok szerint. Kérjük, ellenőrizd az önmetszéseket, hibás geometriát vagy nyitott hálókat."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "Nem található egymást átfedő terület. A logikai metszéspont nem sikerült."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -13553,6 +13580,15 @@ msgid "Perform Boolean operations on entities only."
 msgstr ""
 
 msgid "This object contains non-part components."
+msgstr ""
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
 msgstr ""
 
 msgid "Network Test"
@@ -14717,7 +14753,7 @@ msgid "(Sync with printer)"
 msgstr "(Szinkronizálás a nyomtatóval)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -14725,6 +14761,24 @@ msgstr "Ennek a csoportosítási módszernek megfelelően fogunk szeletelni:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Tipp: A filamenteket húzással más fúvókákhoz is hozzárendelheted."
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "A tálcához tartozó filamentcsoportosítási módszert a tálca szeletelése gombnál található legördülő opció határozza meg."
@@ -15197,6 +15251,24 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "Spagetti hiba észlelése (elszórt filament)."
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "Az anyagkidobó nyílásban felhalmozódó anyag figyelése."
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "Figyeli a fúvókát, hogy elkerülje a filament felhalmozódását."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "Ellenőrizd, hogy a fúvókára nem rakódott-e le filament vagy egyéb idegen anyag."
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "Tétlenségi fűtésvezérlés"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "Nem sikerült csoportosítani és egyesíteni a tárgyakat objektumok szerint. Kérjük, ellenőrizd az önmetszéseket, hibás geometriát vagy nyitott hálókat."
 
 #~ msgid "Debug Info"
 #~ msgstr "Hibakeresési infó"

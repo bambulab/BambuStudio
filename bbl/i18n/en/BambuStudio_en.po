@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-31 12:33+0800\n"
+"POT-Creation-Date: 2025-11-03 16:14+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3972,6 +3972,9 @@ msgstr ""
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
+msgid "Purifying the chamber air"
+msgstr ""
+
 msgid "Timelapse is not supported on this printer."
 msgstr ""
 
@@ -6313,22 +6316,37 @@ msgstr ""
 msgid "Spaghetti Detection"
 msgstr "Spaghetti Detection"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
+msgid "Detects spaghetti failure(scattered lose filament)."
 msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr ""
 
-msgid "Monitor if the waste is piled up in the purge chute."
+msgid "Monitors if the waste is piled up in the purge chute."
 msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "Nozzle Clumping Detection"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Check if the nozzle is clumped with filament or other foreign objects."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
+msgstr ""
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
 msgstr ""
 
 msgid "First Layer Inspection"
@@ -6349,8 +6367,8 @@ msgstr "Allow Prompt Sound"
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Check if the nozzle is clumping by filament or other foreign objects."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr ""
@@ -6394,7 +6412,7 @@ msgstr ""
 msgid "Unavailable while heating maintenance function is on."
 msgstr ""
 
-msgid "Idel Heating Protection"
+msgid "Idle Heating Protection"
 msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
@@ -11731,6 +11749,12 @@ msgstr "Speed of inner wall"
 msgid "Number of walls of every layer"
 msgstr "Number of walls of every layer"
 
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Post-processing Scripts"
 
@@ -13393,11 +13417,14 @@ msgstr ""
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "Subtraction operation requires at least one object in both A and B lists."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
 msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "No overlapping region found. Boolean intersection failed. Ensure that all items in the list overlap each other."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -13437,6 +13464,15 @@ msgstr ""
 
 msgid "This object contains non-part components."
 msgstr "This object contains non-model parts."
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
+msgstr ""
 
 msgid "Network Test"
 msgstr "Network Test"
@@ -14592,13 +14628,31 @@ msgid "(Sync with printer)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgstr ""
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
 msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
@@ -15039,6 +15093,12 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "Check if the nozzle is clumped with filament or other foreign objects."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "Check if the nozzle is clumping by filament or other foreign objects."
 
 #~ msgid "Debug Info"
 #~ msgstr "Debug Info"
