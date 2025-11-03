@@ -14,9 +14,11 @@ const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
 
 #define INTENSITY_AMBIENT    0.3
 
-const mat3 KTravel_Colors = mat3(0.505, 0.064, 0.028,
-                                0.219, 0.282, 0.609,
-                                0.112, 0.422, 0.103);
+const vec3 KTravel_Colors[3] = vec3[3](
+    vec3(0.505, 0.064, 0.028),  
+    vec3(0.219, 0.282, 0.609), 
+    vec3(0.112, 0.422, 0.103) 
+);
 
 uniform vec2 u_isTopLayer_hasCustomOptins;
 uniform mat3 normal_matrix;
