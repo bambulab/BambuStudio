@@ -1,539 +1,11 @@
 {
     "result": 0,
-    "t": 1760956276,
+    "t": 1761711923,
     "ver": 202511162200,
     "data": {
         "device_hms": {
             "ver": 202511162200,
             "nl": [
-                {
-                    "ecode": "1A00020000020025",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: de hotend is gevallen. Controleer alstublieft op overtollig filament dat bovenop de hotend achterblijft, knip het residu bij, installeer de hotend opnieuw in sleuf 2 op het rek, en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00020000020022",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2. Zorg ervoor dat er geen hotend op de gereedschapskop is gemonteerd en dat er een hotend aanwezig is in sleuf 2 op het rek voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020021",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: geen hotend gedetecteerd op de gereedschapskop. Monteer alstublieft de hotend op de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00050000020033",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 5: de rek slaagde er niet in om de hotend correct te monteren. Controleer alstublieft op overmatig filament aan de bovenkant van de hotend, vuil in het contactgebied tussen de gereedschapskop en de hotend, of als de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020022",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3. Zorg ervoor dat er geen hotend op de gereedschapskop is gemonteerd en dat er een hotend aanwezig is in sleuf 3 op het rek voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00010000020023",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: de rek slaagde er niet in de hotend op de gereedschapskop te detecteren. Controleer alstublieft of er vuil op het oppervlak van de hotend koellichaam zit of dat de voormagneet eraf is gevallen. Zo niet, kalibreer dan de inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00010000020021",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: geen hotend gedetecteerd op de gereedschapskop. Monteer alstublieft de hotend op de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00030000020024",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: de rek slaagde er niet in om de hotend los te maken van de gereedschapskop. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
-                },
-                {
-                    "ecode": "1A00060000020022",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6. Zorg ervoor dat er geen hotend op de gereedschapskop is gemonteerd en dat er een hotend aanwezig is in sleuf 6 op het rek voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00010000020035",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 1: rekverplaatsing is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020034",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 5: de hotend is gevallen. Controleer alstublieft op overtollig filament of andere vuil op de bovenkant van de hotend, knip of verwijder het, plaats vervolgens de hotend opnieuw in sleuf 5 op het rek en klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020026",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: rek beweging is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00040000020036",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 4: mislukte herhaling van het opnieuw centreren van de gereedschapskop. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020025",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: de hotend is gevallen. Controleer alstublieft op overtollig filament dat bovenaan de hotend achterblijft, knip het residu bij, installeer de hotend opnieuw in sleuf 3 op het rek, en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00120000020007",
-                    "intro": "De hotend rek beweging is verlopen. Controleer alstublieft op eventuele vreemde voorwerpen of obstakels die ervoor kunnen zorgen dat het rek vastloopt."
-                },
-                {
-                    "ecode": "1A00060000020033",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 6: de rek slaagde er niet in de hotend correct te monteren. Controleer alstublieft op overmatig filament aan de bovenkant van de hotend, vuil in het contactgebied tussen de gereedschapskop en de hotend, of als de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020020",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: er is al een hotend geïnstalleerd. Verwijder alstublieft de bestaande voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00050000020032",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 5: de gereedschapskop slaagde er niet in de hotend op het rek te detecteren. Controleer op eventueel vuil in de inductie hotend montagegleuf op de gereedschapskop. Als er niets wordt gevonden, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00040000020035",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 4: rekverplaatsing is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00020000020030",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 2: geen hotend gevonden op deze positie. Installeer alstublieft een hotend in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020020",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: er is al een hotend geïnstalleerd. Verwijder alstublieft de bestaande voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00050000020036",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 5: mislukte herhaling van het centreren van de gereedschapskop. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00010000020027",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: toolhead recentering retry mislukt. Verplaats de toolhead handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020034",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 6: de hotend is gevallen. Controleer alstublieft op overmatig filament of andere vuil op de bovenkant van de hotend, knip of verwijder het, plaats vervolgens de hotend opnieuw in sleuf 6 op het rek en klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00020000020033",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 2: de rek slaagde er niet in de hotend correct te monteren. Controleer alstublieft op overmatig filament aan de bovenkant van de hotend, vuil in het contactgebied tussen de gereedschapskop en de hotend, of als de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00010000020025",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: de hotend is gevallen. Controleer alstublieft op overtollig filament dat bovenop de hotend achterblijft, knip het residu bij, installeer de hotend opnieuw in sleuf 1 op het rek, en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00040000020022",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4. Zorg ervoor dat er geen hotend op de gereedschapskop is gemonteerd en dat er een hotend aanwezig is in sleuf 4 op het rek voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00050000020030",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 5: geen hotend gevonden op deze positie. Installeer alstublieft een hotend in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00010000020030",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 1: geen hotend gevonden op deze positie. Installeer alstublieft een hotend in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00020000020020",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: er is al een hotend geïnstalleerd. Verwijder alstublieft de bestaande voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00060000020030",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 6: geen hotend gevonden op deze positie. Installeer alstublieft een hotend in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020026",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: rek beweging is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020026",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: rek beweging is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020035",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 3: rekverplaatsing is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00040000020033",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 4: de rek slaagde er niet in de hotend correct te monteren. Controleer alstublieft op overmatig filament aan de bovenkant van de hotend, vuil in het contactgebied tussen de gereedschapskop en de hotend, of als de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020027",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: gereedschapskop hercentreren opnieuw mislukt. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020026",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: rek beweging is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020024",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: de rek slaagde er niet in om de hotend los te maken van de gereedschapskop. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
-                },
-                {
-                    "ecode": "1A00050000020031",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 5: er is al een hotend gemonteerd op de gereedschapskop. Verwijder alstublieft de hotend van de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00020000020023",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: de rek slaagde er niet in de hotend op de gereedschapskop te detecteren. Controleer alstublieft of er vuil op het oppervlak van de hotend koellichaam zit of dat de voormagneet eraf is gevallen. Zo niet, kalibreer dan de inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00040000020024",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: de rek slaagde er niet in om de hotend los te maken van de gereedschapskop. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
-                },
-                {
-                    "ecode": "1A00060000020035",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 6: rekverplaatsing is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00120000020008",
-                    "intro": "De positie van de vergrendelingsstang van het gereedschap van de hotend-rack is abnormaal. Controleer alstublieft op eventuele vreemde voorwerpen of obstakels die ervoor kunnen zorgen dat de vergrendelingsstang vastloopt."
-                },
-                {
-                    "ecode": "1A00010000020032",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 1: de gereedschapskop slaagde er niet in de hotend op het rek te detecteren. Controleer alstublieft op eventueel vuil in de inductie hotend montagegleuf op de gereedschapskop. Als er niets wordt gevonden, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00010000020034",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 1: de hotend is gevallen. Controleer alstublieft op overtollig filament of andere vuil op de bovenkant van de hotend, knip of verwijder het, plaats vervolgens de hotend opnieuw in sleuf 1 op het rek en klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020032",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 6: de gereedschapskop kon de hotend niet detecteren op het rek. Controleer op eventueel vuil in de inductie hotend montagegleuf op de gereedschapskop. Als er niets wordt gevonden, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00010000020022",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1. Zorg ervoor dat er geen hotend op de gereedschapskop is gemonteerd en dat er een hotend aanwezig is in sleuf 1 op het rek voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020030",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 4: geen hotend gevonden op deze positie. Installeer alstublieft een hotend in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00030000020036",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 3: mislukte herhaling van het opnieuw centreren van de gereedschapskop. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00040000020034",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 4: de hotend is gevallen. Controleer alstublieft op overtollig filament of andere vuil op de bovenkant van de hotend, knip of verwijder het, plaats vervolgens de hotend opnieuw in sleuf 4 op het rek en klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00120000020009",
-                    "intro": "Inductie hotend vergrendelingshendel of rek hendel ontgrendelingsmechanisme fout. Raadpleeg de Wiki voor inspectie."
-                },
-                {
-                    "ecode": "1A00020000020034",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 2: de hotend is gevallen. Controleer alstublieft op overtollig filament of andere vuil op de bovenkant van de hotend, knip of verwijder het, plaats vervolgens de hotend opnieuw in sleuf 2 op het rek en klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020023",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: de rek slaagde er niet in de hotend op de gereedschapskop te detecteren. Controleer alstublieft of er vuil op het oppervlak van de hotend koellichaam zit of dat de voormagneet eraf is gevallen. Zo niet, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00010000020036",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 1: mislukte herhaling van het opnieuw centreren van de gereedschapskop. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00010000020031",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 1: er is al een hotend gemonteerd op de gereedschapskop. Verwijder alstublieft de hotend van de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00020000020026",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: rek beweging is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020022",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5. Zorg ervoor dat er geen hotend op de gereedschapskop is gemonteerd en dat er een hotend aanwezig is in sleuf 5 op het rek voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00050000020021",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: geen hotend gedetecteerd op de gereedschapskop. Monteer alstublieft de hotend op de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020023",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: de rek slaagde er niet in de hotend op de gereedschapskop te detecteren. Controleer alstublieft of er vuil op het oppervlak van de hotend koellichaam zit of dat de voormagneet eraf is gevallen. Zo niet, kalibreer dan de inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00050000020027",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: toolhead recentering retry mislukt. Verplaats alstublieft handmatig de toolhead naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00040000020031",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 4: er is al een hotend gemonteerd op de gereedschapskop. Verwijder alstublieft de hotend van de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00030000020033",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 3: de rek slaagde er niet in de hotend correct te monteren. Controleer alstublieft op overmatig filament aan de bovenkant van de hotend, vuil in het contactgebied tussen de gereedschapskop en de hotend, of als de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00020000020021",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: geen hotend gedetecteerd op de gereedschapskop. Monteer alstublieft de hotend op de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00020000020035",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 2: rekverplaatsing is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00020000020036",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 2: mislukte hercentrering van de gereedschapskop. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020024",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: de rek slaagde er niet in om de hotend los te maken van de gereedschapskop. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
-                },
-                {
-                    "ecode": "1A00030000020034",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 3: de hotend is gevallen. Controleer alstublieft op overtollig filament of andere vuil op de bovenkant van de hotend, knip of verwijder het, plaats vervolgens de hotend opnieuw in sleuf 3 op het rek en klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020023",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: de rek slaagde er niet in de hotend op de gereedschapskop te detecteren. Controleer alstublieft of er vuil op het oppervlak van de hotend koellichaam zit of dat de voormagneet eraf is gevallen. Zo niet, kalibreer dan opnieuw de inductie hotend rek."
-                },
-                {
-                    "ecode": "1A00060000020031",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 6: er is al een hotend gemonteerd op de gereedschapskop. Verwijder alstublieft de hotend van de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00120000020002",
-                    "intro": "Het kalibreren van het hotend-rek is mislukt. De markering is niet gevonden. Check even of de markering op het rek beschadigd is of misschien vuil is."
-                },
-                {
-                    "ecode": "1A00230000020002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 3 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00010000020003",
-                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 1."
-                },
-                {
-                    "ecode": "1A00210000010002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 1 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00040000020003",
-                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 4."
-                },
-                {
-                    "ecode": "1A00220000020002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 2 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00210000020002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 1 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00030000020004",
-                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 3."
-                },
-                {
-                    "ecode": "1A00060000020003",
-                    "intro": "Hotend-wisselcontrole mislukt: geen hotend gevonden op slot 6."
-                },
-                {
-                    "ecode": "1A00250000010002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 5 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00020000020004",
-                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 2."
-                },
-                {
-                    "ecode": "1A00240000020001",
-                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 4 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
-                },
-                {
-                    "ecode": "1A00220000010002",
-                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 2 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
-                },
-                {
-                    "ecode": "1A00230000010002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 3 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00240000010002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 4 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00240000020002",
-                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 4 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
-                },
-                {
-                    "ecode": "1A00260000010002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 6 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00240000010001",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 4 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00010000020004",
-                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 1."
-                },
-                {
-                    "ecode": "1A00250000010001",
-                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 5 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
-                },
-                {
-                    "ecode": "1A00250000020001",
-                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend alsjeblieft terug in rekstation 5 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
-                },
-                {
-                    "ecode": "1A00060000020004",
-                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 6."
-                },
-                {
-                    "ecode": "1A00040000020004",
-                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 4."
-                },
-                {
-                    "ecode": "1A00230000010001",
-                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 3 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
-                },
-                {
-                    "ecode": "1A00210000010001",
-                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 1 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
-                },
-                {
-                    "ecode": "1A00050000020004",
-                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 5."
-                },
-                {
-                    "ecode": "1A00230000020001",
-                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug op rekstation 3 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
-                },
-                {
-                    "ecode": "1A00260000020002",
-                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 6 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
-                },
-                {
-                    "ecode": "1A00210000020001",
-                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 1 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
-                },
-                {
-                    "ecode": "1A00250000020002",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 5 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00030000020003",
-                    "intro": "Hotend-wisselcontrole mislukt: geen hotend gevonden op slot 3."
-                },
-                {
-                    "ecode": "1A00260000010001",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 6 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00050000020003",
-                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 5."
-                },
-                {
-                    "ecode": "1A00220000010001",
-                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 2 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
-                },
-                {
-                    "ecode": "1A00220000020001",
-                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 2 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
-                },
-                {
-                    "ecode": "1A00020000020003",
-                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 2."
-                },
-                {
-                    "ecode": "1A00260000020001",
-                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 6 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
-                },
-                {
-                    "ecode": "1A00040000020032",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 4: de gereedschapskop kon de hotend niet detecteren op het rek. Controleer alstublieft op eventueel vuil in de inductie hotend montagegleuf op de gereedschapskop. Als er niets wordt gevonden, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00010000020033",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 1: de rek slaagde er niet in de hotend correct te monteren. Controleer alstublieft op overmatig filament aan de bovenkant van de hotend, vuil in het contactgebied tussen de gereedschapskop en de hotend, of als de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020020",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: er is al een hotend geïnstalleerd. Verwijder alstublieft de bestaande voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00050000020025",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: de hotend is gevallen. Controleer alstublieft op overtollig filament dat bovenaan de hotend achterblijft, knip het residu bij, installeer de hotend opnieuw in sleuf 5 op het rek, en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00020000020032",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 2: de gereedschapskop kon de hotend niet detecteren op het rek. Controleer op eventueel vuil in de inductie hotend montagegleuf op de gereedschapskop. Als er niets wordt gevonden, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00030000020032",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 3: de gereedschapskop kon de hotend niet detecteren op het rek. Controleer op eventueel vuil in de inductie hotend montagegleuf op de gereedschapskop. Als er niets wordt gevonden, kalibreer dan het inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00030000020031",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 3: er is al een hotend gemonteerd op de gereedschapskop. Verwijder alstublieft de hotend van de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00030000020023",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: de rek slaagde er niet in de hotend op de gereedschapskop te detecteren. Controleer alstublieft of er vuil op het oppervlak van de hotend koellichaam zit of dat de voormagneet eraf is gevallen. Zo niet, kalibreer dan de inductie hotend rek opnieuw."
-                },
-                {
-                    "ecode": "1A00020000020024",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: de rek slaagde er niet in om de hotend los te maken van de gereedschapskop. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
-                },
-                {
-                    "ecode": "1A00020000020031",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 2: er is al een hotend gemonteerd op de gereedschapskop. Verwijder alstublieft de hotend van de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00060000020025",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: de hotend is gevallen. Controleer alstublieft op overtollig filament dat bovenaan de hotend achterblijft, knip het residu bij, installeer de hotend opnieuw in sleuf 6 op het rek en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020027",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: toolhead recentering retry mislukt. Verplaats alstublieft handmatig de toolhead naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00060000020036",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 6: mislukte herhaling van het centreren van de gereedschapskop. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020020",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 5: er is al een hotend geïnstalleerd. Verwijder alstublieft de bestaande voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020027",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: gereedschapskop hercentreren opnieuw mislukt. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020030",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hotend uit sleuf 3: geen hotend gevonden op deze positie. Installeer alstublieft een hotend in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00010000020026",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: rek beweging is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00010000020020",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: er is al een hotend geïnstalleerd. Verwijder alstublieft de bestaande voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00040000020025",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 4: de hotend is gevallen. Controleer alstublieft op overtollig filament dat bovenaan de hotend achterblijft, knip het residu bij, installeer de hotend opnieuw in sleuf 4 op het rek, en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00010000020024",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 1: de rek slaagde er niet in om de hotend los te maken van de gereedschapskop. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
-                },
-                {
-                    "ecode": "1A00020000020027",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 2: gereedschapskop hercentreren opnieuw mislukt. Verplaats alstublieft handmatig de gereedschapskop naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00050000020035",
-                    "intro": "Fout gedetecteerd bij het ophalen van de hotend uit sleuf 5: rekverplaatsing is geblokkeerd. Controleer alstublieft op eventuele vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
-                },
-                {
-                    "ecode": "1A00030000020021",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 3: geen hotend gedetecteerd op de gereedschapskop. Monteer alstublieft de hotend op de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00060000020021",
-                    "intro": "Abnormale toestand gedetecteerd tijdens het nesten van de hotend in sleuf 6: geen hotend gedetecteerd op de gereedschapskop. Monteer alstublieft de hotend op de gereedschapskop voordat u op \"Doorgaan\" klikt."
-                },
-                {
-                    "ecode": "1A00120000020003",
-                    "intro": "Kalibratie van inductie-hotendrek mislukt: resultaat overschreed het bewegingsbereik. Check even of de rekstructuur vervormd is."
-                },
-                {
-                    "ecode": "1A00120000020001",
-                    "intro": "Kalibratie van hotend-rek mislukt: camerakalibratiegegevens zijn abnormaal. Verwijder resten van de nozzle en controleer of het thermische papier op het verwarmde bed beschadigd is."
-                },
                 {
                     "ecode": "1805930000020003",
                     "intro": "De koelventilator van de AMS-HT F heater 2 kan niet starten omdat de voedingsadapter niet is aangesloten."
@@ -18595,6 +18067,406 @@
                     "intro": "Het AMS-HT H RFID 1-bord heeft een fout."
                 },
                 {
+                    "ecode": "0C00040000020030",
+                    "intro": "De roterende graveeraccessoire is verkeerd geplaatst. Pas deze alstublieft aan en positioneer opnieuw."
+                },
+                {
+                    "ecode": "0700F40000020001",
+                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 5 van het hotend-rek correct is geïnstalleerd."
+                },
+                {
+                    "ecode": "0700F30000020001",
+                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 4 van het hotend-rek correct is geïnstalleerd."
+                },
+                {
+                    "ecode": "0700F50000020001",
+                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 56van het hotend-rek correct is geïnstalleerd."
+                },
+                {
+                    "ecode": "0700F20000020001",
+                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 3 van het hotend-rek correct is geïnstalleerd."
+                },
+                {
+                    "ecode": "0700F10000020001",
+                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 2 van het hotend-rek correct is geïnstalleerd."
+                },
+                {
+                    "ecode": "1A00040000020032",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit slot 4: de printkop kon de hot-end op het rek niet detecteren. Controleer op eventuele vuilresten in de inductie hot-end bevestigingssleuf van de printkop. Als er niets wordt gevonden, kalibreer dan het inductie hot-end rek opnieuw."
+                },
+                {
+                    "ecode": "1A00010000020033",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 1: het frame kon de hot-end niet correct monteren. Controleer op overtollig filament bovenop de hot-end, vuil in het contactgebied tussen de gereedschapskop en de hot-end, of of de vergrendelingshendel in de ontgrendelde stand staat. Nadat het probleem is opgelost, klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00060000020020",
+                    "intro": "Abnormale situatie gedetecteerd bij het plaatsen van de hot-end in sleuf 6: er is al een hot-end geïnstalleerd. Verwijder de bestaande voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00050000020025",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end slot 5: de hot-end is gevallen. Controleer of er overtollig filament boven op de hot-end achterblijft, knip het residu af, plaats de hot-end terug in slot 5 van het rek en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00020000020032",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit slot 2: de printkop kon de hot-end op het rek niet detecteren. Controleer op vuil in de inductieve hot-end montageplaats op de printkop. Als er geen vuil wordt gevonden, kalibreer het inductieve hot-end rek opnieuw."
+                },
+                {
+                    "ecode": "1A00030000020032",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit positie 3: de printkop kon de hot-end op het rek niet detecteren. Controleer op eventuele vuilresten in de inductieve mountingpositie van de hot-end op de printkop. Indien niets wordt gevonden, kalibreer het inductieve hot-end rek opnieuw."
+                },
+                {
+                    "ecode": "1A00030000020031",
+                    "intro": "Afwijkende toestand gedetecteerd tijdens het ophalen van de hot-end uit sleuf 3: er is al een hot-end gemonteerd op de printkop. Verwijder de hot-end van de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00030000020023",
+                    "intro": "Afwijkende situatie gedetecteerd bij het plaatsen van de hot-end in sleuf 3: het rek kon de hot-end op de printkop niet detecteren. Controleer of er vuil op het koelblok van de hot-end ligt of dat de voorste magneet is losgekomen. Zo niet, kalibreer dan het inductie hot-end rek opnieuw."
+                },
+                {
+                    "ecode": "1A00020000020024",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 2: het rek kon de hot-end niet loskoppelen van de printkop. Zorg ervoor dat de vergrendelingshendel in de ontgrendelde positie staat."
+                },
+                {
+                    "ecode": "1A00020000020031",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hot-end uit sleuf 2: er is al een hot-end gemonteerd op de printkop. Verwijder de hot-end van de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00060000020025",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 6: de hot-end is gevallen. Controleer of er overtollig filament boven op de hot-end achterblijft, knip het residu af, plaats de hot-end terug in slot 6 op het rek en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00060000020027",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het nestelen van de hot-end in sleuf 6: poging om de printkop te hercentreren is mislukt. Verplaats de printkop handmatig naar het midden van de bouwplaat en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00060000020036",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 6: het opnieuw centreren van de printkop is mislukt bij de herhaalde poging. Verplaats de printkop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00050000020020",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 5: er is al een hot-end geïnstalleerd. Verwijder de bestaande voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00040000020027",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 4: het opnieuw centreren van de printkop is mislukt. Verplaats de printkop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00030000020030",
+                    "intro": "Abnormale toestand gedetecteerd bij het ophalen van de hot-end uit slot 3: geen hot-end gevonden op deze positie. Installeer een hot-end in het overeenkomstige slot voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00010000020026",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 1: de rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00010000020020",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 1: er is al een hot-end geïnstalleerd. Verwijder de bestaande hot-end voordat u op 'Doorgaan' klikt."
+                },
+                {
+                    "ecode": "1A00040000020025",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 4: de hot-end is gevallen. Controleer of er overtollig filament boven op de hot-end achterblijft, knip het residu af, plaats de hot-end terug in slot 4 van het ra rek ck en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00010000020024",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in sleuf 1: het rek is er niet in geslaagd de hot-end los te maken van de printkop. Controleer of de vergrendelingshendel in de ontgrendelde stand staat."
+                },
+                {
+                    "ecode": "1A00020000020027",
+                    "intro": "Abnormale conditie gedetecteerd tijdens het nesten van de hot-end in slot 2: herstarten van de printkop mislukt. Verplaats de printkop handmatig naar het midden van de bouwplaat en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00050000020035",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 5: rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00030000020021",
+                    "intro": "Abnormale conditie gedetecteerd tijdens het nesten van de hot-end in slot 3: geen hot-end gedetecteerd op de printkop. Monteer de hot-end op de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00060000020021",
+                    "intro": "Abnormale conditie gedetecteerd tijdens het nesten van de hot-end in slot 6: geen hot-end gedetecteerd op de printkop. Monteer de hot-end op de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00020000020025",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 2: de hot-end is gevallen. Controleer of er overtollig filament boven op de hot-end achterblijft, knip het residu af, plaats de hot-end terug in slot 2 van het rek en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00020000020022",
+                    "intro": "Er is een abnormale situatie gedetecteerd tijdens het nesten van de hot-end in sleuf 2. Zorg ervoor dat er geen hot-end op de printkop is gemonteerd en dat er een hot-end in sleuf 2 op het rek aanwezig is voordat u op 'Doorgaan' klikt."
+                },
+                {
+                    "ecode": "1A00040000020021",
+                    "intro": "Abnormale conditie gedetecteerd tijdens het nesten van de hot-end in slot 4: geen hot-end gedetecteerd op de printkop. Monteer de hot-end op de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00050000020033",
+                    "intro": "Fout gedetecteerd bij het plaatsen van de hot-end in slot 5: het rek is er niet in geslaagd de hot-end correct te monteren. Controleer op overtollig filament bovenop de hot-end, vuil in het contactgebied tussen de printkop en de hot-end, of of de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00030000020022",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 3. Zorg ervoor dat er geen hot-end op de printkop is gemonteerd en dat er een hot-end aanwezig is in sleuf 3 printkop van het rek voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00010000020023",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 1: het rek kon de hot-end op de printkop niet detecteren. Controleer of er vuil op het oppervlak van de hot-end koeler zit of of de voorste magneet is losgekomen. Zo niet, kalibreer dan het inductierek voor de hot-end opnieuw."
+                },
+                {
+                    "ecode": "1A00010000020021",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 1: geen hot-end gedetecteerd op de printkop. Monteer de hot-end op de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00030000020024",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 3: het rek kon de hot-end niet van de printkop losmaken. Zorg ervoor dat de vergrendelingshendel in de ontgrendelde positie staat."
+                },
+                {
+                    "ecode": "1A00060000020022",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het nestelen van het hot-end in sleuf 6. Zorg ervoor dat er geen hot-end op de printkop is gemonteerd en dat er een hot-end aanwezig is in sleuf 6 op het rek voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00010000020035",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 1: het rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00050000020034",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 5: de hot-end is gevallen. Controleer op overtollig filament of ander vuil bovenaan de hot-end, verwijder of knip dit vervolgens weg, plaats de hot-end opnieuw in sleuf 5 van het rek en klik op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00030000020026",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 3: rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00040000020036",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 4: herstarten van de printkop is mislukt. Verplaats de printkop handmatig naar het midden van de bouwplaat en klik vervolgens op 'Doorgaan'."
+                },
+                {
+                    "ecode": "1A00030000020025",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 3: de hot-end is gevallen. Controleer of er overtollig filament boven op de hot-end achterblijft, knip het residu af, plaats de hot-end terug in slot 3 van het rek en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00120000020007",
+                    "intro": "De beweging van het hot-end-rek is onderbroken. Controleer op vreemde voorwerpen of obstakels die ervoor kunnen zorgen dat het rack vastloopt."
+                },
+                {
+                    "ecode": "1A00060000020033",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 6: het rek heeft de hot-end niet correct gemonteerd. Controleer of er overtollig filament aan de bovenkant van de hot-end zit, er vuil zit in het contactgebied tussen de toolhead en de hot-end, en of de vergrendelingshendel in de ontgrendelde stand staat. Klik na het oplossen van het probleem op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00030000020020",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 3: er is al een hot-end geïnstalleerd. Verwijder de bestaande hot-end voordat u op 'Doorgaan' klikt."
+                },
+                {
+                    "ecode": "1A00050000020032",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 5: de printkop heeft de hot-end in het rek niet gedetecteerd. Controleer of er vuil in de montagesleuf van de inductiehotend op de printkop zit. Als er geen vuil wordt gevonden, kalibreer dan het inductiehotendrack opnieuw."
+                },
+                {
+                    "ecode": "1A00040000020035",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 4: rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder ze en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00020000020030",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het ophalen van de hot-end uit slot 2: geen hot-end gevonden op deze positie. Installeer een hot-end in het betreffende slot voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00040000020020",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 4: er is al een hot-end geïnstalleerd. Verwijder de bestaande hot-end voordat u op 'Doorgaan' klikt."
+                },
+                {
+                    "ecode": "1A00050000020036",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 5: herstart van de printkop-centrering mislukt. Verplaats de printkop handmatig naar het midden van de bouwplaat en klik vervolgens op 'Doorgaan'."
+                },
+                {
+                    "ecode": "1A00010000020027",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 1: opnieuw centreren van de printkop is mislukt. Verplaats de gereedschapskop handmatig naar het midden van het bouwplatform en klik daarna op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00060000020034",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 6: de hot-end is gevallen. Controleer op overtollig filament of ander vuil boven op de hot-end, knip het bij of verwijder het, plaats vervolgens de hot-end opnieuw in sleuf 6 van het rek en klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00020000020033",
+                    "intro": "Fout gedetecteerd bij het plaatsen van de hot-end in sleuf 2: het rek kon de hot-end niet correct monteren. Controleer op overtollig filament aan de bovenkant van de hot-end, vuil in het contactgebied tussen de gereedschapskop en de hot-end, of of de vergrendelingshendel in de ontgrendelde positie staat. Na het oplossen van het probleem, klik op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00010000020025",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nesten van de hot-end in slot 1: de hottend is gevallen. Controleer of er overtollig filament boven op de hot-end achterblijft, knip het residu af, plaats de hot-end terug in slot 1 van het rek en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00040000020022",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 4. Zorg ervoor dat er geen hot-end op de printkop is gemonteerd en dat er een hot-end in sleuf 4 van het rek aanwezig is voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00050000020030",
+                    "intro": "Abnormale toestand gedetecteerd bij het ophalen van de hot-end uit sleuf 5: geen hot-end gevonden op deze positie. Plaats een hot-end in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00010000020030",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het ophalen van de hot-end uit slot 1: geen hot-end gevonden op deze positie. Installeer een hot-end in het betreffende slot voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00020000020020",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 2: er is al een hot-end geïnstalleerd. Verwijder eerst de bestaande voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00060000020030",
+                    "intro": "Abnormale toestand gedetecteerd bij het ophalen van de hot-end uit sleuf 6: geen hot-end gevonden op deze positie. Installeer alstublieft een hot-end in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00040000020026",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 4: rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00050000020026",
+                    "intro": "Abnormale toestand gedetecteerd bij het plaatsen van de hot-end in sleuf 5: het rek kan niet bewegen. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00030000020035",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 3: rekbeweging is geblokkeerd. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00040000020033",
+                    "intro": "Fout gedetecteerd bij het plaatsen van de hot-end in sleuf 4: het rek heeft de hot-end niet correct kunnen monteren. Controleer op overtollig filament bovenop de hot-end, vuil in het contactgebied tussen de gereedschapskop en de hot-end, of of de vergrendelingshendel in de ontgrendelde stand staat. Nadat het probleem is opgelost, klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00030000020027",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het nestelen van de hot-end in sleuf 3: opnieuw centreren van de printkop is mislukt. Verplaats de printkop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00060000020026",
+                    "intro": "Abnormale toestand gedetecteerd bij het positioneren van de hot-end in sleuf 6: beweging van het rek is geblokkeerd. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00050000020024",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 5: het rek is er niet in geslaagd de hot-end van de printkop los te maken. Zorg ervoor dat de vergrendelingshendel in de ontgrendelde stand staat."
+                },
+                {
+                    "ecode": "1A00050000020031",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hot-end uit slot 5: er is al een hot-end gemonteerd op de printkop. Verwijder de hot-end van de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00020000020023",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het nestelen van de hot-end in sleuf 2: het rek kon de hot-end op de printkop niet detecteren. Controleer of er vuil op het oppervlak van de hot-end koellichaam zit of dat de voorste magneet is losgeraakt. Zo niet, kalibreer dan het inductierek voor de hot-end opnieuw."
+                },
+                {
+                    "ecode": "1A00040000020024",
+                    "intro": "Abnormale toestand gedetecteerd bij het nestelen van de hot-end in sleuf 4: het rek is er niet in geslaagd de hot-end van de printkop te ontkoppelen. Zorg ervoor dat de vergrendelingshendel in de losgemaakte positie staat."
+                },
+                {
+                    "ecode": "1A00060000020035",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit slot 6: de beweging van het rek is geblokkeerd. Controleer op vreemde voorwerpen, verwijder ze en klik daarna op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00120000020008",
+                    "intro": "De positie van de vergrendelingsstang van het hot-end-rekgereedschap is abnormaal. Controleer op vreemde voorwerpen of obstakels die ervoor kunnen zorgen dat de vergrendelingsstang vastloopt."
+                },
+                {
+                    "ecode": "1A00010000020032",
+                    "intro": "Fout gedetecteerd tijdens het ophalen van de hot-end uit slot 1: de printkop heeft de hot-end in het rek niet gedetecteerd. Controleer of er vuil in de montagesleuf van de inductiehotend op de printkop zit. Als er geen vuil wordt gevonden, kalibreer dan het inductiehotendrack opnieuw."
+                },
+                {
+                    "ecode": "1A00010000020034",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 1: de hot-end is gevallen. Controleer op overtollig filament of andere resten bovenop de hot-end, knip of verwijder deze en plaats vervolgens de hot-end opnieuw in sleuf 1 van het rek en klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00060000020032",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit slot 6: de printkop kon de hot-end op het statief niet detecteren. Controleer op vuil in de inductiesleuf voor de hot-end op de printkop. Als er geen vuil wordt gevonden, kalibreer dan het inductiestatief voor de hot-end opnieuw."
+                },
+                {
+                    "ecode": "1A00010000020022",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 1. Zorg ervoor dat er geen hot-end op de printkop is gemonteerd en dat er een hot-end aanwezig is in sleuf 1 op het rek voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00040000020030",
+                    "intro": "Abnormale toestand gedetecteerd bij het ophalen van de hot-end uit positie 4: geen hot-end gevonden op deze locatie. Installeer een hot-end in de overeenkomstige sleuf voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00030000020036",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 3: opnieuw centreren van de printkop mislukt. Verplaats de printkop handmatig naar het midden van het bouwplateau en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00040000020034",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 4: de hot-end is gevallen. Controleer op overmatig filament of ander vuil bovenop de hot-end, trim of verwijder dit, plaats vervolgens de hot-end terug in sleuf 4 van het rek en klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00120000020009",
+                    "intro": "Fout in het ontgrendelmechanisme van de inductie hot-end vergrendelingshendel of de kophendel. Raadpleeg de Wiki voor inspectie."
+                },
+                {
+                    "ecode": "1A00020000020034",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 2: de hot-end is gevallen. Controleer op overtollig filament of ander vuil bovenop de hot-end, knip dit bij of verwijder het, plaats vervolgens de hot-end terug in sleuf 2 op het rek en klik op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00060000020023",
+                    "intro": "Abnormale conditie gedetecteerd tijdens het nesten van de hot-end in sleuf 6: het rek heeft de hot-end op de toolhead niet gedetecteerd. Controleer of er vuil op het oppervlak van de hot-end-koelplaat zit of dat de voorste magneet eraf is gevallen. Zo niet, kalibreer dan het inductie-hot-end-rek opnieuw."
+                },
+                {
+                    "ecode": "1A00010000020036",
+                    "intro": "Fout gedetecteerd bij het ophalen van het hot-end uit sleuf 1: het opnieuw centreren van de printkop is mislukt. Beweeg de printkop handmatig naar het midden van het bouwplateau en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00010000020031",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het ophalen van de hot-end uit sleuf 1: er is al een hot-end gemonteerd op de printkop. Verwijder de hot-end van de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00020000020026",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 2: het rek beweegt niet. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00050000020022",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het nestelen van de hot-end in sleuf 5. Zorg ervoor dat er geen hot-end op de printkop is gemonteerd en dat er een hot-end aanwezig is in sleuf 5 op het rek voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00050000020021",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 5: geen hot-end gedetecteerd op de printkop. Monteer de hot-end op de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00040000020023",
+                    "intro": "Abnormale situatie gedetecteerd tijdens het plaatsen van de hot-end in sleuf 4: het rek kon de hot-end op de printkop niet detecteren. Controleer of er vuil op het oppervlak van de koelrib van de hot-end zit of of de voorste magneet is losgekomen. Zo niet, kalibreer dan het inductierek voor de hot-end opnieuw."
+                },
+                {
+                    "ecode": "1A00050000020027",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsing van de hot-end in sleuf 5: het opnieuw centreren van de printkop is mislukt. Verplaats de printkop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00040000020031",
+                    "intro": "Er is een abnormale situatie gedetecteerd bij het ophalen van de hot-end uit sleuf 4: er is al een hot-end gemonteerd op de printkop. Verwijder de hot-end van de printkop apskop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00030000020033",
+                    "intro": "Fout gedetecteerd bij het plaatsen van de hot-end in slot 3: het rek is er niet in geslaagd de hot-end correct te monteren. Controleer op overtollig filament bovenop de hot-end, vuil in het contactgebied tussen de printkop en de hot-end, of of de vergrendelingshendel in de ontgrendelde positie staat. Nadat het probleem is opgelost, klik op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00020000020021",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het plaatsen van de hot-end in sleuf 2: geen hot-end gedetecteerd op de printkop. Monteer de hot-end op de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00020000020035",
+                    "intro": "Fout gedetecteerd bij het oppikken van de hot-end uit slot 2: de beweging van het rek is geblokkeerd. Controleer op vreemde voorwerpen, verwijder deze en klik vervolgens op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00020000020036",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit slot 2: het opnieuw centreren van de printkop is mislukt. Verplaats de printkop handmatig naar het midden van het bouwplatform en klik vervolgens op \"Doorgaan\"."
+                },
+                {
+                    "ecode": "1A00060000020024",
+                    "intro": "Abnormale toestand gedetecteerd tijdens het nestelen van de hot-end in sleuf 6: het rek kon de hot-end niet loskoppelen van de printkop. Zorg ervoor dat de vergrendelingshendel in de vrijgegeven stand staat."
+                },
+                {
+                    "ecode": "1A00030000020034",
+                    "intro": "Fout gedetecteerd bij het ophalen van de hot-end uit sleuf 3: de hot-end is gevallen. Controleer op teveel filament of ander vuil bovenop de hot-end, verwijder of knip dit weg, plaats de hot-end vervolgens terug in sleuf 3 van het rek en klik op \"Doorgaan.\""
+                },
+                {
+                    "ecode": "1A00050000020023",
+                    "intro": "Abnormale toestand gedetecteerd bij het nestelen van de hot-end in sleuf 5: het rek detecteerde de hot-end op de printkop niet. Controleer of er vuil op het hitte-afvoeroppervlak van de hot-end zit of dat de voorste magneet is losgeraakt. Zo niet, kalibreer dan het inductie hot-end-rek opnieuw."
+                },
+                {
+                    "ecode": "1A00060000020031",
+                    "intro": "Abnormale situatie gedetecteerd bij het uitnemen van de hot-end uit slot 6: er is al een hot-end gemonteerd op de printkop. Verwijder de hot-end van de printkop voordat u op \"Doorgaan\" klikt."
+                },
+                {
+                    "ecode": "1A00120000020011",
+                    "intro": "Inductie hotend niet gedetecteerd vóór vergrendeling. Controleer alstublieft de installatie ervan op de gereedschapskop."
+                },
+                {
                     "ecode": "1800980000020002",
                     "intro": "AMS-HT A De spanning van de voedingsadapter is te hoog, waardoor het verwarmingscircuit kan worden beschadigd. Vervang de voedingsadapter."
                 },
@@ -18648,7 +18520,7 @@
                 },
                 {
                     "ecode": "0C0003000003001A",
-                    "intro": "De detectie van vreemde voorwerpen werkte niet, mogelijk als gevolg van handmatige onderbreking (bijv. tikken, stoppen of openen van de deur in lasermodus). Je kunt dit negeren als dat het geval is. Probeer anders de printer opnieuw op te starten of de firmware bij te werken om de functie te herstellen."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707980000020001",
@@ -19343,24 +19215,84 @@
                     "intro": "De stroomsensor van de AMS-HT C uitlaatklep 2 is niet goed. Neem contact op met de klantenservice om het AMS-HT-moederbord te vervangen."
                 },
                 {
+                    "ecode": "1A00230000020002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 3 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00010000020003",
+                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 1."
+                },
+                {
                     "ecode": "030002000001000B",
                     "intro": "De temperatuurregeling van het rechter nozzle is niet in orde. Dit kan komen doordat de hotend niet goed is geïnstalleerd of doordat er een storing is op het draadloze temperatuurmeetbord."
+                },
+                {
+                    "ecode": "1A00210000020001",
+                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 1 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
+                },
+                {
+                    "ecode": "1A00210000010002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 1 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
                 },
                 {
                     "ecode": "0300E00000010002",
                     "intro": "Kortsluiting tussen de fasen op de hotend-houdermotor. Als herstarten het probleem niet oplost, neem dan contact op met de support."
                 },
                 {
+                    "ecode": "1A00040000020003",
+                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 4."
+                },
+                {
+                    "ecode": "1A00220000020002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 2 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00210000020002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 1 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00250000020002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 5 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
                     "ecode": "1A00020000020001",
                     "intro": "Er is een fout opgetreden tijdens het nesten/ophalen van de hotend. Plaats de hotend terug in slot 2 van het rack, verplaats de printkop handmatig naar het midden van de bouwplaat en ga verder."
+                },
+                {
+                    "ecode": "1A00030000020004",
+                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 3."
+                },
+                {
+                    "ecode": "1A00060000020003",
+                    "intro": "Hotend-wisselcontrole mislukt: geen hotend gevonden op slot 6."
+                },
+                {
+                    "ecode": "1A00250000010002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 5 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00020000020004",
+                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 2."
+                },
+                {
+                    "ecode": "1A00240000020001",
+                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 4 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
                 },
                 {
                     "ecode": "1A00050000020001",
                     "intro": "Er is een fout opgetreden tijdens het nesten/ophalen van de hotend. Plaats de hotend terug in slot 5 van het rack, verplaats de printkop handmatig naar het midden van de bouwplaat en ga verder."
                 },
                 {
+                    "ecode": "1A00220000010002",
+                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 2 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
+                },
+                {
                     "ecode": "1A00060000020001",
                     "intro": "Er is een fout opgetreden tijdens het nesten/ophalen van de hotend. Plaats de hotend terug in slot 6 van het rack, verplaats de printkop handmatig naar het midden van de bouwplaat en ga verder."
+                },
+                {
+                    "ecode": "1A00230000010002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 3 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
                 },
                 {
                     "ecode": "0300E20000020001",
@@ -19369,6 +19301,14 @@
                 {
                     "ecode": "1A00100000020001",
                     "intro": "De XY-as van de gereedschapskop of het hotend-rek is nog niet klaar met de homing. Vervanging van de hotend kan niet worden voortgezet."
+                },
+                {
+                    "ecode": "1A00240000010002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 4 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00240000020002",
+                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 4 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
                 },
                 {
                     "ecode": "0300E00000010004",
@@ -19387,12 +19327,60 @@
                     "intro": "De terugkeerweg van het inductie-hotendrek is te lang. Misschien zit de tandriem los. Check dit even en zet hem vast."
                 },
                 {
+                    "ecode": "1A00260000010002",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 6 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00240000010001",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 4 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
                     "ecode": "1A00030000020001",
                     "intro": "Er is een fout opgetreden tijdens het nesten/ophalen van de hotend. Plaats de hotend terug in slot 3 van het rack, verplaats de toolhead handmatig naar het midden van de bouwplaat en ga verder."
                 },
                 {
+                    "ecode": "1A00010000020004",
+                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 1."
+                },
+                {
                     "ecode": "1A00010000020001",
                     "intro": "Er is een fout opgetreden tijdens het nesten/ophalen van de hotend. Plaats de hotend terug in slot 1 van het rack, verplaats de printkop handmatig naar het midden van de bouwplaat en ga verder."
+                },
+                {
+                    "ecode": "1A00250000010001",
+                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 5 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
+                },
+                {
+                    "ecode": "1A00030000020003",
+                    "intro": "Hotend-wisselcontrole mislukt: geen hotend gevonden op slot 3."
+                },
+                {
+                    "ecode": "1A00250000020001",
+                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend alsjeblieft terug in rekstation 5 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
+                },
+                {
+                    "ecode": "1A00260000010001",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug naar positie 6 op de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00050000020003",
+                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 5."
+                },
+                {
+                    "ecode": "1A00060000020004",
+                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 6."
+                },
+                {
+                    "ecode": "1A00040000020004",
+                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 4."
+                },
+                {
+                    "ecode": "1A00230000010001",
+                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 3 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
+                },
+                {
+                    "ecode": "1A00210000010001",
+                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 1 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
                 },
                 {
                     "ecode": "0300E30000010001",
@@ -19415,8 +19403,24 @@
                     "intro": "De TM-module werkt niet goed. Schakel het apparaat uit, controleer de verbinding en start het apparaat opnieuw op."
                 },
                 {
+                    "ecode": "1A00050000020004",
+                    "intro": "Het wisselen van de hotend is mislukt: er zit al een hotend in slot 5."
+                },
+                {
+                    "ecode": "1A00220000010001",
+                    "intro": "Als je de stroom uitschakelt terwijl het gereedschap vrijgegeven is, kan de huidige status lastig zijn. Zet het hot-end terug van positie 2 naar de gereedschapskop en verplaats de gereedschapskop naar het midden van het bed om te voorkomen dat het gereedschap in de weg zit."
+                },
+                {
+                    "ecode": "1A00230000020001",
+                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug op rekstation 3 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
+                },
+                {
                     "ecode": "1A00E00000010005",
                     "intro": "Het inductie-hotendrek zit vast tijdens het teruggaan naar de startpositie. Haal alles weg wat in de weg zit."
+                },
+                {
+                    "ecode": "1A00220000020001",
+                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 2 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
                 },
                 {
                     "ecode": "1A00110000020002",
@@ -19435,8 +19439,20 @@
                     "intro": "De motor van de hotend-houder is losgekoppeld of heeft een open circuit. Controleer de flatcable-aansluiting van de motor."
                 },
                 {
+                    "ecode": "1A00020000020003",
+                    "intro": "Controle van hotend-wissel mislukt: geen hotend gevonden op slot 2."
+                },
+                {
                     "ecode": "0300A60000010001",
                     "intro": "De Toolhead Enhanced Cooling Fan is niet goed geïnstalleerd; deze is mogelijk niet goed vastgemaakt of is eraf gevallen."
+                },
+                {
+                    "ecode": "1A00260000020001",
+                    "intro": "Er was een stroomstoring toen ik de hotend uit het rek haalde. Zet de hotend terug in rekstation 6 en verplaats de gereedschapskop naar het midden van de bouwplaat om te voorkomen dat hij het hotendrek raakt."
+                },
+                {
+                    "ecode": "1A00260000020002",
+                    "intro": "Er is stroomuitval opgetreden tijdens het koppelen van de hotend aan het hotend-rack. Plaats de hotend terug van positie 6 naar de toolhead en verplaats de toolhead naar het midden van het verwarmde bed om interferentie met het rek te voorkomen."
                 },
                 {
                     "ecode": "0702960000020004",
@@ -19639,8 +19655,16 @@
                     "intro": "De authenticatie van hotend 1 is mislukt. Probeer een andere hotend of start de printer opnieuw op."
                 },
                 {
+                    "ecode": "1A00120000020002",
+                    "intro": "Het kalibreren van het hotend-rek is mislukt. De markering is niet gevonden. Check even of de markering op het rek beschadigd is of misschien vuil is."
+                },
+                {
                     "ecode": "0504050000010020",
                     "intro": "De authenticatie van hotend 5 is mislukt. Probeer een andere hotend of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "1A00120000020003",
+                    "intro": "Kalibratie van inductie-hotendrek mislukt: resultaat overschreed het bewegingsbereik. Check even of de rekstructuur vervormd is."
                 },
                 {
                     "ecode": "0503050000010020",
@@ -19657,6 +19681,10 @@
                 {
                     "ecode": "0502050000010020",
                     "intro": "De authenticatie van hotend 3 is mislukt. Probeer een andere hotend of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "1A00120000020001",
+                    "intro": "Kalibratie van hotend-rek mislukt: camerakalibratiegegevens zijn abnormaal. Verwijder resten van de nozzle en controleer of het thermische papier op het verwarmde bed beschadigd is."
                 },
                 {
                     "ecode": "0505050000010020",
@@ -19953,30 +19981,6 @@
                 {
                     "ecode": "0300AB0000020003",
                     "intro": "De temperatuursensor op de rechterwarmteonderbreking is abnormaal. Om nozzle clogs te voorkomen zal de koelventilator op hoge snelheid blijven draaien. Je kunt het probleem van de sensor oplossen wanneer de afdruk niet actief is."
-                },
-                {
-                    "ecode": "0C00040000020030",
-                    "intro": "De roterende graveeraccessoire is verkeerd geplaatst. Pas deze alstublieft aan en positioneer opnieuw."
-                },
-                {
-                    "ecode": "0700F40000020001",
-                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 5 van het hotend-rek correct is geïnstalleerd."
-                },
-                {
-                    "ecode": "0700F30000020001",
-                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 4 van het hotend-rek correct is geïnstalleerd."
-                },
-                {
-                    "ecode": "0700F50000020001",
-                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 56van het hotend-rek correct is geïnstalleerd."
-                },
-                {
-                    "ecode": "0700F20000020001",
-                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 3 van het hotend-rek correct is geïnstalleerd."
-                },
-                {
-                    "ecode": "0700F10000020001",
-                    "intro": "Filament en hot-end komen niet overeen. Controleer of de hot-end in het slot 2 van het hotend-rek correct is geïnstalleerd."
                 }
             ]
         },
@@ -19984,8 +19988,768 @@
             "ver": 202511162200,
             "nl": [
                 {
+                    "ecode": "0582409C",
+                    "intro": "De firmware van AMS-HT C komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500409B",
+                    "intro": "De firmware van de lasermodule komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05874096",
+                    "intro": "Niet-gecertificeerde AMS-HT H gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0584409C",
+                    "intro": "De firmware van AMS-HT E komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05004099",
+                    "intro": "De firmware van de snijmodule komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0580409C",
+                    "intro": "De firmware van AMS-HT A komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808D",
+                    "intro": "De offsetkalibratie van de snijmodule is mislukt, wat kan leiden tot onnauwkeurige sneden. Zorg ervoor dat het snijmateriaal correct is gepositioneerd en controleer of de punt van het snijblad versleten is."
+                },
+                {
+                    "ecode": "0500409F",
+                    "intro": "Niet-gecertificeerde luchtpomp gedetecteerd; Het apparaat kan niet verder werken.  Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0502409D",
+                    "intro": "De firmware van AMS C komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0581409C",
+                    "intro": "De firmware van AMS-HT B komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05854096",
+                    "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0C008043",
+                    "intro": "AI detecteerde klontering van de nozzle. Controleer de nozzleconditie. Raadpleeg de assistent voor oplossingen."
+                },
+                {
+                    "ecode": "0500808E",
+                    "intro": "De initialisatie van de BirdsEye-camera is mislukt. De camera van het gereedschapshoofd heeft de Heatbed-functies niet gedetecteerd. Maak het verwarmingsbed schoon, verwijder alle voorwerpen en kussentjes en zorg ervoor dat de bedmarkeringen zichtbaar zijn. Kijk op de Assistent voor een gedetailleerde oplossing."
+                },
+                {
+                    "ecode": "0503409D",
+                    "intro": "De firmware van AMS D komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008042",
+                    "intro": "De AI-printmonitor heeft een spaghetti-defect gedetecteerd. Controleer de afdruk en onderneem de nodige actie."
+                },
+                {
+                    "ecode": "05834096",
+                    "intro": "Niet-gecertificeerde AMS-HT D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0500808F",
+                    "intro": "De lens van de nozzle-camera is vuil, wat gevolgen heeft voor AI-monitoring. Reinig de lens met een niet-geweven doek en een kleine hoeveelheid alcohol. Pas op voor hitte; Wacht tot het is afgekoeld voordat u het aanraakt."
+                },
+                {
+                    "ecode": "05814096",
+                    "intro": "Niet-gecertificeerde AMS-HT B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05034098",
+                    "intro": "Niet-gecertificeerde AMS D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0587409C",
+                    "intro": "De firmware van AMS-HT H komt niet overeen met de printer, het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0583409C",
+                    "intro": "De firmware van AMS-HT D komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05014098",
+                    "intro": "Niet-gecertificeerde AMS B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05004098",
+                    "intro": "Niet-gecertificeerde AMS A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0586409C",
+                    "intro": "De firmware van AMS-HT G komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05824096",
+                    "intro": "Niet-gecertificeerde AMS-HT C gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0585409C",
+                    "intro": "De firmware van AMS-HT F komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0501409D",
+                    "intro": "De firmware van AMS B komt niet overeen met de printer; het apparaat kan niet verder werken. Werk de firmware bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "03004050",
+                    "intro": "Time-out voor kalibratie van de LiveView-camera; Start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0500409D",
+                    "intro": "De firmware van AMS A komt niet overeen met de printer, het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "05804096",
+                    "intro": "Niet-gecertificeerde AMS-HT A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05024098",
+                    "intro": "Niet-gecertificeerde AMS C gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05004097",
+                    "intro": "Niet-gecertificeerde lasermodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05864096",
+                    "intro": "Niet-gecertificeerde AMS-HT G gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05844096",
+                    "intro": "Niet-gecertificeerde AMS-HT F gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "0500409A",
+                    "intro": "De firmware van de luchtpomp komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0C008034",
+                    "intro": "De initialisatie van de Liveview-camera is mislukt. Deze print kan nog steeds doorgaan, maar sommige AI-functies worden uitgeschakeld. Als u dit probleem opnieuw tegenkomt nadat u opnieuw bent opgestart, neem dan contact op met de klantenservice."
+                },
+                {
+                    "ecode": "0500409E",
+                    "intro": "Niet-gecertificeerde snijmodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "050080A0",
+                    "intro": "De vision-encoderplaat werd niet gedetecteerd. Controleer of het correct op het warmtebed is geplaatst."
+                },
+                {
+                    "ecode": "0502400B",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03004014",
+                    "intro": "Homing Z-as mislukt: temperatuurregeling abnormaal."
+                },
+                {
+                    "ecode": "0502400E",
+                    "intro": "Kan een nieuwe taak niet starten: De cold pull van de nozzle is niet voltooid."
+                },
+                {
+                    "ecode": "0502400A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C010",
+                    "intro": "Vanwege de vermogensbeperkingen van de printer kunnen afdrukken, kalibreren, controles en andere handelingen niet worden uitgevoerd tijdens het drogen van de AMS. Stop het droogproces voordat u verdergaat met andere bewerkingen."
+                },
+                {
+                    "ecode": "0502400C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502400D",
+                    "intro": "Kan een nieuwe taak niet starten: filament laden/ontladen niet voltooid."
+                },
+                {
+                    "ecode": "05008090",
+                    "intro": "Bevestig het 80g witte printpapier op het middengedeelte van het platform."
+                },
+                {
+                    "ecode": "0502C00F",
+                    "intro": "Het apparaat is bezig en kan geen nozzle-identificatie uitvoeren."
+                },
+                {
+                    "ecode": "03008022",
+                    "intro": "Het is mogelijk dat het verwarmingsbed tijdens de neerwaartse beweging wordt geblokkeerd. Verwijder voorwerpen onder het verwarmingsbed en controleer op weerstand of vastlopen tijdens de beweging."
+                },
+                {
+                    "ecode": "05024008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18018033",
+                    "intro": "Het lukte niet om de hotend in houderpositie 2 te zetten. Kijk even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "07058034",
+                    "intro": "Het lukte niet om de hotend uit houder positie 6 te halen. Kijk even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "1A008002",
+                    "intro": "Inductie Hotend rek homing mislukt vanwege een obstakel. Verwijder het obstakel voordat u het printen hervat."
+                },
+                {
+                    "ecode": "07048034",
+                    "intro": "Het is niet gelukt om de hotend uit houderpositie 5 te halen. Controleer op filamentresten of vastklevend materiaal."
+                },
+                {
+                    "ecode": "18048033",
+                    "intro": "Het is niet gelukt om de hotend in houderpositie 5 te plaatsen. Controleer op filamentresten of vastplakkend materiaal."
+                },
+                {
+                    "ecode": "1A008003",
+                    "intro": "De homingafstand van het hotend-rek is abnormaal lang. Controleer of de distributieriem los of gebroken is."
+                },
+                {
+                    "ecode": "07038034",
+                    "intro": "Het is niet gelukt om de hotend uit houderpositie 4 te halen. Controleer op filamentresten of vastplakkend materiaal."
+                },
+                {
+                    "ecode": "18008034",
+                    "intro": "Het is niet gelukt om de hotend uit houderpositie 1 te halen. Controleer op filamentresten of vastklevend materiaal."
+                },
+                {
+                    "ecode": "18008035",
+                    "intro": "Grove homing van het hotend-rek mislukt. Controleer op obstakels of een verkeerde uitlijning van de bouwplaat."
+                },
+                {
+                    "ecode": "18038034",
+                    "intro": "Het lukte niet om de hotend uit houder positie 4 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "07048033",
+                    "intro": "Het lukte niet om de hotend in houderpositie 5 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "1A008004",
+                    "intro": "Voordat je de lasermodus gebruikt of de positie van het hotendrek kalibreert, moet je eerst alle hotends uit het rek halen."
+                },
+                {
+                    "ecode": "18028034",
+                    "intro": "Het is niet gelukt om de hotend uit houderpositie 3 te halen. Controleer op filamentresten of vastplakkend materiaal."
+                },
+                {
+                    "ecode": "07028034",
+                    "intro": "Het lukte niet om de hotend uit houder positie 3 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "07008031",
+                    "intro": "Vergrendeling mislukt; Controleer of er plakkerig materiaal op de nozzle zit."
+                },
+                {
+                    "ecode": "07018034",
+                    "intro": "Het is niet gelukt om de hotend uit houderpositie 2 te halen. Controleer op filamentresten of vastklevend materiaal."
+                },
+                {
+                    "ecode": "18018034",
+                    "intro": "Het lukte niet om de hotend uit houder positie 2 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "07008035",
+                    "intro": "Grove homing van de hotend-houder mislukt. Controleer op obstakels of een verkeerde uitlijning van de bouwplaat."
+                },
+                {
+                    "ecode": "18028033",
+                    "intro": "De hotend is niet in positie 3 van het gereedschapsmagazijn geplaatst. Controleer of er filament vastzit op de nozzle of dat het filament niet goed is afgesneden."
+                },
+                {
+                    "ecode": "18058034",
+                    "intro": "Het is niet gelukt om de hotend uit houderpositie 6 te halen. Controleer op filamentresten of vastplakkend materiaal."
+                },
+                {
+                    "ecode": "18008031",
+                    "intro": "Vergrendeling mislukt; controleer of er kleverig materiaal op het mondstuk zit."
+                },
+                {
+                    "ecode": "18008032",
+                    "intro": "Ontgrendeling mislukt; controleer de installatiepositie van de uitwerperstang."
+                },
+                {
+                    "ecode": "18008030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "03008071",
+                    "intro": "De Toolhead Enhanced Cooling Fan module werkt niet goed."
+                },
+                {
+                    "ecode": "07008034",
+                    "intro": "Het is niet gelukt het verwarmingselement te verwijderen op positie 1 van het gereedschapsmagazijn. Controleer of het verwarmingselement vastzit aan de basis en controleer of het filament in de extruder is afgesneden."
+                },
+                {
+                    "ecode": "1A004001",
+                    "intro": "Grove homing van het hotend-rek mislukt. Het printen is geannuleerd. Controleer of er een obstakel is dat de beweging van het rek blokkeert."
+                },
+                {
+                    "ecode": "07028033",
+                    "intro": "Het lukte niet om de hotend in houderpositie 3 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zit."
+                },
+                {
+                    "ecode": "18058033",
+                    "intro": "Het is niet gelukt om de hotend in houderpositie 6 te plaatsen. Controleer op filamentresten of vastklevend materiaal."
+                },
+                {
+                    "ecode": "18038033",
+                    "intro": "Het lukte niet om de hotend in houderpositie 4 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "18048034",
+                    "intro": "Het lukte niet om de hotend uit houder positie 5 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "07008033",
+                    "intro": "De hotend is niet in positie 1 van het gereedschapsmagazijn geplaatst. Controleer of er nozzle vastzit op de nozzle of dat het filament niet goed is afgesneden."
+                },
+                {
+                    "ecode": "07018033",
+                    "intro": "De hotend is niet in positie 2 van het gereedschapsmagazijn geplaatst. Controleer of er filament vastzit op de nozzle of dat het filament niet goed is afgesneden."
+                },
+                {
+                    "ecode": "18008033",
+                    "intro": "Het is niet gelukt om de hotend in houderpositie 1 te plaatsen. Controleer op filamentresten of vastklevend materiaal."
+                },
+                {
+                    "ecode": "07008032",
+                    "intro": "Ontgrendelen mislukt; Controleer de installatiepositie van de uitwerpstang."
+                },
+                {
+                    "ecode": "07038033",
+                    "intro": "Het is niet gelukt om de hotend in houderpositie 4 te plaatsen. Controleer op filamentresten of vastklevend materiaal."
+                },
+                {
+                    "ecode": "07058033",
+                    "intro": "Het lukte niet om de hotend in houderpositie 6 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
+                },
+                {
+                    "ecode": "07008030",
+                    "intro": "Detectie voor gereedschapswissel mislukt; controleer de plaatsing van de nozzle."
+                },
+                {
+                    "ecode": "05004010",
+                    "intro": "AMS is aan het drogen en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05004011",
+                    "intro": "De printer is bezig met het laden of lossen van filament en kan op dit moment niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05004012",
+                    "intro": "Het apparaat is bezig met afdrukken en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "0500400F",
+                    "intro": "AMS wordt geïnitialiseerd en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "05004013",
+                    "intro": "AMS is in bedrijf en kan momenteel niet worden geüpgraded. Probeer het opnieuw als het niet actief is."
+                },
+                {
+                    "ecode": "0300C012",
+                    "intro": "Verwarm de nozzle tot boven de 170°C."
+                },
+                {
+                    "ecode": "050040A1",
+                    "intro": "Niet-gecertificeerd brandblusapparaat gedetecteerd; het apparaat kan niet verder werken.  Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "050040A0",
+                    "intro": "Niet-gecertificeerde Laser Vierde As gedetecteerd; het apparaat kan niet verder werken. Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05004030",
+                    "intro": "Het apparaat is momenteel aan het upgraden. Probeer het opnieuw als het niet actief is."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Het filament dat in de slicer is ingesteld, is op. Het printen is even gestopt. Ga naar de printer om het materiaal te vervangen en ga verder met printen."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Het filament dat in de slicer is ingesteld, is op. Het printen is even gestopt. Ga naar de printer om het materiaal te vervangen en ga verder met printen."
+                },
+                {
+                    "ecode": "0300C056",
+                    "intro": "Er is een kleine brand in de kamer ontdekt en het automatische brandblussysteem is uitgeschakeld."
+                },
+                {
+                    "ecode": "0502C011",
+                    "intro": "Nu in 2D-productiemodus. Ga gewoon door met de printer."
+                },
+                {
+                    "ecode": "03008081",
+                    "intro": "De gasfles van de brandblusser zit niet goed."
+                },
+                {
+                    "ecode": "0300807E",
+                    "intro": "Brandblusser niet gevonden, dus de automatische blusfunctie werkt niet."
+                },
+                {
+                    "ecode": "0300807F",
+                    "intro": "Brandblusser werkt niet goed."
+                },
+                {
+                    "ecode": "03008082",
+                    "intro": "De gascilinder van de brandblusser is leeg."
+                },
+                {
+                    "ecode": "03004021",
+                    "intro": "Er is een probleem met het signaal van de sensor voor het kalibreren van de nozzle-offset. Check de sensor en probeer het nog eens."
+                },
+                {
+                    "ecode": "03008080",
+                    "intro": "Reset van brandblussermotor mislukt."
+                },
+                {
+                    "ecode": "0300807D",
+                    "intro": "Brandblusser niet gevonden, dus de automatische blusfunctie werkt niet."
+                },
+                {
+                    "ecode": "0502C012",
+                    "intro": "De kalibratietaak kan niet worden gepauzeerd."
+                },
+                {
+                    "ecode": "05008091",
+                    "intro": "De offsetkalibratie van de snijmodule is mislukt, waardoor de sneden misschien niet goed uitkomen. Zorg ervoor dat het witte printerpapier van 80 g (letterformaat) goed ligt en check of het mesje nog scherp is."
+                },
+                {
+                    "ecode": "0300404B",
+                    "intro": "Taak gestopt omdat de voordeur of bovenklep open is."
+                },
+                {
+                    "ecode": "03008028",
+                    "intro": "Fout in de kalibratiesensor van de nozzle-offset. Als je maar één hotend gebruikt of de kalibratiefunctie is uitgeschakeld, kun je dit negeren en doorgaan met printen. Anders is het beter om de sensor te checken voordat je verdergaat."
+                },
+                {
+                    "ecode": "05008041",
+                    "intro": "Het filament in de hotend is te koud. Extrusie kan de extruder beschadigen. Wordt het filament nog steeds in- of uitgevoerd?"
+                },
+                {
+                    "ecode": "0300C070",
+                    "intro": "De brandblusser is gevonden en kan worden gebruikt zodra de lasermodule is aangesloten."
+                },
+                {
+                    "ecode": "05008093",
+                    "intro": "De siliconen huls van het nozzle is niet geïnstalleerd; er bestaat een risico op een storing in de temperatuurregeling. Installeer de huls correct en probeer het opnieuw."
+                },
+                {
+                    "ecode": "05008092",
+                    "intro": "Het opstarten van de toolheadcamera is mislukt. Je kunt gewoon doorgaan met printen, maar sommige AI-functies werken niet meer. Als je dit probleem na het opnieuw opstarten nog steeds hebt, neem dan even contact op met de klantenservice."
+                },
+                {
+                    "ecode": "03008023",
+                    "intro": "De XY-motor kon niet goed terug naar de startpositie tijdens het terugzetten van de hotendhouder. Kijk even of er iets in de weg zit en probeer het nog een keer."
+                },
+                {
+                    "ecode": "03008027",
+                    "intro": "De hotend is tijdens het printen uit de houder gevallen. Zet hem weer terug op zijn plek voordat je verder gaat."
+                },
+                {
+                    "ecode": "03008024",
+                    "intro": "De hotendhouder kan niet terug naar de startpositie. Kijk even of er iets in de weg zit en probeer het nog een keer."
+                },
+                {
+                    "ecode": "03008026",
+                    "intro": "Laser-/kalibratiemodus: Haal alle hotends uit de houder voordat je het opnieuw probeert."
+                },
+                {
+                    "ecode": "03008025",
+                    "intro": "De terugkeerweg van de hotendhouder is te lang. Check even of de tandriem en het motorwiel niet los zitten of beschadigd zijn."
+                },
+                {
+                    "ecode": "05004032",
+                    "intro": "Het hotendwisselsysteem is bezig; doe de upgrade als het even rustig is."
+                },
+                {
+                    "ecode": "07008018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "0500807E",
+                    "intro": "Plaats a.u.b. een StrongGrip snijmat op de snijbeschermingsbasis."
+                },
+                {
+                    "ecode": "07028018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "05004046",
+                    "intro": "Het printen is gestopt omdat het 3MF-bestand niet goed is. Check even of je tijdens het slicen het juiste printermodel hebt gekozen, of update Studio en slice het bestand opnieuw."
+                },
+                {
+                    "ecode": "07058018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "07038018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "07FE8018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "07048018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "0502C014",
+                    "intro": "De AMS-schatting van resterende filament is standaard aan en kan niet worden uitgeschakeld."
+                },
+                {
+                    "ecode": "07068018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "Het printen is gestopt omdat het aantal beschikbare hotends of het model niet klopt met het geslicede bestand. Check even het hotendmodel en het aantal voordat je de printklus opnieuw start."
+                },
+                {
+                    "ecode": "07018018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "07078018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "07FF8018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "05024015",
+                    "intro": "De authenticatie van de hotend is mislukt. Probeer een andere hotend of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "05024017",
+                    "intro": "Het testen van de inductie-hotend is mislukt omdat de hotend-schakelaar te lang heeft gewacht. Probeer het nog eens."
+                },
+                {
+                    "ecode": "18008018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "18FE8018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "18028018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "18FF8018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "18078018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "18058018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "18048018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "05024016",
+                    "intro": "Er is geen hotend gevonden in de inductie-hotendhouder of het hotendrek. Zet een hotend in en probeer het nog eens."
+                },
+                {
+                    "ecode": "1A004007",
+                    "intro": "Het kalibreren van het inductie-hotendrek is mislukt, check even de Assistent."
+                },
+                {
+                    "ecode": "18038018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "18068018",
+                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
+                },
+                {
+                    "ecode": "18018018",
+                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
+                },
+                {
+                    "ecode": "03008053",
+                    "intro": "Lasermodule gedetecteerd. Installeer de juiste nozzle correct om een ​​correcte kalibratie van de lasermodule te garanderen."
+                },
+                {
+                    "ecode": "03008084",
+                    "intro": "De juiste hotend-heatbreaktemperatuur is te hoog, wat verstopping kan veroorzaken. Open de bovenklep en de voorklep van de printer om de kamertemperatuur te verlagen of verlaag de omgevingstemperatuur."
+                },
+                {
+                    "ecode": "1A004008",
+                    "intro": "Het hotendrek is helemaal vol, dus je kunt niet van hotend wisselen. Haal eerst een hotend eruit voordat je verder gaat."
+                },
+                {
+                    "ecode": "05024019",
+                    "intro": "Het apparaat is bezig en kan nu geen hotend-rack-taken uitvoeren. Probeer het later nog eens."
+                },
+                {
+                    "ecode": "0300401F",
+                    "intro": "De juiste hotend is niet geïnstalleerd en de gereedschapskop kan geen homing uitvoeren. Installeer de hotend en ga dan verder."
+                },
+                {
+                    "ecode": "05024018",
+                    "intro": "Het hotend-rack is niet gekalibreerd en hotend-switching kan niet worden uitgevoerd. Voltooi de rackkalibratie op het apparaat."
+                },
+                {
+                    "ecode": "05024020",
+                    "intro": "Het hotend-rek is helemaal vol. Haal eerst een hotend weg voordat je verder gaat."
+                },
+                {
+                    "ecode": "05024021",
+                    "intro": "Kan de info van de inductie-hotend niet lezen. Vervang de hotend of start de printer opnieuw op."
+                },
+                {
+                    "ecode": "03004016",
+                    "intro": "Het schoonmaken van de spuitmond is mislukt. Klik op de Assistent voor hulp bij het oplossen van problemen."
+                },
+                {
+                    "ecode": "0300802B",
+                    "intro": "Er is een fout met de motor van het hotend-rek. Check even of er iets in de weg zit dat het rek tegenhoudt en haal dat weg voordat je verder gaat."
+                },
+                {
+                    "ecode": "03008029",
+                    "intro": "MC–hotend rack communicatiefout. Check even of de kabel van het rack-moederbord los zit."
+                },
+                {
+                    "ecode": "05028022",
+                    "intro": "De inductie-hotendcontrole is mislukt. Vervang de hotend en probeer het nog eens."
+                },
+                {
+                    "ecode": "0300802A",
+                    "intro": "Er is een fout met de positiesensor van de motor van het hotend-rek. Als het probleem blijft, start je de printer gewoon opnieuw op."
+                },
+                {
+                    "ecode": "07008036",
+                    "intro": "Het hotend-rek kan niet goed terug naar de startpositie. Kijk even of er iets in de weg zit of dat de bouwplaat scheef zit."
+                },
+                {
+                    "ecode": "18008036",
+                    "intro": "Het hotend-rek kan niet goed terug naar de startpositie. Kijk even of er iets in de weg zit of dat de bouwplaat scheef zit."
+                },
+                {
+                    "ecode": "1A004009",
+                    "intro": "Het hotend-rek is niet ingesteld. Voltooi alstublieft de installatie voordat u een holocale vervanger uitvoert."
+                },
+                {
+                    "ecode": "03008056",
+                    "intro": "Lasermodule gedetecteerd. Verwijder de hotend uit het hotend-rek om te voorkomen dat laserverwerking de prestaties beïnvloedt."
+                },
+                {
+                    "ecode": "05024023",
+                    "intro": "Er is een fout gedetecteerd bij de herkenning van de inductiehotend. Ga naar de pagina 'Hotends & rek' en klik op 'Alles lezen' om opnieuw te detecteren. Als het probleem aanhoudt, probeer dan de firmware bij te werken op de pagina 'Firmware'."
+                },
+                {
+                    "ecode": "07038030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "07048030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18018030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "07018030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18068030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "07078030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "07028030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18058030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18048030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "07058030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18028030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18078030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "18038030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
+                    "ecode": "07068030",
+                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
+                },
+                {
                     "ecode": "0502C024",
-                    "intro": "De flow dynamische kalibratiegegevens hebben de opslaglimiet overschreden. Verwijder alstublieft enkele historische gegevens in de slicer software voordat u nieuwe kalibratiegegevens toevoegt."
+                    "intro": "De kalibratiegegevens van de stroomdynamiek hebben de opslaglimiet overschreden. Verwijder enkele historische gegevens uit de slicersoftware voordat u nieuwe kalibratiegegevens toevoegt."
+                },
+                {
+                    "ecode": "0502C025",
+                    "intro": "Tijdens de kalibratie van de mondstukoffset werd een update van de hotendinformatie gedetecteerd. Ga naar de pagina \"Hotends & Rack\" en klik op \"Alles lezen\" om opnieuw te identificeren. Als het probleem aanhoudt, probeer dan bij te werken vanaf de pagina \"Firmware\"."
+                },
+                {
+                    "ecode": "0500808C",
+                    "intro": "Offset van de buildplaat gedetecteerd. Lijn de bouwplaat uit met het warmtebed en ga dan verder."
+                },
+                {
+                    "ecode": "07028037",
+                    "intro": "Tijdens het printen is een mismatch in het type hotend gedetecteerd. Vervang alstublieft het hotend in sleuf 3 op het rek door het type dat is gespecificeerd in de slicer voordat u verder gaat met het printen."
+                },
+                {
+                    "ecode": "07038037",
+                    "intro": "Tijdens het printen is een mismatch in het type hotend gedetecteerd. Vervang alstublieft het hotend in sleuf 4 op het rek door het type dat is gespecificeerd in de slicer voordat u verder gaat met het printen."
+                },
+                {
+                    "ecode": "07018037",
+                    "intro": "Tijdens het printen is er een mismatch in het type hotend gedetecteerd. Vervang alstublieft het hotend in sleuf 2 op het rek door het type dat is gespecificeerd in de slicer voordat u verder gaat met het printen."
+                },
+                {
+                    "ecode": "07008037",
+                    "intro": "Tijdens het printen is er een mismatch in het type hotend gedetecteerd. Vervang alstublieft het hotend in sleuf 1 op het rek met het type dat is gespecificeerd in de slicer voordat u verder gaat met het printen."
+                },
+                {
+                    "ecode": "07048037",
+                    "intro": "Tijdens het printen is er een mismatch in het type hotend gedetecteerd. Vervang alstublieft het hotend in sleuf 5 op het rek door het type dat is gespecificeerd in de slicer voordat u verder gaat met het printen."
+                },
+                {
+                    "ecode": "07058037",
+                    "intro": "Tijdens het printen is er een mismatch in het type hotend gedetecteerd. Vervang alstublieft het hotend in sleuf 6 op het rek met het type dat is gespecificeerd in de slicer voordat u verder gaat met het printen."
                 },
                 {
                     "ecode": "05008078",
@@ -22582,734 +23346,6 @@
                 {
                     "ecode": "03004044",
                     "intro": "De vlamsensor is abnormaal. De sensor kan kortgesloten zijn. Los het probleem op voordat u een afdruktaak start."
-                },
-                {
-                    "ecode": "0582409C",
-                    "intro": "De firmware van AMS-HT C komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0500409B",
-                    "intro": "De firmware van de lasermodule komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05874096",
-                    "intro": "Niet-gecertificeerde AMS-HT H gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0584409C",
-                    "intro": "De firmware van AMS-HT E komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05004099",
-                    "intro": "De firmware van de snijmodule komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0580409C",
-                    "intro": "De firmware van AMS-HT A komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0500808D",
-                    "intro": "De offsetkalibratie van de snijmodule is mislukt, wat kan leiden tot onnauwkeurige sneden. Zorg ervoor dat het snijmateriaal correct is gepositioneerd en controleer of de punt van het snijblad versleten is."
-                },
-                {
-                    "ecode": "0500409F",
-                    "intro": "Niet-gecertificeerde luchtpomp gedetecteerd; Het apparaat kan niet verder werken.  Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0502409D",
-                    "intro": "De firmware van AMS C komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0581409C",
-                    "intro": "De firmware van AMS-HT B komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05854096",
-                    "intro": "Niet-gecertificeerde AMS-HT E gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0C008043",
-                    "intro": "AI detecteerde klontering van de nozzle. Controleer de nozzleconditie. Raadpleeg de assistent voor oplossingen."
-                },
-                {
-                    "ecode": "0500808E",
-                    "intro": "De initialisatie van de BirdsEye-camera is mislukt. De camera van het gereedschapshoofd heeft de Heatbed-functies niet gedetecteerd. Maak het verwarmingsbed schoon, verwijder alle voorwerpen en kussentjes en zorg ervoor dat de bedmarkeringen zichtbaar zijn. Kijk op de Assistent voor een gedetailleerde oplossing."
-                },
-                {
-                    "ecode": "0503409D",
-                    "intro": "De firmware van AMS D komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008042",
-                    "intro": "De AI-printmonitor heeft een spaghetti-defect gedetecteerd. Controleer de afdruk en onderneem de nodige actie."
-                },
-                {
-                    "ecode": "05834096",
-                    "intro": "Niet-gecertificeerde AMS-HT D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0500808F",
-                    "intro": "De lens van de nozzle-camera is vuil, wat gevolgen heeft voor AI-monitoring. Reinig de lens met een niet-geweven doek en een kleine hoeveelheid alcohol. Pas op voor hitte; Wacht tot het is afgekoeld voordat u het aanraakt."
-                },
-                {
-                    "ecode": "05814096",
-                    "intro": "Niet-gecertificeerde AMS-HT B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05034098",
-                    "intro": "Niet-gecertificeerde AMS D gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0587409C",
-                    "intro": "De firmware van AMS-HT H komt niet overeen met de printer, het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0583409C",
-                    "intro": "De firmware van AMS-HT D komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05014098",
-                    "intro": "Niet-gecertificeerde AMS B gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05004098",
-                    "intro": "Niet-gecertificeerde AMS A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0586409C",
-                    "intro": "De firmware van AMS-HT G komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05824096",
-                    "intro": "Niet-gecertificeerde AMS-HT C gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0585409C",
-                    "intro": "De firmware van AMS-HT F komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0501409D",
-                    "intro": "De firmware van AMS B komt niet overeen met de printer; het apparaat kan niet verder werken. Werk de firmware bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "03004050",
-                    "intro": "Time-out voor kalibratie van de LiveView-camera; Start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0500409D",
-                    "intro": "De firmware van AMS A komt niet overeen met de printer, het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "05804096",
-                    "intro": "Niet-gecertificeerde AMS-HT A gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05024098",
-                    "intro": "Niet-gecertificeerde AMS C gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05004097",
-                    "intro": "Niet-gecertificeerde lasermodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05864096",
-                    "intro": "Niet-gecertificeerde AMS-HT G gedetecteerd; Het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05844096",
-                    "intro": "Niet-gecertificeerde AMS-HT F gedetecteerd, het apparaat kan niet verder werken. Sluit de AMS-HT-kabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "0500409A",
-                    "intro": "De firmware van de luchtpomp komt niet overeen met de printer; Het apparaat kan niet verder werken. Werk het bij op de pagina \"Firmware\"."
-                },
-                {
-                    "ecode": "0C008034",
-                    "intro": "De initialisatie van de Liveview-camera is mislukt. Deze print kan nog steeds doorgaan, maar sommige AI-functies worden uitgeschakeld. Als u dit probleem opnieuw tegenkomt nadat u opnieuw bent opgestart, neem dan contact op met de klantenservice."
-                },
-                {
-                    "ecode": "0500409E",
-                    "intro": "Niet-gecertificeerde snijmodule gedetecteerd; Het apparaat kan niet verder werken. Sluit de modulekabel opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "050080A0",
-                    "intro": "De vision-encoderplaat werd niet gedetecteerd. Controleer of het correct op het warmtebed is geplaatst."
-                },
-                {
-                    "ecode": "0502400B",
-                    "intro": ""
-                },
-                {
-                    "ecode": "03004014",
-                    "intro": "Homing Z-as mislukt: temperatuurregeling abnormaal."
-                },
-                {
-                    "ecode": "0502400E",
-                    "intro": "Kan een nieuwe taak niet starten: De cold pull van de nozzle is niet voltooid."
-                },
-                {
-                    "ecode": "0502400A",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024007",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502C010",
-                    "intro": "Vanwege de vermogensbeperkingen van de printer kunnen afdrukken, kalibreren, controles en andere handelingen niet worden uitgevoerd tijdens het drogen van de AMS. Stop het droogproces voordat u verdergaat met andere bewerkingen."
-                },
-                {
-                    "ecode": "0502400C",
-                    "intro": ""
-                },
-                {
-                    "ecode": "05024009",
-                    "intro": ""
-                },
-                {
-                    "ecode": "0502400D",
-                    "intro": "Kan een nieuwe taak niet starten: filament laden/ontladen niet voltooid."
-                },
-                {
-                    "ecode": "05008090",
-                    "intro": "Bevestig het 80g witte printpapier op het middengedeelte van het platform."
-                },
-                {
-                    "ecode": "0502C00F",
-                    "intro": "Het apparaat is bezig en kan geen nozzle-identificatie uitvoeren."
-                },
-                {
-                    "ecode": "03008022",
-                    "intro": "Het is mogelijk dat het verwarmingsbed tijdens de neerwaartse beweging wordt geblokkeerd. Verwijder voorwerpen onder het verwarmingsbed en controleer op weerstand of vastlopen tijdens de beweging."
-                },
-                {
-                    "ecode": "05024008",
-                    "intro": ""
-                },
-                {
-                    "ecode": "18018033",
-                    "intro": "Het lukte niet om de hotend in houderpositie 2 te zetten. Kijk even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "07058034",
-                    "intro": "Het lukte niet om de hotend uit houder positie 6 te halen. Kijk even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "1A008002",
-                    "intro": "Inductie Hotend rek homing mislukt vanwege een obstakel. Verwijder het obstakel voordat u het printen hervat."
-                },
-                {
-                    "ecode": "07048034",
-                    "intro": "Het is niet gelukt om de hotend uit houderpositie 5 te halen. Controleer op filamentresten of vastklevend materiaal."
-                },
-                {
-                    "ecode": "18048033",
-                    "intro": "Het is niet gelukt om de hotend in houderpositie 5 te plaatsen. Controleer op filamentresten of vastplakkend materiaal."
-                },
-                {
-                    "ecode": "1A008003",
-                    "intro": "De homingafstand van het hotend-rek is abnormaal lang. Controleer of de distributieriem los of gebroken is."
-                },
-                {
-                    "ecode": "07038034",
-                    "intro": "Het is niet gelukt om de hotend uit houderpositie 4 te halen. Controleer op filamentresten of vastplakkend materiaal."
-                },
-                {
-                    "ecode": "18008034",
-                    "intro": "Het is niet gelukt om de hotend uit houderpositie 1 te halen. Controleer op filamentresten of vastklevend materiaal."
-                },
-                {
-                    "ecode": "18008035",
-                    "intro": "Grove homing van het hotend-rek mislukt. Controleer op obstakels of een verkeerde uitlijning van de bouwplaat."
-                },
-                {
-                    "ecode": "18038034",
-                    "intro": "Het lukte niet om de hotend uit houder positie 4 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "07048033",
-                    "intro": "Het lukte niet om de hotend in houderpositie 5 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "1A008004",
-                    "intro": "Voordat je de lasermodus gebruikt of de positie van het hotendrek kalibreert, moet je eerst alle hotends uit het rek halen."
-                },
-                {
-                    "ecode": "18028034",
-                    "intro": "Het is niet gelukt om de hotend uit houderpositie 3 te halen. Controleer op filamentresten of vastplakkend materiaal."
-                },
-                {
-                    "ecode": "07028034",
-                    "intro": "Het lukte niet om de hotend uit houder positie 3 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "07008031",
-                    "intro": "Vergrendeling mislukt; Controleer of er plakkerig materiaal op de nozzle zit."
-                },
-                {
-                    "ecode": "07018034",
-                    "intro": "Het is niet gelukt om de hotend uit houderpositie 2 te halen. Controleer op filamentresten of vastklevend materiaal."
-                },
-                {
-                    "ecode": "18018034",
-                    "intro": "Het lukte niet om de hotend uit houder positie 2 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "07008035",
-                    "intro": "Grove homing van de hotend-houder mislukt. Controleer op obstakels of een verkeerde uitlijning van de bouwplaat."
-                },
-                {
-                    "ecode": "18028033",
-                    "intro": "De hotend is niet in positie 3 van het gereedschapsmagazijn geplaatst. Controleer of er filament vastzit op de nozzle of dat het filament niet goed is afgesneden."
-                },
-                {
-                    "ecode": "18058034",
-                    "intro": "Het is niet gelukt om de hotend uit houderpositie 6 te halen. Controleer op filamentresten of vastplakkend materiaal."
-                },
-                {
-                    "ecode": "18008031",
-                    "intro": "Vergrendeling mislukt; controleer of er kleverig materiaal op het mondstuk zit."
-                },
-                {
-                    "ecode": "18008032",
-                    "intro": "Ontgrendeling mislukt; controleer de installatiepositie van de uitwerperstang."
-                },
-                {
-                    "ecode": "18008030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "03008071",
-                    "intro": "De Toolhead Enhanced Cooling Fan module werkt niet goed."
-                },
-                {
-                    "ecode": "07008034",
-                    "intro": "Het is niet gelukt het verwarmingselement te verwijderen op positie 1 van het gereedschapsmagazijn. Controleer of het verwarmingselement vastzit aan de basis en controleer of het filament in de extruder is afgesneden."
-                },
-                {
-                    "ecode": "1A004001",
-                    "intro": "Grove homing van het hotend-rek mislukt. Het printen is geannuleerd. Controleer of er een obstakel is dat de beweging van het rek blokkeert."
-                },
-                {
-                    "ecode": "07028033",
-                    "intro": "Het lukte niet om de hotend in houderpositie 3 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zit."
-                },
-                {
-                    "ecode": "18058033",
-                    "intro": "Het is niet gelukt om de hotend in houderpositie 6 te plaatsen. Controleer op filamentresten of vastklevend materiaal."
-                },
-                {
-                    "ecode": "18038033",
-                    "intro": "Het lukte niet om de hotend in houderpositie 4 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "18048034",
-                    "intro": "Het lukte niet om de hotend uit houder positie 5 te halen. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "07008033",
-                    "intro": "De hotend is niet in positie 1 van het gereedschapsmagazijn geplaatst. Controleer of er nozzle vastzit op de nozzle of dat het filament niet goed is afgesneden."
-                },
-                {
-                    "ecode": "07018033",
-                    "intro": "De hotend is niet in positie 2 van het gereedschapsmagazijn geplaatst. Controleer of er filament vastzit op de nozzle of dat het filament niet goed is afgesneden."
-                },
-                {
-                    "ecode": "18008033",
-                    "intro": "Het is niet gelukt om de hotend in houderpositie 1 te plaatsen. Controleer op filamentresten of vastklevend materiaal."
-                },
-                {
-                    "ecode": "07008032",
-                    "intro": "Ontgrendelen mislukt; Controleer de installatiepositie van de uitwerpstang."
-                },
-                {
-                    "ecode": "07038033",
-                    "intro": "Het is niet gelukt om de hotend in houderpositie 4 te plaatsen. Controleer op filamentresten of vastklevend materiaal."
-                },
-                {
-                    "ecode": "07058033",
-                    "intro": "Het lukte niet om de hotend in houderpositie 6 te zetten. Check even of er nog filamentresten of vastgeplakt materiaal zitten."
-                },
-                {
-                    "ecode": "07008030",
-                    "intro": "Detectie voor gereedschapswissel mislukt; controleer de plaatsing van de nozzle."
-                },
-                {
-                    "ecode": "05004010",
-                    "intro": "AMS is aan het drogen en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "05004011",
-                    "intro": "De printer is bezig met het laden of lossen van filament en kan op dit moment niet worden geüpgraded. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "05004012",
-                    "intro": "Het apparaat is bezig met afdrukken en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0500400F",
-                    "intro": "AMS wordt geïnitialiseerd en kan momenteel niet worden geüpgraded. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "05004013",
-                    "intro": "AMS is in bedrijf en kan momenteel niet worden geüpgraded. Probeer het opnieuw als het niet actief is."
-                },
-                {
-                    "ecode": "0300C012",
-                    "intro": "Verwarm de nozzle tot boven de 170°C."
-                },
-                {
-                    "ecode": "050040A1",
-                    "intro": "Niet-gecertificeerd brandblusapparaat gedetecteerd; het apparaat kan niet verder werken.  Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "050040A0",
-                    "intro": "Niet-gecertificeerde Laser Vierde As gedetecteerd; het apparaat kan niet verder werken. Sluit de kabel van de module opnieuw aan of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05004030",
-                    "intro": "Het apparaat is momenteel aan het upgraden. Probeer het opnieuw als het niet actief is."
-                },
-                {
-                    "ecode": "07FF8030",
-                    "intro": "Het filament dat in de slicer is ingesteld, is op. Het printen is even gestopt. Ga naar de printer om het materiaal te vervangen en ga verder met printen."
-                },
-                {
-                    "ecode": "07FE8030",
-                    "intro": "Het filament dat in de slicer is ingesteld, is op. Het printen is even gestopt. Ga naar de printer om het materiaal te vervangen en ga verder met printen."
-                },
-                {
-                    "ecode": "0300C056",
-                    "intro": "Er is een kleine brand in de kamer ontdekt en het automatische brandblussysteem is uitgeschakeld."
-                },
-                {
-                    "ecode": "0502C011",
-                    "intro": "Nu in 2D-productiemodus. Ga gewoon door met de printer."
-                },
-                {
-                    "ecode": "03008081",
-                    "intro": "De gasfles van de brandblusser zit niet goed."
-                },
-                {
-                    "ecode": "0300807E",
-                    "intro": "Brandblusser niet gevonden, dus de automatische blusfunctie werkt niet."
-                },
-                {
-                    "ecode": "0300807F",
-                    "intro": "Brandblusser werkt niet goed."
-                },
-                {
-                    "ecode": "03008082",
-                    "intro": "De gascilinder van de brandblusser is leeg."
-                },
-                {
-                    "ecode": "03004021",
-                    "intro": "Er is een probleem met het signaal van de sensor voor het kalibreren van de nozzle-offset. Check de sensor en probeer het nog eens."
-                },
-                {
-                    "ecode": "03008080",
-                    "intro": "Reset van brandblussermotor mislukt."
-                },
-                {
-                    "ecode": "0300807D",
-                    "intro": "Brandblusser niet gevonden, dus de automatische blusfunctie werkt niet."
-                },
-                {
-                    "ecode": "0502C012",
-                    "intro": "De kalibratietaak kan niet worden gepauzeerd."
-                },
-                {
-                    "ecode": "05008091",
-                    "intro": "De offsetkalibratie van de snijmodule is mislukt, waardoor de sneden misschien niet goed uitkomen. Zorg ervoor dat het witte printerpapier van 80 g (letterformaat) goed ligt en check of het mesje nog scherp is."
-                },
-                {
-                    "ecode": "0300404B",
-                    "intro": "Taak gestopt omdat de voordeur of bovenklep open is."
-                },
-                {
-                    "ecode": "03008028",
-                    "intro": "Fout in de kalibratiesensor van de nozzle-offset. Als je maar één hotend gebruikt of de kalibratiefunctie is uitgeschakeld, kun je dit negeren en doorgaan met printen. Anders is het beter om de sensor te checken voordat je verdergaat."
-                },
-                {
-                    "ecode": "05008041",
-                    "intro": "Het filament in de hotend is te koud. Extrusie kan de extruder beschadigen. Wordt het filament nog steeds in- of uitgevoerd?"
-                },
-                {
-                    "ecode": "0300C070",
-                    "intro": "De brandblusser is gevonden en kan worden gebruikt zodra de lasermodule is aangesloten."
-                },
-                {
-                    "ecode": "05008093",
-                    "intro": "De siliconen huls van het nozzle is niet geïnstalleerd; er bestaat een risico op een storing in de temperatuurregeling. Installeer de huls correct en probeer het opnieuw."
-                },
-                {
-                    "ecode": "05008092",
-                    "intro": "Het opstarten van de toolheadcamera is mislukt. Je kunt gewoon doorgaan met printen, maar sommige AI-functies werken niet meer. Als je dit probleem na het opnieuw opstarten nog steeds hebt, neem dan even contact op met de klantenservice."
-                },
-                {
-                    "ecode": "03008023",
-                    "intro": "De XY-motor kon niet goed terug naar de startpositie tijdens het terugzetten van de hotendhouder. Kijk even of er iets in de weg zit en probeer het nog een keer."
-                },
-                {
-                    "ecode": "03008027",
-                    "intro": "De hotend is tijdens het printen uit de houder gevallen. Zet hem weer terug op zijn plek voordat je verder gaat."
-                },
-                {
-                    "ecode": "03008024",
-                    "intro": "De hotendhouder kan niet terug naar de startpositie. Kijk even of er iets in de weg zit en probeer het nog een keer."
-                },
-                {
-                    "ecode": "03008026",
-                    "intro": "Laser-/kalibratiemodus: Haal alle hotends uit de houder voordat je het opnieuw probeert."
-                },
-                {
-                    "ecode": "03008025",
-                    "intro": "De terugkeerweg van de hotendhouder is te lang. Check even of de tandriem en het motorwiel niet los zitten of beschadigd zijn."
-                },
-                {
-                    "ecode": "05004032",
-                    "intro": "Het hotendwisselsysteem is bezig; doe de upgrade als het even rustig is."
-                },
-                {
-                    "ecode": "07008018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "0500807E",
-                    "intro": "Plaats a.u.b. een StrongGrip snijmat op de snijbeschermingsbasis."
-                },
-                {
-                    "ecode": "07028018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "05004046",
-                    "intro": "Het printen is gestopt omdat het 3MF-bestand niet goed is. Check even of je tijdens het slicen het juiste printermodel hebt gekozen, of update Studio en slice het bestand opnieuw."
-                },
-                {
-                    "ecode": "07058018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "07038018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "07FE8018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "07048018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "0502C014",
-                    "intro": "De AMS-schatting van resterende filament is standaard aan en kan niet worden uitgeschakeld."
-                },
-                {
-                    "ecode": "07068018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "05004047",
-                    "intro": "Het printen is gestopt omdat het aantal beschikbare hotends of het model niet klopt met het geslicede bestand. Check even het hotendmodel en het aantal voordat je de printklus opnieuw start."
-                },
-                {
-                    "ecode": "07018018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "07078018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "07FF8018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "05024015",
-                    "intro": "De authenticatie van de hotend is mislukt. Probeer een andere hotend of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "05024017",
-                    "intro": "Het testen van de inductie-hotend is mislukt omdat de hotend-schakelaar te lang heeft gewacht. Probeer het nog eens."
-                },
-                {
-                    "ecode": "18008018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "18FE8018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "18028018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "18FF8018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "18078018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "18058018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "18048018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "05024016",
-                    "intro": "Er is geen hotend gevonden in de inductie-hotendhouder of het hotendrek. Zet een hotend in en probeer het nog eens."
-                },
-                {
-                    "ecode": "1A004007",
-                    "intro": "Het kalibreren van het inductie-hotendrek is mislukt, check even de Assistent."
-                },
-                {
-                    "ecode": "18038018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "18068018",
-                    "intro": "Het filament en de hotend passen niet bij elkaar; klik op \"Doorgaan\" om het nog een keer te proberen."
-                },
-                {
-                    "ecode": "18018018",
-                    "intro": "Het lukte niet om de filament-hotend-toewijzingstabel uit het slicing-bestand te halen. Klik op \"Doorgaan\" om het nog eens te proberen."
-                },
-                {
-                    "ecode": "03008053",
-                    "intro": "Lasermodule gedetecteerd. Installeer de juiste nozzle correct om een ​​correcte kalibratie van de lasermodule te garanderen."
-                },
-                {
-                    "ecode": "03008084",
-                    "intro": "De juiste hotend-heatbreaktemperatuur is te hoog, wat verstopping kan veroorzaken. Open de bovenklep en de voorklep van de printer om de kamertemperatuur te verlagen of verlaag de omgevingstemperatuur."
-                },
-                {
-                    "ecode": "1A004008",
-                    "intro": "Het hotendrek is helemaal vol, dus je kunt niet van hotend wisselen. Haal eerst een hotend eruit voordat je verder gaat."
-                },
-                {
-                    "ecode": "05024019",
-                    "intro": "Het apparaat is bezig en kan nu geen hotend-rack-taken uitvoeren. Probeer het later nog eens."
-                },
-                {
-                    "ecode": "0300401F",
-                    "intro": "De juiste hotend is niet geïnstalleerd en de gereedschapskop kan geen homing uitvoeren. Installeer de hotend en ga dan verder."
-                },
-                {
-                    "ecode": "05024018",
-                    "intro": "Het hotend-rack is niet gekalibreerd en hotend-switching kan niet worden uitgevoerd. Voltooi de rackkalibratie op het apparaat."
-                },
-                {
-                    "ecode": "05024020",
-                    "intro": "Het hotend-rek is helemaal vol. Haal eerst een hotend weg voordat je verder gaat."
-                },
-                {
-                    "ecode": "05024021",
-                    "intro": "Kan de info van de inductie-hotend niet lezen. Vervang de hotend of start de printer opnieuw op."
-                },
-                {
-                    "ecode": "03004016",
-                    "intro": "Het schoonmaken van de spuitmond is mislukt. Klik op de Assistent voor hulp bij het oplossen van problemen."
-                },
-                {
-                    "ecode": "0300802B",
-                    "intro": "Er is een fout met de motor van het hotend-rek. Check even of er iets in de weg zit dat het rek tegenhoudt en haal dat weg voordat je verder gaat."
-                },
-                {
-                    "ecode": "03008029",
-                    "intro": "MC–hotend rack communicatiefout. Check even of de kabel van het rack-moederbord los zit."
-                },
-                {
-                    "ecode": "05028022",
-                    "intro": "De inductie-hotendcontrole is mislukt. Vervang de hotend en probeer het nog eens."
-                },
-                {
-                    "ecode": "0300802A",
-                    "intro": "Er is een fout met de positiesensor van de motor van het hotend-rek. Als het probleem blijft, start je de printer gewoon opnieuw op."
-                },
-                {
-                    "ecode": "07008036",
-                    "intro": "Het hotend-rek kan niet goed terug naar de startpositie. Kijk even of er iets in de weg zit of dat de bouwplaat scheef zit."
-                },
-                {
-                    "ecode": "18008036",
-                    "intro": "Het hotend-rek kan niet goed terug naar de startpositie. Kijk even of er iets in de weg zit of dat de bouwplaat scheef zit."
-                },
-                {
-                    "ecode": "1A004009",
-                    "intro": "Het hotend-rek is niet ingesteld. Voltooi alstublieft de installatie voordat u een holocale vervanger uitvoert."
-                },
-                {
-                    "ecode": "03008056",
-                    "intro": "Lasermodule gedetecteerd. Verwijder de hotend uit het hotend-rek om te voorkomen dat laserverwerking de prestaties beïnvloedt."
-                },
-                {
-                    "ecode": "05024023",
-                    "intro": "Er is een fout gedetecteerd bij de herkenning van de inductiehotend. Ga naar de pagina 'Hotends & rek' en klik op 'Alles lezen' om opnieuw te detecteren. Als het probleem aanhoudt, probeer dan de firmware bij te werken op de pagina 'Firmware'."
-                },
-                {
-                    "ecode": "07038030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "07048030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18018030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "07018030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18068030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "07078030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "07028030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18058030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18048030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "07058030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18028030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18078030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "18038030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
-                },
-                {
-                    "ecode": "07068030",
-                    "intro": "Hotend pre-swap controle mislukt. Controleer of de hotend correct is geplaatst."
                 }
             ]
         }
