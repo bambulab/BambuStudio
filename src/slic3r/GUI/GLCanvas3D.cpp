@@ -11216,7 +11216,7 @@ bool GLCanvas3D::is_flushing_matrix_error() {
     const std::vector<double> &config_multiplier = (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values;
 
     for (auto multiplier : config_multiplier) {
-        if (multiplier == 0) return true;
+        if (multiplier == 0 && config_matrix.size() >= config_multiplier.size() * 4) return true;
     }
 
     int  matrix_len = config_matrix.size() / config_multiplier.size();
