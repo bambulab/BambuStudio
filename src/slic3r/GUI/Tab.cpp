@@ -1117,11 +1117,6 @@ void Tab::update_extruder_switch_colors()
         return;
     }
 
-    int extruder_count = m_preset_bundle->get_printer_extruder_count();
-    if (extruder_count <= 1) {
-        return;
-    }
-
     auto options = generate_extruder_options();
     auto extruders = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
 
