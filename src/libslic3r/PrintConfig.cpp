@@ -4059,9 +4059,9 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_retract_length_nc", coFloats);
-    def->label = L("length when change nozzle");
+    def->label = L("length when change hotend");
     def->tooltip = L("When this retraction value is modified, it will be used as the amount of filament retracted "
-                   "inside the nozzle before changing nozzles.");
+                   "inside the hotend before changing hotends.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
     def->nullable = true;
