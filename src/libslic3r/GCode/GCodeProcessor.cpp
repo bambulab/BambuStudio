@@ -1315,48 +1315,56 @@ void GCodeProcessor::UsedFilaments::process_color_change_cache()
 
 void GCodeProcessor::UsedFilaments::process_total_volume_cache(GCodeProcessor* processor)
 {
-    size_t active_filament_id = processor->get_filament_id();
+    int active_filament_id = processor->get_filament_id();
     if (total_volume_cache!= 0.0f) {
-        if (total_volumes_per_filament.find(active_filament_id) != total_volumes_per_filament.end())
-            total_volumes_per_filament[active_filament_id] += total_volume_cache;
-        else
-            total_volumes_per_filament[active_filament_id] = total_volume_cache;
+        if(active_filament_id != -1){
+            if (total_volumes_per_filament.find(active_filament_id) != total_volumes_per_filament.end())
+                total_volumes_per_filament[active_filament_id] += total_volume_cache;
+            else
+                total_volumes_per_filament[active_filament_id] = total_volume_cache;
+        }
         total_volume_cache = 0.0f;
     }
 }
 
 void GCodeProcessor::UsedFilaments::process_model_cache(GCodeProcessor* processor)
 {
-    size_t active_filament_id = processor->get_filament_id();
+    int active_filament_id = processor->get_filament_id();
     if (model_extrude_cache != 0.0f) {
-        if (model_volumes_per_filament.find(active_filament_id) != model_volumes_per_filament.end())
-            model_volumes_per_filament[active_filament_id] += model_extrude_cache;
-        else
-            model_volumes_per_filament[active_filament_id] = model_extrude_cache;
+        if(active_filament_id != -1){
+            if (model_volumes_per_filament.find(active_filament_id) != model_volumes_per_filament.end())
+                model_volumes_per_filament[active_filament_id] += model_extrude_cache;
+            else
+                model_volumes_per_filament[active_filament_id] = model_extrude_cache;
+        }
         model_extrude_cache = 0.0f;
     }
 }
 
 void GCodeProcessor::UsedFilaments::process_wipe_tower_cache(GCodeProcessor* processor)
 {
-    size_t active_filament_id = processor->get_filament_id();
+    int active_filament_id = processor->get_filament_id();
     if (wipe_tower_cache != 0.0f) {
-        if (wipe_tower_volumes_per_filament.find(active_filament_id) != wipe_tower_volumes_per_filament.end())
-            wipe_tower_volumes_per_filament[active_filament_id] += wipe_tower_cache;
-        else
-            wipe_tower_volumes_per_filament[active_filament_id] = wipe_tower_cache;
+        if(active_filament_id != -1){
+            if (wipe_tower_volumes_per_filament.find(active_filament_id) != wipe_tower_volumes_per_filament.end())
+                wipe_tower_volumes_per_filament[active_filament_id] += wipe_tower_cache;
+            else
+                wipe_tower_volumes_per_filament[active_filament_id] = wipe_tower_cache;
+        }
         wipe_tower_cache = 0.0f;
     }
 }
 
 void GCodeProcessor::UsedFilaments::process_support_cache(GCodeProcessor* processor)
 {
-    size_t active_filament_id = processor->get_filament_id();
+    int active_filament_id = processor->get_filament_id(false);
     if (support_volume_cache != 0.0f){
-        if (support_volumes_per_filament.find(active_filament_id) != support_volumes_per_filament.end())
-            support_volumes_per_filament[active_filament_id] += support_volume_cache;
-        else
-            support_volumes_per_filament[active_filament_id] = support_volume_cache;
+        if(active_filament_id != -1){
+            if (support_volumes_per_filament.find(active_filament_id) != support_volumes_per_filament.end())
+                support_volumes_per_filament[active_filament_id] += support_volume_cache;
+            else
+                support_volumes_per_filament[active_filament_id] = support_volume_cache;
+        }
         support_volume_cache = 0.0f;
     }
 }
@@ -3780,7 +3788,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     process_helioadditive_comment(line);
 
     int filament_id = get_filament_id();
-    int last_filament_id = get_last_filament_id();
+    int last_filament_id = get_last_filament_id(false);
     float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
@@ -3911,11 +3919,13 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
         float volume_flushed_filament = area_filament_cross_section * delta_pos[E];
         if (m_remaining_volume[extruder_id] > volume_flushed_filament)
         {
-            m_used_filaments.update_flush_per_filament(last_filament_id, volume_flushed_filament);
+            if (last_filament_id != -1)
+                m_used_filaments.update_flush_per_filament(last_filament_id, volume_flushed_filament);
             m_remaining_volume[extruder_id] -= volume_flushed_filament;
         }
         else {
-            m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume[extruder_id]);
+            if (last_filament_id != -1)
+                m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume[extruder_id]);
             m_used_filaments.update_flush_per_filament(filament_id, volume_flushed_filament - m_remaining_volume[extruder_id]);
             m_remaining_volume[extruder_id] = 0.f;
         }
@@ -4179,7 +4189,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 {
     int filament_id = get_filament_id();
-    int last_filament_id = get_last_filament_id();
+    int last_filament_id = get_last_filament_id(false);
     float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
@@ -4311,11 +4321,13 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
         float volume_flushed_filament = area_filament_cross_section * delta_pos[E];
         if (m_remaining_volume[extruder_id] > volume_flushed_filament)
         {
-            m_used_filaments.update_flush_per_filament(last_filament_id, volume_flushed_filament);
+            if (last_filament_id != -1)
+                m_used_filaments.update_flush_per_filament(last_filament_id, volume_flushed_filament);
             m_remaining_volume[extruder_id] -= volume_flushed_filament;
         }
         else {
-            m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume[extruder_id]);
+            if (last_filament_id != -1)
+                m_used_filaments.update_flush_per_filament(last_filament_id, m_remaining_volume[extruder_id]);
             m_used_filaments.update_flush_per_filament(filament_id, volume_flushed_filament - m_remaining_volume[extruder_id]);
             m_remaining_volume[extruder_id] = 0.f;
         }
