@@ -3021,23 +3021,21 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
 
     {//over write the seprate filament for features config
         auto resolve_filament_value = [&](const std::string &key, int default_or_parent, int previous_value) -> int {
-            int   filament_vlue_temp = 0;
-            auto *opt_vol            = volume.config.get().opt<ConfigOptionInt>(key);
-            auto *opt_obj            = volume.get_object()->config.get().opt<ConfigOptionInt>(key);
+            int   filament_value_temp = 0;
+            auto *opt_vol             = volume.config.get().opt<ConfigOptionInt>(key);
+            auto *opt_obj             = volume.get_object()->config.get().opt<ConfigOptionInt>(key);
             if (opt_vol) // deside use which value
-                filament_vlue_temp = opt_vol->value;
+                filament_value_temp = opt_vol->value;
             else if (opt_obj)
-                filament_vlue_temp = opt_obj->value;
-            else
-                filament_vlue_temp = default_or_parent;
+                filament_value_temp = opt_obj->value;
 
             if (layer_range_config != nullptr && volume.is_model_part()) {
                 auto *opt = layer_range_config->opt<ConfigOptionInt>(key);
-                if (opt) filament_vlue_temp = opt->value;
+                if (opt) filament_value_temp = opt->value;
             }
 
-            if (filament_vlue_temp > 0)
-                return filament_vlue_temp;
+            if (filament_value_temp > 0)
+                return filament_value_temp;
             else
                 return previous_value;
         };
