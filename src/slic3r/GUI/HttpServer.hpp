@@ -48,7 +48,10 @@ namespace GUI {
 
         void send_text_response(const std::string& text_data);
 
+        void set_scramble_key(std::string key);
+
     private:
+        std::string m_scramble_key = "";
         void do_read() {
             auto self = shared_from_this();
             req_ = {}; // reset

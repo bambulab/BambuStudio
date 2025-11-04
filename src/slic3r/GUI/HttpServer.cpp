@@ -3,8 +3,107 @@
 #include "GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include <algorithm>
 
 namespace Slic3r {
+
+namespace Scramble {
+std::vector<int> generatePRSequence(int length, int seed) {
+    std::vector<int> prSeq;
+    if (length <= 0) return prSeq;
+
+    int lfsr = seed & 0x7F;
+    for (int i = 0; i < length; ++i) {
+        int prBit = (lfsr >> 6) & 1;
+        prSeq.push_back(prBit);
+
+
+        int feedback = ((lfsr >> 6) ^ (lfsr >> 3)) & 1;
+        lfsr = ((lfsr << 1) | feedback) & 0x7F;
+    }
+    return prSeq;
+}
+
+std::string scrambleAsymmetric(const std::string& original, int seed) {
+    if (original.empty()) return "";
+
+    for (char c : original) {
+        if (c != '0' && c != '1') {
+            return "";
+        }
+    }
+
+    std::vector<int> bits;
+    for (char c : original) {
+        bits.push_back(c - '0');
+    }
+    int length = bits.size();
+
+    std::vector<int> prSeq = generatePRSequence(length, seed);
+    std::vector<int> xorBits;
+    for (int i = 0; i < length; ++i) {
+        xorBits.push_back(bits[i] ^ prSeq[i]);
+    }
+
+    std::reverse(xorBits.begin(), xorBits.end());
+
+    std::string scrambled;
+    for (int bit : xorBits) {
+        scrambled += (bit ? '1' : '0');
+    }
+    return scrambled;
+}
+
+std::string descrambleAsymmetric(const std::string& scrambled, int seed) {
+    if (scrambled.empty()) return "";
+
+    for (char c : scrambled) {
+        if (c != '0' && c != '1') {
+            return "";
+        }
+    }
+
+    std::vector<int> bits;
+    for (char c : scrambled) {
+        bits.push_back(c - '0');
+    }
+    std::reverse(bits.begin(), bits.end());
+    int length = bits.size();
+
+    std::vector<int> prSeq = generatePRSequence(length, seed);
+    std::vector<int> originalBits;
+    for (int i = 0; i < length; ++i) {
+        originalBits.push_back(bits[i] ^ prSeq[i]);
+    }
+
+    std::string original;
+    for (int bit : originalBits) {
+        original += (bit ? '1' : '0');
+    }
+    return original;
+}
+
+static int generateSeedFromKey(const std::string& key) {
+    if (key.empty()) return 0b1010101;
+
+    int seed = 0;
+    for (char c : key) {
+        seed = (seed * 31 + static_cast<unsigned char>(c)) & 0x7F;
+    }
+    return seed;
+}
+
+std::string scrambleWithKey(const std::string& original, const std::string& key) {
+    int seed = generateSeedFromKey(key);
+    return scrambleAsymmetric(original, seed);
+}
+
+std::string descrambleWithKey(const std::string& scrambled, const std::string& key) {
+    int seed = generateSeedFromKey(key);
+    return descrambleAsymmetric(scrambled, seed);
+}
+} // Scramble
+
 namespace GUI {
 
     struct TokenResp {
@@ -285,7 +384,7 @@ void session::send_text_response(const std::string& text_data)
     auto res = std::make_shared<http::response<string_body>>(status::ok, 11);
     res->set(field::content_type, "text/plain; charset=utf-8");
     res->keep_alive(false);
-    res->body() = text_data;
+    res->body() = Scramble::scrambleWithKey(text_data, m_scramble_key);
     res->prepare_payload();
 
     auto self = shared_from_this();
@@ -312,6 +411,11 @@ static void refresh_agora_url(char const* device, char const* dev_ver, char cons
     });
 }
 
+void session::set_scramble_key(std::string key)
+{
+    m_scramble_key = key;
+}
+
 void session::handle_refresh_token()
 {
     BOOST_LOG_TRIVIAL(info) << "new request received: refresh token";
@@ -322,6 +426,7 @@ void session::handle_refresh_token()
         std::string dev_ver;
         std::string channel;
     } out;
+    std::string dkey;
 
     std::string target = req_.target(); // "/refresh_token?device=...&dev_ver=...&channel=..."
     size_t qpos = target.find('?');
@@ -332,9 +437,17 @@ void session::handle_refresh_token()
     std::string query = target.substr(qpos + 1);
 
     auto params = parse_query(query);
+    if (auto it = params.find("dkey"); it != params.end()) {
+        dkey = url_decode(it->second);
+        set_scramble_key(dkey);
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << "refresh token: invalid dkey";
+        return;
+    }
 
     if (auto it = params.find("did"); it != params.end())
-        out.device = url_decode(it->second);
+        out.device = Scramble::descrambleWithKey(url_decode(it->second), dkey);
     if (auto it = params.find("dver"); it != params.end())
         out.dev_ver = url_decode(it->second);
     if (auto it = params.find("dcha"); it != params.end())

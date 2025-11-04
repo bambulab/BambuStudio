@@ -643,9 +643,10 @@ void MediaPlayCtrl::ToggleStream()
                     .ShowModal();
                 return;
             }
-
+            std::string url_alt = url;
             if (url.find("agora") != std::string::npos) {
                 wxGetApp().start_http_server();
+                url_alt += "&auxiliary_enable=1";
                 if (wxGetApp().app_config->get("not_show_agora_tips") != "1") {
                     MessageDialog msg_dlg(this->GetParent(),
                                         _L("The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."),
@@ -658,7 +659,7 @@ void MediaPlayCtrl::ToggleStream()
 
             std::string             file_url = data_dir() + "/cameratools/url.txt";
             boost::nowide::ofstream file(file_url);
-            auto                    url2 = encode_path(url.c_str());
+            auto                    url2 = encode_path(url_alt.c_str());
             file.write(url2.c_str(), url2.size());
             file.close();
             m_streaming = true;
