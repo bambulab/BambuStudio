@@ -274,6 +274,7 @@ void PrintJob::process()
     params.auto_bed_leveling    = this->auto_bed_leveling;
     params.auto_flow_cali       = this->auto_flow_cali;
     params.auto_offset_cali     = this->auto_offset_cali;
+    params.extruder_cali_manual_mode = this->extruder_cali_manual_mode;
     params.task_ext_change_assist = this->task_ext_change_assist;
     params.try_emmc_print         = this->could_emmc_print;
 
