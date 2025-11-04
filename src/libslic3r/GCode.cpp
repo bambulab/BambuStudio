@@ -4422,8 +4422,6 @@ GCode::LayerResult GCode::process_layer(
             m_filament_instances_code = _encode_label_ids_to_base64(filament_instances_id);
         }
 
-		// For the change_filament_gcode to Determine whether the current layer has a wipe tower
-        m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower && !m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back()));
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
                 if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
@@ -4448,6 +4446,7 @@ GCode::LayerResult GCode::process_layer(
                     gcode += insert_wrapping_detection_gcode();
                     has_insert_wrapping_detection_gcode = true;
                 }
+                m_placeholder_parser.set("has_wipe_tower_this_layer", new ConfigOptionBool(true));
                 gcode += m_wipe_tower->tool_change(*this, extruder_id, extruder_id == layer_tools.extruders.back());
             }
         } else {
@@ -4469,7 +4468,7 @@ GCode::LayerResult GCode::process_layer(
                 gcode += insert_wrapping_detection_gcode();
                 has_insert_wrapping_detection_gcode = true;
             }
-
+            m_placeholder_parser.set("has_wipe_tower_this_layer", new ConfigOptionBool(false));
             gcode += this->set_extruder(extruder_id, print_z);
         }
 
@@ -4759,10 +4758,9 @@ GCode::LayerResult GCode::process_layer(
         if (m_config.nozzle_diameter.values.size() == 2
             && m_support_traditional_timelapse
             && m_config.timelapse_type.value == TimelapseType::tlTraditional
-            && (writer().filament() && get_extruder_id(writer().filament()->id()) != most_used_extruder))
+            && (writer().filament() && get_extruder_id(writer().filament()->id()) != most_used_extruder)
+            && !m_placeholder_parser.config().opt_bool("has_wipe_tower_this_layer"))
         {
-            auto extruder_id = get_extruder_id(writer().filament()->id());
-            if (!has_wipe_tower || m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back()))
             m_support_traditional_timelapse = false;
         }
         if (FILAMENT_CONFIG(retract_when_changing_layer)) {
