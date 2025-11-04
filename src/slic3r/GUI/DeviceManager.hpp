@@ -302,7 +302,7 @@ public:
     DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
     void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id) { m_auto_nozzle_mapping.SetManualNozzleMapping(this, fila_id, nozzle_pos_id); };// nozzle_pos_id is O\0x10\0x20\0x30...
     void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
-    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt);
+    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
 
     /* ams settings*/
     std::optional<bool> IsDetectOnInsertEnabled() const;
@@ -622,6 +622,7 @@ public:
 
     // fun2
     bool is_support_print_with_emmc{false};
+    bool is_support_pa_mode{false};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;

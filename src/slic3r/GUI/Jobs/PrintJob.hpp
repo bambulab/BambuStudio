@@ -91,11 +91,13 @@ public:
     int         auto_bed_leveling{0};
     int         auto_flow_cali{0};
     int         auto_offset_cali{0};
+    int         extruder_cali_manual_mode = -1;
 
     void set_print_config(std::string bed_type, bool bed_leveling, bool flow_cali, bool vabration_cali, bool record_timelapse, bool layer_inspect, bool ext_change_assist,
         int auto_bed_levelingt,
         int auto_flow_calit,
-        int auto_offset_calit)
+        int auto_offset_calit,
+        int extruder_calit_manual_mode)
     {
         task_bed_type       = bed_type;
         task_bed_leveling   = bed_leveling;
@@ -108,7 +110,7 @@ public:
         auto_bed_leveling = auto_bed_levelingt;
         auto_flow_cali = auto_flow_calit;
         auto_offset_cali = auto_offset_calit;
-
+        extruder_cali_manual_mode = extruder_calit_manual_mode;
     }
 
     int  status_range() const override
