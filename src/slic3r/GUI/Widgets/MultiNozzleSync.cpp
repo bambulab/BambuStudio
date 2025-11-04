@@ -595,7 +595,8 @@ wxString NozzleListTable::BuildTextObjStr()
     text_obj += wxString::Format("\"left_label\":\"%s\",", Left);
     text_obj += wxString::Format("\"right_label\":\"%s\",", Right);
     text_obj += wxString::Format("\"highflow_label\":\"%s\",", highflow);
-    text_obj += wxString::Format("\"standard_label\":\"%s\"", standard);
+    text_obj += wxString::Format("\"standard_label\":\"%s\",", standard);
+    text_obj += wxString::Format("\"language\":\"%s\"", wxGetApp().app_config->get_language_code());
     text_obj += "}";
 
     return text_obj;
