@@ -3416,10 +3416,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
     if (auto nozzle_stats_ptr = config.option<ConfigOptionStrings>("extruder_nozzle_stats");
-        nozzle_stats_ptr && !std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(), [](const std::string& elem) {return elem.empty(); })) {
+        nozzle_stats_ptr && !(nozzle_stats_ptr->values.empty() ||
+                              std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(), [](const std::string &elem) { return elem.empty(); }))) {
         this->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
-    }
-    else {
+    } else {
         auto nozzle_volume_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         if (this->extruder_nozzle_stat.get_raw_stat().size() != nozzle_volume_opt->size())
             this->extruder_nozzle_stat.on_printer_model_change(this);
