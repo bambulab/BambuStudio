@@ -41,8 +41,8 @@
         "2"
     ],
     "filament_retraction_length": [
-        "2",
-        "2"
+        "1",
+        "1"
     ],
     "filament_retraction_speed": [
         "10",
@@ -103,6 +103,9 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.6 nozzle",

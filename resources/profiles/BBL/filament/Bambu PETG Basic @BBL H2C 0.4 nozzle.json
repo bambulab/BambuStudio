@@ -10,8 +10,8 @@
         "0.97"
     ],
     "filament_max_volumetric_speed": [
-        "13",
-        "13"
+        "18",
+        "21"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -57,16 +57,22 @@
         "18",
         "18"
     ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "fan_max_speed": [
+        "30"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
     "nozzle_temperature": [
-        "255",
-        "255"
+        "250",
+        "250"
     ],
     "nozzle_temperature_initial_layer": [
-        "255",
-        "255"
+        "245",
+        "245"
     ],
     "pre_start_fan_time": [
         "2"
