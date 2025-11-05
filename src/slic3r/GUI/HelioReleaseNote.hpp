@@ -137,6 +137,7 @@ private:
     wxPanel* panel_simulation{nullptr};
     wxPanel* panel_pay_optimization{nullptr};
     wxPanel* panel_optimization{nullptr};
+    wxPanel* panel_velocity_volumetric{nullptr};
 
     wxPanel* advanced_settings_link{nullptr};
     LinkLabel* buy_now_link{nullptr};
@@ -166,7 +167,7 @@ public:
 private:
     wxBoxSizer* create_input_item(wxWindow* parent, std::string key, wxString name, wxString unit,
                                   const std::vector<std::shared_ptr<TextInputValChecker>>& checkers);
-    wxBoxSizer* create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def);
+    wxBoxSizer* create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def, int width = 120);
     wxBoxSizer* create_input_optimize_layers(wxWindow* parent, int layer_count);
 
     void on_selected_simulation(wxMouseEvent& e) { update_action(0); }

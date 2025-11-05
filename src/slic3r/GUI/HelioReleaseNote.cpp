@@ -643,6 +643,12 @@ static double s_round(double value, int n)
     return std::round(value * factor) / factor;
 }
 
+// Named constants for Limits dropdown selection indices
+static constexpr int LIMITS_HELIO_DEFAULT = 0;
+static constexpr int LIMITS_SLICER_DEFAULT = 1;
+// Width chosen to accommodate "Helio default (recommended)" text in dropdown
+static constexpr int LIMITS_DROPDOWN_WIDTH = 350;
+
  HelioInputDialog::HelioInputDialog(wxWindow *parent /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
@@ -780,73 +786,93 @@ static double s_round(double value, int n)
     config_outerwall[1] = _L("Yes");
     auto outerwall =  create_combo_item(panel_optimization, "optimiza_outerwall", _L("Optimise Outer Walls"), config_outerwall, 0);
 
-    /*advanced Options*/
-    wxBoxSizer* advace_setting_sizer = new wxBoxSizer(wxHORIZONTAL);
-    advanced_settings_link = new wxPanel(panel_optimization);
-    advanced_settings_link->SetBackgroundColour(*wxWHITE);
+    // layers to optimize - now top-level
+    auto plater = Slic3r::GUI::wxGetApp().plater();
+    int layer_count = plater ? plater->get_gcode_layers_count() : 0;
+    wxBoxSizer* layers_to_optimize_item = create_input_optimize_layers(panel_optimization, layer_count);
 
-    Label* more_setting_tips = new Label(advanced_settings_link, Label::Head_14 ,_L("Advanced Settings"));
-    wxFont bold_font = more_setting_tips->GetFont();
-    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-    more_setting_tips->SetFont(bold_font);
-    advace_setting_sizer->Add(more_setting_tips, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
-    advanced_options_icon = new wxStaticBitmap(advanced_settings_link, wxID_ANY, create_scaled_bitmap("helio_advanced_option0", panel_optimization, 18), wxDefaultPosition,
-        wxSize(FromDIP(18), FromDIP(18)));
-    advace_setting_sizer->Add(advanced_options_icon, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
-    advanced_settings_link->SetSizer(advace_setting_sizer);
-    advanced_settings_link->Layout();
-    advanced_settings_link->Fit();
+    // Limits dropdown
+    std::map<int, wxString> config_limits;
+    config_limits[LIMITS_HELIO_DEFAULT] = _L("Helio default (recommended)");
+    config_limits[LIMITS_SLICER_DEFAULT] = _L("Slicer default");
+    // Create Limits dropdown with wider width to fit "Helio default (recommended)" text
+    auto limits = create_combo_item(panel_optimization, "limits", _L("Limits"), config_limits, LIMITS_HELIO_DEFAULT, LIMITS_DROPDOWN_WIDTH);
 
-    /*buy now*/
-    //more_setting_tips->SetForegroundColour(wxColour(49, 49, 49));
-    more_setting_tips->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
-    more_setting_tips->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_ARROW); });
-    advanced_settings_link->Hide();
-
-    /*advanced option*/
-    panel_advanced_option = new wxPanel(panel_optimization);
+    // Create panel for velocity and volumetric speed fields - visibility controlled by Limits selection
+    panel_velocity_volumetric = new wxPanel(panel_optimization);
     if (wxGetApp().dark_mode()) {
-        panel_advanced_option->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+        panel_velocity_volumetric->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     } else {
-        panel_advanced_option->SetBackgroundColour(*wxWHITE);
+        panel_velocity_volumetric->SetBackgroundColour(*wxWHITE);
     }
-    wxBoxSizer* sizer_advanced_option = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* sizer_velocity_volumetric = new wxBoxSizer(wxVERTICAL);
 
+    // velocity and volumetric speed fields
     auto double_min_checker = TextInputValChecker::CreateDoubleMinChecker(0);
 
     // velocity
     float min_speed = 0.0;
     float max_speed = 0.0;
-    auto plater = Slic3r::GUI::wxGetApp().plater();
     if (plater) { plater->get_preview_min_max_value_of_option((int) gcode::EViewType::Feedrate, min_speed, max_speed); }
-    wxBoxSizer* min_velocity_item = create_input_item(panel_advanced_option, "min_velocity", _L("Min Velocity"), wxT("mm/s"), { double_min_checker } );
+    wxBoxSizer* min_velocity_item = create_input_item(panel_velocity_volumetric, "min_velocity", _L("Min Velocity"), wxT("mm/s"), { double_min_checker } );
     m_input_items["min_velocity"]->GetTextCtrl()->SetLabel(wxString::Format("%.0f", s_round(min_speed, 0)));
 
-    wxBoxSizer* max_velocity_item = create_input_item(panel_advanced_option, "max_velocity", _L("Max Velocity"), wxT("mm/s"), { double_min_checker });
+    wxBoxSizer* max_velocity_item = create_input_item(panel_velocity_volumetric, "max_velocity", _L("Max Velocity"), wxT("mm/s"), { double_min_checker });
     m_input_items["max_velocity"]->GetTextCtrl()->SetLabel(wxString::Format("%.0f", s_round(max_speed, 0)));
 
     // volumetric speed
     float min_volumetric_speed = 0.0;
     float max_volumetric_speed = 0.0;
     if (plater) { plater->get_preview_min_max_value_of_option((int) gcode::EViewType::VolumetricRate, min_volumetric_speed, max_volumetric_speed); }
-    wxBoxSizer* min_volumetric_speed_item = create_input_item(panel_advanced_option, "min_volumetric_speed", _L("Min Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
+    wxBoxSizer* min_volumetric_speed_item = create_input_item(panel_velocity_volumetric, "min_volumetric_speed", _L("Min Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
     m_input_items["min_volumetric_speed"]->GetTextCtrl()->SetLabel(wxString::Format("%.2f", s_round(min_volumetric_speed, 2)));
 
-    wxBoxSizer* max_volumetric_speed_item = create_input_item(panel_advanced_option, "max_volumetric_speed", _L("Max Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
+    wxBoxSizer* max_volumetric_speed_item = create_input_item(panel_velocity_volumetric, "max_volumetric_speed", _L("Max Volumetric Speed"), wxT("mm\u00B3/s"), { double_min_checker });
     m_input_items["max_volumetric_speed"]->GetTextCtrl()->SetLabel(wxString::Format("%.2f", s_round(max_volumetric_speed, 2)));
 
-    // layers to optimize
-    int layer_count = plater ? plater->get_gcode_layers_count() : 0;
-    wxBoxSizer* layers_to_optimize_item = create_input_optimize_layers(panel_advanced_option, layer_count);
+    sizer_velocity_volumetric->Add(min_velocity_item, 0, wxEXPAND, 0);
+    sizer_velocity_volumetric->Add(max_velocity_item, 0, wxEXPAND|wxTOP, FromDIP(6));
+    sizer_velocity_volumetric->Add(min_volumetric_speed_item, 0, wxEXPAND|wxTOP, FromDIP(6));
+    sizer_velocity_volumetric->Add(max_volumetric_speed_item, 0, wxEXPAND|wxTOP, FromDIP(6));
+    panel_velocity_volumetric->SetSizer(sizer_velocity_volumetric);
+    panel_velocity_volumetric->Layout();
+    panel_velocity_volumetric->Fit();
 
-    sizer_advanced_option->Add(min_velocity_item, 0, wxEXPAND, FromDIP(0));
-    sizer_advanced_option->Add(max_velocity_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    sizer_advanced_option->Add(min_volumetric_speed_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    sizer_advanced_option->Add(max_volumetric_speed_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    sizer_advanced_option->Add(layers_to_optimize_item, 0, wxEXPAND|wxTOP, FromDIP(6));
-    panel_advanced_option->SetSizer(sizer_advanced_option);
-    panel_advanced_option->Layout();
-    panel_advanced_option->Fit();
+    // Hide velocity/volumetric speed fields by default (Helio default selected)
+    panel_velocity_volumetric->Hide();
+
+    // Add event handler for Limits dropdown to show/hide velocity/volumetric speed fields
+    m_combo_items["limits"]->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {
+        // Prevent changing if only_advanced_settings is true (forced mode)
+        if (only_advanced_settings) {
+            // Force it back to "Slicer default"
+            m_combo_items["limits"]->SetSelection(LIMITS_SLICER_DEFAULT);
+            return;
+        }
+        
+        int selection = m_combo_items["limits"]->GetSelection();
+        bool show_fields = (selection == LIMITS_SLICER_DEFAULT);
+        use_advanced_settings = show_fields;
+        
+        if (show_fields) {
+            panel_velocity_volumetric->Show();
+        } else {
+            panel_velocity_volumetric->Hide();
+        }
+        panel_optimization->Layout();
+        panel_optimization->Fit();
+        Layout();
+        Fit();
+    });
+
+    // Create empty panel_advanced_option for backward compatibility (kept hidden)
+    panel_advanced_option = new wxPanel(panel_optimization);
+    if (wxGetApp().dark_mode()) {
+        panel_advanced_option->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    } else {
+        panel_advanced_option->SetBackgroundColour(*wxWHITE);
+    }
+    panel_advanced_option->Hide();
 
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(24));
     sizer_optimization->Add(m_remain_usage_time, 0, wxEXPAND, 0);
@@ -862,30 +888,16 @@ static double s_round(double value, int n)
     }
     sizer_optimization->Add(outerwall, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
-    sizer_optimization->Add(advanced_settings_link, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
-    sizer_optimization->Add(panel_advanced_option, 0, wxEXPAND, 0);
+    sizer_optimization->Add(layers_to_optimize_item, 0, wxEXPAND, 0);
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
+    sizer_optimization->Add(limits, 0, wxEXPAND, 0);
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
+    sizer_optimization->Add(panel_velocity_volumetric, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
 
     panel_optimization->SetSizer(sizer_optimization);
     panel_optimization->Layout();
     panel_optimization->Fit();
-
-    panel_optimization->Hide();
-    panel_advanced_option->Hide();
-
-    more_setting_tips->Bind(wxEVT_LEFT_DOWN, [=](wxMouseEvent& e) {
-        if (only_advanced_settings)
-            return;
-
-        if (!use_advanced_settings) {
-            use_advanced_settings = true;
-        }
-        else {
-            use_advanced_settings = false;
-        }
-        show_advanced_mode();
-    });
 
     panel_optimization->Hide();
 
@@ -924,7 +936,7 @@ static double s_round(double value, int n)
     last_tid_panel->Layout();
     last_tid_panel->Fit();
 
-    buy_now_link = new LinkLabel(this, _L("Buy Now"), "https://wiki.helioadditive.com/");
+    buy_now_link = new LinkLabel(this, _L("Buy Now / Manage Account"), "https://wiki.helioadditive.com/");
     buy_now_link->SeLinkLabelFColour(wxColour(175, 124, 255));
     buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     buy_now_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
@@ -1039,13 +1051,11 @@ void HelioInputDialog::update_action(int action)
             if (auto temp_ptr = weak_ptr.lock()) {
                 CallAfter([=]() {
                     if (times > 0 || addons > 0) {
-                        advanced_settings_link->Show();
                         m_button_confirm->Enable();
                     }
                     else {
-                        advanced_settings_link->Hide();
                         if (times <= 0) {
-                            buy_now_link->setLabel(_L("Buy Now"));
+                            buy_now_link->setLabel(_L("Buy Now / Manage Account"));
                             if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(0); }
                         }
                         else {
@@ -1082,24 +1092,38 @@ void HelioInputDialog::update_action(int action)
 
         try
         {
-            /*hide based mode when nozzle diameter  = 0.2*/
+            /*force use Slicer default (show velocity/volumetric speed fields) when nozzle diameter = 0.2*/
             const auto& full_config = wxGetApp().preset_bundle->full_config();
             const auto& project_config = wxGetApp().preset_bundle->project_config;
             double nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values[0];
 
             if (boost::str(boost::format("%.1f") % nozzle_diameter) == "0.2") {
+                // Force select "Slicer default" to show velocity/volumetric speed fields
                 only_advanced_settings = true;
                 use_advanced_settings = true;
-                show_advanced_mode();
+                m_combo_items["limits"]->SetSelection(LIMITS_SLICER_DEFAULT);
+                m_combo_items["limits"]->Disable(); // Disable dropdown to prevent changing
+                panel_velocity_volumetric->Show();
+                panel_optimization->Layout();
+                panel_optimization->Fit();
+                Layout();
+                Fit();
             }
 
-            /*hide based mode when preser has nozzle diameter  = 0.2*/
+            /*force use Slicer default when preset has layer height < 0.2*/
             auto edited_preset = wxGetApp().preset_bundle->prints.get_edited_preset().config;
             auto layer_height = edited_preset.option<ConfigOptionFloat>("layer_height")->value;
             if (layer_height < 0.2) {
+                // Force select "Slicer default" to show velocity/volumetric speed fields
                 only_advanced_settings = true;
                 use_advanced_settings = true;
-                show_advanced_mode();
+                m_combo_items["limits"]->SetSelection(LIMITS_SLICER_DEFAULT);
+                m_combo_items["limits"]->Disable(); // Disable dropdown to prevent changing
+                panel_velocity_volumetric->Show();
+                panel_optimization->Layout();
+                panel_optimization->Fit();
+                Layout();
+                Fit();
             }
         }
         catch (...){}
@@ -1122,14 +1146,7 @@ void HelioInputDialog::update_action(int action)
 
 void HelioInputDialog::show_advanced_mode()
 {
-    if (use_advanced_settings) {
-        advanced_options_icon->SetBitmap(create_scaled_bitmap("helio_advanced_option1", panel_optimization, 18));
-        panel_advanced_option->Show();
-    }
-    else {
-        advanced_options_icon->SetBitmap(create_scaled_bitmap("helio_advanced_option0", panel_optimization, 18));
-        panel_advanced_option->Hide();
-    }
+    // Deprecated: Advanced settings visibility is now controlled by the Limits dropdown event handler. This function does nothing.
     Layout();
     Fit();
 }
@@ -1171,14 +1188,14 @@ wxBoxSizer* HelioInputDialog::create_input_item(wxWindow* parent, std::string ke
     return item_sizer;
 }
 
-wxBoxSizer* HelioInputDialog::create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def)
+wxBoxSizer* HelioInputDialog::create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def, int width)
 {
     wxBoxSizer* item_sizer = new wxBoxSizer(wxHORIZONTAL);
     Label* inout_title = new Label(parent, Label::Body_14, name);
     inout_title->SetFont(::Label::Body_14);
     inout_title->SetForegroundColour(wxColour("#262E30"));
 
-    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), 0, nullptr, wxCB_READONLY);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(width), -1), 0, nullptr, wxCB_READONLY);
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
@@ -1359,15 +1376,16 @@ Slic3r::HelioQuery::OptimizationInput HelioInputDialog::get_optimization_input(b
         data.layers_to_optimize[1] = temp;
     }
 
-    if (!use_advanced_settings) {
-        ok = true;
-        return data;
+    // Check Limits selection - only read velocity/volumetric speed when "Slicer default" is selected
+    int limits_selection = m_combo_items["limits"]->GetSelection();
+    if (limits_selection == LIMITS_SLICER_DEFAULT) {
+        // Read velocity and volumetric speed fields
+        if (!s_get_double_val(m_input_items["min_velocity"], data.min_velocity)) { return data; }
+        if (!s_get_double_val(m_input_items["max_velocity"], data.max_velocity)) { return data; }
+        if (!s_get_double_val(m_input_items["min_volumetric_speed"], data.min_volumetric_speed)) { return data; }
+        if (!s_get_double_val(m_input_items["max_volumetric_speed"], data.max_volumetric_speed)) { return data; }
     }
-
-    if (!s_get_double_val(m_input_items["min_velocity"], data.min_velocity)) { return data; }
-    if (!s_get_double_val(m_input_items["max_velocity"], data.max_velocity)) { return data; }
-    if (!s_get_double_val(m_input_items["min_volumetric_speed"], data.min_volumetric_speed)) { return data; }
-    if (!s_get_double_val(m_input_items["max_volumetric_speed"], data.max_volumetric_speed)) { return data; }
+    // When "Helio default" (selection == 0) is selected, skip reading these fields - backend will use Helio defaults
     ok = true;
     return data;
 }
