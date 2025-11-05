@@ -15,7 +15,7 @@
         "55"
     ],
     "fan_min_speed": [
-        "60"
+        "80"
     ],
     "filament_flow_ratio": [
         "0.98",
