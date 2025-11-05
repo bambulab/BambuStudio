@@ -50,6 +50,14 @@ public:
     	this->something_overridable |= out;
     	return out;
     }
+    //for byobject mode, there are no config, but object still have overridable setting
+    bool is_obj_overriddable(const ExtrusionEntityCollection &ee, const PrintObject &object) const;
+    bool is_obj_overriddable_and_mark(const ExtrusionEntityCollection &ee, const PrintObject &object)
+    {
+        bool out = this->is_obj_overriddable(ee, object);
+        this->something_overridable |= out;
+        return out;
+    }
 
     // BBS
     bool is_support_overriddable(const ExtrusionRole role, const PrintObject& object) const;
