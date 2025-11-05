@@ -2046,8 +2046,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
             this->_make_wipe_tower();
-        }
-        else if (this->config().print_sequence != PrintSequence::ByObject) {
+        } else if (this->config().print_sequence != PrintSequence::ByObject
+            || (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() == 1)) {
             // Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
