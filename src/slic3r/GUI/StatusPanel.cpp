@@ -982,7 +982,6 @@ void PrintingTaskPanel::set_has_reted_text(bool has_rated)
         m_has_rated_prompt->Hide();
     }
     Layout();
-    Fit();
 }
 
 void PrintingTaskPanel::msw_rescale()
@@ -3923,7 +3922,7 @@ void StatusPanel::on_axis_ctrl_e_down_10(wxCommandEvent& event)
                 obj->command_extruder_control(ext->GetExtId(), 10.0f);
             } else {
                 obj->GetAxis()->Ctrl_Axis("E", 1.0, 10.0f, 900);
-            } 
+            }
         } else {
             axis_ctrl_e_hint(false);
         }
