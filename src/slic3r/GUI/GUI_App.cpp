@@ -2075,7 +2075,6 @@ void GUI_App::init_networking_callbacks()
                         auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
                         wxQueueEvent(this, evt);
                     }
-                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                     //subscribe device
                     if (m_agent->is_user_login()) {
 
@@ -2083,8 +2082,8 @@ void GUI_App::init_networking_callbacks()
                         DeviceManager* dev = this->getDeviceManager();
                         if (!dev) return;
 
-                        MachineObject *obj = dev->get_selected_machine();
-                        if (!obj) return;
+                        if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0))
+                            dev->set_selected_machine(m_agent->get_user_selected_machine());
 
                         /* resubscribe the cache dev list */
                         if (this->is_enable_multi_machine()) {
@@ -4977,6 +4976,10 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
 
     boost::thread update_thread = boost::thread([this, dev] {
         dev->update_user_machine_list_info();
+        CallAfter([this, dev]() {
+            if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0))
+                dev->set_selected_machine(m_agent->get_user_selected_machine());
+            });
     });
 
     if (online_login) {
