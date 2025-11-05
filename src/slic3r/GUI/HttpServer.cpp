@@ -8,100 +8,110 @@
 namespace Slic3r {
 
 namespace Scramble {
-std::vector<int> generatePRSequence(int length, int seed) {
-    std::vector<int> prSeq;
-    if (length <= 0) return prSeq;
+static const char B64URL_ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
-    int lfsr = seed & 0x7F;
-    for (int i = 0; i < length; ++i) {
-        int prBit = (lfsr >> 6) & 1;
-        prSeq.push_back(prBit);
-
-
-        int feedback = ((lfsr >> 6) ^ (lfsr >> 3)) & 1;
-        lfsr = ((lfsr << 1) | feedback) & 0x7F;
-    }
-    return prSeq;
+static inline int b64url_val(char c)
+{
+    if (c >= 'A' && c <= 'Z') return c - 'A';
+    if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+    if (c >= '0' && c <= '9') return c - '0' + 52;
+    if (c == '-') return 62;
+    if (c == '_') return 63;
+    return -1;
 }
 
-std::string scrambleAsymmetric(const std::string& original, int seed) {
-    if (original.empty()) return "";
+std::string base64url_encode(const std::string &in)
+{
+    const unsigned char *p = (const unsigned char *) in.data();
+    size_t               n = in.size();
+    std::string          out;
+    out.reserve(((n + 2) / 3) * 4);
 
-    for (char c : original) {
-        if (c != '0' && c != '1') {
-            return "";
+    size_t i = 0;
+    while (i + 2 < n) {
+        uint32_t tri = (uint32_t(p[i]) << 16) | (uint32_t(p[i + 1]) << 8) | uint32_t(p[i + 2]);
+        out.push_back(B64URL_ALPHABET[(tri >> 18) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[(tri >> 12) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[(tri >> 6) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[tri & 0x3F]);
+        i += 3;
+    }
+
+    if (i < n) {
+        int      remain = int(n - i);
+        uint32_t tri    = (uint32_t(p[i]) << 16);
+        if (remain == 2) tri |= (uint32_t(p[i + 1]) << 8);
+        out.push_back(B64URL_ALPHABET[(tri >> 18) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[(tri >> 12) & 0x3F]);
+        if (remain == 2) out.push_back(B64URL_ALPHABET[(tri >> 6) & 0x3F]);
+    }
+    return out;
+}
+
+std::string base64url_decode(const std::string &in)
+{
+    size_t n = in.size();
+    if (n == 0) return std::string();
+
+    std::string out;
+    out.reserve((n * 3) / 4 + 3);
+    size_t i = 0;
+    while (i < n) {
+        int v0 = -1, v1 = -1, v2 = -1, v3 = -1;
+        v0 = (i < n) ? b64url_val(in[i++]) : -1;
+        v1 = (i < n) ? b64url_val(in[i++]) : -1;
+        if (v0 < 0 || v1 < 0) return std::string();
+        if (i < n) {
+            int t = b64url_val(in[i]);
+            if (t >= 0) {
+                v2 = t;
+                ++i;
+            }
+        }
+        if (i < n) {
+            int t = b64url_val(in[i]);
+            if (t >= 0) {
+                v3 = t;
+                ++i;
+            }
+        }
+
+        if (v2 >= 0 && v3 >= 0) {
+            uint32_t tri = (v0 << 18) | (v1 << 12) | (v2 << 6) | v3;
+            out.push_back(char((tri >> 16) & 0xFF));
+            out.push_back(char((tri >> 8) & 0xFF));
+            out.push_back(char(tri & 0xFF));
+        } else if (v2 >= 0 && v3 < 0) {
+            uint32_t tri = (v0 << 18) | (v1 << 12) | (v2 << 6);
+            out.push_back(char((tri >> 16) & 0xFF));
+            out.push_back(char((tri >> 8) & 0xFF));
+        } else if (v2 < 0 && v3 < 0) {
+            uint32_t tri = (v0 << 18) | (v1 << 12);
+            out.push_back(char((tri >> 16) & 0xFF));
+        } else {
+            return std::string();
         }
     }
-
-    std::vector<int> bits;
-    for (char c : original) {
-        bits.push_back(c - '0');
-    }
-    int length = bits.size();
-
-    std::vector<int> prSeq = generatePRSequence(length, seed);
-    std::vector<int> xorBits;
-    for (int i = 0; i < length; ++i) {
-        xorBits.push_back(bits[i] ^ prSeq[i]);
-    }
-
-    std::reverse(xorBits.begin(), xorBits.end());
-
-    std::string scrambled;
-    for (int bit : xorBits) {
-        scrambled += (bit ? '1' : '0');
-    }
-    return scrambled;
+    return out;
 }
 
-std::string descrambleAsymmetric(const std::string& scrambled, int seed) {
-    if (scrambled.empty()) return "";
-
-    for (char c : scrambled) {
-        if (c != '0' && c != '1') {
-            return "";
-        }
+std::string xor_obfuscate(const std::string &key, const std::string &data)
+{
+    if (key.empty()) return std::string();
+    std::string out;
+    out.resize(data.size());
+    const size_t klen = key.size();
+    for (size_t i = 0; i < data.size(); ++i) {
+        unsigned char d = (unsigned char) data[i];
+        unsigned char k = (unsigned char) key[i % klen];
+        out[i]          = (char) (d ^ k);
     }
-
-    std::vector<int> bits;
-    for (char c : scrambled) {
-        bits.push_back(c - '0');
-    }
-    std::reverse(bits.begin(), bits.end());
-    int length = bits.size();
-
-    std::vector<int> prSeq = generatePRSequence(length, seed);
-    std::vector<int> originalBits;
-    for (int i = 0; i < length; ++i) {
-        originalBits.push_back(bits[i] ^ prSeq[i]);
-    }
-
-    std::string original;
-    for (int bit : originalBits) {
-        original += (bit ? '1' : '0');
-    }
-    return original;
+    return out;
 }
 
-static int generateSeedFromKey(const std::string& key) {
-    if (key.empty()) return 0b1010101;
+std::string scrambleWithKey(const std::string &plaintext, const std::string &key) { return base64url_encode(xor_obfuscate(key, plaintext)); }
 
-    int seed = 0;
-    for (char c : key) {
-        seed = (seed * 31 + static_cast<unsigned char>(c)) & 0x7F;
-    }
-    return seed;
-}
-
-std::string scrambleWithKey(const std::string& original, const std::string& key) {
-    int seed = generateSeedFromKey(key);
-    return scrambleAsymmetric(original, seed);
-}
-
-std::string descrambleWithKey(const std::string& scrambled, const std::string& key) {
-    int seed = generateSeedFromKey(key);
-    return descrambleAsymmetric(scrambled, seed);
-}
+std::string descrambleWithKey(const std::string &token, const std::string &key) { return xor_obfuscate(key, base64url_decode(token)); }
 } // Scramble
 
 namespace GUI {
@@ -447,7 +457,7 @@ void session::handle_refresh_token()
     }
 
     if (auto it = params.find("did"); it != params.end())
-        out.device = Scramble::descrambleWithKey(url_decode(it->second), dkey);
+        out.device = Scramble::descrambleWithKey(it->second, dkey);
     if (auto it = params.find("dver"); it != params.end())
         out.dev_ver = url_decode(it->second);
     if (auto it = params.find("dcha"); it != params.end())
