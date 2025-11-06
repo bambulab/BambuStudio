@@ -4,42 +4,42 @@ var TestProjectData={
 		"author": "Zorro Zhang",
 		"upload_type": "share",
 		"license": "CC0",
-		"cover_img": "p1.png",
+		"cover_img": "m1.jpg",
 		"preview_img": [
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/p1.png",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/p2.png",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/m1.jpg",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/m2.jpg",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/m3.jpg",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/m4.jpg",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/m5.jpg",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			}			
 		],
 		"description": "This is a Description"
@@ -49,61 +49,61 @@ var TestProjectData={
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/Assembly Guide Pretty.xlsx",
 				"filename": "Assembly Guide Pretty.xlsx",
-				"size": "232MB"
+				"size": 23200
 			},
 			{
 				"filepath": "file://d:/preview.png",
 				"filename": "preview.png",
-				"size": "232MB"
+				"size": 23200
 			}
 		],
 		"Assembly": [
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/Assembly Guide Pretty.xlsx",
 				"filename": "Assembly Guide Pretty.xlsx",
-				"size": "232MB"
+				"size": 23200
 			},
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/Assembly Guide Pretty.xlsx",
 				"filename": "Assembly Guide Pretty.xlsx",
-				"size": "232MB"
+				"size": 23200
 			},			
 			{
 				"filepath": "file://d:/p2.png",
 				"filename": "p2.png",
-				"size": "232MB"
+				"size": 23200
 			}
 		],
 		"Other": [
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			},
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/Assembly Guide Pretty.xlsx",
 				"filename": "Assembly Guide Pretty.xlsx",
-				"size": "232MB"
+				"size": 23200
 			},
 			{
 				"filepath": "D:/AAA/bamboo_model/Tue_Feb_14/15_07_23#42936#55/Auxiliaries/Assembly Guide/BBB Guide Pretty.pdf",
 				"filename": "BBB Guide Pretty.pdf",
-				"size": "232MB"
+				"size": 23200
 			},			
 			{
 				"filepath": "file://d:/p3.png",
 				"filename": "p3.png",
-				"size": "232MB"
+				"size": 23200
 			}
 		]
 	},
@@ -116,7 +116,7 @@ var TestProjectData={
 						{
 				"filepath": "http://bambuhtml.liuyishou.vip/img/m1.jpg",
 				"filename": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX.pdf",
-				"size": "232MB"
+				"size": 23200
 			}
 		],
 		"description": "This is a profile Description"
