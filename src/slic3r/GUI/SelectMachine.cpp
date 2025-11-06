@@ -573,8 +573,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
     m_pa_value_panel = new wxPanel(m_options_other);
-    m_pa_value_panel->SetMaxSize(wxSize(400, -1));
-    m_pa_value_panel->SetMinSize(wxSize(400, -1));
+    m_pa_value_panel->SetMaxSize(wxSize(FromDIP(400), -1));
+    m_pa_value_panel->SetMinSize(wxSize(FromDIP(400), -1));
     wxBoxSizer *m_pa_value_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_pa_value_message = new Label(m_pa_value_panel, _L("Nozzles and filaments of the same type share the same PA profile"));
@@ -2215,9 +2215,9 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
         std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
         if (flow_cali_value == "off") {
             m_pa_value_panel->Show();
-        } 
+        }
     } else {
-            m_pa_value_panel->Hide(); 
+            m_pa_value_panel->Hide();
     }
 
     update_options_layout();
