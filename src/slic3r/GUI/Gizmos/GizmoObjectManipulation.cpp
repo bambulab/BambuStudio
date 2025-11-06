@@ -62,9 +62,9 @@ GizmoObjectManipulation::GizmoObjectManipulation(GLCanvas3D& glcanvas)
     m_desc_move["part_selection"]         = _L("Part selection");
     m_desc_move["snap_step_caption"] = shift + _L("Left mouse button");
     m_desc_move["snap_step"]        = _L("Fixed step drag");
-    m_desc_move["multiple_selected_objects_caption"] = _L("Keep holding down Ctrl") + _L("Left mouse button");
+    m_desc_move["multiple_selected_objects_caption"] = _L("Keep holding down Ctrl") + "+" + _L("Left mouse button");
     m_desc_move["multiple_selected_objects"]        = _L("Select multiple objects");
-    m_desc_move["multiple_selected_parts_caption"]   = _L("Keep holding down Alt") + _L("Left mouse button");
+    m_desc_move["multiple_selected_parts_caption"]   = _L("Keep holding down Alt") + "+" + _L("Left mouse button");
     m_desc_move["multiple_selected_parts"]          = _L("Select multiple parts");
 
     m_desc_rotate["part_selection_caption"] = alt + _L("Left mouse button");
@@ -727,7 +727,7 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
     ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += imgui_wrapper->calc_text_size("xx: ").x + 35.f;
+    caption_max += imgui_wrapper->calc_text_size("x:").x + 35.f;
 
     float  font_size   = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
@@ -742,9 +742,13 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
             ImGui::SameLine(caption_max);
             imgui_wrapper->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
-
-        for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"})
-            draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
+        if (m_coordinates_type == ECoordinatesType::World) {
+            for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"})
+                draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
+        } else {
+            for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"})
+                draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
+        }
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(2);
@@ -1068,10 +1072,18 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     float get_cur_y      = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     float tip_caption_max    = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"}) {
-        tip_caption_max = std::max(tip_caption_max, imgui_wrapper->calc_text_size(m_desc_move[t + "_caption"]).x);
-        total_text_max = std::max(total_text_max, imgui_wrapper->calc_text_size(m_desc_move[t]).x);
+    if (m_coordinates_type == ECoordinatesType::World) {
+        for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"}) {
+            tip_caption_max = std::max(tip_caption_max, imgui_wrapper->calc_text_size(m_desc_move[t + "_caption"]).x);
+            total_text_max  = std::max(total_text_max, imgui_wrapper->calc_text_size(m_desc_move[t]).x);
+        }
+    } else {
+        for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"}){
+            tip_caption_max = std::max(tip_caption_max, imgui_wrapper->calc_text_size(m_desc_move[t + "_caption"]).x);
+            total_text_max  = std::max(total_text_max, imgui_wrapper->calc_text_size(m_desc_move[t]).x);
+        }
     }
+
     show_move_tooltip_information(imgui_wrapper, tip_caption_max, x, get_cur_y);
     m_last_active_item = current_active_id;
     last_move_input_window_width = ImGui::GetWindowWidth();
