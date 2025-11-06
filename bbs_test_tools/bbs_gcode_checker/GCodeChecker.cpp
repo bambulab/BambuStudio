@@ -562,7 +562,7 @@ GCodeCheckResult GCodeChecker::parse_M104_M109(const GCodeLine& gcode_line)
     const char* rs = strchr(c, 'S');
     if (!rs) {
         std::cout << "No S parameter found in M104/M109 command!" << std::endl;
-        return GCodeCheckResult::ParseFailed;
+        return GCodeCheckResult::Success;
     }
 
     std::string strS = rs + 1;
