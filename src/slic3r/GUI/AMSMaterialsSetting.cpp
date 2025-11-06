@@ -581,8 +581,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-
-            auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+            auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
             std::string filament_id = filament_item.filament_id;
             if (it->filament_id.compare(filament_id) == 0) {
 
@@ -1357,7 +1356,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                                                                                                           nozzle_diameter_str);
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (!m_comboBox_filament->GetValue().IsEmpty()) {
-                auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+                auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
                 std::string filament_id   = filament_item.filament_id;
                 if (it->filament_id.compare(filament_id) == 0) {
                     bool has_compatible_printer = false;
