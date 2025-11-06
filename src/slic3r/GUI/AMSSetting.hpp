@@ -120,7 +120,7 @@ private:
     std::weak_ptr<DevAmsSystemFirmwareSwitch> m_ams_firmware_switch;
 
     int m_ams_firmware_current_idx{ -1 };
-    std::unordered_map<int, DevAmsSystemFirmwareSwitch::DevAmsSystemFirmware> m_ams_firmwares;
+    std::map<int, DevAmsSystemFirmwareSwitch::DevAmsSystemFirmware> m_ams_firmwares;
 
     // widgets
     AMSSetting*     m_setting_dlg;
