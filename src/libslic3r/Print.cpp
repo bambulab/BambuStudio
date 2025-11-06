@@ -2091,7 +2091,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
         std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
         std::vector<unsigned int> printExtruders;
-        if (this->config().print_sequence == PrintSequence::ByObject) {
+        if (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
             std::vector<unsigned int> first_layer_used_filaments;

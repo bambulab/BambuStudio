@@ -511,7 +511,7 @@ public:
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
-    void                normalize_fdm(int used_filaments = 0);
+    void                normalize_fdm();
     void                normalize_fdm_1();
     //return the changed param set
     t_config_option_keys normalize_fdm_2(int num_objects, int used_filaments = 0);

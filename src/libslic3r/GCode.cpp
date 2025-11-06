@@ -2020,7 +2020,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    if (print.config().print_sequence == PrintSequence::ByObject) {
+    if (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() > 1) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             std::vector<coordf_t> zs;
