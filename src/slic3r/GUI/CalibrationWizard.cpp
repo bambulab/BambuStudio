@@ -405,7 +405,6 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
         else {
             result.extruder_id = 0;
         }
-        result.nozzle_volume_type = preset_page->get_nozzle_volume_type(result.extruder_id);
 
         obj->selected_cali_preset.push_back(result);
     }
