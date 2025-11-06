@@ -2359,6 +2359,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("fill_multiline", coInt);
     def->label = L("Fill multiline");
+    def->category = L("Strength");
     def->tooltip = L("Using multiple lines for the infill pattern, if supported by infill pattern.");
     def->min = 1;
     def->max = 5;
