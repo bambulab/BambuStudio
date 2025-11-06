@@ -4891,6 +4891,7 @@ void MachineObject::parse_new_info(json print)
     // fun2 may have infinite length, use get_flag_bits_no_border
     if (!fun2.empty()) {
         is_support_print_with_emmc = get_flag_bits_no_border(fun2, 0) == 1;
+        is_support_build_plate_align_detect = get_flag_bits_no_border(fun2, 2) == 1;
         is_support_pa_mode = (get_flag_bits_no_border(fun2, 3) == 1);
     }
 
