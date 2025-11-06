@@ -591,7 +591,8 @@ public:
                         const std::vector<std::array<float, 4>>& colors,
                         Model &            model,
                         bool               with_outline = false,
-                        const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
+                        const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f},
+                        bool               disable_mmu_colors = false ) const;
 
     //BBS: add simple render function for thumbnail
     void simple_render(const std::shared_ptr<GLShaderProgram>& shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
@@ -626,7 +627,8 @@ public:
                 const std::vector<std::array<float, 4>> & colors,
                 Model &                                  model,
                 bool                        with_outline = false,
-                const std::array<float, 4> & body_color  = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
+                const std::array<float, 4> & body_color  = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                        disable_mmu_colors = false) const override;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();

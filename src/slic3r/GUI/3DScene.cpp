@@ -850,7 +850,7 @@ void GLVolume::set_range(double min_z, double max_z)
 
 //BBS: add outline related logic
 //static unsigned char stencil_data[1284][2944];
-void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<float, 4>> &colors, Model &model, bool with_outline, const std::array<float, 4> &body_color) const
+void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<float, 4>> &colors, Model &model, bool with_outline, const std::array<float, 4> &body_color, bool disable_mmu_colors) const
 {
     if (!is_active)
         return;
@@ -867,6 +867,10 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
         bool color_volume = false;
         ModelObjectPtrs &model_objects = model.objects;
         do {
+            // Skip MMU colors if disabled (e.g., when volume color override is active)
+            if (disable_mmu_colors)
+                break;
+
             if ((!printable) || object_idx() >= model_objects.size())
                 break;
 
@@ -1246,7 +1250,8 @@ void GLWipeTowerVolume::render(const GUI::Camera &camera,
                                const std::vector<std::array<float, 4>> &extruder_colors,
                                Model &model,
                                bool                                     with_outline,
-                               const std::array<float, 4> &body_color) const
+                               const std::array<float, 4> &body_color,
+                               bool                                     disable_mmu_colors) const
 {
     if (!is_active)
         return;
@@ -1800,12 +1805,18 @@ void GLVolumeCollection::render(GUI::ERenderPipelineStage             render_pip
 
             //BBS: add outline related logic
             auto red_color = std::array<float, 4>({ 1.0f, 0.0f, 0.0f, 1.0f });//slice_error
-            volume.first->render(camera, colors,model,with_outline && volume.first->selected, volume.first->slice_error ? red_color : body_color);
+            // Only disable MMU colors if this specific volume has a color override
+            bool this_volume_has_override = m_use_volume_color_override &&
+                                           m_volume_color_overrides.find(volume.second.first) != m_volume_color_overrides.end();
+            volume.first->render(camera, colors,model,with_outline && volume.first->selected, volume.first->slice_error ? red_color : body_color, this_volume_has_override);
         }
         else {
             if (volume.first->selected) {
                 shader->set_uniform("u_model_matrix", volume.first->world_matrix());
-                volume.first->render(camera, colors, model, false, body_color);
+                // Only disable MMU colors if this specific volume has a color override
+                bool this_volume_has_override = m_use_volume_color_override &&
+                                               m_volume_color_overrides.find(volume.second.first) != m_volume_color_overrides.end();
+                volume.first->render(camera, colors, model, false, body_color, this_volume_has_override);
             }
         }
 
