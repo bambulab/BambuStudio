@@ -18,7 +18,11 @@ public:
         m_count->SetFont(Label::Body_13.Bold());
         m_count->SetForegroundColour("#262E30");
 
+        m_title_type = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_title_type->SetForegroundColour("#ACACAC");
+
         m_count->Hide();
+        m_title_type->Hide();
 
         m_brace_left = new wxStaticText(this, wxID_ANY, "(", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
         m_brace_left->SetFont(Label::Body_13);

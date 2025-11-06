@@ -205,6 +205,8 @@ public:
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
+    void set_extruder_title_with_type(const int extruder_id, const int extruder_type);
+    std::unordered_map<std::string, wxString> get_extruder_suffix();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
 

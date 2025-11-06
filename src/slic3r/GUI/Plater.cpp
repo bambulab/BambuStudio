@@ -3316,6 +3316,25 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
     }
 }
 
+void Sidebar::set_extruder_title_with_type(const int extruder_id, const int extruder_type)
+{
+    if (extruder_id == 0) {
+        p->left_extruder->SetTitleWithType(extruder_type);
+    } else if (extruder_id == 1) {
+        p->right_extruder->SetTitleWithType(extruder_type);
+    }
+}
+
+std::unordered_map<std::string, wxString> Sidebar::get_extruder_suffix()
+{
+    std::unordered_map<std::string, wxString> res;
+    if (p->left_extruder) res["left_extruder"] = p->left_extruder->GetSuffixStr();
+    if (p->right_extruder) res["right_extruder"] = p->right_extruder->GetSuffixStr();
+    if (p->single_extruder) res["single_extruder"] = p->single_extruder->GetSuffixStr();
+
+    return res;
+}
+
 void Sidebar::enable_nozzle_count_edit(bool enable){
     p->left_extruder->SetEditEnabled(enable);
     p->right_extruder->SetEditEnabled(enable);
