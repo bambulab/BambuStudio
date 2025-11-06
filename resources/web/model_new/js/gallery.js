@@ -12,7 +12,6 @@
     images: [],            // 必填：图片数组（字符串或 {src, thumb}）
     initialIndex: 0,
     loop: true,
-    thumbWidth: 160,
     thumbHeight: 100,
     mainHeight: 420,
     // 新增：主图宽度与缩略栏宽度（可用数字或带单位字符串，如 '600px'、'60%'}
