@@ -122,11 +122,17 @@ void MeshBooleanUI::render_content(GLCanvas3D& parent, ImGuiWrapper* imgui, bool
 
     draw_only_entity_checkbox();
 
-    // Action buttons (OK / Cancel / Progress + extras)
-    draw_action_buttons();
+    // Warnings and errors
+    draw_warnings();
 
-    // Progress bar for async operations
+    // Separator line
+    draw_separator();
+
+    // Progress bar (if async operation is running)
     draw_progress_bar();
+
+    // Action buttons (Execute / Cancel / Reset)
+    draw_action_buttons();
 
     // Request frame updates while async operations are running
     if (is_async_busy && is_async_busy() && m_parent) {
@@ -351,34 +357,10 @@ void MeshBooleanUI::draw_action_buttons()
     if (m_operation_mode == MeshBooleanOperation::Difference) enable_button = m_volume_manager->validate_for_difference();
     else enable_button = (m_operation_mode == MeshBooleanOperation::Union) ? m_volume_manager->validate_for_union() : m_volume_manager->validate_for_intersection();
 
-    {
-        auto current_warnings = m_warning_manager->get_warnings_for_current_mode(m_operation_mode);
-        if (!current_warnings.empty()) {
-            m_warning_manager->render_warnings_list(current_warnings, m_computed_control_width, m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
-        } else {
-            auto hints = m_warning_manager->get_inline_hints_for_state(m_operation_mode, *m_volume_manager);
-            if (!hints.empty()) {
-                m_warning_manager->render_warnings_list(hints, m_computed_control_width, m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
-            }
-        }
-    }
-
-    // Separator line
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    float separator_start_x = (ImGui::GetWindowWidth() - m_computed_list_width) * 0.5f;
-    ImVec2 separator_pos = ImGui::GetCursorScreenPos();
-    separator_pos.x = ImGui::GetWindowPos().x + separator_start_x;
-    ImU32 separator_color = m_is_dark_mode ? MeshBooleanConfig::COLOR_SEPARATOR_DARK : MeshBooleanConfig::COLOR_SEPARATOR;
-    draw_list->AddLine(ImVec2(separator_pos.x, separator_pos.y),
-                       ImVec2(separator_pos.x + m_computed_list_width, separator_pos.y),
-                       separator_color, 1.0f);
-
-    ImGui::Spacing();ImGui::Spacing();
-
     // Calculate adaptive button widths based on text
     float button_spacing = 15.0f;
-    float button_padding = 2.0f * ImGui::GetStyle().FramePadding.x; // Use ImGui's actual frame padding
-    float min_button_width = 50.0f; // Minimum button width for aesthetics
+    float button_padding = 2.0f * ImGui::GetStyle().FramePadding.x;
+    float min_button_width = 50.0f;
 
     // Calculate Execute Boolean button width
     std::string execute_text = _L("Execute").ToStdString();
@@ -391,10 +373,13 @@ void MeshBooleanUI::draw_action_buttons()
     float reset_cancel_text_width = ImGui::CalcTextSize(reset_cancel_text.c_str()).x;
     float reset_cancel_button_width = std::max(reset_cancel_text_width + button_padding, min_button_width);
 
-    // Right-aligned Execute/Cancel buttons within LIST_WIDTH area
+    // Calculate total width for buttons
     float buttons_total_width = execute_button_width + reset_cancel_button_width + button_spacing;
-    float ctrl_start_x = (ImGui::GetWindowWidth() - m_computed_list_width) * 0.5f;
-    float buttons_start_x = ctrl_start_x + m_computed_list_width - buttons_total_width;
+
+    // Position buttons (right-aligned)
+    float line_width = m_computed_list_width - 4.0f;
+    float ctrl_start_x = (ImGui::GetWindowWidth() - line_width) * 0.5f;
+    float buttons_start_x = ctrl_start_x + line_width - buttons_total_width;
     ImGui::SetCursorPosX(buttons_start_x);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
@@ -439,7 +424,7 @@ void MeshBooleanUI::draw_action_buttons()
     // Cancel/Reset button - context sensitive
     bool cancel_enabled = true; // Always enabled
 
-    // Determine button text and color based on async state (reuse already calculated text)
+    // Determine button text based on async state (reuse already calculated text)
     auto button_text = async_is_busy ? _L("Cancel") : _L("Reset");
     bool is_cancel = async_is_busy;
 
@@ -452,12 +437,8 @@ void MeshBooleanUI::draw_action_buttons()
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(230.0f / 255.0f, 230.0f / 255.0f, 230.0f / 255.0f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(163.0f / 255.0f, 163.0f / 255.0f, 163.0f / 255.0f, 1.0f));
         }
-    } else if (is_cancel) {
-        // Red color for cancel button
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.3f, 0.3f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.1f, 0.1f, 1.0f));
     }
+    // Note: Cancel and Reset buttons now use default button colors (no red highlighting)
 
     if (m_imgui->button((button_text + "##btn").c_str(), reset_cancel_button_width, 0.0f)) {
         if (is_cancel) {
@@ -472,8 +453,6 @@ void MeshBooleanUI::draw_action_buttons()
     if (!cancel_enabled) {
         ImGui::PopItemFlag();
         ImGui::PopStyleColor(2);
-    } else if (is_cancel) {
-        ImGui::PopStyleColor(3);
     }
 
     ImGui::PopStyleVar();
@@ -1181,41 +1160,100 @@ std::set<size_t> MeshBooleanUI::groups_to_selected_indices(
     return out;
 }
 
+void MeshBooleanUI::draw_warnings()
+{
+    if (!m_warning_manager || !m_volume_manager || !m_imgui) return;
+
+    auto current_warnings = m_warning_manager->get_warnings_for_current_mode(m_operation_mode);
+    if (!current_warnings.empty()) {
+        m_warning_manager->render_warnings_list(current_warnings, m_computed_control_width,
+            m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
+    } else {
+        auto hints = m_warning_manager->get_inline_hints_for_state(m_operation_mode, *m_volume_manager);
+        if (!hints.empty()) {
+            m_warning_manager->render_warnings_list(hints, m_computed_control_width,
+                m_warning_icon_id, m_error_icon_id, m_imgui, m_computed_icon_size_display);
+        }
+    }
+}
+
+void MeshBooleanUI::draw_separator()
+{
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    float separator_start_x = (ImGui::GetWindowWidth() - m_computed_list_width) * 0.5f;
+    ImVec2 separator_pos = ImGui::GetCursorScreenPos();
+    separator_pos.x = ImGui::GetWindowPos().x + separator_start_x;
+    ImU32 separator_color = m_is_dark_mode ? MeshBooleanConfig::COLOR_SEPARATOR_DARK : MeshBooleanConfig::COLOR_SEPARATOR;
+    draw_list->AddLine(ImVec2(separator_pos.x, separator_pos.y),
+                       ImVec2(separator_pos.x + m_computed_list_width, separator_pos.y),
+                       separator_color, 1.0f);
+
+    ImGui::Spacing();
+    ImGui::Spacing();
+}
+
 void MeshBooleanUI::draw_progress_bar()
 {
-    // Debug: Check async status
+    // Check if we need to draw progress bar
     bool async_enabled = is_async_enabled ? is_async_enabled() : false;
-    bool async_busy = is_async_busy ? is_async_busy() : false;
+    bool async_is_busy = is_async_busy ? is_async_busy() : false;
 
     // Only show progress bar if async is enabled and busy
-    if (!async_enabled || !async_busy) {
+    if (!async_enabled || !async_is_busy) {
         return;
     }
 
     float progress = get_async_progress ? get_async_progress() : 0.0f;
 
-    // Clamp progress to [0.0, 1.0] range
-    progress = std::max(0.0f, std::min(1.0f, progress));
+    // Calculate layout
+    float line_width = m_computed_list_width - 4.0f;
+    float ctrl_start_x = (ImGui::GetWindowWidth() - line_width) * 0.5f;
 
-    ImGui::Spacing();
+    // === First line: Progress bar with percentage ===
+    ImGui::SetCursorPosX(ctrl_start_x);
+    ImGui::BeginGroup();
 
-    // Center the progress bar
-    float progress_width = m_computed_control_width;
-    set_centered_cursor_x(progress_width);
+    // Calculate percentage text width
+    std::string progress_text = GUI::format(_L("%1%"), int(progress + 0.5f)) + "%%";
+    float progress_text_width = ImGui::CalcTextSize(progress_text.c_str()).x;
+    float text_padding = 8.0f;
 
-        // Progress bar styling (matching original BambuStudio style)
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f)); // Green progress
+    // Progress bar width
+    float progress_bar_width = line_width - progress_text_width - text_padding;
 
-    // Progress bar with percentage text
-    std::string progress_text = GUI::format(_L("%1%"), int(progress * 100.0f + 0.5f)) + "%%";
-    ImVec2 progress_size(progress_width, 24.0f);
-
+    // Draw progress bar
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 6.0f);
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
+    ImVec2 progress_size(progress_bar_width, 0.0f);
+    ImGui::BBLProgressBar2(progress / 100.0f, progress_size);
     ImGui::PopStyleColor(1);
+    ImGui::PopStyleVar();
 
-    // Progress text on the side
-    ImGui::SameLine();
+    // Draw percentage text on the same line
+    ImGui::SameLine(0, text_padding);
     ImGui::AlignTextToFramePadding();
     ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), progress_text.c_str());
+
+    ImGui::EndGroup();
+
+    // === Second line: Status text ===
+    ImGui::SetCursorPosX(ctrl_start_x);
+
+    // Determine status text and color based on progress
+    std::string status_text;
+    ImVec4 text_color = ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
+
+    if (progress < 10.0f) {
+        status_text = _u8L("Preparing data...");
+    } else if (progress < 90.0f) {
+        status_text = _u8L("Computing...");
+    } else {
+        status_text = _u8L("Applying result..");
+    }
+
+    ImGui::TextColored(text_color, status_text.c_str());
+
+    ImGui::Spacing();
 }
 
 // ========================== ICON HELPER FUNCTIONS ==========================

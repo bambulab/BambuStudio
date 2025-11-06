@@ -2345,12 +2345,12 @@ void WipeTower::toolchange_Wipe(
 	float wipe_length)
 {
 	// Increase flow on first layer, slow down print.
-    writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? 1.15f : 1.f))
+    writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? m_first_layer_flow_ratio : 1.f))
 		  .append("; CP TOOLCHANGE WIPE\n");
 
     // BBS: add the note for gcode-check, when the flow changed, the width should follow the change
     if (is_first_layer()) {
-        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(1.15 * m_perimeter_width) + "\n");
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(m_first_layer_flow_ratio * m_perimeter_width) + "\n");
     }
 
 	const float& xl = cleaning_box.ld.x();
@@ -3265,7 +3265,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
         float real_travel_dis         = tpu_line_count * (xr - xl - 2 * m_perimeter_width);
         if (real_travel_dis < need_reverse_travel_dis)
             nozzle_change_speed *= real_travel_dis / need_reverse_travel_dis;
-        writer.travel(writer.x(), writer.y() + m_nozzle_change_perimeter_width);
+        writer.travel(writer.x(), writer.y() + dy/2);
 
         for (int i = 0; true; ++i) {
             need_reverse_travel_dis -= (xr - xl - 2 * m_perimeter_width);
@@ -3665,14 +3665,13 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
 
 void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_tool_toolchange)
 {
-    writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? 1.15f : 1.f)).append("; CP TOOLCHANGE WIPE\n");
-
+    writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? m_first_layer_flow_ratio : 1.f)).append("; CP TOOLCHANGE WIPE\n");
     if (!m_nozzle_change_result.gcode.empty())
         writer.change_analyzer_line_width(m_perimeter_width);
 
     // BBS: add the note for gcode-check, when the flow changed, the width should follow the change
     if (is_first_layer()) {
-        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(1.15 * m_perimeter_width) + "\n");
+        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width) + std::to_string(m_first_layer_flow_ratio * m_perimeter_width) + "\n");
     }
     float        retract_length = m_filpar[m_current_tool].retract_length;
     float        retract_speed  = m_filpar[m_current_tool].retract_speed * 60;
@@ -3866,6 +3865,11 @@ void WipeTower::set_nozzle_last_layer_id()
             m_last_layer_id[m_filament_map[new_tool] - 1] = idx;
         }
     }
+}
+
+void WipeTower::set_first_layer_flow_ratio(const float flow_ratio)
+{
+    m_first_layer_flow_ratio = flow_ratio;
 }
 
 void WipeTower::update_all_layer_depth(float wipe_tower_depth)

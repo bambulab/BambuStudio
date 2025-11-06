@@ -572,8 +572,41 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     );
     option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
+    m_pa_value_panel = new wxPanel(m_options_other);
+    m_pa_value_panel->SetMaxSize(wxSize(400, -1));
+    m_pa_value_panel->SetMinSize(wxSize(400, -1));
+    wxBoxSizer *m_pa_value_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_pa_value_message = new Label(m_pa_value_panel, _L("Nozzles and filaments of the same type share the same PA profile"));
+    m_pa_value_message->SetFont(Label::Body_14);
+    m_pa_value_message->SetBackgroundColour(*wxWHITE);
+    m_pa_value_message->SetForegroundColour(wxColour("#352F2D"));
+    m_pa_value_message->Wrap(FromDIP(243));
+
+    m_pa_value_switch = new SwitchButton(m_pa_value_panel);
+    m_pa_value_switch->SetBackgroundColour(*wxWHITE);
+    m_pa_value_switch->SetValue(true);
+    m_pa_value_switch->Bind(wxEVT_TOGGLEBUTTON, &SelectMachineDialog::on_pa_value_switch_changed, this);
+
+    m_pa_value_tips = new ScalableButton(m_pa_value_panel, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_pa_value_tips->SetBackgroundColour(*wxWHITE);
+    m_pa_value_tips->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e){
+        wxString url = "https://e.bambulab.com/t?c=UgeLJSCaJqamn8ZP";
+        wxLaunchDefaultBrowser(url);
+        e.Skip();
+    });
+
+    m_pa_value_panel_sizer->Add(m_pa_value_message, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
+    m_pa_value_panel_sizer->Add(m_pa_value_tips, 0, wxALIGN_CENTER_VERTICAL);
+    m_pa_value_panel_sizer->Add(0, 0, 1, wxEXPAND);
+    m_pa_value_panel_sizer->Add(m_pa_value_switch, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_pa_value_panel->SetSizer(m_pa_value_panel_sizer);
+    m_pa_value_panel->Hide();
+
     auto options_sizer = new wxBoxSizer(wxVERTICAL);
-    m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(28));
+
+    m_sizer_options = new wxGridSizer(0, 2, FromDIP(5), FromDIP(10));
     m_sizer_options->Add(option_timelapse, 0, wxEXPAND);
     m_sizer_options->Add(option_auto_bed_level, 0, wxEXPAND);
     m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND);
@@ -627,6 +660,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list_order.push_back(option_auto_bed_level);
     m_checkbox_list_order.push_back(option_flow_dynamics_cali);
     m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
+
+    options_sizer->Add(m_sizer_options, 0, wxEXPAND, 0);
+    options_sizer->Add(0, 0, 1, wxTOP, FromDIP(8));
+    options_sizer->Add(m_pa_value_panel);
 
     m_options_other->SetSizer(options_sizer);
     m_options_other->Layout();
@@ -2236,6 +2273,15 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
     }
     m_checkbox_list["flow_cali"]->Show(obj->is_support_pa_calibration);
 
+    if (obj->is_support_pa_mode && m_checkbox_list["flow_cali"]->IsShown()) {
+        std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
+        if (flow_cali_value == "off") {
+            m_pa_value_panel->Show();
+        } 
+    } else {
+            m_pa_value_panel->Hide(); 
+    }
+
     update_options_layout();
 }
 
@@ -2547,7 +2593,8 @@ void SelectMachineDialog::on_send_print()
         m_ext_change_assist,
         m_checkbox_list["bed_leveling"]->getValueInt(),
         m_checkbox_list["flow_cali"]->getValueInt(),
-        m_checkbox_list["nozzle_offset_cali"]->getValueInt()
+        m_checkbox_list["nozzle_offset_cali"]->getValueInt(),
+         (m_pa_value_switch->GetValue() ? 0 : 1)
     );
 
     if (obj_->HasAms()) {
@@ -4917,12 +4964,41 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
 
                 // STUDIO-15239
                 // request nozzle mapping result if right extruder nozzles used in slicing
-                obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
+                obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1);
+
             }
         }
     }
 
+    if (obj_ && obj_->is_support_pa_mode)
+    {
+        if (event.GetString() == "off")
+            m_pa_value_panel->Show();
+        else
+            m_pa_value_panel->Hide();
+        Layout();
+    }
     event.Skip();
+}
+
+void SelectMachineDialog::on_pa_value_switch_changed(wxCommandEvent &event)
+{
+    DeviceManager *dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
+    MachineObject *obj_ = dev_ ? dev_->get_my_machine(m_printer_last_select) : nullptr;
+    if (obj_ == nullptr) {
+        event.Skip();
+        return;
+    }
+    MessageDialog dlg(this, S_RACK_FLOW_DYNAMICS_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
+    dlg.SetButtonLabel(wxID_YES, _L("OK"));
+    dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
+    int rtn = dlg.ShowModal();
+    if (rtn == wxID_CANCEL) {
+        m_pa_value_switch->SetValue(!m_pa_value_switch->GetValue());
+        return;
+    }
+    event.Skip();
+    obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1);
 }
 
 void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
@@ -5034,7 +5110,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
     const auto& nozzle_mapping_res = obj_->get_nozzle_mapping_result();
     if (!nozzle_mapping_res.HasResult()) {
         if (time(nullptr) - s_nozzle_mapping_last_request_time > 10) { // avoid too many requests
-            int rtn = obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt());
+            int rtn = obj_->ctrl_get_auto_nozzle_mapping(m_plater, m_ams_mapping_result, m_checkbox_list["flow_cali"]->getValueInt(), m_pa_value_switch->GetValue() ? 0 : 1 );
             if (rtn == 0) {
                 s_nozzle_mapping_last_request_time = time(nullptr);
             } else {

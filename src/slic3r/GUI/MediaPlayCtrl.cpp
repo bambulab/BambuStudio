@@ -643,19 +643,23 @@ void MediaPlayCtrl::ToggleStream()
                     .ShowModal();
                 return;
             }
-
-            if (url.find("agora") != std::string::npos && wxGetApp().app_config->get("not_show_agora_tips") != "1") {
-                MessageDialog msg_dlg(this->GetParent(),
-                                      _L("The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."),
-                                      _L("Information"), wxOK | wxICON_INFORMATION);
-                msg_dlg.show_dsa_button();
-                msg_dlg.ShowModal();
-                if (msg_dlg.get_checkbox_state()) wxGetApp().app_config->set("not_show_agora_tips", "1");
+            std::string url_alt = url;
+            if (url.find("agora") != std::string::npos) {
+                wxGetApp().start_http_server();
+                url_alt += "&auxiliary_enable=1";
+                if (wxGetApp().app_config->get("not_show_agora_tips") != "1") {
+                    MessageDialog msg_dlg(this->GetParent(),
+                                        _L("The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."),
+                                        _L("Information"), wxOK | wxICON_INFORMATION);
+                    msg_dlg.show_dsa_button();
+                    msg_dlg.ShowModal();
+                    if (msg_dlg.get_checkbox_state()) wxGetApp().app_config->set("not_show_agora_tips", "1");
+                }
             }
 
             std::string             file_url = data_dir() + "/cameratools/url.txt";
             boost::nowide::ofstream file(file_url);
-            auto                    url2 = encode_path(url.c_str());
+            auto                    url2 = encode_path(url_alt.c_str());
             file.write(url2.c_str(), url2.size());
             file.close();
             m_streaming = true;

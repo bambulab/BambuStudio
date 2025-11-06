@@ -151,7 +151,7 @@ public:
     bool input_double(const wxString &label, const double &value, const std::string &format = "%.3f");
     bool input_vec3(const std::string &label, const Vec3d &value, float width, const std::string &format = "%.3f");
     bool checkbox(const wxString &label, bool &value);
-    bool bbl_checkbox(const wxString &label, bool &value);
+    bool bbl_checkbox(const wxString &label, bool &value, bool enabled = true, bool b_dark_mode = false);
     bool bbl_radio_button(const char *label, bool active);
     bool bbl_sliderin(const char *label, int *v, int v_min, int v_max, const char *format = "%d", ImGuiSliderFlags flags = 0);
     static void text(const char *label);

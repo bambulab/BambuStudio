@@ -3,8 +3,117 @@
 #include "GUI_App.hpp"
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/NetworkAgent.hpp"
+#include <algorithm>
 
 namespace Slic3r {
+
+namespace Scramble {
+static const char B64URL_ALPHABET[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+static inline int b64url_val(char c)
+{
+    if (c >= 'A' && c <= 'Z') return c - 'A';
+    if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+    if (c >= '0' && c <= '9') return c - '0' + 52;
+    if (c == '-') return 62;
+    if (c == '_') return 63;
+    return -1;
+}
+
+std::string base64url_encode(const std::string &in)
+{
+    const unsigned char *p = (const unsigned char *) in.data();
+    size_t               n = in.size();
+    std::string          out;
+    out.reserve(((n + 2) / 3) * 4);
+
+    size_t i = 0;
+    while (i + 2 < n) {
+        uint32_t tri = (uint32_t(p[i]) << 16) | (uint32_t(p[i + 1]) << 8) | uint32_t(p[i + 2]);
+        out.push_back(B64URL_ALPHABET[(tri >> 18) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[(tri >> 12) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[(tri >> 6) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[tri & 0x3F]);
+        i += 3;
+    }
+
+    if (i < n) {
+        int      remain = int(n - i);
+        uint32_t tri    = (uint32_t(p[i]) << 16);
+        if (remain == 2) tri |= (uint32_t(p[i + 1]) << 8);
+        out.push_back(B64URL_ALPHABET[(tri >> 18) & 0x3F]);
+        out.push_back(B64URL_ALPHABET[(tri >> 12) & 0x3F]);
+        if (remain == 2) out.push_back(B64URL_ALPHABET[(tri >> 6) & 0x3F]);
+    }
+    return out;
+}
+
+std::string base64url_decode(const std::string &in)
+{
+    size_t n = in.size();
+    if (n == 0) return std::string();
+
+    std::string out;
+    out.reserve((n * 3) / 4 + 3);
+    size_t i = 0;
+    while (i < n) {
+        int v0 = -1, v1 = -1, v2 = -1, v3 = -1;
+        v0 = (i < n) ? b64url_val(in[i++]) : -1;
+        v1 = (i < n) ? b64url_val(in[i++]) : -1;
+        if (v0 < 0 || v1 < 0) return std::string();
+        if (i < n) {
+            int t = b64url_val(in[i]);
+            if (t >= 0) {
+                v2 = t;
+                ++i;
+            }
+        }
+        if (i < n) {
+            int t = b64url_val(in[i]);
+            if (t >= 0) {
+                v3 = t;
+                ++i;
+            }
+        }
+
+        if (v2 >= 0 && v3 >= 0) {
+            uint32_t tri = (v0 << 18) | (v1 << 12) | (v2 << 6) | v3;
+            out.push_back(char((tri >> 16) & 0xFF));
+            out.push_back(char((tri >> 8) & 0xFF));
+            out.push_back(char(tri & 0xFF));
+        } else if (v2 >= 0 && v3 < 0) {
+            uint32_t tri = (v0 << 18) | (v1 << 12) | (v2 << 6);
+            out.push_back(char((tri >> 16) & 0xFF));
+            out.push_back(char((tri >> 8) & 0xFF));
+        } else if (v2 < 0 && v3 < 0) {
+            uint32_t tri = (v0 << 18) | (v1 << 12);
+            out.push_back(char((tri >> 16) & 0xFF));
+        } else {
+            return std::string();
+        }
+    }
+    return out;
+}
+
+std::string xor_obfuscate(const std::string &key, const std::string &data)
+{
+    if (key.empty()) return std::string();
+    std::string out;
+    out.resize(data.size());
+    const size_t klen = key.size();
+    for (size_t i = 0; i < data.size(); ++i) {
+        unsigned char d = (unsigned char) data[i];
+        unsigned char k = (unsigned char) key[i % klen];
+        out[i]          = (char) (d ^ k);
+    }
+    return out;
+}
+
+std::string scrambleWithKey(const std::string &plaintext, const std::string &key) { return base64url_encode(xor_obfuscate(key, plaintext)); }
+
+std::string descrambleWithKey(const std::string &token, const std::string &key) { return xor_obfuscate(key, base64url_decode(token)); }
+} // Scramble
+
 namespace GUI {
 
     struct TokenResp {
@@ -146,6 +255,16 @@ static bool is_http_scheme(const std::string& url)
     return url.rfind("http://", 0) == 0 || url.rfind("https://", 0) == 0;
 }
 
+static HttpReqType parse_request_type(const boost::beast::http::request<boost::beast::http::string_body>& req)
+{
+    std::string target = req.target();
+    if (boost::starts_with(target, "/refresh_token")) {
+        return HttpReqType::RefreshToken;
+    }
+
+    return HttpReqType::Login;
+}
+
 static std::optional<LoginParams>
 parse_login_params(const boost::beast::http::request<boost::beast::http::string_body>& req)
 {
@@ -227,7 +346,7 @@ void session::do_write_302(LoginParams params, bool result)
         });
 }
 
-void session::handle_request()
+void session::handle_login()
 {
     using namespace boost::beast;
     using http::field;
@@ -262,6 +381,111 @@ void session::handle_request()
     else {
         BOOST_LOG_TRIVIAL(info) << "third_party_login: login param empty, login failed";
         do_write_404();
+    }
+}
+
+void session::send_text_response(const std::string& text_data)
+{
+    using namespace boost::beast;
+    using http::field;
+    using http::status;
+    using http::string_body;
+
+    auto res = std::make_shared<http::response<string_body>>(status::ok, 11);
+    res->set(field::content_type, "text/plain; charset=utf-8");
+    res->keep_alive(false);
+    res->body() = Scramble::scrambleWithKey(text_data, m_scramble_key);
+    res->prepare_payload();
+
+    auto self = shared_from_this();
+    http::async_write(socket_, *res, [self, res](boost::beast::error_code ec, std::size_t bytes_transferred) {
+        if (!ec) {
+            BOOST_LOG_TRIVIAL(info) << "Successfully sent " << bytes_transferred << " bytes response";
+            boost::system::error_code ignored_ec;
+            self->socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_send, ignored_ec);
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Failed to send response: " << ec.message();
+        }
+    });
+}
+
+static void refresh_agora_url(char const* device, char const* dev_ver, char const* channel, std::shared_ptr<session> sess)
+{
+    std::string device2 = device;
+    device2 += "|";
+    device2 += dev_ver;
+    device2 += "|\"agora\"|";
+    device2 += channel;
+    wxGetApp().getAgent()->get_camera_url(device2,  [sess](std::string url) {
+        sess->send_text_response(url);
+    });
+}
+
+void session::set_scramble_key(std::string key)
+{
+    m_scramble_key = key;
+}
+
+void session::handle_refresh_token()
+{
+    BOOST_LOG_TRIVIAL(info) << "new request received: refresh token";
+
+    struct refresh_token_params
+    {
+        std::string device;
+        std::string dev_ver;
+        std::string channel;
+    } out;
+    std::string dkey;
+
+    std::string target = req_.target(); // "/refresh_token?device=...&dev_ver=...&channel=..."
+    size_t qpos = target.find('?');
+    if (qpos == std::string::npos) {
+        BOOST_LOG_TRIVIAL(info) << "refresh token: invalid format";
+        return;
+    }
+    std::string query = target.substr(qpos + 1);
+
+    auto params = parse_query(query);
+    if (auto it = params.find("dkey"); it != params.end()) {
+        dkey = url_decode(it->second);
+        set_scramble_key(dkey);
+    }
+    else {
+        BOOST_LOG_TRIVIAL(info) << "refresh token: invalid dkey";
+        return;
+    }
+
+    if (auto it = params.find("did"); it != params.end())
+        out.device = Scramble::descrambleWithKey(it->second, dkey);
+    if (auto it = params.find("dver"); it != params.end())
+        out.dev_ver = url_decode(it->second);
+    if (auto it = params.find("dcha"); it != params.end())
+        out.channel = url_decode(it->second);
+
+    if (out.device.empty() || out.dev_ver.empty() || out.channel.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "refresh token: refresh token param empty, refresh failed";
+        do_write_404();
+        return;
+    }
+
+    refresh_agora_url(out.device.c_str(), out.dev_ver.c_str(), out.channel.c_str(), shared_from_this());
+}
+
+void session::handle_request()
+{
+    HttpReqType req_type = parse_request_type(req_);
+    switch (req_type) {
+    case HttpReqType::RefreshToken:
+        handle_refresh_token();
+        break;
+    case HttpReqType::Login:
+        handle_login();
+        break;
+    default:
+        BOOST_LOG_TRIVIAL(info) << "Unknown request type";
+        do_write_404();
+        break;
     }
 }
 

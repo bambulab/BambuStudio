@@ -4366,9 +4366,9 @@ int CLI::run(int argc, char **argv)
                     if (temp_extruder_height > temp_extruder_print_heights[temp_index])
                         temp_extruder_height = temp_extruder_print_heights[temp_index];
                 }
-                printer_plate.printable_width  = current_bbox.size().x();
-                printer_plate.printable_depth  = current_bbox.size().y();
-                printer_plate.printable_height = temp_extruder_height;
+                printer_plate.shared_width  = current_bbox.size().x();
+                printer_plate.shared_depth  = current_bbox.size().y();
+                printer_plate.shared_height = temp_extruder_height;
 
                 BOOST_LOG_TRIVIAL(info) << boost::format("downward_check: for multi-extruder printer, change printable size to bbox {%1%, %2%, 0} - {%3%, %4%, %5%}")
                             %current_bbox.min.x() %current_bbox.min.y() %current_bbox.max.x() %current_bbox.max.y() %temp_extruder_height;
@@ -4449,6 +4449,16 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%, %6%} exceeds printer size {%7%, %8%, %9%}")
                         %(index+1) %(index2+1) %plate_info.printer_name
                         %size.x() % size.y() % size.z() %plate_info.printable_width %plate_info.printable_depth %plate_info.printable_height;
+                    downward_check_status[index2] = true;
+                    failed_count ++;
+                    continue;
+                }
+                //single to multiple check
+                if ((shared_printable_width == 0) && (plate_info.shared_width > 0)&&(plate_info.shared_depth > 0)&&(plate_info.shared_height > 0)
+                    &&((size.z() > plate_info.shared_height) || (size.y() > plate_info.shared_depth) || (size.x() > plate_info.shared_width))) {
+                    BOOST_LOG_TRIVIAL(info) << boost::format("plate %1%, downward_check index %2%, name %3%, bbox {%4%, %5%, %6%} exceeds printer shared size {%7%, %8%, %9%}")
+                        %(index+1) %(index2+1) %plate_info.printer_name
+                        %size.x() % size.y() % size.z() %plate_info.shared_width %plate_info.shared_depth %plate_info.shared_height;
                     downward_check_status[index2] = true;
                     failed_count ++;
                     continue;

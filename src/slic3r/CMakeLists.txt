@@ -421,6 +421,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
+    GUI/Jobs/BooleanOperationJob.hpp
+    GUI/Jobs/BooleanOperationJob.cpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/ProgressStatusBar.hpp

@@ -370,6 +370,7 @@ public:
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show(bool show);
+    bool is_market_scoring_show();
 
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
@@ -787,6 +788,7 @@ protected:
     void update_cali(MachineObject* obj);
     void update_calib_bitmap();
 
+    void update_market_scoring(bool show);
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
     bool is_task_changed(MachineObject* obj);

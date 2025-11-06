@@ -979,6 +979,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercentsNullable, vertical_shell_speed))
     ((ConfigOptionInt, top_color_penetration_layers))
     ((ConfigOptionInt, bottom_color_penetration_layers))
+    ((ConfigOptionBool, infill_instead_top_bottom_surfaces))
     ((ConfigOptionEnum<WallSequence>, wall_sequence))
     //BBS
     ((ConfigOptionBoolsNullable, enable_overhang_speed))
@@ -1012,6 +1013,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                seam_slope_min_length))
     ((ConfigOptionInt,                  seam_slope_steps))
     ((ConfigOptionBool,                 seam_slope_inner_walls))
+    ((ConfigOptionBool,                 embedding_wall_into_infill))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

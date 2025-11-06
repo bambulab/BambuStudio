@@ -33,19 +33,25 @@
         "18",
         "18"
     ],
+    "fan_min_speed": [
+        "20"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
     "nozzle_temperature": [
-        "255",
-        "255"
+        "250",
+        "250"
     ],
     "nozzle_temperature_initial_layer": [
-        "255",
-        "255"
+        "245",
+        "245"
+    ],
+    "overhang_fan_threshold": [
+        "25%"
     ],
     "pre_start_fan_time": [
-        "2"
+        "0"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.2 nozzle"

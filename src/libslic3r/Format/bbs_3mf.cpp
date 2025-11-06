@@ -4441,7 +4441,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
             filament_info.filament_id = filament_id;
-            filament_info.group_id = atoi(group_id.c_str());
+            if (!group_id.empty())
+                filament_info.group_id = atoi(group_id.c_str());
             filament_info.nozzle_diameter = atof(nozzle_diameter.c_str());
             filament_info.nozzle_volume_type = volume_type;
             m_curr_plater->slice_filaments_info.push_back(filament_info);
@@ -7565,8 +7566,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
-        stream << BOLDNESS_ATTR << "=\"" << *text_info.text_configuration.style.prop.boldness << "\" ";
-        stream << SKEW_ATTR << "=\"" << *text_info.text_configuration.style.prop.skew << "\" ";
+        stream << BOLDNESS_ATTR << "=\"" << text_info.text_configuration.style.prop.boldness.value_or(0) << "\" ";
+        stream << SKEW_ATTR << "=\"" << text_info.text_configuration.style.prop.skew.value_or(0) << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
 

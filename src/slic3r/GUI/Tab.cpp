@@ -1117,11 +1117,6 @@ void Tab::update_extruder_switch_colors()
         return;
     }
 
-    int extruder_count = m_preset_bundle->get_printer_extruder_count();
-    if (extruder_count <= 1) {
-        return;
-    }
-
     auto options = generate_extruder_options();
     auto extruders = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
 
@@ -2611,6 +2606,8 @@ void TabPrint::build()
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
         optgroup->append_single_option_line("wall_loops","wall-generator");
+        optgroup->append_single_option_line("embedding_wall_into_infill");
+
         optgroup->append_single_option_line("detect_thin_wall","wall-generator");
 
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
@@ -2623,6 +2620,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
         optgroup->append_single_option_line("bottom_color_penetration_layers");
+        optgroup->append_single_option_line("infill_instead_top_bottom_surfaces");
         optgroup->append_single_option_line("internal_solid_infill_pattern");
 
         optgroup = page->new_optgroup(L("Sparse infill"), L"param_infill");

@@ -1131,7 +1131,8 @@ bool PrintObject::invalidate_state_by_config_options(
                opt_key == "bottom_shell_layers"
             || opt_key == "top_shell_layers"
             || opt_key == "top_color_penetration_layers"
-            || opt_key == "bottom_color_penetration_layers") {
+            || opt_key == "bottom_color_penetration_layers"
+            || opt_key == "infill_instead_top_bottom_surfaces") {
 
             steps.emplace_back(posSlice);
 #if (0)
@@ -1340,7 +1341,7 @@ void PrintObject::reset_slice_surfaces(const std::vector<std::vector<SurfaceColl
 
             Layer       *layer  = m_layers[idx_layer];
             LayerRegion *layerm = layer->m_regions[region_id];
-            if(layerm->region().config().sparse_infill_pattern == ipLockedZag){
+            if (layerm->region().config().infill_instead_top_bottom_surfaces && layerm->region().config().sparse_infill_pattern == ipLockedZag) {
                 layerm->slices = slice_surfaces_cpy[idx_layer][region_id];
                 ExPolygons exps;
                 layerm->fill_surfaces.keep_type(SurfaceType::stInternal, exps);
@@ -1404,7 +1405,7 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                     LayerRegion *layerm = layer->m_regions[region_id];
                     slice_surfaces_cpy[idx_layer].resize(layer->m_regions.size());
                     //record surface data
-                    if(layerm->region().config().sparse_infill_pattern == ipLockedZag) {
+                    if (layerm->region().config().infill_instead_top_bottom_surfaces && layerm->region().config().sparse_infill_pattern == ipLockedZag) {
                         // layerm->fill_surfaces_copy = layerm->fill_expolygons;
                         slice_surfaces_cpy[idx_layer][region_id] = layerm->slices;
                     }
@@ -3021,23 +3022,21 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
 
     {//over write the seprate filament for features config
         auto resolve_filament_value = [&](const std::string &key, int default_or_parent, int previous_value) -> int {
-            int   filament_vlue_temp = 0;
-            auto *opt_vol            = volume.config.get().opt<ConfigOptionInt>(key);
-            auto *opt_obj            = volume.get_object()->config.get().opt<ConfigOptionInt>(key);
+            int   filament_value_temp = 0;
+            auto *opt_vol             = volume.config.get().opt<ConfigOptionInt>(key);
+            auto *opt_obj             = volume.get_object()->config.get().opt<ConfigOptionInt>(key);
             if (opt_vol) // deside use which value
-                filament_vlue_temp = opt_vol->value;
+                filament_value_temp = opt_vol->value;
             else if (opt_obj)
-                filament_vlue_temp = opt_obj->value;
-            else
-                filament_vlue_temp = default_or_parent;
+                filament_value_temp = opt_obj->value;
 
             if (layer_range_config != nullptr && volume.is_model_part()) {
                 auto *opt = layer_range_config->opt<ConfigOptionInt>(key);
-                if (opt) filament_vlue_temp = opt->value;
+                if (opt) filament_value_temp = opt->value;
             }
 
-            if (filament_vlue_temp > 0)
-                return filament_vlue_temp;
+            if (filament_value_temp > 0)
+                return filament_value_temp;
             else
                 return previous_value;
         };

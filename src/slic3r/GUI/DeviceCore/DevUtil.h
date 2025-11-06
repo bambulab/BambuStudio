@@ -116,4 +116,52 @@ struct NumericStrCompare
     }
 };
 
+enum class DirtyMode{
+    COUNTER,
+    TIMER
+};
+
+template<typename T>
+class DevDirtyHandler{
+public:
+    DevDirtyHandler(T init_value, int setting_threshold, DirtyMode mode): m_value(init_value), m_setting_threshold(setting_threshold), m_mode(mode)
+    {
+        m_threshold = setting_threshold;
+    }
+    ~DevDirtyHandler(){};
+
+    T GetValue() const { return m_value; };
+
+    void SetOptimisticValue(const T& data)
+    {
+        m_value = data;
+        m_start_time = time(nullptr);
+        m_threshold = m_setting_threshold;
+    }
+
+    void UpdateValue(const T& data)
+    {
+        if (m_mode == DirtyMode::COUNTER)
+        {
+            if (m_threshold > 0)
+                m_threshold--;
+            else
+                m_value = data;
+        }
+        else if (m_mode == DirtyMode::TIMER)
+        {
+            if (time(nullptr) - m_start_time > m_threshold)
+                m_value = data;
+        }
+    }
+
+private:
+    T           m_value;
+    DirtyMode   m_mode;
+    int         m_setting_threshold{0};
+
+    int         m_start_time{0};
+    int         m_threshold{0};
+};
+
 }; // namespace Slic3r

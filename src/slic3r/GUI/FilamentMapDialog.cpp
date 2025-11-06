@@ -266,6 +266,12 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     if (show_default) m_default_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
 
     m_manual_map_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent& event) {
+        if (m_page_type != PageType::ptManual) {
+            if (!m_ok_btn->IsEnabled()) {
+                m_ok_btn->Enable();
+            }
+            return;
+        }
         if (event.GetInt()) {
             if (!m_ok_btn->IsEnabled()) {
                 m_ok_btn->Enable();
@@ -354,6 +360,9 @@ void FilamentMapDialog::update_panel_status(PageType page)
     if (page == PageType::ptAuto) {
         m_auto_btn->Select(true);
         m_auto_map_panel->Show();
+        if (!m_ok_btn->IsEnabled()) {
+            m_ok_btn->Enable();
+        }
     }
 
     Layout();

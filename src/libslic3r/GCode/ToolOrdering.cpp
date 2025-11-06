@@ -124,23 +124,27 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
                         curr_priority = 100;
                     }
                 } else if (is_perimeter(ee->role())) {
-                    if (curr_priority < 90) { // top surface 1st priority
+                    if (curr_priority < 90) { // perimeter 2st priority
                         extruder      = region.config().wall_filament.value;
                         curr_priority = 90;
                     }
                 } else if (is_solid_infill(extrusions_role)) {
-                    if (curr_priority < 80) { // top surface 1st priority
+                    if (curr_priority < 70) { // solid infill 4st priority
                         extruder      = region.config().solid_infill_filament.value;
-                        curr_priority = 80;
-                    }
-                } else if (is_infill(extrusions_role)) {
-                    if (curr_priority < 70) { // top surface 1st priority
-                        extruder      = region.config().sparse_infill_filament.value;
                         curr_priority = 70;
                     }
+                } else if (is_infill(extrusions_role)) {
+                    if (curr_priority < 60) { // infill 5st priority
+                        extruder      = region.config().sparse_infill_filament.value;
+                        curr_priority = 60;
+                    }
                 }
-        }
-    }
+            if (curr_priority == 0) // default
+                extruder = region.config().wall_filament.value;
+        }else
+            extruder = region.config().wall_filament.value;
+    }else
+        extruder = this->extruder_override;
 	return (extruder == 0) ? 0 : extruder - 1;
 }
 

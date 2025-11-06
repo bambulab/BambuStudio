@@ -44,8 +44,8 @@
         "2"
     ],
     "filament_retraction_length": [
-        "2",
-        "2"
+        "1",
+        "1"
     ],
     "filament_retraction_speed": [
         "10",

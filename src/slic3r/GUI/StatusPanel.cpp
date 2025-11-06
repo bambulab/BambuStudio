@@ -982,7 +982,6 @@ void PrintingTaskPanel::set_has_reted_text(bool has_rated)
         m_has_rated_prompt->Hide();
     }
     Layout();
-    Fit();
 }
 
 void PrintingTaskPanel::msw_rescale()
@@ -1277,6 +1276,11 @@ void PrintingTaskPanel::market_scoring_show(bool show)
 {
     m_score_staticline->Show(show);
     m_score_subtask_info->Show(show);
+}
+
+bool PrintingTaskPanel::is_market_scoring_show()
+{
+    return m_score_subtask_info->IsShown();
 }
 
 void PrintingTaskPanel::set_star_count(int star_count)
@@ -3431,6 +3435,15 @@ void StatusPanel::update_calib_bitmap()
     }
 }
 
+void StatusPanel::update_market_scoring(bool show)
+{
+    if (m_project_task_panel->is_market_scoring_show() != show)
+    {
+        m_project_task_panel->market_scoring_show(show);
+        Layout();
+    }
+}
+
 void StatusPanel::update_basic_print_data(bool def)
 {
     if (def) {
@@ -3630,9 +3643,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                                 m_project_task_panel->set_has_reted_text(false);
                             }
                         }
-
-                        m_project_task_panel->market_scoring_show(true);
-
+                        update_market_scoring(true);
                     } else if (obj && obj->rating_info && !obj->rating_info->request_successful) {
                         BOOST_LOG_TRIVIAL(info) << "model mall result request failed";
                         if (403 != obj->rating_info->http_code) {
@@ -3644,7 +3655,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
                         }
                     }
                 } else {
-                    m_project_task_panel->market_scoring_show(false);
+                    update_market_scoring(false);
                 }
             } else { // model printing is not finished, hide scoring page
                 m_project_task_panel->enable_abort_button(true);

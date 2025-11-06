@@ -347,7 +347,10 @@ protected:
     Label*                              m_options_line_close{nullptr};
     wxGridSizer*                        m_sizer_options{nullptr};
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
-
+    wxPanel*                            m_pa_value_panel{nullptr};
+    Label*                              m_pa_value_message{nullptr};
+    SwitchButton*                       m_pa_value_switch{nullptr};
+    ScalableButton*                     m_pa_value_tips{nullptr};
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
@@ -547,6 +550,7 @@ private:
     // events
     void on_flow_pa_caliation_option_changed(wxCommandEvent& event);
     void on_nozzle_offset_option_changed(wxCommandEvent& event);
+    void on_pa_value_switch_changed(wxCommandEvent &event);
 
     // get mapping nozzle display string
     wxString get_mapped_nozzle_str(int fila_id);

@@ -789,7 +789,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("z_direction_outwall_speed_continuous", coBool);
     def->label = L("Smoothing wall speed along Z(experimental)");
     def->category = L("Quality");
-    def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode.");
+    def->tooltip  = L("Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -3703,6 +3703,12 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->set_default_value(new ConfigOptionInt(2));
 
+    def = this->add("embedding_wall_into_infill", coBool);
+    def->label = L("Embedding the wall into the infill");
+    def->category = L("Strength");
+    def->tooltip  = L("Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill.");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("post_process", coStrings);
     def->label = L("Post-processing Scripts");
     def->tooltip = L("If you want to process the output G-code through custom scripts, "
@@ -4960,6 +4966,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("This is  the number of layers of top bottom penetration.");
     def->min      = 1;
     def->set_default_value(new ConfigOptionInt(3));
+
+    def           = this->add("infill_instead_top_bottom_surfaces", coBool);
+    def->label    = L("Use infill instead of top and bottom surfaces");
+    def->category = L("Strength");
+    def->tooltip  = L("Using infill instead of top and bottom surfaces.");
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("travel_speed", coFloats);
     def->label = L("Travel");
