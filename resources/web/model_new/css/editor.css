@@ -56,12 +56,13 @@ body {
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
+  color: #000000;
 }
 
 .container {
-  margin-top: 40px;
   width: 968px;
   padding: 36px 50px;
+  margin: 50px auto 40px;
 }
 
 .editorGroup {
@@ -207,6 +208,13 @@ body {
 .ck-content {
   min-height: 100px !important;
 }
+.ck-editor__editable_inline {
+  padding: 12px 16px 12px 36px !important;
+  box-sizing: border-box;
+}
+.ck-editor__editable, .ck-sticky-panel__content {
+  border-color: #ffffff !important;
+}
 
 /*editor accessories*/
 .editorSubTitle {
@@ -251,7 +259,7 @@ body {
   overflow-wrap: anywhere;
   word-break: break-all;
   cursor: pointer;
-  background: var(--background-base, #F7F7F7);
+  /* background: var(--background-base, #F7F7F7); */
 }
 .attachment-icon {
   width: 28px;

@@ -14,7 +14,7 @@
     if (href && href.charAt(0) === '#'){
       var $target = $(href);
       if ($target.length){
-        var offset = 48; // 顶部预留，避免顶到视口边缘
+        var offset = 70; // 顶部预留，避免顶到视口边缘
         $('html,body').animate({ scrollTop: Math.max(0, $target.offset().top - offset) }, 300);
       }
     }

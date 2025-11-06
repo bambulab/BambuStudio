@@ -331,10 +331,10 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                     sequence_id = std::to_string(seq.get<long long>());
             }
 
-            wxMessageDialog dlg(this,
-                                "Do you want to save the changes?",
-                                "Confirm",
-                                wxYES_NO | wxICON_QUESTION);
+            MessageDialog dlg(this,
+                              _L("Do you want to save the changes ?"),
+                              _L("Save"),
+                              wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
             int res = dlg.ShowModal();
             if (res == wxID_YES) {
                 json resp = json::object();
@@ -347,7 +347,18 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                 wxGetApp().CallAfter([this, strJS] {
                     RunScript(strJS.ToStdString());
                 });
-            }
+            }else if (res == wxID_NO ) {
+                json resp = json::object();
+                resp["command"] = "discard_project";
+                if (!sequence_id.empty())
+                    resp["sequence_id"] = sequence_id;
+
+                wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                                  resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+                wxGetApp().CallAfter([this, strJS] {
+                    RunScript(strJS.ToStdString());
+                });
+            } else {}
         }
         else if (strCmd == "modelmall_model_open") {
             if (j.contains("data")) {
@@ -667,9 +678,10 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                 copy_entries(json_array_or_empty(profile_section, "preview_img"), "Profile Pictures", true, &profile_picture_paths);
 
                 if (!model_picture_paths.empty()) {
-                    model_ref.model_info->cover_file = model_picture_paths.front().string();
+                    const fs::path &cover_src = model_picture_paths.front();
+                    model_ref.model_info->cover_file = cover_src.filename().string();
 
-                    fs::path full_path      = model_picture_paths.front().parent_path();
+                    fs::path full_path      = cover_src.parent_path();
                     fs::path full_root_path = full_path.parent_path();
                     wxString full_root_path_str = encode_path(full_root_path.string().c_str());
                     wxString thumbnails_dir     = wxString::Format("%s/.thumbnails", full_root_path_str);
@@ -680,15 +692,15 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                         fs::create_directories(dir_path, ec);
 
                     wxImage thumbnail_img;
-                    if (generate_image(model_picture_paths.front().string(), thumbnail_img, _3MF_COVER_SIZE)) {
+                    if (generate_image(cover_src.string(), thumbnail_img, _3MF_COVER_SIZE)) {
                         auto cover_img_path = dir_path / "thumbnail_3mf.png";
                         thumbnail_img.SaveFile(encode_path(cover_img_path.string().c_str()));
                     }
-                    if (generate_image(model_picture_paths.front().string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE)) {
+                    if (generate_image(cover_src.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE)) {
                         auto small_img_path = dir_path / "thumbnail_small.png";
                         thumbnail_img.SaveFile(encode_path(small_img_path.string().c_str()));
                     }
-                    if (generate_image(model_picture_paths.front().string(), thumbnail_img, PRINTER_THUMBNAIL_MIDDLE_SIZE)) {
+                    if (generate_image(cover_src.string(), thumbnail_img, PRINTER_THUMBNAIL_MIDDLE_SIZE)) {
                         auto middle_img_path = dir_path / "thumbnail_middle.png";
                         thumbnail_img.SaveFile(encode_path(middle_img_path.string().c_str()));
                     }
@@ -697,7 +709,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                 }
 
                 if (!profile_picture_paths.empty())
-                    model_ref.profile_info->ProfileCover = profile_picture_paths.front().string();
+                    model_ref.profile_info->ProfileCover = profile_picture_paths.front().filename().string();
                 else
                     model_ref.profile_info->ProfileCover.clear();
 

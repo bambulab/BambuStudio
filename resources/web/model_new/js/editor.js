@@ -20,6 +20,22 @@ function deepCloneList(list) {
   return JSON.parse(JSON.stringify(list || []));
 }
 
+function safeDecode(value) {
+  if (!value) return '';
+  try {
+    return decodeURIComponent(value);
+  } catch (err) {
+    return value;
+  }
+}
+
+function normalizeCoverName(value) {
+  const decoded = safeDecode(value);
+  if (!decoded) return '';
+  const segments = decoded.split(/[/\\]/);
+  return segments[segments.length - 1];
+}
+
 function normalizeRequestPayload(raw) {
   const safe = raw || {};
   const model = safe.model || {};
@@ -120,7 +136,7 @@ $(function () {
     ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'],
     4 * 1024 * 1024
   );
-  TestProjectData.model.preview_img=[];
+  // TestProjectData.model.preview_img=[];
   // updateInfo(TestProjectData);
   RequestProjectInfo();
 });
@@ -208,9 +224,10 @@ function updateInfo(p3MF) {
   projectName = DOMPurify.sanitize(decodeURIComponent(p3MF.model.name));
   projectPictures.length = 0;
   Array.prototype.push.apply(projectPictures, p3MF.model.preview_img || []);
-  let projectCover = p3MF.model.cover_img || "";
+  let projectCover = normalizeCoverName(p3MF.model.cover_img || "");
   for (let i = 0; i < projectPictures.length; i++) {
-    if(projectPictures[i].filepath.includes(projectCover)){
+    const pictureName = normalizeCoverName(projectPictures[i].filename);
+    if (projectCover && pictureName === projectCover){
       const [item] = projectPictures.splice(i, 1);
       projectPictures.unshift(item);
       break;
@@ -226,9 +243,10 @@ function updateInfo(p3MF) {
   profileName = DOMPurify.sanitize(decodeURIComponent(p3MF.profile.name));
   profilePictures.length = 0;
   Array.prototype.push.apply(profilePictures, p3MF.profile.preview_img || []);
-  let profileCover = p3MF.profile.cover_img || "";
+  let profileCover = normalizeCoverName(p3MF.profile.cover_img || "");
   for (let i = 0; i < profilePictures.length; i++) {
-    if(profilePictures[i].filepath.includes(profileCover)){
+    const pictureName = normalizeCoverName(profilePictures[i].filename);
+    if (profileCover && pictureName === profileCover){
       const [item] = profilePictures.splice(i, 1);
       profilePictures.unshift(item);
       break;
@@ -392,7 +410,6 @@ function addPictureUploadListener(inputId, showPictrueId, picturesList, allowTyp
           "size": file.size,
           "base64": base64
           });
-          showToast('add file'+projectPictures.length);
           setPictures(showPictrueId, picturesList);
           // showToast('add file1'+projectPictures.length);
         });
@@ -701,6 +718,11 @@ function handleEditorMessage(rawMessage) {
 
   if (command === 'save_project') {
     saveInfo();
+    return;
+  }
+
+  if (command === 'discard_project') {
+    window.location.href = 'index.html';
     return;
   }
 
