@@ -15,6 +15,11 @@ var cardData = [
     "link": "support/academy/6"
   },
   {
+    "title": "Bambu Lab P2S",
+    "img": "img/printer_p2s.png",
+    "link": "support/academy/13"
+  },
+  {
     "title": "Bambu Lab X1C",
     "img": "img/printer_x1c.png",
     "link": "support/academy/9"
@@ -23,6 +28,11 @@ var cardData = [
     "title": "Bambu Lab H2D",
     "img": "img/printer_h2d.png",
     "link": "support/academy/10"
+  },
+  {
+    "title": "Bambu Lab H2S",
+    "img": "img/printer_h2s.png",
+    "link": "support/academy/12"
   },
   {
     "title": "Bambu Studio",

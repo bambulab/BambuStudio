@@ -518,3 +518,21 @@ function DisableDropAction()
 		event.preventDefault();
 	});
 }
+
+function showToast(message, duration = 2500) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerText = message;
+  document.body.appendChild(toast);
+
+  void toast.offsetWidth;
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
