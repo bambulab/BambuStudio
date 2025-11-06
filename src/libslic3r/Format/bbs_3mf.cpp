@@ -6623,6 +6623,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string rating;
             std::string model_id;
             std::string region_code;
+            std::string profile_title;
+            std::string profile_cover;
+            std::string profile_description;
             if (model.design_info) {
                  user_name = model.design_info->Designer;
                  user_id = model.design_info->DesignerUserId;
@@ -6644,6 +6647,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 origin       = model.model_info->origin;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
             }
+
+            if (model.profile_info) {
+                profile_title = model.profile_info->ProfileTile;
+                profile_cover = model.profile_info->ProfileCover;
+                profile_description = model.profile_info->ProfileDescription;
+            }
             // remember to use metadata_item_map to store metadata info
             std::map<std::string, std::string> metadata_item_map;
             if (!sub_model) {
@@ -6660,6 +6669,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_DESCRIPTION_TAG]          = xml_escape(description);
                 metadata_item_map[BBL_COPYRIGHT_NORMATIVE_TAG]  = xml_escape(copyright);
                 metadata_item_map[BBL_LICENSE_TAG]              = xml_escape(license);
+                metadata_item_map[BBL_PROFILE_TITLE_TAG]        = xml_escape(profile_title);
+                metadata_item_map[BBL_PROFILE_COVER_TAG]        = xml_escape(profile_cover);
+                metadata_item_map[BBL_PROFILE_DESCRIPTION_TAG]  = xml_escape(profile_description);
 
                 /* save model info */
                 if (!model_id.empty()) {
