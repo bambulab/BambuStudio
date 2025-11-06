@@ -67,6 +67,7 @@ private:
     wxString   m_root_dir;
     std::map<std::string, std::string> m_model_id_map;
     static inline int m_sequence_id = 8000;
+    json       m_last_payload = json::object();
 
 public:
     ProjectPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

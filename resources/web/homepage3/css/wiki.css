@@ -157,7 +157,7 @@ body{
   background-clip: content-box;
   background-size: cover;
   cursor: pointer;
-  opacity: 0.2;
+  opacity: 0.4;
   pointer-events: auto;
 }
 .switchBtn:hover{
