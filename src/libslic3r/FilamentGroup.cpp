@@ -548,22 +548,47 @@ namespace Slic3r
         const long long total = std::pow(m_k, m_elem_count);
         for (long long mask = 0; mask < total; mask++) {
             long long num = mask;
-            int left_extruder_elems = 0, right_extruder_elems = 0;
-            int prefer_level = (m_elem_count + 1) * (m_elem_count + 1);
             std::unordered_map<int, std::vector<int>> nozzles_filaments;
             std::vector<int> groups(m_cluster_group_size.size());
+
+            bool single_nozzle_single_filament = true;
+            std::vector<std::unordered_map<NozzleVolumeType, std::set<int>>> used_nozzles(m_cluster_group_size.size());
+            std::vector<int> prefer_vs(3, 0);
+
             //4.calculate group info
             for (int i = 0; i < m_elem_count; i++) {
                 int n_id = num % m_k;
                 num /= m_k;
+                int ex_id = m_nozzle_to_extruder[n_id];
 
                 labels[used_filaments[i]] = n_id;
                 used_labels[i]            = n_id;
                 nozzles_filaments[n_id].emplace_back(i);
-                groups[m_nozzle_to_extruder[n_id]]++;
-                if (std::find(candidates[i].begin(), candidates[i].end(), n_id) == candidates[i].end()) prefer_level -= (m_elem_count + 1);
+                groups[ex_id]++;
+
+                single_nozzle_single_filament = single_nozzle_single_filament && nozzles_filaments[n_id].size() == 1;
+                used_nozzles[ex_id][context.nozzle_info.nozzle_list[n_id].volume_type].insert(n_id);
+
+                if (std::find(candidates[i].begin(), candidates[i].end(), n_id) != candidates[i].end()) prefer_vs[0] += 1;
             }
-            for (int i = 0; i < groups.size(); i++) prefer_level -= std::max(0, groups[i] - m_cluster_group_size[i].second);
+
+            bool all_extruder_has_filament = true;
+            for (int i = 0; i < groups.size(); i++) {
+                prefer_vs[1] += std::min(groups[i], int(m_cluster_group_size[i].first.size()));
+                if (groups[i] == 0) all_extruder_has_filament = false;
+            }
+
+            bool r_nozzle_equal = used_nozzles[1][nvtStandard].size() == 0 || used_nozzles[1][nvtHighFlow].size() == 0;
+            if (single_nozzle_single_filament && all_extruder_has_filament && r_nozzle_equal) {
+                prefer_vs[2] += 1;
+                auto r_noz_type = used_nozzles[1][nvtStandard].size() ? nvtStandard : nvtHighFlow;
+                auto l_noz_type = used_nozzles[0][nvtStandard].size() ? nvtStandard : nvtHighFlow;
+                if (l_noz_type == r_noz_type) prefer_vs[2] += 1;
+            }
+            int weight_for_placeable = 10000;
+            int weight_for_extruder_filaments = 100;
+            int weight_for_nozzle_type = 1;
+            int prefer_level = prefer_vs[0] * weight_for_placeable + prefer_vs[1] * weight_for_extruder_filaments + prefer_vs[2] * weight_for_nozzle_type;
 
             //5.compute group hash
             group_hashs.clear();
