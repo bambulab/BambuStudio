@@ -665,11 +665,7 @@ void AMSSettingTypePanel::Update(const MachineObject* obj)
 
             m_type_combobox->Clear();
             for (auto ams_firmware : m_ams_firmwares) {
-                if (m_ams_firmware_current_idx == ams_firmware.first) {
-                    m_type_combobox->Append(_L(ams_firmware.second.m_name));
-                } else {
-                    m_type_combobox->Append(_L(ams_firmware.second.m_name));
-                }
+                m_type_combobox->Append(_L(ams_firmware.second.m_name));
             }
             m_type_combobox->SetSelection(m_ams_firmware_current_idx);
         }
