@@ -7219,7 +7219,12 @@ std::vector<DevNozzle> Tab::collect_nozzles(int extruder_id, ExtruderType ext_ty
     }
 
     connected = true;
-    DevExtder extder = extder_sys->GetExtderById(extruder_id).value();
+    auto extder_opt = extder_sys->GetExtderById(extruder_id);
+    if (!extder_opt.has_value()) {
+        BOOST_LOG_TRIVIAL(info) << "No extruder found for extruder id " << extruder_id;
+        return {};
+    }
+
     auto extder_type = ExtruderType::etDirectDrive;
     if (extder_type != ext_type) {
         return {};
