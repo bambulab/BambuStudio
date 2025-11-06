@@ -404,6 +404,8 @@ std::string PartSkipDialog::create_tmp_path()
 
 bool PartSkipDialog::is_local_file_existed(const std::vector<string> &local_paths)
 {
+    if (m_obj && (m_obj->job_id_.empty() || m_obj->job_id_ == "0")) return false;
+
     for (auto path : local_paths) {
         if (!std::filesystem::exists(path)) { return false; }
     }
