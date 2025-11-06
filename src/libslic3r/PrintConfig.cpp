@@ -6501,7 +6501,7 @@ double min_object_distance(const ConfigBase &cfg)
     return ret;
 }
 
-void DynamicPrintConfig::normalize_fdm(int used_filaments)
+void DynamicPrintConfig::normalize_fdm()
 {
     if (this->has("extruder")) {
         int extruder = this->option("extruder")->getInt();
@@ -6544,32 +6544,6 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
 
-    // BBS
-    ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
-    if (used_filaments > 0 && ept_opt != nullptr) {
-        ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
-        //ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
-        ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-
-        ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-        bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (!is_smooth_timelapse && (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)) {
-            ept_opt->value = false;
-        }
-
-        if (ept_opt->value) {
-            if (islh_opt)
-                islh_opt->value = false;
-            //if (alh_opt)
-            //    alh_opt->value = false;
-        }
-        /* BBS: MusangKing - not sure if this is still valid, just comment it out cause "Independent support layer height" is re-opened.
-        else {
-            if (islh_opt)
-                islh_opt->value = true;
-        }
-        */
-    }
 }
 
 //BBS:divide normalize_fdm to 2 steps and call them one by one in Print::Apply
