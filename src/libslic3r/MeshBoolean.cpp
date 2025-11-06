@@ -910,8 +910,21 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
         progress_cb(90.0f);
     }
     TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
-    if (!tri_src.empty())
-        dst_mesh.push_back(std::move(tri_src));
+    if (!tri_src.empty()) {
+        // Split into parts, fix negative volume for each part, then merge back
+        std::vector<TriangleMesh> parts = tri_src.split();
+        if (parts.size() > 1) {
+            TriangleMesh fixed_mesh;
+            for (auto& part : parts) {
+                if (part.volume() < 0) part.flip_triangles();
+                fixed_mesh.merge(part);
+            }
+            dst_mesh.push_back(std::move(fixed_mesh));
+        } else {
+            if (tri_src.volume() < 0) tri_src.flip_triangles();
+            dst_mesh.push_back(std::move(tri_src));
+        }
+    }
     if (progress_cb) {
         progress_cb(100.0f);
     }
