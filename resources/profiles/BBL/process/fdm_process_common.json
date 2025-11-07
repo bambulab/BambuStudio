@@ -177,5 +177,5 @@
     "solid_infill_filament": "0",
     "embedding_wall_into_infill": "0",
     "first_x_layer_fan_speed": "0",
-    "infill_instead_top_bottom_surfaces":" 0"
+    "infill_instead_top_bottom_surfaces":"0"
 }
