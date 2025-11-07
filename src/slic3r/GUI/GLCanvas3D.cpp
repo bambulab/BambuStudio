@@ -4978,10 +4978,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         bool ctrl_down = evt.CmdDown();
                         bool alt_down  = evt.AltDown();
                         Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
-
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
                         else if (alt_down) {//support  select multi parts
+                            if (m_selection.is_single_full_object()) {
+                                m_selection.clear();
+                                curr_idxs.clear();
+                            }
                             Selection::EMode mode = Selection::Volume;
                             std::vector<int> volume_idxs;
                             for (auto idx : curr_idxs) {
@@ -5003,12 +5006,29 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             }
                         }
                         else {
-                            m_selection.add(volume_idx, !ctrl_down, true);
-                            m_mouse.drag.move_requires_threshold = !already_selected;
-                            if (already_selected)
-                                m_mouse.set_move_start_threshold_position_2D_as_invalid();
-                            else
-                                m_mouse.drag.move_start_threshold_position_2D = pos;
+                            bool change_another_part = false;
+                            auto cur_selection_mode = m_selection.get_mode();
+                            if (cur_selection_mode == Selection::Volume && !alt_down && !already_selected) {
+                                std::vector<int> volume_idxs;
+                                for (auto idx : curr_idxs) { volume_idxs.emplace_back(idx); }
+                                auto temp_gl_volume        = m_selection.get_volume(volume_idx);
+                                auto new_select_object_idx = temp_gl_volume->object_idx();
+                                auto first_gl_volume       = m_selection.get_volume(volume_idxs[0]);
+                                if (first_gl_volume->object_idx() == new_select_object_idx) {
+                                    Selection::EMode mode = Selection::Volume;
+                                    m_selection.clear();
+                                    m_selection.add_volumes(mode, {(unsigned int) volume_idx}, false);
+                                    change_another_part = true;
+                                }
+                            }
+                            if (!change_another_part) {
+                                m_selection.add(volume_idx, !ctrl_down, true);
+                                m_mouse.drag.move_requires_threshold = !already_selected;
+                                if (already_selected)
+                                    m_mouse.set_move_start_threshold_position_2D_as_invalid();
+                                else
+                                    m_mouse.drag.move_start_threshold_position_2D = pos;
+                            }
                         }
 
                         // propagate event through callback
