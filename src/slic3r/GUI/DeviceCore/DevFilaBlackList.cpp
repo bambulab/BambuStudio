@@ -37,8 +37,12 @@ bool DevFilaBlacklist::load_filaments_blacklist_config()
             BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed";
         }
     }
-    catch (...) {
+    catch (const std::exception& e) {
+#if !BBL_RELEASE_TO_PUBLIC
+        BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed e=" << e.what();
+#else
         BOOST_LOG_TRIVIAL(error) << "load filaments blacklist config failed";
+#endif
         return false;
     }
     return true;
@@ -158,6 +162,16 @@ void check_filaments(const std::string& dev_id,
             std::transform(name.begin(), name.end(), name.begin(), ::tolower);
             if (!name.empty() && (name != tag_name)) { continue; }
 
+            // check white names
+            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
+            if (!white_names.empty() && !tag_name.empty()) {
+                for (auto white_name : white_names) {
+                    if (tag_name.find(white_name) != std::string::npos) {
+                        continue;// the filament name is in white names, skip this blacklist item
+                    }
+                }
+            }
+
             // check name suffix
             std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::tolower);
             if (!name_suffix.empty())
@@ -167,7 +181,7 @@ void check_filaments(const std::string& dev_id,
             }
 
             // check filament used for print support
-            if (used_for_print_support != fila_used_for_support) {
+            if (used_for_print_support.has_value() && used_for_print_support != fila_used_for_support) {
                 continue;
             }
 
@@ -195,6 +209,19 @@ void check_filaments(const std::string& dev_id,
             in_blacklist = true;
             ac = action;
             info = _L(description);
+            if (info == _L("When using %s on the right extruder, it can only be used as support material.")) {
+                if (!name_suffix.empty()) {
+                    std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::toupper);
+                    info = wxString::Format(info, name_suffix);
+                } else if (!type.empty()) {
+                    std::transform(type.begin(), type.end(), type.begin(), ::toupper);
+                    info = wxString::Format(info, type);
+                } else {
+                    std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::toupper);
+                    info = wxString::Format(info, tag_name);
+                }
+            }
+
             wiki_url = filament_item.contains("wiki") ? filament_item["wiki"].get<std::string>() : "";
             return;
 
@@ -214,6 +241,7 @@ void check_filaments(const std::string& dev_id,
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("The filament may require slicing parameter adjustments.");
             L("Using non-bambu filament may have printing quality issues.");
+            L("When using %s on the right extruder, it can only be used as support material.");
         }
     }
 }
