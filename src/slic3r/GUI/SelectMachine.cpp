@@ -573,14 +573,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
     m_pa_value_panel = new wxPanel(m_options_other);
-    m_pa_value_panel->SetMaxSize(wxSize(FromDIP(400), -1));
-    m_pa_value_panel->SetMinSize(wxSize(FromDIP(400), -1));
+    m_pa_value_panel->SetMaxSize(wxSize(FromDIP(315), -1));
+    m_pa_value_panel->SetMinSize(wxSize(FromDIP(315), -1));
     wxBoxSizer *m_pa_value_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_pa_value_message = new Label(m_pa_value_panel, _L("Nozzles and filaments of the same type share the same PA profile"));
     m_pa_value_message->SetFont(Label::Body_14);
     m_pa_value_message->SetBackgroundColour(*wxWHITE);
-    m_pa_value_message->SetForegroundColour(wxColour("#352F2D"));
     m_pa_value_message->Wrap(FromDIP(243));
 
     m_pa_value_switch = new SwitchButton(m_pa_value_panel);
