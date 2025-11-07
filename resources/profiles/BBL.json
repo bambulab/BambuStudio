@@ -3608,12 +3608,12 @@
             "sub_path": "filament/Bambu PLA Glow @BBL X1C 0.2 nozzle.json"
         },
         {
-            "name": "Bambu PLA Glow @BBL X1C 0.6 nozzle",
-            "sub_path": "filament/Bambu PLA Glow @BBL X1C 0.6 nozzle.json"
-        },
-        {
             "name": "Bambu PLA Glow @BBL X2D 0.2 nozzle",
             "sub_path": "filament/Bambu PLA Glow @BBL X2D 0.2 nozzle.json"
+        },
+        {
+            "name": "Bambu PLA Glow @BBL X1C 0.6 nozzle",
+            "sub_path": "filament/Bambu PLA Glow @BBL X1C 0.6 nozzle.json"
         },
         {
             "name": "Bambu PLA Glow @BBL X1E",
@@ -4383,7 +4383,8 @@
             "name": "Bambu PLA Sparkle @BBL X2D 0.4 nozzle",
             "sub_path": "filament/Bambu PLA Sparkle @BBL X2D 0.4 nozzle.json"
         },
-        {            "name": "Bambu PLA Tough @base",
+        {
+            "name": "Bambu PLA Tough @base",
             "sub_path": "filament/Bambu PLA Tough @base.json"
         },
         {
@@ -6879,16 +6880,16 @@
             "sub_path": "filament/Bambu TPU for AMS @BBL X1C.json"
         },
         {
+            "name": "Bambu TPU for AMS @BBL X1C 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU for AMS @BBL X1C 0.6 nozzle.json"
+        },
+        {
             "name": "Bambu TPU for AMS @BBL X2D",
             "sub_path": "filament/Bambu TPU for AMS @BBL X2D.json"
         },
         {
             "name": "Bambu TPU for AMS @BBL X2D 0.4 nozzle",
             "sub_path": "filament/Bambu TPU for AMS @BBL X2D 0.4 nozzle.json"
-        },
-        {
-            "name": "Bambu TPU for AMS @BBL X1C 0.6 nozzle",
-            "sub_path": "filament/Bambu TPU for AMS @BBL X1C 0.6 nozzle.json"
         },
         {
             "name": "Generic TPU @base",
@@ -6993,10 +6994,6 @@
         {
             "name": "Generic TPU for AMS @BBL X2D 0.4 nozzle",
             "sub_path": "filament/Generic TPU for AMS @BBL X2D 0.4 nozzle.json"
-        },
-        {
-            "name": "fdm_filament_dual_common",
-            "sub_path": "filament/fdm_filament_dual_common.json"
         }
     ],
     "machine_list": [
@@ -7355,12 +7352,12 @@
             "sub_path": "process/0.16mm Balanced Quality @BBL H2DP.json"
         },
         {
-            "name": "0.16mm Standard @BBL H2C",
-            "sub_path": "process/0.16mm Standard @BBL H2C.json"
-        },
-        {
             "name": "0.16mm High Quality @BBL X2D",
             "sub_path": "process/0.16mm High Quality @BBL X2D.json"
+        },
+        {
+            "name": "0.16mm Standard @BBL H2C",
+            "sub_path": "process/0.16mm Standard @BBL H2C.json"
         },
         {
             "name": "0.16mm Standard @BBL H2D",
@@ -7411,12 +7408,12 @@
             "sub_path": "process/0.20mm Balanced Strength @BBL H2DP.json"
         },
         {
-            "name": "0.20mm Standard @BBL H2C",
-            "sub_path": "process/0.20mm Standard @BBL H2C.json"
-        },
-        {
             "name": "0.20mm High Quality @BBL X2D",
             "sub_path": "process/0.20mm High Quality @BBL X2D.json"
+        },
+        {
+            "name": "0.20mm Standard @BBL H2C",
+            "sub_path": "process/0.20mm Standard @BBL H2C.json"
         },
         {
             "name": "0.20mm Standard @BBL H2D",
@@ -7455,12 +7452,12 @@
             "sub_path": "process/fdm_process_dual_0.24_nozzle_0.6.json"
         },
         {
-            "name": "0.24mm Balanced Strength @BBL H2C 0.6 nozzle",
-            "sub_path": "process/0.24mm Balanced Strength @BBL H2C 0.6 nozzle.json"
-        },
-        {
             "name": "0.24mm Balanced Quality @BBL X2D 0.6 nozzle",
             "sub_path": "process/0.24mm Balanced Quality @BBL X2D 0.6 nozzle.json"
+        },
+        {
+            "name": "0.24mm Balanced Strength @BBL H2C 0.6 nozzle",
+            "sub_path": "process/0.24mm Balanced Strength @BBL H2C 0.6 nozzle.json"
         },
         {
             "name": "0.24mm Balanced Strength @BBL H2D 0.6 nozzle",
@@ -7519,12 +7516,12 @@
             "sub_path": "process/fdm_process_dual_0.32_nozzle_0.8.json"
         },
         {
-            "name": "0.32mm Balanced Strength @BBL H2C 0.8 nozzle",
-            "sub_path": "process/0.32mm Balanced Strength @BBL H2C 0.8 nozzle.json"
-        },
-        {
             "name": "0.32mm Balanced Quality @BBL X2D 0.8 nozzle",
             "sub_path": "process/0.32mm Balanced Quality @BBL X2D 0.8 nozzle.json"
+        },
+        {
+            "name": "0.32mm Balanced Strength @BBL H2C 0.8 nozzle",
+            "sub_path": "process/0.32mm Balanced Strength @BBL H2C 0.8 nozzle.json"
         },
         {
             "name": "0.32mm Balanced Strength @BBL H2D 0.8 nozzle",
