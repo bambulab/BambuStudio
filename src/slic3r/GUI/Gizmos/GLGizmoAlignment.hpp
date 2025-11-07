@@ -79,7 +79,7 @@ private:
     Selection& get_selection() const;
     bool take_snapshot(const std::string& name);
     void apply_transformation(int obj_idx, int inst_idx, const Vec3d& displacement);
-    void finish_operation(const std::string& operation_name);
+    void       finish_operation(const std::string &operation_name, bool force_volume_move = false);
 
     bool validate_selection_for_align() const;
     bool validate_selection_for_distribute() const;
