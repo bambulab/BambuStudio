@@ -623,7 +623,10 @@ bool MeshBooleanUI::load_icons()
         {"bool_swap_active_dark.svg", &m_swap_dark_icon_id, true},
         {"bool_swap_hover.svg", &m_swap_hover_icon_id, true},
         {"bool_swap_inactive.svg", &m_swap_inactive_icon_id, true},
-        {"bool_swap_clicked.svg", &m_swap_clicked_icon_id, true}
+        {"bool_swap_clicked.svg", &m_swap_clicked_icon_id, true},
+
+        // Check list icon (select all)
+        {"bool_check_list.svg", &m_check_list_icon_id, true}
     };
 
     auto load_icons_helper = [this, &resources_path](const std::vector<IconInfo>& icons) -> bool {
@@ -777,6 +780,51 @@ void MeshBooleanUI::draw_object_list(const std::string& table_name, ImVec2 size,
     ImVec2 title_min = ImVec2(pos.x, pos.y);
     ImVec2 title_max = ImVec2(pos.x + size.x, pos.y + m_computed_list_title_height);
     draw_list->AddRectFilled(title_min, title_max, title_bg_color, MeshBooleanConfig::ROUNDING_LIST, ImDrawFlags_RoundCornersTop);
+
+    // Select all button on the left side of title bar
+    bool all_items_selected = !items.empty() && selected_indices.size() == items.size();
+    if (m_check_list_icon_id && !items.empty()) {
+        float button_size = m_computed_icon_size_display;
+        float button_margin_y = (m_computed_list_title_height - button_size) * 0.5f;
+        float button_margin_x = 6.0f;
+        ImVec2 button_pos = ImVec2(title_min.x + button_margin_x, title_min.y + button_margin_y);
+        ImVec2 button_max = ImVec2(button_pos.x + button_size, button_pos.y + button_size);
+
+        // Create invisible button for click detection with unique ID
+        ImGui::PushID(table_name.c_str());
+        ImGui::SetCursorPos(ImVec2(button_pos.x - ImGui::GetWindowPos().x, button_pos.y - ImGui::GetWindowPos().y));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+        bool select_all_clicked = ImGui::Button("##select_all", ImVec2(button_size, button_size));
+        ImGui::PopStyleColor(4);
+
+        // Draw the check list icon
+        ImU32 icon_color = ImGui::IsItemHovered() ? IM_COL32(0, 0, 0, 255) : IM_COL32(0, 0, 0, 180);
+        draw_list->AddImage(m_check_list_icon_id, button_pos, button_max, ImVec2(0,0), ImVec2(1,1), icon_color);
+
+        ImGui::PopID();
+
+        // Handle click: toggle select all/none
+        if (select_all_clicked) {
+            if (all_items_selected) {
+                // Deselect all
+                for (size_t i = 0; i < items.size(); ++i) {
+                    if (selected_indices.find(i) != selected_indices.end()) {
+                        on_item_click(i, true);  // was_selected = true
+                    }
+                }
+            } else {
+                // Select all
+                for (size_t i = 0; i < items.size(); ++i) {
+                    if (selected_indices.find(i) == selected_indices.end()) {
+                        on_item_click(i, false);  // was_selected = false
+                    }
+                }
+            }
+        }
+    }
 
     // Make title text center with item count
     std::string title;

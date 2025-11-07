@@ -165,6 +165,8 @@ private:
     ImTextureID m_swap_inactive_icon_id{0};
     ImTextureID m_swap_clicked_icon_id{0};
 
+    ImTextureID m_check_list_icon_id{0};
+
     bool m_icons_loaded{false};
 
     // ========================== UI RENDERING METHODS ==========================
