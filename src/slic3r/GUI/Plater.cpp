@@ -9611,9 +9611,16 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
     for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
         if (!pdata.native_name.empty()) {
             std::string native_name = pdata.native_name;
+
+            //cstom material name match
+            size_t atPos = used_filament.find('@');
+            std::string target_name = (atPos != std::string::npos) ? used_filament.substr(0, atPos) : used_filament;
+            boost::trim(target_name);
+
             boost::algorithm::to_lower(native_name);
-            boost::algorithm::to_lower(used_filament);
-            if (used_filament.find(native_name) != std::string::npos) {
+            boost::algorithm::to_lower(target_name);
+
+            if (target_name == native_name) {
                 is_supported_by_helio = true;
                 material_id = pdata.id;
                 break;
