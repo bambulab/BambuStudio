@@ -4710,7 +4710,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("fins_extrude_safe_temp");
         optgroup->append_single_option_line("filament_printable");
 
-        optgroup->append_single_option_line("filament_cooling_before_tower");
+        optgroup->append_single_option_line("filament_cooling_before_tower","",0);
         optgroup->append_single_option_line("filament_tower_interface_pre_extrusion_dist");
         optgroup->append_single_option_line("filament_tower_interface_pre_extrusion_length");
         optgroup->append_single_option_line("filament_tower_ironing_area");
