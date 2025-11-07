@@ -1424,7 +1424,19 @@ void AMSLib::render_generic_lib(wxDC &dc)
         }
         else if (alpha != 255 && alpha != 254) {
             if (transparent_changed) {
+                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                if (rgb.size() == 9) {
+                    //delete alpha value
+                    rgb = rgb.substr(0, rgb.size() - 2);
+                }
+                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
+                std::vector<std::string> replace;
+                replace.push_back(rgb);
+                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                replace.push_back(fill_replace);
+                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 76, false, false, true, replace);
                 transparent_changed = false;
+
             }
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(2), FromDIP(2));
         }
