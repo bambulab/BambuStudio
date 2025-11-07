@@ -408,7 +408,7 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -568,7 +568,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -843,7 +843,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -943,7 +943,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -1058,7 +1058,7 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -1158,7 +1158,7 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
