@@ -107,7 +107,7 @@ bool GLGizmoAlignment::align_to_center_x()
 {
     const Selection& selection = get_selection();
     // Handle single object selection
-    if (selection.is_single_full_object()) {
+    /*if (selection.is_single_full_object()) {
         auto objects = get_selected_objects_info();
         if (objects.empty()) return false;
 
@@ -131,10 +131,10 @@ bool GLGizmoAlignment::align_to_center_x()
 
         finish_operation("Align to Bed Center X");
         return true;
-    }
+    }*/
 
     // Handle multiple volume selection
-    if (selection.is_multiple_volume() || selection.is_multiple_modifier()) {
+    if (selection.is_single_full_object() || selection.is_multiple_volume() || selection.is_multiple_modifier()) {
         if (!take_snapshot("Align Parts Center X")) {
             return false;
         }
@@ -157,7 +157,7 @@ bool GLGizmoAlignment::align_to_center_x()
             }
         }
 
-        finish_operation("Align Parts Center X");
+        finish_operation("Align Parts Center X",true);
         return true;
     }
 
@@ -248,7 +248,7 @@ bool GLGizmoAlignment::align_to_center_y()
 {
     const Selection& selection = get_selection();
 
-    if (selection.is_single_full_object()) {
+    /*if (selection.is_single_full_object()) {
         auto objects = get_selected_objects_info();
         if (objects.empty()) return false;
 
@@ -274,9 +274,9 @@ bool GLGizmoAlignment::align_to_center_y()
 
         finish_operation("Align Object to Bed Center Y");
         return true;
-    }
+    }*/
 
-    if (selection.is_single_volume() || selection.is_single_modifier()) {
+    if (selection.is_single_full_object() || selection.is_single_volume() || selection.is_single_modifier()) {
         auto objects = get_selected_objects_info();
         if (objects.empty()) return false;
 
@@ -388,7 +388,7 @@ bool GLGizmoAlignment::align_to_center_z()
     }
 
     // Handle multiple parts selection (only parts support Z alignment)
-    if (selection.is_multiple_volume() || selection.is_multiple_modifier()) {
+    if (selection.is_single_full_object() || selection.is_multiple_volume() || selection.is_multiple_modifier()) {
         BoundingBoxf3 selection_bbox = selection.get_bounding_box();
         double selection_center_z = selection_bbox.center().z();
 
@@ -472,7 +472,7 @@ bool GLGizmoAlignment::align_objects_generic(GetCoordFunc get_coord, SetCoordFun
     const Selection& selection = get_selection();
 
     // Handle parts selection differently
-    if (selection.is_multiple_volume() || selection.is_multiple_modifier()) {
+    if (selection.is_single_full_object() || selection.is_multiple_volume() || selection.is_multiple_modifier()) {
         if (!take_snapshot(operation_name)) {
             return false;
         }
@@ -557,7 +557,7 @@ bool GLGizmoAlignment::align_objects_generic(GetCoordFunc get_coord, SetCoordFun
             }
         }
 
-        finish_operation(operation_name);
+        finish_operation(operation_name,true);
         return true;
     }
 
@@ -600,7 +600,7 @@ bool GLGizmoAlignment::distribute_objects_generic(GetCoordFunc get_coord, int ax
 {
     const Selection& selection = get_selection();
 
-    if (selection.is_multiple_volume() || selection.is_multiple_modifier()) {
+    if (selection.is_single_full_object() || selection.is_multiple_volume() || selection.is_multiple_modifier()) {
         std::vector<const GLVolume*> volumes;
         for (unsigned int idx : selection.get_volume_idxs()) {
             const GLVolume* v = selection.get_volume(idx);
@@ -650,7 +650,7 @@ bool GLGizmoAlignment::distribute_objects_generic(GetCoordFunc get_coord, int ax
             }
         }
 
-        finish_operation(operation_name);
+        finish_operation(operation_name,true);
         return true;
     }
 
@@ -697,33 +697,19 @@ bool GLGizmoAlignment::can_align(AlignType type) const
     bool is_single_part = selection.is_single_volume() || selection.is_single_modifier();
     bool is_multiple_parts = selection.is_multiple_volume() || selection.is_multiple_modifier();
 
-    if (is_single_object) {
-        return (type == AlignType::CENTER_X || type == AlignType::CENTER_Y);
-    }
 
-    if (is_single_part) {
-        return (type == AlignType::CENTER_X || type == AlignType::CENTER_Y || type == AlignType::CENTER_Z);
-    }
-
-    if (is_multiple_objects) {
-        if (type == AlignType::Z_MAX || type == AlignType::Z_MIN || type == AlignType::CENTER_Z) {
-            return false;
-        }
-        return validate_selection_for_align();
-    }
-
-    if (is_multiple_parts) {
-        return validate_selection_for_align();
-    }
     return validate_selection_for_align();
 }
 
 bool GLGizmoAlignment::can_distribute(AlignType type) const
 {
     const Selection& selection = get_selection();
-
-    if (selection.is_single_full_object() ||
-        selection.is_single_volume() ||
+    if (selection.is_single_full_object()) {
+        size_t count = selection.get_volume_idxs().size();
+        if (count >= 3)
+            return true;
+    }
+    if (selection.is_single_volume() ||
         selection.is_single_modifier()) {
         return false;
     }
@@ -739,8 +725,7 @@ bool GLGizmoAlignment::can_distribute(AlignType type) const
     if (selection.is_multiple_full_object()) {
         auto objects = get_selected_objects_info();
         if (objects.size() < 3) return false;
-        return (type == AlignType::DISTRIBUTE_X ||
-                type == AlignType::DISTRIBUTE_Y);
+        return (type == AlignType::DISTRIBUTE_X || type == AlignType::DISTRIBUTE_Y || type == AlignType::DISTRIBUTE_Z);
     }
 
     return validate_selection_for_distribute();
@@ -787,10 +772,10 @@ void GLGizmoAlignment::apply_transformation(int obj_idx, int inst_idx, const Vec
     get_selection().translate(obj_idx, inst_idx, displacement);
 }
 
-void GLGizmoAlignment::finish_operation(const std::string& operation_name)
+void GLGizmoAlignment::finish_operation(const std::string &operation_name, bool force_volume_move)
 {
     get_selection().notify_instance_update(-1, -1);
-    m_canvas.do_move(operation_name);
+    m_canvas.do_move(operation_name, force_volume_move);
 }
 
 bool GLGizmoAlignment::validate_selection_for_align() const
