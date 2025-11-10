@@ -6361,7 +6361,7 @@ int CLI::run(int argc, char **argv)
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
 
-                                    if (support_multi_nozzle && (mode == fmmManual || mode == fmmNozzleManual)) {
+                                    if (support_multi_nozzle && (mode == fmmManual || mode == fmmNozzleManual) && (plate_to_slice != 0)) {
                                         if (mode == FilamentMapMode::fmmNozzleManual) {
                                             if (!m_extra_config.option<ConfigOptionInts>("filament_volume_map") ||
                                                 !m_extra_config.option<ConfigOptionInts>("filament_nozzle_map") ||
