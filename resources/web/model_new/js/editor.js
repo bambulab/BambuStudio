@@ -90,6 +90,7 @@ function getCurrentRequestData() {
 const editorUploadRequests = new Map();
 
 $(function () {
+  TranslatePage();
   addAccessoryBtnListener();
   addPictureUploadListener(
     'projectImageInput',
@@ -386,18 +387,18 @@ function addPictureUploadListener(inputId, showPictrueId, picturesList, allowTyp
 
     // Validate file type
     if (allowTypes && !allowTypes.includes(file.type)) {
-      showToast('Invalid file type');
+      showToast(GetCurrentTextByKey("t144"));
       return;
     }
 
     // Validate file size
     if (maxSize && file.size > maxSize) {
-      showToast('File size exceeds limit');
+      showToast(GetCurrentTextByKey("t145"));
       return;
     }
 
     if (picturesList.length >= maxCount) {
-      showToast(`You can only upload up to ${maxCount} files.`);
+      showToast(GetCurrentTextByKey("t146"));
       return;
     }
 
@@ -416,7 +417,7 @@ function addPictureUploadListener(inputId, showPictrueId, picturesList, allowTyp
         
       }
     }).catch(error => {
-      showToast('File upload failed');
+      showToast(GetCurrentTextByKey("t147"));
     });
   });
 }
@@ -524,18 +525,18 @@ function addAccessoryUploadListener(inputId, showAccessoryId, accessoriesList, a
     const lowerName = file.name.toLowerCase();
     const matchedExt = Object.keys(allowTypes).find(ext => lowerName.endsWith(ext));
     if (!matchedExt) {
-      showToast('Invalid file type');
+      showToast(GetCurrentTextByKey("t144"));
       return;
     }
 
     const maxSize = allowTypes[matchedExt];
     if (maxSize && file.size > maxSize) {
-      showToast('File size exceeds limit');
+      showToast(GetCurrentTextByKey("t145"));
       return;
     }
 
     if (accessoriesList.length >= maxCount) {
-      showToast(`You can only upload up to ${maxCount} files.`);
+      showToast(GetCurrentTextByKey("t146"));
       return;
     }
 
@@ -550,7 +551,7 @@ function addAccessoryUploadListener(inputId, showAccessoryId, accessoriesList, a
         setAccessories(showAccessoryId, accessoriesList);
       }
     }).catch(error => {
-      console.error('File upload failed:', error);
+      showToast(GetCurrentTextByKey("t147"));
     });
   });
 }
