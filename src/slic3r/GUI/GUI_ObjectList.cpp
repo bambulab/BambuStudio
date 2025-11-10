@@ -267,6 +267,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     }
 #else //__WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+    // BBS: 绑定定时器事件以支持多位数快捷键
+    m_timer_set_extruder.Bind(wxEVT_TIMER, &ObjectList::on_set_extruder_timer, this);
 #endif
 
 #ifdef __WXMSW__
@@ -1754,13 +1756,17 @@ void ObjectList::key_event(wxKeyEvent& event)
     //else if (event.GetUnicodeKey() == 'p')
     //    toggle_printable_state();
     else if (filaments_count() > 1) {
-        std::vector<wxChar> numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-        wxChar key_char = event.GetUnicodeKey();
-        if (std::find(numbers.begin(), numbers.end(), key_char) != numbers.end()) {
-            long extruder_number;
-            if (wxNumberFormatter::FromString(wxString(key_char), &extruder_number) &&
-                filaments_count() >= extruder_number)
-                set_extruder_for_selected_items(int(extruder_number));
+        // BBS: 支持多位数快捷键（与3D场景保持一致，支持11~16）
+        int keyCode = event.GetKeyCode();
+        if (keyCode >= '0' && keyCode <= '9') {
+            int digit = keyCode - '0';
+            if (m_extruder_input_value < 0 || !m_timer_set_extruder.IsRunning()) {
+                m_extruder_input_value = digit;
+            } else {
+                m_extruder_input_value = m_extruder_input_value * 10 + digit;
+            }
+            if (m_timer_set_extruder.IsRunning()) m_timer_set_extruder.Stop();
+            m_timer_set_extruder.StartOnce(500);
         }
         else
             event.Skip();
@@ -6188,6 +6194,16 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     Plater* plater = wxGetApp().plater();
     if (plater)
         plater->set_current_canvas_as_dirty();
+}
+
+// BBS: 定时器回调函数，处理多位数快捷键输入
+void ObjectList::on_set_extruder_timer(wxTimerEvent& evt)
+{
+    if (m_extruder_input_value > 0 && filaments_count() >= m_extruder_input_value) {
+        set_extruder_for_selected_items(m_extruder_input_value);
+    }
+    m_extruder_input_value = -1;
+    m_timer_set_extruder.Stop();
 }
 
 // BBS: remove "const" qualifier
