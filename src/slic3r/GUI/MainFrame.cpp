@@ -1807,9 +1807,10 @@ wxBoxSizer* MainFrame::create_side_tools()
 
             if (slice) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-                if (printer_model == "Bambu Lab H2D") {
+                int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
+                if (extruder_count > 1) {
                     if (wxGetApp().app_config->get("play_slicing_video") == "true") {
-                        MessageDialog dlg(this, _L("This is your first time slicing with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
+                        MessageDialog dlg(this, _L("This is your first time slicing with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                         auto  res = dlg.ShowModal();
                         if (res == wxID_YES) {
                             play_dual_extruder_slice_video();
@@ -1818,13 +1819,13 @@ wxBoxSizer* MainFrame::create_side_tools()
                         wxGetApp().app_config->set("play_slicing_video", "false");
                     }
 
-                    if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true") ) {
+                    if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true")) {
                         auto used_filaments = curr_plate->get_extruders();
                         std::transform(used_filaments.begin(), used_filaments.end(), used_filaments.begin(), [](auto i) {return i - 1; });
                         auto full_config = wxGetApp().preset_bundle->full_config();
                         auto filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
                         if (std::any_of(used_filaments.begin(), used_filaments.end(), [filament_types](int idx) { return filament_types[idx] == "TPU"; })) {
-                            MessageDialog dlg(this, _L("This is your first time printing tpu filaments with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
+                            MessageDialog dlg(this, _L("This is your first time printing tpu filaments with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                             auto  res = dlg.ShowModal();
                             if (res == wxID_YES) {
                                 play_dual_extruder_print_tpu_video();
