@@ -5694,16 +5694,17 @@ void GCodeProcessor::process_filament_change(int id)
         }
 
         m_result.lock();
-        if(is_extruder_change){
+        if (is_extruder_change || is_nozzle_change || is_filament_change) {
             process_filaments(CustomGCode::ToolChange);
+        }
+
+        if(is_extruder_change){
             m_result.print_statistics.total_extruder_changes++;
         }
-        if (is_nozzle_change) {
-            process_filaments(CustomGCode::ToolChange);
+        else if(is_nozzle_change){
             m_result.print_statistics.total_nozzle_changes++;
         }
-        if(is_filament_change){
-            process_filaments(CustomGCode::ToolChange);
+        else if(is_filament_change){
             m_result.print_statistics.total_filament_changes++;
         }
         m_result.unlock();
@@ -6365,6 +6366,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 
     if (apply_cooling_when_partial_free) {
         float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate));
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
         curr_temp -= max_cooling_temp; // set the temperature after doing cooling when post-extruding
         add_M104_lines(block.partial_free_lower_id,curr_temp, block.extruder_id, false, block.next_filament_id,TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling in post extrusion");
     }
