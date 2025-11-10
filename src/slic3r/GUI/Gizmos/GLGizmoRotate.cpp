@@ -544,7 +544,7 @@ void GLGizmoRotate::init_data_from_selection(const Selection &selection) {
     if (m_custom_tran.has_value()) {
         Geometry::Transformation tran(m_custom_tran.value());
         m_center = tran.get_offset();
-        m_orient_matrix = tran.get_matrix();
+        m_orient_matrix = tran.get_matrix_no_scaling_factor();
     } else {
         m_center = sphere.first;
         m_orient_matrix = box_trafo;
