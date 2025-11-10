@@ -590,7 +590,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_pa_value_tips = new ScalableButton(m_pa_value_panel, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_pa_value_tips->SetBackgroundColour(*wxWHITE);
     m_pa_value_tips->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e){
-        wxString url = "https://e.bambulab.com/t?c=UgeLJSCaJqamn8ZP";
+        std::string language = wxGetApp().app_config->get("language");
+        wxString    region   = "en";
+        if (language.find("zh") == 0) {
+            region = "zh";
+        }
+        wxString url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
         wxLaunchDefaultBrowser(url);
         e.Skip();
     });
