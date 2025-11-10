@@ -14,27 +14,28 @@
   <script type="text/javascript" src="../include/purify.min.js"></script>
   <script type="text/javascript" src="../model/test.js"></script>
   <script type="text/javascript" src="../include/globalapi.js"></script>
+  <script type="text/javascript" src="../data/text.js"></script>
 </head>
 
 <body>
   <div class="topTool">
-    <div class="returnBtn" onclick="returnBtn()"><img src="img/return.svg"><label>Return</label></div>
-    <div class="saveBtn" onclick="saveInfo()">Save</div>
+    <div class="returnBtn" onclick="returnBtn()"><img src="img/return.svg"><label class="trans" tid="t134">Return</label></div>
+    <div class="saveBtn trans" onclick="saveInfo()" tid="t135">Save</div>
   </div>
   <div class="container">
     <div class="editorGroup">
-      <div class="editorTitle required">Project Name</div>
+      <div class="editorTitle required trans" tid="t136">Project Name</div>
       <input type="text" id="projectNameInput" class="editorInput" />
     </div>
     <div class="editorGroup">
-      <div class="editorTitle required">Pictures</div>
+      <div class="editorTitle required trans" tid="t137">Pictures</div>
       <div class="comment">JPG/GIF/PNG format ≤ 4MB, no more than 16 pictures, drag the picture to adjust the order; It
         is best to scale your image to 4:3 for the best display.</div>
       <div class="imageGroup">
         <label class="uploadBox">
           <input type="file" id="projectImageInput" accept=".jpg,.jpeg,.png,.gif,.webp">
           <img src="img/upload.svg" class="uploadIcon" />
-          <div class="uploadText">Add Picture</div>
+          <div class="uploadText trans" tid="t138">Add Picture</div>
         </label>
         <div class="imageList" id="imageList">
           <!-- <div class="imagePreview" style="background-image: url('../model/img/p1.png')">
@@ -49,7 +50,7 @@
       </div>
     </div>
     <div class="editorGroup">
-      <div class="editorTitle required">Description</div>
+      <div class="editorTitle required trans" tid="t132">Description</div>
       <div class="editor-container editor-container_classic-editor" id="editor-container">
         <div class="editor-container__editor">
           <div id="editor"></div>
@@ -57,14 +58,14 @@
       </div>
     </div>
     <div class="editorGroup">
-      <div class="editorTitle titleJustified">Accessories
-        <div class="accessoriesButton" id="accessories-btn">
+      <div class="editorTitle titleJustified trans" tid="t130">Accessories
+        <div class="accessoriesButton trans" id="accessories-btn" tid="t139">
           <label>+</label>Add accessories
           <div class="accessory-rule-wrapper" style="display: none;">
             <div class="accessory-rule-list">
               <label class="accessory-rule-card">
                 <input type="file" id="bom-input" accept=".xls,.xlsx,.pdf" />
-                <div class="accessory-rule-title">Bill of Materials</div>
+                <div class="accessory-rule-title trans" tid="t140">Bill of Materials</div>
                 <dl class="accessory-rule-meta">
                   <dt>Format:</dt>
                   <dd>xls, xlsx, pdf;</dd>
@@ -76,7 +77,7 @@
               </label>
               <label class="accessory-rule-card">
                 <input type="file" id="assembly-guide-input" accept=".jpg,.png,.pdf" />
-                <div class="accessory-rule-title">Assembly Guide</div>
+                <div class="accessory-rule-title trans" tid="t141">Assembly Guide</div>
                 <dl class="accessory-rule-meta">
                   <dt>Format:</dt>
                   <dd>jpg, png, pdf;</dd>
@@ -88,7 +89,7 @@
               </label>
               <label class="accessory-rule-card">
                 <input type="file" id="other-input" accept=".txt" />
-                <div class="accessory-rule-title">Other</div>
+                <div class="accessory-rule-title trans" tid="t103">Other</div>
                 <dl class="accessory-rule-meta">
                   <dt>Format:</dt>
                   <dd>txt</dd>
@@ -103,7 +104,7 @@
         </div>
       </div>
       <div class="editorSubGroup">
-        <div class="editorSubTitle" style="display: none;">Bill of Materials(<label>0</label>)</div>
+        <div class="editorSubTitle trans" style="display: none;" tid="t140">Bill of Materials(<label>0</label>)</div>
         <div class="accessory-list" id="bom-list">
           <!-- <div class="attachment"><img class="attachment-icon"
               src="img/icon_pdf.svg">31232asdfasdfasdfasdfasdfasdfasdfasdfasdf13.pdf<img class="attachment-delete"
@@ -113,7 +114,7 @@
           <div class="attachment"><img class="attachment-icon" src="img/icon_pdf.svg">3123213.pdf<img
               class="attachment-delete" src="img/del.svg"></div> -->
         </div>
-        <div class="editorSubTitle" style="display: none;">AssemblyGuide(<label>0</label>)</div>
+        <div class="editorSubTitle trans" style="display: none;" tid="t141">Assembly Guide(<label>0</label>)</div>
         <div class="accessory-list" id="assembly-list">
           <!-- <div class="attachment"><img class="attachment-icon"
               src="img/icon_pdf.svg">31232asdfasdfasdfasdfasdfasdfasdfasdfasdf13.pdf<img class="attachment-delete"
@@ -123,25 +124,24 @@
           <div class="attachment"><img class="attachment-icon" src="img/icon_pdf.svg">3123213.pdf<img
               class="attachment-delete" src="img/del.svg"></div> -->
         </div>
-        <div class="editorSubTitle" style="display: none;">Other(<label>0</label>)</div>
+        <div class="editorSubTitle trans" style="display: none;" tid="t103">Other(<label>0</label>)</div>
         <div class="accessory-list" id="other-list"></div>
       </div>
 
       <hr />
 
       <div class="editorGroup">
-        <div class="editorTitle">Profile Name</div>
+        <div class="editorTitle trans" tid="t133">Profile Name</div>
         <input type="text" id="ProfileNameInput" class="editorInput" />
       </div>
       <div class="editorGroup">
-        <div class="editorTitle">Profile Pictures</div>
-        <div class="comment">JPG/GIF/PNG format ≤ 4MB, no more than 16 pictures, drag the picture to adjust the order;
-          It is best to scale your image to 4:3 for the best display.</div>
+        <div class="editorTitle trans" tid="t142">Profile Pictures</div>
+        <div class="comment trans" tid="t143">JPG/GIF/PNG format ≤ 4MB, no more than 16 pictures, drag the picture to adjust the order;It is best to scale your image to 4:3 for the best display.</div>
         <div class="imageGroup">
           <label class="uploadBox">
             <input type="file" id="ProfileImageInput" accept=".jpg,.jpeg,.png,.gif">
             <img src="img/upload.svg" class="uploadIcon" />
-            <div class="uploadText">Add Picture</div>
+            <div class="uploadText trans" tid="t138">Add Picture</div>
           </label>
           <div class="imageList" id="profileImageList">
             <!-- <div class="imagePreview" style="background-image: url('../model/img/p1.png')">
@@ -156,7 +156,7 @@
         </div>
       </div>
       <div class="editorGroup">
-        <div class="editorTitle">Description</div>
+        <div class="editorTitle trans" tid="t132">Description</div>
         <div class="editor-container editor-container_classic-editor" id="profile-editor-container">
           <div class="editor-container__editor">
             <div id="profile-editor"></div>
