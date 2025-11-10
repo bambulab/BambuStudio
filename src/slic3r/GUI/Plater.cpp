@@ -1961,7 +1961,7 @@ Sidebar::Sidebar(Plater *parent)
 
     p->m_purge_mode_btn->Bind(wxEVT_BUTTON, ([parent, this](wxCommandEvent &e) {
         auto &preset_bundle = *wxGetApp().preset_bundle;
-    
+
         PurgeModeDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe));
         if (dlg.ShowModal() == wxID_OK) {
             preset_bundle.project_config.set_key_value("prime_volume_mode", new ConfigOptionEnum<PrimeVolumeMode>(dlg.get_selected_mode()));
@@ -16576,7 +16576,12 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         old_nozzle_size = opt_old->values.size();
         new_nozzle_size = opt_new->values.size();
     }
-
+    auto temp_is_system_preset = cur_selected_preset_is_system_preset();
+    bool preset_custom_change = false;
+    if (temp_is_system_preset != m_last_is_system_preset) {
+        m_last_is_system_preset = temp_is_system_preset;
+        preset_custom_change = true;
+    }
     for (auto opt_key : diff_keys) {
         if (opt_key == "filament_colour") {
             update_scheduled = true; // update should be scheduled (for update 3DScene) #2738
@@ -16652,8 +16657,9 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
     }
 
-    if (bed_shape_changed)
+    if (bed_shape_changed || preset_custom_change) {
         set_bed_shape();
+    }
 
     config_change_notification(config, std::string("print_sequence"));
 
@@ -16662,6 +16668,14 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
+}
+
+bool Plater::cur_selected_preset_is_system_preset()
+{
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    auto &        selected_preset = preset_bundle.printers.get_selected_preset();
+    //bool is_bbl_preset = preset_bundle.printers.get_edited_preset().is_bbl_vendor_preset(&preset_bundle);
+    return selected_preset.is_system;
 }
 
 void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzle_size)

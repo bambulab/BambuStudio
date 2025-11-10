@@ -282,6 +282,7 @@ private:
 class Plater: public wxPanel
 {
     bool m_force_ban_check_volume_bbox_state_with_extruder_area{false};
+    bool m_last_is_system_preset{true};
 
 public:
     using fs_path = boost::filesystem::path;
@@ -549,6 +550,7 @@ public:
     bool update_filament_colors_in_full_config();
     void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
+    bool cur_selected_preset_is_system_preset();
     void force_filament_colors_update();
     void force_print_bed_update();
     // On activating the parent window.
