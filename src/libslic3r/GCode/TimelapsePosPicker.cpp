@@ -139,7 +139,7 @@ namespace Slic3r {
         for (auto& obj : object_list) {
             for (auto& instance : obj->instances()) {
                 auto instance_bbox = get_real_instance_bbox(instance);
-                bool higher_than_curr_layer = (layer->object() == obj)  ?  false : instance_bbox.max.z() > z_target;
+                bool higher_than_curr_layer = (obj == object_list.back()) ? false : instance_bbox.max.z() > z_target;
                 if(range_intersect(instance_bbox.min.z(), instance_bbox.max.z(), z_low, z_high)){
                     ExPolygon expoly;
                     expoly.contour = {
