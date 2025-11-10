@@ -911,7 +911,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
-    text_plate_type_caption = new Label(parent, _L("Pauses printing when the detected build plate type does not mhatch the selected one."));
+    text_plate_type_caption = new Label(parent, _L("Pauses printing when the detected build plate type does not match the selected one."));
     text_plate_type_caption->Wrap(FromDIP(400));
     text_plate_type_caption->SetFont(Label::Body_12);
     text_plate_type_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
