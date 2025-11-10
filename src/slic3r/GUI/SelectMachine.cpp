@@ -1472,7 +1472,6 @@ void SelectMachineDialog::update_print_status_msg()
         Layout();
         Fit();
     }
-
  }
 
 void SelectMachineDialog::update_print_error_info(int code, std::string msg, std::string extra)
@@ -5054,6 +5053,14 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
             m_nozzle_mapping_result = obj_->get_nozzle_mapping_result().GetNozzleMapping();
             sync_ams_mapping_result(m_ams_mapping_result);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
+        }
+
+        float flush_waste_base = obj_->get_nozzle_mapping_result().GetFlushWeightBase();
+        float flush_waste_current = obj_->get_nozzle_mapping_result().GetFlushWeightCurrent();
+        if ((flush_waste_base != -1) && (flush_waste_current != -1) && flush_waste_current > flush_waste_base) {
+            float val = flush_waste_current - flush_waste_base;
+            const wxString& warning_msg = wxString::Format(_L("The current nozzle mapping may produce an extra %0.2f g of waste."), val);
+            show_status(PrintDialogStatus::PrintStatusRackNozzleMappingWarning, { warning_msg });
         }
 
         return true;
