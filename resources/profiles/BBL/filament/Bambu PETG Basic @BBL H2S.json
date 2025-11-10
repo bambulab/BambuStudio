@@ -58,6 +58,9 @@
         "245",
         "245"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "retraction_distances_when_ec": [
         "0",
         "0"
