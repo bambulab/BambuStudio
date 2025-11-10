@@ -717,7 +717,7 @@ static void attach_ignored_non_models_to_target(ModelObject* target_object,
 
         // Create and transform mesh
         TriangleMesh local_mesh = nv->mesh();
-        local_mesh.transform(pre);
+        local_mesh.transform(pre, true); //  Pass fix_left_handed=true to handle mirrored objects correctly
 
         // Create new volume and copy properties
         ModelVolume* attached = target_object->add_volume(std::move(local_mesh), nv->type(), false);
@@ -795,13 +795,11 @@ BooleanOperationResult BooleanOperationEngine::perform_intersection(const Volume
                 return result;
             }
             TriangleMesh m    = *acc;
-            // Slic3r::MeshBoolean::self_union(m);
             pre_union_result.push_back(m);
         }
 
         TriangleMesh cur = pre_union_result[0];
         for (size_t i = 1; i < pre_union_result.size(); ++i) {
-            // try { Slic3r::MeshBoolean::self_union(o); } catch (...) {}
             cur = execute_boolean_operation(cur, pre_union_result[i], MeshBooleanConfig::OP_INTERSECTION);
             if (cur.empty()) {
                 result.error_message = MeshBooleanWarnings::OVERLAPING;
@@ -874,7 +872,6 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
             result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE;
             return result;
         }
-        try { Slic3r::MeshBoolean::self_union(b_union); } catch (...) {}
 
         // For each A object, subtract all B volumes
         for (const auto &kv : a_by_object) {
@@ -980,7 +977,7 @@ TriangleMesh BooleanOperationEngine::get_transformed_mesh(const VolumeInfo& volu
         mesh = volume_info.model_volume->mesh();
     if (mesh.empty())
         return mesh;
-    mesh.transform(volume_info.transformation);
+    mesh.transform(volume_info.transformation, true);
     return mesh;
 }
 
@@ -1060,11 +1057,11 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
 
             // Check if result is empty (either empty vector or empty mesh)
             if (operation_returned_empty || accumulated_result.empty()) {
-                BOOST_LOG_TRIVIAL(warning) << "Boolean operation returned empty mesh at step " << i;
+                BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] Boolean operation returned empty mesh at step " << i;
 
                 // For INTERSECTION: try CGAL as fallback
                 if (operation == MeshBooleanConfig::OP_INTERSECTION) {
-                    BOOST_LOG_TRIVIAL(info) << "Attempting CGAL fallback for intersection...";
+                    BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] Attempting CGAL fallback for intersection...";
 
                     // Rebuild the mesh before the failed operation
                     TriangleMesh acc_before = meshes[0];
@@ -1084,14 +1081,14 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
                     try {
                         Slic3r::MeshBoolean::cgal::intersect(acc_before, meshes[i]);
                         if (!acc_before.empty()) {
-                            BOOST_LOG_TRIVIAL(info) << "CGAL fallback succeeded!";
+                            BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] CGAL fallback succeeded!";
                             accumulated_result = acc_before;
                         } else {
-                            BOOST_LOG_TRIVIAL(warning) << "CGAL also returned empty mesh";
+                            BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] CGAL also returned empty mesh";
                             return std::nullopt;
                         }
                     } catch (const std::exception& e) {
-                        BOOST_LOG_TRIVIAL(warning) << "CGAL fallback failed: " << e.what();
+                        BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] CGAL fallback failed: " << e.what();
                         return std::nullopt;
                     }
                 } else {
@@ -1114,7 +1111,7 @@ std::optional<TriangleMesh> BooleanOperationEngine::execute_boolean_on_meshes_as
             }
 
         } catch (const std::exception &e) {
-            BOOST_LOG_TRIVIAL(warning) << "Executing boolean on meshes failed: " << e.what();
+            BOOST_LOG_TRIVIAL(warning) << "[Mesh Boolean] Executing boolean on meshes failed: " << e.what();
             return std::nullopt;
         }
     }
@@ -1250,10 +1247,25 @@ void BooleanOperationEngine::apply_result_to_model(const BooleanOperationResult&
 
     // ===== STEP 3: Delete source volumes (now that new ones exist) =====
     // This is the "replace" operation: delete old volumes[0] from each result
-    for (ModelVolume* src : sources_to_replace) {
+    // Collect indices first and delete from back to front to avoid iterator invalidation
+    if (!sources_to_replace.empty()) {
+        std::vector<size_t> indices_to_delete;
         auto &volumes = target_object->volumes;
-        if (auto it = std::find(volumes.begin(), volumes.end(), src); it != volumes.end())
-            target_object->delete_volume(std::distance(volumes.begin(), it));
+
+        for (ModelVolume* src : sources_to_replace) {
+            auto it = std::find(volumes.begin(), volumes.end(), src);
+            if (it != volumes.end()) {
+                indices_to_delete.push_back(std::distance(volumes.begin(), it));
+            }
+        }
+
+        // Sort indices in descending order and delete from back to front
+        std::sort(indices_to_delete.begin(), indices_to_delete.end(), std::greater<size_t>());
+        for (size_t idx : indices_to_delete) {
+            if (idx < target_object->volumes.size()) {
+                target_object->delete_volume(idx);
+            }
+        }
     }
 
     // Attach ignored non-model volumes before any deletion to avoid dangling pointers
@@ -1346,7 +1358,7 @@ ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_ob
 
     // World -> (target instance * source volume) local
     Transform3d world_to_target_local = (target_instance_matrix * source_volume_matrix).inverse();
-    local_mesh.transform(world_to_target_local);
+    local_mesh.transform(world_to_target_local, true);
 
     // Create new volume with the local coordinate mesh (no re-centering), then copy metadata
     ModelVolumeType result_type = source_volume->type();
@@ -2150,7 +2162,7 @@ BooleanJobData::VolumeData GLGizmoMeshBoolean::prepare_volume_data(
 
     // Deep copy mesh data (critical for thread safety)
     data.mesh = vol_info.model_volume->mesh();
-    data.mesh.transform(vol_info.transformation);  // Pre-apply transformation
+    data.mesh.transform(vol_info.transformation, true);  // Pre-apply transformation
 
     // Copy transformation matrix
     data.transformation = vol_info.transformation;
@@ -2501,13 +2513,6 @@ BooleanOperationResult GLGizmoMeshBoolean::perform_boolean_operation_async(
                     return result;
                 }
 
-                // Self-union B mesh to clean it up (same as sync version line 877)
-                try {
-                    Slic3r::MeshBoolean::self_union(b_union);
-                } catch (...) {
-                    // Ignore self-union failures
-                }
-
                 // Initialize progress tracking for A - B phase
                 data.total_steps = static_cast<int>(data.volumes_a.size());
                 data.current_step = 0;
@@ -2678,11 +2683,19 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
     // Part mode: Apply results to the same object
     if (job_data.settings.target_mode == BooleanTargetMode::Part) {
+        // Check volumes_a is not empty before accessing [0]
+        if (job_data.volumes_a.empty()) {
+            m_warning_manager.add_error(MeshBooleanWarnings::PREPAREING);
+            BOOST_LOG_TRIVIAL(error) << "[Mesh Boolean] Async boolean completion: volumes_a is empty";
+            return;
+        }
+
         // Find target ModelObject by volume_id
         ModelObject* target_object = find_object_by_volume_id(job_data.volumes_a[0].volume_id);
 
         if (!target_object) {
             m_warning_manager.add_error(MeshBooleanWarnings::PREPAREING);
+            BOOST_LOG_TRIVIAL(error) << "[Mesh Boolean] Async boolean completion: target_object not found";
             return;
         }
 
@@ -2728,10 +2741,24 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
         }
 
         // Delete source volumes that need to be replaced
-        for (ModelVolume* src : sources_to_replace) {
+        // Collect indices first and delete from back to front to avoid iterator invalidation
+        if (!sources_to_replace.empty()) {
+            std::vector<size_t> indices_to_delete;
             auto& volumes = target_object->volumes;
-            if (auto it = std::find(volumes.begin(), volumes.end(), src); it != volumes.end()) {
-                target_object->delete_volume(std::distance(volumes.begin(), it));
+
+            for (ModelVolume* src : sources_to_replace) {
+                auto it = std::find(volumes.begin(), volumes.end(), src);
+                if (it != volumes.end()) {
+                    indices_to_delete.push_back(std::distance(volumes.begin(), it));
+                }
+            }
+
+            // Sort indices in descending order and delete from back to front
+            std::sort(indices_to_delete.begin(), indices_to_delete.end(), std::greater<size_t>());
+            for (size_t idx : indices_to_delete) {
+                if (idx < target_object->volumes.size()) {
+                    target_object->delete_volume(idx);
+                }
             }
         }
 
@@ -2777,7 +2804,7 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
             if (auto it = std::find(objects.begin(), objects.end(), target_object);
                 it != objects.end()) {
                 int obj_idx = int(it - objects.begin());
-                BOOST_LOG_TRIVIAL(info) << "Boolean Part mode: Refreshing sidebar for object " << obj_idx
+                BOOST_LOG_TRIVIAL(info) << "[Mesh Boolean] Boolean Part mode: Refreshing sidebar for object " << obj_idx
                     << ", volumes count: " << target_object->volumes.size();
 
                 // Use the same refresh sequence as synchronous version
@@ -2795,6 +2822,7 @@ void GLGizmoMeshBoolean::apply_boolean_result_from_job(const BooleanJobData& job
 
         if (!first_source_obj) {
             m_warning_manager.add_error(MeshBooleanWarnings::PREPAREING);
+            BOOST_LOG_TRIVIAL(error) << "[Mesh Boolean] Async boolean completion (Object mode): first_source_obj not found";
             return;
         }
 
