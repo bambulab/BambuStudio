@@ -4616,6 +4616,7 @@ GCode::LayerResult GCode::process_layer(
             ctx.printed_objects = printed_objects;
 
         auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
+        auto is_clear_to_x0 = m_timelapse_pos_picker.get_is_clear_to_x0(ctx);
 
         std::string timepals_gcode;
         if (!print.config().time_lapse_gcode.value.empty()) {
@@ -4628,6 +4629,7 @@ GCode::LayerResult GCode::process_layer(
             config.set_key_value("timelapse_pos_x", new ConfigOptionInt(timelapse_pos.x()));
             config.set_key_value("timelapse_pos_y", new ConfigOptionInt(timelapse_pos.y()));
             config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
+            config.set_key_value("clear_to_x0", new ConfigOptionBool(is_clear_to_x0));
             timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
         double z_before_timelapse = m_writer.get_position()(2);

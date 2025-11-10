@@ -34,6 +34,7 @@ namespace Slic3r {
         Point pick_pos(const PosPickCtx& ctx);
         void init(const Print* print, const Point& plate_offset);
         void reset();
+        bool  get_is_clear_to_x0(const PosPickCtx &ctx);
     private:
         void construct_printable_area_by_printer();
 
