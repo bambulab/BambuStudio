@@ -1,5 +1,6 @@
 $(function () {
   // 向宿主请求数据（握手）
+  TranslatePage();
   RequestProjectInfo();
 });
 
