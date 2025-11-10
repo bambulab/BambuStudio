@@ -5008,7 +5008,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         else {
                             bool change_another_part = false;
                             auto cur_selection_mode = m_selection.get_mode();
-                            if (cur_selection_mode == Selection::Volume && !alt_down && !already_selected) {
+                            if (cur_selection_mode == Selection::Volume && !alt_down && !already_selected && curr_idxs.size() > 0) {
                                 std::vector<int> volume_idxs;
                                 for (auto idx : curr_idxs) { volume_idxs.emplace_back(idx); }
                                 auto temp_gl_volume        = m_selection.get_volume(volume_idx);
