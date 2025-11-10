@@ -913,9 +913,10 @@ void wgtDeviceNozzleRackNozzleItem::OnBtnNozzleStatus(wxMouseEvent& evt)
     if (rack && m_status == wgtDeviceNozzleRackNozzleItem::NOZZLE_ERROR)
     {
         MessageDialog dlg(nullptr, _L("The hotend is in an abnormal state and currently unavailable. "
-            "Please go to 'Device -> Upgrade' to upgrade firmware."), _L("Error"), wxICON_WARNING | wxOK | wxCANCEL);
-        dlg.SetButtonLabel(wxID_OK, _L("Jump to the upgrade page"));
-        dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
+            "Please go to 'Device -> Upgrade' to upgrade firmware."), _L("Abnormal Hotend"), wxICON_WARNING);
+        dlg.AddButton(wxID_CANCEL, _L("Cancel"), false);
+        dlg.AddButton(wxID_OK,_L("Jump to the upgrade page"), true);
+
         if (dlg.ShowModal() == wxID_OK) {
             wxGetApp().mainframe->m_monitor->jump_to_Upgrade();
         };
