@@ -177,7 +177,7 @@ void check_filaments(std::string  model_id,
             // Error in description
             L("TPU is not supported by AMS.");
             L("AMS does not support 'Bambu Lab PET-CF'.");
-            L("The current filament doesn't support the high-flow nozzle and can't be used.");
+            L("The current filament doesn't support the E3D high-flow nozzle and can't be used.");
 
             // Warning in description
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
@@ -187,7 +187,7 @@ void check_filaments(std::string  model_id,
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
-            L("The filament may require slicing parameter adjustments.");
+            L("Default settings may affect print quality. Adjust as needed for best results.");
         }
     }
 }
