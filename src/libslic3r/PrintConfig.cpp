@@ -3670,9 +3670,9 @@ void PrintConfigDef::init_fff_params()
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print walls");
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label = "Walls filament";
-    def->category = "Extruders";
-    def->tooltip = "Filament to print walls";
+    def->label = L("Walls filament");
+    def->category = L("Extruders");
+    def->tooltip = L("Filament to print walls");
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
@@ -4314,9 +4314,9 @@ void PrintConfigDef::init_fff_params()
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print solid infill");
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label = "Solid infill filament";
-    def->category = "Extruders";
-    def->tooltip = "Filament to print solid infill";
+    def->label = L("Solid infill filament");
+    def->category = L("Extruders");
+    def->tooltip = L("Filament to print solid infill");
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
