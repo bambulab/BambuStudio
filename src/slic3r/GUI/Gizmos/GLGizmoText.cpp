@@ -3911,6 +3911,13 @@ EmbossShape &TextDataBase::create_shape()
     } else {
         text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled);
     }
+    if (shape.shapes_with_ids.size() == 1 && shape.shapes_with_ids[0].expoly.empty()) {//empty deal
+        if (support_backup_fonts) {
+            text2vshapes(shape, m_font_file, L"?", fp, shape.scale, was_canceled, ft_fn);
+        } else {
+            text2vshapes(shape, m_font_file, L"?", fp, shape.scale, was_canceled);
+        }
+    }
     return shape;
 }
 
