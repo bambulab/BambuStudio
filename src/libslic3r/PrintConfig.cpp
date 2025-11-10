@@ -4791,7 +4791,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip  = L("When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, "
                        "and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports "
-                       "and the model follows support/object xy distance all the time");
+                       "and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
