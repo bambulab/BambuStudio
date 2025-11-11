@@ -2919,6 +2919,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                     float(std::atof(object_data_points[i+1].c_str())),
                                                     float(std::atof(object_data_points[i+2].c_str())),
                                                     float(std::atof(object_data_points[i+3].c_str())));
+                }else if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=5)
+                    brim_ear_points.emplace_back(float(std::atof(object_data_points[i+0].c_str())),
+                                                    float(std::atof(object_data_points[i+1].c_str())),
+                                                    float(std::atof(object_data_points[i+2].c_str())),
+                                                    float(std::atof(object_data_points[i + 3].c_str())),
+                                                    int(std::atof(object_data_points[i+4].c_str())));
                 }
 
                 if (!brim_ear_points.empty())
@@ -7373,7 +7380,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 // Store the layer height profile as a single space separated list.
                 for (size_t i = 0; i < brim_points.size(); ++i) {
-                    sprintf(buffer, (i==0 ? "%f %f %f %f" : " %f %f %f %f"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius);
+                    sprintf(buffer, (i==0 ? "%f %f %f %f %d" : " %f %f %f %f %d"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius, brim_points[i].volume_idx);
                     out += buffer;
                 }
                 out += "\n";
