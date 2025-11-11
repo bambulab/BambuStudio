@@ -611,10 +611,10 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         {
             default_name += "_";
             if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                default_name += L("Standard");
+                default_name += _CTX(L_CONTEXT("SF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
             }
             else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                default_name += L("High Flow");
+                default_name += _CTX(L_CONTEXT("HF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
             }
         }
 
@@ -1008,9 +1008,9 @@ bool CaliPASaveManualPanel::Show(bool show) {
                     {
                         recommend_name += "_";
                         if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                            recommend_name += L("Standard");
+                            recommend_name += _CTX(L_CONTEXT("SF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
                         } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                            recommend_name += L("High Flow");
+                            recommend_name += _CTX(L_CONTEXT("HF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
                         }
                     }
 
