@@ -1,9 +1,11 @@
-From 1700dc81dacd08a33fd5afbe25698f821d1f6bf2 Mon Sep 17 00:00:00 2001
+From 45d9cd6bdba9b829fcfe40ff7c5f3f786afd41e1 Mon Sep 17 00:00:00 2001
 From: "changyu.chen" <changyu.chen@bambulab.com>
-Date: Thu, 6 Nov 2025 15:01:34 +0800
+Date: Fri, 7 Nov 2025 10:15:47 +0800
 Subject: [PATCH] FIX: OBS cannot start streaming on MAC
 
 jira: [STUDIO-14205]
+
+Change-Id: I3f7c7982737b3b52729df856bc0cf69d89d1820d
 ---
  .../include/boost/process/detail/posix/executor.hpp |  3 ++-
  .../include/boost/process/detail/posix/pipe_out.hpp | 13 +++++++++++--
@@ -40,7 +42,7 @@ index c4d99906..4d9b47ba 100644
  
              boost::fusion::for_each(seq, call_on_exec_setup(*this));
 diff --git a/usr/local/include/boost/process/detail/posix/pipe_out.hpp b/usr/local/include/boost/process/detail/posix/pipe_out.hpp
-index d54cca4e..e0c58848 100644
+index d54cca4e..7a711983 100644
 --- a/usr/local/include/boost/process/detail/posix/pipe_out.hpp
 +++ b/usr/local/include/boost/process/detail/posix/pipe_out.hpp
 @@ -18,7 +18,7 @@
@@ -67,8 +69,8 @@ index d54cca4e..e0c58848 100644
      template<typename Executor>
      void on_error(Executor &, const std::error_code &) const
      {
-@@ -54,7 +62,7 @@ void pipe_out<1,-1>::on_exec_setup(Executor &e) const
-     if (::dup2(sink, STDOUT_FILENO) == -1)
+@@ -66,7 +74,7 @@ void pipe_out<2,-1>::on_exec_setup(Executor &e) const
+     if (::dup2(sink, STDERR_FILENO) == -1)
           e.set_error(::boost::process::detail::get_last_error(), "dup2() failed");
  
 -    if (sink != STDOUT_FILENO)
@@ -121,5 +123,5 @@ index 901b339a..da78b1ce 100644
          auto part_itr = std::partition(all_handles.begin(), all_handles.end(),
                                         [](::boost::winapi::HANDLE_ handle) {return handle != ::boost::winapi::INVALID_HANDLE_VALUE_;});
 -- 
-2.51.0.windows.2
+2.51.2.windows.1
 
