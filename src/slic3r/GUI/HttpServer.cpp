@@ -416,7 +416,9 @@ static void refresh_agora_url(char const* device, char const* dev_ver, char cons
     device2 += dev_ver;
     device2 += "|\"agora\"|";
     device2 += channel;
-    wxGetApp().getAgent()->get_camera_url(device2,  [sess](std::string url) {
+
+    wxGetApp().getAgent()->get_camera_url_for_golive(device2, wxGetApp().app_config->get("slicer_uuid") + "-golive",
+        [sess](std::string url) {
         sess->send_text_response(url);
     });
 }
