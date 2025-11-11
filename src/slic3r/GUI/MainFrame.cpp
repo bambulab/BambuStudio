@@ -1194,9 +1194,6 @@ void MainFrame::init_tabpanel()
                 m_param_panel->OnActivate();
             }
             else if (sel == tpPreview) {
-                m_plater->reset_check_status();
-                if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
-                    return;
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
                 m_param_panel->OnActivate();
             }
