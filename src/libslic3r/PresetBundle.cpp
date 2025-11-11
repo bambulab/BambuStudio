@@ -276,6 +276,8 @@ int ExtruderNozzleStat::get_extruder_nozzle_count(int extruder_id, std::optional
 
 void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
 {
+    if (force_keep_stat)
+        return;
     BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << boost::format(": reset extruder nozzle stat by printer model change : %1%") % preset_bundle->printers.get_selected_preset().name;
     auto nozzle_volume_type = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto max_nozzle_count = preset_bundle->printers.get_selected_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");

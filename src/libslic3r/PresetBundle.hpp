@@ -83,7 +83,9 @@ public:
     void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
 
     void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
+    void set_force_keep_flag(bool flag) { force_keep_stat = flag; }
 private:
+    bool force_keep_stat{ false };
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
     NozzleDataFlag data_flag{ ndfNone };
 };
