@@ -73,6 +73,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     learn_more_text->SetForegroundColour(wxColour("#6B6B6A"));
     wiki_sizer->Add(learn_more_text, 0, wxALIGN_CENTER_VERTICAL);
     auto wiki = new WikiPanel(options_panel);
+    wiki->SetWikiUrl("https://e.bambulab.com/t?c=whk9cGnoWcJbji1F");
     wiki_sizer->Add(wiki, 0, wxLEFT, FromDIP(2));
     options_sizer->Add(wiki_sizer, 0, wxLEFT | wxRIGHT, FromDIP(20));
 
