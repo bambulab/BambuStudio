@@ -3725,6 +3725,8 @@ void SelectMachineDialog::set_default()
 
 void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
 {
+    Slic3r::DeviceManager *dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
+    MachineObject         *obj_ = dev_->get_selected_machine();
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
         int       id   = iter->first;
@@ -3736,7 +3738,11 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
             else {
                 wxString tip_text;
                 if (item->item->m_match) {
-                    tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
+                    if (obj_ && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported() && !obj_->get_nozzle_mapping_result().GetNozzleMapping().empty()
+                        && !m_mapping_popup.m_mapping_from_multi_machines && !m_mapping_popup.get_use_in_sync_dialog())
+                         tip_text  = (_L("Upper half area:  Original\nMiddle  area:  Filament in AMS\nLower half area:  Selected nozzle\nAnd you can click it to modify"));
+                    else
+                         tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
                 } else {
                     tip_text = _L("Unable to automatically match to suitable filament. Please click to manually match.");
                 }
