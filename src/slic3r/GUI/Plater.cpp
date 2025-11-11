@@ -6305,6 +6305,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 file_wipe_tower_y = *wipe_tower_y_opt;
 
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
+                            // BBS: do not change extruder nozzle stat when loading 3mf
+                            preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
                             if (bed_type_opt != nullptr) {
@@ -6386,6 +6388,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             DynamicConfig& proj_cfg = preset_bundle->project_config;
                             // do some post process after loading config
                             {
+                                preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
                                 //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
                                  ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                                 ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
