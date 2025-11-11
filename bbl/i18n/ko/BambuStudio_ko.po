@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -210,11 +210,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "취소"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "SN"
@@ -4878,21 +4881,17 @@ msgid "Print plate"
 msgstr "플레이트 출력하기"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"H2D 머신으로 슬라이싱하는 것은 이번이 처음입니다.\n"
-"간단한 튜토리얼 동영상을 보시겠어요?"
 
 msgid "First Guide"
 msgstr "첫 번째 가이드"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"H2D 기계의 첫 TPU 필라멘트 출력입니다. \n"
-"간단한 튜토리얼 영상을 보시겠습니까?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF는 취성이 강하여 툴헤드 위쪽의 구부러진 PTFE 튜브에서 파손될 수 있습니다. 사용 전에 Wiki를 참조하세요. "
@@ -6683,7 +6682,7 @@ msgstr "기존 타임랩스 사진을 활성화하면 표면 결함이 발생할
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -7988,6 +7987,9 @@ msgstr ""
 "노즐 오프셋을 보정하여 출력 품질을 향상시킵니다.\n"
 "*자동 모드: 출력하기 전에 보정 여부를 확인합니다. 불필요한 경우 건너뜁니다."
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "전송 완료"
 
@@ -8129,6 +8131,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8435,20 +8441,21 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"PLA를 사용하여 TPU를 지지할 경우 다음 설정을 권장합니다:\n"
-"상단 Z 거리 0, 인터페이스 간격 0, 지지대/객체 XY 거리 0, 교차 직선 패턴, Z가 XY를 무시하도록 설정, 독립 지지대 레이어 높이 비활성화, 지지대 접촉 및 지지대 베이스 모두에 PLA 사용"
+"PLA를 사용하여 TPU를 지지할 경우 다음 설정을 권장합니다.\n"
+"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스 직선 패턴, 비활성화 \n"
+"독립적 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 PLA 사용"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "용해성 소재를 지지대로 사용하는 경우 다음 설정을 권장합니다:\n"
-"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, Z가 XY를 무시하도록 활성화, 독립적인 지지대 레이어 높이 비활성화 및 지지대 접촉면과 지지대 베이스 모두에 용해성 재료 사용"
+"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, 비활성화 \n"
+"독립적인 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 용해성 재료 사용"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8461,20 +8468,19 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
-"서포트 인터페이스에 서포트 재료를 사용하는 경우, 다음 설정을 권장합니다:\n"
-"상단 z 거리 0, 인터페이스 간격 0, 교차 직선 패턴, Z가 XY를 무시하도록 활성화 및 독립 서포트 레이어 높이 비활성화"
+"서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
+"상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "지지대 접촉에 용해성 물질을 사용할 때는 다음과 같은 설정을 권장합니다.\n"
-"0 상단 Z 거리, 0 인터페이스 간격, 0 지지대/물체 XY 거리, 인터레이스 직선 패턴, Z 축이 XY 축을 무시하도록 설정, 독립적인 지지대 레이어 높이를 비활성화하고 지지대 접촉과 지지대 베이스에 모두 용해성 물질을 사용하십시오."
+"0 상단 z 거리, 0 인터페이스 간격, 0 지지점/물체 xy 거리, 인터레이스 직선 패턴, 비활성화 \n"
+"독립적 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 가용성 소재 사용"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9708,8 +9714,14 @@ msgstr "사용 가능한 애드온: "
 msgid "Optimise Outer Walls"
 msgstr "외벽 최적화"
 
-msgid "Advanced Settings"
-msgstr "고급 설정"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "최소 속도"
@@ -9726,8 +9738,8 @@ msgstr "최대 체적 속도"
 msgid "Last Trace ID: "
 msgstr "마지막 추적 ID: "
 
-msgid "Buy Now"
-msgstr "바로구매"
+msgid "Buy Now / Manage Account"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "자세한 내용을 보려면 클릭하세요"
@@ -10287,8 +10299,8 @@ msgstr "표면에 얼룩이 생기지 않도록 우회하고 벽을 가로질러
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z를 따라 벽 속도 평활화(실험적)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "더 나은 표면 품질을 얻기 위해 Z 방향으로 아웃월 속도를 부드럽게 합니다. 출력 시간이 늘어납니다. 나선형 꽃병 모드에서는 작동하지 않습니다."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "벽 가로지르기 회피 - 최대 우회 길이"
@@ -11080,6 +11092,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "연화 온도"
 
@@ -11402,11 +11420,23 @@ msgstr "챔버 온도 제어 지원"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "이 옵션은 기계가 챔버 온도 제어를 지원하는 경우 활성화됩니다."
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "공기 여과 기능 향상"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "프린터가 공기 정화 향상 기능을 지원하는 경우 활성화하십시오."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-코드 형식"
@@ -11822,6 +11852,12 @@ msgstr "부드러운 계수"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "숫자가 작을수록 속도 전환 경로가 길어집니다. 0은 적용되지 않음을 의미합니다."
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "내벽 라인 폭"
 
@@ -11963,10 +11999,10 @@ msgstr "기본 노즐 볼륨 유형"
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12105,6 +12141,12 @@ msgstr "임계값보다 작은 드문 채우기 영역은 꽉찬 내부 채우�
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "내부 솔리드 채움의 라인 폭"
@@ -12353,8 +12395,8 @@ msgstr "트리 오가닉"
 msgid "Z overrides X/Y"
 msgstr "Z는 X/Y를 무시합니다."
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "상단 Z 거리 설정이 지지대/객체 XY 거리 설정을 무시할 경우, 오버행 아래에 지지대가 생성되는 것을 우선시하며, 상단 Z 거리와 동일한 크기의 간격이 모델과 함께 유지됩니다. 반대로, 상단 Z 거리가 지원/객체 XY 거리를 무시하지 않는 경우에는 지지대와 모델 간의 간격이 항상 지원/객체 XY 거리를 따릅니다."
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "독립 서포트 레이어 높이"
@@ -12451,6 +12493,12 @@ msgstr "하단 페인트 침투 레이어"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "이는 상단 하단 침투 레이어 수입니다."
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "이것은 이동이 완료되는 속도입니다."
@@ -15250,6 +15298,66 @@ msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "H2D 머신으로 슬라이싱하는 것은 이번이 처음입니다.\n"
+#~ "간단한 튜토리얼 동영상을 보시겠어요?"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "H2D 기계의 첫 TPU 필라멘트 출력입니다. \n"
+#~ "간단한 튜토리얼 영상을 보시겠습니까?"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "PLA를 사용하여 TPU를 지지할 경우 다음 설정을 권장합니다:\n"
+#~ "상단 Z 거리 0, 인터페이스 간격 0, 지지대/객체 XY 거리 0, 교차 직선 패턴, Z가 XY를 무시하도록 설정, 독립 지지대 레이어 높이 비활성화, 지지대 접촉 및 지지대 베이스 모두에 PLA 사용"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "용해성 소재를 지지대로 사용하는 경우 다음 설정을 권장합니다:\n"
+#~ "0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, Z가 XY를 무시하도록 활성화, 독립적인 지지대 레이어 높이 비활성화 및 지지대 접촉면과 지지대 베이스 모두에 용해성 재료 사용"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "서포트 인터페이스에 서포트 재료를 사용하는 경우, 다음 설정을 권장합니다:\n"
+#~ "상단 z 거리 0, 인터페이스 간격 0, 교차 직선 패턴, Z가 XY를 무시하도록 활성화 및 독립 서포트 레이어 높이 비활성화"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "지지대 접촉에 용해성 물질을 사용할 때는 다음과 같은 설정을 권장합니다.\n"
+#~ "0 상단 Z 거리, 0 인터페이스 간격, 0 지지대/물체 XY 거리, 인터레이스 직선 패턴, Z 축이 XY 축을 무시하도록 설정, 독립적인 지지대 레이어 높이를 비활성화하고 지지대 접촉과 지지대 베이스에 모두 용해성 물질을 사용하십시오."
+
+#~ msgid "Advanced Settings"
+#~ msgstr "고급 설정"
+
+#~ msgid "Buy Now"
+#~ msgstr "바로구매"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "더 나은 표면 품질을 얻기 위해 Z 방향으로 아웃월 속도를 부드럽게 합니다. 출력 시간이 늘어납니다. 나선형 꽃병 모드에서는 작동하지 않습니다."
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "상단 Z 거리 설정이 지지대/객체 XY 거리 설정을 무시할 경우, 오버행 아래에 지지대가 생성되는 것을 우선시하며, 상단 Z 거리와 동일한 크기의 간격이 모델과 함께 유지됩니다. 반대로, 상단 Z 거리가 지원/객체 XY 거리를 무시하지 않는 경우에는 지지대와 모델 간의 간격이 항상 지원/객체 XY 거리를 따릅니다."
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "스파게티 실패(흩어진 필라멘트 손실)를 감지합니다."
 
@@ -15304,40 +15412,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "전송 실패. 다시 시도하십시오!"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "PLA를 사용하여 TPU를 지지할 경우 다음 설정을 권장합니다.\n"
-#~ "0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스 직선 패턴, 비활성화 \n"
-#~ "독립적 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 PLA 사용"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "용해성 소재를 지지대로 사용하는 경우 다음 설정을 권장합니다:\n"
-#~ "0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스된 직선 패턴, 비활성화 \n"
-#~ "독립적인 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 용해성 재료 사용"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
-#~ "상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "지지대 접촉에 용해성 물질을 사용할 때는 다음과 같은 설정을 권장합니다.\n"
-#~ "0 상단 z 거리, 0 인터페이스 간격, 0 지지점/물체 xy 거리, 인터레이스 직선 패턴, 비활성화 \n"
-#~ "독립적 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 가용성 소재 사용"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "지정된 임계값보다 작은 간격을 필터링합니다. 이 설정은 상단/하단 레이어에 영향을 주지 않습니다."
