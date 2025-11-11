@@ -665,35 +665,6 @@ bool CalibUtils::get_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
     return obj_->has_get_pa_calib_tab;
 }
 
-void CalibUtils::emit_get_all_PA_calib_infos()
-{
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
-        return;
-
-    MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr)
-        return;
-
-    obj_->command_get_all_pa_calibration_tab();
-}
-
-bool CalibUtils::get_all_PA_calib_tab(std::vector<PACalibResult> &pa_calib_infos)
-{
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev)
-        return false;
-
-    MachineObject *obj_ = dev->get_selected_machine();
-    if (obj_ == nullptr)
-        return false;
-
-    if (obj_->has_get_all_pa_calib_tab) {
-        pa_calib_infos.assign(obj_->all_pa_calib_tab.begin(), obj_->all_pa_calib_tab.end());
-    }
-    return obj_->has_get_all_pa_calib_tab;
-}
-
 void CalibUtils::set_PA_calib_result(const std::vector<PACalibResult> &pa_calib_values, bool is_auto_cali)
 {
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();

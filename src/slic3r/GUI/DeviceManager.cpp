@@ -1859,20 +1859,6 @@ int MachineObject::command_get_pa_calibration_tab(const PACalibExtruderInfo &cal
     return this->publish_json(j);
 }
 
-int MachineObject::command_get_all_pa_calibration_tab()
-{
-    reset_all_pa_cali_history_result();
-
-    json j;
-    j["print"]["command"]         = "extrusion_cali_get";
-    j["print"]["sequence_id"]     = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["filament_id"]     = "";
-    j["print"]["nozzle_diameter"] = "";
-
-    request_all_tab_from_bbs = true;
-    return this->publish_json(j);
-}
-
 int MachineObject::command_get_pa_calibration_result(float nozzle_diameter)
 {
     json j;
@@ -3886,84 +3872,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             }
                         }
                         // notify cali history to update
-                    }
-                    /* get_all_pa_cali_tab has an empty nozzle_diameter*/
-                    if (request_all_tab_from_bbs && jj.contains("nozzle_diameter") && jj["nozzle_diameter"].get<std::string>().empty()) {
-                        request_all_tab_from_bbs = false;
-                        reset_all_pa_cali_history_result();
-                        bool is_succeed = true;
-                        if (jj.contains("result") && jj.contains("reason")) {
-                            if (jj["result"].get<std::string>() == "fail") {
-                                is_succeed = false;
-                            }
-                        }
-
-                        if (is_succeed) {
-                            last_cali_version = cali_version;
-                            has_get_all_pa_calib_tab = true;
-                        }
-
-                        if (jj.contains("filaments") && jj["filaments"].is_array()) {
-                            try {
-                                for (auto it = jj["filaments"].begin(); it != jj["filaments"].end(); it++) {
-                                    PACalibResult pa_calib_result;
-                                    pa_calib_result.filament_id = (*it)["filament_id"].get<std::string>();
-                                    pa_calib_result.name        = (*it)["name"].get<std::string>();
-                                    pa_calib_result.cali_idx    = (*it)["cali_idx"].get<int>();
-
-                                    if ((*it).contains("setting_id")) {
-                                        pa_calib_result.setting_id  = (*it)["setting_id"].get<std::string>();
-                                    }
-
-                                    if ((*it).contains("extruder_id")) {
-                                        pa_calib_result.extruder_id = (*it)["extruder_id"].get<int>();
-                                    }
-
-                                    if ((*it).contains("nozzle_id")) {
-                                        pa_calib_result.nozzle_volume_type = convert_to_nozzle_type((*it)["nozzle_id"].get<std::string>());
-                                    }
-
-                                    if ((*it).contains("nozzle_pos")) {
-                                        pa_calib_result.nozzle_pos_id = (*it)["nozzle_pos"].get<int>();
-                                    }
-
-                                    if ((*it).contains("nozzle_sn")) {
-                                        pa_calib_result.nozzle_sn = (*it)["nozzle_sn"].get<std::string>();
-                                    }
-
-                                    if ((*it).contains("nozzle_diameter")) {
-                                        if (jj["nozzle_diameter"].is_number_float()) {
-                                            pa_calib_result.nozzle_diameter = (*it)["nozzle_diameter"].get<float>();
-                                        } else if ((*it)["nozzle_diameter"].is_string()) {
-                                            pa_calib_result.nozzle_diameter = string_to_float((*it)["nozzle_diameter"].get<std::string>());
-                                        }
-                                    } else {
-                                        if (jj["nozzle_diameter"].is_number_float()) {
-                                            pa_calib_result.nozzle_diameter = jj["nozzle_diameter"].get<float>();
-                                        } else if (jj["nozzle_diameter"].is_string()) {
-                                            pa_calib_result.nozzle_diameter = string_to_float(jj["nozzle_diameter"].get<std::string>());
-                                        }
-                                    }
-
-                                    if ((*it)["k_value"].is_number_float())
-                                        pa_calib_result.k_value = (*it)["k_value"].get<float>();
-                                    else if ((*it)["k_value"].is_string())
-                                        pa_calib_result.k_value = string_to_float((*it)["k_value"].get<std::string>());
-
-                                    if ((*it)["n_coef"].is_number_float())
-                                        pa_calib_result.n_coef = (*it)["n_coef"].get<float>();
-                                    else if ((*it)["n_coef"].is_string())
-                                        pa_calib_result.n_coef = string_to_float((*it)["n_coef"].get<std::string>());
-
-                                    if (check_pa_result_validation(pa_calib_result))
-                                        all_pa_calib_tab.push_back(pa_calib_result);
-                                    else {
-                                        BOOST_LOG_TRIVIAL(info) << "pa result is invalid";
-                                    }
-                                }
-                            }
-                            catch (...) {}
-                        }
                     }
                 }
                 else if (jj["command"].get<std::string>() == "extrusion_cali_get_result") {
