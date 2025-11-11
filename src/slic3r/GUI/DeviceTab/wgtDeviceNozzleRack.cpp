@@ -755,7 +755,7 @@ void wgtDeviceNozzleRackNozzleItem::CreateGui()
     top_h_sizer->AddSpacer(FromDIP(10));
     top_h_sizer->Add(m_nozzle_icon, 0, wxTOP, FromDIP(10));
     top_h_sizer->AddStretchSpacer();
-    top_h_sizer->Add(m_nozzle_selected_bitmap, 0, wxTOP | wxRIGHT, FromDIP(1));
+    top_h_sizer->Add(m_nozzle_selected_bitmap, 0, wxTOP | wxRIGHT, FromDIP(2));
 
     // Bottom V
     wxBoxSizer* bottom_v = new wxBoxSizer(wxVERTICAL);
@@ -768,7 +768,7 @@ void wgtDeviceNozzleRackNozzleItem::CreateGui()
 
     label_h_sizer->Add(m_nozzle_label_1, 0, wxALIGN_LEFT);
 
-    auto status_icon = create_scaled_bitmap("dev_rack_nozzle_error_icon");
+    auto status_icon = create_scaled_bitmap("dev_rack_nozzle_error_icon", this, 14);
     m_nozzle_status_icon = new wxStaticBitmap(this, wxID_ANY, status_icon, wxDefaultPosition, WX_DIP_SIZE(14, 14));
     m_nozzle_status_icon->Bind(wxEVT_LEFT_DOWN, &wgtDeviceNozzleRackNozzleItem::OnBtnNozzleStatus, this);
     m_nozzle_status_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto&) { SetCursor(wxCURSOR_HAND); });
@@ -929,11 +929,10 @@ void wgtDeviceNozzleRackNozzleItem::Rescale()
     if (m_nozzle_empty_image) { m_nozzle_empty_image->msw_rescale(); }
     if (m_nozzle_unknown_image) { m_nozzle_unknown_image->msw_rescale(); }
     if (m_nozzle_error_image) { m_nozzle_error_image->msw_rescale(); }
-    if (m_nozzle_status_icon->IsShown()) {
-        auto status_icon = create_scaled_bitmap("dev_rack_nozzle_error_icon");
-        m_nozzle_status_icon->SetBitmap(status_icon);
-        m_nozzle_status_icon->Refresh();
-    }
+
+    auto status_icon = create_scaled_bitmap("dev_rack_nozzle_error_icon", this, 14);
+    m_nozzle_status_icon->SetBitmap(status_icon);
+    m_nozzle_status_icon->Refresh();
 
     if (m_nozzle_selected_image) {
         m_nozzle_selected_image->msw_rescale();
