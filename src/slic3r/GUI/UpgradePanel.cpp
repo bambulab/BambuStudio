@@ -379,20 +379,24 @@ void MachineInfoPanel::createAirPumpWidgets(wxBoxSizer* main_left_sizer)
 {
     m_air_pump_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     m_air_pump_line_above->SetBackgroundColour(wxColour(206, 206, 206));
-    main_left_sizer->Add(m_air_pump_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
 
     m_air_pump_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
     m_air_pump_img->SetBitmap(m_img_air_pump.bmp());
 
-    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
-    m_air_pump_version = new uiDeviceUpdateVersion(this, wxID_ANY);
-    content_sizer->Add(m_air_pump_version, 0, wxEXPAND, 0);
+    auto        panel_pump    = new wxPanel(this);
+    wxBoxSizer* content_sizer_v = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+
+    m_air_pump_version = new uiDeviceUpdateVersion(panel_pump, wxID_ANY);
+    content_sizer_h->Add(m_air_pump_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+    panel_pump->SetSizer(content_sizer_v);
 
     m_air_pump_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_air_pump_sizer->Add(m_air_pump_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
-    m_air_pump_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+    m_air_pump_sizer->Add(panel_pump, 1, wxEXPAND, 0);
 
+    main_left_sizer->Add(m_air_pump_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
     main_left_sizer->Add(m_air_pump_sizer, 0, wxEXPAND, 0);
 }
 
@@ -405,14 +409,20 @@ void MachineInfoPanel::createCuttingWidgets(wxBoxSizer* main_left_sizer)
     m_cutting_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
     m_cutting_img->SetBitmap(m_img_cutting.bmp());
 
-    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
-    m_cutting_version = new uiDeviceUpdateVersion(this, wxID_ANY);
-    content_sizer->Add(m_cutting_version, 0, wxEXPAND, 0);
+    auto panel_cut = new wxPanel(this);
+    wxBoxSizer *content_sizer_h    = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v    = new wxBoxSizer(wxVERTICAL);
+
+    m_cutting_version         = new uiDeviceUpdateVersion(panel_cut, wxID_ANY);
+
+    content_sizer_h->Add(m_cutting_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_cut->SetSizer(content_sizer_v);
 
     m_cutting_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cutting_sizer->Add(m_cutting_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
-    m_cutting_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+    m_cutting_sizer->Add(panel_cut, 1, wxEXPAND, 0);
 
     main_left_sizer->Add(m_cutting_sizer, 0, wxEXPAND, 0);
 };
@@ -424,18 +434,23 @@ void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_laser_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
 
     m_lazer_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
-
-
     m_lazer_img->SetBitmap(m_img_laser.bmp());
 
-    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
-    m_laser_version = new uiDeviceUpdateVersion(this, wxID_ANY);
-    content_sizer->Add(m_laser_version, 0, wxEXPAND, 0);
+
+     auto        panel_laser       = new wxPanel(this);
+    wxBoxSizer *content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_laser_version = new uiDeviceUpdateVersion(panel_laser, wxID_ANY);
+
+    content_sizer_h->Add(m_laser_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_laser->SetSizer(content_sizer_v);
 
     m_laser_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_laser_sizer->Add(m_lazer_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
-    m_laser_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+    m_laser_sizer->Add(panel_laser, 1, wxEXPAND, 0);
 
     main_left_sizer->Add(m_laser_sizer, 0, wxEXPAND, 0);
 }
@@ -449,14 +464,20 @@ void MachineInfoPanel::createExtinguishWidgets(wxBoxSizer* main_left_sizer)
     m_extinguish_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
     m_extinguish_img->SetBitmap(m_img_extinguish.bmp());
 
-    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
-    content_sizer->Add(0, 40, 0, wxEXPAND, FromDIP(5));
-    m_extinguish_version = new uiDeviceUpdateVersion(this, wxID_ANY);
-    content_sizer->Add(m_extinguish_version, 0, wxEXPAND, 0);
+    auto        panel_extinguish       = new wxPanel(this);
+    wxBoxSizer *content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_extinguish_version = new uiDeviceUpdateVersion(panel_extinguish, wxID_ANY);
+
+    content_sizer_h->Add(m_extinguish_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_extinguish->SetSizer(content_sizer_v);
 
     m_extinguish_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_extinguish_sizer->Add(m_extinguish_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
-    m_extinguish_sizer->Add(content_sizer, 1, wxEXPAND, 0);
+    m_extinguish_sizer->Add(panel_extinguish, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
 
     main_left_sizer->Add(m_extinguish_sizer, 0, wxEXPAND, 0);
 }
