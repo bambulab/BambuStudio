@@ -389,10 +389,131 @@ enum class ActionButtonType : int {
     abSendGCode
 };
 
+class HoverLabel : public wxPanel
+{
+public:
+    HoverLabel(wxWindow *parent, const wxString &label) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+    {
+        SetBackgroundColour(*wxWHITE);
+
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+        m_label = new wxStaticText(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_label->SetFont(Label::Body_13);
+        m_label->SetForegroundColour("#6B6B6B");
+        m_count = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_count->SetFont(Label::Body_13.Bold());
+        m_count->SetForegroundColour("#262E30");
+
+        m_title_type = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_title_type->SetForegroundColour("#ACACAC");
+
+        m_count->Hide();
+        m_title_type->Hide();
+
+        m_brace_left = new wxStaticText(this, wxID_ANY, "(", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_brace_left->SetFont(Label::Body_13);
+        m_brace_left->SetForegroundColour("#262E30");
+
+        m_brace_right = new wxStaticText(this, wxID_ANY, ")", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_brace_right->SetFont(Label::Body_13);
+        m_brace_right->SetForegroundColour("#262E30");
+
+        auto hover_icon = create_scaled_bitmap("dot", this, 16);
+        m_hover_btn     = new wxBitmapButton(this, wxID_ANY, hover_icon, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_hover_btn->SetMinSize(wxSize(FromDIP(25), -1));
+#ifdef __WXOSX__
+        m_hover_btn->SetBackgroundColour("#F7F7F7");
+#else
+        m_hover_btn->SetBackgroundColour(*wxWHITE);
+#endif
+        sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_brace_left, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_title_type, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_count, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_brace_right, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(m_hover_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
+
+        SetSizerAndFit(sizer);
+        Layout();
+        m_hover_btn->Bind(wxEVT_BUTTON, [this](auto &evt) {
+            if (m_enabled) m_hover_on_click();
+        });
+    }
+
+    void EnableEdit(bool enable)
+    {
+        m_enabled = enable;
+        if (enable) {
+            m_hover_btn->SetBitmap(create_scaled_bitmap("edit"));
+        } else {
+            m_hover_btn->SetBitmap(create_scaled_bitmap("dot"));
+        }
+    }
+    void SetOnHoverClick(std::function<void()> on_click) { m_hover_on_click = on_click; }
+
+    void SetCount(int count)
+    {
+        if (count == -1) {
+            m_count->Hide();
+            if (!m_title_type->IsShown()) {
+                m_brace_left->Hide();
+                m_brace_right->Hide();
+            }
+        } else {
+            m_count->Show();
+            m_brace_left->Show();
+            m_brace_right->Show();
+            wxString count_str = wxString::Format("%d", count);
+            m_count->SetLabel(count_str);
+        }
+        Layout();
+        Fit();
+    }
+    void SetTitleWithType(const int type)
+    {
+        if (type != 1) {
+            m_title_type->Hide();
+            if (!m_count->IsShown()) {
+                m_brace_left->Hide();
+                m_brace_right->Hide();
+            }
+        } else {
+            m_brace_left->Show();
+            m_title_type->Show();
+            m_brace_right->Show();
+            wxString title_str = wxString::Format(_L("Aux"));
+            m_title_type->SetLabel(title_str);
+        }
+        Layout();
+        Fit();
+    }
+    wxString GetSuffixStr() const { return m_title_type->IsShown() ? m_title_type->GetLabel() : ""; }
+
+private:
+    wxStaticText   *m_label;
+    wxBitmapButton *m_hover_btn;
+    wxStaticText   *m_count;
+    wxStaticText   *m_title_type;
+
+    wxStaticText         *m_brace_left;
+    wxStaticText         *m_brace_right;
+    std::function<void()> m_hover_on_click;
+    bool                  m_enabled;
+};
+
+static void PositionLabelOverStaticBox(wxPoint top_left, HoverLabel *label_)
+{
+    int ox = 10;
+    int oy = 0;
+    label_->SetPosition(top_left + wxPoint{ox, oy});
+}
+
 struct ExtruderGroup : StaticGroup
 {
     ExtruderGroup(wxWindow * parent, int index, wxString const &title);
-    wxStaticBoxSizer *sizer        = nullptr;
+    wxBoxSizer *sizer        = nullptr;
+    HoverLabel *      hover_label  = nullptr;
     ScalableButton *  btn_edit     = nullptr;
     ComboBox *        combo_diameter = nullptr;
     ComboBox *        combo_flow = nullptr;
@@ -419,6 +540,12 @@ struct ExtruderGroup : StaticGroup
             update_ams();
         }
     }
+
+    void     SetEditEnabled(bool enable);
+    void     SetCount(int count);
+    void     SetTitleWithType(const int type);
+    wxString GetSuffixStr();
+    void     SetOnHoverClick(std::function<void()> on_click);
 
     void update_ams();
 
@@ -1021,12 +1148,19 @@ public:
 };
 
 ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title)
-    : StaticGroup(parent, wxID_ANY, title)
+    : StaticGroup(parent, wxID_ANY)
 {
     SetFont(Label::Body_10);
     SetForegroundColour(wxColour("#CECECE"));
+    SetBackgroundColour(*wxWHITE);
     SetBorderColor(wxColour("#EEEEEE"));
     ShowBadge(true);
+
+    hover_label = new HoverLabel(this, title);
+#if defined(__WXOSX__)
+    hover_label->SetBackgroundColour("#F7F7F7");
+#endif
+
     // Nozzle
     wxStaticText *label_diameter = new wxStaticText(this, wxID_ANY, _L("Diameter"));
     label_diameter->SetFont(Label::Body_14);
@@ -1126,18 +1260,58 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     if (index < 0) {
         label_ams->Hide();
         ams_not_installed_msg->Hide();
-        wxStaticBoxSizer *hsizer     = new wxStaticBoxSizer(this, wxHORIZONTAL);
+        wxStaticBoxSizer *vsizer = new wxStaticBoxSizer(this, wxVERTICAL);
+        wxBoxSizer *hsizer     = new wxBoxSizer(wxHORIZONTAL);
         hsizer->Add(hsizer_diameter, 1, wxEXPAND | wxTOP| wxBOTTOM, FromDIP(8));
         hsizer->Add(hsizer_nozzle, 1, wxEXPAND | wxALL, FromDIP(8));
-        this->sizer = hsizer;
+        vsizer->Add(hover_label, 0, wxLEFT | wxALL, FromDIP(2));
+        vsizer->Add(hsizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(2));
+        this->sizer = vsizer;
     } else {
         wxStaticBoxSizer *vsizer = new wxStaticBoxSizer(this, wxVERTICAL);
+        vsizer->Add(hover_label, 0, wxLEFT | wxALL, FromDIP(2));
         vsizer->Add(hsizer_ams, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, FromDIP(2));
         vsizer->Add(hsizer_diameter, 0, wxEXPAND | wxLEFT | wxTOP | wxRIGHT, FromDIP(2));
         vsizer->Add(hsizer_nozzle, 0, wxEXPAND | wxALL, FromDIP(2));
         this->sizer = vsizer;
     }
     AMSCountPopupWindow::UpdateAMSCount(index < 0 ? 0 : index, this);
+}
+
+void ExtruderGroup::SetEditEnabled(bool enable)
+{
+    if (hover_label) {
+        hover_label->EnableEdit(enable);
+    }
+}
+
+void ExtruderGroup::SetCount(int count)
+{
+    if (hover_label) {
+        hover_label->SetCount(count);
+    }
+}
+
+void ExtruderGroup::SetTitleWithType(const int type)
+{
+    if (hover_label) {
+        hover_label->SetTitleWithType(type);
+    }
+}
+
+wxString ExtruderGroup::GetSuffixStr()
+{
+    if (hover_label) {
+        return hover_label->GetSuffixStr();
+    }
+    return wxString();
+}
+
+void ExtruderGroup::SetOnHoverClick(std::function<void()> on_click)
+{
+    if (hover_label) {
+        hover_label->SetOnHoverClick(on_click);
+    }
 }
 
 void ExtruderGroup::update_ams()
