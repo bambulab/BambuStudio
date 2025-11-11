@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -54,7 +54,7 @@ msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "AMS 不支持 'Bambu Lab PET-CF'。"
 
 msgid "The current filament doesn't support the high-flow nozzle and can't be used."
-msgstr ""
+msgstr "当前材料不支持高流量喷嘴，无法使用。"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的冷拔维护功能。"
@@ -78,32 +78,32 @@ msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "The filament may require slicing parameter adjustments."
-msgstr ""
+msgstr "该材料可能需要调整切片参数。"
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s 不支持在 %s 挤出机打印。"
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
-msgstr ""
+msgstr "工具头和热端架可能会运动，请勿将手伸入机箱。"
 
 msgid "Warning"
 msgstr "警告"
 
 msgid "Hotend information may be inaccurate. Would you like to re-read the hotend? (Hotend information may change during power-off)."
-msgstr ""
+msgstr "热端信息可能不准确。是否重新读取热端？（断电期间热端信息可能会发生变化）。"
 
 msgid "I confirm all"
-msgstr ""
+msgstr "确认无误"
 
 msgid "Re-read all"
-msgstr ""
+msgstr "重新读取全部"
 
 msgid "Reading the hotends, please wait."
-msgstr ""
+msgstr "正在读取热端信息，请稍候。"
 
 msgid "During the hotend upgrade, the toolhead will move. Don't reach into the chamber."
-msgstr ""
+msgstr "在热端升级过程中，工具头会移动。请勿将手伸入机箱内。"
 
 msgid "Update"
 msgstr "固件更新"
@@ -173,13 +173,13 @@ msgid "Latest version"
 msgstr "最新版本"
 
 msgid "Row A"
-msgstr ""
+msgstr "A排"
 
 msgid "Row B"
-msgstr ""
+msgstr "B排"
 
 msgid "Toolhead"
-msgstr ""
+msgstr "工具头"
 
 msgid "Empty"
 msgstr "空"
@@ -188,37 +188,40 @@ msgid "Error"
 msgstr "错误"
 
 msgid "Induction Hotend Rack"
-msgstr ""
+msgstr "感应热端架"
 
 msgid "Hotends Info"
-msgstr ""
+msgstr "热端信息"
 
 msgid "Read All"
-msgstr ""
+msgstr "读取全部"
 
 msgid "Reading "
-msgstr ""
+msgstr "读取中 "
 
 msgid "Please wait"
-msgstr ""
+msgstr "请稍候"
 
 msgid "Reading"
-msgstr ""
+msgstr "读取中"
 
 msgid "Running..."
-msgstr ""
+msgstr "运行中..."
 
 msgid "Raised"
-msgstr ""
+msgstr "已升起"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
-msgstr ""
+msgstr "热端状态异常，当前不可用。请前往“设备 -> 升级”升级固件。"
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "取消"
+
+msgid "Jump to the upgrade page"
+msgstr "跳转至升级页面"
 
 msgid "SN"
 msgstr "序列号"
@@ -227,13 +230,13 @@ msgid "Version"
 msgstr "版本"
 
 msgid "Hotend Rack"
-msgstr ""
+msgstr "热端挂架"
 
 msgid "ToolHead"
-msgstr ""
+msgstr "工具头"
 
 msgid "Nozzle information needs to be read"
-msgstr ""
+msgstr "需要读取喷嘴信息"
 
 msgid "Supports Painting"
 msgstr "支撑绘制"
@@ -494,13 +497,13 @@ msgid "Fixed step drag"
 msgstr "固定步长拖动"
 
 msgid "Keep holding down Ctrl"
-msgstr ""
+msgstr "持续按住Ctrl键"
 
 msgid "Select multiple objects"
 msgstr "选择多个对象"
 
 msgid "Keep holding down Alt"
-msgstr ""
+msgstr "持续按住Alt键"
 
 msgid "Select multiple parts"
 msgstr "选择多个零件"
@@ -557,7 +560,7 @@ msgid "Align"
 msgstr "对齐"
 
 msgid "Distribute"
-msgstr ""
+msgstr "分布"
 
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
@@ -590,7 +593,7 @@ msgid "Align objects to the minimum Z position"
 msgstr "将零件对齐到包围盒Z轴最小位置"
 
 msgid "Please select at least 2 parts and do not select entire object"
-msgstr "请选择至2个零件，且不要选择整个对象"
+msgstr "请选择至少2个零件，且不要选择整个对象"
 
 msgid "Align objects to the center Z position"
 msgstr "将零件对齐到包围盒Z轴中心位置"
@@ -602,7 +605,7 @@ msgid "Distribute objects evenly along Z axis"
 msgstr "将对象或零件均匀分布在包围盒Z 轴上"
 
 msgid "Please select at least 3 parts and do not select entire object"
-msgstr "请选择至3个零件，且不要选择整个对象"
+msgstr "请选择至少3个零件，且不要选择整个对象"
 
 msgid "°"
 msgstr "°"
@@ -1666,7 +1669,7 @@ msgid "Login information expired. Please login again."
 msgstr "登录信息过期。请重新登录。"
 
 msgid "Failed to connect to the cloud device server. Please check your network and firewall."
-msgstr ""
+msgstr "无法连接到云设备服务器。请检查您的网络和防火墙。"
 
 msgid "Incorrect password"
 msgstr "访问码不正确"
@@ -2196,13 +2199,13 @@ msgid "Center"
 msgstr "居中"
 
 msgid "Distribute along Y axis"
-msgstr ""
+msgstr "在包围盒Y轴上均匀分布"
 
 msgid "Distribute along X axis"
-msgstr ""
+msgstr "在包围盒X轴上均匀分布"
 
 msgid "Distribute along Z axis"
-msgstr ""
+msgstr "在包围盒Z轴上均匀分布"
 
 msgid "Align to Y Max"
 msgstr "对齐到包围盒Y轴最大位置"
@@ -3154,7 +3157,7 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
 msgid "Standard Flow"
-msgstr ""
+msgstr "标准流量"
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
@@ -3301,14 +3304,14 @@ msgid "Ext"
 msgstr ""
 
 msgid "Select Filament && Hotends"
-msgstr ""
+msgstr "选择材料预设和喷头"
 
 msgid "Select Filament"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "使用当前喷嘴打印可能会产生额外 %0.2f 克废料。"
 
 #, c-format, boost-format
 msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -3951,28 +3954,28 @@ msgid "Measuring Surface"
 msgstr "曲面测量中"
 
 msgid "Homing Blade Holder"
-msgstr ""
+msgstr "刀架回到起始点"
 
 msgid "Calibrating Camera Offset"
-msgstr ""
+msgstr "摄像头偏移校准"
 
 msgid "Calibrating Blade Holder Position"
-msgstr ""
+msgstr "刀架位置校准"
 
 msgid "Hotend Pick and Place Test"
-msgstr ""
+msgstr "热端取放测试"
 
 msgid "Waiting for the Chamber temperature to equalize"
-msgstr ""
+msgstr "等待腔温匀热"
 
 msgid " Preparing Hotend"
-msgstr ""
+msgstr " 热端准备中"
 
 msgid "Calibrating the detection position of nozzle clumping"
-msgstr "校准喷嘴堵头检测的位置"
+msgstr "裹头检测位置校准"
 
 msgid "Purifying the chamber air"
-msgstr ""
+msgstr "腔体空气净化中"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "此打印机不支持延时摄影"
@@ -4085,7 +4088,7 @@ msgid "Proceed"
 msgstr "继续执行"
 
 msgid "Abort"
-msgstr "终止"
+msgstr "退出"
 
 msgid "Done"
 msgstr "完成"
@@ -4854,20 +4857,20 @@ msgid "Print plate"
 msgstr "打印单盘"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"这是您第一次使用 H2D 机器进行切片操作。\n"
+"这是您第一次使用 双挤出机机器进行切片操作。\n"
 "您需要观看一个简短的指导视频吗？"
 
 msgid "First Guide"
 msgstr "首次指南"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"这是您第一次使用H2D机器打印TPU耗材。\n"
+"这是您第一次使用双挤出机机器打印TPU耗材。\n"
 "您需要观看一个简短的指导视频吗？"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
@@ -5790,7 +5793,7 @@ msgid "Safety Options"
 msgstr "安全选项"
 
 msgid "Hotends"
-msgstr ""
+msgstr "热端"
 
 msgid "100%"
 msgstr "100%"
@@ -5902,7 +5905,7 @@ msgid "Keep it On"
 msgstr "保持开启"
 
 msgid "Still turn it Off"
-msgstr ""
+msgstr "仍然关闭"
 
 msgid "Can't start this without storage."
 msgstr "没有外部存储就无法启动"
@@ -6319,31 +6322,31 @@ msgid "Purge Chute Pile-Up Detection"
 msgstr "堆料检测"
 
 msgid "Monitors if the waste is piled up in the purge chute."
-msgstr ""
+msgstr "监控冲刷料是否在垃圾桶中发生堆积。"
 
 msgid "Nozzle Clumping Detection"
 msgstr "裹头检测"
 
 msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
-msgstr ""
+msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "检测由喷嘴堵塞引起的空打。"
 
 msgid "Ensures the build plate type and placement are correct."
-msgstr ""
+msgstr "确保盘的类型及放置位置正确。"
 
 msgid "Type Detection"
-msgstr ""
+msgstr "类型检测"
 
 msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
-msgstr ""
+msgstr "检测到打印板类型与所选类型不匹配时，暂停打印。"
 
 msgid "Alignment Detection"
-msgstr ""
+msgstr "对齐检测"
 
 msgid "Pauses printing when build plate misalignment is detected."
-msgstr ""
+msgstr "检测到打印板未对齐时，暂停打印。"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -6364,7 +6367,7 @@ msgid "Filament Tangle Detect"
 msgstr "缠料检测"
 
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
 
 msgid "Open Door Detection"
 msgstr "开门检测"
@@ -6409,7 +6412,7 @@ msgid "Unavailable while heating maintenance function is on."
 msgstr "因其他加热维护功能已开启，本功能暂不可用。"
 
 msgid "Idle Heating Protection"
-msgstr ""
+msgstr "空闲加热保护"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "闲置5分钟后自动停止加热以保障安全。"
@@ -6436,25 +6439,25 @@ msgid "Printer settings"
 msgstr "打印机设置"
 
 msgid "Remove current plate (if not last one)"
-msgstr ""
+msgstr "删除当前盘(如果不是最后一个)"
 
 msgid "Auto orient objects on current plate"
 msgstr "自动调整当前盘上的对象方向"
 
 msgid "Arrange objects on current plate"
-msgstr ""
+msgstr "在当前盘上摆放对象"
 
 msgid "Unlock current plate"
-msgstr ""
+msgstr "解锁当前盘"
 
 msgid "Edit filament grouping"
-msgstr ""
+msgstr "编辑线材分组"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "编辑当前盘名称"
 
 msgid "Customize current plate"
-msgstr ""
+msgstr "自定义当前盘"
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -6576,7 +6579,7 @@ msgid "Project Filaments"
 msgstr "项目耗材列表"
 
 msgid "Purge mode"
-msgstr ""
+msgstr "冲刷模式"
 
 msgid "Flushing volumes"
 msgstr "冲刷体积"
@@ -6650,8 +6653,8 @@ msgstr "开启传统模式延时摄影可能导致表面瑕疵，建议修改为
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
-msgstr "“工艺”-”其他“-”特殊模式“-”延时摄影“"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
+msgstr "（修改路径：“工艺”-”其他“-”特殊模式“-”延时摄影“）"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "检测到您使用了延时摄影的平滑模式，但未启用擦料塔，这可能导致打印瑕疵。建议开启擦料塔后重新切片打印。"
@@ -7857,27 +7860,31 @@ msgid ""
 "2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n"
 "3. The toolhead hotend was manually removed or installed"
 msgstr ""
+"出现以下情况时，关闭该选项会影响打印质量：\n"
+"1.当前打印使用了未被校准的热端\n"
+"2.当前打印的喷嘴温度、热床温度、腔温与校准时不同\n"
+"3.手动拆装过工具头热端"
 
 msgid "After modifying this option, the system will reassign the nozzles based on the calibrated dynamic flow calibration coefficient."
-msgstr ""
+msgstr "修改此选项后，系统将根据校准后的动态流量校准系数重新分配喷嘴。"
 
 msgid "There are not enough available hotends currently."
-msgstr ""
+msgstr "目前可用的热端数量不足。"
 
 msgid "No hotends available."
-msgstr ""
+msgstr "没有可用的热端。"
 
 msgid "Please complete the hotend rack setup and try again."
-msgstr ""
+msgstr "请先进行热端挂架初始化后重试。"
 
 msgid "Please refresh the nozzle information and try again."
-msgstr ""
+msgstr "请刷新喷嘴信息后重试。"
 
 msgid "Please re-slice."
-msgstr ""
+msgstr "请重新切片。"
 
 msgid "Please re-slice to avoid filament waste."
-msgstr ""
+msgstr "请重新切片以避免耗材浪费。"
 
 msgid "Task canceled"
 msgstr "任务已取消"
@@ -7947,6 +7954,9 @@ msgid ""
 msgstr ""
 "校准不同喷嘴的偏移量，从而提升打印质量。\n"
 "*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。"
+
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr "同类型喷嘴与耗材共用PA配置文件"
 
 msgid "send completed"
 msgstr "发送完成"
@@ -8047,13 +8057,13 @@ msgstr "为避免高环境温度下耗材软化，请安装工具头增强散热
 
 #, c-format, boost-format
 msgid "Refreshing information of hotends(%d/%d)."
-msgstr ""
+msgstr "正在刷新喷嘴信息(%d/%d)。"
 
 msgid "Please wait a moment..."
-msgstr ""
+msgstr "请稍等片刻……"
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
-msgstr ""
+msgstr "工具头和热端挂架已满，请卸下至少一个热端后再打印。"
 
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
@@ -8079,7 +8089,7 @@ msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Pleas
 msgstr ""
 
 msgid "The printer is calculating nozzle mapping."
-msgstr ""
+msgstr "打印机正在计算喷嘴映射。"
 
 #, c-format, boost-format
 msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."
@@ -8087,6 +8097,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8105,7 +8119,7 @@ msgid "Click here if you can't connect to the printer"
 msgstr "如果您无法连接打印机，请点击这里"
 
 msgid "Sliced file"
-msgstr ""
+msgstr "切片文件"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "未登录账号，仅显示局域网模式的打印机"
@@ -8174,13 +8188,13 @@ msgid "High chamber temperature is required. Please close the door."
 msgstr "需高腔温打印，请关门。"
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
-msgstr ""
+msgstr "请确认所需喷嘴直径和流量是否和当前显示一致。"
 
 msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "How to install"
-msgstr ""
+msgstr "如何安装"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "当前固件不支持向内部存储传输文件。"
@@ -8350,13 +8364,13 @@ msgid "Search in preset"
 msgstr "在预设中搜索"
 
 msgid "Synchronization of different extruder drives or nozzle volume types is not supported."
-msgstr ""
+msgstr "不支持不同挤出机驱动或喷嘴体积类型的同步操作。"
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "将参数的修改与另一台挤出机的相应参数同步。"
 
 msgid "Click to learn more"
-msgstr ""
+msgstr "点击了解更多"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "点击以将所有设置还原到最后一次保存的版本。"
@@ -8391,20 +8405,21 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 "当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，启用Z覆盖XY，禁用支撑独立层高，并将PLA同时用于支撑界面和支撑主体"
+"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
+"支撑独立层高，并将PLA同时用于支撑界面和支撑主体"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，启用Z覆盖XY，禁用独立支撑层高，并将可溶性材料同时用于支撑界面和支撑主体"
+"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
+"支撑独立层高，并将可溶性材料同时用于支撑界面和支撑主体"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8417,20 +8432,19 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "当支撑界面使用支撑材料时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，交叠直线图案，启用Z覆盖XY，并且禁用独立支撑层高"
+"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "当使用可溶性材料作为支撑界面时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，启用Z覆盖 XY，禁用独立支撑层高，并将可溶性材料同时用于支撑界面和支撑主体"
+"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
+"支撑独立层高，并将可溶性材料同时用于支撑界面和支撑主体"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8826,10 +8840,10 @@ msgid "Do you want to modify the following parameters of the left nozzle to that
 msgstr "是否要将左喷嘴下的参数修改为与右喷嘴相同的值？"
 
 msgid "No available nozzles for current preset"
-msgstr ""
+msgstr "当前预设无可用喷嘴"
 
 msgid "Available nozzles for current preset: "
-msgstr ""
+msgstr "当前预设可用喷嘴: "
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "点击该图标，恢复到全局的配置数值，并与全局配置同步变化。"
@@ -9662,8 +9676,14 @@ msgstr "可用的配额："
 msgid "Optimise Outer Walls"
 msgstr "优化外墙"
 
-msgid "Advanced Settings"
-msgstr "高级设置"
+msgid "Helio default (recommended)"
+msgstr "Helio 默认设置（推荐）"
+
+msgid "Slicer default"
+msgstr "切片软件默认值"
+
+msgid "Limits"
+msgstr "限制"
 
 msgid "Min Velocity"
 msgstr "最小速度"
@@ -9680,8 +9700,8 @@ msgstr "最大体积速度"
 msgid "Last Trace ID: "
 msgstr "最后跟踪 ID: "
 
-msgid "Buy Now"
-msgstr "立即购买"
+msgid "Buy Now / Manage Account"
+msgstr "立即购买 / 管理账户"
 
 msgid "Click for more details"
 msgstr "点击查看更多详情"
@@ -9738,10 +9758,10 @@ msgid "Beta version"
 msgstr "Beta版本"
 
 msgid "Refreshing hotend information..."
-msgstr ""
+msgstr "刷新热端信息中..."
 
 msgid "Checking version..."
-msgstr ""
+msgstr "版本检查中..."
 
 msgid "Updating"
 msgstr "更新中"
@@ -10241,8 +10261,8 @@ msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外墙速度（实验）"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "平滑 Z 方向外墙速度以获得更好的表面质量。该功能会增加打印时间，同时无法在旋转花瓶模式下生效。"
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "避免跨越外墙-最大绕行长度"
@@ -10434,7 +10454,7 @@ msgid "Starting height"
 msgstr "起始高度"
 
 msgid "The height starts to slow down"
-msgstr ""
+msgstr "高度开始减缓。"
 
 msgid "Speed at starting height"
 msgstr "起始高度处速度"
@@ -10868,16 +10888,16 @@ msgid "This setting stands for how much volume of filament can be melted and ext
 msgstr "这个设置表示在1秒内能够融化和挤出的耗材丝体积。打印速度会受到最大体积速度的限制，防止设置过高和不合理的速度。不允许设置为0。"
 
 msgid "Extruder change"
-msgstr ""
+msgstr "挤出机更换"
 
 msgid "The maximum volumetric speed for ramming before extruder change, where -1 means using the maximum volumetric speed."
-msgstr ""
+msgstr "换出挤出机前的最大预冲刷体积速度，-1 表示使用最大体积速度。"
 
 msgid "Hotend change"
-msgstr ""
+msgstr "热端更换"
 
 msgid "The maximum volumetric speed for ramming before a hotend change, where -1 means using the maximum volumetric speed."
-msgstr ""
+msgstr "热端更换前的最大预冲刷体积速度，其中 -1 表示使用最大体积速度。"
 
 msgid "Minimal purge on wipe tower"
 msgstr "擦拭塔上的最小清理量"
@@ -10904,7 +10924,7 @@ msgid "Time to switch extruder. For statistics only"
 msgstr "切换挤出机所需时间。仅用于统计"
 
 msgid "Hotend change time"
-msgstr ""
+msgstr "热端更换时间"
 
 msgid "Time to change hotend."
 msgstr ""
@@ -11014,7 +11034,7 @@ msgid "When changing the extruder, it is recommended to extrude a certain length
 msgstr "更换挤出机时，建议从原挤出机中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。"
 
 msgid "When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing."
-msgstr ""
+msgstr "更换热端时，建议从原热端中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。"
 
 msgid "Support material"
 msgstr "支撑材料"
@@ -11029,12 +11049,18 @@ msgid "The filament is printable in extruder"
 msgstr ""
 
 msgid "Filament change"
-msgstr ""
+msgstr "耗材丝更换"
 
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
 msgstr ""
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
+msgstr ""
+
+msgid "Wipe tower cooling"
+msgstr "擦料塔冷却"
+
+msgid "Temperature drop before entering filament tower"
 msgstr ""
 
 msgid "Softening temperature"
@@ -11359,11 +11385,23 @@ msgstr "支持腔温控制"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "此选项在支持腔温控制时启用。"
 
+msgid "Apply top surface compensation"
+msgstr "应用顶面补偿"
+
 msgid "Air filtration enhancement"
 msgstr "支持空气过滤增强"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "如果打印机支持空气过滤增强，请启用此选项。"
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -11459,10 +11497,10 @@ msgid "0 (not anchored)"
 msgstr "0（无）"
 
 msgid "Sparse infill filament"
-msgstr ""
+msgstr "稀疏填充耗材"
 
 msgid "Filament to print internal sparse infill."
-msgstr "打印内部稀疏填充的耗材丝"
+msgstr "用于打印内部稀疏填充的耗材"
 
 msgid "Line width of internal sparse infill"
 msgstr "内部稀疏填充的线宽"
@@ -11779,6 +11817,12 @@ msgstr "平滑系数"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "数值越小速度过渡区越大。0表示不应用。"
 
+msgid "Walls filament"
+msgstr "墙耗材"
+
+msgid "Filament to print walls"
+msgstr "用于打印墙体的耗材"
+
 msgid "Line width of inner wall"
 msgstr "内墙的线宽"
 
@@ -11912,19 +11956,19 @@ msgid "Nozzle Volume Type"
 msgstr "喷嘴体积类型"
 
 msgid "Hybrid"
-msgstr ""
+msgstr "混合"
 
 msgid "Default Nozzle Volume Type"
 msgstr "默认喷嘴体积类型"
 
 msgid "Saving"
+msgstr "保存中"
+
+msgid "length when change hotend"
+msgstr "换热端时回抽量"
+
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
-
-msgid "length when change nozzle"
-msgstr "换喷嘴时回抽量"
-
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
-msgstr "当调整此回抽值时，它将作为更换喷嘴前喷嘴内耗材的回抽量。"
 
 msgid "Extra length on restart"
 msgstr "额外回填长度"
@@ -12062,6 +12106,12 @@ msgstr "小于这个阈值的稀疏填充区域将会被内部实心填充替代
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr "实心填充耗材"
+
+msgid "Filament to print solid infill"
+msgstr "用于打印实体填充的耗材"
 
 msgid "Line width of internal solid infill"
 msgstr "内部实心填充的线宽"
@@ -12310,8 +12360,8 @@ msgstr "有机树"
 msgid "Z overrides X/Y"
 msgstr "Z 覆盖 X/Y"
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "当顶部z距离覆盖支撑/模型 xy 间距时，优先确保在悬垂下方生成支撑，并与模型保持与顶部z距离大小相同的间隙；反之，支撑与模型之间的间隙始终遵循支撑/模型 xy 间距"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "支撑独立层高"
@@ -12408,6 +12458,12 @@ msgstr "底部涂色渗透层数"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "顶部涂色渗透的层数"
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
@@ -13036,7 +13092,7 @@ msgid "The name cannot exceed 40 characters."
 msgstr "名称不能超过40个字符。"
 
 msgid "Nozzle ID"
-msgstr ""
+msgstr "喷嘴 ID"
 
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
@@ -13486,13 +13542,13 @@ msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "差集操作需要 A 和 B 列表中至少各有一个对象。"
 
 msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr ""
+msgstr "无法按对象分组零件。请检查是否存在自相交、非流形几何体或开放网格。"
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "未找到重叠区域，交集失败。请确认列表中所有元素存在重叠。"
 
 msgid "Mesh preparation failed."
-msgstr ""
+msgstr "网格准备失败。"
 
 msgid "Mesh Boolean"
 msgstr "布尔运算"
@@ -13534,13 +13590,13 @@ msgid "This object contains non-part components."
 msgstr "该对象包含非实体零件。"
 
 msgid "Preparing data..."
-msgstr ""
+msgstr "正在准备数据…"
 
 msgid "Computing..."
-msgstr ""
+msgstr "正在执行网格布尔运算…"
 
 msgid "Applying result.."
-msgstr ""
+msgstr "正在应用结果…"
 
 msgid "Network Test"
 msgstr "网络测试"
@@ -14690,7 +14746,7 @@ msgstr "（请连接打印机）"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr ""
+msgstr "错误: %s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
 
 msgid "We will slice according to this grouping method:"
 msgstr "我们将基于当前分配方案切片："
@@ -14699,22 +14755,22 @@ msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "提示：您可以拖动耗材以将其重新分配到不同的喷嘴。"
 
 msgid "Please adjust your grouping or click "
-msgstr ""
+msgstr "请调整您的分组或点击 "
 
 msgid " to set nozzle count"
-msgstr ""
+msgstr " 设置喷嘴数量"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
-msgstr ""
+msgstr "左挤出机(%d)"
 
 #, c-format, boost-format
 msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr ""
+msgstr "右挤出机(标准: %d，高流量: %d)"
 
 #, c-format, boost-format
 msgid "Right Extruder(%d)"
-msgstr ""
+msgstr "右挤出机(%d)"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "当前盘的耗材分组方式由切片按钮处的下拉选项决定。"
@@ -14790,7 +14846,7 @@ msgid "More Colors"
 msgstr "其他颜色"
 
 msgid "Please set nozzle count"
-msgstr ""
+msgstr "请设置喷嘴数量"
 
 msgid "Error: Can not set both nozzle count to zero."
 msgstr ""
@@ -14800,10 +14856,10 @@ msgid "Error: Nozzle count can not exceed %d."
 msgstr ""
 
 msgid "Nozzle Selection"
-msgstr ""
+msgstr "喷嘴选择"
 
 msgid "Available Nozzles"
-msgstr ""
+msgstr "可用喷嘴"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr ""
@@ -14821,22 +14877,22 @@ msgid "Your printer has different nozzles installed. Please select a nozzle fo
 msgstr ""
 
 msgid "Purge Mode Settings"
-msgstr ""
+msgstr "冲刷模式"
 
 msgid "Standard Mode"
-msgstr ""
+msgstr "标准模式"
 
 msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr ""
+msgstr "执行完整的冲刷流程以获得最佳打印质量，需要更多材料和时间。"
 
 msgid "Purge Saving"
-msgstr ""
+msgstr "省料模式"
 
 msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
+msgstr "减少冲刷量，加快打印速度，但可能出现轻微的颜色混合或表面瑕疵。"
 
 msgid "Learn more about purge mode"
-msgstr ""
+msgstr "了解更多冲刷模式信息"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15187,6 +15243,75 @@ msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "这是您第一次使用 H2D 机器进行切片操作。\n"
+#~ "您需要观看一个简短的指导视频吗？"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "这是您第一次使用H2D机器打印TPU耗材。\n"
+#~ "您需要观看一个简短的指导视频吗？"
+
+#~ msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+#~ msgstr "“工艺”-”其他“-”特殊模式“-”延时摄影“"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：\n"
+#~ "0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，启用Z覆盖XY，禁用支撑独立层高，并将PLA同时用于支撑界面和支撑主体"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
+#~ "0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，启用Z覆盖XY，禁用独立支撑层高，并将可溶性材料同时用于支撑界面和支撑主体"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "当支撑界面使用支撑材料时，我们推荐以下设置：\n"
+#~ "0顶部z距离，0接触面间距，交叠直线图案，启用Z覆盖XY，并且禁用独立支撑层高"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "当使用可溶性材料作为支撑界面时，我们推荐以下设置：\n"
+#~ "0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，启用Z覆盖 XY，禁用独立支撑层高，并将可溶性材料同时用于支撑界面和支撑主体"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "高级设置"
+
+#~ msgid "Buy Now"
+#~ msgstr "立即购买"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "平滑 Z 方向外墙速度以获得更好的表面质量。该功能会增加打印时间，同时无法在旋转花瓶模式下生效。"
+
+#~ msgid "length when change nozzle"
+#~ msgstr "换喷嘴时回抽量"
+
+#~ msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+#~ msgstr "当调整此回抽值时，它将作为更换喷嘴前喷嘴内耗材的回抽量。"
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "当顶部z距离覆盖支撑/模型 xy 间距时，优先确保在悬垂下方生成支撑，并与模型保持与顶部z距离大小相同的间隙；反之，支撑与模型之间的间隙始终遵循支撑/模型 xy 间距"
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "检测到炒面（散落的耗材丝）。"
 
@@ -15238,40 +15363,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "发送失败，请重试！"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
-#~ "支撑独立层高，并将PLA同时用于支撑界面和支撑主体"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
-#~ "支撑独立层高，并将可溶性材料同时用于支撑界面和支撑主体"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "当支撑界面使用支撑材料时，我们推荐以下设置：\n"
-#~ "0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "当使用可溶性材料作为支撑界面时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
-#~ "支撑独立层高，并将可溶性材料同时用于支撑界面和支撑主体"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "过滤掉小于指定阈值的间隙。此设置不会影响顶部/底部图层。"
@@ -21009,9 +21100,6 @@ msgstr ""
 
 #~ msgid "Perimeter"
 #~ msgstr "外墙"
-
-#~ msgid "Filament to print walls"
-#~ msgstr "打印外墙的耗材丝"
 
 #~ msgid "Printer type"
 #~ msgstr "打印机类型"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -214,11 +214,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "Cancelar"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "SN"
@@ -4886,21 +4889,17 @@ msgid "Print plate"
 msgstr "Placa de impressão"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"Esta é a primeira vez que você fatia com a máquina H2D.\n"
-"Gostaria de assistir a um rápido vídeo tutorial?"
 
 msgid "First Guide"
 msgstr "Primeiro Guia"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"Esta é a primeira vez que você imprime filamentos de tpu com a máquina H2D.\n"
-"Você gostaria de assistir a um rápido vídeo tutorial?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF é frágil e pode quebrar em um tubo de PTFE dobrado acima da cabeça da ferramenta. Consulte o Wiki antes de usar. "
@@ -6698,7 +6697,7 @@ msgstr "Habilitar a fotografia tradicional em timelapse pode causar imperfeiçõ
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -8003,6 +8002,9 @@ msgstr ""
 "Calibre os deslocamentos dos bicos para melhorar a qualidade da impressão.\n"
 "*Modo automático: verifique a calibração antes de imprimir. Pule se não for necessário."
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "envio concluído"
 
@@ -8142,6 +8144,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8450,23 +8456,21 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"Ao usar PLA para dar suporte a TPU, recomendamos as seguintes configurações:\n"
-"0 distância z superior, espaçamento de interface 0, distância xy de suporte/objeto 0, padrão retilíneo entrelaçado, habilitar Z \n"
-"substitui XY, desabilitar altura da camada de suporte independente e usar PLA para interface de suporte e base de suporte"
+"Ao usar o PLA para oferecer suporte à TPU, recomendamos as seguintes configurações:\n"
+"0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
+"altura independente da camada de suporte e uso de PLA para interface de suporte e base de suporte"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Ao usar material solúvel para o suporte, recomendamos as seguintes configurações:\n"
-"0 distância z superior, espaçamento de interface 0, distância xy de suporte/objeto 0, padrão retilíneo entrelaçado, habilitar Z \n"
-"substitui XY, desabilitar altura da camada de suporte independente e usar materiais solúveis para interface de suporte \n"
-"e base de suporte"
+"Ao usar material solúvel como suporte, recomendamos as seguintes configurações:\n"
+"0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
+"altura independente da camada de suporte e uso de materiais solúveis tanto para a interface de suporte quanto para a base de suporte"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8479,23 +8483,19 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "Ao usar material de suporte para a interface de suporte, recomendamos as seguintes configurações:\n"
-"0 distância z superior, espaçamento de interface 0, padrão retilíneo entrelaçado, habilitar substituições de Z XY e desabilitar \n"
-"altura da camada de suporte independente"
+"0 distância superior a z, 0 espaçamento de interface, padrão retilíneo entrelaçado e desativação da altura independente da camada de suporte"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Ao usar material solúvel para a interface de suporte, recomendamos as seguintes configurações:\n"
-"0 distância z superior, espaçamento de interface 0, distância xy de suporte/objeto 0, padrão retilíneo entrelaçado, habilitar Z \n"
-"substitui XY, desabilitar altura da camada de suporte independente e usar materiais solúveis para interface de suporte \n"
-"e base de suporte"
+"0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
+"altura independente da camada de suporte e uso de materiais solúveis tanto para a interface de suporte quanto para a base de suporte"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9734,8 +9734,14 @@ msgstr "Add-ons disponíveis: "
 msgid "Optimise Outer Walls"
 msgstr "Otimizar Paredes Externas"
 
-msgid "Advanced Settings"
-msgstr "Configurações avançadas"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "Velocidade Mínima"
@@ -9752,8 +9758,8 @@ msgstr "Velocidade volumétrica máxima"
 msgid "Last Trace ID: "
 msgstr "Último ID de rastreamento: "
 
-msgid "Buy Now"
-msgstr "Comprar Agora"
+msgid "Buy Now / Manage Account"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Clique para ver mais detalhes"
@@ -10313,8 +10319,8 @@ msgstr "Desvie e evite atravessar paredes para evitar a possibilidade de criar b
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Suavização da velocidade da parede ao longo de Z(experimental)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Suavizando a velocidade da parede externa na direção z para obter melhor qualidade de superfície: o tempo de impressão aumentará. Isso não funciona no modo vaso espiral"
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Evite cruzar a parede - Comprimento máximo do desvio"
@@ -11106,6 +11112,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Temperatura de amolecimento"
 
@@ -11428,11 +11440,23 @@ msgstr "Suporte para controlar a temperatura da câmara"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Esta opção é ativada se a máquina suportar o controle da temperatura da câmara"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Aprimoramento da filtragem de ar"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Enable this if printer support air filtration enhancement."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "Sabor de g-code"
@@ -11848,6 +11872,12 @@ msgstr "Coeficiente suave"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "Quanto menor o número, maior o caminho de transição de velocidade. 0 significa não se aplicar."
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "Largura da linha das paredes internas"
 
@@ -11989,10 +12019,10 @@ msgstr "Tipo de volume do bico padrão"
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12129,6 +12159,12 @@ msgstr "A área de preenchimento interior, menor que o valor limite, é substitu
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "Largura da linha do preenchimento interno sólido"
@@ -12377,8 +12413,8 @@ msgstr "Árvore orgânica"
 msgid "Z overrides X/Y"
 msgstr "Z substitui X/Y"
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "Quando a distância z superior substitui a distância xy do suporte/objeto, priorize a geração de suportes abaixo das saliências e deixe uma lacuna do mesmo tamanho que a distância z superior no modelo. No caso oposto, a lacuna entre os suportes e o modelo acompanha a distância xy do suporte/objeto o tempo todo."
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Altura da camada de suporte independente"
@@ -12475,6 +12511,12 @@ msgstr "Camadas de penetração de tinta inferior"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "Esse é o número de camadas de penetração superior e inferior."
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Velocidade de deslocamento mais rápida e sem extrusão"
@@ -15275,6 +15317,72 @@ msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "Esta é a primeira vez que você fatia com a máquina H2D.\n"
+#~ "Gostaria de assistir a um rápido vídeo tutorial?"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "Esta é a primeira vez que você imprime filamentos de tpu com a máquina H2D.\n"
+#~ "Você gostaria de assistir a um rápido vídeo tutorial?"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "Ao usar PLA para dar suporte a TPU, recomendamos as seguintes configurações:\n"
+#~ "0 distância z superior, espaçamento de interface 0, distância xy de suporte/objeto 0, padrão retilíneo entrelaçado, habilitar Z \n"
+#~ "substitui XY, desabilitar altura da camada de suporte independente e usar PLA para interface de suporte e base de suporte"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Ao usar material solúvel para o suporte, recomendamos as seguintes configurações:\n"
+#~ "0 distância z superior, espaçamento de interface 0, distância xy de suporte/objeto 0, padrão retilíneo entrelaçado, habilitar Z \n"
+#~ "substitui XY, desabilitar altura da camada de suporte independente e usar materiais solúveis para interface de suporte \n"
+#~ "e base de suporte"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Ao usar material de suporte para a interface de suporte, recomendamos as seguintes configurações:\n"
+#~ "0 distância z superior, espaçamento de interface 0, padrão retilíneo entrelaçado, habilitar substituições de Z XY e desabilitar \n"
+#~ "altura da camada de suporte independente"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Ao usar material solúvel para a interface de suporte, recomendamos as seguintes configurações:\n"
+#~ "0 distância z superior, espaçamento de interface 0, distância xy de suporte/objeto 0, padrão retilíneo entrelaçado, habilitar Z \n"
+#~ "substitui XY, desabilitar altura da camada de suporte independente e usar materiais solúveis para interface de suporte \n"
+#~ "e base de suporte"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Configurações avançadas"
+
+#~ msgid "Buy Now"
+#~ msgstr "Comprar Agora"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Suavizando a velocidade da parede externa na direção z para obter melhor qualidade de superfície: o tempo de impressão aumentará. Isso não funciona no modo vaso espiral"
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "Quando a distância z superior substitui a distância xy do suporte/objeto, priorize a geração de suportes abaixo das saliências e deixe uma lacuna do mesmo tamanho que a distância z superior no modelo. No caso oposto, a lacuna entre os suportes e o modelo acompanha a distância xy do suporte/objeto o tempo todo."
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "Detectar falha de espaguete (perda de filamento disperso)."
 
@@ -15329,40 +15437,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "O envio falhou, tente novamente!"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "Ao usar o PLA para oferecer suporte à TPU, recomendamos as seguintes configurações:\n"
-#~ "0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
-#~ "altura independente da camada de suporte e uso de PLA para interface de suporte e base de suporte"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Ao usar material solúvel como suporte, recomendamos as seguintes configurações:\n"
-#~ "0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
-#~ "altura independente da camada de suporte e uso de materiais solúveis tanto para a interface de suporte quanto para a base de suporte"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Ao usar material de suporte para a interface de suporte, recomendamos as seguintes configurações:\n"
-#~ "0 distância superior a z, 0 espaçamento de interface, padrão retilíneo entrelaçado e desativação da altura independente da camada de suporte"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Ao usar material solúvel para a interface de suporte, recomendamos as seguintes configurações:\n"
-#~ "0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
-#~ "altura independente da camada de suporte e uso de materiais solúveis tanto para a interface de suporte quanto para a base de suporte"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtre as lacunas menores do que o limite especificado. Essa configuração não afetará as camadas superior/inferior"

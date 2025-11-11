@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -210,11 +210,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "取消し"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "シリアル番号"
@@ -4861,21 +4864,17 @@ msgid "Print plate"
 msgstr "造形開始"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"H2Dマシンでスライスするのは初めてですね。\n"
-"簡単なチュートリアルビデオをご覧になりますか？"
 
 msgid "First Guide"
 msgstr "最初のガイド"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"H2Dマシンでtpuフィラメントを印刷するのはこれが初めてです。\n"
-"簡単なチュートリアルビデオをご覧になりたいですか?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CFおよびPPA-CFは脆いため、ツールヘッド上部で曲がったPTFEチューブ内で破損する可能性があります。使用前にWikiをご参照ください。"
@@ -6657,7 +6656,7 @@ msgstr "従来のタイムラプス撮影を有効にすると、表面に欠陥
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -7956,6 +7955,9 @@ msgstr ""
 "ノズルオフセットをキャリブレーションして、印刷品質を向上させます。\n"
 "*自動モード:印刷する前にキャリブレーションを確認してください。不要な場合はスキップしてください。"
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "送信完了"
 
@@ -8095,6 +8097,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8401,16 +8407,29 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
+"推奨設定（TPUをPLAでサポートする場合）：\n"
+"ー　Top Z距離：0\n"
+"ー　インターフェース間隔：0\n"
+"ー　サポートとモデルのXY距離：0\n"
+"ー　パターン：交互の直線\n"
+"ー　独立サポート層の高さ：無効化\n"
+"ー　サポートインターフェース／ベース：PLAを使用"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"推奨設定（サポート材に水溶性素材を使用する場合）：\n"
+"ー　Top Z距離：0\n"
+"ー　インターフェース間隔：0\n"
+"ー　サポートとモデルのXY距離：0\n"
+"ー　パターン：交互の直線\n"
+"ー　独立サポート層の高さ：無効化\n"
+"ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8423,16 +8442,23 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
+"サポートインターフェースにサポート材料を使用する場合、以下の設定をお勧めします：\n"
+"0トップZ距離、0インターフェース間隔、交差直線パターン、および独立した積層ピッチを無効にする。"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
+"推奨設定（サポートインターフェースに水溶性素材を使用する場合）：\n"
+"ー　Top Z距離：0\n"
+"ー　インターフェース間隔：0\n"
+"ー　サポートとモデルのXY距離：0\n"
+"ー　パターン：交互の直線\n"
+"ー　独立サポート層の高さ：無効化\n"
+"ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9656,8 +9682,14 @@ msgstr "利用可能なアドオン: "
 msgid "Optimise Outer Walls"
 msgstr "外壁の最適化"
 
-msgid "Advanced Settings"
-msgstr "詳細設定"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "最小速度"
@@ -9674,8 +9706,8 @@ msgstr "最大体積速度"
 msgid "Last Trace ID: "
 msgstr "最後のトレースID: "
 
-msgid "Buy Now"
-msgstr "今すぐ購入"
+msgid "Buy Now / Manage Account"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "詳細はこちら"
@@ -10235,8 +10267,8 @@ msgstr "ウォールの上を迂回せずに移動し、表面にブロブが発
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z に沿った壁面速度の平滑化(実験的)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "より良い表面品質を得るために、z方向の外壁速度を滑らかにする：印刷時間が長くなります。スパイラルベースモードでは使用できません。"
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "ウォールの交差を回避 - 最大迂回距離"
@@ -11028,6 +11060,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "軟化温度"
 
@@ -11350,11 +11388,23 @@ msgstr "チャンバー温度の制御サポート"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "このオプションは、マシンがチャンバー温度の制御をサポートしている場合に有効になります。"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "空気清浄強化"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Enable this if printer support air filtration enhancement."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-codeスタイル"
@@ -11774,6 +11824,12 @@ msgstr "平滑係数"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "数値が小さいほど、速度遷移パスは長くなります。0 は適用されないことを意味します。"
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "内壁の線幅"
 
@@ -11915,10 +11971,10 @@ msgstr "デフォルトノズルボリュームタイプ"
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12055,6 +12111,12 @@ msgstr "しきい値より小さいスパースインフィル領域は、内部
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "ソリッド インフィルの線幅"
@@ -12303,7 +12365,7 @@ msgstr "ツリーオーガニック"
 msgid "Z overrides X/Y"
 msgstr ""
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
 msgstr ""
 
 msgid "Independent support layer height"
@@ -12403,6 +12465,12 @@ msgstr "下塗りの浸透層数"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "これは、ボトムの塗り処理における浸透層数です。"
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "押出しなしの速い移動速度"
@@ -15194,6 +15262,29 @@ msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "H2Dマシンでスライスするのは初めてですね。\n"
+#~ "簡単なチュートリアルビデオをご覧になりますか？"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "H2Dマシンでtpuフィラメントを印刷するのはこれが初めてです。\n"
+#~ "簡単なチュートリアルビデオをご覧になりたいですか?"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "詳細設定"
+
+#~ msgid "Buy Now"
+#~ msgstr "今すぐ購入"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "より良い表面品質を得るために、z方向の外壁速度を滑らかにする：印刷時間が長くなります。スパイラルベースモードでは使用できません。"
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "スパゲッティの検出に失敗しました"
 
@@ -15248,52 +15339,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "送信できませんでした。もう一度試してください。"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "推奨設定（TPUをPLAでサポートする場合）：\n"
-#~ "ー　Top Z距離：0\n"
-#~ "ー　インターフェース間隔：0\n"
-#~ "ー　サポートとモデルのXY距離：0\n"
-#~ "ー　パターン：交互の直線\n"
-#~ "ー　独立サポート層の高さ：無効化\n"
-#~ "ー　サポートインターフェース／ベース：PLAを使用"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "推奨設定（サポート材に水溶性素材を使用する場合）：\n"
-#~ "ー　Top Z距離：0\n"
-#~ "ー　インターフェース間隔：0\n"
-#~ "ー　サポートとモデルのXY距離：0\n"
-#~ "ー　パターン：交互の直線\n"
-#~ "ー　独立サポート層の高さ：無効化\n"
-#~ "ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "サポートインターフェースにサポート材料を使用する場合、以下の設定をお勧めします：\n"
-#~ "0トップZ距離、0インターフェース間隔、交差直線パターン、および独立した積層ピッチを無効にする。"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "推奨設定（サポートインターフェースに水溶性素材を使用する場合）：\n"
-#~ "ー　Top Z距離：0\n"
-#~ "ー　インターフェース間隔：0\n"
-#~ "ー　サポートとモデルのXY距離：0\n"
-#~ "ー　パターン：交互の直線\n"
-#~ "ー　独立サポート層の高さ：無効化\n"
-#~ "ー　サポートインターフェース／ベース：両方に水溶性素材を使用"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "指定したしきい値より小さい隙間を除外します。この設定はトップ/ボトムレイヤーには影響しません。"
