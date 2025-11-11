@@ -35,6 +35,7 @@
 
 #include "../Utils/BBLUtil.hpp"
 
+#include <wx/display.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
@@ -3882,10 +3883,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             }
             if (obj_) {
                 if (m_mapping_popup.IsShown()) return;
-                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                m_mapping_popup.Move(pos);
-
                 if (obj_ && obj_->get_dev_id() == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_only_show_ext_spool(false);
@@ -4238,6 +4235,13 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
     m_stext_weight->SetLabel(weight);
 }
 
+static wxSize s_get_full_resolution()
+{
+    wxDisplay display;
+    wxRect screenRect = display.GetGeometry();
+    return wxSize(screenRect.GetWidth(), screenRect.GetHeight());
+}
+
 void SelectMachineDialog::set_default_from_sdcard()
 {
     DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4372,10 +4376,7 @@ void SelectMachineDialog::set_default_from_sdcard()
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
 
             if (obj_) {
-                if (m_mapping_popup.IsShown()) return;
-                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                m_mapping_popup.Move(pos);
+                if (m_mapping_popup.IsShown()) { return; };
 
                 if (diameters_count > 1) {
                     if (obj_ && can_hybrid_mapping(*obj_->GetExtderSystem())) {
