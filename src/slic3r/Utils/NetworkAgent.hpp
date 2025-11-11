@@ -88,6 +88,7 @@ typedef int (*func_get_slice_info)(void *agent, std::string project_id, std::str
 typedef int (*func_query_bind_status)(void *agent, std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
 typedef int (*func_modify_printer_name)(void *agent, std::string dev_id, std::string dev_name);
 typedef int (*func_get_camera_url)(void *agent, std::string dev_id, std::function<void(std::string)> callback);
+typedef int (*func_get_camera_url_for_golive)(void *agent, std::string dev_id, std::string sdev_id, std::function<void(std::string)> callback);
 typedef int (*func_get_design_staffpick)(void *agent, int offset, int limit, std::function<void(std::string)> callback);
 typedef int (*func_start_pubilsh)(void *agent, PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
 typedef int (*func_get_model_publish_url)(void *agent, std::string* url);
@@ -207,6 +208,7 @@ public:
     int query_bind_status(std::vector<std::string> query_list, unsigned int* http_code, std::string* http_body);
     int modify_printer_name(std::string dev_id, std::string dev_name);
     int get_camera_url(std::string dev_id, std::function<void(std::string)> callback);
+    int get_camera_url_for_golive(std::string dev_id, std::string sdev_id, std::function<void(std::string)> callback);
     int get_design_staffpick(int offset, int limit, std::function<void(std::string)> callback);
     int start_publish(PublishParams params, OnUpdateStatusFn update_fn, WasCancelledFn cancel_fn, std::string* out);
     int get_model_publish_url(std::string* url);
@@ -316,6 +318,7 @@ private:
     static func_query_bind_status              query_bind_status_ptr;
     static func_modify_printer_name            modify_printer_name_ptr;
     static func_get_camera_url                 get_camera_url_ptr;
+    static func_get_camera_url_for_golive      get_camera_url_for_golive_ptr;
     static func_get_design_staffpick           get_design_staffpick_ptr;
     static func_start_pubilsh                  start_publish_ptr;
     static func_get_model_publish_url          get_model_publish_url_ptr;

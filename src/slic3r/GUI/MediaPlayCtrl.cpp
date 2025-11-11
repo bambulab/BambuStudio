@@ -620,7 +620,9 @@ void MediaPlayCtrl::ToggleStream()
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
     std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
-    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+
+    agent->get_camera_url_for_golive(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            wxGetApp().app_config->get("slicer_uuid") + "-golive",
             [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
