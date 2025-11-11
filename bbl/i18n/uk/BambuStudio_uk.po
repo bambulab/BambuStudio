@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -210,11 +210,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "Скасувати"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "SN"
@@ -4871,7 +4874,7 @@ msgid "Print plate"
 msgstr "Друкувати пластину"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
@@ -4879,7 +4882,7 @@ msgid "First Guide"
 msgstr ""
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
@@ -6678,7 +6681,7 @@ msgstr "Включення традиційної фотографії тайм�
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -7964,6 +7967,9 @@ msgid ""
 "*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "відправлення завершено"
 
@@ -8103,6 +8109,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8407,15 +8417,14 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8429,15 +8438,15 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
+"При використанні матеріалу підтримки для інтерфейсу підтримки ми рекомендуємо наступні налаштування:\n"
+"0 відстань верхнього шару Z, 0 відстань між інтерфейсами, перемежований прямокутний візерунок та вимкнена незалежна висота шару підтримки"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -9669,7 +9678,13 @@ msgstr ""
 msgid "Optimise Outer Walls"
 msgstr ""
 
-msgid "Advanced Settings"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
 msgstr ""
 
 msgid "Min Velocity"
@@ -9687,7 +9702,7 @@ msgstr "Максимальна об’ємна швидкість"
 msgid "Last Trace ID: "
 msgstr ""
 
-msgid "Buy Now"
+msgid "Buy Now / Manage Account"
 msgstr ""
 
 msgid "Click for more details"
@@ -10254,8 +10269,8 @@ msgstr "Обійдіть і уникайте подорожей по стіні,
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Згладжування швидкості стінки по вісі Z(експериментальне)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Згладжувати швидкість по вісі Z для досягнення кращої якості поверхні. Сповільнює друк. Не працює в режимі вази."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Уникати перетину периметрів - Максимальна довжина об'їзду"
@@ -11049,6 +11064,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Температура м’якості"
 
@@ -11371,11 +11392,23 @@ msgstr "Керування температурою камери для підт
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Ця опція включається, якщо пристрій підтримує керування температурою камери"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Покращення фільтрації повітря"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Увімкніть це, якщо принтер підтримує покращення фільтрації повітря."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "Тип G-коду"
@@ -11791,6 +11824,12 @@ msgstr "Коефіцієнт згладжування"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr ""
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "Ширина лінії внутрішніх стінок"
 
@@ -11932,10 +11971,10 @@ msgstr ""
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12074,6 +12113,12 @@ msgstr "Площа заповнення, яка менша за порогове
 
 msgid "mm²"
 msgstr "мм²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "Line width of internal solid infill"
@@ -12320,7 +12365,7 @@ msgstr "Органічне дерево"
 msgid "Z overrides X/Y"
 msgstr ""
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
 msgstr ""
 
 msgid "Independent support layer height"
@@ -12417,6 +12462,12 @@ msgid "Bottom paint penetration layers"
 msgstr ""
 
 msgid "This is  the number of layers of top bottom penetration."
+msgstr ""
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -15158,18 +15209,14 @@ msgid ""
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
 
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Згладжувати швидкість по вісі Z для досягнення кращої якості поверхні. Сповільнює друк. Не працює в режимі вази."
+
 #~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
 #~ msgstr "Перевірте, чи сопло не затверділо від філаменту або інших чужорідних предметів."
 
 #~ msgid "Debug Info"
 #~ msgstr "Налагоджувальна інформація"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "При використанні матеріалу підтримки для інтерфейсу підтримки ми рекомендуємо наступні налаштування:\n"
-#~ "0 відстань верхнього шару Z, 0 відстань між інтерфейсами, перемежований прямокутний візерунок та вимкнена незалежна висота шару підтримки"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Фільтрувати виїмки, які менше порогу, вказаного в налаштуваннях. Це налаштування не впливає на верхні/нижні шари"

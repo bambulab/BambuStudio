@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -215,10 +215,13 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
+msgstr ""
+
+msgid "Jump to the upgrade page"
 msgstr ""
 
 msgid "SN"
@@ -4772,7 +4775,7 @@ msgid "Print plate"
 msgstr ""
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
@@ -4780,7 +4783,7 @@ msgid "First Guide"
 msgstr ""
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
@@ -6541,7 +6544,7 @@ msgstr ""
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -7807,6 +7810,9 @@ msgid ""
 "*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr ""
 
@@ -7946,6 +7952,10 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8248,15 +8258,14 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8267,15 +8276,13 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -9482,7 +9489,13 @@ msgstr ""
 msgid "Optimise Outer Walls"
 msgstr ""
 
-msgid "Advanced Settings"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
 msgstr ""
 
 msgid "Min Velocity"
@@ -9500,7 +9513,7 @@ msgstr ""
 msgid "Last Trace ID: "
 msgstr ""
 
-msgid "Buy Now"
+msgid "Buy Now / Manage Account"
 msgstr ""
 
 msgid "Click for more details"
@@ -10059,7 +10072,7 @@ msgstr ""
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr ""
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
 msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
@@ -10846,6 +10859,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr ""
 
@@ -11168,10 +11187,22 @@ msgstr ""
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr ""
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr ""
 
 msgid "Enable this if printer support air filtration enhancement."
+msgstr ""
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
 msgstr ""
 
 msgid "G-code flavor"
@@ -11588,6 +11619,12 @@ msgstr ""
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr ""
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr ""
 
@@ -11729,10 +11766,10 @@ msgstr ""
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -11866,6 +11903,12 @@ msgid "Sparse infill area which is smaller than threshold value is replaced by i
 msgstr ""
 
 msgid "mm²"
+msgstr ""
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
 msgstr ""
 
 msgid "Line width of internal solid infill"
@@ -12113,7 +12156,7 @@ msgstr ""
 msgid "Z overrides X/Y"
 msgstr ""
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
 msgstr ""
 
 msgid "Independent support layer height"
@@ -12210,6 +12253,12 @@ msgid "Bottom paint penetration layers"
 msgstr ""
 
 msgid "This is  the number of layers of top bottom penetration."
+msgstr ""
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"

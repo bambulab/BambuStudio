@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -210,11 +210,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "İptal"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "SN"
@@ -4885,21 +4888,17 @@ msgid "Print plate"
 msgstr "Plakayı Yazdır"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"H2D makinesi ile ilk kez dilimleme yapıyorsunuz.\n"
-"Hızlı bir öğretici video izlemek ister misiniz?"
 
 msgid "First Guide"
 msgstr "Başlangıç Kılavuzu"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"Bu, H2D makinesi ile tpu filamentlerini ilk kez yazdırmanızdır.\n"
-"Hızlı bir öğretici video izlemek ister misiniz?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF kırılgandır ve Baskı Kafası üzerindeki bükülmüş PTFE tüpte kırılabilir. Kullanmadan önce lütfen Wiki'ye bakın. "
@@ -6697,7 +6696,7 @@ msgstr "Geleneksel timelapse etkinleştirilmesi yüzey kusurlarına neden olabil
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -8002,6 +8001,9 @@ msgstr ""
 "Baskı kalitesini artırmak için nozul ofsetlerini kalibre edin.\n"
 "*Otomatik mod: Yazdırmadan önce kalibrasyonu kontrol edin. Gereksizse atlayın."
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "gönderme tamamlandı"
 
@@ -8141,6 +8143,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8445,23 +8451,21 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"TPU'yu desteklemek için PLA kullanırken aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
-"XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü hem de destek tabanı için PLA kullan"
+"TPU'yu desteklemek için PLA kullanırken, aşağıdaki ayarları öneririz:\n"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için PLA kullanın"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
-"XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
-"hem de destek tabanı için çözünebilir malzemeler kullan"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8474,23 +8478,19 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, taramalı doğrusal desen, Z'nin XY'yi geçersiz kılması ve \n"
-"bağımsız destek katmanı yüksekliğinin devre dışı bırakılması"
+"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Destek arayüzü için çözünür malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
-"XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
-"hem de destek tabanı için çözünür malzemeler kullan"
+"Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9729,8 +9729,14 @@ msgstr "Eklentiler mevcut: "
 msgid "Optimise Outer Walls"
 msgstr "Dış Duvarları Optimize Edin"
 
-msgid "Advanced Settings"
-msgstr "Gelişmiş Ayarlar"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "Min Hız"
@@ -9747,8 +9753,8 @@ msgstr "Maksimum Hacimsel Hız"
 msgid "Last Trace ID: "
 msgstr "Son İz Kimliği: "
 
-msgid "Buy Now"
-msgstr "Satın Al"
+msgid "Buy Now / Manage Account"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Daha fazla bilgi için tıklayın"
@@ -10308,8 +10314,8 @@ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyu
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z boyunca duvar hızını yumuşatma (deneysel)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Daha iyi yüzey kalitesi elde etmek için z yönünde dış duvar hızını yumuşatma. Baskı süresi artacaktır. Spiral vazo modunda çalışmaz."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Duvarı geçmekten kaçının - maksimum servis yolu uzunluğu"
@@ -11101,6 +11107,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Yumuşama sıcaklığı"
 
@@ -11423,11 +11435,23 @@ msgstr "Destek kontrol ortam sıcaklığı"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Bu seçenek, makine oda sıcaklığını kontrol etmeyi destekliyorsa etkinleştirilir"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Hava filtrasyonunun iyileştirilmesi"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Yazıcı hava filtreleme geliştirmesini destekliyorsa bunu etkinleştirin."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-Kod Uyumu"
@@ -11843,6 +11867,12 @@ msgstr "Pürüzsüz katsayı"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "Sayı ne kadar küçükse, hız geçiş yolu o kadar uzundur. 0 geçerli değil anlamına gelir."
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "İç duvarın çizgi genişliği"
 
@@ -11984,10 +12014,10 @@ msgstr "Varsayılan Nozul Hacim Tipi"
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12124,6 +12154,12 @@ msgstr "Eşik değerinden küçük olan seyrek dolgu alanı, yerini iç katı do
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "İç katı dolgunun çizgi genişliği"
@@ -12372,8 +12408,8 @@ msgstr "Ağaç Organik"
 msgid "Z overrides X/Y"
 msgstr "Z, X/Y'yi geçersiz kılar"
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "Üst Z mesafesi, destek-nesne XY mesafesine göre öncelikli olduğunda; desteklerin çıkıntıların altına mutlaka oluşturulmasına öncelik verilir ve model ile arasında 'üst Z mesafesi' kadar dikey bir boşluk bırakılır. Aksi durumda ise destekler ile model arasındaki yatay boşluk her zaman 'destek-nesne XY mesafesi' kuralına uyar"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Bağımsız destek katmanı yüksekliği"
@@ -12470,6 +12506,12 @@ msgstr "Alt yüzey deki kaplama katmanları"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "Bu,   alt yüzey deki kaplama katmanlarının sayısıdır."
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Daha hızlı ve ekstrüzyonsuz seyahat hızı"
@@ -15268,6 +15310,72 @@ msgstr ""
 "Büzülme, Çarpılma ve Gerilim\n"
 "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "H2D makinesi ile ilk kez dilimleme yapıyorsunuz.\n"
+#~ "Hızlı bir öğretici video izlemek ister misiniz?"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "Bu, H2D makinesi ile tpu filamentlerini ilk kez yazdırmanızdır.\n"
+#~ "Hızlı bir öğretici video izlemek ister misiniz?"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "TPU'yu desteklemek için PLA kullanırken aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
+#~ "XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü hem de destek tabanı için PLA kullan"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
+#~ "XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
+#~ "hem de destek tabanı için çözünebilir malzemeler kullan"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, taramalı doğrusal desen, Z'nin XY'yi geçersiz kılması ve \n"
+#~ "bağımsız destek katmanı yüksekliğinin devre dışı bırakılması"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Destek arayüzü için çözünür malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
+#~ "XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
+#~ "hem de destek tabanı için çözünür malzemeler kullan"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Gelişmiş Ayarlar"
+
+#~ msgid "Buy Now"
+#~ msgstr "Satın Al"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Daha iyi yüzey kalitesi elde etmek için z yönünde dış duvar hızını yumuşatma. Baskı süresi artacaktır. Spiral vazo modunda çalışmaz."
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "Üst Z mesafesi, destek-nesne XY mesafesine göre öncelikli olduğunda; desteklerin çıkıntıların altına mutlaka oluşturulmasına öncelik verilir ve model ile arasında 'üst Z mesafesi' kadar dikey bir boşluk bırakılır. Aksi durumda ise destekler ile model arasındaki yatay boşluk her zaman 'destek-nesne XY mesafesi' kuralına uyar"
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "Spagetti hatasını algıla (etrafa dağılmış filament)."
 
@@ -15314,40 +15422,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "TPU'yu desteklemek için PLA kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için PLA kullanın"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Belirtilen eşikten daha küçük boşlukları filtreleyin. Bu ayar üst/alt katmanları etkilemez"

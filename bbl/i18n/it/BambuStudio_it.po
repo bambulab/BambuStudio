@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-11 09:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -210,11 +210,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "Annulla"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "SN"
@@ -4879,21 +4882,17 @@ msgid "Print plate"
 msgstr "Stampa"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"Questa è la prima volta che elabori con la H2D.\n"
-"Vuoi guardare un breve video tutorial?"
 
 msgid "First Guide"
 msgstr "Prima guida"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"È la prima volta che stampi filamenti in TPU con la macchina H2D.\n"
-"Vuoi guardare un breve video tutorial?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "Il PPS-CF/PPA-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra la testa di stampa. Fai riferimento alla Wiki prima dell'uso. "
@@ -6689,7 +6688,7 @@ msgstr "L'attivazione fotografia timelapse tradizionale può causare imperfezion
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
@@ -7994,6 +7993,9 @@ msgstr ""
 "Calibra gli offset del nozzle per migliorare la qualità di stampa.  \n"
 "*Modalità automatica: Verifica la calibrazione prima della stampa. Salta il processo se non necessario."
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "invio completato"
 
@@ -8133,6 +8135,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8439,20 +8445,21 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 "Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
-"Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, abilita Z che sovrascrive XY, disabilita Altezza layer di supporto indipendente e usa il PLA sia per l’interfaccia che per la base di supporto"
+"Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, Disabilita Altezza layer supporto indipendente e \n"
+"usa il PLA sia per l’interfaccia che per la base di supporto"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
-"0 distanza z superiore, spaziatura interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, abilita la sovrascrittura Z che prevale su XY, disabilita l'altezza indipendente del layer di supporto e utilizza materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+"0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
+"altezza indipendente dello strato di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8465,21 +8472,19 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
 "0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
 "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
-"altezza indipendente del layer di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+"altezza indipendente dello strato di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9716,8 +9721,14 @@ msgstr "Componenti aggiuntivi disponibili: "
 msgid "Optimise Outer Walls"
 msgstr "Ottimizza Pareti Esterne"
 
-msgid "Advanced Settings"
-msgstr "Impostazioni Avanzate"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "Velocità Minima"
@@ -9734,8 +9745,8 @@ msgstr "Massima velocità volumetrica"
 msgid "Last Trace ID: "
 msgstr "Ultimo ID traccia: "
 
-msgid "Buy Now"
-msgstr "Acquista Ora"
+msgid "Buy Now / Manage Account"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Clicca per maggiori dettagli"
@@ -10295,8 +10306,8 @@ msgstr "Devia ed evita di attraversare le pareti per ridurre il rischio di crear
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Transizione graduale della velocità delle pareti lungo Z (sperimentale)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Velocità lisciatura parete esterna direzione z per ottenere una migliore qualità della superficie: il tempo di stampa aumenterà. Questa operazione non funziona in modalità vaso a spirale."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Evitare di attraversare le pareti - Lunghezza massima deviazione"
@@ -11088,6 +11099,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Temperatura di ammorbidimento"
 
@@ -11410,11 +11427,23 @@ msgstr "Supporto controllo temperatura camera"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Questa opzione è abilitata se la macchina supporta il controllo della temperatura della camera"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Miglioramento filtro aria"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Abilita questa funzione se la stampante supporta il potenziamento della filtrazione dell'aria."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "Formato G-code"
@@ -11830,6 +11859,12 @@ msgstr "Coefficiente di transizione"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "Più piccolo è il numero, più lungo sarà il percorso di transizione della velocità. 0 significa che non si applica."
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "Larghezza linea delle pareti interne"
 
@@ -11971,10 +12006,10 @@ msgstr "Tipo di volume per il nozzle predefinito"
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12111,6 +12146,12 @@ msgstr "Le aree di riempimento che sono più piccole di questo valore soglia ven
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "Larghezza linea del riempimento solido interno"
@@ -12362,8 +12403,8 @@ msgstr "Tree Organic"
 msgid "Z overrides X/Y"
 msgstr "Z sovrascrive X/Y"
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "Quando la distanza z superiore prevale sulla distanza xy supporto/oggetto, dare priorità alla generazione di supporti sotto le sporgenze e lasciare uno spazio vuoto della stessa dimensione della distanza z superiore nel modello. Nel caso opposto, invece, lo spazio vuoto tra supporti e modello segue sempre la distanza xy supporto/oggetto."
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Altezza layer supporto indipendente"
@@ -12460,6 +12501,12 @@ msgstr "Layer penetrazione pittura inferiore"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "Questo è il numero layer di penetrazione superiore inferiore."
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Velocità degli spostamenti senza estrusione"
@@ -15256,6 +15303,67 @@ msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "Questa è la prima volta che elabori con la H2D.\n"
+#~ "Vuoi guardare un breve video tutorial?"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "È la prima volta che stampi filamenti in TPU con la macchina H2D.\n"
+#~ "Vuoi guardare un breve video tutorial?"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
+#~ "Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, abilita Z che sovrascrive XY, disabilita Altezza layer di supporto indipendente e usa il PLA sia per l’interfaccia che per la base di supporto"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
+#~ "0 distanza z superiore, spaziatura interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, abilita la sovrascrittura Z che prevale su XY, disabilita l'altezza indipendente del layer di supporto e utilizza materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
+#~ "0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
+#~ "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
+#~ "altezza indipendente del layer di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Impostazioni Avanzate"
+
+#~ msgid "Buy Now"
+#~ msgstr "Acquista Ora"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Velocità lisciatura parete esterna direzione z per ottenere una migliore qualità della superficie: il tempo di stampa aumenterà. Questa operazione non funziona in modalità vaso a spirale."
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "Quando la distanza z superiore prevale sulla distanza xy supporto/oggetto, dare priorità alla generazione di supporti sotto le sporgenze e lasciare uno spazio vuoto della stessa dimensione della distanza z superiore nel modello. Nel caso opposto, invece, lo spazio vuoto tra supporti e modello segue sempre la distanza xy supporto/oggetto."
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "Rilevamento del guasto spaghetti (filamento sparso)."
 
@@ -15310,40 +15418,6 @@ msgstr ""
 
 #~ msgid "Sending failed, please try again!"
 #~ msgstr "Invio fallito, riprova!"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
-#~ "Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, Disabilita Altezza layer supporto indipendente e \n"
-#~ "usa il PLA sia per l’interfaccia che per la base di supporto"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
-#~ "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
-#~ "altezza indipendente dello strato di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
-#~ "0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
-#~ "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
-#~ "altezza indipendente dello strato di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtra i gap vuoti più piccoli della soglia specificata. Questa impostazione non influisce sui layers superiore/inferiore."
