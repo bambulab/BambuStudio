@@ -2,6 +2,7 @@
 
 #include <string>
 #include <wx/string.h>
+#include <wx/file.h>
 #include <boost/optional.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <vector>
@@ -18,7 +19,6 @@
 #include "../GUI/NotificationManager.hpp"
 #include "wx/app.h"
 #include "cstdio"
-
 
 namespace Slic3r {
 
@@ -1644,9 +1644,11 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     }
 
     if (response_error.empty() && !was_canceled()) {
-        FILE* file = fopen(helio_gcode_path.c_str(), "wb");
-        fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
-        fclose(file);
+        wxFile file(wxString::FromUTF8(helio_gcode_path), wxFile::write);
+        if (file.IsOpened()) {
+            file.Write(downloaded_gcode.data(), downloaded_gcode.size());
+            file.Close();
+        }
 
         Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, _u8L("Helio: GCode downloaded successfully"));
         status.is_helio = true;
