@@ -24,6 +24,10 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "0.4",
+        "nil"
+    ],
     "hot_plate_temp": [
         "100"
     ],
