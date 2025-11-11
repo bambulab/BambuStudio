@@ -815,8 +815,20 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
          if (e.IsShown() && m_parent_item) {
-             wxPoint pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
-             pos.y += m_parent_item->GetRect().height;
+
+             // Position below the parent item by default
+             auto pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
+             auto parent_size = m_parent_item->GetRect();
+             pos.y += parent_size.height;
+
+             // If there's not enough space above, align to the top of the screen
+             auto screenSize = wxGetDisplaySize();
+             auto popupSize = GetBestSize();
+             if (screenSize.y - pos.y < popupSize.y) {
+                 pos.y -= parent_size.height;
+                 pos.y -= popupSize.y;
+             }
+
              this->Move(pos);
          }
      });
