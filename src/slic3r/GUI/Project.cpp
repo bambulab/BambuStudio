@@ -748,8 +748,18 @@ void ProjectPanel::update_model_data()
     clear_model_info();
 
     //basics info
-    if (model.model_info == nullptr)
+    //Note: Under the master branch, model_info will never return nullptr, but under the GitHub branch, it might. The reason is unclear.
+    if (model.model_info == nullptr) {
+        json payload = json::object();
+        payload["command"] = "show_3mf_info";
+        payload["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+        payload["model"] = json::object();
+
+        wxString js = wxString::Format("HandleStudio(%s)",
+                                    payload.dump(-1, ' ', false, json::error_handler_t::ignore));
+        wxGetApp().CallAfter([this, js]{ RunScript(js.ToStdString()); });
         return;
+    }
 
     auto event = wxCommandEvent(EVT_PROJECT_RELOAD);
     event.SetEventObject(this);

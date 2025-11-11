@@ -13,13 +13,10 @@ var otherAccessories = []; //like projectPictures structure
 var profileName = "";
 var profilePictures = [];
 var profileEditorData;
-
 var bakRequestData;
-
 function deepCloneList(list) {
   return JSON.parse(JSON.stringify(list || []));
 }
-
 function safeDecode(value) {
   if (!value) return '';
   try {
@@ -28,20 +25,17 @@ function safeDecode(value) {
     return value;
   }
 }
-
 function normalizeCoverName(value) {
   const decoded = safeDecode(value);
   if (!decoded) return '';
   const segments = decoded.split(/[/\\]/);
   return segments[segments.length - 1];
 }
-
 function normalizeRequestPayload(raw) {
   const safe = raw || {};
   const model = safe.model || {};
   const file = safe.file || {};
   const profile = safe.profile || {};
-
   return {
     model: {
       name: model.name || "",
@@ -60,14 +54,12 @@ function normalizeRequestPayload(raw) {
     },
   };
 }
-
 function getCurrentRequestData() {
   getProjectName();
   getProjectDescription();
   getProfileName();
   getProfilePictures();
   getProfileDescription();
-
   return {
     model: {
       name: encodeURIComponent(projectName || ""),
@@ -86,9 +78,7 @@ function getCurrentRequestData() {
     },
   };
 }
-
 const editorUploadRequests = new Map();
-
 $(function () {
   TranslatePage();
   addAccessoryBtnListener();
@@ -141,14 +131,12 @@ $(function () {
   // updateInfo(TestProjectData);
   RequestProjectInfo();
 });
-
 function isFormEmpty() {
   getProjectName();
   getProjectDescription();
   getProfileName();
   getProfilePictures();
   getProfileDescription();
-
   const noBasics = !projectName.trim() && !projectEditorData?.trim();
   const noProjectPics = projectPictures.length === 0;
   const noAttachments = bomAccessories.length === 0 &&
@@ -157,20 +145,16 @@ function isFormEmpty() {
   const noProfileInfo = !profileName.trim() &&
                         !profileEditorData?.trim() &&
                         profilePictures.length === 0;
-
   return noBasics && noProjectPics && noAttachments && noProfileInfo;
 }
-
 function isChange() {
   if (!bakRequestData && isFormEmpty()) {
     return false;
   }
-
   const baseline = normalizeRequestPayload(bakRequestData);
   const current = normalizeRequestPayload(getCurrentRequestData());
   return JSON.stringify(baseline) !== JSON.stringify(current);
 }
-
 function saveInfo() {
   let modelData = {};
   getProjectName();
@@ -179,7 +163,6 @@ function saveInfo() {
     return;
   }
   modelData["name"] = encodeURIComponent(projectName);
-
   if (projectPictures.length <= 0) {
     showToast("The project pictures is empty.");
     return;
@@ -196,7 +179,6 @@ function saveInfo() {
     Assembly: assemblyAccessories,
     Other: otherAccessories
   };
-
   getProfileName();
   getProfilePictures();
   getProfileDescription();
@@ -205,14 +187,11 @@ function saveInfo() {
     preview_img: profilePictures,
     description: encodeURIComponent(profileEditorData)
   };
-
   let updateData = {
     model: modelData,
     file: fileData,
     profile: profileData
   };
-
-
   var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="update_3mf_info";
@@ -220,7 +199,6 @@ function saveInfo() {
 		
 	SendWXMessage( JSON.stringify(tSend) );	
 }
-
 function updateInfo(p3MF) {
   projectName = DOMPurify.sanitize(decodeURIComponent(p3MF.model.name));
   projectPictures.length = 0;
@@ -254,7 +232,6 @@ function updateInfo(p3MF) {
     }
   }
   profileEditorData = decodeURIComponent(p3MF.profile.description) || '';
-
   setProjectName();
   setProjectPictrues();
   setProjectDescription();
@@ -263,69 +240,55 @@ function updateInfo(p3MF) {
   setProfilePictures();
   setProfileDescription();
 }
-
 function setProjectName() {
 	$("#projectNameInput").val(projectName);
 }
-
 function getProjectName() {
 	projectName = $("#projectNameInput").val();
 }
-
 function setProjectPictrues() {
   setPictures('imageList', projectPictures);
 }
-
 function getProjectPictures() {
   return projectPictures;
 }
-
 function setProjectDescription() {
   if (window.projectEditor) {
     projectEditor.setData(projectEditorData || '');
   }
 }
-
 function getProjectDescription() {
   if (window.projectEditor) {
     projectEditorData = projectEditor.getData();
   }
 }
-
 function setAccessor() {
   setAccessories('bom-list', bomAccessories);
   setAccessories('assembly-list', assemblyAccessories);
   setAccessories('other-list', otherAccessories);
 }
-
 function setProfileName() {
   $("#ProfileNameInput").val(profileName);
 }
-
 function getProfileName() {
   profileName = $("#ProfileNameInput").val();
 }
-
 function setProfilePictures() {
   setPictures('profileImageList', profilePictures);
 }
-
 function getProfilePictures() {
   return profilePictures;
 }
-
 function setProfileDescription() {
   if (window.profileEditor) {
     profileEditor.setData(profileEditorData || '');
   }
 }
-
 function getProfileDescription() {
   if (window.profileEditor) {
     profileEditorData = profileEditor.getData();
   }
 }
-
 //Pictures tool
 function setPictures(id, picturesList) {
   let updateHtml = "";
@@ -349,14 +312,12 @@ function setPictures(id, picturesList) {
     }
   }
   $(`#${id}`).html(updateHtml);
-
   $(`#${id}`).off('click', 'img');
   $(`#${id}`).on('click', 'img', function (event) {
     let index = parseInt($(this).parent().data('index'));
     removePictureAt(index, picturesList);
     setPictures(id, picturesList);
   });
-
   $(`#${id}`).off('click', '.setModelCover');
   $(`#${id}`).on('click', '.setModelCover', function (event) {
     let index = parseInt($(this).parent().data('index'));
@@ -364,16 +325,13 @@ function setPictures(id, picturesList) {
     picturesList.unshift(item);
     setPictures(id, picturesList);
   });
-
 }
-
 function removePictureAt(index, picturesList) {
   if (index < 0 || index >= picturesList.length) {
     return;
   }
   picturesList.splice(index, 1);  
 }
-
 function addPictureUploadListener(inputId, showPictrueId, picturesList, allowTypes, maxSize, maxCount) {
   const input = document.getElementById(inputId);
   // input.removeEventListener('click');
@@ -384,24 +342,20 @@ function addPictureUploadListener(inputId, showPictrueId, picturesList, allowTyp
   input.addEventListener('change', function (event) {
     const [file] = event.target.files;
     if (!file) return;
-
     // Validate file type
     if (allowTypes && !allowTypes.includes(file.type)) {
       showToast(GetCurrentTextByKey("t144"));
       return;
     }
-
     // Validate file size
     if (maxSize && file.size > maxSize) {
       showToast(GetCurrentTextByKey("t145"));
       return;
     }
-
     if (picturesList.length >= maxCount) {
       showToast(GetCurrentTextByKey("t146"));
       return;
     }
-
     uploadFileToCpp(file).then(result => {
       if (result && result.path) {
         fileToThumbnailBase64(file).then((base64) => {
@@ -421,7 +375,6 @@ function addPictureUploadListener(inputId, showPictrueId, picturesList, allowTyp
     });
   });
 }
-
 //accessories tool
 function addAccessoryBtnListener() {
   $("#accessories-btn").on("click", function (e) {
@@ -434,7 +387,6 @@ function addAccessoryBtnListener() {
   }
 });1
 }
-
 function setAccessories(id, accessoriesList) {
   let updateHtml = "";
   if (accessoriesList.length > 0) {
@@ -456,7 +408,6 @@ function setAccessories(id, accessoriesList) {
   }
   $(`#${id}`).html(updateHtml);
   $(`#${id}`).prev().children('label').text(accessoriesList.length);
-
   $(`#${id}`).off('click', '.attachment-delete');
   $(`#${id}`).on('click', '.attachment-delete', function (event) {
     let index = parseInt($(this).parent().data('index'));
@@ -464,14 +415,12 @@ function setAccessories(id, accessoriesList) {
     setAccessories(id, accessoriesList);
   });
 }
-
 function removeAccessoryAt(index, accessoriesList) {
   if (index < 0 || index >= accessoriesList.length) {
     return;
   }
   accessoriesList.splice(index, 1);  
 }
-
 function getFileTail(filetype) {
   switch(filetype) {
     case 'application/pdf':
@@ -490,7 +439,6 @@ function getFileTail(filetype) {
       return '';
   }
 }
-
 function getFileType(filepath) {
   let parts = filepath.split('.');
   if (parts.length > 1) {
@@ -513,10 +461,9 @@ function getFileType(filepath) {
     }
   }
 }
-
 function addAccessoryUploadListener(inputId, showAccessoryId, accessoriesList, allowTypes, maxCount) {
   const input = document.getElementById(inputId);
-    input.addEventListener('click', () => {
+  input.addEventListener('click', () => {
     input.value = '';
   });
   input.addEventListener('change', function (event) {
@@ -528,18 +475,15 @@ function addAccessoryUploadListener(inputId, showAccessoryId, accessoriesList, a
       showToast(GetCurrentTextByKey("t144"));
       return;
     }
-
     const maxSize = allowTypes[matchedExt];
     if (maxSize && file.size > maxSize) {
       showToast(GetCurrentTextByKey("t145"));
       return;
     }
-
     if (accessoriesList.length >= maxCount) {
       showToast(GetCurrentTextByKey("t146"));
       return;
     }
-
     uploadFileToCpp(file).then(result => {
       if (result && result.path) {
         accessoriesList.push({
@@ -555,26 +499,21 @@ function addAccessoryUploadListener(inputId, showAccessoryId, accessoriesList, a
     });
   });
 }
-
 //common tool
 function generateSequenceId() {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
-
 function uploadFileToCpp(file) {
   return new Promise((resolve, reject) => {
     if (!(file instanceof File)) {
       reject(new Error('invalid file object'));
       return;
     }
-
     const reader = new FileReader();
     const sequenceId = generateSequenceId();
-
     reader.onload = () => {
       let result = reader.result;
       let base64Payload = '';
-
       if (typeof result === 'string') {
         const commaIndex = result.indexOf(',');
         base64Payload = commaIndex >= 0 ? result.substring(commaIndex + 1) : result;
@@ -590,7 +529,6 @@ function uploadFileToCpp(file) {
         reject(new Error('unable to read file content'));
         return;
       }
-
       const message = {
         sequence_id: sequenceId,
         command: 'editor_upload_file',
@@ -601,14 +539,11 @@ function uploadFileToCpp(file) {
           base64: base64Payload
         }
       };
-
       editorUploadRequests.set(sequenceId, { resolve, reject });
-
       const canCallHost =
         typeof window !== 'undefined' &&
         typeof window.wx === 'object' &&
         typeof window.wx.postMessage === 'function';
-
       if (typeof SendWXMessage === 'function' && canCallHost) {
         try {
           SendWXMessage(JSON.stringify(message));
@@ -625,67 +560,52 @@ function uploadFileToCpp(file) {
         });
       }
     };
-
     reader.onerror = () => {
       reject(reader.error || new Error('failed to read file'));
     };
-
     reader.readAsDataURL(file);
   });
 }
-
 function fileToThumbnailBase64(file, maxWidth = 200, quality = 0.85) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) {
       reject(new Error('select a valid image file'));
       return;
     }
-
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
       img.crossOrigin = 'anonymous'; 
       img.src = e.target.result;
-
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-
         const scale = Math.min(1, maxWidth / img.width);
         const width = img.width * scale;
         const height = img.height * scale;
-
         canvas.width = width;
         canvas.height = height;
-
         if (file.type === 'image/png' || file.type === 'image/webp') {
           ctx.clearRect(0, 0, width, height);
         } else {
           ctx.fillStyle = '#fff';
           ctx.fillRect(0, 0, width, height);
         }
-
         ctx.drawImage(img, 0, 0, width, height);
-
-
         const outputType = ['image/png', 'image/jpeg', 'image/webp'].includes(file.type)
           ? file.type
           : 'image/png';
-
         const base64 = canvas.toDataURL(outputType, quality);
         resolve(base64);
       };
-
       img.onerror = () => reject(new Error('invalid image file'));
     };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 }
-
 function handleEditorMessage(rawMessage) {
   let payload = rawMessage;
-
   if (typeof rawMessage === 'string') {
     try {
       payload = JSON.parse(rawMessage); 
@@ -693,40 +613,32 @@ function handleEditorMessage(rawMessage) {
       return;
     }
   }
-
   if (!payload || typeof payload !== 'object') {
     return;
   }
-
   const command = payload.command;
   if (command === 'editor_upload_file_result') {
     const sequenceId = payload.sequence_id;
     if (!sequenceId || !editorUploadRequests.has(sequenceId)) {
       return;
     }
-
     const { resolve, reject } = editorUploadRequests.get(sequenceId);
     editorUploadRequests.delete(sequenceId);
-
     if (payload.error) {
       reject(new Error(payload.error));
       return;
     }
-
     resolve(payload.data || {});
     return;
   }
-
   if (command === 'save_project') {
     saveInfo();
     return;
   }
-
   if (command === 'discard_project') {
     window.location.href = 'index.html';
     return;
   }
-
   if (command === 'update_3mf_info_result') {
     if (payload.error) {
       showToast(payload.error);
@@ -737,7 +649,6 @@ function handleEditorMessage(rawMessage) {
     window.location.href = "index.html";
   }
 }
-
 function returnBtn() {
   if (isChange()) {
     confirmSave();
@@ -750,7 +661,6 @@ function returnBtn() {
     
   }
 }
-
 function confirmSave() {
   var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
@@ -758,7 +668,6 @@ function confirmSave() {
 		
 	SendWXMessage( JSON.stringify(tSend) );	
 }
-
 function RequestProjectInfo()
 {
 	var tSend={};
@@ -767,7 +676,6 @@ function RequestProjectInfo()
 		
 	SendWXMessage( JSON.stringify(tSend) );		
 }
-
 function HandleStudio(pVal)
 {
 	let strCmd=pVal['command'];
