@@ -110,6 +110,7 @@ func_get_slice_info                 NetworkAgent::get_slice_info_ptr = nullptr;
 func_query_bind_status              NetworkAgent::query_bind_status_ptr = nullptr;
 func_modify_printer_name            NetworkAgent::modify_printer_name_ptr = nullptr;
 func_get_camera_url                 NetworkAgent::get_camera_url_ptr = nullptr;
+func_get_camera_url_for_golive      NetworkAgent::get_camera_url_for_golive_ptr = nullptr;
 func_get_design_staffpick           NetworkAgent::get_design_staffpick_ptr = nullptr;
 func_start_pubilsh                  NetworkAgent::start_publish_ptr = nullptr;
 func_get_model_publish_url          NetworkAgent::get_model_publish_url_ptr = nullptr;
@@ -355,6 +356,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     query_bind_status_ptr             =  reinterpret_cast<func_query_bind_status>(get_network_function("bambu_network_query_bind_status"));
     modify_printer_name_ptr           =  reinterpret_cast<func_modify_printer_name>(get_network_function("bambu_network_modify_printer_name"));
     get_camera_url_ptr                =  reinterpret_cast<func_get_camera_url>(get_network_function("bambu_network_get_camera_url"));
+    get_camera_url_for_golive_ptr     =  reinterpret_cast<func_get_camera_url_for_golive>(get_network_function("bambu_network_get_camera_url_for_golive"));
     get_design_staffpick_ptr          =  reinterpret_cast<func_get_design_staffpick>(get_network_function("bambu_network_get_design_staffpick"));
     start_publish_ptr                 =  reinterpret_cast<func_start_pubilsh>(get_network_function("bambu_network_start_publish"));
     get_model_publish_url_ptr         =  reinterpret_cast<func_get_model_publish_url>(get_network_function("bambu_network_get_model_publish_url"));
@@ -477,6 +479,7 @@ int NetworkAgent::unload_network_module()
     query_bind_status_ptr             =  nullptr;
     modify_printer_name_ptr           =  nullptr;
     get_camera_url_ptr                =  nullptr;
+    get_camera_url_for_golive_ptr     =  nullptr;
     get_design_staffpick_ptr          =  nullptr;
     start_publish_ptr                 =  nullptr;
     get_model_publish_url_ptr         =  nullptr;
@@ -1400,6 +1403,17 @@ int NetworkAgent::get_camera_url(std::string dev_id, std::function<void(std::str
     int ret = 0;
     if (network_agent && get_camera_url_ptr) {
         ret = get_camera_url_ptr(network_agent, dev_id, callback);
+        if (ret)
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
+    }
+    return ret;
+}
+
+int NetworkAgent::get_camera_url_for_golive(std::string dev_id, std::string sdev_id, std::function<void(std::string)> callback)
+{
+    int ret = 0;
+    if (network_agent && get_camera_url_for_golive_ptr) {
+        ret = get_camera_url_for_golive_ptr(network_agent, dev_id, sdev_id, callback);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_id=%3%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevId(dev_id);
     }
