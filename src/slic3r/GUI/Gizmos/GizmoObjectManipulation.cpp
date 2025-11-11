@@ -979,7 +979,7 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     if (selection_count >= 2 && m_coordinates_type == ECoordinatesType::World) {
         float scale_icon           = 1.2f;
         float icon_size            = ImGui::GetFrameHeight() * scale_icon;
-        float temp_tip_caption_max = imgui_wrapper->calc_text_size(_L("Align parts/objects to the minimum X position of selected boundingbox")).x * 1.3f;
+        float temp_tip_caption_max = imgui_wrapper->calc_text_size(_L("Align top-bottom center") + " (-X)").x * 1.3f;
         ImGui::AlignTextToFramePadding();
         imgui_wrapper->text(_L("Align") + "/" + _L("Distribute"));//ImGui::Dummy(ImVec2(0.0f, ImGui::GetFrameHeight() * 0.3f));
         if (ImGui::IsItemHovered()) {
@@ -994,74 +994,73 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::X_MIN,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN,
                         icon_size,
-                        _L("Align parts/objects to the minimum X position of selected boundingbox"), "");
+                        _L("Align left") + " (-X)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_X,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER,
                         icon_size,
-                        _L("Align parts/objects to the center X position of selected boundingbox"), "");
+                        _L("Align left-right center") + " (X)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::X_MAX,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX,
                         icon_size,
-                        _L("Align parts/objects to the maximum X position of selected boundingbox"), "");
+                        _L("Align right") + " (+X)", "");
 
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_X,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X,
                          icon_size,
-                        _L("Distribute parts/objects evenly along X axis of selected boundingbox"), _L("Please select at least 3 parts or objects"), true);
+                        _L("Distribute left-right") + " (X)", _L("Please select at least 3 parts or objects"), true);
         float new_space_size = space_size *0.8f;
         ImGui::SameLine(start_x + unit_size + space_size + new_space_size);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MAX,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX,
                         icon_size,
-                        _L("Align parts/objects to the maximum Y position of selected boundingbox"), "");
+                        _L("Align back") + " (+Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Y,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER,
                         icon_size,
-                        _L("Align parts/objects to the center Y position of selected boundingbox"), "");
+                        _L("Align front-back center") + " (Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MIN,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN,
                         icon_size,
-                        _L("Align parts/objects to the minimum Y position of selected boundingbox"), "");
+                        _L("Align front") + " (-Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Y,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y,
                         icon_size,
-                        _L("Distribute parts/objects evenly along Y axis of selected boundingbox"), _L("Please select at least 3 parts or objects"), true);
+                        _L("Distribute front-back") + " (Y)", _L("Please select at least 3 parts or objects"), true);
 
         ImGui::SameLine(start_x + 2 * (unit_size + space_size) + new_space_size + new_space_size);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MIN,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN,
                         icon_size,
-                        _L("Align parts/objects to the minimum Z position of selected boundingbox"), "");
+                        _L("Align bottom") + " (+Z)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Z,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER,
                         icon_size,
-                        _L("Align parts/objects to the center Z position of selected boundingbox"), "");
+                        _L("Align top-bottom center") + " (Z)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MAX,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX,
                         icon_size,
-                        _L("Align parts/objects to the maximum Z position of selected boundingbox"), "");
+                        _L("Align top") + " (-Z)", "");
 
         ImGui::SameLine(0, button_spacing);
-        wxString look = _L("Distribute parts/objects evenly along Z axis");
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Z,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z, icon_size,
-                        _L("Distribute parts/objects evenly along Z axis of selected boundingbox"), _L("Please select at least 3 parts or objects"), true);
+                        _L("Distribute top-bottom") + " (Z)", _L("Please select at least 3 parts or objects"), true);
 
         ImGui::PopStyleColor();
         if (!ImGui::IsAnyItemHovered()) {
