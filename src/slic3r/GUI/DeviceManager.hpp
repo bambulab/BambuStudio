@@ -426,9 +426,6 @@ public:
     bool                       has_get_pa_calib_tab{ false };
     bool                       request_tab_from_bbs { false };
     std::vector<PACalibResult> pa_calib_tab;
-    bool                       has_get_all_pa_calib_tab{ false };
-    bool                       request_all_tab_from_bbs { false };
-    std::vector<PACalibResult> all_pa_calib_tab;
     bool                       get_pa_calib_result { false };
     std::vector<PACalibResult> pa_calib_results;
     bool                       get_flow_calib_result { false };
@@ -437,12 +434,6 @@ public:
     {
         has_get_pa_calib_tab = false;
         pa_calib_tab.clear();
-    }
-
-    void reset_all_pa_cali_history_result()
-    {
-        has_get_all_pa_calib_tab = false;
-        all_pa_calib_tab.clear();
     }
 
     void reset_pa_cali_result() {
@@ -759,7 +750,6 @@ public:
     int command_set_pa_calibration(const std::vector<PACalibResult>& pa_calib_values, bool is_auto_cali);
     int command_delete_pa_calibration(const PACalibIndexInfo& pa_calib);
     int command_get_pa_calibration_tab(const PACalibExtruderInfo& calib_info);
-    int command_get_all_pa_calibration_tab();
     int command_get_pa_calibration_result(float nozzle_diameter);
     int commnad_select_pa_calibration(const PACalibIndexInfo& pa_calib_info);
 
