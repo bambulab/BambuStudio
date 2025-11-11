@@ -2082,8 +2082,7 @@ void GUI_App::init_networking_callbacks()
                         DeviceManager* dev = this->getDeviceManager();
                         if (!dev) return;
 
-                        if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0))
-                            dev->set_selected_machine(m_agent->get_user_selected_machine());
+                        m_load_last_machine.TryLoadFromMqttCB(m_agent, dev);
 
                         /* resubscribe the cache dev list */
                         if (this->is_enable_multi_machine()) {
@@ -4339,6 +4338,8 @@ void GUI_App::request_user_login(int online_login)
 void GUI_App::request_user_logout()
 {
     if (m_agent && m_agent->is_user_login()) {
+        m_load_last_machine.is_list_ok = false;
+        m_load_last_machine.is_mqtt_ok = false;
         // Update data first before showing dialogs
         m_agent->user_logout(true);
         m_agent->set_user_selected_machine("");
@@ -4977,9 +4978,8 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
     boost::thread update_thread = boost::thread([this, dev] {
         dev->update_user_machine_list_info();
         CallAfter([this, dev]() {
-            if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0))
-                dev->set_selected_machine(m_agent->get_user_selected_machine());
-            });
+            m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
+        });
     });
 
     if (online_login) {
@@ -7987,6 +7987,13 @@ bool is_support_filament(int extruder_id, bool strict_check)
     if (support_option == nullptr) return false;
     return support_option->get_at(0);
 };
+
+void TryLoadLastMachine::InnerLoad(NetworkAgent *agent, DeviceManager *dev)
+{
+    if (is_mqtt_ok && is_list_ok) {
+        if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0)) dev->set_selected_machine(agent->get_user_selected_machine());
+    }
+}
 
 } // GUI
 } //Slic3r
