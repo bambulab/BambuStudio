@@ -903,17 +903,9 @@ void MainFrame::update_layout()
         {
             // jump to 3deditor under preview_only mode
             if (evt.GetId() == tp3DEditor){
-                Sidebar& sidebar = GUI::wxGetApp().sidebar();
-                if (sidebar.need_auto_sync_after_connect_printer()) {
-                    sidebar.set_need_auto_sync_after_connect_printer(false);
-                    sidebar.sync_extruder_list();
-                }
-
-                m_plater->update(true);
-
-                m_plater->show_wrapping_detect_dialog_if_necessary();
-
-                if (!preview_only_hint())
+                wxCommandEvent event(EVT_SWITCH_TO_PREPARE_TAB);
+                wxPostEvent(m_plater, event);
+                if(!preview_only_hint())
                     return;
             }
             else if (evt.GetId() == tpCalibration) {
