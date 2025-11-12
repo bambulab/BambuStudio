@@ -1151,7 +1151,10 @@ void Tab::update_extruder_switch_colors()
             m_extruder_switch->SetButtonTextColor(switch_index, color);
         if (m_variant_combo) {
             StateColor default_color_grayed(std::make_pair(0x999999, (int) StateColor::NotChecked), std::make_pair(0x99DFB2, (int) StateColor::Normal));
-            m_variant_combo->SetButtonTextColor(switch_index, m_variant_combo->GetButton(switch_index)->IsGrayed() ? default_color_grayed : color);
+            Button *btn = m_variant_combo->GetButton(switch_index);
+            if (btn) {
+                m_variant_combo->SetButtonTextColor(switch_index, btn->IsGrayed() ? default_color_grayed : color);
+            }
         }
     }
 }
@@ -7127,6 +7130,14 @@ void Tab::update_nozzle_status_display()
     if (!m_nozzle_status_sizer) return;
     Freeze();
     m_nozzle_status_sizer->Clear(true);
+
+    const Preset &current_printer  = m_preset_bundle->printers.get_selected_preset();
+    auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool has_multiple_nozzle       = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
+    if (!has_multiple_nozzle) {
+        Thaw();
+        return;
+    }
 
     int selection = m_variant_combo ? m_variant_combo->GetSelection() : -1;
     NozzleFlowType flow_type = get_actual_nozzle_flow_type(selection);
