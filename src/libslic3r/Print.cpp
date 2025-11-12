@@ -4050,7 +4050,7 @@ int Print::export_cached_data(const std::string& directory, int& obj_cnt_exporte
         size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
         std::string file_name = directory + "/obj_" + std::to_string(identify_id) + "_" + std::to_string(region_cnt) + "_" + std::to_string(hash_values) + ".json";
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2%, hash %3% to %4%, region count %5%")%model_obj->name %identify_id %hash_values %file_name %region_cnt;
+        BOOST_LOG_TRIVIAL(warning) << boost::format("begin to dump object %1%, identify_id %2%, hash %3% to %4%, region count %5%")%model_obj->name %identify_id %hash_values %file_name %region_cnt;
 
         try {
             json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
@@ -4285,7 +4285,7 @@ int Print::load_cached_data(const std::string& directory)
         std::string file_name = directory + "/obj_" + std::to_string(identify_id) + "_" + std::to_string(region_cnt) + "_" + std::to_string(hash_values) + ".json";
 
         if (!fs::exists(file_name)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object or not generated before, skip it")%file_name;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object or not generated before, skip it")%file_name;
             continue;
         }
         object_filenames.push_back({file_name, obj});
