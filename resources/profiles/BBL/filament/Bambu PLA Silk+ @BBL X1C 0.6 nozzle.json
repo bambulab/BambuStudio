@@ -7,7 +7,7 @@
     "instantiation": "true",
     "filament_flow_ratio": [
         "0.98",
-        "0.98"
+        "0.985"
     ],
     "filament_max_volumetric_speed": [
         "12",
@@ -16,6 +16,22 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_deretraction_speed": [
+        "nil",
+        "30"
+    ],
+    "filament_retraction_length": [
+        "nil",
+        "0.6"
+    ],
+    "filament_retraction_speed": [
+        "nil",
+        "30"
+    ],
+    "filament_z_hop": [
+        "nil",
+        "0.6"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
