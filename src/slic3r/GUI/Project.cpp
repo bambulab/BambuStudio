@@ -768,6 +768,8 @@ void ProjectPanel::update_model_data()
 
 void ProjectPanel::clear_model_info()
 {
+    m_last_payload = json::object();
+
     json m_Res = json::object();
     m_Res["command"] = "clear_3mf_info";
     m_Res["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
