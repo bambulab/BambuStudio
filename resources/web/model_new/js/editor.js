@@ -25,6 +25,30 @@ function safeDecode(value) {
     return value;
   }
 }
+
+function getBase64ImageFormat(base64Str) {
+  if (!isBase64String(base64Str)) return null;
+  const trimmed = base64Str.trim();
+  const dataUrlMatch = trimmed.match(/^data:(.*?);base64,/i);
+  let payload = trimmed;
+  if (dataUrlMatch) {
+    const mime = (dataUrlMatch[1] || '').toLowerCase();
+    payload = trimmed.slice(dataUrlMatch[0].length);
+    if (mime.indexOf('image/png') >= 0) return 'png';
+    if (mime.indexOf('image/jpeg') >= 0 || mime.indexOf('image/jpg') >= 0) return 'jpg';
+  }
+  const cleanPayload = payload.replace(/\s+/g, '');
+  try {
+    const header = atob(cleanPayload.slice(0, 16));
+    const bytes = header.split('').map(ch => ch.charCodeAt(0));
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'png';
+    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'jpg';
+  } catch (err) {
+    return null;
+  }
+  return null;
+}
+
 function normalizeCoverName(value) {
   const decoded = safeDecode(value);
   if (!decoded) return '';
@@ -199,6 +223,7 @@ function saveInfo() {
 		
 	SendWXMessage( JSON.stringify(tSend) );	
 }
+
 function updateInfo(p3MF) {
   projectName = DOMPurify.sanitize(decodeURIComponent(p3MF.model.name));
   projectPictures.length = 0;
@@ -407,12 +432,22 @@ function setAccessories(id, accessoriesList) {
     updateHtml += html;
   }
   $(`#${id}`).html(updateHtml);
+  $(`#${id}`).children('.attachment').each(function(idx) {
+    $(this).data('path', accessoriesList[idx]?.filepath || '');
+  });
   $(`#${id}`).prev().children('label').text(accessoriesList.length);
   $(`#${id}`).off('click', '.attachment-delete');
   $(`#${id}`).on('click', '.attachment-delete', function (event) {
+    event.stopPropagation();
     let index = parseInt($(this).parent().data('index'));
     removeAccessoryAt(index, accessoriesList);
     setAccessories(id, accessoriesList);
+  });
+  $(`#${id}`).off('click', '.attachment');
+  $(`#${id}`).on('click', '.attachment', function (event) {
+    if ($(event.target).closest('.attachment-delete').length) return;
+    const path = $(this).data('path');
+    OnClickOpenFile(event, path);
   });
 }
 function removeAccessoryAt(index, accessoriesList) {
@@ -456,10 +491,10 @@ function getFileType(filepath) {
       case 'xlsx':
       case 'xls':
         return 'xcl';
-      default:
-        return '';
+
     }
   }
+  return getBase64ImageFormat(filepath);
 }
 function addAccessoryUploadListener(inputId, showAccessoryId, accessoriesList, allowTypes, maxCount) {
   const input = document.getElementById(inputId);
@@ -648,6 +683,23 @@ function handleEditorMessage(rawMessage) {
     showToast(payload.message || 'Saved successfully.');
     window.location.href = "index.html";
   }
+}
+function OnClickOpenFile( evt, strFullPath ) {
+  if (!strFullPath) return;
+  if (evt && $(evt.target).closest('.attachment-delete').length) {
+    return;
+  }
+  if(isBase64String(strFullPath)) {
+    showBase64ImageLayer(strFullPath);
+    return;
+  }
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="open_3mf_accessory";
+	tSend['accessory_path']=strFullPath;
+	
+	SendWXMessage( JSON.stringify(tSend) );
+	SendWXDebugInfo('----open accessory:  '+strFullPath);
 }
 function returnBtn() {
   if (isChange()) {

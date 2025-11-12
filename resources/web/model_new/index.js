@@ -1,3 +1,5 @@
+var m_ModelID=null;
+
 $(function () {
   // 向宿主请求数据（握手）
   TranslatePage();
@@ -116,6 +118,11 @@ function ShowModelInfo(pModel)
     ALLOWED_URI_REGEXP: /^(?:(?:https?|data|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
   };
 
+  if( pModel.hasOwnProperty('model_id') )
+	{
+		let m_id=pModel['model_id']+'';
+		m_ModelID = m_id.trim();
+	}
 	let sModelName=DOMPurify.sanitize(rawName);
 	let sModelAuthor=DOMPurify.sanitize(rawAuthor);
 	let UploadType=pModel.upload_type.toLowerCase();
@@ -278,7 +285,7 @@ function ConstructFileHtml( ID, pItem ){
 
     // base64 图片不发送外部打开指令
     let onclick = '';
-    if (tPath && tPath.indexOf('data:') !== 0) {
+    if (tPath) {
       onclick = ' onClick="OnClickOpenFile(\''+tPath+'\')"';
     }
     strHtml+='<div class="attachment"'+onclick+'><img src="'+ImgPath+'">'+tName+'</div>';
@@ -289,6 +296,11 @@ function ConstructFileHtml( ID, pItem ){
 
 function OnClickOpenFile( strFullPath )
 {
+  if (!strFullPath) return; 
+  if(isBase64String(strFullPath)) {
+    showBase64ImageLayer(strFullPath);
+    return;
+  }
 	var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="open_3mf_accessory";
@@ -300,4 +312,18 @@ function OnClickOpenFile( strFullPath )
 
 function editorBtn(){
   window.location.href = 'editor.html';
+}
+
+function JumpToWeb()
+{
+	if(m_ModelID=='')
+		return;
+	
+	var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="modelmall_model_open";
+	tSend['data']={};
+	tSend['data']['id']=m_ModelID+'';
+	
+	SendWXMessage( JSON.stringify(tSend) );			
 }

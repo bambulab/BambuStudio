@@ -105,6 +105,7 @@ hr {
   font-size: 18px;
   font-weight: 700;
   margin-top: 14px;
+  cursor: pointer;
 }
 #projectAuthor {
   margin-top: 8px;
