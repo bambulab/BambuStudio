@@ -498,7 +498,7 @@ namespace Slic3r {
         ExPolygons layer_slices = collect_object_slices_data(ctx.curr_layer, height_gap, object_list, by_object);
         Polygons camera_limit_areas = collect_limit_areas_for_camera(object_list);
         Polygons rod_limit_areas;
-        if (by_object) {
+        if (by_object && ctx.printed_objects && !ctx.printed_objects->empty()) {
             rod_limit_areas = collect_limit_areas_for_rod(object_list, ctx);
         }
         ExPolygons unplacable_area = union_ex(union_ex(layer_slices, camera_limit_areas), rod_limit_areas);
@@ -514,7 +514,7 @@ namespace Slic3r {
             center_p = get_objects_center(object_list);
 
         ExPolygons path_collision_area;
-        if (by_object) {
+        if (by_object && ctx.printed_objects && !ctx.printed_objects->empty()) {
             auto object_without_curr = ctx.printed_objects;
             if (object_without_curr && !object_without_curr->empty())
                 object_without_curr->pop_back();
