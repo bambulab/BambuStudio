@@ -609,9 +609,14 @@ void NozzleListTable::SetOptions(const std::vector<NozzleOption>& options,int de
     auto table_obj_str = BuildTableObjStr();
     wxString script1 = wxString::Format("updateTable(%s)", table_obj_str);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "update table " << script1;
+
+#if 1
+    m_web_view->RunScript(script1);
+#else
     CallAfter([script1, this]() {
         m_web_view->RunScript(script1);
         });
+#endif
 }
 
 MultiNozzleStatusTable::MultiNozzleStatusTable(wxWindow* parent): wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
@@ -783,8 +788,16 @@ void MultiNozzleSyncDialog::OnRackStatusReadingFinished(wxEvent& evt) {
     m_refreshing = false;
     if (m_refresh_timer)
         m_refresh_timer->Stop();
+#if 1
     if (!UpdateUi(m_nozzle_rack))
         EndModal(wxID_OK);
+#else
+    if(!UpdateUoi(m_nozzle_rack)){
+        CallAfter([this]() {
+            EndModal(wxID_OK);
+            });
+    }
+#endif
 }
 
 void MultiNozzleSyncDialog::OnRefreshTimer(wxTimerEvent& evt){
@@ -973,11 +986,11 @@ int MultiNozzleSyncDialog::ShowModal()
 
 MultiNozzleSyncDialog::~MultiNozzleSyncDialog()
 {
-    if (m_refresh_timer)
-        m_refresh_timer->Stop();
     if (auto rack = m_nozzle_rack.lock()) {
         rack->Unbind(DEV_RACK_EVENT_READING_FINISHED, &MultiNozzleSyncDialog::OnRackStatusReadingFinished, this);
     }
+    if (m_refresh_timer)
+        m_refresh_timer->Stop();
 }
 
 void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool ignore_unknown, bool ignore_unreliable)
@@ -1110,10 +1123,12 @@ std::optional<NozzleOption> tryPopUpMultiNozzleDialog(MachineObject* obj)
             int nozzle_count;
             bool clear_all = true;
             if (!selected_option->extruder_nozzle_stats.count(extruder_id)) {
-                volume_type = NozzleVolumeType(nozzle_volume_type_opt->values[extruder_id]);
                 nozzle_count = 0;
-                setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
-                clear_all = false;
+                for(size_t idx = 0 ; idx < nvtHybrid; ++idx){
+                    volume_type = static_cast<NozzleVolumeType>(idx);
+                    setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
+                    clear_all = false;
+                }
             }
             else {
                 for (auto& stat : selected_option->extruder_nozzle_stats[extruder_id]) {
