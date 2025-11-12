@@ -6192,11 +6192,14 @@ int GCodeProcessor::get_config_idx_for_filament(int filament_idx) const
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
 {
     bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
-    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to) {
+    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to, bool consider_cooling_before_tower) {
         if (filament_id == -1)
             return from_or_to ? 140 : 0; // default temp
         double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);
-        return is_multiple_nozzle ? (int)(temp - this->filament_cooling_before_tower[filament_id]) : (int)(temp);
+        if(consider_cooling_before_tower)
+            return (int)(temp - filament_cooling_before_tower[filament_id]);
+        else
+            return (int)(temp);
         };
 
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
@@ -6211,8 +6214,8 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool is_end = std::next(iter) == extruder_free_blcoks.end();
             bool apply_pre_cooling = true;
             bool apply_pre_heating = is_end ? false : true;
-            float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true);
-            float target_temp = get_nozzle_temp(iter->next_filament_id,false, false);
+            float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true,false);
+            float target_temp = get_nozzle_temp(iter->next_filament_id,false, false,true);
             inject_cooling_heating_command(inserted_operation_lines, *iter, curr_temp, target_temp, apply_pre_cooling, apply_pre_heating);
         }
     }
@@ -6234,10 +6237,13 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return pre_cooling_temps[idx] > 0 && pre_cooling_temps[idx] < nozzle_temps[idx];
         };
 
-    auto get_partial_free_cooling_thres = [&nozzle_temps = this->filament_nozzle_temps, &pre_cooling_temps = this->filament_pre_cooling_temps](int idx) -> float{
+    bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
+
+    auto get_partial_free_cooling_thres = [&](int idx) -> float{
         if(idx < 0)
             return 30.f;
-        return nozzle_temps[idx] - (float)(pre_cooling_temps[idx]);
+        float temp_in_tower = filament_nozzle_temps[idx];
+        return temp_in_tower - (float)(filament_pre_cooling_temps[idx]);
         };
 
     auto gcode_move_comp = [](const GCodeProcessorResult::MoveVertex& a, unsigned int gcode_id) {
@@ -6308,21 +6314,29 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     if (move_iter_lower == moves.end() || move_iter_upper == moves.begin())
         return;
     --move_iter_upper;
+    float complete_free_time_gap = 0; // time of complete free
+    if (move_iter_lower == moves.begin())
+        complete_free_time_gap = move_iter_upper->time[valid_machine_id];
+    else
+        complete_free_time_gap = move_iter_upper->time[valid_machine_id] - std::prev(move_iter_lower)->time[valid_machine_id];
+
 
     auto partial_free_move_lower = std::lower_bound(moves.begin(), moves.end(), block.partial_free_lower_id, gcode_move_comp);
     auto partial_free_move_upper = std::lower_bound(moves.begin(), moves.end(), block.partial_free_upper_id, gcode_move_comp); // closed iter
-
     if (partial_free_move_lower == moves.end() || partial_free_move_upper == moves.begin())
         return;
     --partial_free_move_upper;
+    float partial_free_time_gap = 0; // time of partial free
+    if (partial_free_move_lower == moves.begin())
+        partial_free_time_gap = partial_free_move_upper->time[valid_machine_id];
+    else
+        partial_free_time_gap = partial_free_move_upper->time[valid_machine_id] - std::prev(partial_free_move_lower)->time[valid_machine_id];
 
     if (move_iter_lower >= move_iter_upper)
         return;
 
     bool apply_cooling_when_partial_free = is_pre_cooling_valid(block.last_filament_id) && pre_cooling;
 
-    float partial_free_time_gap = partial_free_move_upper->time[valid_machine_id] - partial_free_move_lower->time[valid_machine_id]; // time of partial free
-    float complete_free_time_gap = move_iter_upper->time[valid_machine_id] - move_iter_lower->time[valid_machine_id]; // time of complete free
 
     if (apply_cooling_when_partial_free && partial_free_time_gap + complete_free_time_gap < inject_time_threshold)
         return;
