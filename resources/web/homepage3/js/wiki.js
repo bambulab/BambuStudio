@@ -404,7 +404,7 @@ function createCardHTML() {
   for (let i = 0; i < cardData.length; i++) {
     let html = `<div class="card" data-idx="${i}" onclick="openAcademyUrl('${cardData[i].link}')">
                   <img class="cardImg" src="${cardData[i].img}" />
-                  <div class="cardTitle">${cardData[i].title}</div>
+                  <div class="cardTitle TextS1">${cardData[i].title}</div>
                 </div>`;
     $('#academy_Card_Content').append(html)
   }
@@ -521,7 +521,7 @@ function createTopicHTML() {
       title = topicData[i].title;
     }
     let html = `<div class="topicCard">
-          <div class="topicTitle">${title}</div>
+          <div class="topicTitle TextS1">${title}</div>
           <ul>`
     for (let j=0; j < topicData[i].children.length; j++) {
       let child_title;
