@@ -4328,7 +4328,7 @@ GCode::LayerResult GCode::process_layer(
         ctx.curr_layer = this->layer();
         ctx.curr_extruder_id = m_writer.filament()->extruder_id();
         ctx.picture_extruder_id = most_used_extruder;
-        if (m_config.print_sequence == PrintSequence::ByObject)
+        if (m_config.print_sequence == PrintSequence::ByObject && print.objects().size() > 1)
             ctx.printed_objects = printed_objects;
 
         auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
