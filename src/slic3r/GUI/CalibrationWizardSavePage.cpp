@@ -1783,7 +1783,7 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         if (curr_obj) {
             assert(curr_obj->selected_cali_preset.size() <= 1);
             if (!curr_obj->selected_cali_preset.empty()) {
-                wxString default_name = get_default_name(curr_obj->selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
+                wxString default_name = get_default_name(wxString::FromUTF8(curr_obj->selected_cali_preset[0].name), CalibMode::Calib_Flow_Rate);
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->cache_flow_ratio);
             }
