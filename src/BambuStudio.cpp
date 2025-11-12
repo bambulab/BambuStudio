@@ -6366,10 +6366,11 @@ int CLI::run(int argc, char **argv)
                                             if (!m_extra_config.option<ConfigOptionInts>("filament_volume_map") ||
                                                 !m_extra_config.option<ConfigOptionInts>("filament_nozzle_map") ||
                                                 !m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count") ||
-                                                !m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")) {
+                                                !m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type") ||
+                                                !m_extra_config.option<ConfigOptionInts>("filament_map")) {
                                                 BOOST_LOG_TRIVIAL(error)
                                                     << boost::format(
-                                                           "%1%, can not find filament_volume_map/filament_nozzle_map/extruder_nozzle_count/extruder_nozzle_volume_type under "
+                                                           "%1%, can not find filament_volume_map/filament_nozzle_map/extruder_nozzle_count/extruder_nozzle_volume_type/filament_map under "
                                                            "Nozzle Manual mode") %
                                                            __LINE__;
                                                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
@@ -6381,9 +6382,10 @@ int CLI::run(int argc, char **argv)
                                             part_plate->set_filament_volume_maps(filament_volume_maps);
                                         } else if (mode == fmmManual) {
                                             if (!m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count") ||
-                                                !m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")) {
+                                                !m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type") ||
+                                                !m_extra_config.option<ConfigOptionInts>("filament_map")) {
                                                 BOOST_LOG_TRIVIAL(error)
-                                                    << boost::format("%1%, can not find extruder_nozzle_volume_type or extruder_nozzle_count under Manual mode") % __LINE__;
+                                                    << boost::format("%1%, can not find extruder_nozzle_volume_type or extruder_nozzle_count or filament_map under Manual mode") % __LINE__;
                                                 record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                                                 flush_and_exit(CLI_INVALID_PARAMS);
                                             }
@@ -6410,6 +6412,30 @@ int CLI::run(int argc, char **argv)
                                             extruder_nozzle_stats_maps[e_index] = std::move(nozzle_volume_type_maps);
                                         }
                                         m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(extruder_nozzle_stats_maps);
+                                        if (mode == fmmManual) {
+                                            //refine the values not passed
+                                            ConfigOptionEnumsGeneric* using_nozzle_volume_type_opt = m_extra_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
+                                            using_nozzle_volume_type_opt->values.resize(new_extruder_count, nvtStandard);
+                                            for (int e_index = 0; e_index < new_extruder_count; e_index++)
+                                            {
+                                                std::map<NozzleVolumeType,int>& nozzle_volume_type_maps = extruder_nozzle_stats_maps[e_index];
+                                                if (nozzle_volume_type_maps.size() > 1) {
+                                                    using_nozzle_volume_type_opt->values[e_index] = nvtHybrid;
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("%1% : extruder %2%, set nozzle_volume_type to hybrid ") % __LINE__ %(e_index+1);
+                                                }
+                                            }
+                                            std::vector<int>& filament_volume_maps = m_extra_config.option<ConfigOptionInts>("filament_volume_map", true)->values;
+                                            std::vector<int>& filament_maps = m_extra_config.option<ConfigOptionInts>("filament_map")->values;
+                                            filament_volume_maps.resize(filament_count, 0);
+                                            for (int f_index = 0; f_index < filament_count; f_index++)
+                                            {
+                                                int f_extruder_index = filament_maps[f_index] - 1;
+                                                if (using_nozzle_volume_type_opt->values[f_extruder_index] != nvtHybrid) {
+                                                    filament_volume_maps[f_index] = int(using_nozzle_volume_type_opt->values[f_extruder_index]);
+                                                    BOOST_LOG_TRIVIAL(info) << boost::format("%1% : filament %2% extruder %3%, set filament_volume_map to %4% ") % __LINE__ %(f_index+1) %(f_extruder_index+1) % filament_volume_maps[f_index];
+                                                }
+                                            }
+                                        }
                                     }
                                     else if (!support_multi_nozzle && (mode == fmmNozzleManual)) {
                                         BOOST_LOG_TRIVIAL(error)
