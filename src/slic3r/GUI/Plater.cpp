@@ -17002,6 +17002,20 @@ std::vector<std::string> Plater::get_extruder_colors_from_plater_config(const GC
     }
 }
 
+bool Plater::is_color_size_equal() const
+{
+    const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->project_config;
+    if (!config->has("filament_multi_colour")) return false;
+
+    const auto& multi_color = (config->option<ConfigOptionStrings>("filament_multi_colour"))->values;
+    const auto& single_color = (config->option<ConfigOptionStrings>("filament_colour"))->values;
+    if (multi_color.size() == single_color.size())
+    {
+        return true;
+    }
+    return false;
+}
+
 std::vector<std::string> Plater::get_filament_colors_render_info() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->project_config;
