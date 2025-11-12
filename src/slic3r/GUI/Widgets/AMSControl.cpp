@@ -1482,7 +1482,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, AMSPassRoadTy
                 break;
             }
             else if (it.second == ams_id){
-                length = left ? 124 : 232;
+                length = left ? 110 : 232;
                 in_pair = true;
                 break;
             }
