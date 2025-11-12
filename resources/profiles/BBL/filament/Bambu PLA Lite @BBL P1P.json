@@ -25,11 +25,31 @@
     ],
     "filament_max_volumetric_speed": [
         "16",
-        "16"
+        "21"
     ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_deretraction_speed": [
+        "nil",
+        "40"
+    ],
+    "filament_retraction_length": [
+        "nil",
+        "0.4"
+    ],
+    "filament_retraction_speed": [
+        "nil",
+        "40"
+    ],
+    "filament_z_hop": [
+        "nil",
+        "0.6"
+    ],
+    "filament_z_hop_types": [
+        "nil",
+        "Spiral Lift"
     ],
     "hot_plate_temp": [
         "65"
