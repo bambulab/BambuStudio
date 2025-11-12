@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 09:53+0800\n"
+"POT-Creation-Date: 2025-11-12 16:00+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,7 +46,7 @@ msgstr "TPU is not supported by AMS."
 msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr ""
 
-msgid "The current filament doesn't support the high-flow nozzle and can't be used."
+msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -70,7 +70,7 @@ msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 #, c-format, boost-format
@@ -546,7 +546,7 @@ msgstr "World coordinates"
 msgid "Translate(Relative)"
 msgstr ""
 
-msgid "Align objects to the minimum X position"
+msgid "Align top-bottom center"
 msgstr ""
 
 msgid "Align"
@@ -558,46 +558,40 @@ msgstr ""
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
-msgid "Align objects to the center X position"
+msgid "Align left"
 msgstr ""
 
-msgid "Align objects to the maximum X position"
+msgid "Align left-right center"
 msgstr ""
 
-msgid "Distribute objects evenly along X axis"
+msgid "Align right"
+msgstr ""
+
+msgid "Distribute left-right"
 msgstr ""
 
 msgid "Please select at least 3 parts or objects"
 msgstr ""
 
-msgid "Align objects to the maximum Y position"
+msgid "Align back"
 msgstr ""
 
-msgid "Align objects to the center Y position"
+msgid "Align front-back center"
 msgstr ""
 
-msgid "Align objects to the minimum Y position"
+msgid "Align front"
 msgstr ""
 
-msgid "Distribute objects evenly along Y axis"
+msgid "Distribute front-back"
 msgstr ""
 
-msgid "Align objects to the minimum Z position"
+msgid "Align bottom"
 msgstr ""
 
-msgid "Please select at least 2 parts and do not select entire object"
+msgid "Align top"
 msgstr ""
 
-msgid "Align objects to the center Z position"
-msgstr ""
-
-msgid "Align objects to the maximum Z position"
-msgstr ""
-
-msgid "Distribute objects evenly along Z axis"
-msgstr ""
-
-msgid "Please select at least 3 parts and do not select entire object"
+msgid "Distribute top-bottom"
 msgstr ""
 
 msgid "°"
@@ -6343,8 +6337,8 @@ msgstr ""
 msgid "Type Detection"
 msgstr ""
 
-msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
-msgstr "Pauses printing when the detected build plate type does not match the selected one."
+msgid "Pauses printing when the detected build plate type does not match the selected one."
+msgstr ""
 
 msgid "Alignment Detection"
 msgstr ""
@@ -8077,7 +8071,7 @@ msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Ple
 msgstr ""
 
 #, c-format, boost-format
-msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
 msgstr ""
 
 #, c-format, boost-format
@@ -10549,7 +10543,7 @@ msgid "For the first"
 msgstr ""
 
 msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "Set the additional cooling fan for the first certain layers. The additional cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function. Simultaneously, the part cooling fan will be set to 0"
 
 msgid "layers"
 msgstr "layers"
@@ -12414,7 +12408,7 @@ msgid "This is  the number of layers of top bottom penetration."
 msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
-msgstr ""
+msgstr "Using infill instead of top and bottom surfaces"
 
 msgid "Using infill instead of top and bottom surfaces."
 msgstr ""
@@ -13037,6 +13031,14 @@ msgid "The name cannot exceed 40 characters."
 msgstr "The name cannot exceed 40 characters."
 
 msgid "Nozzle ID"
+msgstr ""
+
+msgctxt "NozzleVolumeType"
+msgid "SF"
+msgstr ""
+
+msgctxt "NozzleVolumeType"
+msgid "HF"
 msgstr ""
 
 msgid "Please find the best line on your plate"
@@ -15144,6 +15146,9 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+#~ msgstr "Pauses printing when the detected build plate type does not match the selected one."
 
 #~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
 #~ msgstr "Smoothing outer wall speed in z direction to get better surface quality: Print time will increase. This is not work in spiral vase mode."

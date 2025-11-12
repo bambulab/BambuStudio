@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-11 09:53+0800\n"
+"POT-Creation-Date: 2025-11-12 16:00+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -53,8 +53,8 @@ msgstr "AMS不支持TPU。"
 msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "AMS 不支持 'Bambu Lab PET-CF'。"
 
-msgid "The current filament doesn't support the high-flow nozzle and can't be used."
-msgstr "当前材料不支持高流量喷嘴，无法使用。"
+msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+msgstr "当前耗材不支持 E3D 大流量喷嘴，无法使用。"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的冷拔维护功能。"
@@ -77,8 +77,8 @@ msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
-msgid "The filament may require slicing parameter adjustments."
-msgstr "该材料可能需要调整切片参数。"
+msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr "使用默认参数打印可能影响打印质量，请根据实际效果调整参数以获得最佳结果。"
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -215,7 +215,7 @@ msgid "The hotend is in an abnormal state and currently unavailable. Please go t
 msgstr "热端状态异常，当前不可用。请前往“设备 -> 升级”升级固件。"
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "热端异常"
 
 msgid "Cancel"
 msgstr "取消"
@@ -553,8 +553,8 @@ msgstr "世界坐标"
 msgid "Translate(Relative)"
 msgstr "平移(相对)"
 
-msgid "Align objects to the minimum X position"
-msgstr "将对象或零件对齐到包围盒X轴最小位置"
+msgid "Align top-bottom center"
+msgstr "上下居中"
 
 msgid "Align"
 msgstr "对齐"
@@ -565,47 +565,41 @@ msgstr "分布"
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
 
-msgid "Align objects to the center X position"
-msgstr "将对象或零件对齐到包围盒X轴中心位置"
+msgid "Align left"
+msgstr "左侧对齐"
 
-msgid "Align objects to the maximum X position"
-msgstr "将对象或零件对齐到包围盒X轴最大位置"
+msgid "Align left-right center"
+msgstr "左右居中"
 
-msgid "Distribute objects evenly along X axis"
-msgstr "将对象或零件均匀分布在包围盒X 轴上"
+msgid "Align right"
+msgstr "右侧对齐"
+
+msgid "Distribute left-right"
+msgstr "左右均匀分布"
 
 msgid "Please select at least 3 parts or objects"
 msgstr "请至少选择 3 个零件或对象"
 
-msgid "Align objects to the maximum Y position"
-msgstr "将对象或零件对齐到包围盒Y轴最大位置"
+msgid "Align back"
+msgstr "后方对齐"
 
-msgid "Align objects to the center Y position"
-msgstr "将对象或零件对齐到包围盒Y轴中心位置"
+msgid "Align front-back center"
+msgstr "前后居中"
 
-msgid "Align objects to the minimum Y position"
-msgstr "将对象或零件对齐到包围盒Y轴最小位置"
+msgid "Align front"
+msgstr "前方对齐"
 
-msgid "Distribute objects evenly along Y axis"
-msgstr "将对象或零件均匀分布在包围盒Y 轴上"
+msgid "Distribute front-back"
+msgstr "前后均匀分布"
 
-msgid "Align objects to the minimum Z position"
-msgstr "将零件对齐到包围盒Z轴最小位置"
+msgid "Align bottom"
+msgstr "底部对齐"
 
-msgid "Please select at least 2 parts and do not select entire object"
-msgstr "请选择至少2个零件，且不要选择整个对象"
+msgid "Align top"
+msgstr "顶部对齐"
 
-msgid "Align objects to the center Z position"
-msgstr "将零件对齐到包围盒Z轴中心位置"
-
-msgid "Align objects to the maximum Z position"
-msgstr "将零件对齐到包围盒Z轴最大位置"
-
-msgid "Distribute objects evenly along Z axis"
-msgstr "将对象或零件均匀分布在包围盒Z 轴上"
-
-msgid "Please select at least 3 parts and do not select entire object"
-msgstr "请选择至少3个零件，且不要选择整个对象"
+msgid "Distribute top-bottom"
+msgstr "上下均匀分布"
 
 msgid "°"
 msgstr "°"
@@ -6339,8 +6333,8 @@ msgstr "确保盘的类型及放置位置正确。"
 msgid "Type Detection"
 msgstr "类型检测"
 
-msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
-msgstr "检测到打印板类型与所选类型不匹配时，暂停打印。"
+msgid "Pauses printing when the detected build plate type does not match the selected one."
+msgstr ""
 
 msgid "Alignment Detection"
 msgstr "对齐检测"
@@ -8096,12 +8090,12 @@ msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Ple
 msgstr ""
 
 #, c-format, boost-format
-msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
-msgstr ""
+msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
+msgstr "打印机未能构建喷嘴自动映射表 { code: %d }。请刷新喷嘴信息。"
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "当前的喷嘴映射可能会产生额外 %0.2f 克的废料。"
 
 msgid "Cool"
 msgstr ""
@@ -8376,7 +8370,7 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "点击以将所有设置还原到最后一次保存的版本。"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "切换喷嘴需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
@@ -8409,8 +8403,7 @@ msgid ""
 "independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 "当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
-"支撑独立层高，并将PLA同时用于支撑界面和支撑主体"
+"0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将PLA同时用于支撑接触面和支撑主体"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -8418,8 +8411,7 @@ msgid ""
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "当使用可溶性材料作为支撑时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
-"支撑独立层高，并将可溶性材料同时用于支撑界面和支撑主体"
+"0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8434,17 +8426,16 @@ msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
-"当支撑界面使用支撑材料时，我们推荐以下设置：\n"
-"0顶层z距离，0接触层间距，交叠直线图案，并且禁用独立支撑层高"
+"当支撑接触面使用支撑材料时，我们推荐以下设置：\n"
+"0顶部z距离，0接触面间距，交叠直线图案，并且禁用支撑独立层高"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"当使用可溶性材料作为支撑界面时，我们推荐以下设置：\n"
-"0顶部z距离，0接触面间距，0支撑/模型 xy 间距，交叠直线图案，禁用\n"
-"支撑独立层高，并将可溶性材料同时用于支撑界面和支撑主体"
+"当支撑接触面使用可溶性材料时，我们推荐以下设置：\n"
+"0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8589,7 +8580,7 @@ msgid "Filament ramming length"
 msgstr "材料预冲刷长度"
 
 msgid "Filament length used in ramming."
-msgstr ""
+msgstr "。"
 
 msgid "Travel time after ramming"
 msgstr "预冲刷后的空驶时间"
@@ -8661,7 +8652,7 @@ msgid "Special cooling settings"
 msgstr "特殊冷却设置"
 
 msgid "set addition fan speed before fist x layer"
-msgstr "在第一层之前设置附加风扇速度"
+msgstr "在第一层之前设置辅助风扇速度"
 
 msgid "Part cooling fan"
 msgstr "部件冷却风扇"
@@ -9752,7 +9743,7 @@ msgid "Update firmware"
 msgstr "更新固件"
 
 msgid "Hotends on Rack"
-msgstr ""
+msgstr "热端&挂架"
 
 msgid "Beta version"
 msgstr "Beta版本"
@@ -10262,7 +10253,7 @@ msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外墙速度（实验）"
 
 msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
-msgstr ""
+msgstr "。"
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "避免跨越外墙-最大绕行长度"
@@ -10588,7 +10579,7 @@ msgid "For the first"
 msgstr "在最初的"
 
 msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "为前几层设置专用冷却风扇。首层的冷却风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能"
+msgstr "为前几层设置辅助风扇的数值。首层的辅助风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能。同时，会关闭部件风扇"
 
 msgid "layers"
 msgstr "层"
@@ -11395,13 +11386,13 @@ msgid "Enable this if printer support air filtration enhancement."
 msgstr "如果打印机支持空气过滤增强，请启用此选项。"
 
 msgid "Use cooling filter"
-msgstr ""
+msgstr "开启冷却过滤"
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
+msgstr "开启该功能后，当腔温过高时，会自动关闭过滤以提高冷却效果"
 
 msgid "Auto turn off filter on overheat"
-msgstr ""
+msgstr "开启自动关闭过滤"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -11833,7 +11824,7 @@ msgid "Number of walls of every layer"
 msgstr "每一层的墙层数"
 
 msgid "Embedding the wall into the infill"
-msgstr ""
+msgstr "将墙体嵌入填充中"
 
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
 msgstr "将墙体嵌入没有外墙的区域以确保墙体与填充物无缝连接。"
@@ -12361,7 +12352,7 @@ msgid "Z overrides X/Y"
 msgstr "Z 覆盖 X/Y"
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
-msgstr ""
+msgstr "当顶部z距离覆盖支撑/模型xy间距时，优先确保在悬垂下方生成支撑，并与模型保持与顶部z距离大小相同的间隙；反之，支撑与模型之间的间隙始终遵循支撑/模型xy间距。仅建议在使用混合树时启用此项。"
 
 msgid "Independent support layer height"
 msgstr "支撑独立层高"
@@ -12460,10 +12451,10 @@ msgid "This is  the number of layers of top bottom penetration."
 msgstr "顶部涂色渗透的层数"
 
 msgid "Use infill instead of top and bottom surfaces"
-msgstr ""
+msgstr "使用填充纹理以取代封闭的顶面和底面"
 
 msgid "Using infill instead of top and bottom surfaces."
-msgstr ""
+msgstr "使用填充纹理以取代封闭的顶面和底面。"
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "空驶的速度。空驶是无挤出量的快速移动。"
@@ -13094,6 +13085,14 @@ msgstr "名称不能超过40个字符。"
 msgid "Nozzle ID"
 msgstr "喷嘴 ID"
 
+msgctxt "NozzleVolumeType"
+msgid "SF"
+msgstr "标准流量"
+
+msgctxt "NozzleVolumeType"
+msgid "HF"
+msgstr "高流量"
+
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
 
@@ -13203,9 +13202,13 @@ msgid ""
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
+"校准材料提示：\n"
+"- 可共享相同热床温度的材料\n"
+"- 不同耗材品牌和系列（品牌 = Bambu，系列 = Basic，哑光）\n"
+""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
-msgstr ""
+msgstr "- 注意：热端编号与刀架绑定。当热端移动到新到架时，其编号将自动更新。\n"
 
 msgid ""
 "Tips for calibration material: \n"
@@ -14874,7 +14877,7 @@ msgid "Please confirm whether the required nozzle diameter and flow rate match t
 msgstr ""
 
 msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr ""
+msgstr "您的打印机安装了不同的喷嘴。请选择一个喷嘴进行本次打印。"
 
 msgid "Purge Mode Settings"
 msgstr "冲刷模式"
@@ -15242,6 +15245,57 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "The current filament doesn't support the high-flow nozzle and can't be used."
+#~ msgstr "当前材料不支持高流量喷嘴，无法使用。"
+
+#~ msgid "The filament may require slicing parameter adjustments."
+#~ msgstr "该材料可能需要调整切片参数。"
+
+#~ msgid "Align objects to the minimum X position"
+#~ msgstr "将对象或零件对齐到包围盒X轴最小位置"
+
+#~ msgid "Align objects to the center X position"
+#~ msgstr "将对象或零件对齐到包围盒X轴中心位置"
+
+#~ msgid "Align objects to the maximum X position"
+#~ msgstr "将对象或零件对齐到包围盒X轴最大位置"
+
+#~ msgid "Distribute objects evenly along X axis"
+#~ msgstr "将对象或零件均匀分布在包围盒X 轴上"
+
+#~ msgid "Align objects to the maximum Y position"
+#~ msgstr "将对象或零件对齐到包围盒Y轴最大位置"
+
+#~ msgid "Align objects to the center Y position"
+#~ msgstr "将对象或零件对齐到包围盒Y轴中心位置"
+
+#~ msgid "Align objects to the minimum Y position"
+#~ msgstr "将对象或零件对齐到包围盒Y轴最小位置"
+
+#~ msgid "Distribute objects evenly along Y axis"
+#~ msgstr "将对象或零件均匀分布在包围盒Y 轴上"
+
+#~ msgid "Align objects to the minimum Z position"
+#~ msgstr "将零件对齐到包围盒Z轴最小位置"
+
+#~ msgid "Please select at least 2 parts and do not select entire object"
+#~ msgstr "请选择至少2个零件，且不要选择整个对象"
+
+#~ msgid "Align objects to the center Z position"
+#~ msgstr "将零件对齐到包围盒Z轴中心位置"
+
+#~ msgid "Align objects to the maximum Z position"
+#~ msgstr "将零件对齐到包围盒Z轴最大位置"
+
+#~ msgid "Distribute objects evenly along Z axis"
+#~ msgstr "将对象或零件均匀分布在包围盒Z 轴上"
+
+#~ msgid "Please select at least 3 parts and do not select entire object"
+#~ msgstr "请选择至少3个零件，且不要选择整个对象"
+
+#~ msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+#~ msgstr "检测到打印板类型与所选类型不匹配时，暂停打印。"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"
