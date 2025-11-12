@@ -1446,11 +1446,7 @@ bool Sidebar::priv::switch_diameter(bool single)
 static bool is_skip_high_flow_printer(const std::string& printer)
 {
     static const std::set<std::string> invalidate_list = {
-        "Bambu Lab X1",
-        "Bambu Lab X1E",
-        "Bambu Lab X1 Carbon",
-        "Bambu Lab P1P",
-        "Bambu Lab P1S"
+        "Bambu Lab X1E"
     };
     return invalidate_list.count(printer);
 };
