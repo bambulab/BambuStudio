@@ -4914,10 +4914,12 @@ void TabPrinter::on_preset_loaded()
             ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
                 for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
-                    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_type_option->values[idx]));
+                    NozzleVolumeType volume_type=NozzleVolumeType(nozzle_volume_type_option->values[idx]);
+                    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, volume_type);
                     if (wxGetApp().plater()) {
-                        wxGetApp().plater()->update_filament_volume_map(idx, nozzle_volume_type_option->values[idx]);
+                        wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
                     }
+                    updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
                 };
                 use_default_nozzle_volume_type = false;
             }
