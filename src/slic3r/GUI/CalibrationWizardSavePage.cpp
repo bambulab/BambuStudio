@@ -591,7 +591,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
 
             if (extruder_id == MAIN_EXTRUDER_ID) {
-                default_name += L("Right Nozzle");
+                default_name += "Right Nozzle";
                 if (has_rack) {
                     default_name += "_";
                     if (info.nozzle_pos_id == 0) {
@@ -603,7 +603,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     }
                 }
             } else if (extruder_id == DEPUTY_EXTRUDER_ID){
-                default_name += L("Left Nozzle");
+                default_name += "Left Nozzle";
             }
         }
 
@@ -611,10 +611,10 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         {
             default_name += "_";
             if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                default_name += _CTX(L_CONTEXT("SF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
+                default_name += "SF";
             }
             else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                default_name += _CTX(L_CONTEXT("HF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
+                default_name += "HF";
             }
         }
 
@@ -998,9 +998,9 @@ bool CaliPASaveManualPanel::Show(bool show) {
                         }
 
                         if (extruder_id == 0) {
-                            recommend_name += L("Right");
+                            recommend_name += "Right";
                         } else if (extruder_id == 1) {
-                            recommend_name += L("Left");
+                            recommend_name += "Left";
                         }
                     }
 
@@ -1008,9 +1008,9 @@ bool CaliPASaveManualPanel::Show(bool show) {
                     {
                         recommend_name += "_";
                         if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                            recommend_name += _CTX(L_CONTEXT("SF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
+                            recommend_name += "SF";
                         } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                            recommend_name += _CTX(L_CONTEXT("HF", "NozzleVolumeType"), "NozzleVolumeType").ToStdString();
+                            recommend_name += "HF";
                         }
                     }
 
