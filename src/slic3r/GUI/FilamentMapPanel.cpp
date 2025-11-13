@@ -127,14 +127,12 @@ void FilamentMapManualPanel::OnSuggestionClicked(wxCommandEvent &event)
             int invalid_eid = m_invalid_id;
             dlg->EndModal(wxID_CANCEL);
 
-            CallAfter([invalid_eid]() {
-                if (invalid_eid == 0) {
-                    manuallySetNozzleCount(0);
-                } else if (invalid_eid == 1) {
-                    manuallySetNozzleCount(1);
-                }
-                wxGetApp().plater()->update();
-            });
+            if (invalid_eid == 0) {
+                manuallySetNozzleCount(0);
+            } else if (invalid_eid == 1) {
+                manuallySetNozzleCount(1);
+            }
+            wxGetApp().plater()->update();
         }
     }
 }
