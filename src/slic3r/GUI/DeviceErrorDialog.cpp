@@ -243,6 +243,10 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
     Show();
     Raise();
 
+#ifdef __WXOSX__
+    SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
+#endif
+
     this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
 
     return error_msg;
