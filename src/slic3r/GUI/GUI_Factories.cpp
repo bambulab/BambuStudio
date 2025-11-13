@@ -1874,9 +1874,28 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
     wxMenu* align_distribute_menu = new wxMenu();
     if (!align_distribute_menu)
         return;
+    append_menu_item(
+        align_distribute_menu, wxID_ANY, _L("Distribute left-right") + " (X)", "",
+        [this](wxCommandEvent &) {
+            auto canvas3d = plater()->get_view3D_canvas3D();
+            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
+            plater()->distribute_selection_x();
+        },
+        "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                auto             canvas3d = plater()->get_view3D_canvas3D();
+                GLGizmoAlignment alignment_helper(*canvas3d);
+                return alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_X);
+            }
+        },
+        m_parent);
 
     append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Distribute along Y axis"), "", [this](wxCommandEvent &) {
+        align_distribute_menu, wxID_ANY, _L("Distribute front-back") + " (Y)", "",
+        [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->distribute_selection_y();
@@ -1891,27 +1910,8 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
             }
         },m_parent);
 
-    append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Distribute along X axis"), "",
-        [this](wxCommandEvent &) {
-            auto canvas3d = plater()->get_view3D_canvas3D();
-            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->distribute_selection_x();
-        },
-        "", nullptr,
-        []() {
-            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
-                return false;
-            else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
-                GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_distribute(GLGizmoAlignment::AlignType::DISTRIBUTE_X);
-            }
-        },
-        m_parent);
-
      append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Distribute along Z axis"), "",
+        align_distribute_menu, wxID_ANY, _L("Distribute top-bottom") + " (Z)", "",
         [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
@@ -1932,24 +1932,67 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
     align_distribute_menu->AppendSeparator();
 
     append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to Y Max"), "", [this](wxCommandEvent &) {
+        align_distribute_menu, wxID_ANY, _L("Align left") + " (-X)", "",
+        [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->align_selection_y_max();
-        }, "", nullptr,
+            plater()->align_selection_x_min();
+        },
+        "", nullptr,
         []() {
             if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
                 return false;
             else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
+                auto             canvas3d = plater()->get_view3D_canvas3D();
                 GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_align(GLGizmoAlignment::AlignType::Y_MAX);
+                return alignment_helper.can_align(GLGizmoAlignment::AlignType::X_MIN);
             }
         },
         m_parent);
 
     append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to Y Min"), "", [this](wxCommandEvent &) {
+        align_distribute_menu, wxID_ANY, _L("Align left-right center") + " (X)", "",
+        [this](wxCommandEvent &) {
+            auto canvas3d = plater()->get_view3D_canvas3D();
+            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
+            plater()->align_selection_x_center();
+        },
+        "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                auto             canvas3d = plater()->get_view3D_canvas3D();
+                GLGizmoAlignment alignment_helper(*canvas3d);
+                return alignment_helper.can_align(GLGizmoAlignment::AlignType::CENTER_X);
+            }
+        },
+        m_parent);
+
+        append_menu_item(
+        align_distribute_menu, wxID_ANY, _L("Align right") + " (+X)", "",
+        [this](wxCommandEvent &) {
+            auto canvas3d = plater()->get_view3D_canvas3D();
+            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
+            plater()->align_selection_x_max();
+        },
+        "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                auto             canvas3d = plater()->get_view3D_canvas3D();
+                GLGizmoAlignment alignment_helper(*canvas3d);
+                return alignment_helper.can_align(GLGizmoAlignment::AlignType::X_MAX);
+            }
+        },
+        m_parent);
+
+    align_distribute_menu->AppendSeparator();
+
+    append_menu_item(
+        align_distribute_menu, wxID_ANY, _L("Align front") + " (-Y)", "",
+        [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_y_min();
@@ -1966,7 +2009,8 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
         m_parent);
 
     append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to Y Center"), "", [this](wxCommandEvent &) {
+        align_distribute_menu, wxID_ANY, _L("Align front-back center") + " (Y)", "",
+        [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_y_center();
@@ -1982,63 +2026,68 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
         },
         m_parent);
 
-    align_distribute_menu->AppendSeparator();
-
     append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to X Max"), "", [this](wxCommandEvent &) {
+        align_distribute_menu, wxID_ANY, _L("Align back") + " (+Y)", "",
+        [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->align_selection_x_max();
-        }, "", nullptr,
-        []() {
-            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
-                return false;
-            else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
-                GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_align(GLGizmoAlignment::AlignType::X_MAX);
-            }
+            plater()->align_selection_y_max();
         },
-        m_parent);
-
-    append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to X Min"), "", [this](wxCommandEvent &) {
-            auto canvas3d = plater()->get_view3D_canvas3D();
-            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->align_selection_x_min();
-        }, "", nullptr,
+        "", nullptr,
         []() {
             if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
                 return false;
             else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
+                auto             canvas3d = plater()->get_view3D_canvas3D();
                 GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_align(GLGizmoAlignment::AlignType::X_MIN);
-            }
-        },
-        m_parent);
-
-    append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to X Center"), "", [this](wxCommandEvent &) {
-            auto canvas3d = plater()->get_view3D_canvas3D();
-            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->align_selection_x_center();
-        }, "", nullptr,
-        []() {
-            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
-                return false;
-            else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
-                GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_align(GLGizmoAlignment::AlignType::CENTER_X);
+                return alignment_helper.can_align(GLGizmoAlignment::AlignType::Y_MAX);
             }
         },
         m_parent);
 
     align_distribute_menu->AppendSeparator();
 
+        append_menu_item(
+        align_distribute_menu, wxID_ANY, _L("Align bottom") + " (-Z)", "",
+        [this](wxCommandEvent &) {
+            auto canvas3d = plater()->get_view3D_canvas3D();
+            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
+            plater()->align_selection_z_min();
+        },
+        "", nullptr,
+        []() {
+            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                return false;
+            else {
+                auto             canvas3d = plater()->get_view3D_canvas3D();
+                GLGizmoAlignment alignment_helper(*canvas3d);
+                return alignment_helper.can_align(GLGizmoAlignment::AlignType::Z_MIN);
+            }
+        },
+        m_parent);
+
+         append_menu_item(
+            align_distribute_menu, wxID_ANY, _L("Align top-bottom center") + " (Z)", "",
+            [this](wxCommandEvent &) {
+                auto canvas3d = plater()->get_view3D_canvas3D();
+                canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
+                plater()->align_selection_z_center();
+            },
+            "", nullptr,
+            []() {
+                if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
+                    return false;
+                else {
+                    auto             canvas3d = plater()->get_view3D_canvas3D();
+                    GLGizmoAlignment alignment_helper(*canvas3d);
+                    return alignment_helper.can_align(GLGizmoAlignment::AlignType::CENTER_Z);
+                }
+            },
+            m_parent);
+
     append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to Z Max"), "", [this](wxCommandEvent &) {
+        align_distribute_menu, wxID_ANY, _L("Align top") + " (+Z)", "",
+        [this](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_z_max();
@@ -2050,40 +2099,6 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
                 auto canvas3d = plater()->get_view3D_canvas3D();
                 GLGizmoAlignment alignment_helper(*canvas3d);
                 return alignment_helper.can_align(GLGizmoAlignment::AlignType::Z_MAX);
-            }
-        },
-        m_parent);
-
-    append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to Z Min"), "", [this](wxCommandEvent &) {
-            auto canvas3d = plater()->get_view3D_canvas3D();
-            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->align_selection_z_min();
-        }, "", nullptr,
-        []() {
-            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
-                return false;
-            else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
-                GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_align(GLGizmoAlignment::AlignType::Z_MIN);
-            }
-        },
-        m_parent);
-
-    append_menu_item(
-        align_distribute_menu, wxID_ANY, _L("Align to Z Center"), "", [this](wxCommandEvent &) {
-            auto canvas3d = plater()->get_view3D_canvas3D();
-            canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
-            plater()->align_selection_z_center();
-        }, "", nullptr,
-        []() {
-            if (plater()->canvas3D()->get_canvas_type() != GLCanvas3D::ECanvasType::CanvasView3D)
-                return false;
-            else {
-                auto canvas3d = plater()->get_view3D_canvas3D();
-                GLGizmoAlignment alignment_helper(*canvas3d);
-                return alignment_helper.can_align(GLGizmoAlignment::AlignType::CENTER_Z);
             }
         },
         m_parent);
