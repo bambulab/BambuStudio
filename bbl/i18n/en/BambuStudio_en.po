@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 16:00+0800\n"
+"POT-Creation-Date: 2025-11-13 10:21+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13254,10 +13254,6 @@ msgstr "Action"
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr "This machine type can only hold %d historical results per nozzle."
-
-#, c-format, boost-format
-msgid "You have reached the limit of %d PA factors. Please delete some before adding new ones."
-msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Edit Flow Dynamics Calibration"

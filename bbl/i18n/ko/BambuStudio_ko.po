@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 16:00+0800\n"
+"POT-Creation-Date: 2025-11-13 10:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -81,25 +81,25 @@ msgid "%s is not supported by %s extruder."
 msgstr "%s은 %s 압출기에서 지원되지 않습니다."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
-msgstr ""
+msgstr "툴헤드와 핫엔드 랙이 움직일 수 있습니다. 챔버에 손을 대지 마십시오."
 
 msgid "Warning"
 msgstr "경고"
 
 msgid "Hotend information may be inaccurate. Would you like to re-read the hotend? (Hotend information may change during power-off)."
-msgstr ""
+msgstr "핫엔드 정보가 부정확할 수 있습니다. 핫엔드를 다시 읽어 보시겠습니까? (핫엔드 정보는 전원이 꺼지는 동안 변경될 수 있습니다.)"
 
 msgid "I confirm all"
-msgstr ""
+msgstr "모두 확인합니다"
 
 msgid "Re-read all"
-msgstr ""
+msgstr "모두 다시 읽기"
 
 msgid "Reading the hotends, please wait."
-msgstr ""
+msgstr "핫엔드를 읽는 중입니다, 잠시 기다려 주십시오."
 
 msgid "During the hotend upgrade, the toolhead will move. Don't reach into the chamber."
-msgstr ""
+msgstr "핫엔드 업그레이드 중에 툴헤드가 움직일 것입니다. 챔버 내부에 손을 넣지 마십시오."
 
 msgid "Update"
 msgstr "업데이트"
@@ -169,13 +169,13 @@ msgid "Latest version"
 msgstr "최신 버전"
 
 msgid "Row A"
-msgstr ""
+msgstr "A열"
 
 msgid "Row B"
-msgstr ""
+msgstr "B열"
 
 msgid "Toolhead"
-msgstr ""
+msgstr "툴헤드"
 
 msgid "Empty"
 msgstr "비어 있음"
@@ -184,31 +184,31 @@ msgid "Error"
 msgstr "오류"
 
 msgid "Induction Hotend Rack"
-msgstr ""
+msgstr "인덕션 핫엔드 랙"
 
 msgid "Hotends Info"
-msgstr ""
+msgstr "핫엔드 정보"
 
 msgid "Read All"
-msgstr ""
+msgstr "모두 읽기"
 
 msgid "Reading "
-msgstr ""
+msgstr "읽는 중 "
 
 msgid "Please wait"
-msgstr ""
+msgstr "잠시 기다려 주세요"
 
 msgid "Reading"
-msgstr ""
+msgstr "읽는 중"
 
 msgid "Running..."
-msgstr ""
+msgstr "실행 중..."
 
 msgid "Raised"
-msgstr ""
+msgstr "상승함"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
-msgstr ""
+msgstr "이 핫엔드에 이상 상태가 발생하여 현재 사용할 수 없습니다. '장치 -> 업그레이드'로 이동하여 펌웨어를 업그레이드해 주세요."
 
 msgid "Abnormal Hotend"
 msgstr ""
@@ -217,7 +217,7 @@ msgid "Cancel"
 msgstr "취소"
 
 msgid "Jump to the upgrade page"
-msgstr ""
+msgstr "업그레이드 페이지로 이동"
 
 msgid "SN"
 msgstr "SN"
@@ -226,13 +226,13 @@ msgid "Version"
 msgstr "버전"
 
 msgid "Hotend Rack"
-msgstr ""
+msgstr "핫엔드 랙"
 
 msgid "ToolHead"
-msgstr ""
+msgstr "툴헤드"
 
 msgid "Nozzle information needs to be read"
-msgstr ""
+msgstr "노즐 정보를 읽어야 합니다"
 
 msgid "Supports Painting"
 msgstr "페인팅 지원"
@@ -493,16 +493,16 @@ msgid "Fixed step drag"
 msgstr "단계 드래그 수정"
 
 msgid "Keep holding down Ctrl"
-msgstr ""
+msgstr "Ctrl 키를 계속 누르세요"
 
 msgid "Select multiple objects"
 msgstr "여러 객체 선택"
 
 msgid "Keep holding down Alt"
-msgstr ""
+msgstr "Alt 키를 계속 누르세요"
 
 msgid "Select multiple parts"
-msgstr ""
+msgstr "여러 객체 선택"
 
 msgid "Single sided scaling"
 msgstr "단면 스케일링"
@@ -553,13 +553,13 @@ msgid "Align top-bottom center"
 msgstr ""
 
 msgid "Align"
-msgstr ""
+msgstr "정렬"
 
 msgid "Distribute"
-msgstr ""
+msgstr "분배"
 
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr ""
+msgstr "Ctrl 키를 계속 누른 상태에서 왼쪽 마우스 버튼을 클릭하면 여러 개체를 선택할 수 있고, Alt 키를 계속 누른 상태에서 왼쪽 마우스 버튼을 클릭하면 여러 부품을 선택할 수 있습니다."
 
 msgid "Align left"
 msgstr ""
@@ -574,7 +574,7 @@ msgid "Distribute left-right"
 msgstr ""
 
 msgid "Please select at least 3 parts or objects"
-msgstr ""
+msgstr "최소 3개의 부품 또는 개체를 선택해 주세요."
 
 msgid "Align back"
 msgstr ""
@@ -1666,7 +1666,7 @@ msgid "Login information expired. Please login again."
 msgstr "로그인 정보가 만료되었습니다. 다시 로그인하세요."
 
 msgid "Failed to connect to the cloud device server. Please check your network and firewall."
-msgstr ""
+msgstr "클라우드 장치 서버에 연결하지 못했습니다. 네트워크 및 방화벽 설정을 확인하십시오."
 
 msgid "Incorrect password"
 msgstr "잘못된 비밀번호"
@@ -2087,10 +2087,10 @@ msgid "Mesh boolean operations including union and subtraction"
 msgstr "합산 및 뺄셈을 포함한 메시 부울 연산"
 
 msgid "Merge into Single Part"
-msgstr ""
+msgstr "단일 부품으로 병합하기"
 
 msgid "Merge the selected parts into one part"
-msgstr ""
+msgstr "선택한 부품들을 하나의 부품으로 병합하기"
 
 msgid "Along X axis"
 msgstr "X축 방향"
@@ -2186,7 +2186,7 @@ msgid "Remove the selected plate"
 msgstr "선택한 플레이트 제거"
 
 msgid "Move Plate"
-msgstr ""
+msgstr "플레이트 이동"
 
 msgid "Clone"
 msgstr "복제"
@@ -2198,46 +2198,46 @@ msgid "Center"
 msgstr "중앙"
 
 msgid "Distribute along Y axis"
-msgstr ""
+msgstr "Y 축을 따라 분포시키기"
 
 msgid "Distribute along X axis"
-msgstr ""
+msgstr "X 축을 따라 분포시키기"
 
 msgid "Distribute along Z axis"
-msgstr ""
+msgstr "Z축을 따라 분포하기"
 
 msgid "Align to Y Max"
-msgstr ""
+msgstr "Y 최대 위치에 정렬하기"
 
 msgid "Align to Y Min"
-msgstr ""
+msgstr "Y 최소 위치에 정렬하기"
 
 msgid "Align to Y Center"
-msgstr ""
+msgstr "Y 중심 위치에 정렬하기"
 
 msgid "Align to X Max"
-msgstr ""
+msgstr "X 최대 위치에 정렬하기"
 
 msgid "Align to X Min"
-msgstr ""
+msgstr "X 최소 위치에 정렬하기"
 
 msgid "Align to X Center"
-msgstr ""
+msgstr "X 중심 위치에 정렬하기"
 
 msgid "Align to Z Max"
-msgstr ""
+msgstr "Z 최대 위치에 정렬하기"
 
 msgid "Align to Z Min"
-msgstr ""
+msgstr "Z 최소 위치에 정렬하기"
 
 msgid "Align to Z Center"
-msgstr ""
+msgstr "Z 중심 위치에 정렬하기"
 
 msgid "Align/Distribute"
-msgstr ""
+msgstr "정렬/분배"
 
 msgid "Align and distribute objects"
-msgstr ""
+msgstr "객체 정렬 및 분배"
 
 msgid "Sub merge"
 msgstr "하위 병합"
@@ -2985,7 +2985,7 @@ msgstr "히트 베드의 열 예열 기능은 첫 레이어 출력 품질을 최
 
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
-msgstr ""
+msgstr "남은 시간: %d분%d초"
 
 msgid "Choose SLA archive:"
 msgstr "SLA 아카이브 선택:"
@@ -3161,10 +3161,10 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "유효한 값을 입력하세요(K는 %.1f~%.1f, N은 %.1f~%.1f)"
 
 msgid "Standard Flow"
-msgstr ""
+msgstr "표준 유량"
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr ""
+msgstr "참고: 오른쪽 압출기의 핫엔드 번호는 홀더에 연결되어 있습니다. 핫엔드를 새 홀더로 이동하면 번호가 자동으로 업데이트됩니다."
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3308,14 +3308,14 @@ msgid "Ext"
 msgstr "내선"
 
 msgid "Select Filament && Hotends"
-msgstr ""
+msgstr "필라멘트 및 핫엔드"
 
 msgid "Select Filament"
 msgstr "필라멘트 선택"
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "현재 노즐로 출력하면 약 %0.2fg의 낭비물이 발생할 수 있습니다."
 
 #, c-format, boost-format
 msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -3971,28 +3971,28 @@ msgid "Measuring Surface"
 msgstr "표면 측정"
 
 msgid "Homing Blade Holder"
-msgstr ""
+msgstr "칼날 홀더 원점 복귀"
 
 msgid "Calibrating Camera Offset"
-msgstr ""
+msgstr "카메라 오프셋 보정 중"
 
 msgid "Calibrating Blade Holder Position"
-msgstr ""
+msgstr "칼날 홀더 위치 보정"
 
 msgid "Hotend Pick and Place Test"
-msgstr ""
+msgstr "핫엔드 픽 앤 플레이스 테스트"
 
 msgid "Waiting for the Chamber temperature to equalize"
-msgstr ""
+msgstr "챔버 온도가 균일해질 때까지 대기 중"
 
 msgid " Preparing Hotend"
-msgstr ""
+msgstr " 핫엔드 준비 중"
 
 msgid "Calibrating the detection position of nozzle clumping"
-msgstr ""
+msgstr "노즐 뭉침 감지 위치 교정 중"
 
 msgid "Purifying the chamber air"
-msgstr ""
+msgstr "챔버 공기 정화 중"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "이 프린터에서는 타임랩스가 지원되지 않습니다."
@@ -4105,7 +4105,7 @@ msgid "Proceed"
 msgstr "진행하기"
 
 msgid "Abort"
-msgstr ""
+msgstr "중단"
 
 msgid "Done"
 msgstr "완료"
@@ -4164,13 +4164,13 @@ msgid "Clear color"
 msgstr "색상 지우기"
 
 msgid "Loading G-codes"
-msgstr "G 코드 불러오기"
+msgstr "G-code 로딩 중"
 
 msgid "Loading gcode data"
-msgstr ""
+msgstr "gcode 데이터 로딩 중"
 
 msgid "Loading segments"
-msgstr ""
+msgstr "세그먼트 로딩 중"
 
 msgid "Summary"
 msgstr "요약"
@@ -4206,19 +4206,19 @@ msgid "Statistics of All Plates"
 msgstr "모든 플레이트의 통계"
 
 msgid "Display"
-msgstr "표시"
+msgstr "디스플레이"
 
 msgid "Flushed"
-msgstr "플러시 완료"
+msgstr "플러시됨"
 
 msgid "Tower"
 msgstr "타워"
 
 msgid "Total"
-msgstr "합계"
+msgstr "총"
 
 msgid "Total cost"
-msgstr "총 금액"
+msgstr "총 비용"
 
 msgid "Time"
 msgstr "시간"
@@ -4230,7 +4230,7 @@ msgid "up to"
 msgstr "최대"
 
 msgid "above"
-msgstr "초과"
+msgstr "이상"
 
 msgid "from"
 msgstr "부터"
@@ -4341,7 +4341,7 @@ msgid "Switch to normal mode"
 msgstr "일반 모드 전환"
 
 msgid "Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing."
-msgstr "최적의 필라멘트 그룹화에 따라 자동으로 다시 슬라이스하고, 슬라이스 후 그룹화 결과가 표시됩니다."
+msgstr "최적의 필라멘트 그룹화에 따라 자동으로 다시 슬라이스하며, 슬라이스 후 그룹화 결과가 표시됩니다."
 
 msgid "Filament Grouping"
 msgstr "필라멘트 그룹화"
@@ -4366,7 +4366,7 @@ msgstr "현재 슬라이스 결과의 그룹화가 최적이 아닙니다."
 
 #, boost-format
 msgid "Increase %1%g filament and %2% changes compared to optimal grouping."
-msgstr "최적의 그룹화와 비교하여 %1%g 필라멘트 및 %2% 변경 사항을 늘립니다."
+msgstr "최적의 그룹화와 비교하여 필라멘트 %1%g 및 %2% 변경 사항이 증가했습니다."
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% changes compared to optimal grouping."
@@ -4374,19 +4374,19 @@ msgstr "최적의 그룹화와 비교하여 %1%g 필라멘트를 늘리고 %2% �
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% changes compared to optimal grouping."
-msgstr "%1%g 필라멘트를 저장하고 최적의 그룹화에 비해 %2% 변화를 증가시킵니다."
+msgstr "최적 그룹화와 비교하여 %1%g 필라멘트를 절약하고 %2% 변화를 증가시킵니다."
 
 #, boost-format
 msgid "Save %1%g filament and %2% changes compared to a printer with one nozzle."
-msgstr "노즐이 하나인 프린터와 비교하여 %1%g 필라멘트 및 %2% 변경 사항을 저장합니다."
+msgstr "노즐이 하나인 프린터에 비해 %1%g 필라멘트와 %2% 변경 사항을 절약합니다."
 
 #, boost-format
 msgid "Save %1%g filament and increase %2% changes compared to a printer with one nozzle."
-msgstr "%1%g 필라멘트를 저장하고 노즐이 하나인 프린터에 비해 %2% 변화를 증가시킵니다."
+msgstr "노즐이 하나인 프린터에 비해 %1%g 필라멘트를 절약하고 %2% 변화를 증가시킵니다."
 
 #, boost-format
 msgid "Increase %1%g filament and save %2% changes compared to a printer with one nozzle."
-msgstr "노즐이 하나인 프린터에 비해 필라멘트를 %1%g 늘리고 %2% 변경 사항을 저장합니다."
+msgstr "노즐이 하나인 프린터에 비해 필라멘트를 %1%g 더 사용하고 %2%만큼의 변경을 저장합니다."
 
 msgid "Set to Optimal"
 msgstr "최적 설정"
@@ -4764,7 +4764,7 @@ msgid "High-temperature Heatbed Calibration"
 msgstr "고온 열판 보정"
 
 msgid "Nozzle clumping detection Calibration"
-msgstr ""
+msgstr "노즐 뭉침 감지 보정"
 
 msgid "Calibration program"
 msgstr "캘리브레이션 프로그램"
@@ -5447,7 +5447,7 @@ msgid "Information"
 msgstr "정보"
 
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
-msgstr ""
+msgstr "라이브 스트리밍 기능을 사용하려면 Bambu Studio를 실행해야 하며, 앱을 닫은 후 일정 시간이 지나면 스트리밍이 종료됩니다."
 
 msgid "Playing..."
 msgstr "출력 중..."
@@ -5814,7 +5814,7 @@ msgid "Safety Options"
 msgstr "안전 옵션"
 
 msgid "Hotends"
-msgstr ""
+msgstr "핫엔드"
 
 msgid "100%"
 msgstr "100%"
@@ -5893,7 +5893,7 @@ msgid "Please heat the nozzle to above 170 degree before loading or unloading fi
 msgstr "필라멘트를 넣거나 빼기 전에 노즐을 170도 이상으로 가열하세요."
 
 msgid "Right extruder hotend not detected. Cannot set nozzle temperature."
-msgstr ""
+msgstr "오른쪽 압출기 핫엔드를 감지할 수 없습니다. 노즐 온도를 설정할 수 없습니다."
 
 msgid "Chamber temperature cannot be changed in cooling mode while printing."
 msgstr "출력 중 냉각 모드에서는 챔버 온도를 변경할 수 없습니다."
@@ -5926,7 +5926,7 @@ msgid "Keep it On"
 msgstr "계속 켜두기"
 
 msgid "Still turn it Off"
-msgstr ""
+msgstr "그래도 끄기"
 
 msgid "Can't start this without storage."
 msgstr "스토리지 없이는 시작할 수 없습니다."
@@ -6341,37 +6341,37 @@ msgid "Spaghetti Detection"
 msgstr "스파게티 감지"
 
 msgid "Detects spaghetti failure(scattered lose filament)."
-msgstr ""
+msgstr "스파게티 실패(필라멘트 흩어짐 손실)를 감지합니다."
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "퍼지 슈트 쌓임 감지"
 
 msgid "Monitors if the waste is piled up in the purge chute."
-msgstr ""
+msgstr "퍼지 슈트에 폐기물이 쌓여 있는지 모니터링합니다."
 
 msgid "Nozzle Clumping Detection"
 msgstr "노즐 클럼핑(Clumping) 감지"
 
 msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
-msgstr ""
+msgstr "노즐에 필라멘트나 기타 이물질이 뭉쳐 있는지 확인하세요."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "노즐 막힘 또는 필라멘트 갈기로 인한 공중 출력를 감지합니다."
 
 msgid "Ensures the build plate type and placement are correct."
-msgstr ""
+msgstr "빌드 플레이트의 유형과 배치가 올바른지 확인하세요."
 
 msgid "Type Detection"
-msgstr ""
+msgstr "유형 감지"
 
 msgid "Pauses printing when the detected build plate type does not match the selected one."
 msgstr ""
 
 msgid "Alignment Detection"
-msgstr ""
+msgstr "정렬 감지"
 
 msgid "Pauses printing when build plate misalignment is detected."
-msgstr ""
+msgstr "빌드 플레이트 정렬 불량이 감지되면 출력을 일시 중지합니다."
 
 msgid "First Layer Inspection"
 msgstr "첫 레이어 검사"
@@ -6392,7 +6392,7 @@ msgid "Filament Tangle Detect"
 msgstr "필라멘트 엉킴 감지"
 
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "필라멘트나 기타 이물질로 인해 노즐이 뭉치는지 확인합니다."
 
 msgid "Open Door Detection"
 msgstr "문 열림 감지"
@@ -6437,7 +6437,7 @@ msgid "Unavailable while heating maintenance function is on."
 msgstr "가열 유지 기능이 켜져 있는 동안 사용할 수 없습니다."
 
 msgid "Idle Heating Protection"
-msgstr ""
+msgstr "유휴 가열 보호"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "안전을 위해 5분간 사용하지 않으면 자동으로 가열이 중단됩니다."
@@ -6464,25 +6464,25 @@ msgid "Printer settings"
 msgstr "프린터 설정"
 
 msgid "Remove current plate (if not last one)"
-msgstr ""
+msgstr "현재 플레이트 제거 (마지막 플레이트가 아닌 경우)"
 
 msgid "Auto orient objects on current plate"
-msgstr ""
+msgstr "현재 플레이트 위의 물체 자동 정렬"
 
 msgid "Arrange objects on current plate"
-msgstr ""
+msgstr "현재 플레이트의 객체 정렬"
 
 msgid "Unlock current plate"
-msgstr ""
+msgstr "현재 플레이트 잠금 해제"
 
 msgid "Edit filament grouping"
-msgstr ""
+msgstr "필라멘트 그룹화 편집"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "현재 플레이트 이름 편집"
 
 msgid "Customize current plate"
-msgstr ""
+msgstr "현재 플레이트 사용자 정의"
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -6604,7 +6604,7 @@ msgid "Project Filaments"
 msgstr "프로젝트 필라멘트"
 
 msgid "Purge mode"
-msgstr ""
+msgstr "퍼지 모드"
 
 msgid "Flushing volumes"
 msgstr "플러시 양"
@@ -7777,19 +7777,19 @@ msgid "Plate name"
 msgstr "플레이트 이름"
 
 msgid "Move the current plate to"
-msgstr ""
+msgstr "현재 플레이트를 다음으로 이동하세요."
 
 msgid "Move forward"
-msgstr ""
+msgstr "앞으로 이동"
 
 msgid "Move backwards"
-msgstr ""
+msgstr "뒤로 이동"
 
 msgid "Move to the front"
-msgstr ""
+msgstr "앞으로 이동"
 
 msgid "Move to the back"
-msgstr ""
+msgstr "뒤로 이동"
 
 msgid "Accept"
 msgstr "동의"
@@ -7890,27 +7890,31 @@ msgid ""
 "2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n"
 "3. The toolhead hotend was manually removed or installed"
 msgstr ""
+"이 옵션을 끄면 다음과 같은 경우 출력 품질에 영향이 있을 수 있습니다:\n"
+"1. 보정되지 않은 핫엔드를 사용할 때\n"
+"2. 현재 노즐, 히트베드, 또는 챔버 온도가 보정 조건과 다를 때\n"
+"3. 툴헤드의 핫엔드를 수동으로 분리하거나 장착한 경우"
 
 msgid "After modifying this option, the system will reassign the nozzles based on the calibrated dynamic flow calibration coefficient."
-msgstr ""
+msgstr "이 옵션을 수정한 후, 시스템은 보정된 동적 유량 보정 계수를 기반으로 노즐을 재할당합니다."
 
 msgid "There are not enough available hotends currently."
-msgstr ""
+msgstr "현재 사용 가능한 핫엔드가 충분하지 않습니다."
 
 msgid "No hotends available."
-msgstr ""
+msgstr "사용 가능한 핫엔드가 없습니다."
 
 msgid "Please complete the hotend rack setup and try again."
-msgstr ""
+msgstr "핫엔드 랙 설정을 완료하고 다시 시도하세요."
 
 msgid "Please refresh the nozzle information and try again."
-msgstr ""
+msgstr "노즐 정보를 새로 고치고 다시 시도하세요."
 
 msgid "Please re-slice."
-msgstr ""
+msgstr "다시 슬라이스해주세요."
 
 msgid "Please re-slice to avoid filament waste."
-msgstr ""
+msgstr "필라멘트 낭비를 방지하려면 다시 슬라이스해주세요."
 
 msgid "Task canceled"
 msgstr "작업 취소됨"
@@ -8085,13 +8089,13 @@ msgstr "필라멘트 연화를 방지하기 위해 툴헤드 강화 냉각 팬�
 
 #, c-format, boost-format
 msgid "Refreshing information of hotends(%d/%d)."
-msgstr ""
+msgstr "핫엔드 정보 새로 고침 중(%d/%d)."
 
 msgid "Please wait a moment..."
-msgstr ""
+msgstr "잠시만 기다려주세요..."
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
-msgstr ""
+msgstr "툴헤드 및 핫엔드 랙이 가득 찼습니다. 출력 전에 핫엔드 하나 이상을 제거해 주세요."
 
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
@@ -8114,14 +8118,14 @@ msgstr "현재 재료의 경도 (%s) 가 경도 %s (%s) 를 초과합니다. 노
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
-msgstr ""
+msgstr "프린터에 노즐 자동 매핑 요청을 전송하지 못했습니다. {코드: %d }. 프린터 정보를 새로 고쳐 보세요. 그래도 문제가 해결되지 않으면 프린터를 다시 바인딩하고 네트워크 연결을 확인해 보세요."
 
 msgid "The printer is calculating nozzle mapping."
-msgstr ""
+msgstr "프린터가 노즐 매핑을 계산하고 있습니다."
 
 #, c-format, boost-format
 msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."
-msgstr ""
+msgstr "프린터에서 노즐 자동 매핑 테이블을 수신하지 못했습니다. {msg: %s }. 프린터 정보를 새로 고쳐주세요."
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
@@ -8147,7 +8151,7 @@ msgid "Click here if you can't connect to the printer"
 msgstr "프린터에 연결할 수 없는 경우 여기를 클릭하세요"
 
 msgid "Sliced file"
-msgstr ""
+msgstr "슬라이스된 파일"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "로그인 계정 없음, LAN 모드의 프린터만 표시됨"
@@ -8216,16 +8220,16 @@ msgid "High chamber temperature is required. Please close the door."
 msgstr "높은 챔버 온도가 필요합니다. 문을 닫아주세요."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
-msgstr ""
+msgstr "필요한 노즐 직경과 유량이 현재 표시와 일치하는지 확인하세요."
 
 msgid "Please refer to Wiki before use->"
 msgstr "사용하기 전에 Wiki를 참조하십시오->"
 
 msgid "How to install"
-msgstr ""
+msgstr "설치 방법"
 
 msgid "Current firmware does not support file transfer to internal storage."
-msgstr ""
+msgstr "현재 펌웨어는 내부 스토리지로의 파일 전송을 지원하지 않습니다."
 
 msgid "Send to Printer storage"
 msgstr "프린터 저장소로 보내기"
@@ -8234,16 +8238,16 @@ msgid "Try to connect"
 msgstr "연결 시도"
 
 msgid "Internal Storage"
-msgstr ""
+msgstr "내부 스토리지"
 
 msgid "External Storage"
-msgstr ""
+msgstr "외부 스토리지"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "파일 업로드 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
 
 msgid "Connection timed out, please check your network."
-msgstr ""
+msgstr "연결 시간이 초과되었습니다. 네트워크를 확인해 주세요."
 
 msgid "Connection failed. Click the icon to retry"
 msgstr "연결에 실패했습니다. 아이콘을 클릭하여 다시 시도하세요."
@@ -8394,19 +8398,19 @@ msgid "Search in preset"
 msgstr "프리셋에서 검색"
 
 msgid "Synchronization of different extruder drives or nozzle volume types is not supported."
-msgstr ""
+msgstr "서로 다른 압출기 구동 방식이나 노즐 용량 유형 간의 동기화는 지원되지 않습니다."
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "매개변수 수정을 다른 압출기의 해당 매개변수와 동기화합니다."
 
 msgid "Click to learn more"
-msgstr ""
+msgstr "더 알아보려면 클릭하세요"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "모든 설정을 마지막으로 저장한 프리셋으로 재설정하려면 클릭합니다."
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "노즐 교체를 위해 프라임 타워가 필요합니다. 프라임 타워가 없으면 모델에 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "smooth 타임랩스 모드를 위해서는 프라임 타워가 필요합니다. 프라임 타워가 없는 모델에는 결함이 있을 수 있습니다. 프라임 타워를 비활성화하시겠습니까?"
@@ -8619,19 +8623,19 @@ msgid "Filament ramming length"
 msgstr "필라멘트 충돌 길이"
 
 msgid "Filament length used in ramming."
-msgstr ""
+msgstr "충돌에 사용되는 필라멘트 길이."
 
 msgid "Travel time after ramming"
 msgstr "충돌 후 이동 시간"
 
 msgid "A reverse travel movement after ramming."
-msgstr ""
+msgstr "충돌 후 역방향으로 이동"
 
 msgid "Precooling target temperature"
 msgstr "사전 식힘 목표 온도"
 
 msgid "Precooling target temperature during ramming."
-msgstr ""
+msgstr "충돌 중 사전 식힘 목표 온도."
 
 msgid "Recommended nozzle temperature"
 msgstr "권장 노즐 온도"
@@ -8870,10 +8874,10 @@ msgid "Do you want to modify the following parameters of the left nozzle to that
 msgstr "왼쪽 노즐의 다음 매개변수를 오른쪽 노즐의 매개변수로 수정하시겠습니까?"
 
 msgid "No available nozzles for current preset"
-msgstr ""
+msgstr "현재 사전 설정에 사용 가능한 노즐이 없습니다."
 
 msgid "Available nozzles for current preset: "
-msgstr ""
+msgstr "현재 사전 설정에 사용 가능한 노즐: "
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "현재 값을 재설정하고 글로벌 설정값에 연결하려면 클릭합니다."
@@ -9688,7 +9692,7 @@ msgid "Optimization"
 msgstr "최적화"
 
 msgid "Environment Temperature"
-msgstr ""
+msgstr "환경 온도"
 
 msgid "Chamber Temperature"
 msgstr "챔버 온도"
@@ -9754,16 +9758,16 @@ msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upp
 msgstr "Helio PAT 획득 실패. 발급된 PAT 수가 상한선에 도달했습니다. Helio 공식 웹사이트의 정보를 주의 깊게 확인하시기 바랍니다. 사용 가능할 때 다시 얻으려면 새로 고침을 클릭하세요."
 
 msgid "Print Time Improvement"
-msgstr ""
+msgstr "출력 시간 개선"
 
 msgid "Average Improvement"
-msgstr ""
+msgstr "평균 개선"
 
 msgid "Consistency Improvement"
-msgstr ""
+msgstr "일관성 향상"
 
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
-msgstr ""
+msgstr "최상의 출력 품질을 위해 gcode가 개선되었습니다. 출력 품질을 더욱 향상시키려면 위키에서 다음 단계에 대한 팁과 요령을 확인하세요."
 
 msgid "Air Pump"
 msgstr "공기 펌프"
@@ -9784,16 +9788,16 @@ msgid "Update firmware"
 msgstr "펌웨어 업데이트"
 
 msgid "Hotends on Rack"
-msgstr ""
+msgstr "랙의 핫엔드"
 
 msgid "Beta version"
 msgstr "베타 버전"
 
 msgid "Refreshing hotend information..."
-msgstr ""
+msgstr "핫엔드 정보를 새로 고치는 중..."
 
 msgid "Checking version..."
-msgstr ""
+msgstr "버전 확인 중..."
 
 msgid "Updating"
 msgstr "업데이트 중"
@@ -10899,7 +10903,7 @@ msgid "Manual"
 msgstr "수동"
 
 msgid "Nozzle Manual"
-msgstr ""
+msgstr "노즐 설명서"
 
 msgid "Flush temperature"
 msgstr "플러시 온도"
@@ -10920,16 +10924,16 @@ msgid "This setting stands for how much volume of filament can be melted and ext
 msgstr "이 설정은 초당 녹이고 압출될 수 있는 필라멘트의 체적입니다. 너무 높고 불합리한 속도 설정의 경우 출력 속도는 최대 체적 속도에 의해 제한됩니다. 이 값은 0일 수 없습니다."
 
 msgid "Extruder change"
-msgstr ""
+msgstr "압출기 교체"
 
 msgid "The maximum volumetric speed for ramming before extruder change, where -1 means using the maximum volumetric speed."
-msgstr ""
+msgstr "압출기 교체 전 충돌을 위한 최대 체적 속도이며, 여기서 -1은 최대 체적 속도를 사용함을 의미합니다."
 
 msgid "Hotend change"
-msgstr ""
+msgstr "핫엔드 교체"
 
 msgid "The maximum volumetric speed for ramming before a hotend change, where -1 means using the maximum volumetric speed."
-msgstr ""
+msgstr "핫엔드 교체 전에 적용되는 충돌의 최대 체적 속도이며, 여기서 -1은 최대 체적 속도를 사용함을 의미합니다."
 
 msgid "Minimal purge on wipe tower"
 msgstr "와이프타워에 최소 짜내기"
@@ -10956,10 +10960,10 @@ msgid "Time to switch extruder. For statistics only"
 msgstr "압출기를 교체할 시간입니다. 통계 전용"
 
 msgid "Hotend change time"
-msgstr ""
+msgstr "핫엔드 교체 시간"
 
 msgid "Time to change hotend."
-msgstr ""
+msgstr "핫엔드를 교체할 시간입니다."
 
 msgid "Bed temperature type"
 msgstr "베드 온도 유형"
@@ -11063,7 +11067,7 @@ msgid "When changing the extruder, it is recommended to extrude a certain length
 msgstr "압출기를 교체할 때는 원래 압출기에서 일정 길이의 필라멘트를 압출하는 것이 좋습니다. 이렇게 하면 노즐 흘러내림을 최소화할 수 있습니다."
 
 msgid "When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing."
-msgstr ""
+msgstr "핫엔드를 교체할 때는 원래 노즐에서 일정 길이의 필라멘트를 압출하는 것이 좋습니다. 이렇게 하면 노즐 흘러내림을 최소화할 수 있습니다."
 
 msgid "Support material"
 msgstr "서포트 소재"
@@ -11078,13 +11082,13 @@ msgid "The filament is printable in extruder"
 msgstr "필라멘트는 압출기에서 출력 가능합니다."
 
 msgid "Filament change"
-msgstr ""
+msgstr "필라멘트 교체"
 
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
-msgstr ""
+msgstr "핫엔드 교체를 제외하고, 타워에서 압출기를 준비하는 데 필요한 재료의 부피."
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
-msgstr ""
+msgstr "타워에서 핫엔드를 교체하기 위해 압출기를 준비하는 데 필요한 재료 부피."
 
 msgid "Wipe tower cooling"
 msgstr ""
@@ -11105,7 +11109,7 @@ msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. 
 msgstr "흘러내림을 방지하기 위해 래밍하는 동안 노즐 온도가 냉각됩니다. 따라서 래밍 시간은 쿨다운 시간보다 길어야 합니다. 0은 비활성화를 의미합니다."
 
 msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled."
-msgstr ""
+msgstr "누수 방지를 위해 충돌 중 노즐 온도가 낮아집니다. 참고: 냉각 명령과 팬 작동만 실행되며, 목표 온도 도달은 보장되지 않습니다. 0은 비활성화를 의미합니다."
 
 msgid "Price"
 msgstr "가격"
@@ -11139,10 +11143,10 @@ msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "내부채움 밀도입니다. 100%%인 경우 내부가 빈공간 없이 모두 채워지게 됩니다."
 
 msgid "Fill multiline"
-msgstr ""
+msgstr "다중 줄 채우기"
 
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
-msgstr ""
+msgstr "채우기 패턴에서 지원되는 경우 채우기 패턴에 여러 줄을 사용합니다."
 
 msgid "Sparse infill pattern"
 msgstr "내부채움 패턴"
@@ -11526,7 +11530,7 @@ msgid "0 (not anchored)"
 msgstr "0 (앵커링되지 않음)"
 
 msgid "Sparse infill filament"
-msgstr ""
+msgstr "드문 채움 필라멘트"
 
 msgid "Filament to print internal sparse infill."
 msgstr "드문 내부 채움을 출력할 필라멘트."
@@ -11862,10 +11866,10 @@ msgid "Number of walls of every layer"
 msgstr "각 레이어의 벽 개수"
 
 msgid "Embedding the wall into the infill"
-msgstr ""
+msgstr "내부 채움에 벽 내장하기"
 
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
-msgstr ""
+msgstr "벽 루프가 없는 부분에 벽을 삽입하면 벽이 채움재와 원활하게 연결됩니다."
 
 msgid "Post-processing Scripts"
 msgstr "후처리 스크립트"
@@ -11985,13 +11989,13 @@ msgid "Nozzle Volume Type"
 msgstr "노즐 볼륨 유형"
 
 msgid "Hybrid"
-msgstr ""
+msgstr "하이브리드"
 
 msgid "Default Nozzle Volume Type"
 msgstr "기본 노즐 볼륨 유형"
 
 msgid "Saving"
-msgstr ""
+msgstr "저장 중"
 
 msgid "length when change hotend"
 msgstr ""
@@ -13123,7 +13127,7 @@ msgid "The name cannot exceed 40 characters."
 msgstr "이름은 40자를 초과할 수 없습니다."
 
 msgid "Nozzle ID"
-msgstr ""
+msgstr "노즐 ID"
 
 msgctxt "NozzleVolumeType"
 msgid "SF"
@@ -13242,9 +13246,13 @@ msgid ""
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
+"보정 재료에 대한 팁: \n"
+"- 동일한 핫 베드 온도를 공유할 수 있는 재료\n"
+"- 다른 필라멘트 브랜드 및 제품군(브랜드 = Bambu, 제품군 = 기본, 매트)\n"
+""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
-msgstr ""
+msgstr "- 참고: 핫엔드 번호는 홀더에 연결되어 있습니다.  핫엔드를 새 홀더로 이동하면 번호가 자동으로 업데이트됩니다.\n"
 
 msgid ""
 "Tips for calibration material: \n"
@@ -13354,10 +13362,6 @@ msgstr "동작"
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr "이 기기 유형은 노즐당 %d개의 기록 결과만 보관할 수 있습니다."
-
-#, c-format, boost-format
-msgid "You have reached the limit of %d PA factors. Please delete some before adding new ones."
-msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "동적 압출량 캘리브레이션 편집"
@@ -13581,13 +13585,13 @@ msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "차분 연산에는 A와 B 목록에 최소한 하나의 객체가 필요합니다."
 
 msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr ""
+msgstr "객체별 부품 그룹화에 실패했습니다. 자기 교차, 비매니폴드 형상 또는 열린 메쉬를 확인해 주세요."
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "겹치는 영역을 찾을 수 없습니다. 부울 교집합이 실패했습니다."
 
 msgid "Mesh preparation failed."
-msgstr ""
+msgstr "메시 준비에 실패했습니다."
 
 msgid "Mesh Boolean"
 msgstr "메시 부울"
@@ -13599,43 +13603,43 @@ msgid "- Part mode: Please select one object with at least two meshes."
 msgstr "- 부품 모드: 메시가 두 개 이상인 객체 하나를 선택하세요."
 
 msgid "Union"
-msgstr "유니언"
+msgstr "결합"
 
 msgid "Difference"
-msgstr "Subtraction"
+msgstr "차이"
 
 msgid "Intersection"
-msgstr "교차점"
+msgstr "교차"
 
 msgid "Selected Objects"
-msgstr ""
+msgstr "선택된 객체"
 
 msgid "Selected Parts"
-msgstr ""
+msgstr "선택된 출력물"
 
 msgid "Keep original models"
-msgstr ""
+msgstr "원본 모델 유지"
 
 msgid "Execute"
-msgstr ""
+msgstr "실행"
 
 msgid "Entity Only"
-msgstr ""
+msgstr "개체만 해당됨"
 
 msgid "Perform Boolean operations on entities only."
-msgstr ""
+msgstr "엔티티에 대해서만 불리언 연산 수행."
 
 msgid "This object contains non-part components."
-msgstr ""
+msgstr "이 객체에는 비부품 구성 요소가 포함되어 있습니다."
 
 msgid "Preparing data..."
-msgstr ""
+msgstr "데이터 준비 중..."
 
 msgid "Computing..."
-msgstr ""
+msgstr "계산 중..."
 
 msgid "Applying result.."
-msgstr ""
+msgstr "결과 적용 중.."
 
 msgid "Network Test"
 msgstr "개방형 네트워크 테스트"
@@ -14211,7 +14215,7 @@ msgstr "프린터 압출기 수와 보정을 위해 선택한 프린터가 일�
 
 #, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
-msgstr ""
+msgstr "%s 압출기의 노즐 직경은 0.2mm이며 자동 유동 역학 보정을 지원하지 않습니다."
 
 #, c-format, boost-format
 msgid ""
@@ -14803,7 +14807,7 @@ msgstr "(프린터와 동기화)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr ""
+msgstr "오류: %s 압출기에 사용 가능한 %s 노즐이 없어 현재 그룹 결과가 유효하지 않습니다."
 
 msgid "We will slice according to this grouping method:"
 msgstr "이 그룹화 방법에 따라 슬라이싱합니다:"
@@ -14812,22 +14816,22 @@ msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "팁: 팁: 필라멘트를 드래그하여 다른 노즐에 재할당할 수 있습니다."
 
 msgid "Please adjust your grouping or click "
-msgstr ""
+msgstr "그룹화를 조정하거나 클릭하세요. "
 
 msgid " to set nozzle count"
-msgstr ""
+msgstr " 노즐 수를 설정하려면"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
-msgstr ""
+msgstr "왼쪽 압출기(%d)"
 
 #, c-format, boost-format
 msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr ""
+msgstr "오른쪽 압출기(표준: %d, 고유량: %d)"
 
 #, c-format, boost-format
 msgid "Right Extruder(%d)"
-msgstr ""
+msgstr "오른쪽 압출기(%d)"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "현재 플레이트의 필라멘트 그룹화 방법은 슬라이스 플레이트 버튼의 드롭다운 옵션에 따라 결정됩니다."
@@ -14903,53 +14907,53 @@ msgid "More Colors"
 msgstr "더 많은 색상"
 
 msgid "Please set nozzle count"
-msgstr ""
+msgstr "노즐 수를 설정하세요"
 
 msgid "Error: Can not set both nozzle count to zero."
-msgstr ""
+msgstr "오류: 노즐 수를 둘 다 0으로 설정할 수 없습니다."
 
 #, c-format, boost-format
 msgid "Error: Nozzle count can not exceed %d."
-msgstr ""
+msgstr "오류: 노즐 수는 %d을 초과할 수 없습니다."
 
 msgid "Nozzle Selection"
-msgstr ""
+msgstr "노즐 선택"
 
 msgid "Available Nozzles"
-msgstr ""
+msgstr "사용 가능한 노즐"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
-msgstr ""
+msgstr "주의: 한 번에 여러 노즐 직경을 혼합하여 출력하는 것은 지원되지 않습니다. 선택한 크기가 압출기 하나에만 있는 경우, 단일 압출기 출력이 적용됩니다."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
-msgstr ""
+msgstr "알 수 없는 노즐이 감지되었습니다. 정보를 업데이트하려면 새로 고침하세요(새로 고침되지 않은 노즐은 슬라이싱 과정에서 제외됩니다). 표시된 값과 노즐 직경 및 유량을 확인하세요."
 
 msgid "Unknown nozzle detected. Refresh to update (unrefreshed nozzles will be skipped in slicing)."
-msgstr ""
+msgstr "알 수 없는 노즐이 감지되었습니다. 새로 고침하여 업데이트하세요(새로 고침되지 않은 노즐은 슬라이싱 시 건너뜁니다)."
 
 msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
-msgstr ""
+msgstr "필요한 노즐 직경과 유량이 현재 표시된 값과 일치하는지 확인하세요."
 
 msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr ""
+msgstr "프린터에 여러 개의 노즐이 설치되어 있습니다. 이 출력에 맞는 노즐을 선택하세요."
 
 msgid "Purge Mode Settings"
-msgstr ""
+msgstr "퍼지 모드 설정"
 
 msgid "Standard Mode"
-msgstr ""
+msgstr "표준 모드"
 
 msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr ""
+msgstr "최상의 출력 품질을 위해 전체 퍼징을 수행합니다. 더 많은 재료와 시간이 필요합니다."
 
 msgid "Purge Saving"
-msgstr ""
+msgstr "퍼지 절약"
 
 msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
+msgstr "퍼지 폐기물을 줄이고 출력 속도를 높입니다. 약간의 색상 혼입이나 작은 표면 결함이 발생할 수 있습니다."
 
 msgid "Learn more about purge mode"
-msgstr ""
+msgstr "퍼지 모드에 대해 자세히 알아보기"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
