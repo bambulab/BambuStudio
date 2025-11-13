@@ -13120,6 +13120,7 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
 
     // scale cube to suit test
     GizmoObjectManipulation &giz_obj_manip = p->view3D->get_canvas3d()->get_gizmos_manager().get_object_manipulation();
+    giz_obj_manip.UpdateAndShow(true);
     giz_obj_manip.set_uniform_scaling(true);
     giz_obj_manip.on_change("size", 0, pa_pattern.handle_xy_size());
     giz_obj_manip.set_uniform_scaling(false);
