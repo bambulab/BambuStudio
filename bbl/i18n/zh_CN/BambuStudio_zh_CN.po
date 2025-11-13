@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-12 16:00+0800\n"
+"POT-Creation-Date: 2025-11-13 10:21+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3154,7 +3154,7 @@ msgid "Standard Flow"
 msgstr "标准流量"
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr ""
+msgstr "注意：右挤出机上的热端编号与刀架绑定。当热端移动至新刀架时，其编号会自动更新。"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -6334,7 +6334,7 @@ msgid "Type Detection"
 msgstr "类型检测"
 
 msgid "Pauses printing when the detected build plate type does not match the selected one."
-msgstr ""
+msgstr "检测到的打印板类型与所选类型不匹配时暂停打印。"
 
 msgid "Alignment Detection"
 msgstr "对齐检测"
@@ -8080,14 +8080,14 @@ msgstr "当前材料(%s) 的硬度 高于 %s(%s)的硬度，请确认喷嘴或�
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
-msgstr ""
+msgstr "向打印机发送喷嘴自动映射请求失败 {错误代码：%d}。请尝试刷新打印机信息。若问题仍未解决，可尝试重新绑定打印机并检查网络连接。"
 
 msgid "The printer is calculating nozzle mapping."
 msgstr "打印机正在计算喷嘴映射。"
 
 #, c-format, boost-format
 msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."
-msgstr ""
+msgstr "未能从打印机接收喷嘴自动映射表 {消息：%s}。请刷新打印机信息。"
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
@@ -8586,13 +8586,13 @@ msgid "Travel time after ramming"
 msgstr "预冲刷后的空驶时间"
 
 msgid "A reverse travel movement after ramming."
-msgstr ""
+msgstr "预冲刷后的一段反向空驶。"
 
 msgid "Precooling target temperature"
 msgstr "预降温目标温度"
 
 msgid "Precooling target temperature during ramming."
-msgstr ""
+msgstr "预冲刷过程中的预降温目标温度。"
 
 msgid "Recommended nozzle temperature"
 msgstr "建议喷嘴温度"
@@ -13205,7 +13205,6 @@ msgstr ""
 "校准材料提示：\n"
 "- 可共享相同热床温度的材料\n"
 "- 不同耗材品牌和系列（品牌 = Bambu，系列 = Basic，哑光）\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- 注意：热端编号与刀架绑定。当热端移动到新到架时，其编号将自动更新。\n"
@@ -13314,10 +13313,6 @@ msgstr "操作"
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr "该机型每个喷嘴最多只能保存%d个历史结果"
-
-#, c-format, boost-format
-msgid "You have reached the limit of %d PA factors. Please delete some before adding new ones."
-msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "编辑动态流量校准"
