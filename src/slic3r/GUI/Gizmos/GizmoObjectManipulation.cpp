@@ -1016,10 +1016,9 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
                         _L("Distribute left-right") + " (X)", _L("Please select at least 3 parts or objects"), true);
         float new_space_size = space_size *0.8f;
         ImGui::SameLine(start_x + unit_size + space_size + new_space_size);
-        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MAX,
-                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX,
-                        icon_size,
-                        _L("Align back") + " (+Y)", "");
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MIN,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN, icon_size,
+                        _L("Align front") + " (-Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Y,
@@ -1028,10 +1027,9 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
                         _L("Align front-back center") + " (Y)", "");
 
         ImGui::SameLine(0, button_spacing);
-        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MIN,
-                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN,
-                        icon_size,
-                        _L("Align front") + " (-Y)", "");
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MAX,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX, icon_size,
+                        _L("Align back") + " (+Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Y,
@@ -1043,7 +1041,7 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MIN,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN,
                         icon_size,
-                        _L("Align bottom") + " (+Z)", "");
+                        _L("Align bottom") + " (-Z)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Z,
@@ -1055,7 +1053,7 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MAX,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX,
                         icon_size,
-                        _L("Align top") + " (-Z)", "");
+                        _L("Align top") + " (+Z)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Z,
