@@ -551,7 +551,6 @@ namespace Slic3r
             std::unordered_map<int, std::vector<int>> nozzles_filaments;
             std::vector<int> groups(m_cluster_group_size.size());
 
-            bool single_nozzle_single_filament = true;
             std::vector<std::unordered_map<NozzleVolumeType, std::set<int>>> used_nozzles(m_cluster_group_size.size());
             std::vector<int> prefer_vs(3, 0);
 
@@ -566,25 +565,22 @@ namespace Slic3r
                 nozzles_filaments[n_id].emplace_back(i);
                 groups[ex_id]++;
 
-                single_nozzle_single_filament = single_nozzle_single_filament && nozzles_filaments[n_id].size() == 1;
                 used_nozzles[ex_id][context.nozzle_info.nozzle_list[n_id].volume_type].insert(n_id);
 
                 if (std::find(candidates[i].begin(), candidates[i].end(), n_id) != candidates[i].end()) prefer_vs[0] += 1;
             }
+            for (int i = 0; i < groups.size(); i++) prefer_vs[1] += std::min(groups[i], int(m_cluster_group_size[i].first.size()));
 
-            bool all_extruder_has_filament = true;
-            for (int i = 0; i < groups.size(); i++) {
-                prefer_vs[1] += std::min(groups[i], int(m_cluster_group_size[i].first.size()));
-                if (groups[i] == 0) all_extruder_has_filament = false;
+            std::unordered_set<NozzleVolumeType> nozzles_type;
+            for (int i = 0; i < used_nozzles.size(); i++) {
+                const auto &nozzles = used_nozzles[i];
+                if (nozzles.size() == 1 && nozzles.begin()->second.size() == groups[i]) {
+                    prefer_vs[2] += 1;
+                    nozzles_type.insert(nozzles.begin()->first);
+                }
             }
+            if (nozzles_type.size() == 1) prefer_vs[2] += 1;
 
-            bool r_nozzle_equal = used_nozzles[1][nvtStandard].size() == 0 || used_nozzles[1][nvtHighFlow].size() == 0;
-            if (single_nozzle_single_filament && all_extruder_has_filament && r_nozzle_equal) {
-                prefer_vs[2] += 1;
-                auto r_noz_type = used_nozzles[1][nvtStandard].size() ? nvtStandard : nvtHighFlow;
-                auto l_noz_type = used_nozzles[0][nvtStandard].size() ? nvtStandard : nvtHighFlow;
-                if (l_noz_type == r_noz_type) prefer_vs[2] += 1;
-            }
             int weight_for_placeable = 10000;
             int weight_for_extruder_filaments = 100;
             int weight_for_nozzle_type = 1;
@@ -610,7 +606,8 @@ namespace Slic3r
             double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.filament_change_time;
             double score = evaluate_score(flush_volume, time, true);
 
-            if (groups[context.machine_info.master_extruder_id] < (used_filaments.size() + 1)/2)
+            int master_ex_id = context.machine_info.master_extruder_id;
+            if (master_ex_id < groups.size() && groups[master_ex_id] < (used_filaments.size() + 1) / 2)
                 score += ABSOLUTE_FLUSH_GAP_TOLERANCE; //slightly prefer master extruders with more flush
             MemoryedGroup group(used_labels, score, prefer_level);
             update_memoryed_groups(group, memory_threshold, memoryed_groups);
