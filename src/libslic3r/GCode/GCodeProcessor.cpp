@@ -6186,7 +6186,10 @@ int GCodeProcessor::get_extruder_id(bool force_initialize)const
 
 int GCodeProcessor::get_config_idx_for_filament(int filament_idx) const
 {
-    return m_config_idx_for_filament[filament_idx];
+    if (m_config_idx_for_filament.size() > filament_idx)
+        return m_config_idx_for_filament[filament_idx];
+    else
+        return std::max(0, m_filament_maps[filament_idx] - 1);
 }
 
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
