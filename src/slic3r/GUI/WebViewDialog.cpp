@@ -8,6 +8,7 @@
 #include "../Utils/Http.hpp"
 
 #include <regex>
+#include <utility>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -759,6 +760,43 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
     }).on_error([this](std::string body, std::string error, unsigned int status) {
             BOOST_LOG_TRIVIAL(error) << "get wiki search result error" << body;
     }).perform();
+}
+
+void WebViewPanel::get_academy_list(bool is_oversea)
+{
+    std::string url = "https://bambulab.cn/api/v1/hub-service/academy/client/course/printerList";
+    if(is_oversea) {
+        url = "https://bambulab.com/api/v1/hub-service/academy/client/course/printerList";
+    }
+    Http http = Http::get(url);
+    http.header("accept", "application/json")
+        .header("Content-Type", "application/json")
+        .on_complete([this](std::string body, unsigned status) {
+            if (status != 200) {
+                BOOST_LOG_TRIVIAL(error) << "get academy list failed, status: " << status;
+                return;
+            }
+            CallAfter([this, body = std::move(body)] {
+                if (!m_browserWiki) return;
+                try {
+                    json resp = json::parse(body);
+                    if (!resp.contains("data")) {
+                        BOOST_LOG_TRIVIAL(warning) << "academy list response missing data";
+                        return;
+                    }
+                    resp["command"] = "academy_list_get";
+                    auto payload = from_u8(resp.dump(-1, ' ', true));
+                    WebView::RunScript(m_browserWiki, wxString::Format("HandleStudio(%s)", payload));
+                } catch (const std::exception &e) {
+                    BOOST_LOG_TRIVIAL(error) << "parse academy list failed: " << e.what();
+                }
+            });
+        })
+        .on_error([](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << "get academy list error, status: " << status
+                                     << ", err: " << error << ", body: " << body;
+        })
+        .perform();
 }
 
 void WebViewPanel::SendMakerlabList(  )

@@ -105,7 +105,11 @@ hr {
   font-size: 18px;
   font-weight: 700;
   margin-top: 14px;
+}
+.link {
   cursor: pointer;
+  text-decoration: underline;
+  color: #B6F34F;
 }
 #projectAuthor {
   margin-top: 8px;

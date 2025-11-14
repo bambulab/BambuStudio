@@ -122,6 +122,13 @@ function ShowModelInfo(pModel)
 	{
 		let m_id=pModel['model_id']+'';
 		m_ModelID = m_id.trim();
+    if (m_ModelID != "") {
+      if( !$('#projectName').hasClass('link') );
+        $("#projectName").addClass("link");
+    }else {
+      $("#projectName").removeClass("link");
+    }
+    
 	}
 	let sModelName=DOMPurify.sanitize(rawName);
 	let sModelAuthor=DOMPurify.sanitize(rawAuthor);
