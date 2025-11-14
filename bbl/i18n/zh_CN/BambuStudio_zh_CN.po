@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -580,14 +580,14 @@ msgstr "左右均匀分布"
 msgid "Please select at least 3 parts or objects"
 msgstr "请至少选择 3 个零件或对象"
 
-msgid "Align back"
-msgstr "后方对齐"
+msgid "Align front"
+msgstr "前方对齐"
 
 msgid "Align front-back center"
 msgstr "前后居中"
 
-msgid "Align front"
-msgstr "前方对齐"
+msgid "Align back"
+msgstr "后方对齐"
 
 msgid "Distribute front-back"
 msgstr "前后均匀分布"
@@ -2191,42 +2191,6 @@ msgstr "简化模型"
 
 msgid "Center"
 msgstr "居中"
-
-msgid "Distribute along Y axis"
-msgstr "在包围盒Y轴上均匀分布"
-
-msgid "Distribute along X axis"
-msgstr "在包围盒X轴上均匀分布"
-
-msgid "Distribute along Z axis"
-msgstr "在包围盒Z轴上均匀分布"
-
-msgid "Align to Y Max"
-msgstr "对齐到包围盒Y轴最大位置"
-
-msgid "Align to Y Min"
-msgstr "对齐到包围盒Y轴最小位置"
-
-msgid "Align to Y Center"
-msgstr "对齐到包围盒Y轴中心位置"
-
-msgid "Align to X Max"
-msgstr "对齐到包围盒X轴最大位置"
-
-msgid "Align to X Min"
-msgstr "对齐到包围盒Y轴最小位置"
-
-msgid "Align to X Center"
-msgstr "对齐到包围盒X轴中心位置"
-
-msgid "Align to Z Max"
-msgstr "对齐到包围盒Z轴最大位置"
-
-msgid "Align to Z Min"
-msgstr "对齐到包围盒Z轴最小位置"
-
-msgid "Align to Z Center"
-msgstr "对齐到包围盒Z轴中心位置"
 
 msgid "Align/Distribute"
 msgstr "对齐/分布"
@@ -8043,6 +8007,17 @@ msgstr "%s的耗材可能会软化，请退料。"
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "%s中耗材未知，可能会软化，请设置耗材->"
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+"上半部分：原项目耗材\n"
+"中间部分：AMS中的耗材\n"
+"下半部分：选定的喷嘴\n"
+"您可以单击它进行修改"
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "无法自动匹配到合适的材料，请点击进行手动匹配"
 
@@ -8185,7 +8160,7 @@ msgid "Please check if the required nozzle diameter and flow rate match the curr
 msgstr "请确认所需喷嘴直径和流量是否和当前显示一致。"
 
 msgid "Please refer to Wiki before use->"
-msgstr ""
+msgstr "请在使用前查看wiki。"
 
 msgid "How to install"
 msgstr "如何安装"
@@ -10918,7 +10893,7 @@ msgid "Hotend change time"
 msgstr "热端更换时间"
 
 msgid "Time to change hotend."
-msgstr ""
+msgstr "热端更换时间。"
 
 msgid "Bed temperature type"
 msgstr "热床温度类型"
@@ -11043,16 +11018,16 @@ msgid "Filament change"
 msgstr "耗材丝更换"
 
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
-msgstr ""
+msgstr "除了换热端外的擦拭塔的清理量。"
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
-msgstr ""
+msgstr "换热端所需的擦拭塔上的清理量。"
 
 msgid "Wipe tower cooling"
 msgstr "擦料塔冷却"
 
 msgid "Temperature drop before entering filament tower"
-msgstr ""
+msgstr "进入擦拭塔前的降温量"
 
 msgid "Softening temperature"
 msgstr "软化温度"
@@ -11067,7 +11042,7 @@ msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. 
 msgstr "为了防止溢料，预冲刷时会降低喷嘴温度。因此，预冲刷时间必须大于冷却时间。0 表示禁用。"
 
 msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled."
-msgstr ""
+msgstr "为防止漏料，喷嘴温度将在预冲刷过程中被冷却。注意：此过程仅会触发降温指令和风扇启动，但不保证能达到目标温度。设置为 0 表示禁用。"
 
 msgid "Price"
 msgstr "价格"
@@ -11959,7 +11934,7 @@ msgid "length when change hotend"
 msgstr "换热端时回抽量"
 
 msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
-msgstr ""
+msgstr "当修改此回抽数值时，将用于热端内在更换热端前回抽的耗材量。"
 
 msgid "Extra length on restart"
 msgstr "额外回填长度"
@@ -13084,14 +13059,6 @@ msgstr "名称不能超过40个字符。"
 
 msgid "Nozzle ID"
 msgstr "喷嘴 ID"
-
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr "标准流量"
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr "高流量"
 
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
@@ -14847,11 +14814,11 @@ msgid "Please set nozzle count"
 msgstr "请设置喷嘴数量"
 
 msgid "Error: Can not set both nozzle count to zero."
-msgstr ""
+msgstr "错误：无法将两个喷嘴数量都设置为零。"
 
 #, c-format, boost-format
 msgid "Error: Nozzle count can not exceed %d."
-msgstr ""
+msgstr "错误：喷嘴数量不可以超过%d。"
 
 msgid "Nozzle Selection"
 msgstr "喷嘴选择"
@@ -14860,16 +14827,16 @@ msgid "Available Nozzles"
 msgstr "可用喷嘴"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
-msgstr ""
+msgstr "注意：不支持在打印中混用不同直径的喷嘴。如果所选尺寸仅存在于一个挤出机上，将强制使用单挤出机打印。"
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
-msgstr ""
+msgstr "检测到未知喷嘴。请刷新以更新信息（未刷新的喷嘴将在切片时被排除）。请核对喷嘴直径和流量是否与显示值一致。"
 
 msgid "Unknown nozzle detected. Refresh to update (unrefreshed nozzles will be skipped in slicing)."
-msgstr ""
+msgstr "检测到未知喷嘴。请刷新以更新信息（未刷新的喷嘴将在切片时被排除）。"
 
 msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
-msgstr ""
+msgstr "请核对喷嘴直径和流量是否与显示值一致。"
 
 msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
 msgstr "您的打印机安装了不同的喷嘴。请选择一个喷嘴进行本次打印。"
@@ -15240,6 +15207,50 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "在包围盒Y轴上均匀分布"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "在包围盒X轴上均匀分布"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "在包围盒Z轴上均匀分布"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "对齐到包围盒Y轴最大位置"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "对齐到包围盒Y轴最小位置"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "对齐到包围盒Y轴中心位置"
+
+#~ msgid "Align to X Max"
+#~ msgstr "对齐到包围盒X轴最大位置"
+
+#~ msgid "Align to X Min"
+#~ msgstr "对齐到包围盒Y轴最小位置"
+
+#~ msgid "Align to X Center"
+#~ msgstr "对齐到包围盒X轴中心位置"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "对齐到包围盒Z轴最大位置"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "对齐到包围盒Z轴最小位置"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "对齐到包围盒Z轴中心位置"
+
+#~ msgctxt "NozzleVolumeType"
+#~ msgid "SF"
+#~ msgstr "标准流量"
+
+#~ msgctxt "NozzleVolumeType"
+#~ msgid "HF"
+#~ msgstr "高流量"
 
 #~ msgid "The current filament doesn't support the high-flow nozzle and can't be used."
 #~ msgstr "当前材料不支持高流量喷嘴，无法使用。"

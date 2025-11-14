@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -573,14 +573,14 @@ msgstr "Fördela vänster till höger"
 msgid "Please select at least 3 parts or objects"
 msgstr "Välj minst 3 delar eller objekt"
 
-msgid "Align back"
-msgstr "Linjera bak"
+msgid "Align front"
+msgstr "Linjera fram"
 
 msgid "Align front-back center"
 msgstr "Linjera fram-bak centrum"
 
-msgid "Align front"
-msgstr "Linjera fram"
+msgid "Align back"
+msgstr "Linjera bak"
 
 msgid "Distribute front-back"
 msgstr "Fördela fram till bak"
@@ -2193,42 +2193,6 @@ msgstr "Förenkla modellen"
 
 msgid "Center"
 msgstr "Center"
-
-msgid "Distribute along Y axis"
-msgstr "Fördela längs Y-axeln"
-
-msgid "Distribute along X axis"
-msgstr "Fördela längs X-axeln"
-
-msgid "Distribute along Z axis"
-msgstr "Fördela längs Z-axeln"
-
-msgid "Align to Y Max"
-msgstr "Justera mot Y Max"
-
-msgid "Align to Y Min"
-msgstr "Justera mot Y Min"
-
-msgid "Align to Y Center"
-msgstr "Justera mot Y Center"
-
-msgid "Align to X Max"
-msgstr "Justera mot X Max"
-
-msgid "Align to X Min"
-msgstr "Justera mot X Min"
-
-msgid "Align to X Center"
-msgstr "Justera mot X Center"
-
-msgid "Align to Z Max"
-msgstr "Justera mot Z Max"
-
-msgid "Align to Z Min"
-msgstr "Justera mot Z Min"
-
-msgid "Align to Z Center"
-msgstr "Justera mot Z Center"
 
 msgid "Align/Distribute"
 msgstr "Justera/Fördela"
@@ -8092,6 +8056,13 @@ msgstr "Filamentet på %s kan mjukna. Vänligen mata ut."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Filamentet på %s är okänt och kan mjukna. Ställ in filamentet."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Det går inte att automatiskt matcha till lämpligt filament. Klicka för att matcha manuellt."
 
@@ -13146,14 +13117,6 @@ msgstr "Namnet får inte innehålla mer än 40 tecken."
 msgid "Nozzle ID"
 msgstr ""
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Hitta den bästa linjen på din platta."
 
@@ -13268,7 +13231,6 @@ msgstr ""
 "Tips för kalibrerings material:\n"
 "- Material som kan ha samma temperatur på den varma bädden\n"
 "- Olika filament märke och familjer (Märke = Bambu, Familj = Basic, Matte)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Obs: Hotend numret är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt.\n"
@@ -15321,6 +15283,42 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Fördela längs Y-axeln"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Fördela längs X-axeln"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Fördela längs Z-axeln"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Justera mot Y Max"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Justera mot Y Min"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Justera mot Y Center"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Justera mot X Max"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Justera mot X Min"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Justera mot X Center"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Justera mot Z Max"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Justera mot Z Min"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Justera mot Z Center"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

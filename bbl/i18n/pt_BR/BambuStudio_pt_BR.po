@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -580,13 +580,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Por favor, selecione pelo menos 3 peças ou objetos"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2200,42 +2200,6 @@ msgstr "Simplifique o modelo"
 
 msgid "Center"
 msgstr "Centro"
-
-msgid "Distribute along Y axis"
-msgstr "Distribuir ao longo do eixo Y"
-
-msgid "Distribute along X axis"
-msgstr "Distribuir ao longo do eixo X"
-
-msgid "Distribute along Z axis"
-msgstr "Distribuir ao longo do eixo Z"
-
-msgid "Align to Y Max"
-msgstr "Alinhar ao máximo do eixo Y"
-
-msgid "Align to Y Min"
-msgstr "Alinhar ao mínimo do eixo Y"
-
-msgid "Align to Y Center"
-msgstr "Alinhar ao Centro Y"
-
-msgid "Align to X Max"
-msgstr "Alinhar ao máximo X"
-
-msgid "Align to X Min"
-msgstr "Alinhar ao X Mínimo"
-
-msgid "Align to X Center"
-msgstr "Alinhar ao Centro X"
-
-msgid "Align to Z Max"
-msgstr "Alinhar ao máximo Z"
-
-msgid "Align to Z Min"
-msgstr "Alinhar ao mínimo Z"
-
-msgid "Align to Z Center"
-msgstr "Alinhar ao Centro Z"
 
 msgid "Align/Distribute"
 msgstr "Alinhar/Distribuir"
@@ -8094,6 +8058,13 @@ msgstr "O filamento em%s pode amolecer. Por favor, descarregue."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "O filamento em%s é desconhecido e pode amolecer. Por favor, ajuste o filamento."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Não foi possível encontrar o filamento adequado automaticamente. Clique para encontrar o filamento manualmente."
 
@@ -13147,14 +13118,6 @@ msgstr "O nome não pode exceder 40 caracteres."
 msgid "Nozzle ID"
 msgstr "ID do Bico"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Por favor, encontre a melhor linha no seu prato"
 
@@ -13267,7 +13230,6 @@ msgstr ""
 "Dicas para material de calibração: \n"
 "- Materiais que podem compartilhar a mesma temperatura da cama quente\n"
 "- Diferentes marcas e famílias de filament (Marca = Bambu, Família = Básico, Fosco)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Nota: O número do hotend está vinculado ao suporte. Quando o hotend é movido para um novo suporte, seu número será atualizado automaticamente.\n"
@@ -15322,6 +15284,42 @@ msgid ""
 msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Distribuir ao longo do eixo Y"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Distribuir ao longo do eixo X"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Distribuir ao longo do eixo Z"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Alinhar ao máximo do eixo Y"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Alinhar ao mínimo do eixo Y"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Alinhar ao Centro Y"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Alinhar ao máximo X"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Alinhar ao X Mínimo"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Alinhar ao Centro X"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Alinhar ao máximo Z"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Alinhar ao mínimo Z"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Alinhar ao Centro Z"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"
