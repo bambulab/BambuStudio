@@ -513,6 +513,7 @@ static void PositionLabelOverStaticBox(wxPoint top_left, HoverLabel *label_)
 struct ExtruderGroup : StaticGroup
 {
     ExtruderGroup(wxWindow * parent, int index, wxString const &title);
+    int m_index;
     wxBoxSizer *sizer        = nullptr;
     HoverLabel *      hover_label  = nullptr;
     ScalableButton *  btn_edit     = nullptr;
@@ -547,6 +548,7 @@ struct ExtruderGroup : StaticGroup
     void     SetTitleWithType(const int type);
     wxString GetSuffixStr();
     void     SetOnHoverClick(std::function<void()> on_click);
+    int      GetIndex() const { return m_index; }
 
     void update_ams();
 
@@ -680,16 +682,27 @@ void Sidebar::priv::update_right_extruder_group_color()
     PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
     int extruder_count = preset_bundle.get_printer_extruder_count();
 
-    if (extruder_count < 2) {
-        right_extruder->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-        if (right_extruder->btn_edit) {
-            right_extruder->btn_edit->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-        }
+    auto update_color = [&](const wxColour& color) {
         for (wxWindow* child : right_extruder->GetChildren()) {
-            child->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+            if (child) {
+                child->SetForegroundColour(color);
+            }
         }
+
+        StateColor combo_text_color(std::pair<wxColour, int>(color, StateColor::Normal));
+        if (right_extruder->combo_diameter) {
+            right_extruder->combo_diameter->SetLabelColor(combo_text_color);
+        }
+        if (right_extruder->combo_flow) {
+            right_extruder->combo_flow->SetLabelColor(combo_text_color);
+        }
+
         right_extruder->Refresh();
         right_extruder->Update();
+    };
+
+    if (extruder_count < 2) {
+        update_color(*wxBLACK);
 
         if (plater->sidebar().m_extruder_warning_dialog) {
             plater->sidebar().m_extruder_warning_dialog->on_hide();
@@ -702,25 +715,18 @@ void Sidebar::priv::update_right_extruder_group_color()
 
     wxColour clr;
     bool show_warning = false;
-    if (right_diameter == "0.2" && extruders.size() >= 2 && ExtruderType(extruders[1]) == ExtruderType::etBowden) {
-        clr = wxColour("#6B6B6B");
+    if (right_diameter.Contains("0.2") && extruders.size() >= 2 && ExtruderType(extruders[1]) == ExtruderType::etBowden) {
+        clr = wxColour(200, 200, 200);
         show_warning = true;
     } else {
-        clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+        StateColor default_text_color(std::pair<wxColour, int>(*wxBLACK, StateColor::Normal));
+        clr = default_text_color.colorForStates(StateColor::Normal);
         if (plater->sidebar().m_extruder_warning_dialog) {
             plater->sidebar().m_extruder_warning_dialog->on_hide();
         }
     }
 
-    right_extruder->SetBackgroundColour(clr);
-    if (right_extruder->btn_edit) {
-        right_extruder->btn_edit->SetBackgroundColour(clr);
-    }
-    for (wxWindow* child : right_extruder->GetChildren()) {
-        child->SetBackgroundColour(clr);
-    }
-    right_extruder->Refresh();
-    right_extruder->Update();
+    update_color(clr);
 
     if (show_warning) {
         MainFrame* mainframe = wxGetApp().mainframe;
@@ -1211,6 +1217,7 @@ public:
 
 ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title)
     : StaticGroup(parent, wxID_ANY)
+    , m_index(index)
 {
     SetFont(Label::Body_10);
     SetForegroundColour(wxColour("#CECECE"));
@@ -1229,6 +1236,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     label_diameter->SetForegroundColour("#262E30");
     if (index >= 0) label_diameter->SetMinSize({FromDIP(80), -1});
     auto combo_diameter = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    combo_diameter->GetDropDown().SetUseContentWidth(true);
     this->combo_diameter = combo_diameter;
     wxStaticText *label_flow = new wxStaticText(this, wxID_ANY, _L("Flow"));
     label_flow->SetFont(Label::Body_14);
@@ -2789,13 +2797,17 @@ void Sidebar::update_presets(Preset::Type preset_type)
             extruder.combo_flow->SetSelection(select);
         };
 
-        auto update_extruder_diameter = [&diameters, &diameter](ExtruderGroup & extruder) {
+        auto update_extruder_diameter = [&diameters, &diameter, extruders](ExtruderGroup & extruder) {
             extruder.combo_diameter->Clear();
             int select = -1;
             for (size_t i = 0; i < diameters.size(); ++i) {
                 if (diameters[i] == diameter)
                     select = extruder.combo_diameter->GetCount();
-                extruder.combo_diameter->Append(diameters[i], {});
+                if (diameters[i] == "0.2" && extruders->values.size() >= 2 && ExtruderType(extruders->values[1]) == etBowden) {
+                    extruder.combo_diameter->Append(wxString(diameters[i]) + _L("(Unavailable for right extruder)"), {}, extruder.GetIndex() == 1 ? DD_ITEM_STYLE_DISABLED : 0);
+                } else {
+                    extruder.combo_diameter->Append(diameters[i], {});
+                }
             }
             extruder.combo_diameter->SetSelection(select);
             extruder.diameter = diameter;

@@ -3315,7 +3315,7 @@ ExtruderWarningDialog::ExtruderWarningDialog(InputInfo &input_info, std::string 
                               310,
                               input_info.dialog_pos,
                               68,
-                              _L("Extruder of Bowden type does not support 0.2 diameter nozzle"),
+                              _L("Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."),
                               _CTX(L_CONTEXT("OK", "FinishSyncAms"), "FinishSyncAms"),
                               "",
                               DisappearanceMode::TimedDisappearance,
