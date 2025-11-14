@@ -2215,15 +2215,6 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
     }
     m_checkbox_list["flow_cali"]->Show(obj->is_support_pa_calibration);
 
-    if (obj->is_support_pa_mode && m_checkbox_list["flow_cali"]->IsShown()) {
-        std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
-        if (flow_cali_value == "off") {
-            m_pa_value_panel->Show();
-        }
-    } else {
-            m_pa_value_panel->Hide();
-    }
-
     update_options_layout();
 }
 
@@ -2307,6 +2298,13 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     bool options_line_ignore = false;
     if(wxGetApp().app_config){
         options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
+    }
+
+    if (obj->is_support_pa_mode && m_checkbox_list["flow_cali"]->IsShown()) {
+        std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
+        if (flow_cali_value == "off") { m_pa_value_panel->Show(); }
+    } else {
+        m_pa_value_panel->Hide();
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " end";
