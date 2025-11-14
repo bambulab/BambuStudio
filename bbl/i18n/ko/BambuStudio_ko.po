@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "최소 3개의 부품 또는 개체를 선택해 주세요."
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "모델 단순화"
 
 msgid "Center"
 msgstr "중앙"
-
-msgid "Distribute along Y axis"
-msgstr "Y 축을 따라 분포시키기"
-
-msgid "Distribute along X axis"
-msgstr "X 축을 따라 분포시키기"
-
-msgid "Distribute along Z axis"
-msgstr "Z축을 따라 분포하기"
-
-msgid "Align to Y Max"
-msgstr "Y 최대 위치에 정렬하기"
-
-msgid "Align to Y Min"
-msgstr "Y 최소 위치에 정렬하기"
-
-msgid "Align to Y Center"
-msgstr "Y 중심 위치에 정렬하기"
-
-msgid "Align to X Max"
-msgstr "X 최대 위치에 정렬하기"
-
-msgid "Align to X Min"
-msgstr "X 최소 위치에 정렬하기"
-
-msgid "Align to X Center"
-msgstr "X 중심 위치에 정렬하기"
-
-msgid "Align to Z Max"
-msgstr "Z 최대 위치에 정렬하기"
-
-msgid "Align to Z Min"
-msgstr "Z 최소 위치에 정렬하기"
-
-msgid "Align to Z Center"
-msgstr "Z 중심 위치에 정렬하기"
 
 msgid "Align/Distribute"
 msgstr "정렬/분배"
@@ -8081,6 +8045,13 @@ msgstr "%s의 필라멘트가 연화될 수 있습니다. 언로드하십시오.
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "%s의 필라멘트는 알 수 없으며 연화될 수 있습니다. 필라멘트를 설정하십시오."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "적합한 필라멘트와 자동으로 일치시킬 수 없습니다. 수동으로 일치시키려면 클릭하십시오."
 
@@ -13129,14 +13100,6 @@ msgstr "이름은 40자를 초과할 수 없습니다."
 msgid "Nozzle ID"
 msgstr "노즐 ID"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "최고의 대사를 찾아주세요"
 
@@ -13249,7 +13212,6 @@ msgstr ""
 "보정 재료에 대한 팁: \n"
 "- 동일한 핫 베드 온도를 공유할 수 있는 재료\n"
 "- 다른 필라멘트 브랜드 및 제품군(브랜드 = Bambu, 제품군 = 기본, 매트)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- 참고: 핫엔드 번호는 홀더에 연결되어 있습니다.  핫엔드를 새 홀더로 이동하면 번호가 자동으로 업데이트됩니다.\n"
@@ -15303,6 +15265,42 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Y 축을 따라 분포시키기"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "X 축을 따라 분포시키기"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Z축을 따라 분포하기"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Y 최대 위치에 정렬하기"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Y 최소 위치에 정렬하기"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Y 중심 위치에 정렬하기"
+
+#~ msgid "Align to X Max"
+#~ msgstr "X 최대 위치에 정렬하기"
+
+#~ msgid "Align to X Min"
+#~ msgstr "X 최소 위치에 정렬하기"
+
+#~ msgid "Align to X Center"
+#~ msgstr "X 중심 위치에 정렬하기"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Z 최대 위치에 정렬하기"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Z 최소 위치에 정렬하기"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Z 중심 위치에 정렬하기"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

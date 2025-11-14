@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,14 +576,14 @@ msgstr "Distribuisci sinistra-destra"
 msgid "Please select at least 3 parts or objects"
 msgstr "Seleziona almeno 3 parti o oggetti"
 
-msgid "Align back"
-msgstr "Allinea posteriore"
+msgid "Align front"
+msgstr "Allinea frontale"
 
 msgid "Align front-back center"
 msgstr "Allinea al centro avanti-indietro"
 
-msgid "Align front"
-msgstr "Allinea frontale"
+msgid "Align back"
+msgstr "Allinea posteriore"
 
 msgid "Distribute front-back"
 msgstr "Distribuisci fronte-posteriore"
@@ -2196,42 +2196,6 @@ msgstr "Semplifica Modello"
 
 msgid "Center"
 msgstr "Centro"
-
-msgid "Distribute along Y axis"
-msgstr "Distribuisci lungo l'asse Y"
-
-msgid "Distribute along X axis"
-msgstr "Distribuisci lungo l'asse X"
-
-msgid "Distribute along Z axis"
-msgstr "Distribuisci lungo l'asse Z"
-
-msgid "Align to Y Max"
-msgstr "Allinea al max sull'asse Y"
-
-msgid "Align to Y Min"
-msgstr "Allinea al min sull'asse Y"
-
-msgid "Align to Y Center"
-msgstr "Allinea centralmente sull'asse Y"
-
-msgid "Align to X Max"
-msgstr "Allinea al max sull'asse X"
-
-msgid "Align to X Min"
-msgstr "Allinea al min sull'asse X"
-
-msgid "Align to X Center"
-msgstr "Allinea centralmente sull'asse X"
-
-msgid "Align to Z Max"
-msgstr "Allinea al max sull'asse Z"
-
-msgid "Align to Z Min"
-msgstr "Allinea al min sull'asse Z"
-
-msgid "Align to Z Center"
-msgstr "Allinea centralmente sull'asse Z"
 
 msgid "Align/Distribute"
 msgstr "Allinea/Distribuisci"
@@ -8089,6 +8053,13 @@ msgstr "Il filamento su %s potrebbe ammorbidirsi. Scaricalo."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Il filamento su %s è sconosciuto e potrebbe ammorbidirsi. Imposta il filamento."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Impossibile abbinare automaticamente il filamento adatto. Clicca per abbinarlo manualmente."
 
@@ -13143,14 +13114,6 @@ msgstr "Il nome non può superare i 40 caratteri."
 msgid "Nozzle ID"
 msgstr "ID Nozzle"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Trova la linea migliore sul tuo piatto."
 
@@ -13263,7 +13226,6 @@ msgstr ""
 "Suggerimenti per calibrazione materiale:\n"
 "- Materiali che possono condividere la stessa temperatura del piano\n"
 "- Differenti marche e famiglie di filamenti (Marca = Bambu, Famiglia = Basic, Opaco)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Nota: il numero dell'Hotend è legato al supporto. Quando l'Hotend viene spostato su un nuovo supporto, il suo numero si aggiornerà automaticamente.\n"
@@ -15312,6 +15274,42 @@ msgid ""
 msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Distribuisci lungo l'asse Y"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Distribuisci lungo l'asse X"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Distribuisci lungo l'asse Z"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Allinea al max sull'asse Y"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Allinea al min sull'asse Y"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Allinea centralmente sull'asse Y"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Allinea al max sull'asse X"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Allinea al min sull'asse X"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Allinea centralmente sull'asse X"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Allinea al max sull'asse Z"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Allinea al min sull'asse Z"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Allinea centralmente sull'asse Z"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

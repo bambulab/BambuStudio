@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Veuillez sélectionner au moins 3 pièces ou objets"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "Simplifier le Modèle"
 
 msgid "Center"
 msgstr "Centre"
-
-msgid "Distribute along Y axis"
-msgstr "Répartir le long de l'axe Y"
-
-msgid "Distribute along X axis"
-msgstr "Répartir le long de l'axe X"
-
-msgid "Distribute along Z axis"
-msgstr "Répartir le long de l'axe Z"
-
-msgid "Align to Y Max"
-msgstr "Aligner sur Y Max"
-
-msgid "Align to Y Min"
-msgstr "Aligner sur Y Min"
-
-msgid "Align to Y Center"
-msgstr "Aligner sur le centre Y"
-
-msgid "Align to X Max"
-msgstr "Aligner sur X Max"
-
-msgid "Align to X Min"
-msgstr "Aligner sur X Min"
-
-msgid "Align to X Center"
-msgstr "Aligner sur le centre X"
-
-msgid "Align to Z Max"
-msgstr "Aligner sur Z Max"
-
-msgid "Align to Z Min"
-msgstr "Aligner sur Z Min"
-
-msgid "Align to Z Center"
-msgstr "Aligner sur le centre Z"
 
 msgid "Align/Distribute"
 msgstr "Aligner/Répartir"
@@ -8080,6 +8044,13 @@ msgstr "Le filament sur %s peut se ramollir. Veuillez le décharger."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Le filament sur %s est inconnu et peut se ramollir. Veuillez définir le filament."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Impossible d'associer automatiquement un filament compatible. Veuillez cliquer pour associer manuellement."
 
@@ -9707,7 +9678,7 @@ msgid "Monthly quota remaining: "
 msgstr "Quota mensuel restant : "
 
 msgid "Add-ons available: "
-msgstr "Add-ons disponibles : "
+msgstr "Add-ons disponibles"
 
 msgid "Optimise Outer Walls"
 msgstr "Optimiser les Parois Extérieures"
@@ -13069,10 +13040,10 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be."
 msgstr ""
 "Après avoir utilisé la calibration de la dynamique du débit, certains problèmes d’extrusion peuvent encore apparaître, tels que :\n"
-"	1. Sur-extrusion : excès de matière sur l’objet imprimé, formation de blobs ou de bourrelets, ou encore couches plus épaisses que prévu et non uniformes.\n"
-"	2. Sous-extrusion : couches très fines, remplissage fragile, ou trous dans la couche supérieure du modèle, même lors d’une impression lente.\n"
-"	3. Mauvaise qualité de surface : la surface des impressions paraît rugueuse ou irrégulière.\n"
-"	4. Faible intégrité structurelle : les pièces se cassent facilement ou ne semblent pas aussi solides qu’elles devraient l’être."
+"\t1. Sur-extrusion : excès de matière sur l’objet imprimé, formation de blobs ou de bourrelets, ou encore couches plus épaisses que prévu et non uniformes.\n"
+"\t2. Sous-extrusion : couches très fines, remplissage fragile, ou trous dans la couche supérieure du modèle, même lors d’une impression lente.\n"
+"\t3. Mauvaise qualité de surface : la surface des impressions paraît rugueuse ou irrégulière.\n"
+"\t4. Faible intégrité structurelle : les pièces se cassent facilement ou ne semblent pas aussi solides qu’elles devraient l’être."
 
 msgid "In addition, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate."
 msgstr "En outre, l'étalonnage du débit est crucial pour les matériaux expansifs tels que le LW-PLA utilisé dans le modélisme. Ces matériaux se dilatent considérablement lorsqu'ils sont chauffés et l'étalonnage fournit un débit de référence utile."
@@ -13128,14 +13099,6 @@ msgstr "Le nom ne peut pas dépasser 40 caractères."
 
 msgid "Nozzle ID"
 msgstr "ID de Buse"
-
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
 
 msgid "Please find the best line on your plate"
 msgstr "Veuillez trouver la meilleure ligne sur votre plateau."
@@ -13249,7 +13212,6 @@ msgstr ""
 "Conseils pour le matériel de calibration : \n"
 "- Matériaux pouvant partager la même température de lit chauffant\n"
 "- Différentes marques et familles de filament (Marque = Bambu, Famille = Basic, Matte)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Remarque : Le numéro du Hotend est lié au support. Lorsque le Hotend est déplacé vers un nouveau support, son numéro se met automatiquement à jour.\n"
@@ -15306,6 +15268,42 @@ msgid ""
 msgstr ""
 "Retrait, Warping et Contraintes\n"
 "En contrôlant l'indice thermique, vous pouvez éliminer les causes thermiques du soulèvement et des contraintes."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Répartir le long de l'axe Y"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Répartir le long de l'axe X"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Répartir le long de l'axe Z"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Aligner sur Y Max"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Aligner sur Y Min"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Aligner sur le centre Y"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Aligner sur X Max"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Aligner sur X Min"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Aligner sur le centre X"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Aligner sur Z Max"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Aligner sur Z Min"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Aligner sur le centre Z"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

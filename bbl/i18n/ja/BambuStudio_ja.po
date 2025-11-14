@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "パーツまたはオブジェクトを3つ以上選択してください。"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2194,42 +2194,6 @@ msgstr "モデルを簡略化"
 
 msgid "Center"
 msgstr "センター"
-
-msgid "Distribute along Y axis"
-msgstr "Y軸方向に均等配置"
-
-msgid "Distribute along X axis"
-msgstr "X軸方向に均等配置"
-
-msgid "Distribute along Z axis"
-msgstr "Z軸方向に均等配置"
-
-msgid "Align to Y Max"
-msgstr "Y軸の最大位置に整列"
-
-msgid "Align to Y Min"
-msgstr "Y軸の最小位置に整列"
-
-msgid "Align to Y Center"
-msgstr "Y軸の中央に整列"
-
-msgid "Align to X Max"
-msgstr "X軸の最大位置に整列"
-
-msgid "Align to X Min"
-msgstr "X軸の最小位置に整列"
-
-msgid "Align to X Center"
-msgstr "Y軸の中央に整列"
-
-msgid "Align to Z Max"
-msgstr "Z軸の最大位置に整列"
-
-msgid "Align to Z Min"
-msgstr "Z軸の最小位置に整列"
-
-msgid "Align to Z Center"
-msgstr "Z軸の中央に整列"
 
 msgid "Align/Distribute"
 msgstr "整列/配置"
@@ -8051,6 +8015,13 @@ msgstr "%s のフィラメントが軟化する可能性があります。アン
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "%s のフィラメントが不明なため、軟化する可能性があります。フィラメント情報を設定してください。"
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "適切なフィラメントが自動で見つかりませんでした。手動で選択してください。"
 
@@ -13106,14 +13077,6 @@ msgstr "名前は40文字を超えることはできません。"
 msgid "Nozzle ID"
 msgstr "ノズルID"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "プレート上で最適なラインを見つけてください。"
 
@@ -13226,7 +13189,6 @@ msgstr ""
 "キャリブレーション用材料のヒント：\n"
 "- 同じホットベッド温度で使用できる材料\n"
 "- 異なるフィラメントのブランドや種類（ブランド = Bambu、種類 = Basic、Matte など）\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "-　補足：ホットエンドの番号はホルダーに紐付けられています。ホットエンドを別のホルダーに移動すると、自動的に番号が更新されます。\n"
@@ -13409,9 +13371,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始温度：350度以下\n"
-"	•	終了温度：180度 以上\n"
-"	•	開始温度は終了温度より5 度以上高くしてください"
+"\t•\t開始温度：350度以下\n"
+"\t•\t終了温度：180度 以上\n"
+"\t•\t開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -13431,9 +13393,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 0\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 0\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -13450,9 +13412,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 10\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 10\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -15271,6 +15233,42 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Y軸方向に均等配置"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "X軸方向に均等配置"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Z軸方向に均等配置"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Y軸の最大位置に整列"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Y軸の最小位置に整列"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Y軸の中央に整列"
+
+#~ msgid "Align to X Max"
+#~ msgstr "X軸の最大位置に整列"
+
+#~ msgid "Align to X Min"
+#~ msgstr "X軸の最小位置に整列"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Y軸の中央に整列"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Z軸の最大位置に整列"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Z軸の最小位置に整列"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Z軸の中央に整列"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"
