@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "name": "0.08mm Extra Fine @BBL H2C 0.2 nozzle",
+    "name": "0.08mm High Quality @BBL H2C 0.2 nozzle",
     "inherits": "fdm_process_dual_0.08_nozzle_0.2",
     "from": "system",
     "setting_id": "GP243",
@@ -23,6 +23,12 @@
         "60",
         "60",
         "60"
+    ],
+    "outer_wall_speed": [
+        "100",
+        "100",
+        "100",
+        "100"
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
