@@ -2658,6 +2658,9 @@ void AMSPreview::doRender(wxDC &dc)
     wxSize size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
+    BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - AMS Info: "
+                            << "ams_id = " << m_amsinfo.ams_id << ", ams_type = " << static_cast<int>(m_amsinfo.ams_type) << ", cans_count = " << m_amsinfo.cans.size();
+
     // draw background
     if (wxGetApp().dark_mode())
     {
@@ -2678,7 +2681,14 @@ void AMSPreview::doRender(wxDC &dc)
     //four slot
     if (m_ams_item_type != AMSModel::EXT_AMS && m_ams_item_type != AMSModel::N3S_AMS){
         left =  FromDIP(8);
+        int can_idx = 0;
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
+            BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Can[" << can_idx << "]: "
+                                    << "can_id = \"" << iter->can_id << "\""
+                                    << ", material_name = \"" << iter->material_name.ToStdString() << "\""
+                                    << ", material_colour = " << iter->material_colour.GetAsString(2).ToStdString()
+                                    << ", filament_id=\"" << iter->filament_id << "\""
+                                    << ", material_state=" << static_cast<int>(iter->material_state);
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
@@ -2737,6 +2747,7 @@ void AMSPreview::doRender(wxDC &dc)
                 }
             }
             left += AMS_ITEM_CUBE_SIZE.x;
+            can_idx++;
         }
 
         //auto pot = wxPoint((size.x - m_four_slot_bitmap.GetBmpSize().x) / 2, (size.y - m_four_slot_bitmap.GetBmpSize().y) / 2);
@@ -2754,6 +2765,13 @@ void AMSPreview::doRender(wxDC &dc)
     //single slot
     else if (m_amsinfo.cans.size() == 1) {
         auto iter = m_amsinfo.cans[0];
+        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Single Can: "
+                                << "can_id = \"" << iter.can_id << "\""
+                                << ", material_name = \"" << iter.material_name.ToStdString() << "\""
+                                << ", material_colour = " << iter.material_colour.GetAsString(2).ToStdString()
+                                << ", filament_id=\"" << iter.filament_id << "\""
+                                << ", material_state=" << static_cast<int>(iter.material_state);
+
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR));
         wxSize rec_size = wxSize(FromDIP(16), FromDIP(24));
@@ -2819,6 +2837,11 @@ void AMSPreview::doRender(wxDC &dc)
             dc.DrawRoundedRectangle(rect, FromDIP(3));
         }
     }
+
+    if (m_amsinfo.cans.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - No cans data available for AMS: " << m_amsinfo.ams_id;
+    }
+
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
     if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
 
