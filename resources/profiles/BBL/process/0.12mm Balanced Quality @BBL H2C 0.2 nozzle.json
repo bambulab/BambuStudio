@@ -23,6 +23,12 @@
         "60",
         "60"
     ],
+    "outer_wall_speed": [
+        "100",
+        "100",
+        "100",
+        "100"
+    ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
     "travel_speed": [

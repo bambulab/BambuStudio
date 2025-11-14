@@ -36,6 +36,18 @@
         "60",
         "60"
     ],
+    "overhang_2_4_speed": [
+        "30",
+        "30",
+        "30",
+        "30"
+    ],
+    "overhang_3_4_speed": [
+        "10",
+        "10",
+        "10",
+        "10"
+    ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
     "sparse_infill_speed": [
