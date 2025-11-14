@@ -3157,7 +3157,10 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
         //processor.enable_producers(true);
         processor.process_file(file);
 
+        // filament seq is loaded from file, processor result will override the value
+        auto seq_loaded = result->filament_change_sequence;
         *result = std::move(processor.extract_result());
+        result->filament_change_sequence = seq_loaded;
     } catch (std::exception & /* ex */) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str();
         throw Slic3r::RuntimeError(

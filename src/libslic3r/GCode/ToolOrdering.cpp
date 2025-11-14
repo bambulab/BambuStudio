@@ -1262,7 +1262,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
                 auto result_map = result.get_extruder_map();
                 for (auto fid : used_filaments) {
                     if (result_map[fid] != print_config.filament_map.values[fid] - 1) {
-                        throw Slic3r::RuntimeError("Inconsistent filament map result in manual mode. Please check nozzle count.");
+                        throw Slic3r::RuntimeError(_L("Group error in manual mode. Please check nozzle count or regroup."));
                     }
                 }
             }
