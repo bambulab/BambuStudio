@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Proszę wybrać co najmniej 3 części lub obiekty."
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "Uprość model"
 
 msgid "Center"
 msgstr "Wyśrodkuj"
-
-msgid "Distribute along Y axis"
-msgstr "Rozmieść wzdłuż osi Y"
-
-msgid "Distribute along X axis"
-msgstr "Rozmieść wzdłuż osi X"
-
-msgid "Distribute along Z axis"
-msgstr "Rozmieść wzdłuż osi Z"
-
-msgid "Align to Y Max"
-msgstr "Wyrównaj do maksimum Y"
-
-msgid "Align to Y Min"
-msgstr "Wyrównaj do minimum Y"
-
-msgid "Align to Y Center"
-msgstr "Wyrównaj do środka osi Y"
-
-msgid "Align to X Max"
-msgstr "Wyrównaj do maksimum X"
-
-msgid "Align to X Min"
-msgstr "Wyrównaj do minimum X"
-
-msgid "Align to X Center"
-msgstr "Wyrównaj do środka X"
-
-msgid "Align to Z Max"
-msgstr "Wyrównaj do maksimum Z"
-
-msgid "Align to Z Min"
-msgstr "Wyrównaj do minimum Z"
-
-msgid "Align to Z Center"
-msgstr "Wyrównaj do środka Z"
 
 msgid "Align/Distribute"
 msgstr "Wyrównaj/Rozmieść"
@@ -8106,6 +8070,13 @@ msgstr "Filament w %s może zmięknąć. Proszę rozładować."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Filament w %s jest nieznany i może zmięknąć. Proszę ustawić filament."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Nie można automatycznie dopasować odpowiedniego filamentu. Kliknij, aby dopasować go ręcznie."
 
@@ -13163,14 +13134,6 @@ msgstr "Nazwa nie może przekraczać 40 znaków."
 msgid "Nozzle ID"
 msgstr "Identyfikator dyszy"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Znajdź najlepszą linię na swojej płycie"
 
@@ -13283,7 +13246,6 @@ msgstr ""
 "Porady dotyczące kalibracji materiału: \n"
 "- Materiały, które wymagają tę samą temperaturę stołu\n"
 "- Różne marki i rodziny filamentów (Marka = Bambu, Rodzina = Basic, Matte)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Uwaga: Numer hotendu jest powiązany z jego uchwytem. Po przeniesieniu hotendu na inny uchwyt, jego numer zostanie zaktualizowany automatycznie.\n"
@@ -15340,6 +15302,42 @@ msgid ""
 msgstr ""
 "Skurcz, wypaczenia i naprężenia\n"
 "Kontrolując wskaźnik termiczny, możesz wyeliminować termicznie przyczyny wypaczeń oraz naprężeń."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Rozmieść wzdłuż osi Y"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Rozmieść wzdłuż osi X"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Rozmieść wzdłuż osi Z"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Wyrównaj do maksimum Y"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Wyrównaj do minimum Y"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Wyrównaj do środka osi Y"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Wyrównaj do maksimum X"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Wyrównaj do minimum X"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Wyrównaj do środka X"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Wyrównaj do maksimum Z"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Wyrównaj do minimum Z"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Wyrównaj do środka Z"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

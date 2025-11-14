@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Por favor, seleccione al menos 3 partes u objetos"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "Simplificar el modelo"
 
 msgid "Center"
 msgstr "Centrar"
-
-msgid "Distribute along Y axis"
-msgstr "Distribuir a lo largo del eje Y"
-
-msgid "Distribute along X axis"
-msgstr "Distribuir a lo largo del eje X"
-
-msgid "Distribute along Z axis"
-msgstr "Distribuir a lo largo del eje Z"
-
-msgid "Align to Y Max"
-msgstr "Alinear con el máximo de Y"
-
-msgid "Align to Y Min"
-msgstr "Alinear al mínimo del eje Y"
-
-msgid "Align to Y Center"
-msgstr "Alinear al centro Y"
-
-msgid "Align to X Max"
-msgstr "Alinear con el máximo de X"
-
-msgid "Align to X Min"
-msgstr "Alinear al mínimo del eje X"
-
-msgid "Align to X Center"
-msgstr "Alinear al centro X"
-
-msgid "Align to Z Max"
-msgstr "Alinear con el máximo de Z"
-
-msgid "Align to Z Min"
-msgstr "Alinear al mínimo del eje Z"
-
-msgid "Align to Z Center"
-msgstr "Alinear al centro Z"
 
 msgid "Align/Distribute"
 msgstr "Alinear/Distribuir"
@@ -8099,6 +8063,13 @@ msgstr "El filamento %s puede ablandarse. Descárguelo, por favor."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "%sSe desconoce el filamento y puede ablandarse. Por favor, ajuste el filamento."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "No se puede hacer coincidir automáticamente con el filamento adecuado. Haga clic para hacer coincidir manualmente."
 
@@ -13152,14 +13123,6 @@ msgstr "El nombre no puede superar los 40 caracteres."
 msgid "Nozzle ID"
 msgstr "ID de la boquilla"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Por favor, encuentre la mejor línea en su placa."
 
@@ -13272,7 +13235,6 @@ msgstr ""
 "Consejos para el material de calibración:\n"
 "- Materiales que pueden compartir la misma temperatura de la cama caliente\n"
 "- Diferentes marcas y familias de filamentos (Marca = Bambu, Familia = Basic, Matte)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Nota: El número del Hotend está vinculado al soporte. Cuando el Hotend se traslada a un soporte nuevo, su número se actualizará automáticamente.\n"
@@ -15327,6 +15289,42 @@ msgid ""
 msgstr ""
 "Disminución, deformación y estrés\n"
 "Al controlar el índice térmico puedes remover las causas de calor de la deformación y el estrés."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Distribuir a lo largo del eje Y"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Distribuir a lo largo del eje X"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Distribuir a lo largo del eje Z"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Alinear con el máximo de Y"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Alinear al mínimo del eje Y"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Alinear al centro Y"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Alinear con el máximo de X"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Alinear al mínimo del eje X"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Alinear al centro X"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Alinear con el máximo de Z"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Alinear al mínimo del eje Z"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Alinear al centro Z"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

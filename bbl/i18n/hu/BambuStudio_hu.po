@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Kérjük, válassz ki legalább 3 tárgyat vagy objektumot"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "Modell egyszerűsítése"
 
 msgid "Center"
 msgstr "Közép"
-
-msgid "Distribute along Y axis"
-msgstr "Egyenletes elosztás az Y tengely mentén"
-
-msgid "Distribute along X axis"
-msgstr "Egyenletes elosztás az X tengely mentén"
-
-msgid "Distribute along Z axis"
-msgstr "Egyenletes elosztás a Z tengely mentén"
-
-msgid "Align to Y Max"
-msgstr "Igazítás az Y maximumhoz"
-
-msgid "Align to Y Min"
-msgstr "Igazítás az Y minimumhoz"
-
-msgid "Align to Y Center"
-msgstr "Igazítás az Y középponthoz"
-
-msgid "Align to X Max"
-msgstr "Igazítás az X maximumhoz"
-
-msgid "Align to X Min"
-msgstr "Igazítás az X minimumhoz"
-
-msgid "Align to X Center"
-msgstr "Igazítás az X középponthoz"
-
-msgid "Align to Z Max"
-msgstr "Igazítás a Z maximumhoz"
-
-msgid "Align to Z Min"
-msgstr "Igazítás a Z minimumhoz"
-
-msgid "Align to Z Center"
-msgstr "Igazítás a Z középponthoz"
 
 msgid "Align/Distribute"
 msgstr "Igazítás/Elosztás"
@@ -8090,6 +8054,13 @@ msgstr "A(z) %s filamentje megpuhulhat. Kérjük, távolítsd el."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "A(z) %s filamentje ismeretlen típusú, előfordulhat, hogy felpuhul. Kérjük, állítsd be a típusát."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Nem lehet automatikusan hozzárendelni a megfelelő filamentet. Kérjük, kattints a kézi beállításra."
 
@@ -13141,14 +13112,6 @@ msgstr "A név nem haladhatja meg a 40 karaktert."
 msgid "Nozzle ID"
 msgstr "Fúvókaazonosító"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Keresd meg a legjobb vonalat a tálcán"
 
@@ -13261,7 +13224,6 @@ msgstr ""
 "Tippek a kalibrációs anyaghoz:\n"
 "- Anyagok megegyező asztalhőmérséklettel\n"
 "- Különböző márkájú és típusú filamentek (Márka = Bambu, Típus = Basic, Matte stb.)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Megjegyzés: A hotend száma a tartóhoz van rendelve. Amikor a hotendet áthelyezed egy új tartóra, a száma automatikusan frissül.\n"
@@ -15313,6 +15275,42 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Egyenletes elosztás az Y tengely mentén"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Egyenletes elosztás az X tengely mentén"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Egyenletes elosztás a Z tengely mentén"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Igazítás az Y maximumhoz"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Igazítás az Y minimumhoz"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Igazítás az Y középponthoz"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Igazítás az X maximumhoz"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Igazítás az X minimumhoz"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Igazítás az X középponthoz"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Igazítás a Z maximumhoz"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Igazítás a Z minimumhoz"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Igazítás a Z középponthoz"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

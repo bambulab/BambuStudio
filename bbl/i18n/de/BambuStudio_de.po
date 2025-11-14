@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Bitte wählen Sie mindestens 3 Teile oder Objekte aus"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "Modell vereinfachen"
 
 msgid "Center"
 msgstr "Mitte"
-
-msgid "Distribute along Y axis"
-msgstr "Entlang der Y-Achse verteilen"
-
-msgid "Distribute along X axis"
-msgstr "Entlang der X-Achse verteilen"
-
-msgid "Distribute along Z axis"
-msgstr "Entlang der Z-Achse verteilen"
-
-msgid "Align to Y Max"
-msgstr "An Y Max ausrichten"
-
-msgid "Align to Y Min"
-msgstr "An Y Min ausrichten"
-
-msgid "Align to Y Center"
-msgstr "An Y Mitte ausrichten"
-
-msgid "Align to X Max"
-msgstr "An X Max ausrichten"
-
-msgid "Align to X Min"
-msgstr "An X Min ausrichten"
-
-msgid "Align to X Center"
-msgstr "An X Mitte ausrichten"
-
-msgid "Align to Z Max"
-msgstr "An Z Max ausrichten"
-
-msgid "Align to Z Min"
-msgstr "An Z Min ausrichten"
-
-msgid "Align to Z Center"
-msgstr "An Z Mitte ausrichten"
 
 msgid "Align/Distribute"
 msgstr "Ausrichten/Verteilen"
@@ -8088,6 +8052,13 @@ msgstr "Das Filament in %s kann weich werden. Bitte entladen."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Das Filament in %s ist unbekannt und kann weich werden. Bitte Filament einstellen."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Es kann kein passendes Filament automatisch gefunden werden. Bitte klicken Sie hier, um manuell ein passendes Filament auszuwählen."
 
@@ -13143,14 +13114,6 @@ msgstr "Der Name darf 40 Zeichen nicht überschreiten."
 msgid "Nozzle ID"
 msgstr "Düsen-ID"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Bitte finden Sie die beste Zeile auf Ihrer Platte."
 
@@ -13263,7 +13226,6 @@ msgstr ""
 "Tipps für Kalibrierungsmaterial: \n"
 "- Materialien, die dieselbe Heizbetttemperatur haben können\n"
 "- Verschiedene Filamentmarken und -familien (Marke = Bambu, Familie = Basic, Matte)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "Hinweis: Die Nummer des Hotends ist an den Halter gebunden. Wenn das Hotend in einen neuen Halter eingesetzt wird, wird seine Nummer automatisch aktualisiert.\n"
@@ -15312,6 +15274,42 @@ msgid ""
 msgstr ""
 "Schrumpfung, Verzug und Spannung\n"
 "Durch die Kontrolle des Wärmeindexes können Sie die durch Hitze verursachten Faktoren für Verzug und Spannung beseitigen."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Entlang der Y-Achse verteilen"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Entlang der X-Achse verteilen"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Entlang der Z-Achse verteilen"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "An Y Max ausrichten"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "An Y Min ausrichten"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "An Y Mitte ausrichten"
+
+#~ msgid "Align to X Max"
+#~ msgstr "An X Max ausrichten"
+
+#~ msgid "Align to X Min"
+#~ msgstr "An X Min ausrichten"
+
+#~ msgid "Align to X Center"
+#~ msgstr "An X Mitte ausrichten"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "An Z Max ausrichten"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "An Z Min ausrichten"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "An Z Mitte ausrichten"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

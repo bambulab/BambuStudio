@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr ""
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2188,42 +2188,6 @@ msgstr "Спростити модель"
 
 msgid "Center"
 msgstr "Центр"
-
-msgid "Distribute along Y axis"
-msgstr ""
-
-msgid "Distribute along X axis"
-msgstr ""
-
-msgid "Distribute along Z axis"
-msgstr ""
-
-msgid "Align to Y Max"
-msgstr ""
-
-msgid "Align to Y Min"
-msgstr ""
-
-msgid "Align to Y Center"
-msgstr ""
-
-msgid "Align to X Max"
-msgstr ""
-
-msgid "Align to X Min"
-msgstr ""
-
-msgid "Align to X Center"
-msgstr ""
-
-msgid "Align to Z Max"
-msgstr ""
-
-msgid "Align to Z Min"
-msgstr ""
-
-msgid "Align to Z Center"
-msgstr ""
 
 msgid "Align/Distribute"
 msgstr ""
@@ -8055,6 +8019,13 @@ msgstr ""
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr ""
 
@@ -13092,14 +13063,6 @@ msgid "The name cannot exceed 40 characters."
 msgstr "Ім’я не може перевищувати 40 символів."
 
 msgid "Nozzle ID"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
 msgstr ""
 
 msgid "Please find the best line on your plate"

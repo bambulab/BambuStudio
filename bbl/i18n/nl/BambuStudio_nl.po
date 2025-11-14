@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-13 10:21+0800\n"
+"POT-Creation-Date: 2025-11-14 10:25+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -576,13 +576,13 @@ msgstr ""
 msgid "Please select at least 3 parts or objects"
 msgstr "Selecteer ten minste 3 onderdelen of objecten"
 
-msgid "Align back"
+msgid "Align front"
 msgstr ""
 
 msgid "Align front-back center"
 msgstr ""
 
-msgid "Align front"
+msgid "Align back"
 msgstr ""
 
 msgid "Distribute front-back"
@@ -2196,42 +2196,6 @@ msgstr "Model vereenvoudigen"
 
 msgid "Center"
 msgstr "Centreren"
-
-msgid "Distribute along Y axis"
-msgstr "Verdelen langs Y-as"
-
-msgid "Distribute along X axis"
-msgstr "Verdelen langs de X-as"
-
-msgid "Distribute along Z axis"
-msgstr "Verspreiden langs Z-as"
-
-msgid "Align to Y Max"
-msgstr "Uitlijnen op Y max"
-
-msgid "Align to Y Min"
-msgstr "Uitlijnen op Y min"
-
-msgid "Align to Y Center"
-msgstr "Uitlijnen op Y midden"
-
-msgid "Align to X Max"
-msgstr "Uitlijnen op X max"
-
-msgid "Align to X Min"
-msgstr "Uitlijnen op X min"
-
-msgid "Align to X Center"
-msgstr "Uitlijnen op X centrum"
-
-msgid "Align to Z Max"
-msgstr "Uitlijnen op Z max"
-
-msgid "Align to Z Min"
-msgstr "Uitlijnen op Z min"
-
-msgid "Align to Z Center"
-msgstr "Uitlijnen op Z centrum"
 
 msgid "Align/Distribute"
 msgstr "Uitlijnen/verdelen"
@@ -8097,6 +8061,13 @@ msgstr "Het filament op %s kan zachter worden. Gelieve uit te laden."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Het filament op %s is onbekend en kan zachter worden. Gelieve filament in te stellen."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Kan niet automatisch overeenkomen met geschikt filament. Klik om handmatig te matchen."
 
@@ -13146,14 +13117,6 @@ msgstr "De naam mag niet langer zijn dan 40 tekens."
 msgid "Nozzle ID"
 msgstr "Nozzle-ID"
 
-msgctxt "NozzleVolumeType"
-msgid "SF"
-msgstr ""
-
-msgctxt "NozzleVolumeType"
-msgid "HF"
-msgstr ""
-
 msgid "Please find the best line on your plate"
 msgstr "Zoek de beste regel op je bord"
 
@@ -15315,6 +15278,42 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Verdelen langs Y-as"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Verdelen langs de X-as"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Verspreiden langs Z-as"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Uitlijnen op Y max"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Uitlijnen op Y min"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Uitlijnen op Y midden"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Uitlijnen op X max"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Uitlijnen op X min"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Uitlijnen op X centrum"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Uitlijnen op Z max"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Uitlijnen op Z min"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Uitlijnen op Z centrum"
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"
