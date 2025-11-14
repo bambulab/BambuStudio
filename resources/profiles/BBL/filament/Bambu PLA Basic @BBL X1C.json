@@ -19,11 +19,19 @@
     ],
     "filament_max_volumetric_speed": [
         "21",
-        "21"
+        "29"
     ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_retraction_length": [
+        "nil",
+        "0.4"
+    ],
+    "filament_z_hop": [
+        "nil",
+        "0.6"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
