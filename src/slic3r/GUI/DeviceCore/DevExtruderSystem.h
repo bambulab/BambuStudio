@@ -81,7 +81,7 @@ private:
     int m_ext_id; // 0-right 1-left
 
     // current nozzle
-    bool   m_has_nozzle = false;
+    bool   m_has_nozzle = true; // default to true, since A/P/.. series does not support nozzle detecion
     int    m_current_nozzle_id = 0;  // nozzle id now. for some machine, the extruder may have serveral nozzles
     int    m_target_nozzle_id = 0; // target nozzle id
 
