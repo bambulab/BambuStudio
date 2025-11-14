@@ -135,6 +135,7 @@ public:
     void UpdateMakerworldLoginStatus();
     void SetMakerworldPageLoginStatus(bool login, wxString ticket = "");
     void get_wiki_search_result(std::string keyword);
+    void get_academy_list(bool is_oversea);
 
     //Makerlab
     bool     m_MakerLabFirst;
