@@ -1996,6 +1996,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posDetectOverhangsForLift);
             }
             else {
+                obj->set_auto_circle_compenstaion_params(auto_contour_holes_compensation_params);
                 obj->make_perimeters();
                 obj->infill();
                 obj->ironing();
