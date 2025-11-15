@@ -54,6 +54,7 @@
 			"support_ai_monitoring": true,
 			"support_first_layer_inspect": false,
 			"support_save_remote_print_file_to_storage": true,
+			"support_chamber": true,
 			"support_chamber_temp_edit": true,
 			"support_chamber_temp_edit_range": [0, 65],
 			"support_chamber_temp_switch_heating": 40,
@@ -62,7 +63,9 @@
 			"support_ams_ext_mix_print": true
 		},
 		"model_id": "O1S",
+		"subseries": [ "O1S-V2" ],
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_single_o",
+		"support_wrapping_detection": true,
 		"printer_modes": [ "fdm", "laser", "cut" ],
 		"compatible_machine": [],
 		"printer_type": "O1S",
