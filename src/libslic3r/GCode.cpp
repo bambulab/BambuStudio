@@ -2184,6 +2184,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 throw Slic3r::SlicingError(_(L("Flush volumes matrix do not match to the correct size!")));
             }
         }
+        print_cfg_temp.option<ConfigOptionInts>("filament_map_2", true)->values = print.config().filament_map_2.values;
         append_full_config(print_cfg_temp, full_config);
         if (!full_config.empty())
             file.write(full_config);
@@ -2403,7 +2404,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     // For the change_filament_gcode to Determine whether the current layer has a wipe tower
-    m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower);   
+    m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower);
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
     Vec2f plate_offset = m_writer.get_xy_offset();
