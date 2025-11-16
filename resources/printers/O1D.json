@@ -64,6 +64,7 @@
 			"support_ams_ext_mix_print": true
 		},
 		"model_id": "O1D",
+		"subseries": [ "O1D-V2" ],
 		"support_wrapping_detection": true,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_multi_extruders",
 		"printer_modes": [ "fdm", "laser", "cut" ],
