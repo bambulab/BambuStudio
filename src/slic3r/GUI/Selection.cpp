@@ -1509,12 +1509,12 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         type.set_joint();
 
         // apply scale
-        start_dragging();
+        setup_cache();
         scale(s * Vec3d::Ones(), type);
         wxGetApp().plater()->canvas3D()->do_scale(""); // avoid storing another snapshot
 
         // center selection on print bed
-        start_dragging();
+        setup_cache();
         offset.z() = -get_bounding_box().min.z();
         TransformationType trafo_type;
         trafo_type.set_relative();
@@ -1525,19 +1525,49 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         //wxGetApp().obj_manipul()->set_dirty();
     };
 
-    auto fit_rectangle = [this, fit](const BuildVolume& volume) {
-        const BoundingBoxf3 print_volume = volume.bounding_volume();
+    auto fit_rectangle = [this, fit](const BuildVolume& build_volume) {
+        BoundingBoxf3 print_volume = build_volume.bounding_volume();
+        auto                exclude_area = wxGetApp().plater()->get_partplate_list().get_exclude_area();
+        if (exclude_area.size() == 4) {
+            auto pt = exclude_area[2];
+            Vec3d temp_min = print_volume.min;
+            if (pt[0] < pt[1]) {
+                temp_min += Vec3d(pt[0],0,0);
+            }
+            else {
+                temp_min += Vec3d(0, pt[1], 0);
+            }
+            Vec3d temp_max = print_volume.max;
+            print_volume.reset();
+            print_volume.merge(temp_min);
+            print_volume.merge(temp_max);
+        }
+        if (build_volume.get_extruder_area_count() > 0) {
+            auto                 printable_area    = build_volume.printable_area();
+            std::array<float, 4> full_print_volume = {(float) printable_area[0].x(), (float) printable_area[0].y(), (float) printable_area[2].x(), (float) printable_area[2].y()};
+            const BuildVolume::BuildSharedVolume &shared_volume = build_volume.get_shared_volume();
+            std::array<float, 4>                  xy_data       = shared_volume.data;
+            std::array<float, 2> zs = shared_volume.zs;
+            zs[0]                   = -1;
+
+            Vec3d temp_min = print_volume.min;
+            Vec3d temp_max(xy_data[2], xy_data[3], zs[1]);
+            print_volume.reset();
+            print_volume.merge(temp_min);
+            print_volume.merge(temp_max);
+        }
         const Vec3d print_volume_size = print_volume.size();
 
-        // adds 1/100th of a mm on all sides to avoid false out of print volume detections due to floating-point roundings
-        const Vec3d box_size = get_bounding_box().size() + 0.02 * Vec3d::Ones();
+         // adds 1/100th of a mm on both xy sides to avoid false out of print volume detections due to floating-point roundings
+        Vec3d box_size = get_bounding_box().size();
+        box_size.x() += 0.02f;
+        box_size.y() += 0.02f;
 
-        const double sx = (box_size.x() != 0.0) ? print_volume_size.x() / box_size.x() : 0.0;
-        const double sy = (box_size.y() != 0.0) ? print_volume_size.y() / box_size.y() : 0.0;
-        const double sz = (box_size.z() != 0.0) ? print_volume_size.z() / box_size.z() : 0.0;
+        const double sx = print_volume_size.x() / box_size.x();
+        const double sy = print_volume_size.y() / box_size.y();
+        const double sz = print_volume_size.z() / box_size.z();
 
-        if (sx != 0.0 && sy != 0.0 && sz != 0.0)
-            fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
+        return fit(std::min(sx, std::min(sy, sz)), print_volume.center() - get_bounding_box().center());
     };
 
     auto fit_circle = [this, fit](const BuildVolume& volume) {
