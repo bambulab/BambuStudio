@@ -936,8 +936,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
 void MenuFactory::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Scale to build volume"), _L("Scale an object to fit the build volume"),
-        [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu);
+    append_menu_item(menu, wxID_ANY, _L("Scale to print volume"), _L("Scale the selected object to fit the print volume"),
+        [](wxCommandEvent &) { plater()->scale_selection_to_fit_print_volume(); }, "", menu, []() { return plater()->can_scale_to_print_volume(); }, m_parent);
 }
 
 void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
@@ -1243,6 +1243,8 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_simplify(&m_object_menu);
     // merge to single part
     append_menu_item_merge_parts_to_single_part(&m_object_menu);
+    //scale_selection_to_fit_print_volume
+    append_menu_item_scale_selection_to_fit_print_volume(&m_object_menu);
     // Object Center
     append_menu_item_center(&m_object_menu);
     // Object Align/Distribute
