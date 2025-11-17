@@ -2613,11 +2613,17 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             last_utc_time = last_update_time;
         }
 
-        if (Slic3r::get_logging_level() < level_string_to_boost("trace")) {
-            BOOST_LOG_TRIVIAL(info) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", origin playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre);
+#if !BBL_RELEASE_TO_PUBLIC
+        BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", tunnel=" << tunnel << ", merged playload=" << BBLCrossTalk::Crosstalk_JsonLog(j);
+#else
+        if (Slic3r::get_logging_level() >= level_string_to_boost("trace")) {
+            BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", origin playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre);
         } else {
-            BOOST_LOG_TRIVIAL(trace) << "parse_json: dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", tunnel is=" << tunnel << ", merged playload=" << BBLCrossTalk::Crosstalk_JsonLog(j);
+            if (j_pre.contains("print")) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id()) << ", print playload=" << BBLCrossTalk::Crosstalk_JsonLog(j_pre["print"]);
+            };
         }
+#endif
 
         // Parse version info first, as if version arrive or change, 'print' need parse again with new compatible settings
         try {
