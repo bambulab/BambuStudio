@@ -130,6 +130,28 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                     {
                         iter.value() = "******";
                     }
+                    else if (key_str.find("authkey") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                    else if (key_str == "uid")
+                    {
+                        iter.value() = Crosstalk_UsrId(iter.value().get<std::string>());
+                    }
+                    else if (key_str.find("region") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                    else if (key_str.find("token") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                }
+                else if (iter.value().is_number())
+                {
+                    if (key_str == "uid") {
+                        iter.value() = Crosstalk_UsrId(std::to_string(iter.value().get<int>()));
+                    }
                 }
                 else if (iter.value().is_object())
                 {
@@ -176,6 +198,18 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
     };
 
     return copied_json.dump(1);
+}
+
+std::string BBLCrossTalk::Crosstalk_UsrId(const std::string& uid)
+{
+    if (!s_enable_cross_talk) { return uid; }
+    if (uid.size() > 2)
+    {
+        const string& cs_uid = std::string(uid.size() - 2, '*') + uid.substr(uid.size() - 2, 2);
+        return cs_uid;
+    }
+
+    return "******";
 }
 
 }// End of namespace Slic3r
