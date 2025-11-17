@@ -1341,23 +1341,6 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                 if (same_map)
                     print_diff_set.erase("filament_map");
             }
-
-            if (old_filament_volume_map.size() == new_filament_volume_map.size())
-            {
-                bool same_map = true;
-                for (size_t index = 0; index < old_filament_volume_map.size(); index++)
-                {
-                    if ((old_filament_volume_map[index] == new_filament_volume_map[index])
-                        || (used_filament_set.find(index) == used_filament_set.end()))
-                        continue;
-                    else {
-                        same_map = false;
-                        break;
-                    }
-                }
-                if (same_map)
-                    print_diff_set.erase("filament_volume_map");
-            }
         }
         if (print_diff_set.size() != print_diff.size())
             print_diff.assign(print_diff_set.begin(), print_diff_set.end());
