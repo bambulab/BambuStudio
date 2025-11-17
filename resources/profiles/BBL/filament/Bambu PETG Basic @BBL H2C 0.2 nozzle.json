@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG00_24",
     "instantiation": "true",
+    "fan_min_speed": [
+        "20"
+    ],
     "filament_max_volumetric_speed": [
         "1",
         "1"
@@ -15,6 +18,10 @@
     "filament_prime_volume_nc": [
         "30"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "210",
+        "210"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
@@ -23,22 +30,15 @@
         "1",
         "1"
     ],
+    "filament_retract_length_nc": [
+        "18",
+        "18"
+    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
-    ],
-    "filament_retract_length_nc": [
-        "18",
-        "18"
-    ],
-    "fan_min_speed": [
-        "20"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "210",
-        "210"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

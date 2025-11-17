@@ -34,6 +34,10 @@
     "filament_prime_volume_nc": [
         "30"
     ],
+    "filament_z_hop": [
+        "0.2",
+        "0.2"
+    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
@@ -50,19 +54,15 @@
         "1",
         "1"
     ],
+    "filament_retract_length_nc": [
+        "18",
+        "18"
+    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
-    ],
-    "filament_retract_length_nc": [
-        "18",
-        "18"
-    ],
-    "filament_z_hop": [
-        "0.2",
-        "0.2"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
