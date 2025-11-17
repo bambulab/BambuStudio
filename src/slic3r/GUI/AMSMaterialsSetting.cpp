@@ -1446,14 +1446,14 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            auto itor = map_filament_items.find(m_comboBox_filament->GetValue().ToStdString());
+            auto itor = map_filament_items.find(into_u8(m_comboBox_filament->GetValue()));
             if ( itor != map_filament_items.end()) {
                 ams_filament_id = itor->second.filament_id;
                 ams_setting_id  = itor->second.setting_id;
                 break;
             }
 
-            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+            if (it->alias.compare(into_u8(m_comboBox_filament->GetValue())) == 0) {
                 ams_filament_id = it->filament_id;
                 ams_setting_id = it->setting_id;
                 break;
