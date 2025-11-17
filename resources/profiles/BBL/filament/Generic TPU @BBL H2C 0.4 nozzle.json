@@ -55,15 +55,18 @@
         "20",
         "20"
     ],
-    "filament_retract_length_nc": [
-        "10",
-        "10"
-    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
+    ],
+    "filament_printable": [
+        "2"
+    ],
+    "filament_retract_length_nc": [
+        "10",
+        "10"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
