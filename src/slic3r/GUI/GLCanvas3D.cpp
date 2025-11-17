@@ -7410,7 +7410,9 @@ void GLCanvas3D::_picking_pass()
 
             hover_volume_idxs->clear();
             hover_plate_idxs->clear();
-
+            if (m_tooltip.is_in_imgui()) {
+                return;
+            }
             // Render the object for picking.
             const Size& cnv_size = get_canvas_size();
 
