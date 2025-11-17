@@ -51,6 +51,10 @@
     "filament_prime_volume": [
         "30"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "230",
+        "230"
+    ],
     "hole_coef_2": [
         "-0.012"
     ],
