@@ -13,6 +13,19 @@
         "12",
         "12"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "220",
+        "220"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
@@ -21,21 +34,11 @@
         "1",
         "1"
     ],
-    "filament_prime_volume_nc": [
-        "30"
-    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
-    ],
-    "filament_prime_volume": [
-        "30"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "220",
-        "220"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -51,6 +54,9 @@
     "retraction_distances_when_ec": [
         "4",
         "4"
+    ],
+    "temperature_vitrification": [
+        "65"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.6 nozzle",

@@ -16,8 +16,8 @@
         "0.97"
     ],
     "filament_max_volumetric_speed": [
-        "30",
-        "45"
+        "25",
+        "30"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -31,9 +31,18 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
+    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
         "240",
@@ -47,17 +56,11 @@
         "1",
         "1"
     ],
-    "filament_prime_volume_nc": [
-        "30"
-    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
-    ],
-    "filament_prime_volume": [
-        "30"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -72,6 +75,9 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "temperature_vitrification": [
+        "90"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.8 nozzle"

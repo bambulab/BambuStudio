@@ -5,6 +5,12 @@
     "from": "system",
     "setting_id": "GFSG00_23",
     "instantiation": "true",
+    "fan_max_speed": [
+        "30"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
     "filament_flow_ratio": [
         "0.97",
         "0.97"
@@ -47,21 +53,15 @@
         "1",
         "1"
     ],
+    "filament_retract_length_nc": [
+        "18",
+        "18"
+    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
-    ],
-    "filament_retract_length_nc": [
-        "18",
-        "18"
-    ],
-    "fan_min_speed": [
-        "20"
-    ],
-    "fan_max_speed": [
-        "30"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
