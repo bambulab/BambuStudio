@@ -2012,7 +2012,8 @@ void SendToPrinterDialog::UploadFileRessultCallback(int res, int resp_ec, std::s
             if (ParseErrorCode(resp_ec) != "")
                 update_print_status_msg(ParseErrorCode(resp_ec), false, true);
             else
-                update_print_status_msg("Sending failed, please try again!", false, true);
+                update_print_status_msg(_L("Sending failed, please try again!"), false, true);
+
             m_filetransfer_uploadfile_job.reset();
             m_filetransfer_uploadfile_job = nullptr;
         }
