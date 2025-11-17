@@ -337,16 +337,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                               wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
             int res = dlg.ShowModal();
             if (res == wxID_YES) {
-                json resp = json::object();
-                resp["command"] = "save_project";
-                if (!sequence_id.empty())
-                    resp["sequence_id"] = sequence_id;
-
-                wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
-                                                  resp.dump(-1, ' ', false, json::error_handler_t::ignore));
-                wxGetApp().CallAfter([this, strJS] {
-                    RunScript(strJS.ToStdString());
-                });
+                save_project();
             }else if (res == wxID_NO ) {
                 json resp = json::object();
                 resp["command"] = "discard_project";
@@ -925,10 +916,33 @@ void ProjectPanel::RunScript(std::string content)
     WebView::RunScript(m_browser, content);
 }
 
+bool ProjectPanel::is_editing_page() const
+{
+    if (m_browser == nullptr)
+        return false;
+    wxString current_url = m_browser->GetCurrentURL();
+    if (current_url.IsEmpty())
+        return false;
+    return current_url.Lower().Contains("editor.html");
+}
+
 bool ProjectPanel::Show(bool show)
 {
     if (show) update_model_data();
     return wxPanel::Show(show);
+}
+
+void ProjectPanel::save_project()
+{
+    json resp = json::object();
+    resp["command"] = "save_project";
+    resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+
+    wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                      resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxGetApp().CallAfter([this, strJS] {
+        RunScript(strJS.ToStdString());
+    });
 }
 
 }} // namespace Slic3r::GUI

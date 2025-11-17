@@ -18,6 +18,63 @@ const {
 const LICENSE_KEY =
 	'GPL';
 
+const CKEDITOR_LANGUAGE_MAP = {
+	en: 'en',
+	zh_CN: 'zh-cn',
+	ja_JP: 'ja',
+	it_IT: 'it',
+	fr_FR: 'fr',
+	de_DE: 'de',
+	hu_HU: 'hu',
+	es_ES: 'es',
+	sv_SE: 'sv',
+	cs_CZ: 'cs',
+	nl_NL: 'nl',
+	uk_UA: 'uk',
+	ru_RU: 'ru',
+	tr_TR: 'tr',
+	pt_BR: 'pt-br',
+	ko_KR: 'ko',
+	pl_PL: 'pl'
+};
+
+function detectEditorLanguage() {
+	let lang = typeof GetQueryString === 'function' ? GetQueryString('lang') : null;
+	const langStorageKey = typeof LANG_COOKIE_NAME !== 'undefined' ? LANG_COOKIE_NAME : 'BambuWebLang';
+	try {
+		if (lang && typeof localStorage !== 'undefined') {
+			localStorage.setItem(langStorageKey, lang);
+		}
+	} catch (err) {}
+	if (!lang) {
+		try {
+			if (typeof localStorage !== 'undefined') {
+				lang = localStorage.getItem(langStorageKey);
+			}
+		} catch (err) {
+			lang = null;
+		}
+	}
+	if (!lang && typeof navigator !== 'undefined') {
+		lang = navigator.language || navigator.userLanguage;
+	}
+	if (!lang) {
+		return 'en';
+	}
+	const normalizedUnderscore = lang.replace('-', '_');
+	if (CKEDITOR_LANGUAGE_MAP[normalizedUnderscore]) {
+		return CKEDITOR_LANGUAGE_MAP[normalizedUnderscore];
+	}
+	if (CKEDITOR_LANGUAGE_MAP[lang]) {
+		return CKEDITOR_LANGUAGE_MAP[lang];
+	}
+	return normalizedUnderscore.replace('_', '-').toLowerCase();
+}
+
+const editorLanguage = detectEditorLanguage();
+const script = document.createElement('script');
+script.src = `../include/ckeditor5/translations/${editorLanguage}.umd.js`;
+
 const editorConfig = {
 	toolbar: {
 		items: [
@@ -101,12 +158,17 @@ const editorConfig = {
 			}
 		}
 	},
-	placeholder: ''
+	placeholder: '',
+	language: editorLanguage
 };
 
-ClassicEditor.create(document.querySelector('#editor'), editorConfig).then( editor => {
-	window.projectEditor = editor;
-});
-ClassicEditor.create(document.querySelector('#profile-editor'), editorConfig).then( editor => {
-	window.profileEditor = editor;
-});
+script.onload = () => {
+	ClassicEditor.create(document.querySelector('#editor'), editorConfig).then( editor => {
+		window.projectEditor = editor;
+	});
+	ClassicEditor.create(document.querySelector('#profile-editor'), editorConfig).then( editor => {
+		window.profileEditor = editor;
+	});
+};
+
+document.head.appendChild(script);
