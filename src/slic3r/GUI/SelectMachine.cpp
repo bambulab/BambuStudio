@@ -3736,11 +3736,10 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
             else {
                 wxString tip_text;
                 if (item->item->m_match) {
-                    if (obj_ && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported() && !obj_->get_nozzle_mapping_result().GetNozzleMapping().empty()
-                        && !m_mapping_popup.m_mapping_from_multi_machines && !m_mapping_popup.get_use_in_sync_dialog())
-                         tip_text  = (_L("Upper half area:  Original\nMiddle  area:  Filament in AMS\nLower half area:  Selected nozzle\nAnd you can click it to modify"));
+                    if (!item->item->m_mapped_nozzle_str.empty())
+                        tip_text = (_L("Upper half area:  Original\nMiddle  area:  Filament in AMS\nLower half area:  Selected nozzle\nAnd you can click it to modify"));
                     else
-                         tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
+                        tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
                 } else {
                     tip_text = _L("Unable to automatically match to suitable filament. Please click to manually match.");
                 }
