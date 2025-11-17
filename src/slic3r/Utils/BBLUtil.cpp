@@ -139,9 +139,18 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                 {
                     for (auto& array_item : iter.value())
                     {
-                        if (array_item.is_object() || array_item.is_array())
-                        {
+                        if (array_item.is_object() || array_item.is_array()) {
                             to_traverse_jsons.push_back(&array_item);
+                        } else if (array_item.is_string()) {
+                            try {
+                                const auto& string_val = array_item.get<std::string>();
+                                if (string_val.empty()) {
+                                    const auto& sub_json = nlohmann::json::parse(string_val);
+                                    array_item = Crosstalk_JsonLog(sub_json);
+                                }
+                            } catch (...) {
+                                continue;
+                            }
                         }
                     }
                 }
