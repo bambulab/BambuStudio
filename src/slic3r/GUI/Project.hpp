@@ -87,11 +87,13 @@ public:
     bool Show(bool show);
     void OnScriptMessage(wxWebViewEvent& evt);
     void RunScript(std::string content);
+    bool is_editing_page() const;
 
     std::map<std::string, std::vector<json>> Reload(wxString aux_path);
     std::string formatBytes(unsigned long bytes);
     std::string get_model_id(std::string desgin_id);
     wxString to_base64(std::string path);
+    void save_project();
 };
 
 wxDECLARE_EVENT(EVT_PROJECT_RELOAD, wxCommandEvent);

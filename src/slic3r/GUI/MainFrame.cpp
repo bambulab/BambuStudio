@@ -1117,6 +1117,23 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();
+        if (old_sel != wxNOT_FOUND &&
+            new_sel != old_sel &&
+            m_project != nullptr &&
+            m_tabpanel->GetPage((size_t)old_sel) == m_project &&
+            m_project->is_editing_page()) {
+            MessageDialog dlg(this,
+                              _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
+                              _L("Save"),
+                              wxYES_NO | wxCANCEL |wxCENTRE);
+            int ret = dlg.ShowModal();
+            if (ret == wxID_YES) {
+                m_project->save_project();
+            } else {
+                e.Veto();
+                return;
+            }
+        }
         if (wxGetApp().preset_bundle &&
             wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
             new_sel == tpMonitor) {
