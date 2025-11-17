@@ -5,20 +5,11 @@
     "from": "system",
     "setting_id": "GFSA10_21",
     "instantiation": "true",
-    "additional_cooling_fan_speed": [
-        "75"
-    ],
     "eng_plate_temp": [
         "55"
     ],
     "eng_plate_temp_initial_layer": [
         "55"
-    ],
-    "fan_max_speed": [
-        "80"
-    ],
-    "fan_min_speed": [
-        "60"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -31,6 +22,13 @@
     "filament_prime_volume_nc": [
         "30"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "205",
+        "205"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
@@ -39,30 +37,26 @@
         "1",
         "1"
     ],
+    "filament_retract_length_nc": [
+        "18",
+        "18"
+    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
     ],
-    "filament_retract_length_nc": [
-        "18",
-        "18"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "180",
-        "180"
-    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
     "nozzle_temperature": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "nozzle_temperature_initial_layer": [
-        "220",
-        "220"
+        "245",
+        "245"
     ],
     "pre_start_fan_time": [
         "2"

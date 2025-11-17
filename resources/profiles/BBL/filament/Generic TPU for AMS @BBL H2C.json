@@ -39,8 +39,14 @@
         "2.63",
         "2.63"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_prime_volume_nc": [
         "30"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_pre_cooling_temperature": [
         "200",
@@ -64,9 +70,6 @@
     "filament_change_length_nc": [
         "4"
     ],
-    "filament_prime_volume": [
-        "30"
-    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -86,6 +89,9 @@
     ],
     "slow_down_layer_time": [
         "10"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.6 nozzle",

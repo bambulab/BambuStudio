@@ -34,6 +34,9 @@
     "filament_prime_volume_nc": [
         "30"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "filament_pre_cooling_temperature_nc": [
         "190",
         "190"
@@ -46,15 +49,15 @@
         "1",
         "1"
     ],
+    "filament_retract_length_nc": [
+        "18",
+        "18"
+    ],
     "filament_change_length": [
         "4"
     ],
     "filament_change_length_nc": [
         "4"
-    ],
-    "filament_retract_length_nc": [
-        "18",
-        "18"
     ],
     "hole_coef_2": [
         "-0.0103"
