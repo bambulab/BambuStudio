@@ -805,10 +805,12 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                 right_grid_sizer->Add(k_value_failed, 1, wxEXPAND);
             }
 
-            if (has_rack && nozzle_id_value->IsShown()) {
-                right_grid_sizer->Add(nozzle_id_value, 1, wxEXPAND);
-            } else {
-                right_grid_sizer->Add(nozzle_id_failed, 1, wxEXPAND);
+            if (has_rack) {
+                if (nozzle_id_value->IsShown()) {
+                    right_grid_sizer->Add(nozzle_id_value, 1, wxEXPAND);
+                } else {
+                    right_grid_sizer->Add(nozzle_id_failed, 1, wxEXPAND);
+                }
             }
         }
     }
