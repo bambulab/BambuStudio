@@ -36,8 +36,8 @@
         "Spiral Lift"
     ],
     "filament_pre_cooling_temperature_nc": [
-        "250",
-        "250"
+        "240",
+        "240"
     ],
     "filament_ramming_travel_time": [
         "0",

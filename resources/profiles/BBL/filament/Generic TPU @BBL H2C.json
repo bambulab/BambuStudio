@@ -44,8 +44,8 @@
         "210"
     ],
     "filament_pre_cooling_temperature_nc": [
-        "210",
-        "210"
+        "200",
+        "200"
     ],
     "filament_ramming_travel_time": [
         "20",

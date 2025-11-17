@@ -33,6 +33,10 @@
         "18",
         "18"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "215",
+        "215"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
