@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:11+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4789,6 +4789,9 @@ msgstr "准备"
 
 msgid "Preview"
 msgstr "预览"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr "当前页面有未保存的更改。您可以继续编辑，或选择保存/放弃后离开。"
 
 msgid "Device"
 msgstr "设备"
@@ -9752,6 +9755,9 @@ msgstr "当前固件版本异常，需要进行修复升级，否则无法继续
 
 msgid "Extension Board"
 msgstr "扩展板"
+
+msgid "Do you want to save the changes ?"
+msgstr "是否保存当前更改？"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "保存对象到3mf失败。"
