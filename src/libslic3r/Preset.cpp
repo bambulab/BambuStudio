@@ -68,7 +68,7 @@ Semver get_version_from_json(std::string file_path)
         }
     }
     catch(nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< PathSanitizer::sanitize(file_path) <<" got a nlohmann::detail::parse_error, reason = " << err.what();
         return Semver();
         //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file_path, err.what()));
     }
