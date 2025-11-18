@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8260,6 +8260,9 @@ msgstr "Bezig met versturen..."
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Bestand uploaden heeft vertraging. Controleer of de firmwareversie deze bewerking ondersteunt of controleer of de printer goed werkt."
 
+msgid "Sending failed, please try again!"
+msgstr "Verzenden is mislukt, probeer het opnieuw!"
+
 msgid "Helio action completed successfully."
 msgstr "Helio-actie succesvol voltooid."
 
@@ -9921,6 +9924,9 @@ msgstr "Groeperingsfout:"
 
 msgid " can not be placed in the "
 msgstr " kan niet worden geplaatst in de"
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Binnenste wand"
@@ -14215,6 +14221,9 @@ msgstr ""
 "Het huidige geselecteerde type nozzle van extruder %s komt niet overeen met het huidige type nozzle van de printer.\n"
 "Klik op de bovenstaande Sync-knop en start de kalibratie opnieuw."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Kan niet kalibreren: misschien omdat het bereik van de ingestelde kalibratiewaarde te groot is, of omdat de stap te klein is"
 
@@ -15429,9 +15438,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Time-out voor het verkrijgen van mediamogelijkheden, controleer of de firmwareversie dit ondersteunt."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Verzenden is mislukt, probeer het opnieuw!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtert tussenruimtes kleiner dan de opgegeven drempel. Deze instelling heeft geen effect op bovenste/onderste lagen"

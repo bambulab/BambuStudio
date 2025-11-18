@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8187,6 +8187,9 @@ msgstr ""
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr ""
 
+msgid "Sending failed, please try again!"
+msgstr ""
+
 msgid "Helio action completed successfully."
 msgstr ""
 
@@ -9824,6 +9827,9 @@ msgid "Grouping error: "
 msgstr ""
 
 msgid " can not be placed in the "
+msgstr ""
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr ""
 
 msgid "Inner wall"
@@ -14072,6 +14078,9 @@ msgstr ""
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
+msgstr ""
+
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
 msgstr ""
 
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"

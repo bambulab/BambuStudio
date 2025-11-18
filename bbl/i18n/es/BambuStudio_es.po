@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8262,6 +8262,9 @@ msgstr "Enviando..."
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Se agotó el tiempo de espera para subir archivos. Compruebe si la versión del firmware admite esta operación o compruebe si la impresora funciona correctamente."
 
+msgid "Sending failed, please try again!"
+msgstr "Envío fallido, ¡inténtalo de nuevo!"
+
 msgid "Helio action completed successfully."
 msgstr "La acción de Helio se completó con éxito."
 
@@ -9925,6 +9928,9 @@ msgstr "Error de agrupamiento: "
 
 msgid " can not be placed in the "
 msgstr " no se puede colocar en el "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Pared interior"
@@ -14226,6 +14232,9 @@ msgstr ""
 "El tipo de boquilla seleccionado actualmente%s El extrusor no coincide con el tipo de boquilla de la impresora. \n"
 "Haga clic en el botón Sincronizar que aparece arriba y reinicie la calibración."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "No se puede calibrar: puede deberse a que el intervalo del valor de calibración establecido es demasiado grande o a que el paso es demasiado pequeño."
 
@@ -15400,9 +15409,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Tiempo de espera de adquisición de capacidad de medios, verifique si la versión del firmware lo admite."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Envío fallido, ¡inténtalo de nuevo!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtra los huecos menores que el umbral especificado. Este ajuste no afectará a las capas superior/inferior."

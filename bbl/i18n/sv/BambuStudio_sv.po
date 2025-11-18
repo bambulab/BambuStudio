@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -8255,6 +8255,9 @@ msgstr "Skickar…"
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Filuppladdningen tog timeout. Kontrollera om firmware versionen stöder denna operation eller kontrollera om printern fungerar korrekt."
 
+msgid "Sending failed, please try again!"
+msgstr "Sändningen misslyckades, försök igen!"
+
 msgid "Helio action completed successfully."
 msgstr "Helio åtgärden slutfördes."
 
@@ -9918,6 +9921,9 @@ msgstr "Grupperings fel: "
 
 msgid " can not be placed in the "
 msgstr " kan inte placeras i "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Inre vägg"
@@ -14220,6 +14226,9 @@ msgstr ""
 "Den för närvarande valda nozzle typ på %s extruder matchar inte den faktiska printer nozzle typen.\n"
 "Klicka på Synk knappen ovan och starta om kalibreringen."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Går inte att kalibrera: kan bero på att det inställda kalibreringsvärdet är för stort, eller att steget är för litet"
 
@@ -15437,9 +15446,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Timeout för förvärv av mediekapacitet, kontrollera om versionen av firmware stöder det."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Sändningen misslyckades, försök igen!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtrera bort luckor som är mindre än det angivna tröskelvärdet. Denna inställning påverkar inte övre/undre lager."
