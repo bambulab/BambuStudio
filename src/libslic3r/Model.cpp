@@ -3144,6 +3144,9 @@ void ModelVolume::update_extruder_count(size_t extruder_count)
             break;
         }
     }
+    if (extruder_id() > extruder_count) {
+        this->config.erase("extruder");
+    }
 }
 
 void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id)
@@ -3154,6 +3157,9 @@ void ModelVolume::update_extruder_count_when_delete_filament(size_t extruder_cou
             mmu_segmentation_facets.set_enforcer_block_type_limit(*this, (EnforcerBlockerType)(extruder_count), (EnforcerBlockerType)(filament_id), (EnforcerBlockerType)(replace_filament_id));
             break;
         }
+    }
+    if (extruder_id() > extruder_count) {
+        this->config.erase("extruder");
     }
 }
 
