@@ -694,6 +694,7 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
                 if (!object->volumes[id]->config.has("extruder") ||
                     size_t(object->volumes[id]->config.extruder()) > filaments_count) {
                     extruder = wxString::Format("%d", object->config.extruder());
+                    object->volumes[id]->config.erase("extruder");
                 }
                 else {
                     extruder = wxString::Format("%d", object->volumes[id]->config.extruder());
