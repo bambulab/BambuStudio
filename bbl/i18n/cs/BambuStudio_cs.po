@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:11+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -4762,6 +4762,9 @@ msgstr "Připravit"
 
 msgid "Preview"
 msgstr "Náhled"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
 
 msgid "Device"
 msgstr "Zařízení"
@@ -9670,6 +9673,9 @@ msgstr "Verze firmwaru je abnormální. Oprava a aktualizace jsou nutné před t
 
 msgid "Extension Board"
 msgstr "Rozšiřující deska"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Ukládání objektů do 3mf se nezdařilo."

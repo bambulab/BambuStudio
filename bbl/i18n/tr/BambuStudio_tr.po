@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:11+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4820,6 +4820,9 @@ msgstr "Hazırlık"
 
 msgid "Preview"
 msgstr "Ön İzleme"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
 
 msgid "Device"
 msgstr "Yazıcı"
@@ -9804,6 +9807,9 @@ msgstr "Ürün yazılımı sürümü anormal. Yazdırmadan önce onarım ve gün
 
 msgid "Extension Board"
 msgstr "Uzatma Kartı"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Nesneleri 3mf'ye kaydetme işlemi başarısız oldu."
