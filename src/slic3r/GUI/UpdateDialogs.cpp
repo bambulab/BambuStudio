@@ -187,7 +187,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 
     auto *versions = new wxBoxSizer(wxVERTICAL);
     // BBS: use changelog string instead of url
-    wxStaticText *changelog_textctrl = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(560), -1));
+    Label *changelog_textctrl = new Label(m_scrollwindw_release_note);
 
 
     for (const auto &update : updates) {
@@ -203,9 +203,9 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
             flex->Add(new wxStaticText(m_scrollwindw_release_note, wxID_ANY, _(L("Description:"))), 0, wxALIGN_RIGHT);
             auto *update_comment = new Label(m_scrollwindw_release_note,std::string(""));
             update_comment->SetLabel(from_u8(update.comment));
-            update_comment->SetMaxSize(wxSize(FromDIP(545), -1));
-            update_comment->SetMinSize(wxSize(FromDIP(545), -1));
-            update_comment->Wrap(FromDIP(450));
+            update_comment->SetMaxSize(wxSize(FromDIP(520), -1));
+            update_comment->SetMinSize(wxSize(FromDIP(520), -1));
+            update_comment->Wrap(FromDIP(500));
             flex->Add(update_comment);
         }
 
@@ -224,8 +224,12 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 	
 
     ////BBS: use changelog string instead of url
-    if (changelog_textctrl) 
-		content_sizer->Add(changelog_textctrl, 1, wxEXPAND | wxTOP, FromDIP(30));
+    if (changelog_textctrl) {
+        changelog_textctrl->SetMaxSize(wxSize(FromDIP(520), -1));
+        changelog_textctrl->SetFont(Label::Body_13);
+        changelog_textctrl->Wrap(FromDIP(500));
+		content_sizer->Add(changelog_textctrl, 0, wxEXPAND | wxTOP, FromDIP(30));
+	}
 
 
 	m_butto_ok->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &) { EndModal(wxID_OK); });
