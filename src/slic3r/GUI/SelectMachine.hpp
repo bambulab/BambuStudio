@@ -529,6 +529,10 @@ public:
 private:
     void EnableEditing(bool enable);
 
+    // filament mapping
+    std::optional<FilamentInfo> get_slicing_filament_info(int fila_logic_id) const;
+    std::optional<FilamentInfo> get_mapped_filament_info(int fila_logic_id) const;
+
     /* update ams backup*/
     void update_ams_backup(MachineObject* obj_);
 
