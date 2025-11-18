@@ -1910,33 +1910,36 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 
     //check blacklist
-    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+    for (const auto& slicing_fila : m_filaments) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        check_info.fila_id = m_ams_mapping_result[i].filament_id;
-        check_info.fila_type = m_ams_mapping_result[i].type;
+        check_info.fila_id = slicing_fila.filament_id;
+        check_info.fila_type = slicing_fila.type;
 
         auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name = option ? option->filament_name : "";
-        check_info.fila_vendor = m_ams_mapping_result[i].brand;
-        if (check_info.fila_vendor.empty() && m_filaments.size() > i) {
-            check_info.fila_vendor = m_filaments[i].brand;
-        }
+        check_info.fila_vendor = slicing_fila.brand;
 
         // usage of filament
         if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
             for (auto used_fila : gcode_result->used_filaments) {
-                if (used_fila.filament_id == m_ams_mapping_result[i].id) {
+                if (used_fila.filament_id == slicing_fila.id) {
                     check_info.used_for_print_support = used_fila.use_for_support;
                     break;
                 }
             };
         }
 
-        check_info.ams_id = m_ams_mapping_result[i].get_ams_id();
-        check_info.slot_id = m_ams_mapping_result[i].get_slot_id();
+        const auto& mapped_fila = get_mapped_filament_info(slicing_fila.id);
+        if (!mapped_fila.has_value()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: cannot find mapped fila for logic fila_id= " << slicing_fila.id;
+            continue;
+        }
+
+        check_info.ams_id = mapped_fila->get_ams_id();
+        check_info.slot_id = mapped_fila->get_slot_id();
 
         check_info.extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(check_info.ams_id));
         check_info.nozzle_flow = obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(check_info.ams_id));
@@ -5061,33 +5064,36 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     }
 
     // filaments check for black list
-    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
+    for (const auto& slicing_fila : m_filaments) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        check_info.fila_id = m_ams_mapping_result[i].filament_id;
-        check_info.fila_type = m_ams_mapping_result[i].type;
+        check_info.fila_id = slicing_fila.filament_id;
+        check_info.fila_type = slicing_fila.type;
 
         auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name = option ? option->filament_name : "";
-        check_info.fila_vendor = m_ams_mapping_result[i].brand;
-        if (check_info.fila_vendor.empty() && m_filaments.size() > i) {
-            check_info.fila_vendor = m_filaments[i].brand;
-        }
+        check_info.fila_vendor = slicing_fila.brand;
 
         // usage of filament
         if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
             for (auto used_fila : gcode_result->used_filaments) {
-                if (used_fila.filament_id == m_ams_mapping_result[i].id) {
+                if (used_fila.filament_id == slicing_fila.id) {
                     check_info.used_for_print_support = used_fila.use_for_support;
                     break;
                 }
             };
         }
 
-        check_info.ams_id = m_ams_mapping_result[i].get_ams_id();
-        check_info.slot_id = m_ams_mapping_result[i].get_slot_id();
+        const auto& mapped_fila = get_mapped_filament_info(slicing_fila.id);
+        if (!mapped_fila.has_value()) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+            return false;
+        }
+
+        check_info.ams_id = mapped_fila->get_ams_id();
+        check_info.slot_id = mapped_fila->get_slot_id();
 
         check_info.extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(check_info.ams_id));
         check_info.nozzle_flow = obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(check_info.ams_id));
@@ -5105,6 +5111,30 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     }
 
     return true;
+}
+
+std::optional<FilamentInfo> SelectMachineDialog::get_slicing_filament_info(int fila_logic_id) const
+{
+    for (const auto& fila : m_filaments) {
+        if (fila.id == fila_logic_id) {
+            return fila;
+        }
+    }
+   
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not found for logic id " << fila_logic_id;
+    return std::nullopt;
+}
+
+std::optional<FilamentInfo> SelectMachineDialog::get_mapped_filament_info(int fila_logic_id) const
+{
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.id == fila_logic_id) {
+            return fila;
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not found for logic id " << fila_logic_id;
+    return std::nullopt;
 }
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)
