@@ -1321,6 +1321,57 @@ int GLCanvas3D::GetHoverId()
 
 }
 
+Vec2i GLCanvas3D::convert_world_pt_to_screen(Vec3d pos)
+{
+    Vec2i                     result(-1,-1);
+
+    auto camera = get_active_camera();
+    Transform3d world_to_eye    = camera.get_view_matrix();
+    Matrix4d world_to_screen = camera.get_projection_matrix().matrix() * world_to_eye.matrix();
+    const std::array<int, 4> &viewport        = camera.get_viewport();
+
+    Vec4d       temp_center(pos.x(), pos.y(), pos.z(), 1.0);
+    Vec4d       temp_ndc          = world_to_screen * temp_center;
+    Vec3d       screen_box_center = Vec3d(temp_ndc.x(), temp_ndc.y(), temp_ndc.z()) / temp_ndc.w();
+
+    float x = 0.5f * (1 + screen_box_center(0)) * viewport[2];
+    float y = 0.5f * (1 - screen_box_center(1)) * viewport[3];
+
+    if (x < 0.0f || viewport[2] < x || y < 0.0f || viewport[3] < y)
+        return result;
+    result[0] = x;
+    result[1] = y;
+    return result;
+}
+
+bool GLCanvas3D::is_mouse_in_screen_convex_hull(Vec2i mouse, const BoundingBoxf3 &box) {
+    //convert_world_pt_to_screen
+    auto &               _min = box.min;
+    auto &               _max = box.max;
+    std::array<Vec3d, 8> src_vertices;
+    src_vertices[0] = _min;
+    src_vertices[1] = Vec3d(_max.x(), _min.y(), _min.z());
+    src_vertices[2] = Vec3d(_max.x(), _max.y(), _min.z());
+    src_vertices[3] = Vec3d(_min.x(), _max.y(), _min.z());
+    src_vertices[4] = Vec3d(_min.x(), _min.y(), _max.z());
+    src_vertices[5] = Vec3d(_max.x(), _min.y(), _max.z());
+    src_vertices[6] = _max;
+    src_vertices[7] = Vec3d(_min.x(), _max.y(), _max.z());
+    Points pts;
+    for (int i = 0; i < src_vertices.size(); i++) {
+        auto temp = convert_world_pt_to_screen(src_vertices[i]);
+        if (temp[0] >= 0 && temp[1] >= 0) {
+            pts.emplace_back(coord_t(temp.x()), coord_t(temp.y()));
+        }
+    }
+    Polygon pg = Geometry::convex_hull(std::move(pts));
+    Point   temp_mouse(mouse[0], mouse[1]);
+    if (pg.contains(temp_mouse)) {
+        return true;
+    }
+    return false;
+}
+
 PrinterTechnology GLCanvas3D::current_printer_technology() const {
     return m_process->current_printer_technology();
 }
@@ -5284,8 +5335,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 wxGetApp().plater()->select_plate_by_hover_id(hover_idx);
                 //wxGetApp().plater()->get_partplate_list().select_plate_view();
                 //deselect all the objects
-                if (m_gizmos.get_current_type() != GLGizmosManager::MeshBoolean && m_hover_volume_idxs.empty())
-                    deselect_all();
+                if (m_gizmos.get_current_type() != GLGizmosManager::MeshBoolean && m_hover_volume_idxs.empty()) {
+                    bool ignore = false;
+                    
+                    auto mo                 = get_selected_model_object(*this);
+                    auto cur_selection_mode = m_selection.get_mode();
+                    ignore                  = cur_selection_mode == Selection::Volume && mo && m_gizmos.is_allow_multi_select_parts_or_objects() &&
+                        is_mouse_in_screen_convex_hull(Vec2i(evt.GetX(), evt.GetY()), mo->bounding_box());
+                    
+                    if (!ignore) {
+                        deselect_all();
+                    }
+                }
         }
         else if (evt.RightUp() && !is_layers_editing_enabled()) {
             m_mouse.position = pos.cast<double>();
