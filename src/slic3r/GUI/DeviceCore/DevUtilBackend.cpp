@@ -6,6 +6,7 @@
 #include "slic3r/GUI/Plater.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include <boost/lexical_cast.hpp>
 #include <wx/string.h>
 
 namespace Slic3r

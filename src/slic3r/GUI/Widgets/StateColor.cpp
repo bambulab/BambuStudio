@@ -1,4 +1,5 @@
 #include "StateColor.hpp"
+#include <wx/gdicmn.h>
 
 static bool gDarkMode = false;
 
