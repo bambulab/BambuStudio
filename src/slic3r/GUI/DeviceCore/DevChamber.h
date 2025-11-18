@@ -13,6 +13,7 @@ public:
 
 public: // getter
     bool HasChamber() const;
+    bool SupportChamberTempDisplay() const;
     bool SupportChamberEdit() const;
     int  GetChamberTempEditMin() const;
     int  GetChamberTempEditMax() const;

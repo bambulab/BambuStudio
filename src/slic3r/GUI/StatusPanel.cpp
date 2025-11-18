@@ -3011,7 +3011,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 
     // support current temp for chamber
     const auto &chamber = obj->GetChamber();
-    if (chamber->HasChamber()) {
+    if (chamber->SupportChamberTempDisplay()) {
         m_tempCtrl_chamber->SetCurrTemp(chamber->GetChamberTemp());
     } else {
         m_tempCtrl_chamber->SetCurrTemp(TEMP_BLANK_STR);
