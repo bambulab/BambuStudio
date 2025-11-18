@@ -1110,10 +1110,16 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
         if (true/*!can_hybrid_mapping(obj_get_extder_data())*/){
             std::vector<FilamentInfo>           m_ams_mapping_result_left, m_ams_mapping_result_right;
             std::vector<FilamentInfo>           m_filament_left, m_filament_right;
+
+            std::string filament_map_str;
+            for (auto fila : m_filaments_map) {
+                filament_map_str += std::to_string(fila) + " ";
+            };
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "[info]: m_filaments_map(fila2extuder)=[ " << filament_map_str << "]";
+
             for (auto it = m_filaments.begin(); it != m_filaments.end(); it++){
                 if (it->id < 0 || it->id > m_filaments_map.size()){
-                    BOOST_LOG_TRIVIAL(info) << "error: do_ams_mapping: m_filaments[].it" << it->id;
-                    BOOST_LOG_TRIVIAL(info) << "m_filaments_map.size()" << m_filaments_map.size();
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: m_filaments_map is invalid";
                     return false;
                 }
 
