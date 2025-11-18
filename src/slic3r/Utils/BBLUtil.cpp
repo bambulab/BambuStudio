@@ -166,7 +166,7 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                         } else if (array_item.is_string()) {
                             try {
                                 const auto& string_val = array_item.get<std::string>();
-                                if (string_val.empty()) {
+                                if (!string_val.empty()) {
                                     const auto& sub_json = nlohmann::json::parse(string_val);
                                     array_item = Crosstalk_JsonLog(sub_json);
                                 }
