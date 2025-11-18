@@ -1,6 +1,7 @@
 #include "../Print.hpp"
 #include "../ShortestPath.hpp"
 
+#include "ClipperUtils.hpp"
 #include "FillLightning.hpp"
 #include "Lightning/Generator.hpp"
 
