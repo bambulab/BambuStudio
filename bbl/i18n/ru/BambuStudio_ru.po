@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:11+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -4910,6 +4910,9 @@ msgstr "Подготовка"
 
 msgid "Preview"
 msgstr "Предпросмотр нарезки"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
 
 msgid "Device"
 msgstr "Принтер"
@@ -10022,6 +10025,9 @@ msgstr "Ошибка в версии прошивки. Перед печатью
 
 msgid "Extension Board"
 msgstr "Плата расширения"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Произошла ошибка при сохранении моделей в 3mf файл."

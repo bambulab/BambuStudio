@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:11+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4814,6 +4814,9 @@ msgstr "Vorbereiten"
 
 msgid "Preview"
 msgstr "Vorschau"
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
 
 msgid "Device"
 msgstr "Gerät"
@@ -9811,6 +9814,9 @@ msgstr "Die Firmware-Version ist nicht korrekt. Vor dem Drucken müssen Sie die 
 
 msgid "Extension Board"
 msgstr "Erweiterungsboard"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Das Speichern von Objekten in der 3mf ist fehlgeschlagen."

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 10:11+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4706,6 +4706,9 @@ msgid "Prepare"
 msgstr ""
 
 msgid "Preview"
+msgstr ""
+
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr ""
 
 msgid "Device"
@@ -9563,6 +9566,9 @@ msgid "The firmware version is abnormal. Repairing and updating are required bef
 msgstr ""
 
 msgid "Extension Board"
+msgstr ""
+
+msgid "Do you want to save the changes ?"
 msgstr ""
 
 msgid "Saving objects into the 3mf failed."
