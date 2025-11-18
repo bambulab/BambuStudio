@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -211,7 +211,7 @@ msgid "The hotend is in an abnormal state and currently unavailable. Please go t
 msgstr "이 핫엔드에 이상 상태가 발생하여 현재 사용할 수 없습니다. '장치 -> 업그레이드'로 이동하여 펌웨어를 업그레이드해 주세요."
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "비정상 핫엔드"
 
 msgid "Cancel"
 msgstr "취소"
@@ -4842,6 +4842,8 @@ msgid ""
 "This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"이중 압출기 장비로 슬라이싱하는 것은 이번이 처음입니다.\n"
+"간단한 튜토리얼 동영상을 보시겠습니까?"
 
 msgid "First Guide"
 msgstr "첫 번째 가이드"
@@ -4850,6 +4852,8 @@ msgid ""
 "This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"이것은 듀얼 압출기 기계로 TPU 필라멘트를 처음 출력하는 것입니다.\n"
+"간단한 튜토리얼 영상을 시청하시겠습니까?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF는 취성이 강하여 툴헤드 위쪽의 구부러진 PTFE 튜브에서 파손될 수 있습니다. 사용 전에 Wiki를 참조하세요. "
@@ -6641,7 +6645,7 @@ msgid "\n"
 msgstr ""
 
 msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
-msgstr ""
+msgstr "(수정 경로: '프로세스'-'기타'-'특수 모드'-'타임랩스')"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "타임랩스용 스무드 모드가 활성화되어 있지만 프라임 타워가 꺼져 있어 출력 결함이 발생할 수 있습니다. 프라임 타워를 활성화하고 다시 슬라이스한 후 다시 출력하세요."
@@ -7950,7 +7954,7 @@ msgstr ""
 "*자동 모드: 출력하기 전에 보정 여부를 확인합니다. 불필요한 경우 건너뜁니다."
 
 msgid "Nozzles and filaments of the same type share the same PA profile"
-msgstr ""
+msgstr "동일 유형의 노즐과 필라멘트는 동일한 PA 프로필을 공유합니다."
 
 msgid "send completed"
 msgstr "전송 완료"
@@ -8104,7 +8108,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "현재 노즐 매핑으로 출력하면 약 %0.2f g의 낭비물이 추가로 발생할 수 있습니다."
 
 msgid "Cool"
 msgstr "쿨한"
@@ -8243,6 +8247,9 @@ msgstr "보내는 중..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "파일 업로드 시간이 초과되었습니다. 펌웨어 버전이 이 작업을 지원하는지 확인하거나 프린터가 제대로 작동하는지 확인하세요."
+
+msgid "Sending failed, please try again!"
+msgstr "전송 실패. 다시 시도하십시오!"
 
 msgid "Helio action completed successfully."
 msgstr "Helio 작업이 성공적으로 완료되었습니다."
@@ -8413,9 +8420,8 @@ msgid ""
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"PLA를 사용하여 TPU를 지지할 경우 다음 설정을 권장합니다.\n"
-"0 상단 z 거리, 0 인터페이스 간격, 0 지지대/물체 xy 거리, 인터레이스 직선 패턴, 비활성화 \n"
-"독립적 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 PLA 사용"
+"PLA를 사용하여 TPU를 지지할 경우 다음 설정을 권장합니다:\n"
+"상단 Z 거리 0, 인터페이스 간격 0, 지지대/모델 XY 거리 0, 인터레이스 직선 패턴, 독립 지지대 레이어 높이 비활성화 및 지지대 접촉과 지지대 베이스 모두에 PLA 사용"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -8439,17 +8445,16 @@ msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
-"서포트 인터페이스에 서포트 자료를 사용하는 경우 다음 설정을 권장합니다:\n"
-"상단 z 거리 0, 인터페이스 간격 0, 인터레이스된 직선 패턴 및 독립 서포트 레이어 높이 비활성화"
+"지지대 인터페이스에 지지대 소재를 사용하는 경우 다음 설정을 권장합니다:\n"
+"상단 Z 거리 0, 인터페이스 간격 0, 인터레이스 직선 패턴 및 독립 지지대 레이어 높이 비활성화"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
 "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"지지대 접촉에 용해성 물질을 사용할 때는 다음과 같은 설정을 권장합니다.\n"
-"0 상단 z 거리, 0 인터페이스 간격, 0 지지점/물체 xy 거리, 인터레이스 직선 패턴, 비활성화 \n"
-"독립적 지지대 레이어 높이 및 지지대 접촉과 지지대 베이스 모두에 가용성 소재 사용"
+"지지대 접촉에 용해성 소재를 사용할 때는 다음 설정을 권장합니다:\n"
+"상단 Z 거리 0, 인터페이스 간격 0, 지지체/객체 XY 거리 0, 인터레이스 직선 패턴, 독립적인 지지대 레이어 높이 비활성화 및 지지대 접촉과 지지대 베이스 모두에 용해성 소재 사용"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9684,13 +9689,13 @@ msgid "Optimise Outer Walls"
 msgstr "외벽 최적화"
 
 msgid "Helio default (recommended)"
-msgstr ""
+msgstr "Helio 기본값 (권장)"
 
 msgid "Slicer default"
-msgstr ""
+msgstr "슬라이서 기본값"
 
 msgid "Limits"
-msgstr ""
+msgstr "제한"
 
 msgid "Min Velocity"
 msgstr "최소 속도"
@@ -9708,7 +9713,7 @@ msgid "Last Trace ID: "
 msgstr "마지막 추적 ID: "
 
 msgid "Buy Now / Manage Account"
-msgstr ""
+msgstr "지금 구매 / 계정 관리"
 
 msgid "Click for more details"
 msgstr "자세한 내용을 보려면 클릭하세요"
@@ -9902,6 +9907,9 @@ msgstr "그룹화 오류입니다:"
 
 msgid " can not be placed in the "
 msgstr " 에 배치할 수 없습니다"
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "내벽"
@@ -10269,7 +10277,7 @@ msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z를 따라 벽 속도 평활화(실험적)"
 
 msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
-msgstr ""
+msgstr "더 나은 표면 품질을 위해 Z 방향으로 아웃월 속도를 부드럽게 조절합니다. 인쇄 시간이 증가합니다. 이 기능은 나선형 꽃병 모드에서는 작동하지 않습니다."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "벽 가로지르기 회피 - 최대 우회 길이"
@@ -11062,10 +11070,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "타워에서 핫엔드를 교체하기 위해 압출기를 준비하는 데 필요한 재료 부피."
 
 msgid "Wipe tower cooling"
-msgstr ""
+msgstr "와이프 타워 냉각"
 
 msgid "Temperature drop before entering filament tower"
-msgstr ""
+msgstr "필라멘트 타워 진입 전 온도 강하"
 
 msgid "Softening temperature"
 msgstr "연화 온도"
@@ -11390,7 +11398,7 @@ msgid "This option is enabled if machine support controlling chamber temperature
 msgstr "이 옵션은 기계가 챔버 온도 제어를 지원하는 경우 활성화됩니다."
 
 msgid "Apply top surface compensation"
-msgstr ""
+msgstr "상단 표면 보정 적용"
 
 msgid "Air filtration enhancement"
 msgstr "공기 여과 기능 향상"
@@ -11399,13 +11407,13 @@ msgid "Enable this if printer support air filtration enhancement."
 msgstr "프린터가 공기 정화 향상 기능을 지원하는 경우 활성화하십시오."
 
 msgid "Use cooling filter"
-msgstr ""
+msgstr "냉각 필터 사용"
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
+msgstr "프린터가 냉각 필터를 지원하는 경우 이 기능을 활성화하세요."
 
 msgid "Auto turn off filter on overheat"
-msgstr ""
+msgstr "과열 시 필터 자동 끄기"
 
 msgid "G-code flavor"
 msgstr "G-코드 형식"
@@ -11822,10 +11830,10 @@ msgid "The smaller the number, the longer the speed transition path. 0 means not
 msgstr "숫자가 작을수록 속도 전환 경로가 길어집니다. 0은 적용되지 않음을 의미합니다."
 
 msgid "Walls filament"
-msgstr ""
+msgstr "벽 필라멘트"
 
 msgid "Filament to print walls"
-msgstr ""
+msgstr "벽 출력용 필라멘트"
 
 msgid "Line width of inner wall"
 msgstr "내벽 라인 폭"
@@ -11969,10 +11977,10 @@ msgid "Saving"
 msgstr "저장 중"
 
 msgid "length when change hotend"
-msgstr ""
+msgstr "핫엔드 교체 시 길이"
 
 msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
-msgstr ""
+msgstr "이 수축 값이 수정되면 핫엔드를 변경하기 전에 핫엔드 내부로 수축되는 필라멘트 양으로 사용됩니다."
 
 msgid "Extra length on restart"
 msgstr "재시작시 여분의 길이"
@@ -12112,10 +12120,10 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Solid infill filament"
-msgstr ""
+msgstr "솔리드 인필 필라멘트"
 
 msgid "Filament to print solid infill"
-msgstr ""
+msgstr "솔리드 인필용 필라멘트"
 
 msgid "Line width of internal solid infill"
 msgstr "내부 솔리드 채움의 라인 폭"
@@ -12365,7 +12373,7 @@ msgid "Z overrides X/Y"
 msgstr "Z는 X/Y를 무시합니다."
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
-msgstr ""
+msgstr "상단 Z 거리가 지지대/객체 XY 거리를 무시할 경우, 오버행 아래에 지지대가 생성되도록 우선순위를 두며, 상단 Z 거리와 동일한 크기의 간격이 모델과 함께 유지됩니다. 반대로, 상단 Z 거리가 이를 무시하지 않을 경우에는 지지대와 모델 사이 간격이 항상 지지대/객체 XY 거리를 따릅니다. 이 옵션은 HybridTree 사용 시에만 활성화하는 것이 권장됩니다."
 
 msgid "Independent support layer height"
 msgstr "독립 서포트 레이어 높이"
@@ -12464,10 +12472,10 @@ msgid "This is  the number of layers of top bottom penetration."
 msgstr "이는 상단 하단 침투 레이어 수입니다."
 
 msgid "Use infill instead of top and bottom surfaces"
-msgstr ""
+msgstr "상단 및 하단 표면 대신 인필 사용"
 
 msgid "Using infill instead of top and bottom surfaces."
-msgstr ""
+msgstr "상단 및 하단 표면 대신 인필 사용함."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "이것은 이동이 완료되는 속도입니다."
@@ -14202,6 +14210,9 @@ msgstr ""
 "현재 선택한 %s 압출기의 노즐 유형이 실제 프린터 노즐 유형과 일치하지 않습니다.\n"
 "위의 동기화 버튼을 클릭하고 보정을 다시 시작하십시오."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "보정할 수 없음: 설정된 보정 값 범위가 너무 크거나 단계가 너무 작기 때문일 수 있습니다"
 
@@ -15413,9 +15424,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "미디어 기능 획득 시간 초과, 펌웨어 버전이 이를 지원하는지 확인하세요."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "전송 실패. 다시 시도하십시오!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "지정된 임계값보다 작은 간격을 필터링합니다. 이 설정은 상단/하단 레이어에 영향을 주지 않습니다."

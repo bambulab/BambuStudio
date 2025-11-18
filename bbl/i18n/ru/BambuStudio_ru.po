@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -8428,6 +8428,9 @@ msgstr "Отправка..."
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Время ожидания загрузки файла истекло. Проверьте, поддерживает ли текущая версия прошивки эту возможность, или убедитесь в правильности работы принтера."
 
+msgid "Sending failed, please try again!"
+msgstr "Отправка не удалась, попробуйте ещё раз!"
+
 msgid "Helio action completed successfully."
 msgstr ""
 
@@ -10130,6 +10133,9 @@ msgstr "Ошибка компоновки:"
 # ????
 msgid " can not be placed in the "
 msgstr "нельзя разместить в "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Внутренние периметры"
@@ -14516,6 +14522,9 @@ msgstr ""
 "Выбранный в данный момент тип сопла для экструдера %s не соответствует фактическому типу сопла принтера.\n"
 "Пожалуйста, нажмите кнопку синхронизации выше и перезапустите калибровку."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Невозможно выполнить калибровку: возможно, установленный диапазон значений калибровки слишком велик или шаг слишком мал."
 
@@ -15599,9 +15608,6 @@ msgstr ""
 # ???
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Время ожидания получения мультимедийных данных истекло. Проверьте, поддерживается ли это текущей версией прошивки."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Отправка не удалась, попробуйте ещё раз!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Небольшие промежутки меньше указанного порога не будут заполняться. Этот параметр не влияет на верхнюю/нижнюю поверхность."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -54,7 +54,7 @@ msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "O AMS não suporta 'Bambu Lab PET-CF'."
 
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
-msgstr ""
+msgstr "O filamento atual não suporta o bico E3D de alto fluxo e não pode ser usado."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Por favor, puxe a frio antes de imprimir TPU para evitar entupimentos. Você pode usar a manutenção por tração a frio na impressora."
@@ -78,7 +78,7 @@ msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "O PPA-CF é quebradiço e pode quebrar em um tubo de PTFE dobrado acima do cabeçote."
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr ""
+msgstr "As configurações padrão podem afetar a qualidade de impressão. Ajuste conforme necessário para obter os melhores resultados."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -215,7 +215,7 @@ msgid "The hotend is in an abnormal state and currently unavailable. Please go t
 msgstr "O hotend está em um estado anormal e atualmente indisponível. Por favor, vá em 'Dispositivo -> Atualizar' para atualizar o firmware."
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "Hotend anormal"
 
 msgid "Cancel"
 msgstr "Cancelar"
@@ -554,7 +554,7 @@ msgid "Translate(Relative)"
 msgstr "Traduzir (relativo)"
 
 msgid "Align top-bottom center"
-msgstr ""
+msgstr "Alinhar centro vertical superior-inferior"
 
 msgid "Align"
 msgstr "Alinhar"
@@ -566,40 +566,40 @@ msgid "Holded down Ctrl key continuously and click by left mouse button can sele
 msgstr "Segurar a tecla Ctrl continuamente e clicar com o botão esquerdo do mouse pode selecionar múltiplos objetos, ou segurar a tecla Alt continuamente e clicar com o botão esquerdo do mouse pode selecionar múltiplas partes"
 
 msgid "Align left"
-msgstr ""
+msgstr "Alinhar à esquerda"
 
 msgid "Align left-right center"
-msgstr ""
+msgstr "Alinhar ao centro horizontal"
 
 msgid "Align right"
-msgstr ""
+msgstr "Alinhar à direita"
 
 msgid "Distribute left-right"
-msgstr ""
+msgstr "Distribuir esquerda-direita"
 
 msgid "Please select at least 3 parts or objects"
 msgstr "Por favor, selecione pelo menos 3 peças ou objetos"
 
 msgid "Align front"
-msgstr ""
+msgstr "Alinhar parte frontal"
 
 msgid "Align front-back center"
-msgstr ""
+msgstr "Alinhar centro frente-trás"
 
 msgid "Align back"
-msgstr ""
+msgstr "Alinhar para trás"
 
 msgid "Distribute front-back"
-msgstr ""
+msgstr "Distribuir frente-trás"
 
 msgid "Align bottom"
-msgstr ""
+msgstr "Alinhar a parte inferior"
 
 msgid "Align top"
-msgstr ""
+msgstr "Alinhar o topo"
 
 msgid "Distribute top-bottom"
-msgstr ""
+msgstr "Distribuir de cima para baixo"
 
 msgid "°"
 msgstr "°"
@@ -4850,6 +4850,8 @@ msgid ""
 "This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Esta é a primeira vez que você fatia com a máquina de extrusores duplos.\n"
+"Gostaria de assistir a um rápido vídeo tutorial?"
 
 msgid "First Guide"
 msgstr "Primeiro Guia"
@@ -4858,6 +4860,8 @@ msgid ""
 "This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Esta é a sua primeira vez imprimindo filamentos de Tpu com a impressora de extrusão dupla.\n"
+"Gostaria de assistir a um breve vídeo tutorial?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF é frágil e pode quebrar em um tubo de PTFE dobrado acima da cabeça da ferramenta. Consulte o Wiki antes de usar. "
@@ -6344,7 +6348,7 @@ msgid "Type Detection"
 msgstr "Detecção de Tipo"
 
 msgid "Pauses printing when the detected build plate type does not match the selected one."
-msgstr ""
+msgstr "Pausa a impressão quando o tipo de placa de construção detectado não corresponde ao selecionado."
 
 msgid "Alignment Detection"
 msgstr "Detecção de Alinhamento"
@@ -8113,11 +8117,11 @@ msgstr "Falha ao receber a tabela de mapeamento automático do bico da impressor
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
-msgstr ""
+msgstr "A impressora falhou ao construir a tabela de auto-mapeamento do bico { código: %d }. Por favor, atualize as informações do bico."
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "O mapeamento atual do bico pode produzir um desperdício extra de %0.2f g."
 
 msgid "Cool"
 msgstr "Frio"
@@ -8258,6 +8262,9 @@ msgstr "Enviando..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "O upload do arquivo expirou. Verifique se a versão do firmware suporta esta operação ou verifique se a impressora está funcionando corretamente."
+
+msgid "Sending failed, please try again!"
+msgstr "O envio falhou, tente novamente!"
 
 msgid "Helio action completed successfully."
 msgstr "Ação Helio concluída com sucesso."
@@ -8429,8 +8436,8 @@ msgid ""
 "independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 "Ao usar o PLA para oferecer suporte à TPU, recomendamos as seguintes configurações:\n"
-"0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
-"altura independente da camada de suporte e uso de PLA para interface de suporte e base de suporte"
+"0 distância superior no eixo Z, 0 espaçamento de interface, 0 distância XY entre suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
+"altura independente da camada de suporte e usar PLA tanto para a interface quanto para a base do suporte"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -8438,8 +8445,8 @@ msgid ""
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Ao usar material solúvel como suporte, recomendamos as seguintes configurações:\n"
-"0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
-"altura independente da camada de suporte e uso de materiais solúveis tanto para a interface de suporte quanto para a base de suporte"
+"0 distância superior em z, 0 espaçamento de interface, 0 distância xy entre suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
+"altura independente da camada de suporte e usar materiais solúveis tanto para a interface quanto para a base do suporte"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8455,7 +8462,7 @@ msgid ""
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "Ao usar material de suporte para a interface de suporte, recomendamos as seguintes configurações:\n"
-"0 distância superior a z, 0 espaçamento de interface, padrão retilíneo entrelaçado e desativação da altura independente da camada de suporte"
+"0 distância superior em z, 0 espaçamento de interface, padrão retilíneo entrelaçado e desativar altura independente da camada de suporte"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -8463,8 +8470,8 @@ msgid ""
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Ao usar material solúvel para a interface de suporte, recomendamos as seguintes configurações:\n"
-"0 distância superior a z, 0 espaçamento de interface, 0 distância x de suporte/objeto, padrão retilíneo entrelaçado, desabilitar \n"
-"altura independente da camada de suporte e uso de materiais solúveis tanto para a interface de suporte quanto para a base de suporte"
+"0 de distância superior, 0 de interface espaçamento, 0 de suportamento/objeto de distancia, Padrão rectilinear entrelaçado, desative \n"
+"independente suporte altura da camada e use materiais solúveis para interface de suporte e base de suporte"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9923,6 +9930,9 @@ msgstr "Erro de agrupamento:"
 msgid " can not be placed in the "
 msgstr " não pode ser colocado no"
 
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
+
 msgid "Inner wall"
 msgstr "Parede interior"
 
@@ -11082,10 +11092,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "O volume de material necessário para preparar o extrusor para uma troca do hotend na torre."
 
 msgid "Wipe tower cooling"
-msgstr ""
+msgstr "Resfriamento da torre de limpeza"
 
 msgid "Temperature drop before entering filament tower"
-msgstr ""
+msgstr "Queda de temperatura antes de entrar na torre de filament"
 
 msgid "Softening temperature"
 msgstr "Temperatura de amolecimento"
@@ -11419,13 +11429,13 @@ msgid "Enable this if printer support air filtration enhancement."
 msgstr "Enable this if printer support air filtration enhancement."
 
 msgid "Use cooling filter"
-msgstr ""
+msgstr "Usar filtro de resfriamento"
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
+msgstr "Ative essa opção se a impressora suportar filtro de resfriamento"
 
 msgid "Auto turn off filter on overheat"
-msgstr ""
+msgstr "Desligamento automático do filtro em caso de superaquecimento"
 
 msgid "G-code flavor"
 msgstr "Sabor de g-code"
@@ -11842,10 +11852,10 @@ msgid "The smaller the number, the longer the speed transition path. 0 means not
 msgstr "Quanto menor o número, maior o caminho de transição de velocidade. 0 significa não se aplicar."
 
 msgid "Walls filament"
-msgstr ""
+msgstr "Filamento das paredes"
 
 msgid "Filament to print walls"
-msgstr ""
+msgstr "Filamento para imprimir paredes"
 
 msgid "Line width of inner wall"
 msgstr "Largura da linha das paredes internas"
@@ -12130,10 +12140,10 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Solid infill filament"
-msgstr ""
+msgstr "Filamento para preenchimento sólido"
 
 msgid "Filament to print solid infill"
-msgstr ""
+msgstr "Filamento para imprimir preenchimento sólido"
 
 msgid "Line width of internal solid infill"
 msgstr "Largura da linha do preenchimento interno sólido"
@@ -12383,7 +12393,7 @@ msgid "Z overrides X/Y"
 msgstr "Z substitui X/Y"
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
-msgstr ""
+msgstr "Quando a distância z superior sobrepõe-se à distância xy do suporte/objeto, priorize a geração de suportes sob saliências e deixe um espaço do mesmo tamanho que a distância z superior junto ao modelo. Caso contrário, o espaço entre os suportes e o modelo sempre seguirá a distância xy do suporte/objeto. Recomenda-se habilitar essa opção apenas ao usar o HybridTree."
 
 msgid "Independent support layer height"
 msgstr "Altura da camada de suporte independente"
@@ -14221,6 +14231,9 @@ msgstr ""
 "O tipo de bico selecionado atualmente da extrusora %s não corresponde ao tipo de bico da impressora real.\n"
 "Clique no botão Sync acima e reinicie a calibração."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Não é possível calibrar: talvez porque a faixa de valores de calibração definida seja muito grande ou a etapa seja muito pequena"
 
@@ -15438,9 +15451,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Tempo limite de aquisição de capacidade de mídia, verifique se a versão do firmware suporta isso."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "O envio falhou, tente novamente!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtre as lacunas menores do que o limite especificado. Essa configuração não afetará as camadas superior/inferior"
