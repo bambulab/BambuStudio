@@ -553,7 +553,7 @@ std::string AppConfig::load()
         auto path = AppConfig::loading_path();
         ifs.open(path);
         if (!ifs.is_open()) {
-            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() open fail:" << AppConfig::loading_path();
+            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() open fail:" << PathSanitizer::sanitize(path);
             return "Line break format may be incorrect.";
         }
 #ifdef WIN32
@@ -561,7 +561,7 @@ std::string AppConfig::load()
         input_stream << ifs.rdbuf();
         std::string total_string = input_stream.str();
         if (total_string.empty()) {
-            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() read fail:" << AppConfig::loading_path();
+            BOOST_LOG_TRIVIAL(info) << "AppConfig::load() read fail:" << PathSanitizer::sanitize(path);
             return "read fail.";
         } else {
             size_t      last_pos    = total_string.find_last_of('}');
@@ -572,7 +572,7 @@ std::string AppConfig::load()
             std::string md5_str = appconfig_md5_hash_line({left_string.data()});
             // Verify the checksum of the config file without taking just for debugging purpose.
             if (md5_str != right_string) {
-                BOOST_LOG_TRIVIAL(info) << "The configuration file " << AppConfig::loading_path()
+                BOOST_LOG_TRIVIAL(info) << "The configuration file " << PathSanitizer::sanitize(path)
                                         << " has a wrong MD5 checksum or the checksum is missing. This may indicate a file corruption or a harmless user edit.";
             }
             j = json::parse(left_string);
@@ -728,7 +728,7 @@ std::string AppConfig::load()
             }
         }
     } catch(std::exception err) {
-        BOOST_LOG_TRIVIAL(info) << format("parse app config \"%1%\", error: %2%", AppConfig::loading_path(), err.what());
+        BOOST_LOG_TRIVIAL(info) << format("parse app config \"%1%\", error: %2%", PathSanitizer::sanitize(AppConfig::loading_path()), err.what());
 
         return err.what();
     }
@@ -770,7 +770,7 @@ void AppConfig::save()
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();
-    std::string path_pid = (boost::format("%1%.%2%") % path % get_current_pid()).str();
+    std::string path_pid = (boost::format("%1%.%2%") % PathSanitizer::sanitize(path) % get_current_pid()).str();
 
     json j;
 
@@ -905,7 +905,7 @@ void AppConfig::save()
     std::string backup_path = (boost::format("%1%.bak") % path).str();
     // Copy configuration file with PID suffix into the configuration file with "bak" suffix.
     if (copy_file(path_pid, backup_path, error_message, false) != SUCCESS)
-        BOOST_LOG_TRIVIAL(error) << "Copying from " << path_pid << " to " << backup_path << " failed. Failed to create a backup configuration.";
+        BOOST_LOG_TRIVIAL(error) << "Copying from " << path_pid << " to " << PathSanitizer::sanitize(backup_path) << " failed. Failed to create a backup configuration.";
 #endif
 
     // Rename the config atomically.
@@ -930,7 +930,7 @@ std::string AppConfig::load()
 #ifdef WIN32
         // Verify the checksum of the config file without taking just for debugging purpose.
         if (!verify_config_file_checksum(ifs))
-            BOOST_LOG_TRIVIAL(info) << "The configuration file " << AppConfig::loading_path() <<
+            BOOST_LOG_TRIVIAL(info) << "The configuration file " << PathSanitizer::sanitize(AppConfig::loading_path()) <<
             " has a wrong MD5 checksum or the checksum is missing. This may indicate a file corruption or a harmless user edit.";
 
         ifs.seekg(0, boost::nowide::ifstream::beg);
@@ -946,17 +946,17 @@ std::string AppConfig::load()
             // Compute checksum of the configuration backup file and try to load configuration from it when the checksum is correct.
             boost::nowide::ifstream backup_ifs(backup_path);
             if (!verify_config_file_checksum(backup_ifs)) {
-                BOOST_LOG_TRIVIAL(error) << format("Both \"%1%\" and \"%2%\" are corrupted. It isn't possible to restore configuration from the backup.", AppConfig::loading_path(), backup_path);
+                BOOST_LOG_TRIVIAL(error) << format("Both \"%1%\" and \"%2%\" are corrupted. It isn't possible to restore configuration from the backup.", PathSanitizer::sanitize(AppConfig::loading_path()), PathSanitizer::sanitize(backup_path));
                 backup_ifs.close();
                 boost::filesystem::remove(backup_path);
             }
             else if (std::string error_message; copy_file(backup_path, AppConfig::loading_path(), error_message, false) != SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << format("Configuration file \"%1%\" is corrupted. Failed to restore from backup \"%2%\": %3%", AppConfig::loading_path(), backup_path, error_message);
+                BOOST_LOG_TRIVIAL(error) << format("Configuration file \"%1%\" is corrupted. Failed to restore from backup \"%2%\": %3%", PathSanitizer::sanitize(AppConfig::loading_path()), PathSanitizer::sanitize(backup_path), error_message);
                 backup_ifs.close();
                 boost::filesystem::remove(backup_path);
             }
             else {
-                BOOST_LOG_TRIVIAL(info) << format("Configuration file \"%1%\" was corrupted. It has been succesfully restored from the backup \"%2%\".", AppConfig::loading_path(), backup_path);
+                BOOST_LOG_TRIVIAL(info) << format("Configuration file \"%1%\" was corrupted. It has been succesfully restored from the backup \"%2%\".", PathSanitizer::sanitize(AppConfig::loading_path()), PathSanitizer::sanitize(backup_path));
                 // Try parse configuration file after restore from backup.
                 try {
                     ifs.open(AppConfig::loading_path());
@@ -964,13 +964,13 @@ std::string AppConfig::load()
                     recovered = true;
                 }
                 catch (pt::ptree_error& ex) {
-                    BOOST_LOG_TRIVIAL(info) << format("Failed to parse configuration file \"%1%\" after it has been restored from backup: %2%", AppConfig::loading_path(), ex.what());
+                    BOOST_LOG_TRIVIAL(info) << format("Failed to parse configuration file \"%1%\" after it has been restored from backup: %2%", PathSanitizer::sanitize(AppConfig::loading_path()), ex.what());
                 }
             }
         }
         else
 #endif // WIN32
-            BOOST_LOG_TRIVIAL(info) << format("Failed to parse configuration file \"%1%\": %2%", AppConfig::loading_path(), ex.what());
+            BOOST_LOG_TRIVIAL(info) << format("Failed to parse configuration file \"%1%\": %2%", PathSanitizer::sanitize(AppConfig::loading_path()), ex.what());
         if (!recovered) {
             // Report the initial error of parsing PrusaSlicer.ini.
             // Error while parsing config file. We'll customize the error message and rethrow to be displayed.
@@ -1056,7 +1056,7 @@ void AppConfig::save()
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();
-    std::string path_pid = (boost::format("%1%.%2%") % path % get_current_pid()).str();
+    std::string path_pid = (boost::format("%1%.%2%") % PathSanitizer::sanitize(path) % get_current_pid()).str();
 
     std::stringstream config_ss;
     if (m_mode == EAppMode::Editor)
@@ -1110,7 +1110,7 @@ void AppConfig::save()
     std::string backup_path = (boost::format("%1%.bak") % path).str();
     // Copy configuration file with PID suffix into the configuration file with "bak" suffix.
     if (copy_file(path_pid, backup_path, error_message, false) != SUCCESS)
-        BOOST_LOG_TRIVIAL(error) << "Copying from " << path_pid << " to " << backup_path << " failed. Failed to create a backup configuration.";
+        BOOST_LOG_TRIVIAL(error) << "Copying from " << path_pid << " to " << PathSanitizer::sanitize(backup_path) << " failed. Failed to create a backup configuration.";
 #endif
 
     // Rename the config atomically.
