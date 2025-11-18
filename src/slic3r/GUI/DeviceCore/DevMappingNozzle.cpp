@@ -15,6 +15,7 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 
+#include <boost/lexical_cast.hpp>
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
