@@ -3950,7 +3950,7 @@ void WipeTower::generate_wipe_tower_blocks()
     m_cur_layer_id = 0;
     for (auto& info : m_plan) {
         for (const WipeTowerInfo::ToolChange &tool_change : info.tool_changes) {
-            if (!is_need_ramming(tool_change.old_tool, tool_change.new_tool)) {
+            if (is_need_ramming(tool_change.old_tool, tool_change.new_tool)) {
                 int filament_adhesiveness_category = get_filament_category(tool_change.new_tool);
                 add_depth_to_block(tool_change.new_tool, filament_adhesiveness_category, tool_change.required_depth);
             }
