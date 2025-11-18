@@ -427,7 +427,7 @@ ModelVolume *Selection::get_selected_single_volume(int &out_object_idx, int &out
 
 ModelObject *Selection::get_selected_single_object(int &out_object_idx)
 {
-    if (is_single_volume() || is_single_modifier() || is_single_full_object()) {
+    if (is_single_volume() || is_single_modifier() || is_multiple_volume() || is_multiple_modifier() || is_single_full_object()) {
         const GLVolume *gl_volume = get_volume(*get_volume_idxs().begin());
         out_object_idx            = gl_volume->object_idx();
         return get_model()->objects[out_object_idx];
