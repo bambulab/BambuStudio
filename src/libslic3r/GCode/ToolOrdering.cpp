@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include <libslic3r.h>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 
