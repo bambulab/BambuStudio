@@ -573,6 +573,8 @@ public:
     int GetHoverId();
     void set_ignore_left_up() { m_mouse.ignore_left_up = true; }
     GLVolumeCollection &get_paint_outline_volumes() { return m_paint_outline_volumes; }
+    Vec2i               convert_world_pt_to_screen(Vec3d pos);
+    bool                is_mouse_in_screen_convex_hull(Vec2i mouse,const BoundingBoxf3& box);
 
 private:
     bool m_is_dark = false;
