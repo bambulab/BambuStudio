@@ -1745,6 +1745,9 @@ public:
     bool                timestamp_matches(const ModelConfig &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
     // Not thread safe! Should not be called from other than the main thread!
     void                touch() { m_timestamp = ++ s_last_timestamp; }
+    bool operator==(const ModelConfig &other) const {
+        return m_data == other.m_data;
+    }
 
 private:
     friend class cereal::access;

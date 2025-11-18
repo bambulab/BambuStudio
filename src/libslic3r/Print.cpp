@@ -1832,6 +1832,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             if (model_volume1.config.get() != model_volume2.config.get())
                 return false;
         }
+
+        // layer height ranges check
+        if ( model_obj1->layer_config_ranges != model_obj2->layer_config_ranges )
+            return false;
+
         //if (!object1->config().equals(object2->config()))
         //    return false;
         if (model_obj1->layer_height_profile.get() != model_obj2->layer_height_profile.get())

@@ -763,7 +763,7 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
                         else {
                             int new_value = object->volumes[id]->config.opt_int(key) > filament_id ? object->volumes[id]->config.opt_int(key) - 1 :
                                                                                                      object->volumes[id]->config.opt_int(key);
-                            object->config.set_key_value(key, new ConfigOptionInt(new_value));
+                            object->volumes[id]->config.set_key_value(key, new ConfigOptionInt(new_value));
                         }
                     }
                 }
