@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -114,7 +114,7 @@ msgid "Unknown"
 msgstr "Nieznane"
 
 msgid "Hardened Steel"
-msgstr "Stal Hartowana"
+msgstr "Stal hartowana"
 
 msgid "Stainless Steel"
 msgstr "Stal nierdzewna"
@@ -211,7 +211,7 @@ msgid "The hotend is in an abnormal state and currently unavailable. Please go t
 msgstr "Hotend jest w nieprawidłowym stanie i jest obecnie niedostępny. Przejdź do \"Urządzenie -> Aktualizacja\" w celu aktualizacji firmware"
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "Nieprawidłowy hotend"
 
 msgid "Cancel"
 msgstr "Anuluj"
@@ -2714,7 +2714,7 @@ msgid "Hotend"
 msgstr ""
 
 msgid "Parts"
-msgstr "Część"
+msgstr "Wydruk"
 
 msgid "Aux"
 msgstr "Pomocniczy"
@@ -3409,13 +3409,13 @@ msgid "Update remaining capacity"
 msgstr "Aktualizuj pozostałą pojemność"
 
 msgid "AMS will attempt to estimate the remaining capacity of the Bambu Lab filaments."
-msgstr "AMS spróbuje oszacować pozostałą ilość filamentu Bambu Lab"
+msgstr "AMS spróbuje oszacować pozostałą ilość filamentów Bambu Lab."
 
 msgid "AMS filament backup"
 msgstr "Rezerwowy filament AMS"
 
 msgid "AMS will continue to another spool with the same properties of filament automatically when current filament runs out"
-msgstr "AMS automatycznie przełączy się na inne gniazdo z tym samym rodzajem filamentu, gdy obecny filament się skończy"
+msgstr "AMS automatycznie przełączy się na inne gniazdo z tym samym rodzajem filamentu, gdy obecny filament się skończy."
 
 msgid "Air Printing Detection"
 msgstr "Wykrywanie druku w powietrzu"
@@ -4853,6 +4853,8 @@ msgid ""
 "This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"To Twój pierwszy raz przy przygotowywaniu pliku do druku na urządzeniu z podwójnym ekstruderem.\n"
+"Czy chcesz obejrzeć krótki film instruktażowy?"
 
 msgid "First Guide"
 msgstr "Samouczek"
@@ -4861,6 +4863,8 @@ msgid ""
 "This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Po raz pierwszy drukujesz filamentami TPU za pomocą urządzenia z podwójnym ekstruderem.\n"
+"Czy chcesz obejrzeć krótki film instruktażowy?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF jest kruchy i może pęknąć w wygiętym fragmencie rurki PTFE nad głowicą. Przed użyciem zapoznaj się z Wiki. "
@@ -6666,7 +6670,7 @@ msgid "\n"
 msgstr ""
 
 msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
-msgstr ""
+msgstr "(Ścieżka do modyfikacji: 'Proces'-'Inne'-'Tryb specjalny'-'Timelapse')"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Włączono tryb płynny dla timelapse, ale wieża główna jest wyłączona, co może powodować wady wydruku. Włącz wieżę czyszczącą, ponownie wykonaj cięcie i wydrukuj."
@@ -7975,7 +7979,7 @@ msgstr ""
 "*Tryb automatyczny: Sprawdź kalibrację przed drukowaniem. Pomiń, jeśli nie jest to konieczne."
 
 msgid "Nozzles and filaments of the same type share the same PA profile"
-msgstr ""
+msgstr "Dysze i filamenty tego samego typu korzystają z tego samego profilu PA"
 
 msgid "send completed"
 msgstr "wysłanie zakończone"
@@ -8129,7 +8133,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "Aktualne mapowanie dyszy może spowodować powstanie dodatkowych %0.2f g odpadów."
 
 msgid "Cool"
 msgstr ""
@@ -8268,6 +8272,9 @@ msgstr "Wysyłam..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Przekroczono limit czasu wgrywania pliku. Sprawdź czy Twoja wersja oprogramowania obsługuje tą operację oraz czy drukarka działa poprawnie."
+
+msgid "Sending failed, please try again!"
+msgstr "Wysyłanie nie powiodło się. Proszę spróbować ponownie!"
 
 msgid "Helio action completed successfully."
 msgstr "Akcja Helio została pomyślnie zakończona."
@@ -8415,7 +8422,7 @@ msgid "Prime tower is required for clumping detection. There may be flaws on the
 msgstr "Wieża czyszcząca jest wymagana do wykrywania zalepienia dyszy. Możliwe są wady na modelu bez wieży czyszczącej. Czy na pewno chcesz ją wyłączyć?"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
-msgstr "Włączenie zarówno precyzyjnej wysokości Z, jak i głównej wieży może spowodować zwiększenie rozmiaru głównej wieży. Czy nadal chcesz włączyć?"
+msgstr "Włączenie zarówno precyzyjnej wysokości Z, jak i wieży czyszczącej może spowodować zwiększenie rozmiaru wieży. Czy nadal chcesz włączyć?"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr "Wieża czyszcząca jest wymagana do wykrywania zlepienia dyszy. Możliwe są wady na modelu bez wieży czyszczącej. Czy chcesz nadal włączyć wykrywanie zalepiania?"
@@ -9719,13 +9726,13 @@ msgid "Optimise Outer Walls"
 msgstr "Optymalizuj zewnętrzne ściany"
 
 msgid "Helio default (recommended)"
-msgstr ""
+msgstr "Domyślnie Helio (zalecane)"
 
 msgid "Slicer default"
-msgstr ""
+msgstr "Domyślnie Slicer"
 
 msgid "Limits"
-msgstr ""
+msgstr "Limity"
 
 msgid "Min Velocity"
 msgstr "Minimalna prędkość"
@@ -9743,7 +9750,7 @@ msgid "Last Trace ID: "
 msgstr "Ostatni ID ścieżki: "
 
 msgid "Buy Now / Manage Account"
-msgstr ""
+msgstr "Kup teraz / Zarządzaj kontem"
 
 msgid "Click for more details"
 msgstr "Kliknij, aby uzyskać więcej szczegółów"
@@ -9937,6 +9944,9 @@ msgstr "Błąd grupowania: "
 
 msgid " can not be placed in the "
 msgstr " nie może być umieszczony w "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Wewnętrzna ściana"
@@ -10304,7 +10314,7 @@ msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Złagodzenie prędkości drukowania ścian wzdłuż osi Z(eksperymentalne)"
 
 msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
-msgstr ""
+msgstr "Wygładzanie prędkości zewnętrznej ściany w kierunku Z w celu uzyskania lepszej jakości powierzchni: Wydłuży się czas drukowania. Nie działa w trybie wazy."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Unikaj ruchów nad obrysami - Maksymalna długość objazdu"
@@ -11098,10 +11108,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "Objętość materiału wymagana do oczyszczania ekstrudera na wieży przed zmianą hotendu."
 
 msgid "Wipe tower cooling"
-msgstr ""
+msgstr "Chłodzenie wieży czyszczącej"
 
 msgid "Temperature drop before entering filament tower"
-msgstr ""
+msgstr "Obniżenie temperatury przed wejściem do wieży filamentu"
 
 msgid "Softening temperature"
 msgstr "Temperatura zmiękczania"
@@ -11426,7 +11436,7 @@ msgid "This option is enabled if machine support controlling chamber temperature
 msgstr "Ta opcja jest włączona, jeśli maszyna obsługuje kontrolę temperatury komory"
 
 msgid "Apply top surface compensation"
-msgstr ""
+msgstr "Zastosuj kompensację górnej powierzchni"
 
 msgid "Air filtration enhancement"
 msgstr "Obsługa filtracji powietrza"
@@ -11435,13 +11445,13 @@ msgid "Enable this if printer support air filtration enhancement."
 msgstr "Włącz to, jeśli drukarka obsługuje filtrację powietrza."
 
 msgid "Use cooling filter"
-msgstr ""
+msgstr "Użyj filtra przy chłodzeniu"
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
+msgstr "Włącz tę opcję, jeśli drukarka może korzystać z filtra przy chłodzeniu."
 
 msgid "Auto turn off filter on overheat"
-msgstr ""
+msgstr "Automatyczne wyłączenie filtra w przypadku przegrzania"
 
 msgid "G-code flavor"
 msgstr "Typ G-code"
@@ -11858,10 +11868,10 @@ msgid "The smaller the number, the longer the speed transition path. 0 means not
 msgstr "Im mniejsza wartość, tym większy obszar przejścia prędkości. 0 oznacza nie stosuj."
 
 msgid "Walls filament"
-msgstr ""
+msgstr "Filament ścian"
 
 msgid "Filament to print walls"
-msgstr ""
+msgstr "Filament do drukowania ścian"
 
 msgid "Line width of inner wall"
 msgstr "Szerokość linii ściany wewnętrznej"
@@ -12005,10 +12015,10 @@ msgid "Saving"
 msgstr "Oszczędność"
 
 msgid "length when change hotend"
-msgstr ""
+msgstr "długość przy zmianie hotendu"
 
 msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
-msgstr ""
+msgstr "Po modyfikacji tej wartości retrakcji będzie ona używana jako ilość cofniętego filamentu wewnątrz hotendu przed każdą jego zmianą."
 
 msgid "Extra length on restart"
 msgstr "Dodatkowa długość przed wznowieniem"
@@ -12148,10 +12158,10 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Solid infill filament"
-msgstr ""
+msgstr "Filament pełnego wypełnienia"
 
 msgid "Filament to print solid infill"
-msgstr ""
+msgstr "Filament do drukowania pełnego wypełnienia"
 
 msgid "Line width of internal solid infill"
 msgstr "Szerokość linii wewnętrznego pełnego wypełnienia"
@@ -12401,7 +12411,7 @@ msgid "Z overrides X/Y"
 msgstr "Z nadpisuje X/Y"
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
-msgstr ""
+msgstr "Kiedy górny dystans w osi Z nadpisuje odległość podpora/obiekt w osi XY, priorytetem jest wygenerowanie podpór pod nawisami oraz pozostawienie szczeliny względem modelu o wielkości równej górnemu dystansowi Z. W przeciwnym przypadku, szczelina między podporami a modelem zawsze odpowiada odległości podpora/obiekt w osi XY. Zaleca się włączać tę opcję tylko podczas korzystania z drzewa hybrydowego."
 
 msgid "Independent support layer height"
 msgstr "Niezależna wysokość warstwy podpory"
@@ -12500,10 +12510,10 @@ msgid "This is  the number of layers of top bottom penetration."
 msgstr "To liczba warstw przenikania dla dolnych warstw."
 
 msgid "Use infill instead of top and bottom surfaces"
-msgstr ""
+msgstr "Zastosuj wypełnienie zamiast górnych i dolnych powierzchni"
 
 msgid "Using infill instead of top and bottom surfaces."
-msgstr ""
+msgstr "Zamiast górnych i dolnych powierzchni zostanie zastosowana struktura wypełnienia."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Prędkość jałowa, która jest szybsza i bez ekstruzji"
@@ -14239,6 +14249,9 @@ msgstr ""
 "Aktualnie wybrany typ dyszy ekstrudera %s nie jest zgodny z aktualnym typem dyszy drukarki.\n"
 "Kliknij \"Synchronizuj\" i zrestartuj kalibrację."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Nie można skalibrować: być może zakres ustawionych wartości kalibracyjnych jest zbyt duży, lub krok jest zbyt mały"
 
@@ -15450,9 +15463,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Przekroczono limit czasu pozyskiwania mediów. Sprawdź, czy wersja firmware obsługuje tę funkcję."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Wysyłanie nie powiodło się. Proszę spróbować ponownie!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtruj szczeliny mniejsze niż określony próg. To ustawienie nie wpłynie na warstwy górne/dolne"

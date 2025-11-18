@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -211,7 +211,7 @@ msgid "The hotend is in an abnormal state and currently unavailable. Please go t
 msgstr "A hotend állapota rendellenes, és jelenleg nem elérhető. Kérjük, lépj az „Eszköz -> Frissítés“ oldalra a firmware frissítéséhez."
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "Rendellenes hotend"
 
 msgid "Cancel"
 msgstr "Mégse"
@@ -4847,6 +4847,8 @@ msgid ""
 "This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Ez az első alkalom, hogy egy dupla extruderes géppel szeletelsz.\n"
+"Szeretnél megnézni egy gyors oktatóvideót?"
 
 msgid "First Guide"
 msgstr "Útmutató"
@@ -4855,6 +4857,8 @@ msgid ""
 "This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Ez az első alkalom, hogy TPU-filamentet nyomtatsz egy dupla extruderes nyomtatóval.\n"
+"Szeretnél megnézni egy gyors oktatóvideót?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "A PPS-CF/PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben. Kérjük, olvasd el a kapcsolódó cikket a Wikiben használat előtt. "
@@ -6653,7 +6657,7 @@ msgid "\n"
 msgstr ""
 
 msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
-msgstr ""
+msgstr "(Módosítási útvonal: 'Folyamat'-'Egyéb'-'Speciális mód'-'Timelapse')"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "A sima timelapse-mód engedélyezve van, de a törlőtorony ki van kapcsolva, ami nyomtatási hibákat okozhat. Kérjük, engedélyezd a törlőtoronyt és indítsd el újból a nyomtatást."
@@ -7959,7 +7963,7 @@ msgstr ""
 "*Automatikus mód: Kalibrálás ellenőrzése a nyomtatás előtt; kihagyás, ha nem szükséges."
 
 msgid "Nozzles and filaments of the same type share the same PA profile"
-msgstr ""
+msgstr "Az azonos típusú fúvókák és filamentek ugyanazt a PA profilt használják"
 
 msgid "send completed"
 msgstr "küldés befejezve"
@@ -8113,7 +8117,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "A jelenlegi fúvókakiosztás további %0.2f g hulladékot eredményezhet."
 
 msgid "Cool"
 msgstr ""
@@ -8252,6 +8256,9 @@ msgstr "Küldés…"
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Időtúllépés a fájl feltöltése során. Kérjük, ellenőrizd, hogy a firmware verziója támogatja-e ezt a műveletet, vagy ellenőrizd, hogy a nyomtató megfelelően működik-e."
+
+msgid "Sending failed, please try again!"
+msgstr "A küldés sikertelen, kérjük próbáld újra!"
 
 msgid "Helio action completed successfully."
 msgstr "Helio művelet sikeresen befejezve."
@@ -8423,8 +8430,7 @@ msgid ""
 "independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 "Ha PLA-t használsz támaszanyagként TPU-val való nyomtatáskor, akkor a következő beállításokat javasoljuk:\n"
-"0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
-"független támasz rétegmagasság. Használj PLA-t mind az érintkezőfelülethez, mind a támasz alapjához."
+"0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt független támasz rétegmagasság. Használj PLA-t mind az érintkezőfelülethez, mind a támasz alapjához"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
@@ -8432,8 +8438,7 @@ msgid ""
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Ha oldható anyagot használsz támaszanyagként, akkor a következő beállításokat javasoljuk:\n"
-"0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
-"független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához."
+"0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8458,7 +8463,7 @@ msgid ""
 msgstr ""
 "Ha oldható anyagot használsz támaszanyagként, akkor a következő beállításokat javasoljuk:\n"
 "0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
-"független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához."
+"független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9696,13 +9701,13 @@ msgid "Optimise Outer Walls"
 msgstr "Külső falak optimalizálása"
 
 msgid "Helio default (recommended)"
-msgstr ""
+msgstr "Helio alapértelmezett (ajánlott)"
 
 msgid "Slicer default"
-msgstr ""
+msgstr "Szeletelő alapértelmezett"
 
 msgid "Limits"
-msgstr ""
+msgstr "Határértékek"
 
 msgid "Min Velocity"
 msgstr "Min. sebesség"
@@ -9720,7 +9725,7 @@ msgid "Last Trace ID: "
 msgstr "Utolsó nyomkövetési azonosító: "
 
 msgid "Buy Now / Manage Account"
-msgstr ""
+msgstr "Vásárlás / Fiókkezelés"
 
 msgid "Click for more details"
 msgstr "Részletek megtekintése"
@@ -9914,6 +9919,9 @@ msgstr "Csoportosítási hiba: "
 
 msgid " can not be placed in the "
 msgstr " nem helyezhető el itt "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Belső fal"
@@ -10281,7 +10289,7 @@ msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Falnyomtatás sebességének simítása (kísérleti)"
 
 msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
-msgstr ""
+msgstr "Kisimítja a Z-tengely sebességét a jobb felületminőség elérése érdekében. Növeli a nyomtatási idő. Nem működik spirálváza módban."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Kerülje a falak keresztezését - Max kitérő hossza"
@@ -11074,10 +11082,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "Az extruder átöblítéséhez szükséges anyagmennyiség a hotend cseréjekor."
 
 msgid "Wipe tower cooling"
-msgstr ""
+msgstr "Törlőtorony hűtés"
 
 msgid "Temperature drop before entering filament tower"
-msgstr ""
+msgstr "Hőmérsékletcsökkenés a törlőtoronyba lépés előtt"
 
 msgid "Softening temperature"
 msgstr "Lágyulási hőmérséklet"
@@ -11402,7 +11410,7 @@ msgid "This option is enabled if machine support controlling chamber temperature
 msgstr "Ez az opció csak akkor működik, ha a nyomtató rendelkezik kamra hőmérséklet-szabályozással"
 
 msgid "Apply top surface compensation"
-msgstr ""
+msgstr "Felső felület kompenzációjának alkalmazása"
 
 msgid "Air filtration enhancement"
 msgstr "Levegőszűrés javítása"
@@ -11411,13 +11419,13 @@ msgid "Enable this if printer support air filtration enhancement."
 msgstr "Enable this if printer support air filtration enhancement."
 
 msgid "Use cooling filter"
-msgstr ""
+msgstr "Hűtőszűrő használata"
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
+msgstr "Engedélyezd a beállítást, ha a nyomtató támogatja a hűtőszűrőt"
 
 msgid "Auto turn off filter on overheat"
-msgstr ""
+msgstr "Szűrő automatikus kikapcsolása túlmelegedés esetén"
 
 msgid "G-code flavor"
 msgstr "G-kód változat"
@@ -11834,10 +11842,10 @@ msgid "The smaller the number, the longer the speed transition path. 0 means not
 msgstr "Minél kisebb a szám, annál hosszabb a sebességátmenet útvonala. A 0 azt jelenti, hogy ki van kapcsolva."
 
 msgid "Walls filament"
-msgstr ""
+msgstr "Falak filamentje"
 
 msgid "Filament to print walls"
-msgstr ""
+msgstr "Filament a falak nyomtatásához"
 
 msgid "Line width of inner wall"
 msgstr "A belső falak vonalszélessége"
@@ -11981,10 +11989,10 @@ msgid "Saving"
 msgstr "Mentés"
 
 msgid "length when change hotend"
-msgstr ""
+msgstr "hossz hotendcsere esetén"
 
 msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
-msgstr ""
+msgstr "Ha ezt a visszahúzási értéket módosítod, akkor ezt az értéket használja a nyomtató a filament hotend belsejéből történő visszahúzásakor, mielőtt hotendet cserélne."
 
 msgid "Extra length on restart"
 msgstr "Extra hossz újraindításkor"
@@ -12124,10 +12132,10 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Solid infill filament"
-msgstr ""
+msgstr "Tömör kitöltés filament"
 
 msgid "Filament to print solid infill"
-msgstr ""
+msgstr "Filament a tömör kitöltés nyomtatásához"
 
 msgid "Line width of internal solid infill"
 msgstr "A belső tömör kitöltés vonalszélessége"
@@ -12377,7 +12385,7 @@ msgid "Z overrides X/Y"
 msgstr "Z felülbírálja X/Y-t"
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
-msgstr ""
+msgstr "Ha a felső Z távolság felülírja a támasz/tárgy XY távolságot, akkor elsőbbséget biztosít annak, hogy a támaszok a túlnyúlások alatt generálódjanak, és a felső Z távolsággal megegyező méretű rés maradjon. Míg ellenkező esetben a támaszok és a modell közötti rés mindig a támasz/tárgy XY távolságát követi. Csak a Hibrid fa használata esetén ajánlott engedélyezni."
 
 msgid "Independent support layer height"
 msgstr "Független támasz rétegmagassága"
@@ -12476,10 +12484,10 @@ msgid "This is  the number of layers of top bottom penetration."
 msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
 
 msgid "Use infill instead of top and bottom surfaces"
-msgstr ""
+msgstr "Kitöltés használata a felső és alsó felület helyett"
 
 msgid "Using infill instead of top and bottom surfaces."
-msgstr ""
+msgstr "Kitöltés használata a felső és alsó felület helyett."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Mozgási sebesség, amikor nem történik extrudálás"
@@ -14211,6 +14219,9 @@ msgstr ""
 "A(z) %s extruder kiválasztott fúvókatípusa nem felel meg a nyomtató tényleges fúvókatípusának.\n"
 "Kérjük, kattints a fenti Szinkronizálás gombra, és indítsd újra a kalibrálást."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Nem lehet kalibrálni: előfordulhat, hogy a beállított kalibrációs értéktartomány túl nagy, vagy a lépésköz túl kicsi"
 
@@ -15386,9 +15397,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Időtúllépés a média paramétereinek vizsgálatakor, kérjük győződj meg arról, hogy a nyomtató firmware-e támogatja ezt a funkciót."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "A küldés sikertelen, kérjük próbáld újra!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Kiszűri a megadott küszöbértéknél kisebb réseket. Ez a beállítás nem érinti a felső/alsó rétegeket"

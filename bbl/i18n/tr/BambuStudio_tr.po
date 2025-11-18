@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -8252,6 +8252,9 @@ msgstr "Gönderiliyor..."
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Dosya yükleme zaman aşımına uğradı. Lütfen ürün yazılımı sürümünün bu işlemi destekleyip desteklemediğini kontrol edin veya yazıcının düzgün çalışıp çalışmadığını doğrulayın."
 
+msgid "Sending failed, please try again!"
+msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
+
 msgid "Helio action completed successfully."
 msgstr "Helio eylemi başarıyla tamamlandı."
 
@@ -9913,6 +9916,9 @@ msgstr "Gruplama hatası: "
 
 msgid " can not be placed in the "
 msgstr " içerisine yerleştirilemez "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "İç duvar"
@@ -14207,6 +14213,9 @@ msgstr ""
 "Şu anda seçili olan %s ekstrüder nozul tipi gerçek yazıcı nozul tipiyle eşleşmiyor.\n"
 "Lütfen yukarıdaki Senkronizasyon düğmesine tıklayın ve kalibrasyonu yeniden başlatın."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Kalibre edilemiyor: ayarlanan kalibrasyon değeri aralığı çok büyük veya adım çok küçük olduğu için olabilir"
 
@@ -15380,9 +15389,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Medya yeteneği edinme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Belirtilen eşikten daha küçük boşlukları filtreleyin. Bu ayar üst/alt katmanları etkilemez"

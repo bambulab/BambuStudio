@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -211,7 +211,7 @@ msgid "The hotend is in an abnormal state and currently unavailable. Please go t
 msgstr "Das Hotend befindet sich in einem abnormalen Zustand und ist derzeit nicht verfügbar. Bitte gehen Sie zu „Gerät -> Upgrade“, um die Firmware zu aktualisieren."
 
 msgid "Abnormal Hotend"
-msgstr ""
+msgstr "Abnormales Hotend"
 
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -4843,6 +4843,8 @@ msgid ""
 "This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Dies ist Ihr erstes Mal, dass Sie mit der Dual-Extruder Maschine slicen.\n"
+"Möchten Sie sich ein kurzes Tutorial-Video ansehen?"
 
 msgid "First Guide"
 msgstr "Erster Leitfaden"
@@ -4851,6 +4853,8 @@ msgid ""
 "This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
+"Dies ist das erste Mal, dass Sie TPU-Filamente mit dem Dual-Extruder drucken.\n"
+"Möchten Sie sich ein kurzes Tutorial-Video ansehen?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF ist spröde und kann in einem gebogenen PTFE-Schlauch oberhalb des Werkzeugkopfes brechen. Bitte lesen Sie vor der Verwendung die Wiki-Informationen. "
@@ -6649,7 +6653,7 @@ msgid "\n"
 msgstr ""
 
 msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
-msgstr ""
+msgstr "(Pfad zum Ändern: „Prozess“ – „Sonstiges“ – „Spezialmodus – „Zeitraffer“)"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Der Glättungsmodus für den Zeitraffer ist aktiviert, aber der Reinigungsturm ist ausgeschaltet, was zu Druckfehlern führen kann. Bitte aktivieren Sie den Reinigungsturm, slicen Sie erneut und drucken Sie erneut."
@@ -7957,7 +7961,7 @@ msgstr ""
 "* Automatikmodus: Vor dem Drucken auf Kalibrierung prüfen. Nicht nötig, wenn nicht erforderlich."
 
 msgid "Nozzles and filaments of the same type share the same PA profile"
-msgstr ""
+msgstr "Düsen und Filamente desselben Typs haben dasselbe PA-Profil"
 
 msgid "send completed"
 msgstr "Senden abgeschlossen"
@@ -8111,7 +8115,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "Die aktuelle Zuordnung der Düsen kann zu einem zusätzlichen Abfall von %0.2f g führen."
 
 msgid "Cool"
 msgstr ""
@@ -8250,6 +8254,9 @@ msgstr "Senden..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Zeitüberschreitung beim Datei-Upload. Bitte überprüfen Sie, ob die Firmware-Version diesen Vorgang unterstützt oder ob der Drucker ordnungsgemäß funktioniert."
+
+msgid "Sending failed, please try again!"
+msgstr "Senden fehlgeschlagen. Bitte versuchen Sie es erneut!"
 
 msgid "Helio action completed successfully."
 msgstr "Helio-Aktion erfolgreich abgeschlossen."
@@ -8421,7 +8428,7 @@ msgid ""
 "independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 "Bei Verwendung von PLA zum Stützen von TPU empfehlen wir die folgenden Einstellungen:\n"
-"0 oberer z-Abstand, 0 Schnittstellenabstand, 0 Abstand zwischen Stütze und Objekt in x- und y-Richtung, verflochtenes geradliniges Muster, \n"
+"0 oberer Z-Abstand, 0 Schnittstellenabstand, 0 Abstand zwischen Stütze und Objekt in X- und Y-Richtung, verflochtenes geradliniges Muster, \n"
 "unabhängige Stützschichthöhe deaktivieren und PLA sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
 
 msgid ""
@@ -8430,8 +8437,8 @@ msgid ""
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Bei Verwendung von löslichem Material für die Stützen empfehlen wir folgende Einstellungen:\n"
-"0 oberer z-Abstand, 0 Schnittstellenabstand, 0 xy-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, \n"
-"unabhängige Stützschichthöhe deaktivieren und lösliche Materialien sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
+"0 oberer Z-Abstand, 0 Schnittstellenabstand, 0 XY-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, \n"
+"unabhängige Stützschichthöhe deaktivieren und lösliches Material sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8447,7 +8454,7 @@ msgid ""
 "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "Wenn Sie Stützmaterial für die Stützschnittstelle verwenden, empfehlen wir die folgenden Einstellungen:\n"
-"0 oberer Z-Abstand, 0 Schnittstellenabstand, konzentrisches Muster und Deaktivierung der unabhängigen Stützschichthöhe"
+"0 oberer Z-Abstand, 0 Schnittstellenabstand, verflochtenes geradliniges Muster und Deaktivierung der unabhängigen Stützschichthöhe"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
@@ -8455,8 +8462,8 @@ msgid ""
 "independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Bei Verwendung von löslichem Material für die Stützschnittstelle empfehlen wir die folgenden Einstellungen:\n"
-"0 oberer z-Abstand, 0 Schnittstellenabstand, 0 xy-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, \n"
-"unabhängige Stützschichthöhe deaktivieren und lösliche Materialien sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
+"0 oberer Z-Abstand, 0 Schnittstellenabstand, 0 XY-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, \n"
+"unabhängige Stützschichthöhe deaktivieren und lösliches Material sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9696,10 +9703,10 @@ msgid "Optimise Outer Walls"
 msgstr "Außenwände optimieren"
 
 msgid "Helio default (recommended)"
-msgstr ""
+msgstr "Helio Standard (empfohlen)"
 
 msgid "Slicer default"
-msgstr ""
+msgstr "Slicer Standard"
 
 msgid "Limits"
 msgstr ""
@@ -9722,7 +9729,7 @@ msgstr ""
 " "
 
 msgid "Buy Now / Manage Account"
-msgstr ""
+msgstr "Jetzt kaufen / Konto verwalten"
 
 msgid "Click for more details"
 msgstr "Klicken Sie hier für weitere Details"
@@ -9916,6 +9923,9 @@ msgstr "Gruppierungsfehler: "
 
 msgid " can not be placed in the "
 msgstr " kann nicht platziert werden in die "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Innere Wand"
@@ -10283,7 +10293,7 @@ msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Geschwindigkeit der Wandglättung entlang Z (experimentell)"
 
 msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
-msgstr ""
+msgstr "Glätten der Außenwand in Z-Richtung, um eine bessere Oberflächenqualität zu erzielen: Die Druckzeit wird länger. Dies funktioniert nicht im Spiralvasenmodus."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Vermeiden von Wandüberquerungen - Maximale Umleitungslänge"
@@ -11076,10 +11086,10 @@ msgid "The volume of material required to prime the extruder for a hotend change
 msgstr "Das Materialvolumen, das erforderlich ist, um den Extruder für einen Hotend-Wechsel am Turm vorzubereiten."
 
 msgid "Wipe tower cooling"
-msgstr ""
+msgstr "Reinigungsturm Kühlung"
 
 msgid "Temperature drop before entering filament tower"
-msgstr ""
+msgstr "Temperaturabsenkung vor dem Eintreten in den Filamentturm"
 
 msgid "Softening temperature"
 msgstr "Erweichungstemperatur"
@@ -11404,7 +11414,7 @@ msgid "This option is enabled if machine support controlling chamber temperature
 msgstr "Diese Option ist aktiviert, wenn die Maschine die Steuerung der Kammertemperatur unterstützt."
 
 msgid "Apply top surface compensation"
-msgstr ""
+msgstr "Oberflächenkompensation anwenden"
 
 msgid "Air filtration enhancement"
 msgstr "Verbesserung der Luftfilterung"
@@ -11413,13 +11423,13 @@ msgid "Enable this if printer support air filtration enhancement."
 msgstr "Aktivieren Sie diese Option, wenn der Drucker eine erweiterte Luftfilterung unterstützt."
 
 msgid "Use cooling filter"
-msgstr ""
+msgstr "Kühlungsfilter verwenden"
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
+msgstr "Aktivieren Sie diese Option, wenn der Drucker einen Kühlungsfilter unterstützt"
 
 msgid "Auto turn off filter on overheat"
-msgstr ""
+msgstr "Filter bei Überhitzung automatisch ausschalten"
 
 msgid "G-code flavor"
 msgstr "G-Code Typ"
@@ -11836,10 +11846,10 @@ msgid "The smaller the number, the longer the speed transition path. 0 means not
 msgstr "Je kleiner die Zahl, desto länger ist der Geschwindigkeitsübergang. 0 bedeutet, dass keine Anwendung erfolgt."
 
 msgid "Walls filament"
-msgstr ""
+msgstr "Filament für Wände"
 
 msgid "Filament to print walls"
-msgstr ""
+msgstr "Filament zum Drucken von Wänden"
 
 msgid "Line width of inner wall"
 msgstr "Linienbreite der Innenwand"
@@ -11983,10 +11993,10 @@ msgid "Saving"
 msgstr ""
 
 msgid "length when change hotend"
-msgstr ""
+msgstr "Länge beim Wechseln des Hotends"
 
 msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
-msgstr ""
+msgstr "Wenn dieser Rückzugswert geändert wird, wird er als die Filamentmenge verwendet, die vor dem Wechsel des Hotends im Hotend zurückgezogen wird."
 
 msgid "Extra length on restart"
 msgstr "Zusatzlänge beim Einziehen"
@@ -12126,10 +12136,10 @@ msgid "mm²"
 msgstr "mm²"
 
 msgid "Solid infill filament"
-msgstr ""
+msgstr "Filament für massive Füllung"
 
 msgid "Filament to print solid infill"
-msgstr ""
+msgstr "Filament zum Drucken einer massiven Füllung"
 
 msgid "Line width of internal solid infill"
 msgstr "Linienbreite der inneren massiven Füllung"
@@ -12379,7 +12389,7 @@ msgid "Z overrides X/Y"
 msgstr "Z hat Vorrang vor X/Y"
 
 msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
-msgstr ""
+msgstr "Wenn der obere Z-Abstand Vorrang vor dem XY-Abstand (Stütze/Objekt) hat, wird priorisiert sichergestellt, dass Stützen unter Überhängen generiert werden, und ein Spalt zum Modell in Höhe des oberen Z-Abstands eingehalten wird. Im umgekehrten Fall hingegen folgt der Abstand zwischen Stützen und Modell jederzeit dem XY-Abstand (Stütze/Objekt). Nur bei Verwendung von Baum-Hybrid aktivieren."
 
 msgid "Independent support layer height"
 msgstr "Unabhängige Stützstruktur-Schichthöhe"
@@ -12478,10 +12488,10 @@ msgid "This is  the number of layers of top bottom penetration."
 msgstr "Dies ist die Anzahl der unteren Farbschichten."
 
 msgid "Use infill instead of top and bottom surfaces"
-msgstr ""
+msgstr "Füllung anstelle von Ober- und Unterflächen verwenden"
 
 msgid "Using infill instead of top and bottom surfaces."
-msgstr ""
+msgstr "Füllung anstelle von Ober- und Unterflächen verwenden."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Eilgeschwindigkeit, wenn nicht extrudiert wird."
@@ -14211,6 +14221,9 @@ msgstr ""
 "Der aktuell ausgewählte Düsentyp des %s Extruders stimmt nicht mit dem tatsächlichen Druckerdüsentyp überein.\n"
 "Klicken Sie oben auf die Schaltfläche „Synchronisieren“ und starten Sie die Kalibrierung neu."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Kalibrierung nicht möglich: Möglicherweise weil der eingestellte Kalibrierungswertbereich zu groß oder der Schritt zu klein ist"
 
@@ -15385,9 +15398,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Zeitüberschreitung bei der Erfassung der Medienfunktion. Überprüfen Sie bitte, ob die Firmware-Version dies unterstützt."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Senden fehlgeschlagen. Bitte versuchen Sie es erneut!"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtert Lücken heraus, die kleiner als der angegebene Schwellenwert sind. Diese Einstellung wirkt sich nicht auf die oberen/unteren Schichten aus."

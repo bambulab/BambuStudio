@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 10:25+0800\n"
+"POT-Creation-Date: 2025-11-18 10:11+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6274,7 +6274,7 @@ msgid "Spaghetti Detection"
 msgstr "炒面检测"
 
 msgid "Detects spaghetti failure(scattered lose filament)."
-msgstr ""
+msgstr "检测到炒面（散落的耗材丝）。"
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "堆料检测"
@@ -6409,7 +6409,7 @@ msgid "Unlock current plate"
 msgstr "解锁当前盘"
 
 msgid "Edit filament grouping"
-msgstr "编辑线材分组"
+msgstr "编辑材料分组"
 
 msgid "Edit current plate name"
 msgstr "编辑当前盘名称"
@@ -8051,7 +8051,7 @@ msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "当前材料(%s) 的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
+msgstr "当前材料(%s) 所需喷嘴的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8209,6 +8209,9 @@ msgstr "发送中..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "文件上传超时。请检查固件版本是否支持此操作或验证打印机是否正常工作。"
+
+msgid "Sending failed, please try again!"
+msgstr "发送失败，请重试！"
 
 msgid "Helio action completed successfully."
 msgstr "Helio操作已成功完成。"
@@ -9861,6 +9864,9 @@ msgstr "分组错误："
 
 msgid " can not be placed in the "
 msgstr "不能放置在"
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr "自定义模式分组错误。请检查喷嘴数量或重新分组。"
 
 msgid "Inner wall"
 msgstr "内墙"
@@ -14145,6 +14151,9 @@ msgid ""
 "Please click the Sync button above and restart the calibration."
 msgstr "当前选择的%s喷嘴类型与机器实际喷嘴类型不匹配，请点击上方的同步按钮，然后重新校准。"
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr "暂不支持同时对不同喷嘴直径进行流量校准。请确保被校准耗材所对应的喷嘴直径一致，再重新发起校准。"
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "无法标定：可能是标定值范围过大，或者是补偿过小"
 
@@ -14382,7 +14391,7 @@ msgid "When printing this filament, there's a risk of nozzle clogging, oozing, w
 msgstr "此耗材打印时有堵喷嘴、漏料、翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。"
 
 msgid "To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG."
-msgstr "若要用此耗材的透明线材打印透明效果很好的模型，请查阅 wiki: 透明 PETG 打印指南。"
+msgstr "若要用此耗材的透明耗材打印透明效果很好的模型，请查阅 wiki: 透明 PETG 打印指南。"
 
 msgid "To make the prints get higher gloss, please dry the filament before use, and set the outer wall speed to be 40 to 60 mm/s when slicing."
 msgstr "为使打印件具有更高的光泽，请在打印前把耗材烘干，并在切片时把模型的外墙速度调到 40 到 60 mm/s 之间。"
@@ -15420,9 +15429,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "媒体能力获取超时，请检查固件版本是否支持它。"
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "发送失败，请重试！"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "过滤掉小于指定阈值的间隙。此设置不会影响顶部/底部图层。"
