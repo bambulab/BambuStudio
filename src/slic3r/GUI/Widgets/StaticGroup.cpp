@@ -2,7 +2,11 @@
 #include "Label.hpp"
 
 StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id)
-: wxStaticBox(parent, id, "")
+#ifdef __WXOSX__
+    : wxStaticBox(parent, id, ".")
+#else
+    : wxStaticBox(parent, id, "")
+#endif
 {
     SetBackgroundColour(*wxWHITE);
     SetForegroundColour("#CECECE");
