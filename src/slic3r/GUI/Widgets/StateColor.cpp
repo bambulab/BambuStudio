@@ -1,4 +1,5 @@
 #include "StateColor.hpp"
+#include <wx/gdicmn.h>
 
 static bool gDarkMode = false;
 
@@ -11,6 +12,7 @@ static std::map<wxColour, wxColour> gDarkColors{
     {"#D01B1B", "#BB2A3A"},/*red*/
     {"#262E30", "#EFEFF0"},/*black*/
     {"#2C2C2E", "#B3B3B4"},/*black*/
+    {"#E5E7EB", "#374151"},/*gray200 -> gray800*/
     {"#6B6B6B", "#818183"},/*gray -> */
     {"#ACACAC", "#54545A"},/*gray -> */
     {"#EEEEEE", "#4C4C55"},/*gray -> */
@@ -187,3 +189,11 @@ bool StateColor::setColorForStates(wxColour const &color, int states)
 }
 
 void StateColor::setTakeFocusedAsHovered(bool set) { takeFocusedAsHovered_ = set; }
+
+StateColor StateColor::createButtonStyleGray()
+{
+    return StateColor(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Focused),
+        std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+}

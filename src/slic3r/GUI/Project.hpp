@@ -67,6 +67,7 @@ private:
     wxString   m_root_dir;
     std::map<std::string, std::string> m_model_id_map;
     static inline int m_sequence_id = 8000;
+    json       m_last_payload = json::object();
 
 public:
     ProjectPanel(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize, long style = wxTAB_TRAVERSAL);
@@ -86,11 +87,13 @@ public:
     bool Show(bool show);
     void OnScriptMessage(wxWebViewEvent& evt);
     void RunScript(std::string content);
+    bool is_editing_page() const;
 
     std::map<std::string, std::vector<json>> Reload(wxString aux_path);
     std::string formatBytes(unsigned long bytes);
     std::string get_model_id(std::string desgin_id);
     wxString to_base64(std::string path);
+    void save_project();
 };
 
 wxDECLARE_EVENT(EVT_PROJECT_RELOAD, wxCommandEvent);

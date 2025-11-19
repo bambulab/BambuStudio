@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include "slic3r/Utils/WxFontUtils.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -24,6 +25,8 @@
 #include "BindDialog.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
+
+#include "DeviceTab/wgtDeviceNozzleSelect.h"
 
 namespace Slic3r { namespace GUI {
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
@@ -54,7 +57,7 @@ static void _add_containers(const AmsMapingPopup *                 win,
     }
 }
 
- MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname)
+ MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {
     m_arraw_bitmap_gray  = ScalableBitmap(this, "drop_down2", FromDIP(8));
@@ -64,18 +67,19 @@ static void _add_containers(const AmsMapingPopup *                 win,
     //m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel", FromDIP(25));
     m_ams_wheel_mitem = ScalableBitmap(this, "ams_wheel_narrow", 25);
     m_ams_not_match = ScalableBitmap(this, "filament_not_mactch", 25);
+    m_rack_nozzle_bitmap = ScalableBitmap(this, "dev_rack_nozzle_print_job", 22);
 
     m_material_coloul = mcolour;
     m_material_name = mname;
     m_ams_coloul      = wxColour(0xEE,0xEE,0xEE);
 
+    m_filament_id = filament_id;
+
 #ifdef __WINDOWS__
     SetDoubleBuffered(true);
 #endif //__WINDOWS__
 
-    SetSize(MATERIAL_ITEM_SIZE);
-    SetMinSize(MATERIAL_ITEM_SIZE);
-    SetMaxSize(MATERIAL_ITEM_SIZE);
+    messure_size();
     SetBackgroundColour(*wxWHITE);
 
     Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
@@ -110,8 +114,20 @@ void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vect
     if (m_ams_ctype != ctype) { m_ams_ctype = ctype; need_refresh = true; }
     if (m_ams_coloul != col) { m_ams_coloul = col; need_refresh = true;}
     if (m_ams_name != txt) { m_ams_name = txt; need_refresh = true; }
-    if (need_refresh) { Refresh();}
+    if (need_refresh) {
+        messure_size();
+        Refresh();
+    }
     BOOST_LOG_TRIVIAL(info) << "set_ams_info " << m_ams_name;
+}
+
+void MaterialItem::set_nozzle_info(const wxString& mapped_nozzle_str)
+{
+    if (m_mapped_nozzle_str != mapped_nozzle_str) {
+        m_mapped_nozzle_str = mapped_nozzle_str;
+        messure_size();
+        Refresh();
+    }
 }
 
 void MaterialItem::reset_ams_info() {
@@ -119,14 +135,14 @@ void MaterialItem::reset_ams_info() {
     m_ams_coloul = wxColour(0xCE, 0xCE, 0xCE);
     m_ams_cols.clear();
     m_ams_ctype = 0;
+    m_mapped_nozzle_str.Clear();
+    messure_size();
     Refresh();
 }
 
 void MaterialItem::disable()
 {
     if (IsEnabled()) {
-        //this->Disable();
-        //Refresh();
         m_enable = false;
     }
 }
@@ -134,8 +150,6 @@ void MaterialItem::disable()
 void MaterialItem::enable()
 {
     if (!IsEnabled()) {
-        /*this->Enable();
-        Refresh();*/
         m_enable = true;
     }
 }
@@ -170,23 +184,17 @@ void MaterialItem::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);
     render(dc);
-
-    //PrepareDC(buffdc);
-    //PrepareDC(dc);
-
 }
 
 void MaterialItem::render(wxDC &dc)
 {
-
-    wxString mapping_txt = wxEmptyString;
     if (m_ams_name.empty()) {
-        mapping_txt = "-";
+        m_mapping_text = "-";
     } else {
-        mapping_txt = m_ams_name;
+        m_mapping_text = m_ams_name;
     }
 
-    if (mapping_txt == "-") { m_match = false;}
+    if (m_mapping_text == "-") { m_match = false;}
     else {m_match = true;}
 
 #ifdef __WXMSW__
@@ -206,49 +214,6 @@ void MaterialItem::render(wxDC &dc)
 #else
     doRender(dc);
 #endif
-
-    auto mcolor = m_material_coloul;
-    auto acolor = m_ams_coloul;
-    change_the_opacity(acolor);
-    if (!IsEnabled()) {
-        mcolor = wxColour(0x90, 0x90, 0x90);
-        acolor = wxColour(0x90, 0x90, 0x90);
-    }
-
-    // materials name
-    dc.SetFont(::Label::Body_13);
-
-    auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
-    if (mcolor.Alpha() == 0) {material_name_colour = wxColour(0x26, 0x2E, 0x30);}
-    dc.SetTextForeground(material_name_colour);
-
-    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10) {
-        dc.SetFont(::Label::Body_10);
-    }
-
-    auto material_txt_size = dc.GetTextExtent(m_material_name);
-    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, ((float)GetSize().y * 2 / 5 - material_txt_size.y) / 2));
-
-
-
-    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
-    dc.SetFont(::Label::Head_12);
-
-    auto mapping_txt_size = wxSize(0, 0);
-    if (mapping_txt.size() >= 4) {
-        mapping_txt.insert(mapping_txt.size() / 2, "\n");
-        mapping_txt_size = dc.GetTextExtent(mapping_txt);
-        m_text_pos_y     = ((float) GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float) GetSize().y * 2 / 5 - mapping_txt_size.y / 2;
-        m_text_pos_x     = mapping_txt_size.x / 4;
-    } else {
-        mapping_txt_size = dc.GetTextExtent(mapping_txt);
-        m_text_pos_y     = ((float) GetSize().y * 3 / 5 - mapping_txt_size.y) / 2 + (float) GetSize().y * 2 / 5;
-        m_text_pos_x     = 0;
-    }
-
-    if (m_match) {
-        dc.DrawText(mapping_txt, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + m_text_pos_x, m_text_pos_y));
-    }
 }
 
 
@@ -265,11 +230,13 @@ void MaterialItem::doRender(wxDC& dc)
     auto acolor = m_ams_coloul;
     change_the_opacity(acolor);
 
-    if (mcolor.Alpha() == 0) {
+    if (mcolor.Alpha() == 0)
+    {
         dc.DrawBitmap(m_transparent_mitem.bmp(), FromDIP(1), FromDIP(1));
     }
 
-    if (!IsEnabled()) {
+    if (!IsEnabled())
+    {
         mcolor = wxColour(0x90, 0x90, 0x90);
         acolor = wxColour(0x90, 0x90, 0x90);
     }
@@ -277,108 +244,174 @@ void MaterialItem::doRender(wxDC& dc)
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, FromDIP(20), 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+    dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
+
+    // materials name
+    auto up = 0;
+    auto material_name_colour = mcolor.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
+    if (mcolor.Alpha() == 0) { material_name_colour = wxColour(0x26, 0x2E, 0x30); }
+    dc.SetTextForeground(material_name_colour);
+
+    dc.SetFont(::Label::Body_12);
+    if (dc.GetTextExtent(m_material_name).x > GetSize().x - 10)
+    {
+        dc.SetFont(::Label::Body_10);
+    }
+
+    auto material_txt_size = dc.GetTextExtent(m_material_name);
+    dc.DrawText(m_material_name, wxPoint((GetSize().x - material_txt_size.x) / 2, (FromDIP(20) - material_txt_size.y) / 2));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
+    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
+    up += FromDIP(20);
+    up += FromDIP(2); // spacing
 
     //bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
+    auto paint_recty = up + (m_ams_wheel_mitem.GetBmpSize().y - MATERIAL_REC_WHEEL_SIZE.y) / 2;
     auto left = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
-    auto up = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
     auto right = left + MATERIAL_REC_WHEEL_SIZE.x - FromDIP(3);
     dc.SetPen(*wxTRANSPARENT_PEN);
     //bottom
-    if (m_ams_cols.size() > 1) {
+    if (m_ams_cols.size() > 1)
+    {
         int gwidth = std::round(MATERIAL_REC_WHEEL_SIZE.x / (m_ams_cols.size() - 1));
         //gradient
-        if (m_ams_ctype == 0) {
-            for (int i = 0; i < m_ams_cols.size() - 1; i++) {
-                auto rect = wxRect(left, up, right - left, MATERIAL_REC_WHEEL_SIZE.y);
+        if (m_ams_ctype == 0)
+        {
+            for (int i = 0; i < m_ams_cols.size() - 1; i++)
+            {
+                auto rect = wxRect(left, paint_recty, right - left, MATERIAL_REC_WHEEL_SIZE.y);
                 dc.GradientFillLinear(rect, m_ams_cols[i], m_ams_cols[i + 1], wxEAST);
                 left += gwidth;
             }
         }
-        else {
+        else
+        {
             int cols_size = m_ams_cols.size();
-            for (int i = 0; i < cols_size; i++) {
+            for (int i = 0; i < cols_size; i++)
+            {
                 dc.SetBrush(wxBrush(m_ams_cols[i]));
                 float x = left + ((float)MATERIAL_REC_WHEEL_SIZE.x) * i / cols_size;
-                if (i != cols_size - 1) {
-                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                if (i != cols_size - 1)
+                {
+                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), paint_recty, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size + FromDIP(3), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
-                else {
-                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), up, ((float) MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
+                else
+                {
+                    dc.DrawRoundedRectangle(x - FromDIP(LEFT_OFFSET), paint_recty, ((float)MATERIAL_REC_WHEEL_SIZE.x) / cols_size - FromDIP(1), MATERIAL_REC_WHEEL_SIZE.y, 3);
                 }
             }
         }
     }
-    else {
-        if (m_match) {
+    else
+    {
+        if (m_match)
+        {
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.SetBrush(wxBrush(wxColour(acolor)));
-            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET), up, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
-                             MATERIAL_REC_WHEEL_SIZE.y);
+            dc.DrawRectangle((size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3) - FromDIP(LEFT_OFFSET), paint_recty, MATERIAL_REC_WHEEL_SIZE.x - FromDIP(1),
+                MATERIAL_REC_WHEEL_SIZE.y);
         }
     }
 
-
-    ////border
-//#if __APPLE__
-//    if (m_match) {
-//        dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-//    } else {
-//        dc.SetPen(wxPen(wxColour(234, 31, 48), 2));
-//    }
-//    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-//    dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
-//
-//    if (m_selected) {
-//        dc.SetPen(wxColour(0x00, 0xAE, 0x42));
-//        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-//        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
-//    }
-//#else
-
-    if (m_match) {
+    if (m_match)
+    {
         dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
-    } else {
+    }
+    else
+    {
         dc.SetPen(wxPen(wxColour(234, 31, 48), FromDIP(1)));
     }
 
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), MATERIAL_ITEM_SIZE.x - FromDIP(0), MATERIAL_ITEM_SIZE.y - FromDIP(0), 5);
+    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), size.x - FromDIP(0), size.y, 5);
 
-    if (m_selected) {
+    if (m_selected)
+    {
         dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
-//#endif
-    if (m_text_pos_y > 0 && m_match) {
-        // arrow (remove arrow)
-        if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180)) {
-            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
-        } else {
-            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), size.x - m_arraw_bitmap_gray.GetBmpSize().x - FromDIP(4)- FromDIP(LEFT_OFFSET), m_text_pos_y + FromDIP(3));
+    //#endif
+
+    auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2) - FromDIP(LEFT_OFFSET);
+    auto wheel_top = up;
+
+    if (!m_match)
+    {
+        wheel_left = (size.x - m_ams_not_match.GetBmpWidth()) / 2 - FromDIP(LEFT_OFFSET);
+        dc.DrawBitmap(m_ams_not_match.bmp(), wheel_left, wheel_top);
+    }
+    else
+    {
+        if (acolor.Alpha() == 0)
+        {
+            dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left, wheel_top);
+        }
+        else
+        {
+            dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left, wheel_top);
         }
     }
 
-    auto wheel_left = (GetSize().x / 2 - m_ams_wheel_mitem.GetBmpSize().x) / 2 + FromDIP(2);
-    auto wheel_top = ((float)GetSize().y * 0.6 - m_ams_wheel_mitem.GetBmpSize().y) / 2 + (float)GetSize().y * 0.4;
+    // text and arrow
+    dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
 
-    if (!m_match) {
-        wheel_left += m_ams_wheel_mitem.GetBmpSize().x;
-        dc.DrawBitmap(m_ams_not_match.bmp(), (size.x - m_ams_not_match.GetBmpWidth()) / 2 - FromDIP(LEFT_OFFSET), wheel_top);
-    } else {
-        if (acolor.Alpha() == 0) {
-            dc.DrawBitmap(m_filament_wheel_transparent.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
-        } else {
-            dc.DrawBitmap(m_ams_wheel_mitem.bmp(), wheel_left - FromDIP(LEFT_OFFSET), wheel_top);
+    int text_pos_x = 0;
+    int text_pos_y = 0;
+    auto mapping_txt_size = wxSize(0, 0);
+    if (m_mapping_text.size() >= 4)
+    {
+        m_mapping_text.insert(m_mapping_text.size() / 2, "\n");
+        WxFontUtils::get_suitable_font_size(FromDIP(13), dc);
+        mapping_txt_size = dc.GetTextExtent(m_mapping_text);
+        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2;
+        text_pos_x = mapping_txt_size.x / 4;
+    }
+    else
+    {
+        dc.SetFont(::Label::Head_12);
+        mapping_txt_size = dc.GetTextExtent(m_mapping_text);
+        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - mapping_txt_size.y) / 2;
+        text_pos_x = 0;
+    }
+
+    int arrow_left = size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - FromDIP(LEFT_OFFSET);
+    if (m_match)
+    {
+        dc.DrawText(m_mapping_text, wxPoint(GetSize().x / 2 + (GetSize().x / 2 - mapping_txt_size.x) / 2 - FromDIP(8) - FromDIP(LEFT_OFFSET) + text_pos_x, text_pos_y));
+
+        int arrow_y = text_pos_y + (mapping_txt_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
+        if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) && (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
+        {
+            dc.DrawBitmap(m_arraw_bitmap_white.bmp(), arrow_left, arrow_y);
         }
+        else
+        {
+            dc.DrawBitmap(m_arraw_bitmap_gray.bmp(), arrow_left, arrow_y);
+        }
+    }
+
+    up += m_ams_wheel_mitem.GetBmpSize().y;
+
+
+    if (!m_mapped_nozzle_str.IsEmpty()) {
+        wxPen dashed_pen(WXCOLOUR_GREY400, 1, wxPENSTYLE_SHORT_DASH);
+        dc.SetPen(dashed_pen);
+        up += FromDIP(4); // spacing
+        dc.DrawLine(FromDIP(1), up, FromDIP(size.x), up);
+
+        int bitmap_y = up + (size.y - up - m_rack_nozzle_bitmap.GetBmpHeight()) / 2;
+        int bitmap_l = wheel_left + (m_ams_wheel_mitem.GetBmpWidth() - m_rack_nozzle_bitmap.GetBmpWidth()) / 2 + FromDIP(2);
+        dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), bitmap_l, bitmap_y);
+
+        int text_y = up + (size.y - up - dc.GetTextExtent(m_mapped_nozzle_str).y) / 2;
+        dc.SetFont(::Label::Head_12);
+        dc.DrawText(m_mapped_nozzle_str, bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() + FromDIP(12), text_y);
     }
 }
 
@@ -386,7 +419,20 @@ void MaterialItem::reset_valid_info() {
     set_ams_info(m_back_ams_coloul, m_back_ams_name, m_back_ams_ctype, m_back_ams_cols);
 }
 
- MaterialSyncItem::MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname) : MaterialItem(parent, mcolour, mname)
+void MaterialItem::messure_size()
+{
+    if (m_mapped_nozzle_str.IsEmpty()) {
+        SetSize(wxSize(FromDIP(65), FromDIP(50)));
+        SetMinSize(wxSize(FromDIP(65), FromDIP(50)));
+        SetMaxSize(wxSize(FromDIP(65), FromDIP(50)));
+    } else {
+        SetSize(wxSize(FromDIP(65), FromDIP(84)));
+        SetMinSize(wxSize(FromDIP(65), FromDIP(84)));
+        SetMaxSize(wxSize(FromDIP(65), FromDIP(84)));
+    }
+}
+
+MaterialSyncItem::MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id) : MaterialItem(parent, mcolour, mname, filament_id)
 {
 
 }
@@ -503,14 +549,14 @@ void MaterialSyncItem::doRender(wxDC &dc)
     // top
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, FromDIP(20), 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
 
     dc.SetPen(*wxTRANSPARENT_PEN);
     dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+    dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
 
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
-    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(MATERIAL_ITEM_SIZE.x), FromDIP(20));
+    dc.DrawLine(FromDIP(1), FromDIP(20), FromDIP(size.x), FromDIP(20));
     // bottom rectangle in wheel bitmap, size is MATERIAL_REC_WHEEL_SIZE(22)
     auto left  = (size.x / 2 - MATERIAL_REC_WHEEL_SIZE.x) / 2 + FromDIP(3);
     auto up    = (size.y * 0.4 + (size.y * 0.6 - MATERIAL_REC_WHEEL_SIZE.y) / 2);
@@ -557,32 +603,32 @@ void MaterialSyncItem::doRender(wxDC &dc)
     else {
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.SetBrush(wxBrush(mcolor));
-        dc.DrawRoundedRectangle(0, FromDIP(21), MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y - FromDIP(21), 5);
+        dc.DrawRoundedRectangle(0, FromDIP(21), size.x, size.y - FromDIP(21), 5);
 
-        dc.DrawRectangle(0, FromDIP(21), MATERIAL_ITEM_SIZE.x, FromDIP(10));
+        dc.DrawRectangle(0, FromDIP(21), size.x, FromDIP(10));
     }
 
     ////border
 #if __APPLE__
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+    dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 5);
 
     if (m_selected) {
         dc.SetPen(wxColour(0x00, 0xAE, 0x42));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(1, 1, MATERIAL_ITEM_SIZE.x - 1, MATERIAL_ITEM_SIZE.y - 1, 5);
+        dc.DrawRoundedRectangle(1, 1, size.x - 1, size.y - 1, 5);
     }
 #else
 
     dc.SetPen(wxPen(wxGetApp().dark_mode() ? wxColour(107, 107, 107) : wxColour(0xAC, 0xAC, 0xAC), FromDIP(1)));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRoundedRectangle(0, 0, MATERIAL_ITEM_SIZE.x, MATERIAL_ITEM_SIZE.y, 5);
+    dc.DrawRoundedRectangle(0, 0, size.x, size.y, 5);
 
     if (m_selected) {
         dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), MATERIAL_ITEM_SIZE.x - FromDIP(1), MATERIAL_ITEM_SIZE.y - FromDIP(1), 5);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
 #endif
 
@@ -706,7 +752,9 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_tips->SetBackgroundColour(StateColor::darkModeColorFor("0xFFFFFF"));
      m_right_tips->SetFont(::Label::Body_13);
      m_right_tips->SetLabel(m_right_tip_text);
+
      m_sizer_ams_right_horizonal->Add(m_right_tips, 0, wxEXPAND , 0);
+     m_sizer_ams_right_horizonal->AddStretchSpacer();
 
      m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, wxGetApp().dark_mode() ? "erase_dark" : "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                       wxBU_EXACTFIT | wxNO_BORDER, true, 14);
@@ -720,17 +768,34 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxALIGN_TOP | wxEXPAND );
      m_reset_btn->Hide();
      m_right_first_text_panel->SetSizer(m_sizer_ams_right_horizonal);
-     const int same_height = 15;
+     const int same_height = 20;
      m_left_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
      m_right_first_text_panel->SetMaxSize(wxSize(-1, FromDIP(same_height)));
 
-     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
-     m_right_split_ams_sizer = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
-     m_sizer_ams_right->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
-     m_sizer_ams_right->Add(m_sizer_ams_basket_right, 0, wxEXPAND|wxTOP, FromDIP(8));
-     m_sizer_ams_right->Add(create_split_sizer(m_right_marea_panel, _L("External")), 0, wxEXPAND|wxTOP, FromDIP(8));
-     m_sizer_ams_right->Add(m_right_extra_slot, 0, wxEXPAND|wxTOP, FromDIP(8));
+     // content_sizer
+     wxSizer *content_ams_sizer = new wxBoxSizer(wxVERTICAL);
+     m_right_split_ams_sizer    = create_split_sizer(m_right_marea_panel, _L("Right AMS"));
+     content_ams_sizer->Add(m_right_split_ams_sizer, 0, wxEXPAND, 0);
+     content_ams_sizer->Add(m_sizer_ams_basket_right, 0, wxEXPAND | wxTOP, FromDIP(8));
+     content_ams_sizer->Add(create_split_sizer(m_right_marea_panel, _L("External")), 0, wxEXPAND | wxTOP, FromDIP(8));
+     content_ams_sizer->Add(m_right_extra_slot, 0, wxEXPAND | wxTOP, FromDIP(8));
 
+     m_rack_nozzle_select = new wgtDeviceNozzleRackSelect(m_right_marea_panel);
+     m_rack_nozzle_select->Bind(EVT_NOZZLE_RACK_ITEM_CLICKED, &AmsMapingPopup::OnNozzleMappingSelected, this);
+     m_rack_nozzle_select->Show(false);
+
+     wxSizer *content_sizer = new wxBoxSizer(wxHORIZONTAL);
+     content_sizer->Add(content_ams_sizer, 1, wxEXPAND | wxLEFT);
+     content_sizer->Add(m_rack_nozzle_select, 1, wxEXPAND | wxLEFT, FromDIP(25));
+
+     m_flush_warning_panel = new DevIconLabel(m_right_marea_panel, "dev_warning", "");
+     m_flush_warning_panel->SetAllBackgroundColor(StateColor::darkModeColorFor("#FFFFE0"));
+     m_flush_warning_panel->GetLabelItem()->SetForegroundColour(StateColor::darkModeColorFor("#F09A17"));
+     m_flush_warning_panel->Show(false);
+
+     m_sizer_ams_right->Add(m_right_first_text_panel, 0, wxEXPAND | wxBOTTOM | wxTOP, FromDIP(8));
+     m_sizer_ams_right->Add(m_flush_warning_panel, 0, wxBOTTOM | wxALIGN_LEFT, FromDIP(8));
+     m_sizer_ams_right->Add(content_sizer, 0, wxEXPAND, 0);
 
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
      m_right_marea_panel->SetSizer(m_sizer_ams_right);
@@ -738,7 +803,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      //m_sizer_ams->Add(m_left_marea_panel, 0, wxEXPAND, FromDIP(0));
      m_sizer_ams->Add(m_left_marea_panel, 0, wxRIGHT, FromDIP(10));
      m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
-     m_sizer_ams->Add(m_right_marea_panel, 1, wxEXPAND, FromDIP(0));
+     m_sizer_ams->Add(m_right_marea_panel, 0, wxEXPAND, FromDIP(0));
 
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
      m_sizer_main->Add(m_sizer_ams, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(14));
@@ -750,8 +815,20 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
          if (e.IsShown() && m_parent_item) {
-             wxPoint pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
-             pos.y += m_parent_item->GetRect().height;
+
+             // Position below the parent item by default
+             auto pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
+             auto parent_size = m_parent_item->GetRect();
+             pos.y += parent_size.height;
+
+             // If there's not enough space above, align to the top of the screen
+             auto screenSize = wxGetDisplaySize();
+             auto popupSize = GetBestSize();
+             if (screenSize.y - pos.y < popupSize.y) {
+                 pos.y -= parent_size.height;
+                 pos.y -= popupSize.y;
+             }
+
              this->Move(pos);
          }
      });
@@ -782,6 +859,9 @@ void AmsMapingPopup::msw_rescale()
     m_right_extra_slot->msw_rescale();
     for (auto item : m_mapping_item_list) { item->msw_rescale(); }
     for (auto container : m_amsmapping_container_list) { container->msw_rescale(); }
+
+    m_flush_warning_panel->Rescale();
+    m_rack_nozzle_select->Rescale();
 
     Fit();
     Refresh();
@@ -1057,6 +1137,10 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
 
     /*title*/
     update_title(obj);
+
+    /*rack*/
+    update_rack_select(obj);
+    update_flush_waste(obj);
 
     if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
         m_reset_btn->SetName("erase_dark");
@@ -1425,6 +1509,57 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
 }
 
+void AmsMapingPopup::update_rack_select(MachineObject *obj)
+{
+    m_rack = obj ? obj->GetNozzleRack() : nullptr;
+
+    bool show_rack_select_area = false;
+    if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
+        obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().GetNozzleMapping().empty()) {
+        int mapped_nozzle_pos_id =  obj->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj, m_current_filament_id);
+        m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), mapped_nozzle_pos_id);
+
+        show_rack_select_area = true;
+    }
+
+    if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
+        m_right_tip_text = show_rack_select_area ? _L("Select Filament && Hotends") : _L("Select Filament");
+        m_right_tips->SetLabel(m_right_tip_text);
+        m_rack_nozzle_select->Show(show_rack_select_area);
+        Layout();
+        Fit();
+    }
+}
+
+void AmsMapingPopup::OnNozzleMappingSelected(wxCommandEvent& evt)
+{
+    if (auto ptr = m_rack.lock()) {
+        MachineObject* obj = ptr->GetNozzleSystem()->GetOwner();
+        obj->set_manual_nozzle_mapping(m_current_filament_id, m_rack_nozzle_select->GetSelectedNozzlePosID());
+        update_flush_waste(obj);
+    }
+
+    evt.Skip();
+    Dismiss();
+}
+
+void AmsMapingPopup::update_flush_waste(MachineObject* obj)
+{
+    if (!obj) {
+        m_flush_warning_panel->Hide();
+        return;
+    };
+
+    float flush_waste_base = obj->get_nozzle_mapping_result().GetFlushWeightBase();
+    float flush_waste_current = obj->get_nozzle_mapping_result().GetFlushWeightCurrent();
+    if ((flush_waste_base != -1) && (flush_waste_current != -1) && flush_waste_current > flush_waste_base){
+        m_flush_warning_panel->SetLabel(wxString::Format(_L("Printing with the current nozzle may produce an extra %0.2f g of waste."), flush_waste_current - flush_waste_base));
+        m_flush_warning_panel->Show();
+    } else {
+        m_flush_warning_panel->Hide();
+    }
+}
+
  MappingItem::MappingItem(wxWindow *parent)
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -1543,7 +1678,7 @@ void MappingItem::render(wxDC &dc)
     top += 0.5 * mapping_item_checked.GetBmpHeight();
 
     // materials name
-    dc.SetFont(::Label::Head_13);
+    dc.SetFont(::Label::Head_12);
 
     auto txt_colour = m_coloul.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30);
 
@@ -1552,11 +1687,12 @@ void MappingItem::render(wxDC &dc)
 
     if (m_coloul.Alpha() == 0) txt_colour = wxColour(0x26, 0x2E, 0x30);
     dc.SetTextForeground(txt_colour);
-
+    //show a1
     auto txt_size = dc.GetTextExtent(m_tray_index);
     top += FromDIP(2);
     dc.DrawText(m_tray_index, wxPoint((GetSize().x - txt_size.x) / 2, top));
 
+    //show materials name
     top += txt_size.y + FromDIP(2);
     m_name.size() > 4 ? dc.SetFont(::Label::Body_9) : dc.SetFont(::Label::Body_12);
     if(m_name.size() > 5){
@@ -2776,6 +2912,59 @@ void AmsHumidityLevelList::doRender(wxDC& dc)
 
         left += FromDIP(46) + FromDIP(54);
     }
+}
+
+DevIconLabel::DevIconLabel(wxWindow* parent, const wxString& icon, const wxString& label)
+    : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+{
+    CreateGui();
+
+    SetIcon(icon);
+    SetLabel(label);
+}
+
+void DevIconLabel::CreateGui()
+{
+    wxSizer* sizer_main = new wxBoxSizer(wxHORIZONTAL);
+    m_icon = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+    m_icon->SetBackgroundColour(*wxWHITE);
+
+    m_label = new Label(this);
+    m_label->SetFont(::Label::Body_13);
+    m_label->SetBackgroundColour(*wxWHITE);
+
+    sizer_main->Add(m_icon, 0, wxALIGN_CENTER_VERTICAL, 0);
+    sizer_main->Add(m_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+    SetSizer(sizer_main);
+    Layout();
+    Fit();
+}
+
+void DevIconLabel::SetLabel(const wxString& label)
+{
+    m_label->SetLabel(label);
+}
+
+void DevIconLabel::SetIcon(const wxString& icon)
+{
+    if (m_icon_str != icon) {
+        m_icon_str = icon;
+        m_icon->SetBitmap(create_scaled_bitmap(icon.ToStdString(), this, 20));
+        Refresh();
+    }
+}
+
+void DevIconLabel::SetAllBackgroundColor(const wxColour& color)
+{
+    SetBackgroundColour(color);
+    m_icon->SetBackgroundColour(color);
+    m_label->SetBackgroundColour(color);
+}
+
+void Slic3r::GUI::DevIconLabel::Rescale()
+{
+    m_icon->SetBitmap(create_scaled_bitmap(m_icon_str.ToStdString(), this, 20));
+    Refresh();
 }
 
 }} // namespace Slic3r::GUI

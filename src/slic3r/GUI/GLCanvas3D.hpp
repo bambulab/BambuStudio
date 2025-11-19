@@ -147,6 +147,7 @@ private:
 
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_MOVE_PLATE, SimpleEvent);
 //BBS: declare EVT_GLCANVAS_PLATE_SELECT
 wxDECLARE_EVENT(EVT_GLCANVAS_PLATE_SELECT, SimpleEvent);
 
@@ -587,6 +588,7 @@ private:
     bool m_in_render;
     wxTimer m_timer;
     wxTimer m_timer_set_color;
+    int m_color_input_value = -1;
     LayersEditing m_layers_editing;
     Mouse m_mouse;
     GLGizmosManager m_gizmos;
@@ -810,6 +812,7 @@ public:
     void set_as_dirty();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
+    bool is_in_same_model_object(const std::vector<int> volume_ids);
     unsigned int get_volumes_count() const;
     const GLVolumeCollection& get_volumes() const { return m_volumes; }
     void reset_volumes(bool set_notice = true);
@@ -863,6 +866,13 @@ public:
     void                                set_use_color_clip_plane(bool use) { m_volumes.set_use_color_clip_plane(use); }
     void                                set_color_clip_plane(const Vec3d &cp_normal, double offset) { m_volumes.set_color_clip_plane(cp_normal, offset); }
     void                                set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_volumes.set_color_clip_plane_colors(colors); }
+
+    // Volume color override methods (for mesh boolean gizmo)
+    void set_use_volume_color_override(bool use) { m_volumes.set_use_volume_color_override(use); }
+    void set_volume_color_override(unsigned int volume_idx, const std::array<float, 4>& color) { m_volumes.set_volume_color_override(volume_idx, color); }
+    void set_volumes_color_override(const std::vector<unsigned int>& volume_indices, const std::array<float, 4>& color) { m_volumes.set_volumes_color_override(volume_indices, color); }
+    void clear_volume_color_override(unsigned int volume_idx) { m_volumes.clear_volume_color_override(volume_idx); }
+    void clear_all_volume_color_overrides() { m_volumes.clear_all_volume_color_overrides(); }
 
     void set_color_by(const std::string& value);
 
@@ -1040,7 +1050,7 @@ public:
     void set_tooltip(const std::string& tooltip);
 
     // the following methods add a snapshot to the undo/redo stack, unless the given string is empty
-    void do_move(const std::string& snapshot_type);
+    void do_move(const std::string& snapshot_type,bool force_volume_move =false);
     void do_rotate(const std::string& snapshot_type);
     void do_scale(const std::string& snapshot_type);
     void do_flatten(const Vec3d& normal, const std::string& snapshot_type);

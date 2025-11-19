@@ -7,6 +7,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/CustomGCode.hpp"
 #include "libslic3r/Extruder.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 
 #include <cstdint>
 #include <array>
@@ -99,6 +100,7 @@ namespace Slic3r {
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
         unsigned int                                        total_filament_changes;
         unsigned int                                        total_extruder_changes;
+        unsigned int                                        total_nozzle_changes;
 
         PrintEstimatedStatistics() { reset(); }
 
@@ -116,6 +118,7 @@ namespace Slic3r {
             used_filaments_per_role.clear();
             total_filament_changes = 0;
             total_extruder_changes = 0;
+            total_nozzle_changes   = 0;
         }
     };
 
@@ -175,6 +178,7 @@ namespace Slic3r {
         GCodeCheckResult  gcode_check_result;
         FilamentPrintableResult filament_printable_reuslt;
         float initial_layer_time;
+        std::optional<MultiNozzleUtils::MultiNozzleGroupResult> nozzle_group_result;
 
         struct SettingsIds
         {
@@ -276,6 +280,7 @@ namespace Slic3r {
         std::vector<NozzleType> nozzle_type;
         // first key stores filaments, second keys stores the layer ranges(enclosed) that use the filaments
         std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
+        std::vector<unsigned int> filament_change_sequence;
         // first key stores `from` filament, second keys stores the `to` filament
         std::map<std::pair<int,int>, int > filament_change_count_map;
 
@@ -321,6 +326,7 @@ namespace Slic3r {
             filament_printable_reuslt = other.filament_printable_reuslt;
             layer_filaments = other.layer_filaments;
             filament_change_count_map = other.filament_change_count_map;
+            filament_change_sequence = other.filament_change_sequence;
             skippable_part_time = other.skippable_part_time;
             initial_layer_time = other.initial_layer_time;
 #if ENABLE_GCODE_VIEWER_STATISTICS
@@ -723,9 +729,11 @@ namespace Slic3r {
             size_t total_layer_num;
             std::vector<double> cooling_rate{ 2.f }; // Celsius degree per second
             std::vector<double> heating_rate{ 2.f }; // Celsius degree per second
+            std::vector<double> filament_cooling_before_tower {10.f}; // temperature drop before entering wipe tower
             std::vector<int> pre_cooling_temp{ 0 };
             float inject_time_threshold{ 30.f }; // only active pre cooling & heating if time gap is bigger than threshold
             bool enable_pre_heating{ false };
+            std::vector<int> extruder_max_nozzle_count { 1 };
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
@@ -739,7 +747,9 @@ namespace Slic3r {
                 const std::vector<double>& heating_rate_,
                 const std::vector<int>& pre_cooling_temp_,
                 const float inject_time_threshold_,
-                const bool  enable_pre_heating_
+                const bool  enable_pre_heating_,
+                const std::vector<int>& extruder_max_nozzle_count_,
+                const std::vector<double>& filament_cooling_before_tower_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
@@ -752,7 +762,9 @@ namespace Slic3r {
                 heating_rate(heating_rate_),
                 pre_cooling_temp(pre_cooling_temp_),
                 enable_pre_heating(enable_pre_heating_),
-                inject_time_threshold(inject_time_threshold_)
+                inject_time_threshold(inject_time_threshold_),
+                extruder_max_nozzle_count(extruder_max_nozzle_count_),
+                filament_cooling_before_tower(filament_cooling_before_tower_)
             {
             }
 
@@ -794,6 +806,7 @@ namespace Slic3r {
             float filament_load_times;
             float filament_unload_times;
             float extruder_change_times;
+            float hotend_change_times;
             float prepare_compensation_time;
 
             std::array<TimeMachine, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> machines;
@@ -840,6 +853,7 @@ namespace Slic3r {
                 const std::vector<std::string>& filament_types_,
                 const std::vector<int>& filament_maps_,
                 const std::vector<int>& filament_nozzle_temps_,
+                const std::vector<int>& filament_nozzle_temps_initial_layer_,
                 const std::vector<int>& physical_extruder_map_,
                 int valid_machine_id_,
                 float inject_time_threshold_,
@@ -847,6 +861,8 @@ namespace Slic3r {
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& heating_rate_,
                 const std::vector<std::pair<unsigned int,unsigned int>>& skippable_blocks_,
+                const std::vector<int>& extruder_max_nozzle_count_,
+                const std::vector<double>& filament_cooling_before_tower_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_
             ) :
@@ -854,6 +870,7 @@ namespace Slic3r {
                 filament_types(filament_types_),
                 filament_maps(filament_maps_),
                 filament_nozzle_temps(filament_nozzle_temps_),
+                filament_nozzle_temps_initial_layer(filament_nozzle_temps_initial_layer_),
                 physical_extruder_map(physical_extruder_map_),
                 valid_machine_id(valid_machine_id_),
                 inject_time_threshold(inject_time_threshold_),
@@ -861,6 +878,8 @@ namespace Slic3r {
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
                 skippable_blocks(skippable_blocks_),
+                extruder_max_nozzle_count(extruder_max_nozzle_count_),
+                filament_cooling_before_tower(filament_cooling_before_tower_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_)
             {
@@ -872,6 +891,7 @@ namespace Slic3r {
             const std::vector<std::string>& filament_types;
             const std::vector<int>& filament_maps;
             const std::vector<int>& filament_nozzle_temps;
+            const std::vector<int>& filament_nozzle_temps_initial_layer;
             const std::vector<int>& physical_extruder_map;
             const int valid_machine_id;
             const float inject_time_threshold;
@@ -879,6 +899,8 @@ namespace Slic3r {
             const std::vector<double>& heating_rate;
             const std::vector<int>& filament_pre_cooling_temps; // target cooling temp during post extrusion
             const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
+            const std::vector<int>& extruder_max_nozzle_count;
+            const std::vector<double>& filament_cooling_before_tower;
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
 
@@ -1024,6 +1046,8 @@ namespace Slic3r {
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
 
     private:
+        std::optional<MultiNozzleUtils::MultiNozzleGroupResult> m_nozzle_group_result;
+        MultiNozzleUtils::NozzleStatusRecorder m_nozzle_status_recorder;
         CommandProcessor m_command_processor;
         GCodeReader m_parser;
         EUnits m_units;
@@ -1053,6 +1077,8 @@ namespace Slic3r {
         std::vector<int> m_filament_pre_cooling_temp{ 0 };
         float m_enable_pre_heating{ false };
         std::vector<int> m_physical_extruder_map;
+        std::vector<int> m_extruder_max_nozzle_count;
+        std::vector<double> m_filament_cooling_before_tower;
 
         //BBS: x, y offset for gcode generated
         double          m_x_offset{ 0 };
@@ -1073,6 +1099,7 @@ namespace Slic3r {
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         std::vector<int> m_filament_maps;
+        std::vector<int> m_config_idx_for_filament;
         std::vector<unsigned char> m_last_filament_id;
         std::vector<unsigned char> m_filament_id;
         unsigned char m_extruder_id;
@@ -1155,12 +1182,15 @@ namespace Slic3r {
         GCodeProcessorResult& result() { return m_result; }
         GCodeProcessorResult&& extract_result() { return std::move(m_result); }
 
+        const MultiNozzleUtils::NozzleStatusRecorder& get_nozzle_status() const { return m_nozzle_status_recorder; }
+
         // Load a G-code into a stand-alone G-code viewer.
         // throws CanceledException through print->throw_if_canceled() (sent by the caller as callback).
         void process_file(const std::string& filename, std::function<void()> cancel_callback = nullptr);
 
         // Streaming interface, for processing G-codes just generated by PrusaSlicer in a pipelined fashion.
         void initialize(const std::string& filename);
+        void initialize_from_context(const MultiNozzleUtils::MultiNozzleGroupResult& nozzle_group_result);
         void process_buffer(const std::string& buffer);
         void finalize(bool post_process);
 
@@ -1376,6 +1406,7 @@ namespace Slic3r {
         float get_filament_load_time(size_t extruder_id);
         float get_filament_unload_time(size_t extruder_id);
         float get_extruder_change_time(size_t extruder_id);
+        float get_hotend_change_time();
         int   get_filament_vitrification_temperature(size_t extrude_id);
         void process_custom_gcode_time(CustomGCode::Type code);
         void process_filaments(CustomGCode::Type code);
@@ -1393,6 +1424,8 @@ namespace Slic3r {
         int get_last_filament_id(bool force_initialize = true) const;
         //get current used extruder
         int get_extruder_id(bool force_initialize = true)const;
+
+        int get_config_idx_for_filament(int filament_idx) const;
    };
 
 } /* namespace Slic3r */

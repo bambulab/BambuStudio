@@ -178,7 +178,10 @@ void DeviceErrorDialog::init_button_list()
     init_button(CANCLE, _L("Cancle"));
     init_button(STOP_DRYING, _L("Stop Drying"));
     init_button(PROCEED, _L("Proceed"));
-    init_button(DBL_CHECK_CANCEL, _L("Cancle"));
+    init_button(OK_JUMP_RACK, "OK");
+    init_button(ABORT, _L("Abort"));
+
+    init_button(DBL_CHECK_CANCEL, _L("Cancel"));
     init_button(DBL_CHECK_DONE, _L("Done"));
     init_button(DBL_CHECK_RETRY, _L("Retry"));
     init_button(DBL_CHECK_RESUME, _L("Resume"));
@@ -239,6 +242,10 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
     wxGetApp().UpdateDlgDarkUI(this);
     Show();
     Raise();
+
+#ifdef __WXOSX__
+    SetWindowStyleFlag(GetWindowStyleFlag() | wxSTAY_ON_TOP);
+#endif
 
     this->RequestUserAttention(wxUSER_ATTENTION_ERROR);
 
@@ -455,8 +462,17 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         }
         break;
     }
-    case DeviceErrorDialog::ERROR_BUTTON_COUNT: break;
-
+    case DeviceErrorDialog::OK_JUMP_RACK:
+    {
+        Slic3r::GUI::wxGetApp().mainframe->jump_to_monitor();
+        Slic3r::GUI::wxGetApp().mainframe->m_monitor->jump_to_Rack();
+        break;
+    }
+    case DeviceErrorDialog::ABORT:
+    {
+        m_obj->command_ams_control("abort");
+        break;
+    }
     case DeviceErrorDialog::DBL_CHECK_CANCEL: {
         // post EVT_SECONDARY_CHECK_CANCEL
         // no event

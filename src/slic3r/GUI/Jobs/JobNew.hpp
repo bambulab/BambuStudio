@@ -61,6 +61,8 @@ public:
     // function return to prevent further action. Leaving it with a non-null
     // value will result in rethrowing by the worker.
     virtual void finalize(bool /*canceled*/, std::exception_ptr &) {}
+
+    virtual bool show_busy_cursor() { return true; };
 };
 
 }} // namespace Slic3r::GUI

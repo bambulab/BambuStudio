@@ -2233,9 +2233,7 @@ void TreeSupport::draw_circles()
     bool on_buildplate_only = m_object_config->support_on_build_plate_only.value;
     Polygon branch_circle; //Pre-generate a circle with correct diameter so that we don't have to recompute those (co)sines every time.
 
-    double orig_xy_distance = m_ts_data->m_xy_distance;
-    if (print->config().top_z_overrides_xy_distance)
-        m_ts_data->m_xy_distance = std::min(m_ts_data->m_xy_distance, double(top_z_distance));
+    const bool z_overrides  = print->config().top_z_overrides_xy_distance;
 
     // Use square support if there are too many nodes per layer because circle support needs much longer time to compute
     // Hower circle support can be printed faster, so we prefer circle for fewer nodes case.
@@ -2369,7 +2367,7 @@ void TreeSupport::draw_circles()
                             if (node.overhang.contour.size() > 100 || node.overhang.holes.size() > 1)
                                 area.emplace_back(node.overhang);
                             else {
-                                area = offset_ex({node.overhang}, scale_(orig_xy_distance));
+                                area = offset_ex({node.overhang}, scale_(m_ts_data->m_xy_distance));
                             }
                         } else {
                             Polygon circle(branch_circle);
@@ -2439,9 +2437,10 @@ void TreeSupport::draw_circles()
                 //m_object->print()->set_status(65, (boost::format( _u8L("Support: generate polygons at layer %d")) % layer_nr).str());
 
                 // join roof segments
-                roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_collision(false));
+                roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_collision(z_overrides));
                 roof_areas     = intersection_ex(roof_areas, m_machine_border);
-                roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled), get_collision(false));
+                roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
+                                              z_overrides ? offset_ex(get_collision(z_overrides), line_width_scaled / 2) : get_collision(false));
 
                 // roof_1st_layer and roof_areas may intersect, so need to subtract roof_areas from roof_1st_layer
                 roof_1st_layer = diff_ex(roof_1st_layer, ClipperUtils::clip_clipper_polygons_with_subject_bbox(roof_areas,get_extents(roof_1st_layer)));
@@ -3899,6 +3898,7 @@ void TreeSupport::generate_contact_points()
                 return contact_node;
             };
 
+            auto extrudable_collision = offset_ex(layer->lower_layer->lslices_extrudable, m_ts_data->m_xy_distance);
             for (const auto& overhang_with_type : layer->loverhangs_with_type)  {
                 const auto &overhang_part = overhang_with_type.first;
                 const auto &overhang_type = overhang_with_type.second;
@@ -3946,7 +3946,8 @@ void TreeSupport::generate_contact_points()
                     overhangs_regular = overhangs;
                 }
 
-                overhangs_regular = diff_ex(overhangs_regular, relevant_forbidden);
+                if (!is_sharp_tail && layer->lower_layer) 
+                    overhangs_regular = diff_ex(overhangs_regular, extrudable_collision);
                 for (auto &overhang : overhangs_regular) {
                     if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);

@@ -75,10 +75,12 @@ public:
 protected:
     virtual void on_ok(wxCommandEvent &event);
     virtual void on_cancel(wxCommandEvent &event);
-
+    void on_select_extruder(wxCommandEvent &event);
+    void on_select_nozzle_pos(wxCommandEvent &event);
 
     wxArrayString get_all_filaments(const MachineObject *obj);
     int get_extruder_id(int extruder_index);  // extruder_index 0 : left, 1 : right
+    int get_nozzle_combo_id_code() const;
 
 protected:
     PACalibResult m_new_result;
@@ -92,6 +94,7 @@ protected:
     ComboBox *m_comboBox_filament;
     ComboBox *m_comboBox_extruder;
     ComboBox *m_comboBox_nozzle_type;
+    ComboBox *m_comboBox_nozzle_id{nullptr};
 
     struct FilamentInfos
     {

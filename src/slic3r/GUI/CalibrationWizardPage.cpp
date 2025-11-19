@@ -281,9 +281,51 @@ FilamentComboBox::FilamentComboBox(wxWindow* parent, int index, const wxPoint& p
     main_sizer->Add(m_comboBox->clr_picker, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
     main_sizer->Add(m_comboBox, 0, wxALIGN_CENTER);
 
+    m_nozzle_bmp = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("cali_nozzle", this, 20), wxDefaultPosition, wxDefaultSize, 0);
+    m_nozzle_bmp->Hide();
+    main_sizer->Add(m_nozzle_bmp, 0, wxALIGN_CENTER | wxLEFT, FromDIP(18));
+
+    m_nozzle_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, CALIBRATION_FILAMENT_COMBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_nozzle_combo->SetSelection(0);
+    m_nozzle_combo->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_nozzle_combo->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_nozzle_combo->Hide();
+    main_sizer->Add(m_nozzle_combo, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
+
     this->SetSizer(main_sizer);
     this->Layout();
     main_sizer->Fit(this);
+}
+
+void FilamentComboBox::UpdateNozzleCombo(const std::vector<std::pair<wxString, int>> &nozzle_list)
+{
+    m_nozzle_combo->Clear();
+
+    for (auto &pair : nozzle_list) { m_nozzle_combo->Append(pair.first, wxNullBitmap, new int{pair.second}); }
+
+    m_nozzle_combo->SetSelection(0);
+}
+
+int FilamentComboBox::GetNozzleIdCode() const
+{
+    auto sel = m_nozzle_combo->GetSelection();
+    if (sel != wxNOT_FOUND) return *(reinterpret_cast<int*>(m_nozzle_combo->GetClientData(sel)));
+
+    return -1;
+}
+
+void FilamentComboBox::ShowNozzleCombo()
+{
+    m_nozzle_bmp->Show();
+    m_nozzle_combo->Show();
+    Layout();
+}
+
+void FilamentComboBox::HideNozzleCombo()
+{
+    m_nozzle_bmp->Hide();
+    m_nozzle_combo->Hide();
+    Layout();
 }
 
 void FilamentComboBox::ShowPanel()
@@ -324,13 +366,10 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
             SetValue(false);
         }
 
-        if (m_radioBox)
-            m_radioBox->Enable(m_comboBox->is_compatible_with_printer());
-
-        if (m_checkBox)
-            m_checkBox->Enable(m_comboBox->is_compatible_with_printer());
-
+        if (m_radioBox || m_checkBox) { Enable(m_comboBox->is_compatible_with_printer()); }
     }
+
+    if (m_nozzle_combo->IsShown() && m_nozzle_combo->GetCount() == 0) { Enable(false); }
 
     // check compatibility
     wxCommandEvent event(EVT_CALI_TRAY_CHANGED);
@@ -338,7 +377,11 @@ void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
     wxPostEvent(GetParent(), event);
 }
 
-void FilamentComboBox::update_from_preset() { m_comboBox->update(); }
+void FilamentComboBox::update_from_preset()
+{
+    m_comboBox->update();
+    m_nozzle_combo->SetSelection(0);
+}
 
 bool FilamentComboBox::Show(bool show)
 {
@@ -353,6 +396,13 @@ bool FilamentComboBox::Enable(bool enable) {
         m_radioBox->Enable(enable);
     if (m_checkBox)
         m_checkBox->Enable(enable);
+    if (m_comboBox)
+        m_comboBox->Enable(enable);
+    if (m_nozzle_combo){
+        m_nozzle_combo->Enable(enable);
+        if (!enable) m_nozzle_combo->SetValue(wxEmptyString);
+    }
+
     return wxPanel::Enable(enable);
 }
 
@@ -380,6 +430,12 @@ void FilamentComboBox::msw_rescale()
     m_comboBox->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
     m_comboBox->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
     m_comboBox->msw_rescale();
+
+    m_nozzle_bmp->SetBitmap(create_scaled_bitmap("cali_nozzle", this, 20));
+
+    m_nozzle_combo->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_nozzle_combo->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+    m_nozzle_combo->Rescale();
 }
 
 
@@ -548,6 +604,8 @@ void CaliPageStepGuide::set_steps(int index)
 
 void CaliPageStepGuide::set_steps_string(wxArrayString steps)
 {
+    if (m_steps == steps) return;
+
     m_steps.Clear();
     m_text_steps.clear();
     m_step_sizer->Clear(true);
@@ -575,7 +633,7 @@ void CaliPageStepGuide::set_steps_string(wxArrayString steps)
 CaliPagePicture::CaliPagePicture(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : wxPanel(parent, id, pos, size, style)
 {
-    SetBackgroundColour(wxColour("#CECECE"));
+    SetBackgroundColour(wxColour(206, 206, 206));
     auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
     top_sizer->AddStretchSpacer();
     m_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);

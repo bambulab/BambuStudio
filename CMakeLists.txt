@@ -181,11 +181,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # We pick it from environment if it is not defined in another way
 if(WIN32)
     if(EXISTS "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"  AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-        message(STATUS ".git: directory")
-        configure_file(
-            "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"
-            "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit"
-        )
+       if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/.git")
+            message(STATUS ".git: directory")
+            configure_file(
+                "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"
+                "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit"
+            )
+       else()
+           message(STATUS "skip pre-commit git hook")
+       endif()
     endif()
 
     find_package(PkgConfig REQUIRED)
@@ -567,12 +571,12 @@ foreach(po_file ${BBL_L10N_PO_FILES})
 endforeach()
 
 # copy pt-BR/BamabuStudio.mo to pt_br/
-SET(PT_BR "${L10N_DIR}/pt-BR/BambuStudio.mo")
-SET(PT_BR_DST "${L10N_DIR}/pt_br/")
-add_custom_command(
-    TARGET gettext_po_to_mo POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PT_BR} ${PT_BR_DST}
-)
+#SET(PT_BR "${L10N_DIR}/pt-BR/BambuStudio.mo")
+#SET(PT_BR_DST "${L10N_DIR}/pt_br/")
+#add_custom_command(
+#    TARGET gettext_po_to_mo POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PT_BR} ${PT_BR_DST}
+#)
 
 find_package(NLopt 1.4 REQUIRED)
 

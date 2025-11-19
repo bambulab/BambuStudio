@@ -16,6 +16,44 @@
       "description": "AMS does not support 'Bambu Lab PET-CF'."
     },
     {
+      "name_suffix": "PA6-GF",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+    },
+    {
+      "type": "PPS-CF",
+      "nozzle_flows": ["High Flow"],
+      "model_id":["C11", "C12", "BL-P001"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+    },
+    {
+      "type": "PLA-Aero",
+      "nozzle_flows": ["High Flow"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+    },
+    {
+      "type": "ASA-Aero",
+      "nozzle_flows": ["High Flow"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+    },
+    {
+      "name_suffix": "TPU 85A",
+      "nozzle_flows": ["High Flow"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+    },
+    {
+      "name_suffix": "TPU 90A",
+      "nozzle_flows": ["High Flow"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+    },
+    {
       "type": "TPU",
       "action": "warning",
       "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -60,17 +98,76 @@
     {
       "type_suffix": "GF",
       "action": "warning",
-	  "slot": "ams",
+      "slot": "ams",
       "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
     },
     {
       "vendor": "Bambu Lab",
       "type": "PLA",
       "name": "PLA Glow",
-	  "model_id":["N1","N2S"],
+      "model_id": [
+        "N1",
+        "N2S"
+      ],
       "action": "warning",
       "slot": "ams",
       "description": "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+    },
+    {
+      "name_suffix": "PC FR",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "name_suffix": "PLA Silk",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "name_suffix": "Support For PA/PET",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "name_suffix": "PVA",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "name_suffix": "Support For PLA",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "name_suffix": "Support For PLA/PETG",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "name_suffix": "Support for ABS",
+      "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
+      "action": "warning",
+      "description": "Default settings may affect print quality. Adjust as needed for best results.",
+      "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
     }
   ]
 }

@@ -60,7 +60,8 @@
 		"printer_series": "series_p1p",
 		"has_cali_line": false,
 		"printer_is_enclosed": false,
-		"enable_set_nozzle_info": false
+		"enable_set_nozzle_info": false,
+		"support_disable_cali_flow_type": true
 	},
 	"01.02.00.00": {
 		"print": {

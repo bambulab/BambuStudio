@@ -170,6 +170,12 @@ public:
     // extruder
     int  GetExtruderIdByAmsId(const std::string& ams_id) const;
 
+    // nozzle
+    std::string GetNozzleFlowStringByAmsId(const std::string& ams_id) const;
+
+    // filament backup
+    bool CanShowFilamentBackup() const;
+
     /* AMS settings*/
     DevAmsSystemSetting& GetAmsSystemSetting() { return m_ams_system_setting; }
     std::optional<bool>  IsDetectOnInsertEnabled() const { return m_ams_system_setting.IsDetectOnInsertEnabled(); };
@@ -182,7 +188,7 @@ public:
 public:
     // ctrls
     int  CtrlAmsReset() const;
-     
+
 public:
     static bool IsBBL_Filament(std::string tag_uid);
 

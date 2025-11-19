@@ -556,7 +556,9 @@ std::vector<wxBitmap*> get_extruder_color_icons(bool thin_icon/* = false*/)
     std::vector<std::string> filaments_color_info = Slic3r::GUI::wxGetApp().plater()->get_filament_colors_render_info();
     std::vector<std::string> ctype = Slic3r::GUI::wxGetApp().plater()->get_filament_color_render_type();
 
-    if (!filaments_color_info.empty() && !ctype.empty() && ctype.size() == filaments_color_info.size()) {
+    bool multi_color_valid = Slic3r::GUI::wxGetApp().plater()->is_color_size_equal();
+
+    if (multi_color_valid && !filaments_color_info.empty() && !ctype.empty() && ctype.size() == filaments_color_info.size()) {
         std::vector<std::vector<std::string>> readable_color_info = read_color_pack(filaments_color_info);
         /* It's supposed that standard size of an icon is 36px*16px for 100% scaled display.
          * So set sizes for solid_colored icons used for filament preset

@@ -8,8 +8,6 @@
 
 #include "libslic3r/Model.hpp"
 #include "../GUI/MsgDialog.hpp"
-#include "BBLUtil.hpp"
-#include "libslic3r/FlushVolCalc.hpp"
 
 #include "../GUI/DeviceCore/DevConfig.h"
 #include "../GUI/DeviceCore/DevExtruderSystem.h"
@@ -18,6 +16,8 @@
 #include "libslic3r/FlushVolCalc.hpp"
 #include "BBLUtil.hpp"
 #include "../GUI/Plater.hpp"
+#include "../GUI/DeviceCore/DevNozzleSystem.h"
+#include "../GUI/DeviceCore/DevNozzleRack.h"
 
 namespace Slic3r {
 namespace GUI {
@@ -83,6 +83,8 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
         return _L("Standard");
     } else if (NozzleVolumeType::nvtHighFlow == type) {
         return _L("High Flow");
+    } else if (NozzleVolumeType::nvtHybrid == type) {
+        return _L("Hybrid");
     }
     return wxString();
 }
@@ -149,6 +151,45 @@ std::vector<double> generate_max_speed_parameter_value(const std::string &key)
         }
     }
     return speed_values;
+}
+
+float to_nozzle_diameter_float(const NozzleDiameterType &type)
+{
+    switch (type){
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return 0.2f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return 0.4f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return 0.6f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return 0.8f;
+        default: return 0.4f;
+    }
+}
+
+NozzleFlowType to_nozzle_flow_type(const std::string &type)
+{
+    if(type == "Standard")
+        return NozzleFlowType::S_FLOW;
+    else if(type == "High Flow")
+        return NozzleFlowType::H_FLOW;
+    else
+        return NozzleFlowType::NONE_FLOWTYPE;
+}
+
+NozzleFlowType to_nozzle_flow_type(const NozzleVolumeType &type)
+{
+    switch (type) {
+        case NozzleVolumeType::nvtStandard: return NozzleFlowType::S_FLOW;
+        case NozzleVolumeType::nvtHighFlow: return NozzleFlowType::H_FLOW;
+        default: return NozzleFlowType::NONE_FLOWTYPE;
+    }
+}
+
+NozzleVolumeType to_nozzle_volume_type(const NozzleFlowType &type)
+{
+    switch (type) {
+        case NozzleFlowType::S_FLOW: return NozzleVolumeType::nvtStandard;
+        case NozzleFlowType::H_FLOW: return NozzleVolumeType::nvtHighFlow;
+        default: return NozzleVolumeType::nvtStandard;
+    }
 }
 
 static int get_physical_extruder_idx(std::vector<int> physical_extruder_maps, int extruder_id)
@@ -375,9 +416,27 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
     std::vector<int>& filament_maps = config.option<ConfigOptionInts>("filament_map", true)->values;
     filament_maps.clear();
     filament_maps.resize(num_filaments, extruder_id);
+    config.option<ConfigOptionInts>("filament_volume_map", true)->values = {static_cast<int>(calib_info.nozzle_volume_type)};
 
     config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmManual;
 
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return;
+
+    const MachineObject *obj = dev->get_selected_machine();
+    if (obj == nullptr)
+        return;
+
+    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+        config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
+        config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = {calib_info.nozzle_pos_id};
+
+        ExtruderNozzleStat nozzle_stat;
+        nozzle_stat.set_extruder_nozzle_count(extruder_id - 1, calib_info.nozzle_volume_type, 1, false);
+        auto str_values = save_extruder_nozzle_stats_to_string(nozzle_stat.get_raw_stat());
+        config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = str_values;
+    }
 }
 
 
@@ -1054,9 +1113,12 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         return left_item.index < right_item.index;
     });
 
+    std::map<std::pair<int, NozzleVolumeType>, int> extruder_nozzle_counts;
     std::vector<Preset> filament_presets;
-    std::vector<int>    filament_map;
-    filament_map.resize(sorted_calib_infos.size());
+    std::vector<int>    filament_map, f_volume_maps, f_nozzle_map;
+    filament_map.resize(calib_infos.size(), 1);
+    f_volume_maps.resize(calib_infos.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
+    f_nozzle_map.resize(calib_infos.size(), 0);
     std::vector<int> physical_extruder_maps = dynamic_cast<ConfigOptionInts *>(printer_config.option("physical_extruder_map", true))->values;
     for (size_t i = 0; i < sorted_calib_infos.size(); ++i) {
         CalibInfo calib_info = sorted_calib_infos[i];
@@ -1068,12 +1130,38 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
                 break;
             }
         }
+
+        f_volume_maps[i] = static_cast<int>(calib_info.nozzle_volume_type);
+        f_nozzle_map[i]  = static_cast<int>(calib_info.nozzle_pos_id);
+
+        std::pair<int, NozzleVolumeType> key = {filament_map[i], calib_info.nozzle_volume_type};
+        if (extruder_nozzle_counts.find(key) != extruder_nozzle_counts.end()) {
+            extruder_nozzle_counts[key]++;
+        } else {
+            extruder_nozzle_counts[key] = 1;
+        }
+    }
+    //todo: need to use the correct filament_volume_map later
+
+    ExtruderNozzleStat nozzle_stat;
+    for (auto item : extruder_nozzle_counts) {
+        nozzle_stat.set_extruder_nozzle_count(item.first.first, item.first.second, item.second, false);
     }
 
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
-    DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map);
+    DynamicPrintConfig full_config   = PresetBundle::construct_full_config(printer_preset, print_preset, preset_bundle->project_config, filament_presets, false, filament_map, f_volume_maps);
 
     set_for_auto_pa_model_and_config(sorted_calib_infos, full_config, model);
+
+    auto rack = obj_->GetNozzleSystem()->GetNozzleRack();
+    if (rack->IsSupported()) {
+        full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmNozzleManual;
+        full_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_nozzle_map;
+
+        auto str_values = save_extruder_nozzle_stats_to_string(nozzle_stat.get_raw_stat());
+        full_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = str_values;
+    }
+
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
 
@@ -1536,7 +1624,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
+        if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
@@ -1585,6 +1673,11 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
         float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
         NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
+        if (cali_info.nozzle_pos_id != -1) {
+            auto nozzle = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
+            diameter = nozzle.GetNozzleDiameter();
+            nozzle_volume_type = nozzle.GetNozzleFlowType();
+        }
 
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
             if (is_multi_extruder)
@@ -1604,7 +1697,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
+        if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
@@ -1612,6 +1705,12 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
                 error_message = nozzle_volume_type_not_match_text;
             return false;
         }
+    }
+
+    if(!std::all_of(cali_infos.begin(), cali_infos.end(), [&](auto& info){ return is_approx(info.nozzle_diameter, cali_infos.front().nozzle_diameter);}))
+    {
+        error_message = _L("Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again.");
+        return false;
     }
 
     return true;
@@ -1635,6 +1734,12 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
 
     float  diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
     NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
+    if (cali_info.nozzle_pos_id != -1) {
+        auto nozzle        = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
+        diameter           = nozzle.GetNozzleDiameter();
+        nozzle_volume_type = nozzle.GetNozzleFlowType();
+    }
+
 
     if (!is_approx(nozzle_diameter, diameter)) {
         if (is_multi_extruder)
@@ -1655,7 +1760,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         return false;
     }
 
-    if (NozzleVolumeType(nozzle_volume_type - 1) != cali_info.nozzle_volume_type) {
+    if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
         if (is_multi_extruder)
             error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                             "Please click the Sync button above and restart the calibration."), name);
@@ -1769,8 +1874,10 @@ bool CalibUtils::process_and_store_3mf(Model *model, const DynamicPrintConfig &f
         plate_data->gcode_file      = temp_gcode_path;
         plate_data->is_sliced_valid = true;
         plate_data->printer_model_id = obj_->printer_type;
-        FilamentInfo& filament_info = plate_data->slice_filaments_info.front();
-        filament_info.type          = full_config.opt_string("filament_type", 0);
+        for (size_t i = 0; i < plate_data->slice_filaments_info.size(); ++i) {
+            FilamentInfo &filament_info = plate_data->slice_filaments_info[i];
+            filament_info.type          = full_config.opt_string("filament_type", i);
+        }
     }
 
     //draw thumbnails
@@ -1935,17 +2042,27 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
 
+    auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
+    if (calib_info.nozzle_pos_id == 0 && nozzle_tar.has_value()) {
+        print_job->task_nozzle_mapping = "[" + std::to_string(nozzle_tar.value()) + "]";
+    } else {
+        print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
+    }
+
     CalibMode cali_mode       = calib_info.params.mode;
     print_job->m_project_name = get_calib_mode_name(cali_mode, flow_ratio_mode);
     print_job->set_calibration_task(true);
 
     print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
     print_job->could_emmc_print = obj_->is_support_print_with_emmc;
-    print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true, false, 0, 0, 0);
+    print_job->set_print_config(MachineBedTypeString[bed_type], true, false, false, false, true, false, 0, 0, 0, 0);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
     {  // after send: record the print job
         json j;
+        j["print"]["ams_mapping"]     = print_job->task_ams_mapping;
+        j["print"]["ams_mapping_2"]   = print_job->task_ams_mapping2;
+        j["print"]["nozzle_mapping"]  = print_job->task_nozzle_mapping;
         j["print"]["project_name"]    = print_job->m_project_name;
         j["print"]["is_cali_task"]    = print_job->m_is_calibration_task;
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();
@@ -2030,19 +2147,30 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     // set AMS mapping
     std::string select_ams     = "[";
     std::string new_select_ams = "[";
+    std::string nozzle_mapping = "[";
     for (size_t i = 0; i < calib_infos.size(); ++i) {
         select_ams += calib_infos[i].select_ams;
         new_select_ams += "{\"ams_id\":" + std::to_string(calib_infos[i].ams_id) + ", \"slot_id\":" + std::to_string(calib_infos[i].slot_id) + "}";
+
+        auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
+        if (calib_infos[i].nozzle_pos_id == 0 && nozzle_tar.has_value())
+            nozzle_mapping += std::to_string(nozzle_tar.value());
+        else
+            nozzle_mapping += std::to_string(calib_infos[i].nozzle_pos_id);
+
         if (i != calib_infos.size() - 1) {
             select_ams += ",";
             new_select_ams += ",";
+            nozzle_mapping += ",";
         }
     }
     select_ams += "]";
     new_select_ams += "]";
+    nozzle_mapping += "]";
     print_job->task_ams_mapping      = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_ams_mapping2     = new_select_ams;
+    print_job->task_nozzle_mapping   = nozzle_mapping;
 
     print_job->task_use_ams = false;
     for (const CalibInfo& calib_info : calib_infos) {
@@ -2058,13 +2186,14 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
 
     print_job->has_sdcard = obj_->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
     print_job->could_emmc_print = obj_->is_support_print_with_emmc;
-    print_job->set_print_config(MachineBedTypeString[bed_type], true, true, false, false, true, false, 0, 1, 0);
+    print_job->set_print_config(MachineBedTypeString[bed_type], true, true, false, false, true, false, 0, 1, 0, 0);
     print_job->set_print_job_finished_event(wxGetApp().plater()->get_send_calibration_finished_event(), print_job->m_project_name);
 
     { // after send: record the print job
         json j;
         j["print"]["ams_mapping"] = print_job->task_ams_mapping;
         j["print"]["ams_mapping_2"] = print_job->task_ams_mapping2;
+        j["print"]["nozzle_mapping"] = print_job->task_nozzle_mapping;
         j["print"]["project_name"] = print_job->m_project_name;
         j["print"]["is_cali_task"] = print_job->m_is_calibration_task;
         BOOST_LOG_TRIVIAL(info) << "send_cali_job - after send: " << j.dump();

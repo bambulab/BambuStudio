@@ -106,6 +106,7 @@
     "skirt_loops": "0",
     "smooth_coefficient": "80",
     "sparse_infill_density": "15%",
+    "fill_multiline": "1",
     "skeleton_infill_density": "15%",
     "skin_infill_density": "15%",
     "sparse_infill_line_width": "0.45",
@@ -171,5 +172,10 @@
     "xy_contour_compensation": "0",
     "xy_hole_compensation": "0",
     "z_direction_outwall_speed_continuous": "0",
-    "first_x_layer_fan_speed": "0"
+    "sparse_infill_filament": "0",
+    "wall_filament": "0",
+    "solid_infill_filament": "0",
+    "embedding_wall_into_infill": "0",
+    "first_x_layer_fan_speed": "0",
+    "infill_instead_top_bottom_surfaces":"0"
 }

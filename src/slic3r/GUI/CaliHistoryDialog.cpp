@@ -10,19 +10,22 @@
 
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevNozzleRack.h"
 
 namespace Slic3r {
 namespace GUI {
 
 
-#define HISTORY_WINDOW_SIZE                wxSize(FromDIP(700), FromDIP(600))
+#define HISTORY_WINDOW_SIZE                wxSize(FromDIP(740), FromDIP(600))
 #define EDIT_HISTORY_DIALOG_INPUT_SIZE     wxSize(FromDIP(160), FromDIP(24))
 #define NEW_HISTORY_DIALOG_INPUT_SIZE      wxSize(FromDIP(250), FromDIP(24))
 #define HISTORY_WINDOW_ITEMS_COUNT         6
+#define MAX_HISTORY_ITEMS_NUM              100
 
 enum CaliColumnType : int {
     Cali_Name = 0,
     Cali_Filament,
+    Cali_Nozzle_ID,
     Cali_Nozzle,
     Cali_K_Value,
     Cali_Delete,
@@ -32,28 +35,26 @@ enum CaliColumnType : int {
 
 bool support_nozzle_volume(const MachineObject* obj)
 {
-    if (!obj)
+    if (!obj) return false;
+
+    if(DevPrinterConfigUtil::support_disable_cali_flow_type(obj->printer_type))
         return false;
-    Preset * machine_preset = get_printer_preset(obj);
-    if (machine_preset) {
-        int extruder_nums = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-        auto nozzle_volume_opt = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_volume");
-        if (nozzle_volume_opt) {
-            int printer_variant_size = nozzle_volume_opt->values.size();
-            return (printer_variant_size / extruder_nums) > 1;
-        }
-    }
+
+    if (obj->is_nozzle_flow_type_supported())
+        return true;
+
     return false;
 }
 
-int get_colume_idx(CaliColumnType type, MachineObject* obj)
-{
-    if (!support_nozzle_volume(obj)
-        && (type > CaliColumnType::Cali_Nozzle)) {
-        return type - 1;
+wxString nozzle_id_code_to_string(int code){
+    if(code == 0){
+        return "R";
+    } else if(code >= 0x10){
+        return wxString::Format("%d", code - 0x10 +1);
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+        return "N/A";
     }
-
-    return type;
 }
 
 static wxString get_preset_name_by_filament_id(std::string filament_id)
@@ -326,6 +327,8 @@ void HistoryWindow::enbale_action_buttons(bool enable) {
 }
 
 void HistoryWindow::sync_history_data() {
+    int column_idx = 0;
+
     Freeze();
     m_history_data_panel->DestroyChildren();
     m_history_data_panel->Enable();
@@ -338,22 +341,33 @@ void HistoryWindow::sync_history_data() {
 
     auto title_name = new Label(m_history_data_panel, _L("Name"));
     title_name->SetFont(Label::Head_14);
-    gbSizer->Add(title_name, {0, get_colume_idx(CaliColumnType::Cali_Name, curr_obj) }, {1, 1}, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_name, {0, column_idx++ }, {1, 1}, wxBOTTOM, FromDIP(15));
     BOOST_LOG_TRIVIAL(info) << "=====================" << title_name->GetLabelText().ToStdString();
 
     auto title_preset_name = new Label(m_history_data_panel, _L("Filament"));
     title_preset_name->SetFont(Label::Head_14);
-    gbSizer->Add(title_preset_name, { 0, get_colume_idx(CaliColumnType::Cali_Filament, curr_obj) }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_preset_name, { 0, column_idx++ }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+
+    auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
+    if(rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID) {
+        auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle ID"));
+        nozzle_name->SetFont(Label::Head_14);
+        auto font = nozzle_name->GetFont();
+        font.SetUnderlined(true);
+        nozzle_name->SetFont(font);
+        nozzle_name->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+        gbSizer->Add(nozzle_name, {0, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
+    }
 
     if (support_nozzle_volume(curr_obj)) {
         auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle Flow"));
         nozzle_name->SetFont(Label::Head_14);
-        gbSizer->Add(nozzle_name, {0, get_colume_idx(CaliColumnType::Cali_Nozzle, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(nozzle_name, {0, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
     }
 
     auto title_k = new Label(m_history_data_panel, _L("Factor K"));
     title_k->SetFont(Label::Head_14);
-    gbSizer->Add(title_k, { 0, get_colume_idx(CaliColumnType::Cali_K_Value,curr_obj) }, { 1, 1 }, wxBOTTOM, FromDIP(15));
+    gbSizer->Add(title_k, { 0, column_idx++ }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
     // Hide
     //auto title_n = new Label(m_history_data_panel, wxID_ANY, _L("N"));
@@ -362,7 +376,7 @@ void HistoryWindow::sync_history_data() {
 
     auto title_action = new Label(m_history_data_panel, _L("Action"));
     title_action->SetFont(Label::Head_14);
-    gbSizer->Add(title_action, {0, get_colume_idx(CaliColumnType::Cali_Delete, curr_obj)}, {1, 1});
+    gbSizer->Add(title_action, {0, column_idx++}, {1, 1});
 
     auto to_lower_case = [](const std::string &str) {
         std::string lowerStr = str;
@@ -377,6 +391,12 @@ void HistoryWindow::sync_history_data() {
         std::string right_str = to_lower_case(right.name);
         return left_str < right_str ? true : left_str > right_str ? false : (left_str < right_str);
     });
+
+    // grid item num in row
+    int column_count = column_idx + 1;
+    // reset colume_idx
+    column_idx = 0;
+
     int i = 1;
     for (auto& result : m_calib_results_history) {
         auto name_value = new Label(m_history_data_panel, from_u8(result.name));
@@ -393,13 +413,14 @@ void HistoryWindow::sync_history_data() {
         delete_button->SetBackgroundColour(*wxWHITE);
         delete_button->SetMinSize(wxSize(-1, FromDIP(24)));
         delete_button->SetCornerRadius(FromDIP(12));
-        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result](auto& e) {
+        delete_button->Bind(wxEVT_BUTTON, [this, gbSizer, i, &result, column_count](auto& e) {
             if (m_ui_op_lock) {
                 return;
             } else {
                 m_ui_op_lock = true;
             }
-            for (int j = 0; j < HISTORY_WINDOW_ITEMS_COUNT; j++) {
+
+            for (int j = 0; j < column_count; j++) {
                 auto item = gbSizer->FindItemAtPosition({ i, j });
                 if (item && item->GetWindow())
                     item->GetWindow()->Hide();
@@ -412,6 +433,8 @@ void HistoryWindow::sync_history_data() {
             cali_info.cali_idx        = result.cali_idx;
             cali_info.nozzle_diameter = result.nozzle_diameter;
             cali_info.filament_id     = result.filament_id;
+            cali_info.nozzle_pos_id   = result.nozzle_pos_id;
+            cali_info.nozzle_sn       = result.nozzle_sn;
             CalibUtils::delete_PA_calib_result(cali_info);
             });
 
@@ -446,17 +469,27 @@ void HistoryWindow::sync_history_data() {
             }
             });
 
-        gbSizer->Add(name_value, {i, get_colume_idx(CaliColumnType::Cali_Name, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(preset_name_value, {i, get_colume_idx(CaliColumnType::Cali_Filament, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(name_value, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(preset_name_value, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
+
+        auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
+        if(rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID){
+            // Nozzle ID
+            wxString nozzle_id       = nozzle_id_code_to_string(result.nozzle_pos_id);
+            auto     nozzle_id_label = new Label(m_history_data_panel, nozzle_id);
+            gbSizer->Add(nozzle_id_label, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
+        }
+
         if (support_nozzle_volume(curr_obj)) {
             wxString nozzle_name       = get_nozzle_volume_type_name(result.nozzle_volume_type);
             auto     nozzle_name_label = new Label(m_history_data_panel, nozzle_name);
-            gbSizer->Add(nozzle_name_label, {i, get_colume_idx(CaliColumnType::Cali_Nozzle, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+            gbSizer->Add(nozzle_name_label, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
         }
-        gbSizer->Add(k_value, {i, get_colume_idx(CaliColumnType::Cali_K_Value, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(k_value, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
         //gbSizer->Add(n_value, { i, 3 }, { 1, 1 }, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(delete_button, {i, get_colume_idx(CaliColumnType::Cali_Delete, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
-        gbSizer->Add(edit_button, {i, get_colume_idx(CaliColumnType::Cali_Edit, curr_obj)}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(delete_button, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
+        gbSizer->Add(edit_button, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
+        column_idx = 0;
         i++;
         m_ui_op_lock = false;
     }
@@ -558,8 +591,18 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow             
         flex_sizer->Add(extruder_name_value);
     }
 
+    // Nozzle ID
+    auto rack = obj->GetNozzleSystem()->GetNozzleRack();
+    if(rack->IsSupported() && result.extruder_id == MAIN_EXTRUDER_ID) {
+        Label* nozzle_id_title = new Label(top_panel, _L("Nozzle ID"));
+        wxString nozzle_id     = nozzle_id_code_to_string(result.nozzle_pos_id);
+        Label* nozzle_id_value = new Label(top_panel, nozzle_id);
+        flex_sizer->Add(nozzle_id_title);
+        flex_sizer->Add(nozzle_id_value);
+    }
+
     if (support_nozzle_volume(curr_obj)) {
-        Label                 *nozzle_name_title = new Label(top_panel, _L("Nozzle"));
+        Label                 *nozzle_name_title = new Label(top_panel, _L("Nozzle Flow"));
         wxString               nozzle_name;
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
@@ -791,6 +834,21 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     flex_sizer->Add(name_title);
     flex_sizer->Add(m_name_value);
 
+    if (curr_obj->is_multi_extruders())
+    {
+        Label *extruder_name_title = new Label(top_panel, _L("Extruder"));
+        m_comboBox_extruder      = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+        wxArrayString extruder_items;
+        extruder_items.push_back(_L("Left"));
+        extruder_items.push_back(_L("Right"));
+        m_comboBox_extruder->Set(extruder_items);
+        m_comboBox_extruder->SetSelection(-1);
+        m_comboBox_extruder->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_extruder, this);
+
+        flex_sizer->Add(extruder_name_title);
+        flex_sizer->Add(m_comboBox_extruder);
+    }
+
     Label *  preset_name_title = new Label(top_panel, _L("Filament"));
     m_comboBox_filament = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
 
@@ -802,28 +860,41 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     flex_sizer->Add(preset_name_title);
     flex_sizer->Add(m_comboBox_filament);
 
-    if (curr_obj->is_multi_extruders())
-    {
-        Label *extruder_name_title = new Label(top_panel, _L("Extruder"));
-        m_comboBox_extruder      = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-        wxArrayString extruder_items;
-        extruder_items.push_back(_L("Left"));
-        extruder_items.push_back(_L("Right"));
-        m_comboBox_extruder->Set(extruder_items);
-        m_comboBox_extruder->SetSelection(-1);
-        flex_sizer->Add(extruder_name_title);
-        flex_sizer->Add(m_comboBox_extruder);
+    // Nozzle ID
+    auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
+    if(rack->IsSupported()){
+        Label *nozzle_id_title = new Label(top_panel, _L("Nozzle ID"));
+        m_comboBox_nozzle_id   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
+        m_comboBox_nozzle_id->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_pos, this);
+
+        int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+        auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
+
+        if(r_nozzle.IsNormal()){
+            m_comboBox_nozzle_id->Append("R", wxNullBitmap, new int{0});
+        }
+        for (auto nozzle_item : rack->GetRackNozzles()) {
+            if(nozzle_item.second.IsNormal()){
+                m_comboBox_nozzle_id->Append(wxString::Format("%d", nozzle_item.first + 1), wxNullBitmap, new int{0x10 | nozzle_item.first});
+            }
+        }
+
+        m_comboBox_nozzle_id->SetSelection(-1);
+        m_comboBox_nozzle_id->Disable();
+        flex_sizer->Add(nozzle_id_title);
+        flex_sizer->Add(m_comboBox_nozzle_id);
     }
 
     if (support_nozzle_volume(curr_obj)) {
-        Label *nozzle_name_title = new Label(top_panel, _L("Nozzle"));
+        Label *nozzle_name_title = new Label(top_panel, _L("Nozzle Flow"));
         m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-        wxArrayString          nozzle_items;
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
-            for (auto item : nozzle_volume_type_def->enum_labels) { nozzle_items.push_back(_L(item)); }
+            for (auto item : nozzle_volume_type_def->enum_labels) {
+                if (item == "Hybrid") continue;
+                m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{to_nozzle_flow_type(item)});
+            }
         }
-        m_comboBox_nozzle_type->Set(nozzle_items);
         m_comboBox_nozzle_type->SetSelection(-1);
         flex_sizer->Add(nozzle_name_title);
         flex_sizer->Add(m_comboBox_nozzle_type);
@@ -831,10 +902,15 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
 
     Label *nozzle_diameter_title = new Label(top_panel, _L("Nozzle Diameter"));
     m_comboBox_nozzle_diameter = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-    static std::array<float, 4> nozzle_diameter_list = {0.2f, 0.4f, 0.6f, 0.8f};
-    for (int i = 0; i < nozzle_diameter_list.size(); i++) {
-        m_comboBox_nozzle_diameter->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
-        if (abs(obj->GetExtderSystem()->GetNozzleDiameter(0) - nozzle_diameter_list[i]) < 1e-3) {
+
+    static std::array<NozzleDiameterType, 4> nozzle_diameter_list = {NozzleDiameterType::NOZZLE_DIAMETER_0_2, NozzleDiameterType::NOZZLE_DIAMETER_0_4,
+                                                                     NozzleDiameterType::NOZZLE_DIAMETER_0_6, NozzleDiameterType::NOZZLE_DIAMETER_0_8};
+    for (int i = 0; i < nozzle_diameter_list.size(); i++)
+    {
+        auto diameter = nozzle_diameter_list[i];
+        m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", to_nozzle_diameter_float(diameter)), wxNullBitmap, new int{diameter});
+
+        if(obj->GetExtderSystem()->GetNozzleDiameterType(0) == diameter){
             m_comboBox_nozzle_diameter->SetSelection(i);
         }
     }
@@ -887,12 +963,72 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+int NewCalibrationHistoryDialog::get_nozzle_combo_id_code() const{
+    if(!m_comboBox_nozzle_id) return -1;
+
+    auto sel = m_comboBox_nozzle_id->GetSelection();
+    if (sel != wxNOT_FOUND) return *(reinterpret_cast<int*>(m_comboBox_nozzle_id->GetClientData(sel)));
+
+    return -1;
+}
+
 int NewCalibrationHistoryDialog::get_extruder_id(int extruder_index)
 {
     if ((extruder_index != -1) && curr_obj->is_multi_extruders()) {
         return curr_obj->is_main_extruder_on_left() ? extruder_index : (1 - extruder_index);
     }
     return 0;
+}
+
+void NewCalibrationHistoryDialog::on_select_extruder(wxCommandEvent &event)
+{
+    if (!m_comboBox_nozzle_id || !m_comboBox_nozzle_type) return;
+
+    /* select right extruder */
+    if (m_comboBox_extruder->GetSelection() == 1)
+    {
+        m_comboBox_nozzle_id->Enable();
+
+        m_comboBox_nozzle_type->Disable();
+        m_comboBox_nozzle_diameter->Disable();
+    }
+    else
+    {
+        m_comboBox_nozzle_id->Disable();
+        m_comboBox_nozzle_id->SetValue(wxEmptyString);
+
+        m_comboBox_nozzle_type->Enable();
+        m_comboBox_nozzle_diameter->Enable();
+    }
+}
+
+void NewCalibrationHistoryDialog::on_select_nozzle_pos(wxCommandEvent &event)
+{
+    if (!curr_obj) return;
+
+    auto sel = m_comboBox_nozzle_id->GetSelection();
+    if (sel == wxNOT_FOUND) return;
+
+    int pos = *(reinterpret_cast<int *>(m_comboBox_nozzle_id->GetClientData(sel)));
+
+    auto nozzle = curr_obj->get_nozzle_by_id_code(pos);
+    if (nozzle.IsNormal()) {
+        auto nozzle_flow = nozzle.GetNozzleFlowType();
+        m_comboBox_nozzle_type->SetSelection(-1);
+        for(unsigned int i=0; i < m_comboBox_nozzle_type->GetCount(); i++) {
+            if(nozzle_flow == NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(i))) {
+                m_comboBox_nozzle_type->SetSelection(i);
+            }
+        }
+
+        auto nozzle_diameter = nozzle.GetNozzleDiameterType();
+        m_comboBox_nozzle_diameter->SetSelection(-1);
+        for(unsigned int i=0; i < m_comboBox_nozzle_diameter->GetCount(); i++) {
+            if(nozzle_diameter == NozzleDiameterType(*(int*)m_comboBox_nozzle_diameter->GetClientData(i))) {
+                m_comboBox_nozzle_diameter->SetSelection(i);
+            }
+        }
+    }
 }
 
 void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
@@ -910,9 +1046,14 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     wxString k_str = wxString::Format("%.3f", k);
     m_k_value->GetTextCtrl()->SetValue(k_str);
 
-    double   nozzle_value     = 0.0;
-    wxString nozzle_value_str = m_comboBox_nozzle_diameter->GetValue();
-    nozzle_value_str.ToDouble(&nozzle_value);
+    auto   sel          = m_comboBox_nozzle_diameter->GetSelection();
+    double nozzle_value = 0.0f;
+    if (sel != wxNOT_FOUND) {
+        nozzle_value = to_nozzle_diameter_float(NozzleDiameterType(*(int *) m_comboBox_nozzle_diameter->GetClientData(sel)));
+    } else {
+        nozzle_value = to_nozzle_diameter_float(NozzleDiameterType::NONE_DIAMETER_TYPE);
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle diameter type sel";
+    }
 
     std::string filament_name = m_comboBox_filament->GetValue().ToStdString();
     if (filament_name.empty()) {
@@ -938,7 +1079,20 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
             msg_dlg.ShowModal();
             return;
         }
-        m_new_result.nozzle_volume_type = NozzleVolumeType(m_comboBox_nozzle_type->GetSelection());
+        auto sel = m_comboBox_nozzle_type->GetSelection();
+        if (sel != wxNOT_FOUND) {
+            m_new_result.nozzle_volume_type = to_nozzle_volume_type(NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(sel)));
+        } else {
+            m_new_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle flow type sel";
+        }
+    }
+
+    int nozzle_pos_id = get_nozzle_combo_id_code();
+    std::string nozzle_sn;
+    if (nozzle_pos_id != -1) {
+        DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
+        nozzle_sn = nozzle.GetSerialNumber().ToStdString();
     }
 
     auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
@@ -953,6 +1107,8 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     m_new_result.nozzle_diameter = nozzle_value;
     m_new_result.filament_id = filament_id;
     m_new_result.setting_id = setting_id;
+    m_new_result.nozzle_pos_id = nozzle_pos_id;
+    m_new_result.nozzle_sn = nozzle_sn;
 
     // Check for duplicate names from history
     {

@@ -40,7 +40,10 @@
 #include "ParamsPanel.hpp"
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
+#include "Widgets/SwitchButton.hpp"
 #include "UnsavedChangesDialog.hpp"
+#include "DeviceCore/DevDefs.h"
+#include "DeviceCore/DevNozzleSystem.h"
 
 class TabCtrl;
 class ComboBox;
@@ -54,6 +57,7 @@ namespace GUI {
 
 class TabPresetComboBox;
 class OG_CustomCtrl;
+//extern std::set<std::string> filament_options_with_variant;
 
 // Single Tab page containing a{ vsizer } of{ optgroups }
 // package Slic3r::GUI::Tab::Page;
@@ -246,6 +250,7 @@ protected:
     std::vector<Preset::Type>	m_dependent_tabs;
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
+    std::map<std::string, int> m_all_extruder_options_status;
 	int							m_opt_status_value = 0;
 
 	bool				m_is_modified_values{ false };
@@ -303,9 +308,14 @@ public:
 
     SwitchButton *m_mode_view = nullptr;
     wxSizer *       m_variant_sizer   = nullptr;
-    SwitchButton *  m_extruder_switch = nullptr;
+    MultiSwitchButton *  m_extruder_switch = nullptr;
+    MultiSwitchButton *  m_variant_combo   = nullptr;
+    wxSizer *       m_nozzle_status_sizer = nullptr;
+    wxStaticBitmap * m_wiki_bmp  = nullptr;
+	wxStaticText *  m_wiki_label = nullptr;
     ScalableButton *m_extruder_sync   = nullptr;
-    ComboBox *      m_variant_combo   = nullptr;
+	wxPanel *       m_extruder_sync_box  = nullptr;
+    std::vector<NozzleVolumeType> m_actual_nozzle_volumes;
 
 public:
 	// BBS
@@ -357,8 +367,11 @@ public:
 	void		decorate();
 	void		update_changed_ui();
 	void		get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page);
-	void		update_changed_tree_ui();
+    void        update_changed_tree_ui();
 	void		update_undo_buttons();
+    void        update_extruder_switch_colors();
+    void        update_all_extruder_options_status();
+    void        check_extruder_options_status(int index, bool &sys_extruder, bool &modified_extruder, const std::vector<PageShp>& pages_to_check);
 
 	void		on_roll_back_value(const bool to_sys = false);
 
@@ -422,6 +435,18 @@ public:
     void        update_extruder_variants(int extruder_id = -1, bool reload = true);
     void        switch_excluder(int extruder_id = -1, bool reload = true);
     void        sync_excluder();
+	void        update_nozzle_status_display();
+	void        parse_extruder_selection(int selection, int &extruder_id, NozzleVolumeType &nozzle_type);
+    int         calculate_selection_index_for_extruder(int extruder_id, NozzleVolumeType nozzle_type);
+	bool        get_extruder_sync_enable_state(int extruder_id);
+	int         get_current_active_extruder();
+    void        show_wiki();
+
+	std::vector<wxString>  generate_extruder_options();
+    std::vector<DevNozzle> collect_nozzles(int extruder_id, ExtruderType ext_type, NozzleFlowType flow_type, bool& connected);
+    NozzleVolumeType       get_actual_nozzle_volume_type(int extruder_id);
+    NozzleFlowType         get_actual_nozzle_flow_type(int selection);
+    ExtruderType           get_actual_extruder_type(int selection);
 
 protected:
 	void			create_line_with_widget(ConfigOptionsGroup* optgroup, const std::string& opt_key, const std::string& path, widget_t widget);
@@ -604,6 +629,7 @@ public:
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
 	std::string m_base_preset_name;
+	std::string m_base_preset_model;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 

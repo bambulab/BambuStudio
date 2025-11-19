@@ -1095,7 +1095,7 @@ void AMSLib::render_generic_text(wxDC &dc)
         show_k_value = false;
     }
     else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->pa_calib_tab, m_info.cali_idx) == -1))) {
-        if (m_obj && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
+        if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
             show_k_value = false;
         else
             get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
@@ -1103,6 +1103,8 @@ void AMSLib::render_generic_text(wxDC &dc)
     else if (abs(m_info.k) < EPSILON) {
         show_k_value = false;
     }
+
+    wxString tooltip_text;
 
     auto tmp_lib_colour = m_info.material_colour;
     change_the_opacity(tmp_lib_colour);
@@ -1199,6 +1201,7 @@ void AMSLib::render_generic_text(wxDC &dc)
                 }
                 dc.DrawText(m_info.material_name, pot);
             }
+            tooltip_text += m_info.material_name;
         }
 
         //draw k&n
@@ -1210,7 +1213,12 @@ void AMSLib::render_generic_text(wxDC &dc)
                 auto tsize = dc.GetMultiLineTextExtent(str_k);
                 auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
                 dc.DrawText(str_k, pot_k);
+
+                tooltip_text += "\n" + str_k;
             }
+        }
+        if (GetToolTipText() != tooltip_text) {
+            SetToolTip(tooltip_text);
         }
     }
 
@@ -1401,7 +1409,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
     auto alpha = m_info.material_colour.Alpha();
     int height = size.y;
     int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
-    if (curr_height != 0) { curr_height = std::max(curr_height, FromDIP(2)); }/*STUDIO-11323 too small to show, enlarge it*/
+    if (m_info.material_remain < 10)// Display Optimization for Empty Consumable Remaining Quantity in AMS
+    {
+        curr_height = height * 0.1;
+    }
     dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
@@ -1413,7 +1424,19 @@ void AMSLib::render_generic_lib(wxDC &dc)
         }
         else if (alpha != 255 && alpha != 254) {
             if (transparent_changed) {
+                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                if (rgb.size() == 9) {
+                    //delete alpha value
+                    rgb = rgb.substr(0, rgb.size() - 2);
+                }
+                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
+                std::vector<std::string> replace;
+                replace.push_back(rgb);
+                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                replace.push_back(fill_replace);
+                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 76, false, false, true, replace);
                 transparent_changed = false;
+
             }
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(2), FromDIP(2));
         }
@@ -2635,6 +2658,9 @@ void AMSPreview::doRender(wxDC &dc)
     wxSize size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
+    BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - AMS Info: "
+                            << "ams_id = " << m_amsinfo.ams_id << ", ams_type = " << static_cast<int>(m_amsinfo.ams_type) << ", cans_count = " << m_amsinfo.cans.size();
+
     // draw background
     if (wxGetApp().dark_mode())
     {
@@ -2655,7 +2681,14 @@ void AMSPreview::doRender(wxDC &dc)
     //four slot
     if (m_ams_item_type != AMSModel::EXT_AMS && m_ams_item_type != AMSModel::N3S_AMS){
         left =  FromDIP(8);
+        int can_idx = 0;
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
+            BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Can[" << can_idx << "]: "
+                                    << "can_id = \"" << iter->can_id << "\""
+                                    << ", material_name = \"" << iter->material_name.ToStdString() << "\""
+                                    << ", material_colour = " << iter->material_colour.GetAsString(2).ToStdString()
+                                    << ", filament_id=\"" << iter->filament_id << "\""
+                                    << ", material_state=" << static_cast<int>(iter->material_state);
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
@@ -2714,6 +2747,7 @@ void AMSPreview::doRender(wxDC &dc)
                 }
             }
             left += AMS_ITEM_CUBE_SIZE.x;
+            can_idx++;
         }
 
         //auto pot = wxPoint((size.x - m_four_slot_bitmap.GetBmpSize().x) / 2, (size.y - m_four_slot_bitmap.GetBmpSize().y) / 2);
@@ -2731,6 +2765,13 @@ void AMSPreview::doRender(wxDC &dc)
     //single slot
     else if (m_amsinfo.cans.size() == 1) {
         auto iter = m_amsinfo.cans[0];
+        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Single Can: "
+                                << "can_id = \"" << iter.can_id << "\""
+                                << ", material_name = \"" << iter.material_name.ToStdString() << "\""
+                                << ", material_colour = " << iter.material_colour.GetAsString(2).ToStdString()
+                                << ", filament_id=\"" << iter.filament_id << "\""
+                                << ", material_state=" << static_cast<int>(iter.material_state);
+
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR));
         wxSize rec_size = wxSize(FromDIP(16), FromDIP(24));
@@ -2796,6 +2837,11 @@ void AMSPreview::doRender(wxDC &dc)
             dc.DrawRoundedRectangle(rect, FromDIP(3));
         }
     }
+
+    if (m_amsinfo.cans.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - No cans data available for AMS: " << m_amsinfo.ams_id;
+    }
+
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
     if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
 

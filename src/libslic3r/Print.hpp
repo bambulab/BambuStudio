@@ -17,6 +17,8 @@
 #include "GCode/GCodeProcessor.hpp"
 #include "MultiMaterialSegmentation.hpp"
 #include <libslic3r/SurfaceCollection.hpp>
+#include "MultiNozzleUtils.hpp"
+
 #include "libslic3r.h"
 
 #include <Eigen/Geometry>
@@ -559,6 +561,8 @@ private:
      */
     std::vector<std::set<int>> detect_extruder_geometric_unprintables() const;
 
+    std::unordered_map<int, std::unordered_map<int,double>> calc_estimated_filament_print_time() const;
+
     void slice_volumes();
     //BBS
     ExPolygons _shrink_contour_holes(double contour_delta, double hole_delta, const ExPolygons& polys) const;
@@ -845,7 +849,7 @@ public:
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
     std::string         export_gcode(const std::string& path_template, GCodeProcessorResult* result, ThumbnailsGeneratorCallback thumbnail_cb = nullptr);
     //return 0 means successful
-    int                 export_cached_data(const std::string& dir_path, bool with_space=false);
+    int                 export_cached_data(const std::string& dir_path, int& obj_cnt_exported, bool with_space=false);
     int                 load_cached_data(const std::string& directory);
 
     // methods for handling state
@@ -881,8 +885,8 @@ public:
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
-    PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
+    PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
     // PrintObject by its ObjectID, to be used to uniquely bind slicing warnings to their source PrintObjects
     // in the notification center.
     const PrintObject*          get_object(ObjectID object_id) const {
@@ -921,20 +925,30 @@ public:
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
 
-    void update_filament_maps_to_config(std::vector<int> f_maps);
+    void update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps = std::vector<int>{}, std::vector<int> f_nozzle_maps = std::vector<int>{});
     void apply_config_for_render(const DynamicConfig &config);
 
     // 1 based group ids
     std::vector<int> get_filament_maps() const;
     FilamentMapMode  get_filament_map_mode() const;
+    std::vector<int> get_filament_volume_maps() const;
+    std::vector<int> get_filament_nozzle_maps() const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
+    // get the config idx for filament
+    size_t get_config_idx_for_filament(unsigned int filament_id) const;
 
     const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
 
     void set_geometric_unprintable_filaments(const std::vector<std::set<int>> &unprintables_filament_ids) { m_geometric_unprintable_filaments = unprintables_filament_ids; }
     std::vector<std::set<int>> get_geometric_unprintable_filaments() const { return m_geometric_unprintable_filaments;}
+
+    void set_filament_print_time(const std::unordered_map<int, std::unordered_map<int,double>>& filament_print_time) { m_filament_print_time = filament_print_time; }
+    std::unordered_map<int,std::unordered_map<int,double>> get_filament_print_time() const { return m_filament_print_time; }
+
+    void set_nozzle_group_result(const std::optional<MultiNozzleUtils::MultiNozzleGroupResult>& result) { m_nozzle_group_result = result; }
+    const std::optional<MultiNozzleUtils::MultiNozzleGroupResult>& get_nozzle_group_result() { return m_nozzle_group_result; }
 
     void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
         m_slice_used_filaments_first_layer = first_layer_used_filaments;
@@ -958,7 +972,7 @@ public:
     std::vector<double> get_extruder_printable_height() const;
     std::vector<Polygons> get_extruder_printable_polygons() const;
     std::vector<Polygons> get_extruder_unprintable_polygons() const;
-
+    Polygons              get_extruder_shared_printable_polygon() const;
     bool                        enable_timelapse_print() const;
 
 	std::string                 output_filename(const std::string &filename_base = std::string()) const override;
@@ -1077,6 +1091,8 @@ private:
     bool                                    m_support_used {false};
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
 
+    std::optional<MultiNozzleUtils::MultiNozzleGroupResult> m_nozzle_group_result;
+
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;
 
@@ -1089,7 +1105,10 @@ private:
     FakeWipeTower     m_fake_wipe_tower;
     bool              m_has_auto_filament_map_result{false};
 
+    std::set<PrintObject*> m_reslicing_objects;
+
     std::vector<std::set<int>> m_geometric_unprintable_filaments;
+    std::unordered_map<int, std::unordered_map<int, double>> m_filament_print_time;
 
     // OrcaSlicer: calibration
     Calib_Params m_calib_params;

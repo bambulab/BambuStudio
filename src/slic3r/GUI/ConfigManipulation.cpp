@@ -223,16 +223,26 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     //BBS: limite the max layer_herght
-    if (config->opt_float("layer_height") > 0.6 + EPSILON)
-    {
+    if (config->opt_float("layer_height") > 0.6 + EPSILON) {
         const wxString msg_text = _(L("Too large layer height.\nReset to 0.2"));
-        MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
-        DynamicPrintConfig new_conf = *config;
-        is_msg_dlg_already_exist = true;
-        dialog.ShowModal();
-        new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
-        apply(config, &new_conf);
-        is_msg_dlg_already_exist = false;
+        if (wxGetApp().app_config->get("developer_mode") == "true") {
+            MessageDialog dialog(nullptr, msg_text, "", wxICON_WARNING | wxYES_NO);
+            is_msg_dlg_already_exist = true;
+            if (dialog.ShowModal() == wxID_YES) {
+                DynamicPrintConfig new_conf = *config;
+                new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+                apply(config, &new_conf);
+            }
+            is_msg_dlg_already_exist = false;
+        } else {
+            MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            dialog.ShowModal();
+            new_conf.set_key_value("layer_height", new ConfigOptionFloat(0.2));
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
     }
 
     //limit scarf start height
@@ -351,6 +361,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     double sparse_infill_density = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+    int fill_multiline = config->option<ConfigOptionInt>("fill_multiline")->value;
     auto timelapse_type = config->opt_enum<TimelapseType>("timelapse_type");
 
     DynamicPrintConfig *global_config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -431,6 +442,15 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                 cb_value_change("enable_support", false);
         }
         is_msg_dlg_already_exist = false;
+    }
+
+    if (is_global_config && (config->opt_int("wall_filament") || config->opt_int("sparse_infill_filament")
+        || config->opt_int("solid_infill_filament") )) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("wall_filament", new ConfigOptionInt(0));
+        new_conf.set_key_value("sparse_infill_filament", new ConfigOptionInt(0));
+        new_conf.set_key_value("solid_infill_filament", new ConfigOptionInt(0));
+        apply(config, &new_conf);
     }
 
     //BBS
@@ -676,6 +696,20 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     // sparse_infill_filament uses the same logic as in Print::extruders()
     for (auto el : { "sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step", "infill_rotate_step", "symmetric_infill_y_axis"})
         toggle_line(el, have_infill);
+
+    // Determine if the selected infill pattern supports multiline infill.
+    InfillPattern pattern = config->opt_enum<InfillPattern>("sparse_infill_pattern");
+
+    bool support_multiline_infill = pattern == ipCubic || pattern == ipGrid || pattern == ipRectilinear || pattern == ipStars || pattern == ipAlignedRectilinear ||
+                                    pattern == ipGyroid || pattern == ipHoneycomb || pattern == ipLightning || pattern == ip3DHoneycomb ||
+                                    pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
+
+    toggle_line("fill_multiline", have_infill && support_multiline_infill);
+    if (support_multiline_infill == false) {
+        DynamicPrintConfig new_conf = *config;
+        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
+        apply(config, &new_conf);
+    }
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);
@@ -685,7 +719,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool is_locked_zig = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
 
     toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
-    for (auto el : {"skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_line_width", "skeleton_infill_line_width", "locked_skin_infill_pattern", "locked_skeleton_infill_pattern"})
+    for (auto el : {"infill_instead_top_bottom_surfaces","skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_line_width", "skeleton_infill_line_width", "locked_skin_infill_pattern", "locked_skeleton_infill_pattern"})
         toggle_line(el, is_locked_zig);
 
     bool is_zig_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
@@ -837,6 +871,9 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     toggle_line("flush_into_objects", !is_global_config);
     toggle_line("print_flow_ratio", !is_global_config);
+    toggle_line("wall_filament", !is_global_config);
+    toggle_line("solid_infill_filament", !is_global_config);
+    toggle_line("sparse_infill_filament", !is_global_config);
 
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 

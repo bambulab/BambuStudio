@@ -1,4 +1,5 @@
 src/libslic3r/PresetBundle.cpp
+src/slic3r/GUI/DeviceCore/DevAxis.cpp
 src/slic3r/GUI/DeviceCore/DevBed.cpp
 src/slic3r/GUI/DeviceCore/DevBed.h
 src/slic3r/GUI/DeviceCore/DevConfig.h
@@ -40,14 +41,25 @@ src/slic3r/GUI/DeviceCore/DevManager.h
 src/slic3r/GUI/DeviceCore/DevManager.cpp
 src/slic3r/GUI/DeviceCore/DevMapping.h
 src/slic3r/GUI/DeviceCore/DevMapping.cpp
+src/slic3r/GUI/DeviceCore/DevNozzleRack.h
+src/slic3r/GUI/DeviceCore/DevNozzleRack.cpp
+src/slic3r/GUI/DeviceCore/DevNozzleRackCtrl.cpp
 src/slic3r/GUI/DeviceCore/DevNozzleSystem.h
 src/slic3r/GUI/DeviceCore/DevNozzleSystem.cpp
+src/slic3r/GUI/DeviceCore/DevUpgrade.h
+src/slic3r/GUI/DeviceCore/DevUpgrade.cpp
 src/slic3r/GUI/DeviceCore/DevUtil.h
 src/slic3r/GUI/DeviceCore/DevUtil.cpp
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.cpp
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.h
+src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp
@@ -159,6 +171,7 @@ src/slic3r/GUI/PresetComboBoxes.cpp
 src/slic3r/GUI/PresetHints.cpp
 src/slic3r/GUI/ProgressStatusBar.cpp
 src/slic3r/GUI/PlateSettingsDialog.cpp
+src/slic3r/GUI/PlateMoveDialog.cpp
 src/slic3r/GUI/PrivacyUpdateDialog.cpp
 src/slic3r/GUI/PublishDialog.cpp
 src/slic3r/GUI/SavePresetDialog.cpp
@@ -189,6 +202,7 @@ src/slic3r/GUI/ReleaseNote.hpp
 src/slic3r/GUI/HelioReleaseNote.cpp
 src/slic3r/GUI/HelioReleaseNote.hpp
 src/slic3r/GUI/UpgradePanel.cpp
+src/slic3r/GUI/Project.cpp
 src/slic3r/Utils/FixModelByWin10.cpp
 src/slic3r/Utils/PresetUpdater.cpp
 src/slic3r/Utils/Http.cpp
@@ -255,3 +269,7 @@ src/slic3r/GUI/FilamentBitmapUtils.cpp
 src/slic3r/GUI/FilamentBitmapUtils.hpp
 src/slic3r/GUI/FilamentPickerDialog.cpp
 src/slic3r/GUI/FilamentPickerDialog.hpp
+src/slic3r/GUI/Widgets/MultiNozzleSync.cpp
+src/slic3r/GUI/Widgets/MultiNozzleSync.hpp
+src/slic3r/GUI/PurgeModeDialog.cpp
+src/slic3r/GUI/PurgeModeDialog.hpp
