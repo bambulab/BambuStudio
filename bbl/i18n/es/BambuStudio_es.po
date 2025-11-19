@@ -5890,10 +5890,10 @@ msgid "This only takes effect during printing"
 msgstr "Esto solo tiene efecto durante la impresión"
 
 msgid "Silent"
-msgstr "Silencio"
+msgstr "Silenciosa"
 
 msgid "Sport"
-msgstr "Deportivo"
+msgstr "Deportiva"
 
 msgid "Ludicrous"
 msgstr "Absurda"
