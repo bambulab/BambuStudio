@@ -1002,7 +1002,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
                 uiAmsHumidityInfo humidity_info;
                 humidity_info.ams_id = the_info.ams_id;
                 humidity_info.humidity_display_idx = the_info.get_humidity_display_idx();
-                humidity_info.humidity_percent = the_info.humidity_raw;
+                humidity_info.humidity_percent = the_info.ams_humidity_percent;
                 humidity_info.left_dry_time = the_info.left_dray_time;
                 humidity_info.current_temperature = the_info.current_temperature;
                 m_percent_humidity_dry_popup->Update(&humidity_info);
