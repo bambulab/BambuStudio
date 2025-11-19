@@ -347,367 +347,277 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                 if (jj["ams"].contains("ams_rfid_status")) { }
 #endif
 
-                if (time(nullptr) - obj->ams_user_setting_start > HOLD_TIME_3SEC)
-                {
-                    if (jj["ams"].contains("insert_flag"))
-                    {
+                if (time(nullptr) - obj->ams_user_setting_start > HOLD_TIME_3SEC) {
+                    if (jj["ams"].contains("insert_flag")) {
                         system->m_ams_system_setting.SetDetectOnInsertEnabled(jj["ams"]["insert_flag"].get<bool>());
                     }
-                    if (jj["ams"].contains("power_on_flag"))
-                    {
+                    if (jj["ams"].contains("power_on_flag")) {
                         system->m_ams_system_setting.SetDetectOnPowerupEnabled(jj["ams"]["power_on_flag"].get<bool>());
                     }
-                    if (jj["ams"].contains("calibrate_remain_flag"))
-                    {
+                    if (jj["ams"].contains("calibrate_remain_flag")) {
                         system->m_ams_system_setting.SetDetectRemainEnabled(jj["ams"]["calibrate_remain_flag"].get<bool>());
                     }
                 }
 
-                json j_ams = jj["ams"]["ams"];
-                std::set<std::string> ams_id_set;
-
-                for (auto it = system->amsList.begin(); it != system->amsList.end(); it++)
-                {
-                    ams_id_set.insert(it->first);
-                }
-
-                for (auto it = j_ams.begin(); it != j_ams.end(); it++)
-                {
-                    if (!it->contains("id")) continue;
-                    std::string ams_id = (*it)["id"].get<std::string>();
-
-                    int extuder_id = MAIN_EXTRUDER_ID; // Default nozzle id
-                    int type_id = 1;   // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
-
-                    /*ams info*/
-                    if (it->contains("info")) {
-                        const std::string& info = (*it)["info"].get<std::string>();
-                        type_id = DevUtil::get_flag_bits(info, 0, 4);
-                        extuder_id = DevUtil::get_flag_bits(info, 8, 4);
-                    } else {
-                        if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
-                            type_id = DevAms::AMS_LITE;
+                if (jj["ams"].contains("ams")) {
+                    std::unordered_set<std::string> existing_ams_set;
+                    const json& j_ams = jj["ams"]["ams"];
+                    for (const auto& ams_item : j_ams) {
+                        const auto& ams_info = ParseAmsInfo(ams_item, obj, system);
+                        if (ams_info) {
+                            system->amsList[ams_info->GetAmsId()] = ams_info;
+                            existing_ams_set.insert(ams_info->GetAmsId());
                         }
                     }
 
-                    /*AMS without initialization*/
-                    if (extuder_id == 0xE)
-                    {
-                        ams_id_set.erase(ams_id);
-                        system->amsList.erase(ams_id);
-                        continue;
-                    }
-
-                    ams_id_set.erase(ams_id);
-                    DevAms* curr_ams = nullptr;
-                    auto ams_it = system->amsList.find(ams_id);
-                    if (ams_it == system->amsList.end())
-                    {
-                        DevAms* new_ams = new DevAms(ams_id, extuder_id, type_id);
-                        system->amsList.insert(std::make_pair(ams_id, new_ams));
-                        // new ams added event
-                        curr_ams = new_ams;
-                    }
-                    else
-                    {
-                        if (extuder_id != ams_it->second->GetExtruderId())
-                        {
-                            ams_it->second->m_ext_id = extuder_id;
+                    auto iter = system->amsList.begin();
+                    while (iter != system->amsList.end()) {
+                        if (existing_ams_set.count(iter->first) == 0) {
+                            BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << iter->first;
+                            iter = system->amsList.erase(iter);
+                            continue;
                         }
 
-                        curr_ams = ams_it->second;
-                    }
-                    if (!curr_ams) continue;
-
-                    /*set ams type flag*/
-                    curr_ams->SetAmsType(type_id);
-
-
-                    /*set ams exist flag*/
-                    try
-                    {
-                        if (!ams_id.empty())
-                        {
-                            int ams_id_int = atoi(ams_id.c_str());
-
-                            if (type_id < 4)
-                            {
-                                curr_ams->m_exist = (obj->ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
-                            }
-                            else
-                            {
-                                curr_ams->m_exist = DevUtil::get_flag_bits(obj->ams_exist_bits, 4 + (ams_id_int - 128));
-                            }
-                        }
-                    }
-                    catch (...)
-                    {
-                        ;
-                    }
-
-                    if (it->contains("dry_time") && (*it)["dry_time"].is_number())
-                    {
-                        curr_ams->m_left_dry_time = (*it)["dry_time"].get<int>();
-                    }
-
-                    if (it->contains("humidity"))
-                    {
-                        try
-                        {
-                            std::string humidity = (*it)["humidity"].get<std::string>();
-                            curr_ams->m_humidity_level = atoi(humidity.c_str());
-                        }
-                        catch (...)
-                        {
-                            ;
-                        }
-                    }
-
-                    if (it->contains("humidity_raw"))
-                    {
-                        try
-                        {
-                            std::string humidity_raw = (*it)["humidity_raw"].get<std::string>();
-                            curr_ams->m_humidity_percent = atoi(humidity_raw.c_str());
-                        }
-                        catch (...)
-                        {
-                            ;
-                        }
-                    }
-
-
-                    if (it->contains("temp"))
-                    {
-                        std::string temp = (*it)["temp"].get<std::string>();
-                        try
-                        {
-                            curr_ams->m_current_temperature = DevUtil::string_to_float(temp);
-                        }
-                        catch (...)
-                        {
-                            curr_ams->m_current_temperature = INVALID_AMS_TEMPERATURE;
-                        }
-                    }
-
-                    if (it->contains("tray"))
-                    {
-                        std::set<std::string> tray_id_set;
-                        for (auto it = curr_ams->GetTrays().cbegin(); it != curr_ams->GetTrays().cend(); it++)
-                        {
-                            tray_id_set.insert(it->first);
-                        }
-                        for (auto tray_it = (*it)["tray"].begin(); tray_it != (*it)["tray"].end(); tray_it++)
-                        {
-                            if (!tray_it->contains("id")) continue;
-                            std::string tray_id = (*tray_it)["id"].get<std::string>();
-                            tray_id_set.erase(tray_id);
-                            // compare tray_list
-                            DevAmsTray* curr_tray = nullptr;
-                            auto tray_iter = curr_ams->GetTrays().find(tray_id);
-                            if (tray_iter == curr_ams->GetTrays().end())
-                            {
-                                DevAmsTray* new_tray = new DevAmsTray(tray_id);
-                                curr_ams->m_trays.insert(std::make_pair(tray_id, new_tray));
-                                curr_tray = new_tray;
-                            }
-                            else
-                            {
-                                curr_tray = tray_iter->second;
-                            }
-                            if (!curr_tray) continue;
-
-                            if (curr_tray->hold_count > 0)
-                            {
-                                curr_tray->hold_count--;
-                                continue;
-                            }
-
-                            curr_tray->id = (*tray_it)["id"].get<std::string>();
-                            if (tray_it->contains("tag_uid"))
-                                curr_tray->tag_uid = (*tray_it)["tag_uid"].get<std::string>();
-                            else
-                                curr_tray->tag_uid = "0";
-                            if (tray_it->contains("tray_info_idx") && tray_it->contains("tray_type"))
-                            {
-                                curr_tray->setting_id = (*tray_it)["tray_info_idx"].get<std::string>();
-                                //std::string type            = (*tray_it)["tray_type"].get<std::string>();
-                                std::string type = MachineObject::setting_id_to_type(curr_tray->setting_id, (*tray_it)["tray_type"].get<std::string>());
-                                if (curr_tray->setting_id == "GFS00")
-                                {
-                                    curr_tray->m_fila_type = "PLA-S";
-                                }
-                                else if (curr_tray->setting_id == "GFS01")
-                                {
-                                    curr_tray->m_fila_type = "PA-S";
-                                }
-                                else
-                                {
-                                    curr_tray->m_fila_type = type;
-                                }
-                            }
-                            else
-                            {
-                                curr_tray->setting_id = "";
-                                curr_tray->m_fila_type = "";
-                            }
-                            if (tray_it->contains("tray_sub_brands"))
-                                curr_tray->sub_brands = (*tray_it)["tray_sub_brands"].get<std::string>();
-                            else
-                                curr_tray->sub_brands = "";
-                            if (tray_it->contains("tray_weight"))
-                                curr_tray->weight = (*tray_it)["tray_weight"].get<std::string>();
-                            else
-                                curr_tray->weight = "";
-                            if (tray_it->contains("tray_diameter"))
-                                curr_tray->diameter = (*tray_it)["tray_diameter"].get<std::string>();
-                            else
-                                curr_tray->diameter = "";
-                            if (tray_it->contains("tray_temp"))
-                                curr_tray->temp = (*tray_it)["tray_temp"].get<std::string>();
-                            else
-                                curr_tray->temp = "";
-                            if (tray_it->contains("tray_time"))
-                                curr_tray->time = (*tray_it)["tray_time"].get<std::string>();
-                            else
-                                curr_tray->time = "";
-                            if (tray_it->contains("bed_temp_type"))
-                                curr_tray->bed_temp_type = (*tray_it)["bed_temp_type"].get<std::string>();
-                            else
-                                curr_tray->bed_temp_type = "";
-                            if (tray_it->contains("bed_temp"))
-                                curr_tray->bed_temp = (*tray_it)["bed_temp"].get<std::string>();
-                            else
-                                curr_tray->bed_temp = "";
-                            if (tray_it->contains("tray_color"))
-                            {
-                                auto color = (*tray_it)["tray_color"].get<std::string>();
-                                curr_tray->UpdateColorFromStr(color);
-                            }
-                            else
-                            {
-                                curr_tray->color = "";
-                            }
-                            if (tray_it->contains("nozzle_temp_max"))
-                            {
-                                curr_tray->nozzle_temp_max = (*tray_it)["nozzle_temp_max"].get<std::string>();
-                            }
-                            else
-                                curr_tray->nozzle_temp_max = "";
-                            if (tray_it->contains("nozzle_temp_min"))
-                                curr_tray->nozzle_temp_min = (*tray_it)["nozzle_temp_min"].get<std::string>();
-                            else
-                                curr_tray->nozzle_temp_min = "";
-                            if (tray_it->contains("xcam_info"))
-                                curr_tray->xcam_info = (*tray_it)["xcam_info"].get<std::string>();
-                            else
-                                curr_tray->xcam_info = "";
-                            if (tray_it->contains("tray_uuid"))
-                                curr_tray->uuid = (*tray_it)["tray_uuid"].get<std::string>();
-                            else
-                                curr_tray->uuid = "0";
-
-                            if (tray_it->contains("ctype"))
-                                curr_tray->ctype = (*tray_it)["ctype"].get<int>();
-                            else
-                                curr_tray->ctype = 0;
-                            curr_tray->cols.clear();
-                            if (tray_it->contains("cols"))
-                            {
-                                if ((*tray_it)["cols"].is_array())
-                                {
-                                    for (auto it = (*tray_it)["cols"].begin(); it != (*tray_it)["cols"].end(); it++)
-                                    {
-                                        curr_tray->cols.push_back(it.value().get<std::string>());
-                                    }
-                                }
-                            }
-
-                            if (tray_it->contains("remain"))
-                            {
-                                curr_tray->remain = (*tray_it)["remain"].get<int>();
-                            }
-                            else
-                            {
-                                curr_tray->remain = -1;
-                            }
-                            int ams_id_int = 0;
-                            int tray_id_int = 0;
-                            try
-                            {
-                                if (!ams_id.empty() && !curr_tray->id.empty())
-                                {
-                                    ams_id_int = atoi(ams_id.c_str());
-                                    tray_id_int = atoi(curr_tray->id.c_str());
-
-                                    if (type_id < 4)
-                                    {
-                                        curr_tray->is_exists = (obj->tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
-                                    }
-                                    else
-                                    {
-                                        curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, 16 + (ams_id_int - 128));
-                                    }
-
-                                }
-                            }
-                            catch (...)
-                            {
-                            }
-                            if (tray_it->contains("setting_id"))
-                            {
-                                curr_tray->filament_setting_id = (*tray_it)["setting_id"].get<std::string>();
-                            }
-                            auto curr_time = std::chrono::system_clock::now();
-                            auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - obj->extrusion_cali_set_hold_start);
-                            if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-                                || ams_id_int != (obj->extrusion_cali_set_tray_id / 4)
-                                || tray_id_int != (obj->extrusion_cali_set_tray_id % 4))
-                            {
-                                if (tray_it->contains("k"))
-                                {
-                                    curr_tray->k = (*tray_it)["k"].get<float>();
-                                }
-                                if (tray_it->contains("n"))
-                                {
-                                    curr_tray->n = (*tray_it)["n"].get<float>();
-                                }
-                            }
-
-                            std::string temp = tray_it->dump();
-
-                            if (tray_it->contains("cali_idx"))
-                            {
-                                curr_tray->cali_idx = (*tray_it)["cali_idx"].get<int>();
-                            }
-                        }
-                        // remove not in trayList
-                        for (auto tray_it = tray_id_set.begin(); tray_it != tray_id_set.end(); tray_it++)
-                        {
-                            std::string tray_id = *tray_it;
-                            auto tray = curr_ams->GetTrays().find(tray_id);
-                            if (tray != curr_ams->GetTrays().end())
-                            {
-                                curr_ams->m_trays.erase(tray_id);
-                                BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << tray_id;
-                            }
-                        }
-                    }
-                }
-                // remove not in amsList
-                for (auto it = ams_id_set.begin(); it != ams_id_set.end(); it++)
-                {
-                    std::string ams_id = *it;
-                    auto ams = system->amsList.find(ams_id);
-                    if (ams != system->amsList.end())
-                    {
-                        BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id;
-                        system->amsList.erase(ams_id);
+                        iter++;
                     }
                 }
             }
         }
     }
+}
+
+// return DevAms pointer if parsed successfully, otherwise return nullptr
+DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj, DevFilaSystem* system)
+{
+    if (!system) {
+        return nullptr;
+    }
+
+    if (!j_ams.contains("id")) {
+        return nullptr;
+    };
+
+    const auto& ams_id = DevJsonValParser::GetVal<std::string>(j_ams, "id");
+    if (ams_id.empty()) {
+        return nullptr;
+    }
+
+    int extuder_id = MAIN_EXTRUDER_ID; // Default nozzle id
+    int type_id = DevAms::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+
+    /*ams info*/
+    if (j_ams.contains("info")) {
+        const std::string& info = j_ams["info"].get<std::string>();
+        type_id = DevUtil::get_flag_bits(info, 0, 4);
+        extuder_id = DevUtil::get_flag_bits(info, 8, 4);
+    } else {
+        if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
+            type_id = DevAms::AMS_LITE;
+        }
+    }
+
+    /*AMS without initialization*/
+    if (extuder_id == 0xE) {
+        return nullptr;
+    }
+
+    DevAms* curr_ams = nullptr;
+    auto ams_it = system->amsList.find(ams_id);
+    if (ams_it == system->amsList.end()) {
+        DevAms* new_ams = new DevAms(ams_id, extuder_id, type_id);
+        curr_ams = new_ams;// new ams event
+    } else {
+        if (extuder_id != ams_it->second->GetExtruderId()) {
+            ams_it->second->m_ext_id = extuder_id;
+        }
+
+        curr_ams = ams_it->second;
+    }
+
+    if (!curr_ams) {
+        return nullptr;
+    };
+
+    /*set ams type flag*/
+    curr_ams->SetAmsType(type_id);
+
+    /*set ams exist flag*/
+    try {
+        int ams_id_int = atoi(ams_id.c_str());
+        if (type_id < 4) {
+            curr_ams->m_exist = (obj->ams_exist_bits & (1 << ams_id_int)) != 0 ? true : false;
+        } else {
+            curr_ams->m_exist = DevUtil::get_flag_bits(obj->ams_exist_bits, 4 + (ams_id_int - 128));
+        }
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid ams_id:" << ams_id << ", error: " << e.what();
+    }
+
+    // Temperature
+    if (j_ams.contains("temp")) {
+        std::string temp = j_ams["temp"].get<std::string>();
+        try {
+            curr_ams->m_current_temperature = DevUtil::string_to_float(temp);
+        } catch (...) {
+            curr_ams->m_current_temperature = INVALID_AMS_TEMPERATURE;
+        }
+    }
+
+    // Humidity level and percent
+    if (j_ams.contains("humidity")) {
+        std::string humidity = j_ams["humidity"].get<std::string>();
+        try {
+            curr_ams->m_humidity_level = atoi(humidity.c_str());
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid humidity, error: " << e.what();
+        }
+    }
+
+    if (j_ams.contains("humidity_raw")) {
+        std::string humidity_raw = j_ams["humidity_raw"].get<std::string>();
+        try {
+            curr_ams->m_humidity_percent = atoi(humidity_raw.c_str());
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid humidity_raw, error: " << e.what();
+        }
+    }
+
+    // Drying
+    DevJsonValParser::ParseVal(j_ams, "dry_time", curr_ams->m_left_dry_time);
+
+    if (j_ams.contains("tray")) {
+        std::unordered_set<std::string> existing_tray_set;
+        const auto& tray_array = j_ams["tray"];
+        for (const auto& tray_item : tray_array) {
+            auto tray_info = ParseAmsTrayInfo(tray_item, obj, curr_ams);
+            if (tray_info) {
+                existing_tray_set.insert(tray_info->id);
+                curr_ams->m_trays.insert(std::make_pair(tray_info->id, tray_info));
+            }
+        }
+
+        // remove not in trayList
+        auto iter = curr_ams->m_trays.begin();
+        while (iter != curr_ams->m_trays.end()) {
+            if (!existing_tray_set.count(iter->first)) {
+                BOOST_LOG_TRIVIAL(trace) << "parse_json: remove ams_id=" << ams_id << ", tray_id=" << iter->first;
+                iter = curr_ams->m_trays.erase(iter);
+                continue;
+            }
+
+            iter++;
+        }
+    }
+
+    return curr_ams;
+}
+
+// return DevAmsTray pointer if parsed successfully, otherwise return nullptr
+DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObject* obj, DevAms* curr_ams)
+{
+    if (!j_tray.contains("id")) {
+        return nullptr;
+    }
+
+    std::string tray_id = DevJsonValParser::GetVal<std::string>(j_tray, "id");
+    if (tray_id.empty()) {
+        return nullptr;
+    }
+
+    // compare tray_list
+    DevAmsTray* curr_tray = nullptr;
+    auto tray_iter = curr_ams->GetTrays().find(tray_id);
+    if (tray_iter == curr_ams->GetTrays().end()) {
+        DevAmsTray* new_tray = new DevAmsTray(tray_id);
+        curr_tray = new_tray; // new tray event
+    } else {
+        curr_tray = tray_iter->second;
+    }
+
+    if (!curr_tray) {
+        return nullptr;
+    }
+
+    if (curr_tray->hold_count > 0) {
+        curr_tray->hold_count--;
+        return curr_tray;
+    }
+
+    DevJsonValParser::ParseVal(j_tray, "tag_uid", curr_tray->tag_uid, std::string("0"));
+    if (j_tray.contains("tray_info_idx") && j_tray.contains("tray_type")) {
+        DevJsonValParser::ParseVal(j_tray, "tray_info_idx", curr_tray->setting_id);
+
+        std::string type = MachineObject::setting_id_to_type(curr_tray->setting_id, j_tray["tray_type"].get<std::string>());
+        if (curr_tray->setting_id == "GFS00") {
+            curr_tray->m_fila_type = "PLA-S";
+        } else if (curr_tray->setting_id == "GFS01") {
+            curr_tray->m_fila_type = "PA-S";
+        } else {
+            curr_tray->m_fila_type = type;
+        }
+    } else {
+        curr_tray->setting_id = "";
+        curr_tray->m_fila_type = "";
+    }
+
+    DevJsonValParser::ParseVal(j_tray, "tray_sub_brands", curr_tray->sub_brands);
+    DevJsonValParser::ParseVal(j_tray, "tray_weight", curr_tray->weight);
+    DevJsonValParser::ParseVal(j_tray, "tray_diameter", curr_tray->diameter);
+    DevJsonValParser::ParseVal(j_tray, "tray_temp", curr_tray->temp);
+    DevJsonValParser::ParseVal(j_tray, "tray_time", curr_tray->time);
+
+    DevJsonValParser::ParseVal(j_tray, "bed_temp_type", curr_tray->bed_temp_type);
+    DevJsonValParser::ParseVal(j_tray, "bed_temp", curr_tray->bed_temp);
+
+    curr_tray->UpdateColorFromStr(DevJsonValParser::GetVal<std::string>(j_tray, "tray_color"));
+   
+    DevJsonValParser::ParseVal(j_tray, "nozzle_temp_max", curr_tray->nozzle_temp_max);
+    DevJsonValParser::ParseVal(j_tray, "nozzle_temp_min", curr_tray->nozzle_temp_min);
+    DevJsonValParser::ParseVal(j_tray, "xcam_info", curr_tray->xcam_info);
+    DevJsonValParser::ParseVal(j_tray, "tray_uuid", curr_tray->uuid, std::string("0"));
+    DevJsonValParser::ParseVal(j_tray, "ctype", curr_tray->ctype, 0);
+    DevJsonValParser::ParseVal(j_tray, "remain", curr_tray->remain, -1);
+    DevJsonValParser::ParseVal(j_tray, "setting_id", curr_tray->filament_setting_id);
+
+    if (j_tray.contains("cols")) {
+        curr_tray->cols.clear();
+        if (j_tray["cols"].is_array()) {
+            for (auto it = j_tray["cols"].begin(); it != j_tray["cols"].end(); it++) {
+                curr_tray->cols.push_back(it.value().get<std::string>());
+            }
+        }
+    }
+
+    int ams_id_int = 0;
+    int tray_id_int = 0;
+    try {
+        std::string ams_id = curr_ams->GetAmsId();
+        if (!ams_id.empty() && !curr_tray->id.empty()) {
+            ams_id_int = atoi(ams_id.c_str());
+            tray_id_int = atoi(curr_tray->id.c_str());
+
+            if (curr_ams->GetAmsType() != DevAms::N3S) {
+                curr_tray->is_exists = (obj->tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
+            } else {
+                curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, 16 + (ams_id_int - 128));
+            }
+
+        }
+    } catch (...) {
+    }
+
+    // Calibration k, n, cali_idx
+    auto curr_time = std::chrono::system_clock::now();
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - obj->extrusion_cali_set_hold_start);
+    if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
+        || ams_id_int != (obj->extrusion_cali_set_tray_id / 4)
+        || tray_id_int != (obj->extrusion_cali_set_tray_id % 4)) {
+        DevJsonValParser::ParseVal(j_tray, "k", curr_tray->k);
+        DevJsonValParser::ParseVal(j_tray, "n", curr_tray->n);
+    }
+
+    DevJsonValParser::ParseVal(j_tray, "cali_idx", curr_tray->cali_idx);
+    return curr_tray;
 }
 
 }

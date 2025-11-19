@@ -219,7 +219,7 @@ public:
     AMSAction               current_action;
     int                     curreent_filamentstep;
     int                     ams_humidity = 0;
-    int                     humidity_raw = -1;
+    int                     ams_humidity_percent = -1;
     int                     left_dray_time = 0;
     float                   current_temperature = INVALID_AMS_TEMPERATURE;
     AMSModel                ams_type = AMSModel::GENERIC_AMS;
