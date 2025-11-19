@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -49,8 +49,8 @@ msgstr "Il TPU non è supportato dall'AMS."
 msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "L'AMS non supporta \"Bambu Lab PET-CF\"."
 
-msgid "The current filament doesn't support the high-flow nozzle and can't be used."
-msgstr ""
+msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+msgstr "Il filamento attuale non supporta il nozzle E3D high-flow e non può essere usato."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Tira a freddo prima di stampare il TPU per evitare intasamenti. Puoi utilizzare la manutenzione a freddo della stampante."
@@ -73,33 +73,33 @@ msgstr "Il PPS-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra l
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "Il PPA-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra la testa di stampa."
 
-msgid "The filament may require slicing parameter adjustments."
-msgstr ""
+msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr "Le impostazioni predefinite possono influenzare la qualità di stampa. Regola secondo necessità per ottenere i migliori risultati."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s non è supportato dall'estrusore %s."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
-msgstr ""
+msgstr "La testa di stampa e il supporto hotend potrebbero muoversi. Tieni le mani lontane dalla camera."
 
 msgid "Warning"
 msgstr "Avviso"
 
 msgid "Hotend information may be inaccurate. Would you like to re-read the hotend? (Hotend information may change during power-off)."
-msgstr ""
+msgstr "Le informazioni sull'Hotend potrebbero non essere accurate. Vuoi rileggere l'Hotend? (Le informazioni sull'Hotend potrebbero cambiare durante lo spegnimento)."
 
 msgid "I confirm all"
-msgstr ""
+msgstr "Confermo tutto"
 
 msgid "Re-read all"
-msgstr ""
+msgstr "Rileggi tutto"
 
 msgid "Reading the hotends, please wait."
-msgstr ""
+msgstr "Lettura degli hotend in corso, attendi."
 
 msgid "During the hotend upgrade, the toolhead will move. Don't reach into the chamber."
-msgstr ""
+msgstr "Durante l'aggiornamento dell'hotend, la testa di stampa si muoverà. Non inserire la mano nella camera."
 
 msgid "Update"
 msgstr "Aggiorna"
@@ -169,13 +169,13 @@ msgid "Latest version"
 msgstr "Ultima versione"
 
 msgid "Row A"
-msgstr ""
+msgstr "Fila A"
 
 msgid "Row B"
-msgstr ""
+msgstr "Fila B"
 
 msgid "Toolhead"
-msgstr ""
+msgstr "Testa di stampa"
 
 msgid "Empty"
 msgstr "Vuoto"
@@ -184,37 +184,40 @@ msgid "Error"
 msgstr "Errore"
 
 msgid "Induction Hotend Rack"
-msgstr ""
+msgstr "Rack Hotend a Induzione"
 
 msgid "Hotends Info"
-msgstr ""
+msgstr "Informazioni Hotend"
 
 msgid "Read All"
-msgstr ""
+msgstr "Leggi Tutto"
 
 msgid "Reading "
-msgstr ""
+msgstr "Lettura "
 
 msgid "Please wait"
-msgstr ""
+msgstr "Attendi prego"
 
 msgid "Reading"
-msgstr ""
+msgstr "Lettura"
 
 msgid "Running..."
-msgstr ""
+msgstr "In Corso..."
 
 msgid "Raised"
-msgstr ""
+msgstr "Sollevato"
 
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
-msgstr ""
+msgstr "Questo hotend presenta un’anomalia ed è attualmente non disponibile. Vai su 'Dispositivo -> Aggiorna' per aggiornare il firmware."
 
-msgid "Jump to the upgrade page"
-msgstr ""
+msgid "Abnormal Hotend"
+msgstr "Hotend Anomalo"
 
 msgid "Cancel"
 msgstr "Annulla"
+
+msgid "Jump to the upgrade page"
+msgstr "Vai alla pagina dell'aggiornamento"
 
 msgid "SN"
 msgstr "SN"
@@ -223,13 +226,13 @@ msgid "Version"
 msgstr "Versione"
 
 msgid "Hotend Rack"
-msgstr ""
+msgstr "Rack Hotend"
 
 msgid "ToolHead"
-msgstr ""
+msgstr "Testa di stampa"
 
 msgid "Nozzle information needs to be read"
-msgstr ""
+msgstr "È necessario leggere le informazioni sul nozzle"
 
 msgid "Supports Painting"
 msgstr "Pittura Supporti"
@@ -490,16 +493,16 @@ msgid "Fixed step drag"
 msgstr "Trascinamento a passi fissi"
 
 msgid "Keep holding down Ctrl"
-msgstr ""
+msgstr "Continua a tenere premuto Ctrl"
 
 msgid "Select multiple objects"
 msgstr "Seleziona più oggetti"
 
 msgid "Keep holding down Alt"
-msgstr ""
+msgstr "Continua a tenere premuto Alt"
 
 msgid "Select multiple parts"
-msgstr ""
+msgstr "Seleziona più parti"
 
 msgid "Single sided scaling"
 msgstr "Scala su un solo lato"
@@ -546,59 +549,53 @@ msgstr "Coordinate globali"
 msgid "Translate(Relative)"
 msgstr "Traduci (relativo)"
 
-msgid "Align objects to the minimum X position"
-msgstr ""
+msgid "Align top-bottom center"
+msgstr "Allinea alto-basso al centro"
 
 msgid "Align"
-msgstr ""
+msgstr "Allinea"
 
 msgid "Distribute"
-msgstr ""
+msgstr "Distribuisci"
 
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr ""
+msgstr "Tenendo premuto il tasto Ctrl e cliccando con il pulsante sinistro del mouse è possibile selezionare più oggetti, oppure tenendo premuto il tasto Alt e cliccando con il pulsante sinistro del mouse è possibile selezionare più parti"
 
-msgid "Align objects to the center X position"
-msgstr ""
+msgid "Align left"
+msgstr "Allinea sinistra"
 
-msgid "Align objects to the maximum X position"
-msgstr ""
+msgid "Align left-right center"
+msgstr "Allinea al centro sinistra-destra"
 
-msgid "Distribute objects evenly along X axis"
-msgstr ""
+msgid "Align right"
+msgstr "Allinea destra"
+
+msgid "Distribute left-right"
+msgstr "Distribuisci sinistra-destra"
 
 msgid "Please select at least 3 parts or objects"
-msgstr ""
+msgstr "Seleziona almeno 3 parti o oggetti"
 
-msgid "Align objects to the maximum Y position"
-msgstr ""
+msgid "Align front"
+msgstr "Allinea frontale"
 
-msgid "Align objects to the center Y position"
-msgstr ""
+msgid "Align front-back center"
+msgstr "Allinea al centro avanti-indietro"
 
-msgid "Align objects to the minimum Y position"
-msgstr ""
+msgid "Align back"
+msgstr "Allinea posteriore"
 
-msgid "Distribute objects evenly along Y axis"
-msgstr ""
+msgid "Distribute front-back"
+msgstr "Distribuisci fronte-posteriore"
 
-msgid "Align objects to the minimum Z position"
-msgstr ""
+msgid "Align bottom"
+msgstr "Allinea in basso"
 
-msgid "Please select at least 2 parts and do not select entire object"
-msgstr ""
+msgid "Align top"
+msgstr "Allinea in alto"
 
-msgid "Align objects to the center Z position"
-msgstr ""
-
-msgid "Align objects to the maximum Z position"
-msgstr ""
-
-msgid "Distribute objects evenly along Z axis"
-msgstr ""
-
-msgid "Please select at least 3 parts and do not select entire object"
-msgstr ""
+msgid "Distribute top-bottom"
+msgstr "Distribuisci alto-basso"
 
 msgid "°"
 msgstr "°"
@@ -1669,7 +1666,7 @@ msgid "Login information expired. Please login again."
 msgstr "Le informazioni di login sono scadute. Effettua nuovamente il login."
 
 msgid "Failed to connect to the cloud device server. Please check your network and firewall."
-msgstr ""
+msgstr "Impossibile connettersi al server del dispositivo cloud. Controlla la rete e il firewall."
 
 msgid "Incorrect password"
 msgstr "Password errata"
@@ -2090,10 +2087,10 @@ msgid "Mesh boolean operations including union and subtraction"
 msgstr "Operazioni di mesh booleane, tra cui unione e sottrazione."
 
 msgid "Merge into Single Part"
-msgstr ""
+msgstr "Unisci in una singola parte"
 
 msgid "Merge the selected parts into one part"
-msgstr ""
+msgstr "Unisci le parti selezionate in un'unica parte"
 
 msgid "Along X axis"
 msgstr "Lungo l'asse X"
@@ -2189,7 +2186,7 @@ msgid "Remove the selected plate"
 msgstr "Rimuovi il piatto selezionato"
 
 msgid "Move Plate"
-msgstr ""
+msgstr "Sposta il piatto"
 
 msgid "Clone"
 msgstr "Clona"
@@ -2200,47 +2197,11 @@ msgstr "Semplifica Modello"
 msgid "Center"
 msgstr "Centro"
 
-msgid "Distribute along Y axis"
-msgstr ""
-
-msgid "Distribute along X axis"
-msgstr ""
-
-msgid "Distribute along Z axis"
-msgstr ""
-
-msgid "Align to Y Max"
-msgstr ""
-
-msgid "Align to Y Min"
-msgstr ""
-
-msgid "Align to Y Center"
-msgstr ""
-
-msgid "Align to X Max"
-msgstr ""
-
-msgid "Align to X Min"
-msgstr ""
-
-msgid "Align to X Center"
-msgstr ""
-
-msgid "Align to Z Max"
-msgstr ""
-
-msgid "Align to Z Min"
-msgstr ""
-
-msgid "Align to Z Center"
-msgstr ""
-
 msgid "Align/Distribute"
-msgstr ""
+msgstr "Allinea/Distribuisci"
 
 msgid "Align and distribute objects"
-msgstr ""
+msgstr "Allinea e distribuisci oggetti"
 
 msgid "Sub merge"
 msgstr "Unisci sottogruppi"
@@ -3171,10 +3132,10 @@ msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Inserisci un valore valido (K in %.1f ~%.1f, N in %.1f ~%.1f)"
 
 msgid "Standard Flow"
-msgstr ""
+msgstr "Flusso standard"
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr ""
+msgstr "Nota: Il numero del Hotend sull'estrusore destro è collegato al supporto. Quando l'Hotend viene spostato su un nuovo supporto, il suo numero si aggiornerà automaticamente."
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3318,14 +3279,14 @@ msgid "Ext"
 msgstr ""
 
 msgid "Select Filament && Hotends"
-msgstr ""
+msgstr "Seleziona Filamento e Hotend"
 
 msgid "Select Filament"
 msgstr "Seleziona Filamento"
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
-msgstr ""
+msgstr "La stampa con l'attuale nozzle potrebbe generare un %0.2f g extra di scarto."
 
 #, c-format, boost-format
 msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -3981,28 +3942,28 @@ msgid "Measuring Surface"
 msgstr "Misura superficie"
 
 msgid "Homing Blade Holder"
-msgstr ""
+msgstr "Homing supporto Lama"
 
 msgid "Calibrating Camera Offset"
-msgstr ""
+msgstr "Calibrazione Offset Fotocamera"
 
 msgid "Calibrating Blade Holder Position"
-msgstr ""
+msgstr "Calibrazione posizione supporto lama"
 
 msgid "Hotend Pick and Place Test"
-msgstr ""
+msgstr "Test di prelievo e posizionamento dell'hotend"
 
 msgid "Waiting for the Chamber temperature to equalize"
-msgstr ""
+msgstr "Attendi che la temperatura camera si stabilizzi"
 
 msgid " Preparing Hotend"
-msgstr ""
+msgstr " Preparazione Hotend"
 
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "Calibrazione posizione di rilevamento intasamento del nozzle"
 
 msgid "Purifying the chamber air"
-msgstr ""
+msgstr "Purificazione aria camera"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse non supportato su questa stampante."
@@ -4115,7 +4076,7 @@ msgid "Proceed"
 msgstr "Procedi"
 
 msgid "Abort"
-msgstr ""
+msgstr "Interrompi"
 
 msgid "Done"
 msgstr "Fine"
@@ -4854,6 +4815,9 @@ msgstr "Prepara"
 msgid "Preview"
 msgstr "Anteprima"
 
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
+
 msgid "Device"
 msgstr "Dispositivo"
 
@@ -4879,20 +4843,20 @@ msgid "Print plate"
 msgstr "Stampa"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"Questa è la prima volta che elabori con la H2D.\n"
+"È la prima volta che esegui lo slicing con la macchina a doppio estrusore.\n"
 "Vuoi guardare un breve video tutorial?"
 
 msgid "First Guide"
 msgstr "Prima guida"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"È la prima volta che stampi filamenti in TPU con la macchina H2D.\n"
+"È la prima volta che stampi filamenti TPU con la macchina a doppio estrusore.\n"
 "Vuoi guardare un breve video tutorial?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
@@ -5457,7 +5421,7 @@ msgid "Information"
 msgstr "Informazione"
 
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
-msgstr ""
+msgstr "La funzionalità di live streaming si basa su Bambu Studio per funzionare, e lo streaming terminerà poco dopo la chiusura dell'app."
 
 msgid "Playing..."
 msgstr "Riproduzione"
@@ -5825,7 +5789,7 @@ msgid "Safety Options"
 msgstr "Opzioni Sicurezza"
 
 msgid "Hotends"
-msgstr ""
+msgstr "Hotend"
 
 msgid "100%"
 msgstr "100%"
@@ -5904,7 +5868,7 @@ msgid "Please heat the nozzle to above 170 degree before loading or unloading fi
 msgstr "Riscalda il nozzle oltre i 170 gradi prima di caricare o scaricare il filamento."
 
 msgid "Right extruder hotend not detected. Cannot set nozzle temperature."
-msgstr ""
+msgstr "Hotend destro dell' estrusore  non rilevato. Impossibile impostare la temperatura del nozzle."
 
 msgid "Chamber temperature cannot be changed in cooling mode while printing."
 msgstr "Durante la stampa, la temperatura della camera non può essere regolata in modalità raffreddamento."
@@ -5937,7 +5901,7 @@ msgid "Keep it On"
 msgstr "Tienilo acceso"
 
 msgid "Still turn it Off"
-msgstr ""
+msgstr "Disattivalo comunque"
 
 msgid "Can't start this without storage."
 msgstr "Non​•​posso​•​avviarlo​•​senza​•​spazio​•​di​•​memoria."
@@ -6354,37 +6318,37 @@ msgid "Spaghetti Detection"
 msgstr "Rilevamento spaghetti"
 
 msgid "Detects spaghetti failure(scattered lose filament)."
-msgstr ""
+msgstr "Rileva il guasto spaghetti (filamento sparso)."
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "Rilevamento Accumulo Scivolo Spurgo"
 
 msgid "Monitors if the waste is piled up in the purge chute."
-msgstr ""
+msgstr "Monitora se i rifiuti si accumulano nel condotto di scarico."
 
 msgid "Nozzle Clumping Detection"
 msgstr "Rilevamento clog sul nozzle"
 
 msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
-msgstr ""
+msgstr "Controlla se il nozzle è ostruito da filamenti o altri oggetti estranei."
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Rileva la stampa a vuoto causata dall'ostruzione del nozzle o dalla macinazione del filamento."
 
 msgid "Ensures the build plate type and placement are correct."
-msgstr ""
+msgstr "Garantisce che il tipo e il posizionamento del piatto di stampa siano corretti."
 
 msgid "Type Detection"
-msgstr ""
+msgstr "Tipo di rilevamento"
 
-msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
-msgstr ""
+msgid "Pauses printing when the detected build plate type does not match the selected one."
+msgstr "Metti in pausa la stampa quando il tipo di piatto rilevato non corrisponde alla selezione."
 
 msgid "Alignment Detection"
-msgstr ""
+msgstr "Rilevamento Allineamento"
 
 msgid "Pauses printing when build plate misalignment is detected."
-msgstr ""
+msgstr "Mette in pausa la stampa quando viene rilevato un disallineamento del piano."
 
 msgid "First Layer Inspection"
 msgstr "Ispezione del primo layer"
@@ -6405,7 +6369,7 @@ msgid "Filament Tangle Detect"
 msgstr "Rilevamento groviglio filamento"
 
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
-msgstr ""
+msgstr "Controlla se il nozzle è ostruito da filamento o altri corpi estranei."
 
 msgid "Open Door Detection"
 msgstr "Rilevamento porta aperta"
@@ -6450,7 +6414,7 @@ msgid "Unavailable while heating maintenance function is on."
 msgstr "Non disponibile durante il riscaldamento della funzione di manutenzione."
 
 msgid "Idle Heating Protection"
-msgstr ""
+msgstr "Protezione riscaldamento inattivo"
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Smette di riscaldare automaticamente dopo 5 minuti d'inattività per garantire la sicurezza."
@@ -6477,25 +6441,25 @@ msgid "Printer settings"
 msgstr "Impostazioni stampante"
 
 msgid "Remove current plate (if not last one)"
-msgstr ""
+msgstr "Rimuovi il piatto corrente (se non è l'ultima)"
 
 msgid "Auto orient objects on current plate"
-msgstr ""
+msgstr "Orientamento automatico degli oggetti sul piatto corrente"
 
 msgid "Arrange objects on current plate"
-msgstr ""
+msgstr "Posiziona gli oggetti sul piatto corrente"
 
 msgid "Unlock current plate"
-msgstr ""
+msgstr "Sblocco del piatto corrente"
 
 msgid "Edit filament grouping"
-msgstr ""
+msgstr "Modifica raggruppamento filamenti"
 
 msgid "Edit current plate name"
-msgstr ""
+msgstr "Modifica il nome del piatto corrente"
 
 msgid "Customize current plate"
-msgstr ""
+msgstr "Personalizza il piatto corrente"
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -6617,7 +6581,7 @@ msgid "Project Filaments"
 msgstr "Filamenti Progetto"
 
 msgid "Purge mode"
-msgstr ""
+msgstr "Modalità spurgo"
 
 msgid "Flushing volumes"
 msgstr "Volumi di spurgo"
@@ -6689,8 +6653,8 @@ msgstr "L'attivazione fotografia timelapse tradizionale può causare imperfezion
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
-msgstr ""
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
+msgstr "(Percorso da modificare: \"Processo\" - \"Altro\" - \"Modalità Speciale\" - \"Timelapsed\")"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "La modalità smooth per il timelapse è attivata, ma la prime tower è disattivata, il che potrebbe causare difetti di stampa. Abilita la prime tower, riesegui lo slicing e stampa di nuovo."
@@ -7790,19 +7754,19 @@ msgid "Plate name"
 msgstr "Nome Piatto"
 
 msgid "Move the current plate to"
-msgstr ""
+msgstr "Sposta il piatto corrente a"
 
 msgid "Move forward"
-msgstr ""
+msgstr "Sposta in avanti"
 
 msgid "Move backwards"
-msgstr ""
+msgstr "Spostare indietro"
 
 msgid "Move to the front"
-msgstr ""
+msgstr "Sposta in avanti"
 
 msgid "Move to the back"
-msgstr ""
+msgstr "Sposta indietro"
 
 msgid "Accept"
 msgstr "Accetta"
@@ -7903,27 +7867,31 @@ msgid ""
 "2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n"
 "3. The toolhead hotend was manually removed or installed"
 msgstr ""
+"Disattivare questa opzione influenzerà la qualità di stampa se:\n"
+"1. Vengono utilizzati hotend non calibrati\n"
+"2. La temperatura attuale del nozzle, del piano o della camera differisce dalle condizioni di calibrazione\n"
+"3. L'hotend della testa di stampa è stato rimosso o installato manualmente"
 
 msgid "After modifying this option, the system will reassign the nozzles based on the calibrated dynamic flow calibration coefficient."
-msgstr ""
+msgstr "Dopo aver modificato questa opzione, il sistema riassegnerà i nozzle in base al coefficiente calibrato di flusso dinamico."
 
 msgid "There are not enough available hotends currently."
-msgstr ""
+msgstr "Non ci sono abbastanza hotend disponibili al momento."
 
 msgid "No hotends available."
-msgstr ""
+msgstr "Nessun hotend disponibile."
 
 msgid "Please complete the hotend rack setup and try again."
-msgstr ""
+msgstr "Completa la configurazione del rack hotend e riprova."
 
 msgid "Please refresh the nozzle information and try again."
-msgstr ""
+msgstr "Aggiorna le informazioni sul nozzle e riprova."
 
 msgid "Please re-slice."
-msgstr ""
+msgstr "Per favore, rielabora."
 
 msgid "Please re-slice to avoid filament waste."
-msgstr ""
+msgstr "Rifai l'elaborazione per evitare sprechi di filamento."
 
 msgid "Task canceled"
 msgstr "Attività annullata"
@@ -7993,6 +7961,9 @@ msgid ""
 msgstr ""
 "Calibra gli offset del nozzle per migliorare la qualità di stampa.  \n"
 "*Modalità automatica: Verifica la calibrazione prima della stampa. Salta il processo se non necessario."
+
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr "Nozzle e filamenti dello stesso tipo condividono lo stesso profilo PA"
 
 msgid "send completed"
 msgstr "invio completato"
@@ -8085,6 +8056,13 @@ msgstr "Il filamento su %s potrebbe ammorbidirsi. Scaricalo."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "Il filamento su %s è sconosciuto e potrebbe ammorbidirsi. Imposta il filamento."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Impossibile abbinare automaticamente il filamento adatto. Clicca per abbinarlo manualmente."
 
@@ -8093,13 +8071,13 @@ msgstr "Installa una ventola potenziata sulla testina di stampa per evitare l'am
 
 #, c-format, boost-format
 msgid "Refreshing information of hotends(%d/%d)."
-msgstr ""
+msgstr "Aggiornamento delle informazioni degli hotend (%d/%d)."
 
 msgid "Please wait a moment..."
-msgstr ""
+msgstr "Attendi un momento..."
 
 msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
-msgstr ""
+msgstr "La testa di stampa e il rack hotend sono pieni. Rimuovi almeno un hotend prima di avviare la stampa."
 
 #, c-format, boost-format
 msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
@@ -8122,18 +8100,22 @@ msgstr "La durezza del materiale attuale (%s) supera la durezza di %s (%s). Veri
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
-msgstr ""
+msgstr "Impossibile inviare la richiesta di mappatura automatica del nozzle alla stampante { code: %d }. Provvedi ad aggiornare le informazioni della stampante. Se il problema persiste, è possibile provare a ricollegare la stampante e controllare la connessione di rete."
 
 msgid "The printer is calculating nozzle mapping."
-msgstr ""
+msgstr "La stampante sta calcolando la mappatura dei nozzle."
 
 #, c-format, boost-format
 msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."
-msgstr ""
+msgstr "Impossibile ricevere la tabella di auto-mappatura dei nozzle dalla stampante { msg: %s }. Aggiorna le informazioni della stampante."
 
 #, c-format, boost-format
-msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
-msgstr ""
+msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
+msgstr "La stampante non è riuscita a creare la tabella di auto-mappatura del nozzle { codice: %d }. Aggiorna le informazioni del nozzle."
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
+msgstr "La mappatura attuale del nozzle potrebbe generare uno scarto aggiuntivo di %0.2f g."
 
 msgid "Cool"
 msgstr ""
@@ -8151,7 +8133,7 @@ msgid "Click here if you can't connect to the printer"
 msgstr "Clicca qui se non riesci a connetterti alla stampante"
 
 msgid "Sliced file"
-msgstr ""
+msgstr "File elaborato"
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Nessun account di login, vengono visualizzate solo le stampanti in modalità LAN"
@@ -8220,13 +8202,13 @@ msgid "High chamber temperature is required. Please close the door."
 msgstr "È richiesta una temperatura elevata della camera. Chiudi la porta."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
-msgstr ""
+msgstr "Verifica se il diametro del nozzle richiesto e il flusso corrispondono all'indicazione attuale."
 
 msgid "Please refer to Wiki before use->"
 msgstr "Consulta il Wiki prima di utilizzarlo->"
 
 msgid "How to install"
-msgstr ""
+msgstr "Come installarlo"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "Il firmware attuale non supporta il trasferimento di file sulla memoria interna."
@@ -8272,6 +8254,9 @@ msgstr "Invio…"
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Il caricamento del file è scaduto. Verifica se la versione del firmware supporta questa operazione o controlla che la stampante funzioni correttamente."
+
+msgid "Sending failed, please try again!"
+msgstr "Invio fallito, riprova!"
 
 msgid "Helio action completed successfully."
 msgstr "Azione Helio completata con successo."
@@ -8398,19 +8383,19 @@ msgid "Search in preset"
 msgstr "Cerca nel preset"
 
 msgid "Synchronization of different extruder drives or nozzle volume types is not supported."
-msgstr ""
+msgstr "La sincronizzazione di diversi azionamenti dell'estrusore o tipi di volume dei nozzle non è supportata."
 
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Sincronizza la modifica dei parametri con i parametri corrispondenti di un altro estrusore."
 
 msgid "Click to learn more"
-msgstr ""
+msgstr "Clicca per saperne di più"
 
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Clicca per ripristinare tutte le impostazioni dell'ultimo preset salvato."
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr ""
+msgstr "La torre di spurgo è necessaria per la sostituzione del nozzle. Senza la prime tower potrebbero esserci dei difetti sul modello. Sei sicuro di voler disabilitare la torre di spurgo?"
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "È necessaria una Prime Tower per la modalità timelapse fluida. Potrebbero esserci dei difetti sul modello senza Prime Tower. Sei sicuro di voler disabilitare la prime tower?"
@@ -8439,20 +8424,19 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
-"Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, abilita Z che sovrascrive XY, disabilita Altezza layer di supporto indipendente e usa il PLA sia per l’interfaccia che per la base di supporto"
+"Quando usi PLA per supportare TPU, ti consigliamo le seguenti impostazioni:\n"
+"distanza Z superiore 0, spaziatura interfaccia 0, distanza XY supporto/oggetto 0, motivo rettilineo interlacciato, disabilita l’altezza strato di supporto indipendente e utilizza il PLA sia per l’interfaccia che per la base di supporto."
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
-"0 distanza z superiore, spaziatura interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, abilita la sovrascrittura Z che prevale su XY, disabilita l'altezza indipendente del layer di supporto e utilizza materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+"Quando usi materiale solubile per il supporto, ti consigliamo le seguenti impostazioni:\n"
+"distanza Z superiore 0, spaziatura interfaccia 0, distanza XY supporto/oggetto 0, motivo rettilineo interlacciato, disattiva l’altezza strato di supporto indipendente e usa materiali solubili sia per l’interfaccia che per la base di supporto."
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8465,21 +8449,18 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
-"Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
-"0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
+"Quando usi materiale di supporto per l’interfaccia, ti consigliamo le seguenti impostazioni:\n"
+"distanza Z superiore 0, spaziatura interfaccia 0, motivo rettilineo interlacciato e disabilita l’altezza strato di supporto indipendente."
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
-"0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
-"altezza indipendente del layer di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+"Quando usi materiale solubile per l’interfaccia di supporto, ti consigliamo le seguenti impostazioni:\n"
+"distanza Z superiore 0, spaziatura interfaccia 0, distanza XY supporto/oggetto 0, motivo rettilineo interlacciato, disabilita l’altezza strato di supporto indipendente e usa materiali solubili sia per l’interfaccia che per la base di supporto."
 
 msgid ""
 "Layer height is too small.\n"
@@ -8627,19 +8608,19 @@ msgid "Filament ramming length"
 msgstr "Quantità spurgo iniziale (mm)"
 
 msgid "Filament length used in ramming."
-msgstr ""
+msgstr "Lunghezza del filamento utilizzata durante l'urto."
 
 msgid "Travel time after ramming"
 msgstr "Tempo di spostamento dopo spurgo iniziale"
 
 msgid "A reverse travel movement after ramming."
-msgstr ""
+msgstr "Un movimento di ritorno dopo l'urto."
 
 msgid "Precooling target temperature"
 msgstr "Temperatura target di pre‑raffreddamento"
 
 msgid "Precooling target temperature during ramming."
-msgstr ""
+msgstr "Temperatura target di pre-raffreddamento in fase di urto."
 
 msgid "Recommended nozzle temperature"
 msgstr "Temperatura nozzle consigliata"
@@ -8880,10 +8861,10 @@ msgid "Do you want to modify the following parameters of the left nozzle to that
 msgstr "Vuoi modificare i seguenti parametri del nozzle sinistro in quelli del nozzle destro?"
 
 msgid "No available nozzles for current preset"
-msgstr ""
+msgstr "Nessun nozzle disponibile per il preset corrente"
 
 msgid "Available nozzles for current preset: "
-msgstr ""
+msgstr "Nozzle disponibili per il preset corrente: "
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "Fare clic per ripristinare il valore corrente e associarlo al valore globale."
@@ -9716,8 +9697,14 @@ msgstr "Componenti aggiuntivi disponibili: "
 msgid "Optimise Outer Walls"
 msgstr "Ottimizza Pareti Esterne"
 
-msgid "Advanced Settings"
-msgstr "Impostazioni Avanzate"
+msgid "Helio default (recommended)"
+msgstr "Helio default (raccomandato)"
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr "Limiti"
 
 msgid "Min Velocity"
 msgstr "Velocità Minima"
@@ -9734,8 +9721,8 @@ msgstr "Massima velocità volumetrica"
 msgid "Last Trace ID: "
 msgstr "Ultimo ID traccia: "
 
-msgid "Buy Now"
-msgstr "Acquista Ora"
+msgid "Buy Now / Manage Account"
+msgstr "Acquista Adesso / Gestisci Account"
 
 msgid "Click for more details"
 msgstr "Clicca per maggiori dettagli"
@@ -9786,16 +9773,16 @@ msgid "Update firmware"
 msgstr "Aggiorna firmware"
 
 msgid "Hotends on Rack"
-msgstr ""
+msgstr "Hotend sul Rack"
 
 msgid "Beta version"
 msgstr "Versione beta"
 
 msgid "Refreshing hotend information..."
-msgstr ""
+msgstr "Aggiornamento informazioni hotend..."
 
 msgid "Checking version..."
-msgstr ""
+msgstr "Controllo versione..."
 
 msgid "Updating"
 msgstr "Aggiornamento in corso…"
@@ -9817,6 +9804,9 @@ msgstr "La versione del firmware è anomala. Prima di stampare, è necessario es
 
 msgid "Extension Board"
 msgstr "Scheda di estensione"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Salvataggio oggetti 3mf fallito."
@@ -9929,6 +9919,9 @@ msgstr "Errore di raggruppamento:"
 
 msgid " can not be placed in the "
 msgstr " non può essere inserito nel "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "Parete interna"
@@ -10295,8 +10288,8 @@ msgstr "Devia ed evita di attraversare le pareti per ridurre il rischio di crear
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Transizione graduale della velocità delle pareti lungo Z (sperimentale)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Velocità lisciatura parete esterna direzione z per ottenere una migliore qualità della superficie: il tempo di stampa aumenterà. Questa operazione non funziona in modalità vaso a spirale."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr "Uniforma la velocità della parete esterna in direzione Z per ottenere una migliore qualità della superficie. Il tempo di stampa aumenterà. Questa funzione non è compatibile con la modalità vaso a spirale."
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Evitare di attraversare le pareti - Lunghezza massima deviazione"
@@ -10901,7 +10894,7 @@ msgid "Manual"
 msgstr "Manuale"
 
 msgid "Nozzle Manual"
-msgstr ""
+msgstr "Manuale nozzle"
 
 msgid "Flush temperature"
 msgstr "Temperatura di Spurgo"
@@ -10922,16 +10915,16 @@ msgid "This setting stands for how much volume of filament can be melted and ext
 msgstr "Questa impostazione indica il volume di filamento che può essere fuso ed estruso al secondo. Nel caso in cui il volume sia troppo alto ed irragionevole, la velocità di stampa sarà limitata. Non può essere zero"
 
 msgid "Extruder change"
-msgstr ""
+msgstr "Cambio dell'estrusore"
 
 msgid "The maximum volumetric speed for ramming before extruder change, where -1 means using the maximum volumetric speed."
-msgstr ""
+msgstr "La velocità volumetrica massima per l'urto prima del cambio dell'estrusore, dove -1 indica l'utilizzo della velocità volumetrica massima."
 
 msgid "Hotend change"
-msgstr ""
+msgstr "Cambio Hotend"
 
 msgid "The maximum volumetric speed for ramming before a hotend change, where -1 means using the maximum volumetric speed."
-msgstr ""
+msgstr "La velocità volumetrica massima per l'urto prima di una sostituzione del Hotend, dove -1 indica l'utilizzo della velocità volumetrica massima."
 
 msgid "Minimal purge on wipe tower"
 msgstr "Spurgo minimo sulla torre di pulitura"
@@ -10958,10 +10951,10 @@ msgid "Time to switch extruder. For statistics only"
 msgstr "È ora di cambiare estrusore. Solo per statistiche"
 
 msgid "Hotend change time"
-msgstr ""
+msgstr "Tempo cambio Hotend"
 
 msgid "Time to change hotend."
-msgstr ""
+msgstr "È ora di sostituire l'hotend."
 
 msgid "Bed temperature type"
 msgstr "Tipo di temperatura del piano"
@@ -11065,7 +11058,7 @@ msgid "When changing the extruder, it is recommended to extrude a certain length
 msgstr "Quando cambi l'estrusore, è consigliato estrudere una certa lunghezza di filamento dall'estrusore originale. Questo aiuta a ridurre al minimo il gocciolamento del nozzle."
 
 msgid "When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing."
-msgstr ""
+msgstr "Quando si cambia l'hotend, è consigliato estrudere una certa lunghezza di filamento dall nozzle originale. Questo aiuta a ridurre al minimo la trasudazione dal nozzle."
 
 msgid "Support material"
 msgstr "Materiale di supporto"
@@ -11080,12 +11073,18 @@ msgid "The filament is printable in extruder"
 msgstr "Filamento stampabile in estrusore"
 
 msgid "Filament change"
-msgstr ""
+msgstr "Cambio filamento"
 
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
-msgstr ""
+msgstr "Il volume di materiale necessario per innescare l'estrusore sulla torre, escludendo la sostituzione dell'hotend."
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
+msgstr "Volume di materiale necessario per innescare l'estrusore in vista di una sostituzione dell'hotend sulla torre."
+
+msgid "Wipe tower cooling"
+msgstr "Raffredda wipe tower"
+
+msgid "Temperature drop before entering filament tower"
 msgstr ""
 
 msgid "Softening temperature"
@@ -11101,7 +11100,7 @@ msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. 
 msgstr "Per evitare fuoriuscite di materiale, la temperatura del nozzle verrà abbassata durante il ramming. Pertanto, il tempo di ramming deve essere superiore al tempo di raffreddamento. 0 indica che la funzione è disattivata."
 
 msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled."
-msgstr ""
+msgstr "Per prevenire la trasudazione, la temperatura del nozzle verrà raffreddata durante la pressatura. Nota: viene attivato solo un comando di raffreddamento e la ventola, non è garantito il raggiungimento della temperatura target. 0 significa disabilitato."
 
 msgid "Price"
 msgstr "Prezzo"
@@ -11135,10 +11134,10 @@ msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Densità del riempimento interno. 100%% significa solido."
 
 msgid "Fill multiline"
-msgstr ""
+msgstr "Riempi multilinea"
 
 msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
-msgstr ""
+msgstr "Utilizzo di più linee per il motivo di riempimento, se supportato dal motivo di riempimento."
 
 msgid "Sparse infill pattern"
 msgstr "Trama riempimento"
@@ -11410,11 +11409,23 @@ msgstr "Supporto controllo temperatura camera"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Questa opzione è abilitata se la macchina supporta il controllo della temperatura della camera"
 
+msgid "Apply top surface compensation"
+msgstr "Applica compensazione superficie superiore"
+
 msgid "Air filtration enhancement"
 msgstr "Miglioramento filtro aria"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Abilita questa funzione se la stampante supporta il potenziamento della filtrazione dell'aria."
+
+msgid "Use cooling filter"
+msgstr "Usa filtro raffreddamento"
+
+msgid "Enable this if printer support cooling filter"
+msgstr "Abilita questa opzione se la stampante supporta il filtro di raffreddamento."
+
+msgid "Auto turn off filter on overheat"
+msgstr "Spegnimento automatico del filtro in caso di surriscaldamento"
 
 msgid "G-code flavor"
 msgstr "Formato G-code"
@@ -11510,7 +11521,7 @@ msgid "0 (not anchored)"
 msgstr "0 (non ancorato)"
 
 msgid "Sparse infill filament"
-msgstr ""
+msgstr "Filamento riempimento sparso"
 
 msgid "Filament to print internal sparse infill."
 msgstr "Filamento per la stampa del riempimento interno."
@@ -11830,6 +11841,12 @@ msgstr "Coefficiente di transizione"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "Più piccolo è il numero, più lungo sarà il percorso di transizione della velocità. 0 significa che non si applica."
 
+msgid "Walls filament"
+msgstr "Filamento pareti"
+
+msgid "Filament to print walls"
+msgstr "Filamento per stampare le pareti"
+
 msgid "Line width of inner wall"
 msgstr "Larghezza linea delle pareti interne"
 
@@ -11840,10 +11857,10 @@ msgid "Number of walls of every layer"
 msgstr "Numero di pareti per layer"
 
 msgid "Embedding the wall into the infill"
-msgstr ""
+msgstr "Incastro della parete nel riempimento"
 
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
-msgstr ""
+msgstr "Incorpora la parete nelle parti dove i loop della parete sono assenti, garantendo che la parete si connetta senza interruzioni al riempimento."
 
 msgid "Post-processing Scripts"
 msgstr "Script post-elaborazione"
@@ -11963,19 +11980,19 @@ msgid "Nozzle Volume Type"
 msgstr "Volume del tipo di nozzle"
 
 msgid "Hybrid"
-msgstr ""
+msgstr "Ibrido"
 
 msgid "Default Nozzle Volume Type"
 msgstr "Tipo di volume per il nozzle predefinito"
 
 msgid "Saving"
-msgstr ""
+msgstr "Salvataggio"
 
-msgid "length when change nozzle"
-msgstr ""
+msgid "length when change hotend"
+msgstr "lunghezza quando si cambia hotend"
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
-msgstr ""
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
+msgstr "Quando questo valore di retrazione viene modificato, verrà utilizzato come quantità di filamento retratto all'interno del hotend prima di cambiare hotend."
 
 msgid "Extra length on restart"
 msgstr "Lunghezza extra al riavvio"
@@ -12111,6 +12128,12 @@ msgstr "Le aree di riempimento che sono più piccole di questo valore soglia ven
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr "Filamento Riempimento Solido"
+
+msgid "Filament to print solid infill"
+msgstr "Filamento per la stampa del riempimento solido"
 
 msgid "Line width of internal solid infill"
 msgstr "Larghezza linea del riempimento solido interno"
@@ -12362,8 +12385,11 @@ msgstr "Tree Organic"
 msgid "Z overrides X/Y"
 msgstr "Z sovrascrive X/Y"
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "Quando la distanza z superiore prevale sulla distanza xy supporto/oggetto, dare priorità alla generazione di supporti sotto le sporgenze e lasciare uno spazio vuoto della stessa dimensione della distanza z superiore nel modello. Nel caso opposto, invece, lo spazio vuoto tra supporti e modello segue sempre la distanza xy supporto/oggetto."
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
+"Quando la distanza Z superiore sostituisce la distanza XY supporto/oggetto, dai priorità alla generazione dei supporti sotto le sporgenze e lascia un gap, della stessa misura della distanza Z superiore, tra modello e supporto.\n"
+"Nel caso opposto, il gap tra supporti e modello segue sempre la distanza XY supporto/oggetto.\n"
+"Si consiglia di abilitare questa opzione solo quando usi Albero ibrido."
 
 msgid "Independent support layer height"
 msgstr "Altezza layer supporto indipendente"
@@ -12460,6 +12486,12 @@ msgstr "Layer penetrazione pittura inferiore"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "Questo è il numero layer di penetrazione superiore inferiore."
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr "Usa infill anziché superficie superiore e inferiore."
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr "Usa infill anziché superficie superiore e inferiore."
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Velocità degli spostamenti senza estrusione"
@@ -13092,7 +13124,7 @@ msgid "The name cannot exceed 40 characters."
 msgstr "Il nome non può superare i 40 caratteri."
 
 msgid "Nozzle ID"
-msgstr ""
+msgstr "ID Nozzle"
 
 msgid "Please find the best line on your plate"
 msgstr "Trova la linea migliore sul tuo piatto."
@@ -13203,9 +13235,12 @@ msgid ""
 "- Materials that can share same hot bed temperature\n"
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
+"Suggerimenti per calibrazione materiale:\n"
+"- Materiali che possono condividere la stessa temperatura del piano\n"
+"- Differenti marche e famiglie di filamenti (Marca = Bambu, Famiglia = Basic, Opaco)\n"
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
-msgstr ""
+msgstr "- Nota: il numero dell'Hotend è legato al supporto. Quando l'Hotend viene spostato su un nuovo supporto, il suo numero si aggiornerà automaticamente.\n"
 
 msgid ""
 "Tips for calibration material: \n"
@@ -13315,10 +13350,6 @@ msgstr "Azione"
 #, c-format, boost-format
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr "Questo tipo di macchina può contenere una cronologia di %d risultati per nozzle."
-
-#, c-format, boost-format
-msgid "You have reached the limit of %d PA factors. Please delete some before adding new ones."
-msgstr ""
 
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Modifica la calibrazione dinamica del flusso"
@@ -13542,13 +13573,13 @@ msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "L'operazione di differenza richiede almeno un oggetto in entrambe le liste A e B."
 
 msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr ""
+msgstr "Impossibile raggruppare le parti per oggetto. Verifica la presenza di auto intersezioni, geometrie non manifold o mesh aperte."
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "Nessuna regione sovrapposta trovata. Intersezione booleana non riuscita."
 
 msgid "Mesh preparation failed."
-msgstr ""
+msgstr "Preparazione della mesh fallita."
 
 msgid "Mesh Boolean"
 msgstr "Mesh booleana"
@@ -13569,10 +13600,10 @@ msgid "Intersection"
 msgstr "Intersezione"
 
 msgid "Selected Objects"
-msgstr ""
+msgstr "Oggetti selezionati"
 
 msgid "Selected Parts"
-msgstr ""
+msgstr "Parti Selezionate"
 
 msgid "Keep original models"
 msgstr "Mantieni modelli originali"
@@ -13590,13 +13621,13 @@ msgid "This object contains non-part components."
 msgstr "Questo oggetto contiene componenti non parti."
 
 msgid "Preparing data..."
-msgstr ""
+msgstr "Preparazione dati..."
 
 msgid "Computing..."
-msgstr ""
+msgstr "Calcolo..."
 
 msgid "Applying result.."
-msgstr ""
+msgstr "Risultato applicativo.."
 
 msgid "Network Test"
 msgstr "Test di rete"
@@ -14192,6 +14223,9 @@ msgstr ""
 "Il tipo di nozzle selezionato attualmente per l'estrusore %s non corrisponde al tipo di nozzle effettivo della stampante.\n"
 "Per favore, clicca sul pulsante di sincronizzazione sopra e riavvia la calibrazione."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Impossibile calibrare: forse perché l'intervallo di valori di calibrazione impostato è troppo ampio o il passo è troppo piccolo"
 
@@ -14759,7 +14793,7 @@ msgstr "(Sincronizzazione con stampante)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr ""
+msgstr "Errore: l'estrusore %s non ha un nozzle %s disponibile, il risultato del gruppo corrente non è valido."
 
 msgid "We will slice according to this grouping method:"
 msgstr "Verrà eseguito lo slicer in base a questo metodo di raggruppamento:"
@@ -14768,22 +14802,22 @@ msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Suggerimenti: Puoi trascinare i filamenti per riassegnarli a diversi nozzle."
 
 msgid "Please adjust your grouping or click "
-msgstr ""
+msgstr "Regola il tuo raggruppamento o clicca "
 
 msgid " to set nozzle count"
-msgstr ""
+msgstr " per impostare il numero di nozzle"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
-msgstr ""
+msgstr "Estrusore sinistro(%d)"
 
 #, c-format, boost-format
 msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr ""
+msgstr "Estrusore destro (Std: %d, HF: %d)"
 
 #, c-format, boost-format
 msgid "Right Extruder(%d)"
-msgstr ""
+msgstr "Estrusore destro(%d)"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Il metodo di raggruppamento del filamento per il piano attuale è determinato dall'opzione a discesa nel pulsante del piano di slicing."
@@ -14859,53 +14893,53 @@ msgid "More Colors"
 msgstr "Altri Colori"
 
 msgid "Please set nozzle count"
-msgstr ""
+msgstr "Imposta il numero di nozzle"
 
 msgid "Error: Can not set both nozzle count to zero."
-msgstr ""
+msgstr "Errore: Impossibile impostare il numero di nozzle su zero."
 
 #, c-format, boost-format
 msgid "Error: Nozzle count can not exceed %d."
-msgstr ""
+msgstr "Errore: il numero di nozzle non può superare %d."
 
 msgid "Nozzle Selection"
-msgstr ""
+msgstr "Selezione Nozzle"
 
 msgid "Available Nozzles"
-msgstr ""
+msgstr "Nozzle disponibili"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
-msgstr ""
+msgstr "Attenzione: L'uso di diametri nozzle differenti in una sola stampa non è supportata. Se la dimensione selezionata è disponibile solo su un estrusore, verrà forzata la stampa con un solo estrusore."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
-msgstr ""
+msgstr "Nozzle sconosciuto rilevato. Effettua un refresh per aggiornare le informazioni (i nozzle non aggiornati saranno esclusi durante l'elaborazione). Verifica il diametro del nozzle e il flusso rispetto ai valori mostrati."
 
 msgid "Unknown nozzle detected. Refresh to update (unrefreshed nozzles will be skipped in slicing)."
-msgstr ""
+msgstr "Nozzle sconosciuto rilevato. Effettua un refresh per aggiornare (i nozzle non aggiornati verranno saltati durante l'elaborazione)."
 
 msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
-msgstr ""
+msgstr "Verifica se il diametro del nozzle richiesto eil flusso corrispondono ai valori attualmente visualizzati."
 
 msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr ""
+msgstr "La tua stampante dispone di diversi nozzle installati. Seleziona un nozzle per questa stampa."
 
 msgid "Purge Mode Settings"
-msgstr ""
+msgstr "Impostazioni Modalità di Spurgo"
 
 msgid "Standard Mode"
-msgstr ""
+msgstr "Modalità Standard"
 
 msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr ""
+msgstr "Esegue uno spurgo completo per garantire la migliore qualità di stampa. Richiede più materiale e tempo."
 
 msgid "Purge Saving"
-msgstr ""
+msgstr "Risparmio di spurgo"
 
 msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
+msgstr "Riduce lo spreco sullo spurgo e stampa più velocemente. Potrebbe causare una leggera miscelazione di colori o piccoli difetti superficiali."
 
 msgid "Learn more about purge mode"
-msgstr ""
+msgstr "Scopri di più sulla modalità di spurgo"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15256,6 +15290,103 @@ msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
 
+#~ msgid "Distribute along Y axis"
+#~ msgstr "Distribuisci lungo l'asse Y"
+
+#~ msgid "Distribute along X axis"
+#~ msgstr "Distribuisci lungo l'asse X"
+
+#~ msgid "Distribute along Z axis"
+#~ msgstr "Distribuisci lungo l'asse Z"
+
+#~ msgid "Align to Y Max"
+#~ msgstr "Allinea al max sull'asse Y"
+
+#~ msgid "Align to Y Min"
+#~ msgstr "Allinea al min sull'asse Y"
+
+#~ msgid "Align to Y Center"
+#~ msgstr "Allinea centralmente sull'asse Y"
+
+#~ msgid "Align to X Max"
+#~ msgstr "Allinea al max sull'asse X"
+
+#~ msgid "Align to X Min"
+#~ msgstr "Allinea al min sull'asse X"
+
+#~ msgid "Align to X Center"
+#~ msgstr "Allinea centralmente sull'asse X"
+
+#~ msgid "Align to Z Max"
+#~ msgstr "Allinea al max sull'asse Z"
+
+#~ msgid "Align to Z Min"
+#~ msgstr "Allinea al min sull'asse Z"
+
+#~ msgid "Align to Z Center"
+#~ msgstr "Allinea centralmente sull'asse Z"
+
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "Questa è la prima volta che elabori con la H2D.\n"
+#~ "Vuoi guardare un breve video tutorial?"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "È la prima volta che stampi filamenti in TPU con la macchina H2D.\n"
+#~ "Vuoi guardare un breve video tutorial?"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
+#~ "Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, abilita Z che sovrascrive XY, disabilita Altezza layer di supporto indipendente e usa il PLA sia per l’interfaccia che per la base di supporto"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
+#~ "0 distanza z superiore, spaziatura interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, abilita la sovrascrittura Z che prevale su XY, disabilita l'altezza indipendente del layer di supporto e utilizza materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
+#~ "0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
+#~ "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
+#~ "altezza indipendente del layer di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Impostazioni Avanzate"
+
+#~ msgid "Buy Now"
+#~ msgstr "Acquista Ora"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Velocità lisciatura parete esterna direzione z per ottenere una migliore qualità della superficie: il tempo di stampa aumenterà. Questa operazione non funziona in modalità vaso a spirale."
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "Quando la distanza z superiore prevale sulla distanza xy supporto/oggetto, dare priorità alla generazione di supporti sotto le sporgenze e lasciare uno spazio vuoto della stessa dimensione della distanza z superiore nel modello. Nel caso opposto, invece, lo spazio vuoto tra supporti e modello segue sempre la distanza xy supporto/oggetto."
+
 #~ msgid "Detect spaghetti failure(scattered lose filament)."
 #~ msgstr "Rilevamento del guasto spaghetti (filamento sparso)."
 
@@ -15307,43 +15438,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Timeout di acquisizione della capacità multimediale, verifica se la versione del firmware lo supporta."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Invio fallito, riprova!"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "Quando si utilizza il PLA come materiale di supporto per il TPU, consigliamo le seguenti impostazioni:\n"
-#~ "Distanza Z superiore: 0, Spaziatura interfaccia: 0, Distanza XY supporto/oggetto: 0, Motivo: rettilineo interlacciato, Disabilita Altezza layer supporto indipendente e \n"
-#~ "usa il PLA sia per l’interfaccia che per la base di supporto"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Quando si utilizza materiale solubile per il supporto, si consigliano le seguenti impostazioni:\n"
-#~ "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
-#~ "altezza indipendente dello strato di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Quando si utilizza il materiale di supporto per l'interfaccia, si consigliano le seguenti impostazioni:\n"
-#~ "0 distanza z superiore, 0 spaziatura dell'interfaccia, trama rettilineo e disabilita l'altezza del layer di supporto."
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Quando si utilizza materiale solubile per l'interfaccia di supporto, si consigliano le seguenti impostazioni:\n"
-#~ "0 distanza z superiore, spaziatura dell'interfaccia 0, distanza xy supporto/oggetto 0, schema rettilineo interlacciato, disabilita \n"
-#~ "altezza indipendente dello strato di supporto e utilizzo di materiali solubili sia per l'interfaccia di supporto che per la base di supporto"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filtra i gap vuoti più piccoli della soglia specificata. Questa impostazione non influisce sui layers superiore/inferiore."

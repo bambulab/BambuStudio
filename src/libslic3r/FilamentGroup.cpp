@@ -5,6 +5,7 @@
 #include <random>
 #include <cassert>
 #include <sstream>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r
 {
@@ -548,22 +549,43 @@ namespace Slic3r
         const long long total = std::pow(m_k, m_elem_count);
         for (long long mask = 0; mask < total; mask++) {
             long long num = mask;
-            int left_extruder_elems = 0, right_extruder_elems = 0;
-            int prefer_level = (m_elem_count + 1) * (m_elem_count + 1);
             std::unordered_map<int, std::vector<int>> nozzles_filaments;
             std::vector<int> groups(m_cluster_group_size.size());
+
+            std::vector<std::unordered_map<NozzleVolumeType, std::set<int>>> used_nozzles(m_cluster_group_size.size());
+            std::vector<int> prefer_vs(3, 0);
+
             //4.calculate group info
             for (int i = 0; i < m_elem_count; i++) {
                 int n_id = num % m_k;
                 num /= m_k;
+                int ex_id = m_nozzle_to_extruder[n_id];
 
                 labels[used_filaments[i]] = n_id;
                 used_labels[i]            = n_id;
                 nozzles_filaments[n_id].emplace_back(i);
-                groups[m_nozzle_to_extruder[n_id]]++;
-                if (std::find(candidates[i].begin(), candidates[i].end(), n_id) == candidates[i].end()) prefer_level -= (m_elem_count + 1);
+                groups[ex_id]++;
+
+                used_nozzles[ex_id][context.nozzle_info.nozzle_list[n_id].volume_type].insert(n_id);
+
+                if (std::find(candidates[i].begin(), candidates[i].end(), n_id) != candidates[i].end()) prefer_vs[0] += 1;
             }
-            for (int i = 0; i < groups.size(); i++) prefer_level -= std::max(0, groups[i] - m_cluster_group_size[i].second);
+            for (int i = 0; i < groups.size(); i++) prefer_vs[1] += std::min(groups[i], int(m_cluster_group_size[i].first.size()));
+
+            std::unordered_set<NozzleVolumeType> nozzles_type;
+            for (int i = 0; i < used_nozzles.size(); i++) {
+                const auto &nozzles = used_nozzles[i];
+                if (nozzles.size() == 1 && nozzles.begin()->second.size() == groups[i]) {
+                    prefer_vs[2] += 1;
+                    nozzles_type.insert(nozzles.begin()->first);
+                }
+            }
+            if (nozzles_type.size() == 1) prefer_vs[2] += 1;
+
+            int weight_for_placeable = 10000;
+            int weight_for_extruder_filaments = 100;
+            int weight_for_nozzle_type = 1;
+            int prefer_level = prefer_vs[0] * weight_for_placeable + prefer_vs[1] * weight_for_extruder_filaments + prefer_vs[2] * weight_for_nozzle_type;
 
             //5.compute group hash
             group_hashs.clear();
@@ -585,7 +607,8 @@ namespace Slic3r
             double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.filament_change_time;
             double score = evaluate_score(flush_volume, time, true);
 
-            if (groups[context.machine_info.master_extruder_id] < (used_filaments.size() + 1)/2)
+            int master_ex_id = context.machine_info.master_extruder_id;
+            if (master_ex_id < groups.size() && groups[master_ex_id] < (used_filaments.size() + 1) / 2)
                 score += ABSOLUTE_FLUSH_GAP_TOLERANCE; //slightly prefer master extruders with more flush
             MemoryedGroup group(used_labels, score, prefer_level);
             update_memoryed_groups(group, memory_threshold, memoryed_groups);

@@ -511,7 +511,7 @@ public:
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
-    void                normalize_fdm(int used_filaments = 0);
+    void                normalize_fdm();
     void                normalize_fdm_1();
     //return the changed param set
     t_config_option_keys normalize_fdm_2(int num_objects, int used_filaments = 0);
@@ -1171,6 +1171,9 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                apply_top_surface_compensation))
     ((ConfigOptionBool,                support_air_filtration))
+    ((ConfigOptionBool,                support_cooling_filter))
+    ((ConfigOptionBool,                cooling_filter_enabled))
+    ((ConfigOptionBool,                auto_disable_filter_on_overheat))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
@@ -1350,7 +1353,8 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             hole_limit_min))
     ((ConfigOptionFloats,             hole_limit_max))
     ((ConfigOptionFloats,             filament_prime_volume))
-    ((ConfigOptionFloats,             filament_prime_volume_nc)))
+    ((ConfigOptionFloats,             filament_prime_volume_nc))
+    ((ConfigOptionFloatsNullable,     filament_cooling_before_tower)))
 // This object is mapped to Perl as Slic3r::Config::Full.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
     FullPrintConfig,

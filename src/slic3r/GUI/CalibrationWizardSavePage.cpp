@@ -591,7 +591,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
 
             if (extruder_id == MAIN_EXTRUDER_ID) {
-                default_name += L("Right Nozzle");
+                default_name += "Right Nozzle";
                 if (has_rack) {
                     default_name += "_";
                     if (info.nozzle_pos_id == 0) {
@@ -603,7 +603,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     }
                 }
             } else if (extruder_id == DEPUTY_EXTRUDER_ID){
-                default_name += L("Left Nozzle");
+                default_name += "Left Nozzle";
             }
         }
 
@@ -611,10 +611,10 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         {
             default_name += "_";
             if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                default_name += L("Standard");
+                default_name += "SF";
             }
             else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                default_name += L("High Flow");
+                default_name += "HF";
             }
         }
 
@@ -805,10 +805,12 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                 right_grid_sizer->Add(k_value_failed, 1, wxEXPAND);
             }
 
-            if (has_rack && nozzle_id_value->IsShown()) {
-                right_grid_sizer->Add(nozzle_id_value, 1, wxEXPAND);
-            } else {
-                right_grid_sizer->Add(nozzle_id_failed, 1, wxEXPAND);
+            if (has_rack) {
+                if (nozzle_id_value->IsShown()) {
+                    right_grid_sizer->Add(nozzle_id_value, 1, wxEXPAND);
+                } else {
+                    right_grid_sizer->Add(nozzle_id_failed, 1, wxEXPAND);
+                }
             }
         }
     }
@@ -998,9 +1000,9 @@ bool CaliPASaveManualPanel::Show(bool show) {
                         }
 
                         if (extruder_id == 0) {
-                            recommend_name += L("Right");
+                            recommend_name += "Right";
                         } else if (extruder_id == 1) {
-                            recommend_name += L("Left");
+                            recommend_name += "Left";
                         }
                     }
 
@@ -1008,9 +1010,9 @@ bool CaliPASaveManualPanel::Show(bool show) {
                     {
                         recommend_name += "_";
                         if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                            recommend_name += L("Standard");
+                            recommend_name += "SF";
                         } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                            recommend_name += L("High Flow");
+                            recommend_name += "HF";
                         }
                     }
 
@@ -1783,7 +1785,7 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         if (curr_obj) {
             assert(curr_obj->selected_cali_preset.size() <= 1);
             if (!curr_obj->selected_cali_preset.empty()) {
-                wxString default_name = get_default_name(curr_obj->selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
+                wxString default_name = get_default_name(wxString::FromUTF8(curr_obj->selected_cali_preset[0].name), CalibMode::Calib_Flow_Rate);
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->cache_flow_ratio);
             }

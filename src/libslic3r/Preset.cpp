@@ -68,7 +68,7 @@ Semver get_version_from_json(std::string file_path)
         }
     }
     catch(nlohmann::detail::parse_error &err) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<file_path<<" got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<< PathSanitizer::sanitize(file_path) <<" got a nlohmann::detail::parse_error, reason = " << err.what();
         return Semver();
         //throw ConfigurationError(format("Failed loading configuration file \"%1%\": %2%", file_path, err.what()));
     }
@@ -1015,7 +1015,7 @@ static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", *
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
     "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp",
-    "long_retractions_when_ec", "retraction_distances_when_ec",
+    "long_retractions_when_ec", "retraction_distances_when_ec", "filament_cooling_before_tower"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -1037,7 +1037,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode","machine_hotend_change_time",
-    "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","printer_structure","thumbnail_size",
+    "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","auto_disable_filter_on_overheat","printer_structure","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer

@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include <libslic3r.h>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 
@@ -671,6 +672,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
                         if (!layer_tools.wiping_extrusions().is_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region))
                             something_nonoverriddable = true;
+                }else{
+                    something_nonoverriddable = false;
+                    for (const auto &eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
+                        if (!layer_tools.wiping_extrusions().is_obj_overriddable_and_mark(dynamic_cast<const ExtrusionEntityCollection &>(*eec), object))
+                            something_nonoverriddable = true;
                 }
 
                 if (something_nonoverriddable){
@@ -692,16 +698,19 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 ExtrusionRole role = fill->entities.empty() ? erNone : fill->entities.front()->role();
                 if (is_solid_infill(role))
                     has_solid_infill = true;
-                else if (role != erNone)
+                else if (is_infill(role))
                     has_infill = true;
 
                 if (m_print_config_ptr) {
                     if (! layer_tools.wiping_extrusions().is_overriddable_and_mark(*fill, *m_print_config_ptr, object, region))
                         something_nonoverriddable = true;
+                }else{
+                    if (!layer_tools.wiping_extrusions().is_obj_overriddable_and_mark(*fill, object))
+                        something_nonoverriddable = true;
                 }
             }
 
-            if (something_nonoverriddable || !m_print_config_ptr) {
+            if (something_nonoverriddable) {
             	if (extruder_override == 0) {
 	                if (has_solid_infill)
 	                    layer_tools.extruders.emplace_back(region.config().solid_infill_filament);
@@ -1256,7 +1265,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
                 auto result_map = result.get_extruder_map();
                 for (auto fid : used_filaments) {
                     if (result_map[fid] != print_config.filament_map.values[fid] - 1) {
-                        throw Slic3r::RuntimeError("Inconsistent filament map result in manual mode. Please check nozzle count.");
+                        throw Slic3r::RuntimeError(_L("Group error in manual mode. Please check nozzle count or regroup."));
                     }
                 }
             }
@@ -1696,6 +1705,16 @@ bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, con
         return false;
 
     return true;
+}
+bool WipingExtrusions::is_obj_overriddable(const ExtrusionEntityCollection &eec, const PrintObject &object) const
+{
+    if (object.config().flush_into_objects)
+        return true;
+
+    if (object.config().flush_into_infill && eec.role() == erInternalInfill)
+        return true;
+
+    return false;
 }
 
 // BBS

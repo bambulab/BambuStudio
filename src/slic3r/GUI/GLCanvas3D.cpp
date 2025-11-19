@@ -4978,10 +4978,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         bool ctrl_down = evt.CmdDown();
                         bool alt_down  = evt.AltDown();
                         Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
-
                         if (already_selected && ctrl_down)
                             m_selection.remove(volume_idx);
                         else if (alt_down) {//support  select multi parts
+                            if (m_selection.is_single_full_object()) {
+                                m_selection.clear();
+                                curr_idxs.clear();
+                            }
                             Selection::EMode mode = Selection::Volume;
                             std::vector<int> volume_idxs;
                             for (auto idx : curr_idxs) {
@@ -5003,12 +5006,29 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             }
                         }
                         else {
-                            m_selection.add(volume_idx, !ctrl_down, true);
-                            m_mouse.drag.move_requires_threshold = !already_selected;
-                            if (already_selected)
-                                m_mouse.set_move_start_threshold_position_2D_as_invalid();
-                            else
-                                m_mouse.drag.move_start_threshold_position_2D = pos;
+                            bool change_another_part = false;
+                            auto cur_selection_mode = m_selection.get_mode();
+                            if (cur_selection_mode == Selection::Volume && !alt_down && !already_selected && curr_idxs.size() > 0) {
+                                std::vector<int> volume_idxs;
+                                for (auto idx : curr_idxs) { volume_idxs.emplace_back(idx); }
+                                auto temp_gl_volume        = m_selection.get_volume(volume_idx);
+                                auto new_select_object_idx = temp_gl_volume->object_idx();
+                                auto first_gl_volume       = m_selection.get_volume(volume_idxs[0]);
+                                if (first_gl_volume->object_idx() == new_select_object_idx) {
+                                    Selection::EMode mode = Selection::Volume;
+                                    m_selection.clear();
+                                    m_selection.add_volumes(mode, {(unsigned int) volume_idx}, false);
+                                    change_another_part = true;
+                                }
+                            }
+                            if (!change_another_part) {
+                                m_selection.add(volume_idx, !ctrl_down, true);
+                                m_mouse.drag.move_requires_threshold = !already_selected;
+                                if (already_selected)
+                                    m_mouse.set_move_start_threshold_position_2D_as_invalid();
+                                else
+                                    m_mouse.drag.move_start_threshold_position_2D = pos;
+                            }
                         }
 
                         // propagate event through callback
@@ -5456,7 +5476,7 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip)
         m_tooltip.set_text(tooltip);
 }
 
-void GLCanvas3D::do_move(const std::string &snapshot_type)
+void GLCanvas3D::do_move(const std::string &snapshot_type,bool force_volume_move)
 {
     if (m_model == nullptr)
         return;
@@ -5486,21 +5506,21 @@ void GLCanvas3D::do_move(const std::string &snapshot_type)
             // Move instances/volumes
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr) {
-                if (selection_mode == Selection::Instance) {
+                if (force_volume_move || selection_mode == Selection::Volume) {
+                    auto cur_mv = model_object->volumes[volume_idx];
+                    if (cur_mv->get_offset() != v->get_volume_offset()) {
+                        cur_mv->set_transformation(v->get_volume_transformation());
+                        // BBS: backup
+                        Slic3r::save_object_mesh(*model_object);
+                    }
+                }
+                else if (selection_mode == Selection::Instance) {
                     if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
                         if ((model_object->instances[instance_idx]->get_assemble_offset() - v->get_instance_offset()).norm() > 1e-2) {
                             model_object->instances[instance_idx]->set_assemble_offset(v->get_instance_offset());
                         }
                     } else {
                         model_object->instances[instance_idx]->set_offset(v->get_instance_offset());
-                    }
-                }
-                else if (selection_mode == Selection::Volume) {
-                    auto cur_mv = model_object->volumes[volume_idx];
-                    if (cur_mv->get_offset() != v->get_volume_offset()) {
-                        cur_mv->set_transformation(v->get_volume_transformation());
-                        // BBS: backup
-                        Slic3r::save_object_mesh(*model_object);
                     }
                 }
 
@@ -11219,7 +11239,7 @@ bool GLCanvas3D::is_flushing_matrix_error() {
     const std::vector<double> &config_multiplier = (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values;
 
     for (auto multiplier : config_multiplier) {
-        if (multiplier == 0) return true;
+        if (multiplier == 0 && config_matrix.size() >= config_multiplier.size() * 4) return true;
     }
 
     int  matrix_len = config_matrix.size() / config_multiplier.size();

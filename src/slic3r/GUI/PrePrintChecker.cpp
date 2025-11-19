@@ -235,10 +235,10 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             }
 
             ScalableButton* btn = CreateTypeButton(info);
-            label->Wrap(this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(2));
+            label->Wrap(this->GetMinSize().GetWidth() - btn->GetSize().x - FromDIP(6));
 
             wxSizer* msg_sizer = new wxBoxSizer(wxHORIZONTAL);
-            msg_sizer->Add(btn, 0, wxLEFT | wxTOP);
+            msg_sizer->Add(btn, 0, wxLEFT | wxTOP, FromDIP(2));
             msg_sizer->AddSpacer(FromDIP(2));
             msg_sizer->Add(label, 0, wxLEFT | wxBOTTOM);
             msg_sizer->Layout();

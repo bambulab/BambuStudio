@@ -28,6 +28,7 @@
 
 #include <wx/clipbrd.h>
 #include "wx/evtloop.h"
+#include <wx/dcgraph.h>
 
 static std::map<int, std::string> error_messages = {
     {1, L("The device cannot handle more conversations. Please retry later.")},
@@ -620,7 +621,9 @@ void MediaPlayCtrl::ToggleStream()
     NetworkAgent *agent = wxGetApp().getAgent();
     if (!agent) return;
     std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
-    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+
+    agent->get_camera_url_for_golive(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            wxGetApp().app_config->get("slicer_uuid") + "-golive",
             [this, m = m_machine, v = agent->get_version(), dv = m_dev_ver](std::string url) {
         if (boost::algorithm::starts_with(url, "bambu:///")) {
             url += "&device=" + m;
@@ -763,8 +766,22 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     OutputDebugStringA(msg.ToUTF8().data());
     OutputDebugStringA("\n");
 #endif // __WXMSW__
-    m_label_status->SetLabel(msg);
-    m_label_status->Wrap(GetSize().GetWidth() - 120 - m_label_stat->GetSize().GetWidth());
+
+    wxGCDC dc;
+    wxSize msg_size = dc.GetTextExtent(msg);
+    int blank_width = FromDIP(GetSize().GetWidth() - 120 - m_label_stat->GetSize().GetWidth() - m_button_play->GetSize().GetWidth());
+    int max_status_width = std::min(blank_width, FromDIP(600));
+
+    wxString display_text = msg;
+    if (msg_size.x > max_status_width) {
+        display_text = wxControl::Ellipsize(msg, dc, wxELLIPSIZE_END, max_status_width);
+        m_label_status->SetToolTip(msg);
+    } else {
+        m_label_status->SetToolTip(wxEmptyString);
+    }
+
+    m_label_status->SetLabel(display_text);
+
     long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
     if (hyperlink) {
         style |= LB_HYPERLINK;

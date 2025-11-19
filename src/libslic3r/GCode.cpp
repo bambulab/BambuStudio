@@ -2020,7 +2020,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // How many times will be change_layer() called?
     // change_layer() in turn increments the progress bar status.
     m_layer_count = 0;
-    if (print.config().print_sequence == PrintSequence::ByObject) {
+    if (print.config().print_sequence == PrintSequence::ByObject && print.objects().size() > 1) {
         // Add each of the object's layers separately.
         for (auto object : print.objects()) {
             std::vector<coordf_t> zs;
@@ -2184,6 +2184,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 throw Slic3r::SlicingError(_(L("Flush volumes matrix do not match to the correct size!")));
             }
         }
+        print_cfg_temp.option<ConfigOptionInts>("filament_map_2", true)->values = print.config().filament_map_2.values;
         append_full_config(print_cfg_temp, full_config);
         if (!full_config.empty())
             file.write(full_config);
@@ -2403,7 +2404,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     // For the change_filament_gcode to Determine whether the current layer has a wipe tower
-    m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower);   
+    m_placeholder_parser.set("has_wipe_tower_this_layer", has_wipe_tower);
     //m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config().single_extruder_multi_material_priming);
     m_placeholder_parser.set("total_toolchanges", std::max(0, print.wipe_tower_data().number_of_toolchanges)); // Check for negative toolchanges (single extruder mode) and set to 0 (no tool change).
     Vec2f plate_offset = m_writer.get_xy_offset();
@@ -2753,7 +2754,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         if (print.is_BBL_Printer()) file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
         // Do all objects for each layer.
-        if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower) {
+        if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower && print.objects().size() > 1) {
             size_t             finished_objects = 0;
             print_object_instance_sequential_active = first_has_extrude_print_object;
             const PrintObject *prev_object      = (*print_object_instance_sequential_active)->print_object;
@@ -4328,7 +4329,7 @@ GCode::LayerResult GCode::process_layer(
         ctx.curr_layer = this->layer();
         ctx.curr_extruder_id = m_writer.filament()->extruder_id();
         ctx.picture_extruder_id = most_used_extruder;
-        if (m_config.print_sequence == PrintSequence::ByObject)
+        if (m_config.print_sequence == PrintSequence::ByObject && print.objects().size() > 1)
             ctx.printed_objects = printed_objects;
 
         auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);

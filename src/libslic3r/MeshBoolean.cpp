@@ -639,7 +639,7 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
     // NOTE#1: you can extend these flags by bitwise ORing with additional flags (see `McDispatchFlags' in mcut.h)
     // NOTE#2: below order of columns MATTERS
     const std::map<std::string, McFlags> booleanOpts = {
-        {"SUBSTRACTION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
+        {"A_NOT_B", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
         {"B_NOT_A", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
         {"UNION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_OUTSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_ABOVE},
         {"INTERSECTION", MC_DISPATCH_FILTER_FRAGMENT_SEALING_INSIDE | MC_DISPATCH_FILTER_FRAGMENT_LOCATION_BELOW},
@@ -851,7 +851,7 @@ bool do_boolean(McutMesh& srcMesh, const McutMesh& cutMesh, const std::string& b
                 }
             };
         }
-        if (boolean_opts == "UNION" || boolean_opts == "SUBSTRACTION") {
+        if (boolean_opts == "UNION" || boolean_opts == "A_NOT_B") {
             for (size_t i = 0; i < src_parts.size(); i++) {
                 auto src_part = triangle_mesh_to_mcut(src_parts[i]);
                 for (size_t j = 0; j < cut_parts.size(); j++) {
@@ -910,8 +910,21 @@ void make_boolean(const TriangleMesh &src_mesh, const TriangleMesh &cut_mesh, st
         progress_cb(90.0f);
     }
     TriangleMesh tri_src = mcut_to_triangle_mesh(srcMesh);
-    if (!tri_src.empty())
-        dst_mesh.push_back(std::move(tri_src));
+    if (!tri_src.empty()) {
+        // Split into parts, fix negative volume for each part, then merge back
+        std::vector<TriangleMesh> parts = tri_src.split();
+        if (parts.size() > 1) {
+            TriangleMesh fixed_mesh;
+            for (auto& part : parts) {
+                if (part.volume() < 0) part.flip_triangles();
+                fixed_mesh.merge(part);
+            }
+            dst_mesh.push_back(std::move(fixed_mesh));
+        } else {
+            if (tri_src.volume() < 0) tri_src.flip_triangles();
+            dst_mesh.push_back(std::move(tri_src));
+        }
+    }
     if (progress_cb) {
         progress_cb(100.0f);
     }

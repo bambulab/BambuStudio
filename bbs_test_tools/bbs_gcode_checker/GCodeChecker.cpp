@@ -556,39 +556,37 @@ GCodeCheckResult GCodeChecker::parse_M83(const GCodeLine& gcode_line)
     return GCodeCheckResult::Success;
 }
 
-GCodeCheckResult GCodeChecker::parse_M104_M109(const GCodeLine &gcode_line)
-{   
-    const char *c = gcode_line.m_raw.c_str();
-    const char *rs = strchr(c,'S');
-
-    std::string strS = rs;
-    strS = strS.substr(1);
-    for (int i = 0; i < strS.size(); i++) {
-        if (strS[i] == ' ')
-            strS = strS.substr(0,i);
+GCodeCheckResult GCodeChecker::parse_M104_M109(const GCodeLine& gcode_line)
+{
+    const char* c = gcode_line.m_raw.c_str();
+    const char* rs = strchr(c, 'S');
+    if (!rs) {
+        std::cout << "No S parameter found in M104/M109 command!" << std::endl;
+        return GCodeCheckResult::Success;
     }
-    double temp_nozzle_temp;
 
+    std::string strS = rs + 1;
+    size_t pos = strS.find_first_of(" ;");
+    if (pos != std::string::npos)
+        strS = strS.substr(0, pos);
+
+    double temp_nozzle_temp;
     if (!parse_double_from_str(strS, temp_nozzle_temp)) {
-        std::cout << "invalid nozzle temperature comment with invalid value!" << std::endl;
+        std::cout << "Invalid nozzle temperature: " << strS << std::endl;
         return GCodeCheckResult::ParseFailed;
     }
 
     if (is_multi_nozzle == true) {
         const char* rt = strchr(c, 'T');
         if (rt) {
-            std::string strT = rt + 1; // 跳过 'T'
-            for (size_t i = 0; i < strT.size(); i++) {
-                if (strT[i] == ' ') {
-                    strT = strT.substr(0, i);
-                    break;
-                }
-            }
+            std::string strT = rt + 1;
+            size_t posT = strT.find_first_of(" ;");
+            if (posT != std::string::npos)
+                strT = strT.substr(0, posT);
             int logic_nozzle_id = physical_to_logic_extruder_map[std::stoi(strT)];
             multi_nozzle_temp[logic_nozzle_id] = temp_nozzle_temp;
         }
-        else
-        {
+        else {
             multi_nozzle_temp[current_nozzle_id] = temp_nozzle_temp;
         }
     }

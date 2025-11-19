@@ -228,7 +228,7 @@ void check_filaments(const std::string& dev_id,
             // Error in description
             L("TPU is not supported by AMS.");
             L("AMS does not support 'Bambu Lab PET-CF'.");
-            L("The current filament doesn't support the high-flow nozzle and can't be used.");
+            L("The current filament doesn't support the E3D high-flow nozzle and can't be used.");
             L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
 
             // Warning in description
@@ -239,7 +239,7 @@ void check_filaments(const std::string& dev_id,
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
-            L("The filament may require slicing parameter adjustments.");
+            L("Default settings may affect print quality. Adjust as needed for best results.");
             L("Using non-bambu filament may have printing quality issues.");
             L("When using %s on the right extruder, it can only be used as support material.");
         }

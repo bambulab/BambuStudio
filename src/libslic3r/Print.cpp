@@ -304,6 +304,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "other_layers_print_sequence_nums"
             || opt_key == "extruder_ams_count"
             || opt_key == "extruder_nozzle_stats"
+            || opt_key == "filament_cooling_before_tower"
             || opt_key == "prime_volume_mode"
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
@@ -1995,6 +1996,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posDetectOverhangsForLift);
             }
             else {
+                obj->set_auto_circle_compenstaion_params(auto_contour_holes_compensation_params);
                 obj->make_perimeters();
                 obj->infill();
                 obj->ironing();
@@ -2046,8 +2048,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         m_tool_ordering.clear();
         if (this->has_wipe_tower()) {
             this->_make_wipe_tower();
-        }
-        else if (this->config().print_sequence != PrintSequence::ByObject) {
+        } else if (this->config().print_sequence != PrintSequence::ByObject
+            || (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() == 1)) {
             // Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
@@ -2091,7 +2093,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
         std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
         std::vector<unsigned int> printExtruders;
-        if (this->config().print_sequence == PrintSequence::ByObject) {
+        if (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1) {
             // Order object instances for sequential print.
             print_object_instances_ordering = sort_object_instances_by_model_order(*this);
             std::vector<unsigned int> first_layer_used_filaments;
@@ -3161,7 +3163,10 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
         //processor.enable_producers(true);
         processor.process_file(file);
 
+        // filament seq is loaded from file, processor result will override the value
+        auto seq_loaded = result->filament_change_sequence;
         *result = std::move(processor.extract_result());
+        result->filament_change_sequence = seq_loaded;
     } catch (std::exception & /* ex */) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str();
         throw Slic3r::RuntimeError(
@@ -4055,7 +4060,7 @@ int Print::export_cached_data(const std::string& directory, int& obj_cnt_exporte
         size_t identify_id = (model_instance->loaded_id > 0)?model_instance->loaded_id: model_instance->id().id;
         std::string file_name = directory + "/obj_" + std::to_string(identify_id) + "_" + std::to_string(region_cnt) + "_" + std::to_string(hash_values) + ".json";
 
-        BOOST_LOG_TRIVIAL(info) << boost::format("begin to dump object %1%, identify_id %2%, hash %3% to %4%, region count %5%")%model_obj->name %identify_id %hash_values %file_name %region_cnt;
+        BOOST_LOG_TRIVIAL(warning) << boost::format("begin to dump object %1%, identify_id %2%, hash %3% to %4%, region count %5%")%model_obj->name %identify_id %hash_values %file_name %region_cnt;
 
         try {
             json root_json, layers_json = json::array(), support_layers_json = json::array(), first_layer_groups = json::array();
@@ -4290,7 +4295,7 @@ int Print::load_cached_data(const std::string& directory)
         std::string file_name = directory + "/obj_" + std::to_string(identify_id) + "_" + std::to_string(region_cnt) + "_" + std::to_string(hash_values) + ".json";
 
         if (!fs::exists(file_name)) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object or not generated before, skip it")%file_name;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<<boost::format(": file %1% not exist, maybe a shared object or not generated before, skip it")%file_name;
             continue;
         }
         object_filenames.push_back({file_name, obj});

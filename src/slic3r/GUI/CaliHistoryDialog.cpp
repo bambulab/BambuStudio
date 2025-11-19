@@ -35,17 +35,14 @@ enum CaliColumnType : int {
 
 bool support_nozzle_volume(const MachineObject* obj)
 {
-    if (!obj)
+    if (!obj) return false;
+
+    if(DevPrinterConfigUtil::support_disable_cali_flow_type(obj->printer_type))
         return false;
-    Preset * machine_preset = get_printer_preset(obj);
-    if (machine_preset) {
-        int extruder_nums = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-        auto nozzle_volume_opt = machine_preset->config.option<ConfigOptionFloatsNullable>("nozzle_volume");
-        if (nozzle_volume_opt) {
-            int printer_variant_size = nozzle_volume_opt->values.size();
-            return (printer_variant_size / extruder_nums) > 1;
-        }
-    }
+
+    if (obj->is_nozzle_flow_type_supported())
+        return true;
+
     return false;
 }
 
@@ -313,7 +310,6 @@ void HistoryWindow::reqeust_history_result(MachineObject* obj)
             cali_info.use_nozzle_volume_type = false;
             cali_info.use_extruder_id        = false;
             CalibUtils::emit_get_PA_calib_infos(cali_info);
-            CalibUtils::emit_get_all_PA_calib_infos();
             m_tips->SetLabel(_L("Refreshing the historical Flow Dynamics Calibration records"));
             BOOST_LOG_TRIVIAL(info) << "request calib history";
         }
@@ -542,12 +538,6 @@ void HistoryWindow::on_click_new_button(wxCommandEvent& event)
 {
     if (curr_obj && curr_obj->get_printer_series() == PrinterSeries::SERIES_P1P && m_calib_results_history.size() >= 16) {
         MessageDialog msg_dlg(nullptr, wxString::Format(_L("This machine type can only hold %d history results per nozzle."), 16), wxEmptyString, wxICON_WARNING | wxOK);
-        msg_dlg.ShowModal();
-        return;
-    }
-    /* note: all_pa_calib_tab is updated along with pa_calib_tab!!! */
-    if(curr_obj && curr_obj->all_pa_calib_tab.size() >= MAX_HISTORY_ITEMS_NUM) {
-        MessageDialog msg_dlg(nullptr, wxString::Format(_L("You have reached the limit of %d PA factors. Please delete some before adding new ones."), MAX_HISTORY_ITEMS_NUM), wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
     }
@@ -901,6 +891,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
             for (auto item : nozzle_volume_type_def->enum_labels) {
+                if (item == "Hybrid") continue;
                 m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{to_nozzle_flow_type(item)});
             }
         }

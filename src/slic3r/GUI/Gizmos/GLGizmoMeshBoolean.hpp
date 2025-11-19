@@ -79,7 +79,7 @@ struct MeshBooleanConfig {
     // ========================== BOOLEAN OPERATIONS ==========================
     static constexpr const char* OP_UNION = "UNION";
     static constexpr const char* OP_INTERSECTION = "INTERSECTION";
-    static constexpr const char* OP_DIFFERENCE = "SUBSTRACTION";
+    static constexpr const char* OP_DIFFERENCE = "A_NOT_B";
 
     // ========================== UI COLORS ==========================
     static constexpr unsigned int COLOR_LIST_A = 0xFFFFCC75;        // List A title (light blue)

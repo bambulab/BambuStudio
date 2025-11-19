@@ -309,6 +309,7 @@ public:
     wxBoxSizer* m_sizer_split_ams_right;
     bool        m_mapping_from_multi_machines {false};
 
+    bool         get_use_in_sync_dialog() { return m_use_in_sync_dialog; }
     void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
     void         set_send_win(wxWindow* win) {send_win = win;};

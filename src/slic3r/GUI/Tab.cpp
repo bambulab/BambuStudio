@@ -1151,7 +1151,10 @@ void Tab::update_extruder_switch_colors()
             m_extruder_switch->SetButtonTextColor(switch_index, color);
         if (m_variant_combo) {
             StateColor default_color_grayed(std::make_pair(0x999999, (int) StateColor::NotChecked), std::make_pair(0x99DFB2, (int) StateColor::Normal));
-            m_variant_combo->SetButtonTextColor(switch_index, m_variant_combo->GetButton(switch_index)->IsGrayed() ? default_color_grayed : color);
+            Button *btn = m_variant_combo->GetButton(switch_index);
+            if (btn) {
+                m_variant_combo->SetButtonTextColor(switch_index, btn->IsGrayed() ? default_color_grayed : color);
+            }
         }
     }
 }
@@ -1935,19 +1938,18 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
         if ((is_soluble_filament(filament_id) || support_TPU) &&
             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 &&
-              m_config->opt_float("support_object_xy_distance") == 0 && m_config->opt_bool("top_z_overrides_xy_distance") &&
+              m_config->opt_float("support_object_xy_distance") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
               filament_id == interface_filament_id)) {
             wxString msg_text;
             if (support_TPU)
                 msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-                              "overrides XY, disable independent support layer height and use PLA for both support interface and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+                              "independent support layer height and use PLA for both support interface and support base");
             else
                 msg_text = _L("When using soluble material for the support, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-                              "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-                              "and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+                              "independent support layer height and use soluble materials for both support interface and support base");
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
                                     "No  - Do not change these settings for me");
@@ -1959,7 +1961,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-                new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
+                //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(filament_id + 1));
                 m_config_manipulation.apply(m_config, &new_conf);
@@ -1984,24 +1986,22 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
 
         if ((is_support_filament(interface_filament_id, false) &&
-             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 && m_config->opt_bool("top_z_overrides_xy_distance") &&
+             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
                m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
                (support_TPU ? m_config->opt_float("support_object_xy_distance") == 0 : -1))) ||
             (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
             wxString msg_text;
             if (support_TPU) {
                 msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-                              "overrides XY, disable independent support layer height and use PLA for both support interface and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+                              "independent support layer height and use PLA for both support interface and support base");
             } else if (!is_soluble_filament(interface_filament_id)) {
                 msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-                              "independent support layer height");
+                              "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
             } else {
                 msg_text = _L("When using soluble material for the support interface, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-                              "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-                              "and support base");
+                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+                              "independent support layer height and use soluble materials for both support interface and support base");
             }
             msg_text += "\n\n" + _L("Change these settings automatically? \n"
                                     "Yes - Change these settings automatically\n"
@@ -2013,7 +2013,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_pattern",
                                        new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-                new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
+                //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
                 if (support_TPU || (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
                     new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
@@ -3771,6 +3771,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cost");
         optgroup->append_single_option_line("temperature_vitrification");
 
+        optgroup->append_single_option_line("filament_cooling_before_tower");
         //BBS
         Line line = {L("Filament prime volume"), L("The volume of material to prime extruder on tower.")};
         line.append_option(optgroup->get_option("filament_prime_volume"));
@@ -4337,6 +4338,7 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
+        optgroup->append_single_option_line("apply_top_surface_compensation");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;
@@ -4367,6 +4369,8 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("fan_direction");
         optgroup->append_single_option_line("support_chamber_temp_control");
         optgroup->append_single_option_line("support_air_filtration");
+        optgroup->append_single_option_line("cooling_filter_enabled");
+        optgroup->append_single_option_line("auto_disable_filter_on_overheat");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -4910,10 +4914,12 @@ void TabPrinter::on_preset_loaded()
             ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
                 for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
-                    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_type_option->values[idx]));
+                    NozzleVolumeType volume_type=NozzleVolumeType(nozzle_volume_type_option->values[idx]);
+                    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, volume_type);
                     if (wxGetApp().plater()) {
-                        wxGetApp().plater()->update_filament_volume_map(idx, nozzle_volume_type_option->values[idx]);
+                        wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
                     }
+                    updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
                 };
                 use_default_nozzle_volume_type = false;
             }
@@ -5056,7 +5062,9 @@ void TabPrinter::toggle_options()
         toggle_option("use_relative_e_distances", !is_BBL_printer);
         toggle_option("support_chamber_temp_control",!is_BBL_printer);
         toggle_option("use_firmware_retraction", !is_BBL_printer);
-        toggle_option("support_air_filtration",is_BBL_printer);
+        toggle_line("support_air_filtration", !m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
+        toggle_line("cooling_filter_enabled", m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
+        toggle_line("auto_disable_filter_on_overheat", m_config->opt_bool("cooling_filter_enabled") && is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
@@ -7135,6 +7143,14 @@ void Tab::update_nozzle_status_display()
     Freeze();
     m_nozzle_status_sizer->Clear(true);
 
+    const Preset &current_printer  = m_preset_bundle->printers.get_selected_preset();
+    auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool has_multiple_nozzle       = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
+    if (!has_multiple_nozzle) {
+        Thaw();
+        return;
+    }
+
     int selection = m_variant_combo ? m_variant_combo->GetSelection() : -1;
     NozzleFlowType flow_type = get_actual_nozzle_flow_type(selection);
     ExtruderType extruder_type = get_actual_extruder_type(selection);
@@ -7229,7 +7245,12 @@ std::vector<DevNozzle> Tab::collect_nozzles(int extruder_id, ExtruderType ext_ty
     }
 
     connected = true;
-    DevExtder extder = extder_sys->GetExtderById(extruder_id).value();
+    auto extder_opt = extder_sys->GetExtderById(extruder_id);
+    if (!extder_opt.has_value()) {
+        BOOST_LOG_TRIVIAL(info) << "No extruder found for extruder id " << extruder_id;
+        return {};
+    }
+
     auto extder_type = ExtruderType::etDirectDrive;
     if (extder_type != ext_type) {
         return {};

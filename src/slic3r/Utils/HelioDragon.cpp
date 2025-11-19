@@ -2,6 +2,7 @@
 
 #include <string>
 #include <wx/string.h>
+#include <wx/file.h>
 #include <boost/optional.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <vector>
@@ -18,7 +19,6 @@
 #include "../GUI/NotificationManager.hpp"
 #include "wx/app.h"
 #include "cstdio"
-
 
 namespace Slic3r {
 
@@ -408,7 +408,7 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -568,7 +568,7 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -843,7 +843,7 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -943,7 +943,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -1058,7 +1058,7 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -1158,7 +1158,7 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
         .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
-    if (GUI::wxGetApp().app_config->get("region") == "China") {
+    if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
         http.header("Accept-Language", "zh-CN");
     }
 
@@ -1644,9 +1644,11 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
     }
 
     if (response_error.empty() && !was_canceled()) {
-        FILE* file = fopen(helio_gcode_path.c_str(), "wb");
-        fwrite(downloaded_gcode.c_str(), 1, downloaded_gcode.size(), file);
-        fclose(file);
+        wxFile file(wxString::FromUTF8(helio_gcode_path), wxFile::write);
+        if (file.IsOpened()) {
+            file.Write(downloaded_gcode.data(), downloaded_gcode.size());
+            file.Close();
+        }
 
         Slic3r::PrintBase::SlicingStatus status = Slic3r::PrintBase::SlicingStatus(100, _u8L("Helio: GCode downloaded successfully"));
         status.is_helio = true;

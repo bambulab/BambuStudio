@@ -410,6 +410,7 @@ void MaterialItem::doRender(wxDC& dc)
         dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), bitmap_l, bitmap_y);
 
         int text_y = up + (size.y - up - dc.GetTextExtent(m_mapped_nozzle_str).y) / 2;
+        dc.SetFont(::Label::Head_12);
         dc.DrawText(m_mapped_nozzle_str, bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() + FromDIP(12), text_y);
     }
 }
@@ -814,8 +815,20 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
          if (e.IsShown() && m_parent_item) {
-             wxPoint pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
-             pos.y += m_parent_item->GetRect().height;
+
+             // Position below the parent item by default
+             auto pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
+             auto parent_size = m_parent_item->GetRect();
+             pos.y += parent_size.height;
+
+             // If there's not enough space above, align to the top of the screen
+             auto screenSize = wxGetDisplaySize();
+             auto popupSize = GetBestSize();
+             if (screenSize.y - pos.y < popupSize.y) {
+                 pos.y -= parent_size.height;
+                 pos.y -= popupSize.y;
+             }
+
              this->Move(pos);
          }
      });

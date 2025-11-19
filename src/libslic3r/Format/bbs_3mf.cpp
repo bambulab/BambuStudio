@@ -645,7 +645,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         if (result && result->nozzle_group_result) {
             auto nozzle_for_filament = result->nozzle_group_result->get_nozzle_for_filament(it->first);
             if (nozzle_for_filament) {
-                info.nozzle_diameter = atof(nozzle_for_filament->diameter.c_str());
+                info.nozzle_diameter = string_to_double_decimal_point(nozzle_for_filament->diameter.c_str());
                 info.group_id = nozzle_for_filament->group_id;
                 info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
             }
@@ -2936,6 +2936,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                     float(std::atof(object_data_points[i+1].c_str())),
                                                     float(std::atof(object_data_points[i+2].c_str())),
                                                     float(std::atof(object_data_points[i+3].c_str())));
+                }else if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=5)
+                    brim_ear_points.emplace_back(float(std::atof(object_data_points[i+0].c_str())),
+                                                    float(std::atof(object_data_points[i+1].c_str())),
+                                                    float(std::atof(object_data_points[i+2].c_str())),
+                                                    float(std::atof(object_data_points[i + 3].c_str())),
+                                                    int(std::atof(object_data_points[i+4].c_str())));
                 }
 
                 if (!brim_ear_points.empty())
@@ -6640,6 +6647,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string rating;
             std::string model_id;
             std::string region_code;
+            std::string profile_title;
+            std::string profile_cover;
+            std::string profile_description;
             if (model.design_info) {
                  user_name = model.design_info->Designer;
                  user_id = model.design_info->DesignerUserId;
@@ -6661,6 +6671,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 origin       = model.model_info->origin;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
             }
+
+            if (model.profile_info) {
+                profile_title = model.profile_info->ProfileTile;
+                profile_cover = model.profile_info->ProfileCover;
+                profile_description = model.profile_info->ProfileDescription;
+            }
             // remember to use metadata_item_map to store metadata info
             std::map<std::string, std::string> metadata_item_map;
             if (!sub_model) {
@@ -6677,6 +6693,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_DESCRIPTION_TAG]          = xml_escape(description);
                 metadata_item_map[BBL_COPYRIGHT_NORMATIVE_TAG]  = xml_escape(copyright);
                 metadata_item_map[BBL_LICENSE_TAG]              = xml_escape(license);
+                metadata_item_map[BBL_PROFILE_TITLE_TAG]        = xml_escape(profile_title);
+                metadata_item_map[BBL_PROFILE_COVER_TAG]        = xml_escape(profile_cover);
+                metadata_item_map[BBL_PROFILE_DESCRIPTION_TAG]  = xml_escape(profile_description);
 
                 /* save model info */
                 if (!model_id.empty()) {
@@ -7378,7 +7397,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 // Store the layer height profile as a single space separated list.
                 for (size_t i = 0; i < brim_points.size(); ++i) {
-                    sprintf(buffer, (i==0 ? "%f %f %f %f" : " %f %f %f %f"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius);
+                    sprintf(buffer, (i==0 ? "%f %f %f %f %d" : " %f %f %f %f %d"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius, brim_points[i].volume_idx);
                     out += buffer;
                 }
                 out += "\n";

@@ -35,6 +35,7 @@
 
 #include "../Utils/BBLUtil.hpp"
 
+#include <wx/display.h>
 #include <wx/progdlg.h>
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
@@ -573,14 +574,13 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
     m_pa_value_panel = new wxPanel(m_options_other);
-    m_pa_value_panel->SetMaxSize(wxSize(400, -1));
-    m_pa_value_panel->SetMinSize(wxSize(400, -1));
+    m_pa_value_panel->SetMaxSize(wxSize(FromDIP(315), -1));
+    m_pa_value_panel->SetMinSize(wxSize(FromDIP(315), -1));
     wxBoxSizer *m_pa_value_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_pa_value_message = new Label(m_pa_value_panel, _L("Nozzles and filaments of the same type share the same PA profile"));
     m_pa_value_message->SetFont(Label::Body_14);
     m_pa_value_message->SetBackgroundColour(*wxWHITE);
-    m_pa_value_message->SetForegroundColour(wxColour("#352F2D"));
     m_pa_value_message->Wrap(FromDIP(243));
 
     m_pa_value_switch = new SwitchButton(m_pa_value_panel);
@@ -591,7 +591,12 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_pa_value_tips = new ScalableButton(m_pa_value_panel, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_pa_value_tips->SetBackgroundColour(*wxWHITE);
     m_pa_value_tips->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e){
-        wxString url = "https://e.bambulab.com/t?c=UgeLJSCaJqamn8ZP";
+        std::string language = wxGetApp().app_config->get("language");
+        wxString    region   = "en";
+        if (language.find("zh") == 0) {
+            region = "zh";
+        }
+        wxString url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
         wxLaunchDefaultBrowser(url);
         e.Skip();
     });
@@ -1530,7 +1535,6 @@ void SelectMachineDialog::update_print_status_msg()
         Layout();
         Fit();
     }
-
  }
 
 void SelectMachineDialog::update_print_error_info(int code, std::string msg, std::string extra)
@@ -2279,15 +2283,6 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
     }
     m_checkbox_list["flow_cali"]->Show(obj->is_support_pa_calibration);
 
-    if (obj->is_support_pa_mode && m_checkbox_list["flow_cali"]->IsShown()) {
-        std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
-        if (flow_cali_value == "off") {
-            m_pa_value_panel->Show();
-        } 
-    } else {
-            m_pa_value_panel->Hide(); 
-    }
-
     update_options_layout();
 }
 
@@ -2371,6 +2366,13 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     bool options_line_ignore = false;
     if(wxGetApp().app_config){
         options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
+    }
+
+    if (obj->is_support_pa_mode && m_checkbox_list["flow_cali"]->IsShown()) {
+        std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
+        if (flow_cali_value == "off") { m_pa_value_panel->Show(); }
+    } else {
+        m_pa_value_panel->Hide();
     }
 
     if (m_checkbox_list["flow_cali"]->IsShown() && has_bowden_extuder(obj)) {
@@ -3772,6 +3774,8 @@ void SelectMachineDialog::set_default()
 
 void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
 {
+    Slic3r::DeviceManager *dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
+    MachineObject         *obj_ = dev_->get_selected_machine();
     MaterialHash::iterator iter = m_materialList.begin();
     while (iter != m_materialList.end()) {
         int       id   = iter->first;
@@ -3783,7 +3787,10 @@ void SelectMachineDialog::change_materialitem_tip(bool no_ams_only_ext)
             else {
                 wxString tip_text;
                 if (item->item->m_match) {
-                    tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
+                    if (!item->item->m_mapped_nozzle_str.empty())
+                        tip_text = (_L("Upper half area:  Original\nMiddle  area:  Filament in AMS\nLower half area:  Selected nozzle\nAnd you can click it to modify"));
+                    else
+                        tip_text = _L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify");
                 } else {
                     tip_text = _L("Unable to automatically match to suitable filament. Please click to manually match.");
                 }
@@ -3930,10 +3937,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             }
             if (obj_) {
                 if (m_mapping_popup.IsShown()) return;
-                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                m_mapping_popup.Move(pos);
-
                 if (obj_ && obj_->get_dev_id() == m_printer_last_select) {
                     m_mapping_popup.set_parent_item(item);
                     m_mapping_popup.set_only_show_ext_spool(false);
@@ -4286,6 +4289,13 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
     m_stext_weight->SetLabel(weight);
 }
 
+static wxSize s_get_full_resolution()
+{
+    wxDisplay display;
+    wxRect screenRect = display.GetGeometry();
+    return wxSize(screenRect.GetWidth(), screenRect.GetHeight());
+}
+
 void SelectMachineDialog::set_default_from_sdcard()
 {
     DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -4420,10 +4430,7 @@ void SelectMachineDialog::set_default_from_sdcard()
             wxPoint rect = item->ClientToScreen(wxPoint(0, 0));
 
             if (obj_) {
-                if (m_mapping_popup.IsShown()) return;
-                wxPoint pos = item->ClientToScreen(wxPoint(0, 0));
-                pos.y += item->GetRect().height;
-                m_mapping_popup.Move(pos);
+                if (m_mapping_popup.IsShown()) { return; };
 
                 if (diameters_count > 1) {
                     if (obj_ && can_hybrid_mapping(*obj_->GetExtderSystem())) {
@@ -5091,7 +5098,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
     }
 
     if (nozzle_mapping_res.GetResultStr() == "fail") {
-        const wxString& err_msg = wxString::Format(_L("The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."), nozzle_mapping_res.GetErrno());
+        const wxString& err_msg = wxString::Format(_L("The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."), nozzle_mapping_res.GetErrno());
         show_status(PrintDialogStatus::PrintStatusRackNozzleMappingError, { err_msg });
         return false;
     }
@@ -5101,6 +5108,14 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
             m_nozzle_mapping_result = obj_->get_nozzle_mapping_result().GetNozzleMapping();
             sync_ams_mapping_result(m_ams_mapping_result);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": sync_ams_mapping_result done.";
+        }
+
+        float flush_waste_base = obj_->get_nozzle_mapping_result().GetFlushWeightBase();
+        float flush_waste_current = obj_->get_nozzle_mapping_result().GetFlushWeightCurrent();
+        if ((flush_waste_base != -1) && (flush_waste_current != -1) && flush_waste_current > flush_waste_base) {
+            float val = flush_waste_current - flush_waste_base;
+            const wxString& warning_msg = wxString::Format(_L("The current nozzle mapping may produce an extra %0.2f g of waste."), val);
+            show_status(PrintDialogStatus::PrintStatusRackNozzleMappingWarning, { warning_msg });
         }
 
         return true;

@@ -9,6 +9,8 @@ namespace Slic3r {
 
 bool DevChamber::HasChamber() const { return m_owner->GetConfig()->HasChamber(); }
 
+bool DevChamber::SupportChamberTempDisplay() const { return m_owner->GetConfig()->SupportChamberTempDisplay();}
+
 bool DevChamber::SupportChamberEdit() const { return m_owner->GetConfig()->SupportChamberEdit(); }
 
 int DevChamber::GetChamberTempEditMin() const { return m_owner->GetConfig()->GetChamberTempEditMin(); }

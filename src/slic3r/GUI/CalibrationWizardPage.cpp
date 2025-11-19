@@ -604,6 +604,8 @@ void CaliPageStepGuide::set_steps(int index)
 
 void CaliPageStepGuide::set_steps_string(wxArrayString steps)
 {
+    if (m_steps == steps) return;
+
     m_steps.Clear();
     m_text_steps.clear();
     m_step_sizer->Clear(true);

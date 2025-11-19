@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-03 16:14+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -46,7 +46,7 @@ msgstr "TPU is not supported by AMS."
 msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr ""
 
-msgid "The current filament doesn't support the high-flow nozzle and can't be used."
+msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -70,7 +70,7 @@ msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 #, c-format, boost-format
@@ -207,11 +207,14 @@ msgstr ""
 msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
 msgstr ""
 
-msgid "Jump to the upgrade page"
+msgid "Abnormal Hotend"
 msgstr ""
 
 msgid "Cancel"
 msgstr "Cancel"
+
+msgid "Jump to the upgrade page"
+msgstr ""
 
 msgid "SN"
 msgstr "SN"
@@ -543,7 +546,7 @@ msgstr "World coordinates"
 msgid "Translate(Relative)"
 msgstr ""
 
-msgid "Align objects to the minimum X position"
+msgid "Align top-bottom center"
 msgstr ""
 
 msgid "Align"
@@ -555,46 +558,40 @@ msgstr ""
 msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
-msgid "Align objects to the center X position"
+msgid "Align left"
 msgstr ""
 
-msgid "Align objects to the maximum X position"
+msgid "Align left-right center"
 msgstr ""
 
-msgid "Distribute objects evenly along X axis"
+msgid "Align right"
+msgstr ""
+
+msgid "Distribute left-right"
 msgstr ""
 
 msgid "Please select at least 3 parts or objects"
 msgstr ""
 
-msgid "Align objects to the maximum Y position"
+msgid "Align front"
 msgstr ""
 
-msgid "Align objects to the center Y position"
+msgid "Align front-back center"
 msgstr ""
 
-msgid "Align objects to the minimum Y position"
+msgid "Align back"
 msgstr ""
 
-msgid "Distribute objects evenly along Y axis"
+msgid "Distribute front-back"
 msgstr ""
 
-msgid "Align objects to the minimum Z position"
+msgid "Align bottom"
 msgstr ""
 
-msgid "Please select at least 2 parts and do not select entire object"
+msgid "Align top"
 msgstr ""
 
-msgid "Align objects to the center Z position"
-msgstr ""
-
-msgid "Align objects to the maximum Z position"
-msgstr ""
-
-msgid "Distribute objects evenly along Z axis"
-msgstr ""
-
-msgid "Please select at least 3 parts and do not select entire object"
+msgid "Distribute top-bottom"
 msgstr ""
 
 msgid "°"
@@ -2185,42 +2182,6 @@ msgstr "Simplify Model"
 
 msgid "Center"
 msgstr "Center"
-
-msgid "Distribute along Y axis"
-msgstr ""
-
-msgid "Distribute along X axis"
-msgstr ""
-
-msgid "Distribute along Z axis"
-msgstr ""
-
-msgid "Align to Y Max"
-msgstr ""
-
-msgid "Align to Y Min"
-msgstr ""
-
-msgid "Align to Y Center"
-msgstr ""
-
-msgid "Align to X Max"
-msgstr ""
-
-msgid "Align to X Min"
-msgstr ""
-
-msgid "Align to X Center"
-msgstr ""
-
-msgid "Align to Z Max"
-msgstr ""
-
-msgid "Align to Z Min"
-msgstr ""
-
-msgid "Align to Z Center"
-msgstr ""
 
 msgid "Align/Distribute"
 msgstr ""
@@ -4825,6 +4786,9 @@ msgstr "Prepare"
 msgid "Preview"
 msgstr "Preview"
 
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
+
 msgid "Device"
 msgstr "Device"
 
@@ -4850,7 +4814,7 @@ msgid "Print plate"
 msgstr "Print plate"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
@@ -4858,7 +4822,7 @@ msgid "First Guide"
 msgstr ""
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
 
@@ -6340,7 +6304,7 @@ msgstr ""
 msgid "Type Detection"
 msgstr ""
 
-msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+msgid "Pauses printing when the detected build plate type does not match the selected one."
 msgstr ""
 
 msgid "Alignment Detection"
@@ -6645,8 +6609,8 @@ msgstr "Enabling traditional timelapse photography may cause surface imperfectio
 msgid "\n"
 msgstr ""
 
-msgid "'Process'-'Others'-'Special Mode'-'Timelapsed'"
-msgstr ""
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
+msgstr "(Path to modify: 'Process'-'Others'-'Special mode'-'Timelapse')"
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr ""
@@ -7931,6 +7895,9 @@ msgid ""
 "*Automatic mode: Check for calibration before printing. Skip if unnecessary."
 msgstr ""
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "send completed"
 
@@ -8024,6 +7991,13 @@ msgstr ""
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr ""
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr ""
 
@@ -8071,7 +8045,11 @@ msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Ple
 msgstr ""
 
 #, c-format, boost-format
-msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refresh the printer information."
+msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 msgid "Cool"
@@ -8210,6 +8188,9 @@ msgid "Sending..."
 msgstr ""
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
+msgstr ""
+
+msgid "Sending failed, please try again!"
 msgstr ""
 
 msgid "Helio action completed successfully."
@@ -8376,15 +8357,14 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -8398,15 +8378,15 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
+"When using support material for the support interface, We recommend the following settings:\n"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -9632,7 +9612,13 @@ msgstr ""
 msgid "Optimise Outer Walls"
 msgstr ""
 
-msgid "Advanced Settings"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
 msgstr ""
 
 msgid "Min Velocity"
@@ -9650,7 +9636,7 @@ msgstr "Max Volumetric Speed"
 msgid "Last Trace ID: "
 msgstr ""
 
-msgid "Buy Now"
+msgid "Buy Now / Manage Account"
 msgstr ""
 
 msgid "Click for more details"
@@ -9733,6 +9719,9 @@ msgstr "The firmware version is abnormal. Repairing and updating are required be
 
 msgid "Extension Board"
 msgstr "Extension Board"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Saving objects into the 3mf failed."
@@ -9844,6 +9833,9 @@ msgid "Grouping error: "
 msgstr ""
 
 msgid " can not be placed in the "
+msgstr ""
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr ""
 
 msgid "Inner wall"
@@ -10211,8 +10203,8 @@ msgstr "Detour and avoid traveling across walls to avoid the possibility of crea
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr ""
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Smoothing outer wall speed in z direction to get better surface quality: Print time will increase. This is not work in spiral vase mode."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Avoid crossing wall - Max detour length"
@@ -10534,7 +10526,7 @@ msgid "For the first"
 msgstr ""
 
 msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "Set the additional cooling fan for the first certain layers. The additional cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function. Simultaneously, the part cooling fan will be set to 0"
 
 msgid "layers"
 msgstr "layers"
@@ -10998,6 +10990,12 @@ msgstr ""
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr ""
 
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Softening temperature"
 
@@ -11320,11 +11318,23 @@ msgstr "Support controlling chamber temperature"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "This option is enabled if machine support controlling chamber temperature"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Air filtration enhancement"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Enable this if printer support air filtration enhancement."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-code flavor"
@@ -11740,6 +11750,12 @@ msgstr ""
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr ""
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "Line width of inner walls"
 
@@ -11881,10 +11897,10 @@ msgstr ""
 msgid "Saving"
 msgstr ""
 
-msgid "length when change nozzle"
+msgid "length when change hotend"
 msgstr ""
 
-msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the nozzle before changing nozzles."
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
 msgstr ""
 
 msgid "Extra length on restart"
@@ -12023,6 +12039,12 @@ msgstr "Sparse infill areas which are smaller than this threshold value are repl
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "Line width of internal solid infill"
@@ -12269,7 +12291,7 @@ msgstr "Tree Organic"
 msgid "Z overrides X/Y"
 msgstr ""
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
 msgstr ""
 
 msgid "Independent support layer height"
@@ -12366,6 +12388,12 @@ msgid "Bottom paint penetration layers"
 msgstr ""
 
 msgid "This is  the number of layers of top bottom penetration."
+msgstr ""
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr "Using infill instead of top and bottom surfaces"
+
+msgid "Using infill instead of top and bottom surfaces."
 msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
@@ -13202,10 +13230,6 @@ msgstr "Action"
 msgid "This machine type can only hold %d history results per nozzle."
 msgstr "This machine type can only hold %d historical results per nozzle."
 
-#, c-format, boost-format
-msgid "You have reached the limit of %d PA factors. Please delete some before adding new ones."
-msgstr ""
-
 msgid "Edit Flow Dynamics Calibration"
 msgstr "Edit Flow Dynamics Calibration"
 
@@ -13424,7 +13448,7 @@ msgid "No overlapping region found. Boolean intersection failed."
 msgstr "No overlapping region found. Boolean intersection failed. Ensure that all items in the list overlap each other."
 
 msgid "Mesh preparation failed."
-msgstr ""
+msgstr "网格准备失败。"
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -13469,7 +13493,7 @@ msgid "Preparing data..."
 msgstr ""
 
 msgid "Computing..."
-msgstr ""
+msgstr "Executing mesh boolean..."
 
 msgid "Applying result.."
 msgstr ""
@@ -14060,6 +14084,9 @@ msgstr ""
 msgid ""
 "The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
 "Please click the Sync button above and restart the calibration."
+msgstr ""
+
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
 msgstr ""
 
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
@@ -14763,7 +14790,7 @@ msgid "Purge Mode Settings"
 msgstr ""
 
 msgid "Standard Mode"
-msgstr ""
+msgstr "Standard"
 
 msgid "Performs full purging for the best print quality. Requires more material and time."
 msgstr ""
@@ -15094,6 +15121,12 @@ msgid ""
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
 
+#~ msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
+#~ msgstr "Pauses printing when the detected build plate type does not match the selected one."
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Smoothing outer wall speed in z direction to get better surface quality: Print time will increase. This is not work in spiral vase mode."
+
 #~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
 #~ msgstr "Check if the nozzle is clumped with filament or other foreign objects."
 
@@ -15105,13 +15138,6 @@ msgstr ""
 
 #~ msgid "No available external storage was obtained. Please confirm and try again."
 #~ msgstr "No available external storage was found. Please confirm and try again."
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Filter out gaps smaller than the threshold specified. This setting won't affect top/bottom layers."

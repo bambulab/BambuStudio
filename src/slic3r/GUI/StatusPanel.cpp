@@ -2116,11 +2116,19 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
             if (ext_system->GetTotalExtderCount() == 2) {
                 int cur_extder_id = ext_system->GetCurrentExtderId();
                 if (cur_extder_id == MAIN_EXTRUDER_ID) {
-                    m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_right", this, load_img_size));
+                    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
+                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o1c_series_right", this, load_img_size));
+                    else
+                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_right", this, load_img_size));
                 } else if (cur_extder_id == DEPUTY_EXTRUDER_ID) {
-                    m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
+                    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
+                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o1c_series_left", this, load_img_size));
+                    else
+                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
                 }
-            } else {
+            }
+
+            else {
                 m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
             }
         }
@@ -3005,7 +3013,7 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
 
     // support current temp for chamber
     const auto &chamber = obj->GetChamber();
-    if (chamber->HasChamber()) {
+    if (chamber->SupportChamberTempDisplay()) {
         m_tempCtrl_chamber->SetCurrTemp(chamber->GetChamberTemp());
     } else {
         m_tempCtrl_chamber->SetCurrTemp(TEMP_BLANK_STR);

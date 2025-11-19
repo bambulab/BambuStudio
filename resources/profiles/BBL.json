@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.03.00.05",
+    "version": "02.04.00.01",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -424,18 +424,6 @@
             "sub_path": "filament/PolyLite ABS @BBL A1 0.2 nozzle.json"
         },
         {
-            "name": "PolyLite ABS @BBL H2C",
-            "sub_path": "filament/PolyLite ABS @BBL H2C.json"
-        },
-        {
-            "name": "PolyLite ABS @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/PolyLite ABS @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite ABS @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/PolyLite ABS @BBL H2C 0.4 nozzle.json"
-        },
-        {
             "name": "PolyLite ABS @BBL H2D",
             "sub_path": "filament/PolyLite ABS @BBL H2D.json"
         },
@@ -842,18 +830,6 @@
         {
             "name": "PolyLite ASA @BBL A1 0.2 nozzle",
             "sub_path": "filament/PolyLite ASA @BBL A1 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite ASA @BBL H2C",
-            "sub_path": "filament/PolyLite ASA @BBL H2C.json"
-        },
-        {
-            "name": "PolyLite ASA @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/PolyLite ASA @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite ASA @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/PolyLite ASA @BBL H2C 0.4 nozzle.json"
         },
         {
             "name": "PolyLite ASA @BBL H2D",
@@ -2922,18 +2898,6 @@
         {
             "name": "PolyLite PETG @BBL A1M 0.2 nozzle",
             "sub_path": "filament/PolyLite PETG @BBL A1M 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite PETG @BBL H2C",
-            "sub_path": "filament/PolyLite PETG @BBL H2C.json"
-        },
-        {
-            "name": "PolyLite PETG @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/PolyLite PETG @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite PETG @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/PolyLite PETG @BBL H2C 0.4 nozzle.json"
         },
         {
             "name": "PolyLite PETG @BBL H2D",
@@ -5500,18 +5464,6 @@
             "sub_path": "filament/Overture Matte PLA @BBL A1M 0.2 nozzle.json"
         },
         {
-            "name": "Overture Matte PLA @BBL H2C",
-            "sub_path": "filament/Overture Matte PLA @BBL H2C.json"
-        },
-        {
-            "name": "Overture Matte PLA @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/Overture Matte PLA @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "Overture Matte PLA @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/Overture Matte PLA @BBL H2C 0.4 nozzle.json"
-        },
-        {
             "name": "Overture Matte PLA @BBL H2D",
             "sub_path": "filament/Overture Matte PLA @BBL H2D.json"
         },
@@ -5574,18 +5526,6 @@
         {
             "name": "Overture PLA @BBL A1M 0.2 nozzle",
             "sub_path": "filament/Overture PLA @BBL A1M 0.2 nozzle.json"
-        },
-        {
-            "name": "Overture PLA @BBL H2C",
-            "sub_path": "filament/Overture PLA @BBL H2C.json"
-        },
-        {
-            "name": "Overture PLA @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/Overture PLA @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "Overture PLA @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/Overture PLA @BBL H2C 0.4 nozzle.json"
         },
         {
             "name": "Overture PLA @BBL H2D",
@@ -5652,18 +5592,6 @@
             "sub_path": "filament/PolyLite PLA @BBL A1M 0.2 nozzle.json"
         },
         {
-            "name": "PolyLite PLA @BBL H2C",
-            "sub_path": "filament/PolyLite PLA @BBL H2C.json"
-        },
-        {
-            "name": "PolyLite PLA @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/PolyLite PLA @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyLite PLA @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/PolyLite PLA @BBL H2C 0.4 nozzle.json"
-        },
-        {
             "name": "PolyLite PLA @BBL H2D",
             "sub_path": "filament/PolyLite PLA @BBL H2D.json"
         },
@@ -5726,18 +5654,6 @@
         {
             "name": "PolyTerra PLA @BBL A1M 0.2 nozzle",
             "sub_path": "filament/PolyTerra PLA @BBL A1M 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyTerra PLA @BBL H2C",
-            "sub_path": "filament/PolyTerra PLA @BBL H2C.json"
-        },
-        {
-            "name": "PolyTerra PLA @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/PolyTerra PLA @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "PolyTerra PLA @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/PolyTerra PLA @BBL H2C 0.4 nozzle.json"
         },
         {
             "name": "PolyTerra PLA @BBL H2D",
@@ -6010,18 +5926,6 @@
         {
             "name": "eSUN PLA+ @BBL A1M 0.2 nozzle",
             "sub_path": "filament/eSUN PLA+ @BBL A1M 0.2 nozzle.json"
-        },
-        {
-            "name": "eSUN PLA+ @BBL H2C",
-            "sub_path": "filament/eSUN PLA+ @BBL H2C.json"
-        },
-        {
-            "name": "eSUN PLA+ @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL H2C 0.2 nozzle.json"
-        },
-        {
-            "name": "eSUN PLA+ @BBL H2C 0.4 nozzle",
-            "sub_path": "filament/eSUN PLA+ @BBL H2C 0.4 nozzle.json"
         },
         {
             "name": "eSUN PLA+ @BBL H2D",
@@ -7236,16 +7140,16 @@
             "sub_path": "process/fdm_process_dual_0.08_nozzle_0.2.json"
         },
         {
-            "name": "0.08mm Extra Fine @BBL H2C 0.2 nozzle",
-            "sub_path": "process/0.08mm Extra Fine @BBL H2C 0.2 nozzle.json"
-        },
-        {
             "name": "0.08mm Extra Fine @BBL H2D 0.2 nozzle",
             "sub_path": "process/0.08mm Extra Fine @BBL H2D 0.2 nozzle.json"
         },
         {
             "name": "0.08mm Extra Fine @BBL H2DP 0.2 nozzle",
             "sub_path": "process/0.08mm Extra Fine @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "0.08mm High Quality @BBL H2C 0.2 nozzle",
+            "sub_path": "process/0.08mm High Quality @BBL H2C 0.2 nozzle.json"
         },
         {
             "name": "0.08mm High Quality @BBL X2D 0.2 nozzle",
@@ -7256,16 +7160,16 @@
             "sub_path": "process/fdm_process_dual_0.08_nozzle_0.4.json"
         },
         {
-            "name": "0.08mm Extra Fine @BBL H2C",
-            "sub_path": "process/0.08mm Extra Fine @BBL H2C.json"
-        },
-        {
             "name": "0.08mm Extra Fine @BBL H2D",
             "sub_path": "process/0.08mm Extra Fine @BBL H2D.json"
         },
         {
             "name": "0.08mm Extra Fine @BBL H2DP",
             "sub_path": "process/0.08mm Extra Fine @BBL H2DP.json"
+        },
+        {
+            "name": "0.08mm High Quality @BBL H2C",
+            "sub_path": "process/0.08mm High Quality @BBL H2C.json"
         },
         {
             "name": "0.08mm High Quality @BBL X2D",
@@ -7316,16 +7220,16 @@
             "sub_path": "process/fdm_process_dual_0.12_nozzle_0.4.json"
         },
         {
-            "name": "0.12mm Fine @BBL H2C",
-            "sub_path": "process/0.12mm Fine @BBL H2C.json"
-        },
-        {
             "name": "0.12mm Fine @BBL H2D",
             "sub_path": "process/0.12mm Fine @BBL H2D.json"
         },
         {
             "name": "0.12mm Fine @BBL H2DP",
             "sub_path": "process/0.12mm Fine @BBL H2DP.json"
+        },
+        {
+            "name": "0.12mm High Quality @BBL H2C",
+            "sub_path": "process/0.12mm High Quality @BBL H2C.json"
         },
         {
             "name": "0.12mm High Quality @BBL X2D",
@@ -7340,16 +7244,16 @@
             "sub_path": "process/fdm_process_dual_0.16_nozzle_0.4.json"
         },
         {
-            "name": "0.16mm Balanced Quality @BBL H2C",
-            "sub_path": "process/0.16mm Balanced Quality @BBL H2C.json"
-        },
-        {
             "name": "0.16mm Balanced Quality @BBL H2D",
             "sub_path": "process/0.16mm Balanced Quality @BBL H2D.json"
         },
         {
             "name": "0.16mm Balanced Quality @BBL H2DP",
             "sub_path": "process/0.16mm Balanced Quality @BBL H2DP.json"
+        },
+        {
+            "name": "0.16mm High Quality @BBL H2C",
+            "sub_path": "process/0.16mm High Quality @BBL H2C.json"
         },
         {
             "name": "0.16mm High Quality @BBL X2D",
@@ -7396,16 +7300,16 @@
             "sub_path": "process/fdm_process_dual_0.20_nozzle_0.4.json"
         },
         {
-            "name": "0.20mm Balanced Strength @BBL H2C",
-            "sub_path": "process/0.20mm Balanced Strength @BBL H2C.json"
-        },
-        {
             "name": "0.20mm Balanced Strength @BBL H2D",
             "sub_path": "process/0.20mm Balanced Strength @BBL H2D.json"
         },
         {
             "name": "0.20mm Balanced Strength @BBL H2DP",
             "sub_path": "process/0.20mm Balanced Strength @BBL H2DP.json"
+        },
+        {
+            "name": "0.20mm High Quality @BBL H2C",
+            "sub_path": "process/0.20mm High Quality @BBL H2C.json"
         },
         {
             "name": "0.20mm High Quality @BBL X2D",

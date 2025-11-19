@@ -130,6 +130,28 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                     {
                         iter.value() = "******";
                     }
+                    else if (key_str.find("authkey") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                    else if (key_str == "uid")
+                    {
+                        iter.value() = Crosstalk_UsrId(iter.value().get<std::string>());
+                    }
+                    else if (key_str.find("region") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                    else if (key_str.find("token") != string::npos)
+                    {
+                        iter.value() = "******";
+                    }
+                }
+                else if (iter.value().is_number())
+                {
+                    if (key_str == "uid") {
+                        iter.value() = Crosstalk_UsrId(std::to_string(iter.value().get<int>()));
+                    }
                 }
                 else if (iter.value().is_object())
                 {
@@ -139,9 +161,18 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
                 {
                     for (auto& array_item : iter.value())
                     {
-                        if (array_item.is_object() || array_item.is_array())
-                        {
+                        if (array_item.is_object() || array_item.is_array()) {
                             to_traverse_jsons.push_back(&array_item);
+                        } else if (array_item.is_string()) {
+                            try {
+                                const auto& string_val = array_item.get<std::string>();
+                                if (!string_val.empty()) {
+                                    const auto& sub_json = nlohmann::json::parse(string_val);
+                                    array_item = Crosstalk_JsonLog(sub_json);
+                                }
+                            } catch (...) {
+                                continue;
+                            }
                         }
                     }
                 }
@@ -167,6 +198,18 @@ std::string BBLCrossTalk::Crosstalk_JsonLog(const nlohmann::json& json)
     };
 
     return copied_json.dump(1);
+}
+
+std::string BBLCrossTalk::Crosstalk_UsrId(const std::string& uid)
+{
+    if (!s_enable_cross_talk) { return uid; }
+    if (uid.size() > 2)
+    {
+        const string& cs_uid = std::string(uid.size() - 2, '*') + uid.substr(uid.size() - 2, 2);
+        return cs_uid;
+    }
+
+    return "******";
 }
 
 }// End of namespace Slic3r

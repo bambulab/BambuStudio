@@ -2265,6 +2265,14 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comSimple;
     def->set_default_value(new ConfigOptionFloats{60.});
 
+    def = this->add("filament_cooling_before_tower", coFloats);
+    def->label  = L("Wipe tower cooling");
+    def->tooltip = L("Temperature drop before entering filament tower");
+    def->sidetext = "°C";
+    def->mode = comDevelop;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{10});
+
     // BBS
     def = this->add("temperature_vitrification", coInts);
     def->label = L("Softening temperature");
@@ -2359,6 +2367,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("fill_multiline", coInt);
     def->label = L("Fill multiline");
+    def->category = L("Strength");
     def->tooltip = L("Using multiple lines for the infill pattern, if supported by infill pattern.");
     def->min = 1;
     def->max = 5;
@@ -2876,12 +2885,29 @@ void PrintConfigDef::init_fff_params()
     def->readonly=false;
 
     def = this->add("apply_top_surface_compensation", coBool);
+    def->label  = L("Apply top surface compensation");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     def =this->add("support_air_filtration",coBool);
     def->label=L("Air filtration enhancement");
     def->tooltip=L("Enable this if printer support air filtration enhancement.");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("support_cooling_filter", coBool);
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("cooling_filter_enabled", coBool);
+    def->label = L("Use cooling filter");
+    def->tooltip = L("Enable this if printer support cooling filter");
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("auto_disable_filter_on_overheat", coBool);
+    def->label = L("Auto turn off filter on overheat");
+    def->tooltip = L("Enable this if printer support cooling filter");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -3668,9 +3694,9 @@ void PrintConfigDef::init_fff_params()
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print walls");
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label = "Walls filament";
-    def->category = "Extruders";
-    def->tooltip = "Filament to print walls";
+    def->label = L("Walls filament");
+    def->category = L("Extruders");
+    def->tooltip = L("Filament to print walls");
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
@@ -4059,9 +4085,9 @@ void PrintConfigDef::init_fff_params()
     def->cli = ConfigOptionDef::nocli;
 
     def = this->add("filament_retract_length_nc", coFloats);
-    def->label = L("length when change nozzle");
+    def->label = L("length when change hotend");
     def->tooltip = L("When this retraction value is modified, it will be used as the amount of filament retracted "
-                   "inside the nozzle before changing nozzles.");
+                   "inside the hotend before changing hotends.");
     def->sidetext = L("mm");
     def->mode = comDevelop;
     def->nullable = true;
@@ -4312,9 +4338,9 @@ void PrintConfigDef::init_fff_params()
     //def->category = L("Extruders");
     //def->tooltip = L("Filament to print solid infill");
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label = "Solid infill filament";
-    def->category = "Extruders";
-    def->tooltip = "Filament to print solid infill";
+    def->label = L("Solid infill filament");
+    def->category = L("Extruders");
+    def->tooltip = L("Filament to print solid infill");
     def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionInt(0));
@@ -4773,7 +4799,7 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Support");
     def->tooltip  = L("When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, "
                        "and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports "
-                       "and the model follows support/object xy distance all the time");
+                       "and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -6394,7 +6420,8 @@ std::set<std::string> filament_options_with_variant = {
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
     "volumetric_speed_coefficients",
-    "filament_adaptive_volumetric_speed"
+    "filament_adaptive_volumetric_speed",
+    "filament_cooling_before_tower"
 };
 
 // Parameters that are the same as the number of extruders
@@ -6500,7 +6527,7 @@ double min_object_distance(const ConfigBase &cfg)
     return ret;
 }
 
-void DynamicPrintConfig::normalize_fdm(int used_filaments)
+void DynamicPrintConfig::normalize_fdm()
 {
     if (this->has("extruder")) {
         int extruder = this->option("extruder")->getInt();
@@ -6543,32 +6570,6 @@ void DynamicPrintConfig::normalize_fdm(int used_filaments)
         // Resolution will be above 1um.
         opt_gcode_resolution->value = std::max(opt_gcode_resolution->value, 0.001);
 
-    // BBS
-    ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
-    if (used_filaments > 0 && ept_opt != nullptr) {
-        ConfigOptionBool* islh_opt = this->option<ConfigOptionBool>("independent_support_layer_height", true);
-        //ConfigOptionBool* alh_opt = this->option<ConfigOptionBool>("adaptive_layer_height");
-        ConfigOptionEnum<PrintSequence>* ps_opt = this->option<ConfigOptionEnum<PrintSequence>>("print_sequence");
-
-        ConfigOptionEnum<TimelapseType>* timelapse_opt = this->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
-        bool is_smooth_timelapse = timelapse_opt != nullptr && timelapse_opt->value == TimelapseType::tlSmooth;
-        if (!is_smooth_timelapse && (used_filaments == 1 || ps_opt->value == PrintSequence::ByObject)) {
-            ept_opt->value = false;
-        }
-
-        if (ept_opt->value) {
-            if (islh_opt)
-                islh_opt->value = false;
-            //if (alh_opt)
-            //    alh_opt->value = false;
-        }
-        /* BBS: MusangKing - not sure if this is still valid, just comment it out cause "Independent support layer height" is re-opened.
-        else {
-            if (islh_opt)
-                islh_opt->value = true;
-        }
-        */
-    }
 }
 
 //BBS:divide normalize_fdm to 2 steps and call them one by one in Print::Apply

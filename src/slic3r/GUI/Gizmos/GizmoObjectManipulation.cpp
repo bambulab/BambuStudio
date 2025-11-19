@@ -62,9 +62,9 @@ GizmoObjectManipulation::GizmoObjectManipulation(GLCanvas3D& glcanvas)
     m_desc_move["part_selection"]         = _L("Part selection");
     m_desc_move["snap_step_caption"] = shift + _L("Left mouse button");
     m_desc_move["snap_step"]        = _L("Fixed step drag");
-    m_desc_move["multiple_selected_objects_caption"] = _L("Keep holding down Ctrl") + _L("Left mouse button");
+    m_desc_move["multiple_selected_objects_caption"] = _L("Keep holding down Ctrl") + "+" + _L("Left mouse button");
     m_desc_move["multiple_selected_objects"]        = _L("Select multiple objects");
-    m_desc_move["multiple_selected_parts_caption"]   = _L("Keep holding down Alt") + _L("Left mouse button");
+    m_desc_move["multiple_selected_parts_caption"]   = _L("Keep holding down Alt") + "+" + _L("Left mouse button");
     m_desc_move["multiple_selected_parts"]          = _L("Select multiple parts");
 
     m_desc_rotate["part_selection_caption"] = alt + _L("Left mouse button");
@@ -727,7 +727,7 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
     ImTextureID normal_id = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP);
     ImTextureID hover_id  = m_glcanvas.get_gizmos_manager().get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_TOOLBAR_TOOLTIP_HOVER);
 
-    caption_max += imgui_wrapper->calc_text_size("xx: ").x + 35.f;
+    caption_max += imgui_wrapper->calc_text_size("x:").x + 35.f;
 
     float  font_size   = ImGui::GetFontSize();
     ImVec2 button_size = ImVec2(font_size * 1.8, font_size * 1.3);
@@ -742,9 +742,13 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
             ImGui::SameLine(caption_max);
             imgui_wrapper->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
         };
-
-        for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"})
-            draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
+        if (m_coordinates_type == ECoordinatesType::World) {
+            for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"})
+                draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
+        } else {
+            for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"})
+                draw_text_with_caption(m_desc_move.at(t + "_caption") + ": ", m_desc_move.at(t));
+        }
         ImGui::EndTooltip();
     }
     ImGui::PopStyleVar(2);
@@ -972,10 +976,10 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     // Add align and distribute buttons using AlignmentHelper
     Selection& align_selection = m_glcanvas.get_selection();
     size_t selection_count = align_selection.get_volume_idxs().size();
-    if (selection_count >= 1 && m_coordinates_type == ECoordinatesType::World) {
+    if (selection_count >= 2 && m_coordinates_type == ECoordinatesType::World) {
         float scale_icon           = 1.2f;
         float icon_size            = ImGui::GetFrameHeight() * scale_icon;
-        float temp_tip_caption_max = imgui_wrapper->calc_text_size(_L("Align objects to the minimum X position")).x * 1.3f;
+        float temp_tip_caption_max = imgui_wrapper->calc_text_size(_L("Align top-bottom center") + " (-X)").x * 1.3f;
         ImGui::AlignTextToFramePadding();
         imgui_wrapper->text(_L("Align") + "/" + _L("Distribute"));//ImGui::Dummy(ImVec2(0.0f, ImGui::GetFrameHeight() * 0.3f));
         if (ImGui::IsItemHovered()) {
@@ -990,74 +994,71 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::X_MIN,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MIN,
                         icon_size,
-                        _L("Align objects to the minimum X position"), "");
+                        _L("Align left") + " (-X)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_X,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_CENTER,
                         icon_size,
-                        _L("Align objects to the center X position"), "");
+                        _L("Align left-right center") + " (X)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::X_MAX,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_X_MAX,
                         icon_size,
-                        _L("Align objects to the maximum X position"), "");
+                        _L("Align right") + " (+X)", "");
 
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_X,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_X,
                          icon_size,
-                        _L("Distribute objects evenly along X axis"), _L("Please select at least 3 parts or objects"), true);
+                        _L("Distribute left-right") + " (X)", _L("Please select at least 3 parts or objects"), true);
         float new_space_size = space_size *0.8f;
         ImGui::SameLine(start_x + unit_size + space_size + new_space_size);
-        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MAX,
-                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX,
-                        icon_size,
-                        _L("Align objects to the maximum Y position"), "");
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MIN,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN, icon_size,
+                        _L("Align front") + " (-Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Y,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_CENTER,
                         icon_size,
-                        _L("Align objects to the center Y position"), "");
+                        _L("Align front-back center") + " (Y)", "");
 
         ImGui::SameLine(0, button_spacing);
-        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MIN,
-                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MIN,
-                        icon_size,
-                        _L("Align objects to the minimum Y position"), "");
+        show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Y_MAX,
+                        (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Y_MAX, icon_size,
+                        _L("Align back") + " (+Y)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Y,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Y,
                         icon_size,
-                        _L("Distribute objects evenly along Y axis"), _L("Please select at least 3 parts or objects"), true);
+                        _L("Distribute front-back") + " (Y)", _L("Please select at least 3 parts or objects"), true);
 
         ImGui::SameLine(start_x + 2 * (unit_size + space_size) + new_space_size + new_space_size);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MIN,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MIN,
                         icon_size,
-                        _L("Align objects to the minimum Z position"), _L("Please select at least 2 parts and do not select entire object"), true);
+                        _L("Align bottom") + " (-Z)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::CENTER_Z,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_CENTER,
                         icon_size,
-                        _L("Align objects to the center Z position"), _L("Please select at least 2 parts and do not select entire object"), true);
+                        _L("Align top-bottom center") + " (Z)", "");
 
         ImGui::SameLine(0, button_spacing);
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::Z_MAX,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX_DARK : GLGizmosManager::MENU_ICON_NAME::IC_ALIGN_Z_MAX,
                         icon_size,
-                        _L("Align objects to the maximum Z position"), _L("Please select at least 2 parts and do not select entire object"),true);
+                        _L("Align top") + " (+Z)", "");
 
         ImGui::SameLine(0, button_spacing);
-        wxString look = _L("Distribute objects evenly along Z axis");
         show_align_icon(imgui_wrapper, temp_tip_caption_max, GLGizmoAlignment::AlignType::DISTRIBUTE_Z,
                         (int) m_is_dark_mode ? GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z_DARK : GLGizmosManager::MENU_ICON_NAME::IC_DISTRIBUTE_Z, icon_size,
-                        _L("Distribute objects evenly along Z axis"), _L("Please select at least 3 parts and do not select entire object"), true);
+                        _L("Distribute top-bottom") + " (Z)", _L("Please select at least 3 parts or objects"), true);
 
         ImGui::PopStyleColor();
         if (!ImGui::IsAnyItemHovered()) {
@@ -1068,10 +1069,18 @@ void GizmoObjectManipulation::set_init_rotation(const Geometry::Transformation &
     float get_cur_y      = ImGui::GetContentRegionMax().y + ImGui::GetFrameHeight() + y;
     float tip_caption_max    = 0.f;
     float total_text_max = 0.f;
-    for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"}) {
-        tip_caption_max = std::max(tip_caption_max, imgui_wrapper->calc_text_size(m_desc_move[t + "_caption"]).x);
-        total_text_max = std::max(total_text_max, imgui_wrapper->calc_text_size(m_desc_move[t]).x);
+    if (m_coordinates_type == ECoordinatesType::World) {
+        for (const auto &t : std::array<std::string, 4>{"part_selection", "snap_step", "multiple_selected_objects", "multiple_selected_parts"}) {
+            tip_caption_max = std::max(tip_caption_max, imgui_wrapper->calc_text_size(m_desc_move[t + "_caption"]).x);
+            total_text_max  = std::max(total_text_max, imgui_wrapper->calc_text_size(m_desc_move[t]).x);
+        }
+    } else {
+        for (const auto &t : std::array<std::string, 2>{"part_selection", "snap_step"}){
+            tip_caption_max = std::max(tip_caption_max, imgui_wrapper->calc_text_size(m_desc_move[t + "_caption"]).x);
+            total_text_max  = std::max(total_text_max, imgui_wrapper->calc_text_size(m_desc_move[t]).x);
+        }
     }
+
     show_move_tooltip_information(imgui_wrapper, tip_caption_max, x, get_cur_y);
     m_last_active_item = current_active_id;
     last_move_input_window_width = ImGui::GetWindowWidth();

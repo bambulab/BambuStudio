@@ -119,6 +119,7 @@ wxDECLARE_EVENT(EVT_NOTICE_CHILDE_SIZE_CHANGED, SimpleEvent);
 wxDECLARE_EVENT(EVT_NOTICE_FULL_SCREEN_CHANGED, IntEvent);
 using ColorEvent = Event<wxColour>;
 wxDECLARE_EVENT(EVT_ADD_CUSTOM_FILAMENT, ColorEvent);
+wxDECLARE_EVENT(EVT_SWITCH_TO_PREPARE_TAB, wxCommandEvent);
 
 // helio
 wxDECLARE_EVENT(EVT_HELIO_PROCESSING_COMPLETED, HelioCompletionEvent);
@@ -287,6 +288,7 @@ private:
 class Plater: public wxPanel
 {
     bool m_force_ban_check_volume_bbox_state_with_extruder_area{false};
+    bool m_last_is_system_preset{true};
 
 public:
     using fs_path = boost::filesystem::path;
@@ -554,6 +556,7 @@ public:
     bool update_filament_colors_in_full_config();
     void config_change_notification(const DynamicPrintConfig &config, const std::string& key);
     void on_config_change(const DynamicPrintConfig &config);
+    bool cur_selected_preset_is_system_preset();
     void force_filament_colors_update();
     void force_print_bed_update();
     // On activating the parent window.
@@ -562,6 +565,7 @@ public:
     std::vector<std::string> get_filament_colors_render_info() const;
     std::vector<std::string> get_filament_color_render_type() const;
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr) const;
+    bool is_color_size_equal() const;
 
     void set_global_filament_map_mode(FilamentMapMode mode);
     void set_global_filament_map(const std::vector<int>& filament_map);

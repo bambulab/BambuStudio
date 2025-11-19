@@ -585,8 +585,7 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-
-            auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+            auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
             std::string filament_id = filament_item.filament_id;
             if (it->filament_id.compare(filament_id) == 0) {
                 //check is it in the filament blacklist
@@ -885,7 +884,7 @@ static void _collect_filament_info(const wxString& shown_name,
                                    unordered_map<wxString, wxString>& query_filament_types)
 {
     query_filament_vendors[shown_name] = filament.config.get_filament_vendor();
-    query_filament_vendors[shown_name] = filament.config.get_filament_type();
+    query_filament_types[shown_name] = filament.config.get_filament_type();
 }
 
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
@@ -1358,7 +1357,7 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
                                                                                                           nozzle_diameter_str);
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
             if (!m_comboBox_filament->GetValue().IsEmpty()) {
-                auto filament_item = map_filament_items[m_comboBox_filament->GetValue().ToStdString()];
+                auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
                 std::string filament_id   = filament_item.filament_id;
                 if (it->filament_id.compare(filament_id) == 0) {
                     bool has_compatible_printer = false;
@@ -1448,14 +1447,14 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
 
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            auto itor = map_filament_items.find(m_comboBox_filament->GetValue().ToStdString());
+            auto itor = map_filament_items.find(into_u8(m_comboBox_filament->GetValue()));
             if ( itor != map_filament_items.end()) {
                 ams_filament_id = itor->second.filament_id;
                 ams_setting_id  = itor->second.setting_id;
                 break;
             }
 
-            if (it->alias.compare(m_comboBox_filament->GetValue().ToStdString()) == 0) {
+            if (it->alias.compare(into_u8(m_comboBox_filament->GetValue())) == 0) {
                 ams_filament_id = it->filament_id;
                 ams_setting_id = it->setting_id;
                 break;

@@ -8,6 +8,7 @@
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
 #include <wx/menu.h>
+#include <wx/timer.h>
 
 #include "Event.hpp"
 #include "wxExtensions.hpp"
@@ -494,6 +495,11 @@ private:
 
     std::vector<int> m_columns_width;
     wxSize           m_last_size;
+
+    // BBS: 支持多位数快捷键设置挤出机（与3D场景保持一致）
+    wxTimer m_timer_set_extruder;
+    int m_extruder_input_value = -1;
+    void on_set_extruder_timer(wxTimerEvent& evt);
 };
 
 

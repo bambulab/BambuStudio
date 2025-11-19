@@ -2,134 +2,13 @@
 #include "Label.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
-class HoverLabel : public wxPanel
-{
-public:
-    HoverLabel(wxWindow* parent, const wxString& label):wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
-    {
-        SetBackgroundColour(*wxWHITE);
-
-        auto sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        m_label = new wxStaticText(this, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        m_label->SetFont(Label::Body_13);
-        m_label->SetForegroundColour("#6B6B6B");
-        m_count = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        m_count->SetFont(Label::Body_13.Bold());
-        m_count->SetForegroundColour("#262E30");
-
-        m_title_type = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        m_title_type->SetForegroundColour("#ACACAC");
-
-        m_count->Hide();
-        m_title_type->Hide();
-
-        m_brace_left = new wxStaticText(this, wxID_ANY, "(", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        m_brace_left->SetFont(Label::Body_13);
-        m_brace_left->SetForegroundColour("#262E30");
-
-        m_brace_right = new wxStaticText(this, wxID_ANY, ")", wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-        m_brace_right->SetFont(Label::Body_13);
-        m_brace_right->SetForegroundColour("#262E30");
-
-        auto hover_icon = create_scaled_bitmap("dot");
-        m_hover_btn = new wxBitmapButton(this, wxID_ANY, hover_icon, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id)
 #ifdef __WXOSX__
-        m_hover_btn->SetBackgroundColour("#F7F7F7");
+    : wxStaticBox(parent, id, ".")
 #else
-        m_hover_btn->SetBackgroundColour(*wxWHITE);
-#endif
-        sizer->Add(m_label, 0, wxALIGN_CENTER_VERTICAL);
-        sizer->Add(m_brace_left, 0, wxALIGN_CENTER_VERTICAL);
-        sizer->Add(m_title_type, 0, wxALIGN_CENTER_VERTICAL);
-        sizer->Add(m_count, 0, wxALIGN_CENTER_VERTICAL);
-        sizer->Add(m_brace_right, 0, wxALIGN_CENTER_VERTICAL);
-        sizer->Add(m_hover_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 5);
-
-        SetSizerAndFit(sizer);
-        Layout();
-        m_hover_btn->Bind(wxEVT_BUTTON, [this](auto &evt) {
-            if(m_enabled)
-                m_hover_on_click();
-        });
-    }
-
-
-    void EnableEdit(bool enable){
-        m_enabled = enable;
-        if(enable){
-            m_hover_btn->SetBitmap(create_scaled_bitmap("edit"));
-        }
-        else{
-            m_hover_btn->SetBitmap(create_scaled_bitmap("dot"));
-        }
-    }
-    void SetOnHoverClick(std::function<void()> on_click) { 
-        m_hover_on_click = on_click;
-    }
-
-    void SetCount(int count) {
-        if(count == -1){
-            m_brace_left->Hide();
-            m_brace_right->Hide();
-            m_count->Hide();
-        }
-        else{
-            m_brace_left->Show();
-            m_count->Show();
-            m_brace_right->Show();
-            wxString count_str = wxString::Format("%d", count);
-            m_count->SetLabel(count_str);
-        }
-        Layout();
-        Fit();
-    }
-    void SetTitleWithType(const int type) {
-        if (type != 1) { m_title_type->Hide();
-        } else {
-            if (!m_title_type->IsShown()) m_title_type->Show();
-            wxString title_str = wxString::Format(_L("(Aux) "));
-            m_title_type->SetLabel(title_str);
-        }
-        Layout();
-        Fit();
-    }
-    wxString GetSuffixStr() const {
-        return m_title_type->IsShown() ? m_title_type->GetLabel() : "";
-    }
-
-private:
-    wxStaticText* m_label;
-    wxBitmapButton* m_hover_btn;
-    wxStaticText* m_count;
-    wxStaticText* m_title_type;
-
-    wxStaticText* m_brace_left;
-    wxStaticText* m_brace_right;
-    std::function<void()> m_hover_on_click;
-    bool m_enabled;
-
-};
-
-static void PositionLabelOverStaticBox(wxPoint top_left, HoverLabel* label_)
-{
-    int ox = 10;
-    int oy = 0;
-    label_->SetPosition(top_left + wxPoint{ox,oy});
-}
-
-StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label)
-#ifdef __WXOSX__
-: wxStaticBox(parent, id, label)
-#else
-: wxStaticBox(parent, id, "")
+    : wxStaticBox(parent, id, "")
 #endif
 {
-#ifdef __WXOSX__
-    hoverLabel_ = new HoverLabel(parent, label);
-#else
-    hoverLabel_ = new HoverLabel(this, label);
-#endif
     SetBackgroundColour(*wxWHITE);
     SetForegroundColour("#CECECE");
     borderColor_ = wxColour("#CECECE");
@@ -141,63 +20,10 @@ StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label)
 bool StaticGroup::Show(bool show)
 {
     bool ret = wxStaticBox::Show(show);
-#ifdef __WXOSX__
-    hoverLabel_->Show(show);
-    ResetLabelPos();
-#endif
     return ret;
 }
 
-void StaticGroup::ResetLabelPos()
-{
-#ifdef __WXOSX__
-    PositionLabelOverStaticBox(this->GetPosition(),hoverLabel_);
-#endif
-}
-
 void StaticGroup_layoutBadge(void * group, void * badge);
-
-void StaticGroup::SetEditEnabled(bool enable)
-{
-    if (hoverLabel_) {
-        hoverLabel_->EnableEdit(enable);
-#ifdef __WXOSX__
-        ResetLabelPos();
-#endif
-    }
-}
-
-void StaticGroup::SetCount(int count)
-{
-    if (hoverLabel_) {
-        hoverLabel_->SetCount(count);
-#ifdef __WXOSX__
-        ResetLabelPos();
-#endif
-    }
-}
-
-void StaticGroup::SetTitleWithType(const int type) {
-    if (hoverLabel_){
-        hoverLabel_->SetTitleWithType(type);
-    }
-}
-
-wxString StaticGroup::GetSuffixStr()
-{
-    if (hoverLabel_) {
-		return hoverLabel_->GetSuffixStr();
-    }
-    return wxString();
-}
-
-void StaticGroup::SetOnHoverClick(std::function<void()>on_click)
-{
-    if (hoverLabel_) {
-        hoverLabel_->SetOnHoverClick(on_click);
-    }
-}
-
 
 void StaticGroup::ShowBadge(bool show)
 {
