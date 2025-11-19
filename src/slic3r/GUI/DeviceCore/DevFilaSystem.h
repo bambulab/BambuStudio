@@ -122,11 +122,14 @@ public:
     // temperature and humidity
     float GetCurrentTemperature() const { return m_current_temperature; }
 
-    bool  SupportHumidity() const { return (m_ams_type == AMS) || (m_ams_type == N3F) || (m_ams_type == N3S);}
+    // Humidity
+    bool  SupportHumidityLevel() const { return m_ams_type == AMS; }
     int   GetHumidityLevel() const { return m_humidity_level; }
+
+    bool  SupportHumidityPercent() const { return (m_ams_type == N3F) || (m_ams_type == N3S); }
     int   GetHumidityPercent() const { return m_humidity_percent; }
 
-    bool  SupportDrying() const { return m_ams_type > AMS_LITE; }
+    bool  SupportDrying() const { return m_ams_type == N3F || m_ams_type == N3S; }
     int   GetLeftDryTime() const { return m_left_dry_time; }
 
 private:
@@ -142,7 +145,7 @@ private:
     float  m_current_temperature = INVALID_AMS_TEMPERATURE; // the temperature
     int    m_humidity_level = 5; // AmsType::AMS
     int    m_humidity_percent = -1; // N3F N3S, the percentage, -1 means invalid. eg. 100 means 100%
-    int    m_left_dry_time = 0;
+    int    m_left_dry_time = 0; // min
 };
 
 class DevFilaSystem
@@ -209,6 +212,10 @@ class DevFilaSystemParser
 {
 public:
     static void ParseV1_0(const json& print_json, MachineObject* obj, DevFilaSystem* system, bool key_field_only);
+
+private:
+    static DevAms*     ParseAmsInfo(const json& j_ams, MachineObject* obj, DevFilaSystem* system);
+    static DevAmsTray* ParseAmsTrayInfo(const json& j_tray, MachineObject* obj, DevAms* curr_ams);
 };
 
 }// namespace Slic3r

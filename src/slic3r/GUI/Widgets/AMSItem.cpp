@@ -51,14 +51,8 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     if (!ams) return false;
     this->ams_id = ams->GetAmsId();
 
-    if (ams->SupportHumidity()){
-        this->ams_humidity = ams->GetHumidityLevel();
-    }
-    else{
-        this->ams_humidity = -1;
-    }
-
-    this->humidity_raw = ams->GetHumidityPercent();
+    this->ams_humidity = ams->SupportHumidityLevel() ? ams->GetHumidityLevel() : -1;
+    this->ams_humidity_percent = ams->SupportHumidityPercent() ? ams->GetHumidityPercent() : -1;
     this->left_dray_time = ams->GetLeftDryTime();
     this->current_temperature = ams->GetCurrentTemperature();
     this->ams_type = AMSModel(ams->GetAmsType());
@@ -208,19 +202,19 @@ int AMSinfo::get_humidity_display_idx() const
     }
     else if (ams_type == AMSModel::N3F_AMS || ams_type == AMSModel::N3S_AMS)
     {
-        if (humidity_raw < 20)
+        if (ams_humidity_percent < 20)
         {
             return 5;
         }
-        else if (humidity_raw < 40)
+        else if (ams_humidity_percent < 40)
         {
             return 4;
         }
-        else if (humidity_raw < 60)
+        else if (ams_humidity_percent < 60)
         {
             return 3;
         }
-        else if (humidity_raw < 80)
+        else if (ams_humidity_percent < 80)
         {
             return 2;
         }
@@ -2908,7 +2902,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 info->ams_id            = m_amsinfo.ams_id;
                 info->ams_type          = m_amsinfo.ams_type;
                 info->humidity_display_idx = m_amsinfo.get_humidity_display_idx();
-                info->humidity_percent  = m_amsinfo.humidity_raw;
+                info->humidity_percent  = m_amsinfo.ams_humidity_percent;
                 info->left_dry_time     = m_amsinfo.left_dray_time;
                 info->current_temperature = m_amsinfo.current_temperature;
                 show_event.SetClientData(info);
@@ -3009,7 +3003,7 @@ void AMSHumidity::doRender(wxDC& dc)
             dc.DrawBitmap(hum_img.bmp(), pot);
             pot.x = pot.x + hum_img.GetBmpSize().x;
         }
-        else if (m_amsinfo.humidity_raw != -1) /*image with no number + percentage*/
+        else if (m_amsinfo.ams_humidity_percent != -1) /*image with no number + percentage*/
         {
             // hum image
             ScalableBitmap hum_img;
@@ -3024,7 +3018,7 @@ void AMSHumidity::doRender(wxDC& dc)
             pot.x += hum_img.GetBmpSize().x + FromDIP(3);
 
             // percentage
-            wxString hum_percentage(std::to_string(m_amsinfo.humidity_raw));
+            wxString hum_percentage(std::to_string(m_amsinfo.ams_humidity_percent));
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetFont(Label::Body_14);
             dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_BLACK_COLOUR));
