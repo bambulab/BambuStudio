@@ -11,12 +11,6 @@
     "chamber_temperatures": [
         "60"
     ],
-    "eng_plate_temp": [
-        "90"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "90"
-    ],
     "filament_flow_ratio": [
         "0.9",
         "0.9"
@@ -28,12 +22,6 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "hot_plate_temp": [
-        "90"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "90"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -53,12 +41,6 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
-    ],
-    "textured_plate_temp": [
-        "90"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "90"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.6 nozzle",
