@@ -2580,7 +2580,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
     }
     {                                                                         // hold chamber temp for flat print: Flag
-        double print_area_sum_threshold = 40000.0, pring_hight_threshold = 0.3; // thresholds in mm^2 and mm as units
+        double print_area_sum_threshold = 40000.0, pring_hight_threshold = initial_layer_print_height + EPSILON;
+        // thresholds in mm^2 and mm as units
 
         double   area_sum_temp  = 0.0;
         coordf_t max_hight_temp = -1.0;
@@ -2589,13 +2590,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // object hight
             if (!print_object->layers().empty() && print_object->layers().back()->print_z > max_hight_temp) max_hight_temp = print_object->layers().back()->print_z;
             // object area
-            if (!print_object->layers().empty() && print_object->layers().front()->print_z < print.config().initial_layer_print_height + EPSILON &&
+            if (!print_object->layers().empty() && print_object->layers().front()->print_z < initial_layer_print_height + EPSILON &&
                 !print_object->layers().front()->lslices.empty()) {
                 ExPolygons temp_Expolys = print_object->layers().front()->lslices;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
             }
             // suport area
-            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < print.config().initial_layer_print_height + EPSILON &&
+            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < initial_layer_print_height + EPSILON &&
                 !print_object->support_layers().front()->support_islands.empty()) {
                 ExPolygons temp_Expolys = print_object->support_layers().front()->support_islands;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
@@ -2614,7 +2615,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             Polygon temp_Expoly = print.wipe_tower_data().wipe_tower_mesh_data->bottom;
             area_sum_temp += temp_Expoly.area();
         }
-        bool hold_chamber_temp_for_flat_print = max_hight_temp > 0 && max_hight_temp < pring_hight_threshold && area_sum_temp > print_area_sum_threshold * 1.0e10;
+        bool hold_chamber_temp_for_flat_print = (max_hight_temp > 0) && (max_hight_temp < pring_hight_threshold) && ( area_sum_temp > (print_area_sum_threshold * 1.0e10 - 1) );
         m_placeholder_parser.set("hold_chamber_temp_for_flat_print", new ConfigOptionBool(hold_chamber_temp_for_flat_print));
     }
 
