@@ -1290,10 +1290,6 @@ void SendToPrinterDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
     }
-    else if (obj_->is_system_printing()) {
-        show_status(PrintDialogStatus::PrintStatusInSystemPrinting);
-        return;
-    }
 
     // check sdcard when if lan mode printer
    /* if (obj_->is_lan_mode_printer()) {
