@@ -379,7 +379,7 @@ static void adjust_sort_for_segment_intersections(std::vector<SegmentIntersectio
             switch (type) {
             case SegmentIntersection::OUTER_LOW: return false;
             case SegmentIntersection::OUTER_HIGH: return top_type == IntersectionType::OUTER_LOW;
-            case SegmentIntersection::INNER_LOW: return top_type != IntersectionType::OUTER_HIGH;
+            case SegmentIntersection::INNER_LOW: return top_type == IntersectionType::OUTER_LOW || top_type == IntersectionType::INNER_HIGH;
             case SegmentIntersection::INNER_HIGH: return top_type == IntersectionType::INNER_LOW;
             default: break;
             }
