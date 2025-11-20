@@ -5039,7 +5039,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("bottom_color_penetration_layers", coInt);
     def->label    = L("Bottom paint penetration layers");
     def->category = L("Strength");
-    def->tooltip  = L("This is  the number of layers of top bottom penetration.");
+    def->tooltip  = L("This is the number of layers of bottom paint penetration.");
     def->min      = 1;
     def->set_default_value(new ConfigOptionInt(3));
 
