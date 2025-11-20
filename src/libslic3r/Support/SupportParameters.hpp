@@ -125,6 +125,14 @@ struct SupportParameters {
             this->interface_density = this->support_density;
         }
 
+        this->enable_support_ironing = object_config.enable_support_ironing;
+        this->ironing_angle          = object_config.support_ironing_direction;
+        this->ironing_flow_percent   = object_config.support_ironing_flow;
+        this->ironing_inset          = object_config.support_ironing_inset;
+        this->ironing_line_spacing   = object_config.support_ironing_spacing;
+        this->ironing_pattern        = object_config.support_ironing_pattern;
+        this->ironing_speed          = object_config.support_ironing_speed;
+
         support_style = object_config.support_style;
         if (support_style != smsDefault) {
             if ((support_style == smsSnug || support_style == smsGrid) && is_tree(object_config.support_type)) support_style = smsDefault;
@@ -303,5 +311,16 @@ struct SupportParameters {
 
     bool independent_layer_height = false;
     const double thresh_big_overhang = /*Slic3r::sqr(scale_(10))*/scale_(10);
+
+    // support ironing related configs
+    bool          enable_support_ironing = false;
+    InfillPattern ironing_pattern;
+    // Spacing of the ironing lines, also to calculate the extrusion flow from.
+    double ironing_line_spacing;
+    // Height of the extrusion, to calculate the extrusion flow from.
+    double ironing_flow_percent;
+    double ironing_speed;
+    double ironing_angle;
+    double ironing_inset;
 };
 } // namespace Slic3r

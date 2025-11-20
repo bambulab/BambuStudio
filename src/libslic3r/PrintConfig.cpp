@@ -4742,11 +4742,83 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_interface_spacing", coFloat);
     def->label = L("Top interface spacing");
     def->category = L("Support");
-    def->tooltip = L("Spacing of interface lines. Zero means solid interface");
+    def->tooltip = L("Spacing of interface lines. Zero means solid interface."
+                     "And zero spacing is required to access the enable_support_ironing option");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
+
+    def = this->add("enable_support_ironing", coBool);
+    def->label = L("Enable ironing support interface");
+    def->category = L("Support");
+    def->tooltip  = L("Ironing is using small flow to print on same height of surface again to make flat surface more smooth. "
+                       "This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,"
+                       "that is, support_interface_spacing was zero and support_interface_pattern was't grid");
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def                = this->add("support_ironing_pattern", coEnum);
+    def->label         = L("Support ironing pattern");
+    def->category      = L("Support");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values.push_back("concentric");
+    def->enum_values.push_back("zig-zag");
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    def             = this->add("support_ironing_flow", coPercent);
+    def->label      = L("Support ironing flow");
+    def->category   = L("Support");
+    def->tooltip    = L("The amount of material to extrude during ironing. Relative to flow of normal layer height. "
+                           "Too high value results in overextrusion on the surface");
+    def->sidetext   = "%";
+    def->ratio_over = "layer_height";
+    def->min        = 0;
+    def->max        = 100;
+    def->mode       = comDevelop;
+    def->set_default_value(new ConfigOptionPercent(10));
+
+    def           = this->add("support_ironing_spacing", coFloat);
+    def->label    = L("Support ironing line spacing");
+    def->category = L("Support");
+    def->tooltip  = L("The distance between the lines of ironing");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 1;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
+    def           = this->add("support_ironing_inset", coFloat);
+    def->label    = L("Support ironing inset");
+    def->category = L("Support");
+    def->tooltip  = L("The distance to keep the from the edges of ironing line. 0 means not apply.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("support_ironing_speed", coFloat);
+    def->label    = L("Support ironing speed");
+    def->category = L("Support");
+    def->tooltip  = L("Print speed of ironing lines");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(20));
+
+    def           = this->add("support_ironing_direction", coFloat);
+    def->label    = L("Support ironing direction");
+    def->category = L("Support");
+    def->tooltip  = L("Angle for ironing, which controls the relative angle between the top surface and ironing");
+    def->sidetext = L("°");
+    def->min      = 0;
+    def->max      = 360;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     //BBS
     def = this->add("support_bottom_interface_spacing", coFloat);

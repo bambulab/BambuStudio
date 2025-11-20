@@ -2743,6 +2743,15 @@ void TabPrint::build()
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
 
+        optgroup = page->new_optgroup(L("Support ironing"), L"param_ironing");
+        optgroup->append_single_option_line("enable_support_ironing");
+        optgroup->append_single_option_line("support_ironing_pattern");
+        optgroup->append_single_option_line("support_ironing_speed");
+        optgroup->append_single_option_line("support_ironing_flow");
+        optgroup->append_single_option_line("support_ironing_spacing");
+        optgroup->append_single_option_line("support_ironing_inset");
+        optgroup->append_single_option_line("support_ironing_direction");
+
         //BBS
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("raft_first_layer_density");   // not only for raft, but for support too

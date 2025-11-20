@@ -118,6 +118,7 @@ namespace Slic3r
                 { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
                 { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
                 { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
+                { 0.60f, 1.00f, 0.60f, 1.0f },   // erSupportIroning
                 { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
                 { 0.37f, 0.82f, 0.58f, 1.0f },    // erCustom
                 { 0.85f, 0.65f, 0.95f, 1.0f }    // erFlush
