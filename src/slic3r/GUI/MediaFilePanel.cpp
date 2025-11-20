@@ -649,8 +649,40 @@ void MediaFilePanel::doAction(size_t index, int action)
                     auto             wfile = boost::filesystem::path(file.local_path).wstring();
                     SHELLEXECUTEINFO info{sizeof(info), 0, NULL, NULL, wfile.c_str(), L"", SW_HIDE};
                     ::ShellExecuteEx(&info);
-#else
+#elif __APPLE__
                     wxShell("open " + file.local_path);
+#else
+                    const char *argv[] = { "xdg-open", file.local_path.data(), nullptr };
+
+                    // Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
+                    // because they may mess up the environment expected by the file manager.
+                    // Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
+                    if (wxGetEnv("APPIMAGE", nullptr)) {
+                        // We're running from AppImage
+                        wxEnvVariableHashMap env_vars;
+                        wxGetEnvMap(&env_vars);
+
+                        env_vars.erase("APPIMAGE");
+                        env_vars.erase("APPDIR");
+                        env_vars.erase("LD_LIBRARY_PATH");
+                        env_vars.erase("LD_PRELOAD");
+                        env_vars.erase("UNION_PRELOAD");
+
+                        wxExecuteEnv exec_env;
+                        exec_env.env = std::move(env_vars);
+
+                        wxString owd;
+                        if (wxGetEnv("OWD", &owd)) {
+                            // This is the original work directory from which the AppImage image was run,
+                            // set it as CWD for the child process:
+                            exec_env.cwd = std::move(owd);
+                        }
+
+                        ::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+                    } else {
+                        // Looks like we're NOT running from AppImage, we'll make no changes to the environment.
+                        ::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+                    }
 #endif
                 } else {
                     fs->DownloadCancel(index);
