@@ -848,6 +848,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 support_interface_bottom_layers))
     // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
     ((ConfigOptionFloat,               support_interface_spacing))
+    // ironing support related configs
+    ((ConfigOptionBool, enable_support_ironing))
+    ((ConfigOptionEnum<InfillPattern>, support_ironing_pattern))
+    ((ConfigOptionPercent, support_ironing_flow))
+    ((ConfigOptionFloat, support_ironing_spacing))
+    ((ConfigOptionFloat, support_ironing_inset))
+    ((ConfigOptionFloat, support_ironing_direction))
+    ((ConfigOptionFloat, support_ironing_speed))
     ((ConfigOptionFloatsNullable,      support_interface_speed))
     ((ConfigOptionEnum<SupportMaterialPattern>, support_base_pattern))
     ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))

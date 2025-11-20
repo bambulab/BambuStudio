@@ -5359,39 +5359,66 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
 {
     static constexpr const char *support_label            = "support material";
     static constexpr const char *support_interface_label  = "support material interface";
-    const char* support_transition_label = "support transition";
+    static constexpr const char *support_transition_label = "support transition";
+    static constexpr const char *support_ironing_label    = "support ironing";
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
-        const double support_speed  = NOZZLE_CONFIG(support_speed);
-        const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
-        for (const ExtrusionEntity *ee : support_fills.entities) {
-            ExtrusionRole role = ee->role();
-            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
-            const char* label = (role == erSupportMaterial) ? support_label :
-                ((role == erSupportMaterialInterface) ? support_interface_label : support_transition_label);
-            // BBS
-            //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
-            const double speed = -1.0;
-            const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(ee);
-            const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
-            const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(ee);
-            const ExtrusionEntityCollection* collection = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-            if (path)
-                gcode += this->extrude_path(*path, label, speed);
-            else if (multipath) {
-                gcode += this->extrude_multi_path(*multipath, label, speed);
-            }
-            else if (loop) {
-                gcode += this->extrude_loop(*loop, label, speed);
-            }
-            else if (collection) {
-                gcode += extrude_support(*collection);
-            }
-            else {
-                throw Slic3r::InvalidArgument("Unknown extrusion type");
+        ExtrusionEntitiesPtr extrusions, ironing_extrusions;
+        bool                 has_support_ironing = false;
+        extrusions.reserve(support_fills.entities.size());
+        for (ExtrusionEntity *ee : support_fills.entities) {
+            const auto role = ee->role();
+            if (role == erSupportIroning) {
+                ironing_extrusions.emplace_back(ee);
+                has_support_ironing = true;
+            } else {
+                extrusions.emplace_back(ee);
             }
         }
+        if (extrusions.empty()) return gcode;
+        has_support_ironing = has_support_ironing && m_config.enable_support_ironing.value;
+        if (has_support_ironing) {
+            chain_and_reorder_extrusion_entities(ironing_extrusions, &m_last_pos);
+        } else{
+            ironing_extrusions.clear();
+        }
+        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+
+        const double support_speed  = NOZZLE_CONFIG(support_speed);
+        const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
+        const double support_ironing_speed = m_config.support_ironing_speed.value; //seems useless here
+        auto         process_extrusion_entitys = [&](const ExtrusionEntitiesPtr &entities_set) -> void {
+            for (const ExtrusionEntity *ee : entities_set) {
+                ExtrusionRole role = ee->role();
+                assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition || role == erSupportIroning);
+                const char *label = (role == erSupportMaterial)          ? support_label :
+                                    (role == erSupportMaterialInterface) ? support_interface_label :
+                                    (role == erSupportIroning)           ? support_ironing_label :
+                                                                           support_transition_label;
+                // BBS
+                // const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
+                const double                     speed      = -1.0;
+                const ExtrusionPath             *path       = dynamic_cast<const ExtrusionPath *>(ee);
+                const ExtrusionMultiPath        *multipath  = dynamic_cast<const ExtrusionMultiPath *>(ee);
+                const ExtrusionLoop             *loop       = dynamic_cast<const ExtrusionLoop *>(ee);
+                const ExtrusionEntityCollection *collection = dynamic_cast<const ExtrusionEntityCollection *>(ee);
+                if (path)
+                    gcode += this->extrude_path(*path, label, speed);
+                else if (multipath) {
+                    gcode += this->extrude_multi_path(*multipath, label, speed);
+                } else if (loop) {
+                    gcode += this->extrude_loop(*loop, label, speed);
+                } else if (collection) {
+                    gcode += extrude_support(*collection);
+                } else {
+                    throw Slic3r::InvalidArgument("Unknown extrusion type");
+                }
+            }
+        };
+        process_extrusion_entitys(extrusions);
+        if (has_support_ironing) // make sure the ironing was after the support extrusions
+            process_extrusion_entitys(ironing_extrusions);
     }
     return gcode;
 }
@@ -6031,6 +6058,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = NOZZLE_CONFIG(top_surface_speed);
         } else if (path.role() == erIroning) {
             speed = m_config.get_abs_value("ironing_speed");
+        } else if (path.role() == erSupportIroning) {
+            speed = m_config.get_abs_value("support_ironing_speed");
         } else if (path.role() == erBottomSurface) {
             speed = NOZZLE_CONFIG(initial_layer_infill_speed);
         } else if (path.role() == erGapFill) {

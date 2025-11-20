@@ -283,6 +283,43 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    if (config->opt_float("support_ironing_spacing") < 0.05) {
+        const wxString     msg_text = _(L("Too small support ironing spacing.\nReset to 0.1"));
+        MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("support_ironing_spacing", new ConfigOptionFloat(0.1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    // the ironing only works with solid interface
+    bool has_ironing_support = config->opt_int("raft_layers") > 1 || (config->opt_bool("enable_support") && config->opt_int("support_interface_top_layers") > 0);
+    bool can_ironing_support = config->opt_float("support_interface_spacing") < EPSILON;
+    can_ironing_support &= // where the grid alwasy was sparse, not works with ironing!
+        config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern")
+        != SupportMaterialInterfacePattern::smipGrid;
+    if (has_ironing_support)
+        if (!can_ironing_support && config->opt_bool("enable_support_ironing")) {
+            const wxString     msg_text = _(L("Support ironing will not work with sparse support interface.\n"
+                                                  "Do you want to disable the support ironing?\n"
+                                                  "Yes: disable the support ironing.\n"
+                                                  "No: make the support interface solid."));
+            MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxYES_NO);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            if (dialog.ShowModal() == wxID_YES) {
+                new_conf.set_key_value("enable_support_ironing", new ConfigOptionBool(false));
+            } else {
+                new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0.0f));
+                if ( config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipGrid )
+                    new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipAuto));
+            }
+
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
 
     if (config->option<ConfigOptionFloat>("initial_layer_print_height")->value < EPSILON)
     {
@@ -837,6 +874,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {
         "ironing_pattern","ironing_speed", "ironing_flow", "ironing_spacing", "ironing_direction", "ironing_inset"})
         toggle_line(el, has_ironing);
+
+    // has ironingable support interface
+    bool has_ironing_support = config->opt_int("raft_layers") > 1 || (config->opt_bool("enable_support") && config->opt_int("support_interface_top_layers") > 0);
+    toggle_field("enable_support_ironing", has_ironing_support);
+    for (auto el : {"support_ironing_pattern", "support_ironing_speed", "support_ironing_flow", "support_ironing_spacing", "support_ironing_direction", "support_ironing_inset"})
+        toggle_line(el, config->opt_bool("enable_support_ironing") && has_ironing_support);
 
     // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_dist_to_rod", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })
