@@ -32,6 +32,8 @@
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevStorage.h"
+#include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevStatus.h"
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevInfo.h"
@@ -581,6 +583,16 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
 
+    std::vector<std::string> list{ "ams_rfid_1", "ams_rfid_2", "ams_rfid_3", "ams_rfid_4" };
+    m_pausing_icon = new AnimaIcon(progress_lr_panel, wxID_ANY, list, "refresh_printer", 100);
+    m_pausing_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_pausing_icon->SetToolTip(_L("Pausing"));
+    m_pausing_icon->Hide();
+    m_stopping_icon = new AnimaIcon(progress_lr_panel, wxID_ANY, list, "refresh_printer", 100);
+    m_stopping_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_stopping_icon->SetToolTip(_L("Stopping"));
+    m_stopping_icon->Hide();
+
     m_button_partskip = new Button(progress_lr_panel, wxEmptyString, "print_control_partskip_disable", 0, 20, wxID_ANY);
     m_button_partskip->Enable(false);
     m_button_partskip->Hide();
@@ -782,8 +794,10 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
     progress_right_sizer->Add(m_button_partskip, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0)); // 5
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progress_right_sizer->Add(m_pausing_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(m_button_pause_resume, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progress_right_sizer->Add(m_stopping_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(m_button_abort, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
 
@@ -1008,6 +1022,8 @@ void PrintingTaskPanel::set_has_reted_text(bool has_rated)
 
 void PrintingTaskPanel::msw_rescale()
 {
+    m_pausing_icon->Rescale();
+    m_stopping_icon->Rescale();
     m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
     // m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
@@ -1069,6 +1085,8 @@ void PrintingTaskPanel::reset_printing_value()
 {
     this->set_thumbnail_img(m_thumbnail_placeholder.bmp(), m_thumbnail_placeholder.name());
     this->set_plate_index(-1);
+    update_pausing_state(false);
+    update_stopping_state(false);
 }
 
 void PrintingTaskPanel::enable_partskip_button(MachineObject *obj, bool enable)
@@ -1084,6 +1102,38 @@ void PrintingTaskPanel::enable_partskip_button(MachineObject *obj, bool enable)
     } else if (obj && obj->is_support_brtc) {
         m_button_partskip->Enable(true);
         m_button_partskip->SetIcon("print_control_partskip");
+    }
+}
+
+void PrintingTaskPanel::update_pausing_state(bool enter)
+{
+    if (m_pausing_icon->IsPlaying() != enter) {
+        if (enter) {
+            m_pausing_icon->Play();
+            m_pausing_icon->Show();
+            m_button_pause_resume->Hide();
+        } else {
+            m_pausing_icon->Stop();
+            m_pausing_icon->Hide();
+        }
+
+        Layout();
+    }
+}
+
+void PrintingTaskPanel::update_stopping_state(bool enter)
+{
+    if (m_stopping_icon->IsPlaying() != enter) {
+        if (enter) {
+            m_stopping_icon->Play();
+            m_stopping_icon->Show();
+            m_button_abort->Hide();
+        } else {
+            m_stopping_icon->Stop();
+            m_stopping_icon->Hide();
+        }
+
+        Layout();
     }
 }
 
@@ -3689,6 +3739,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else {
                 m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
+
             m_project_task_panel->enable_partskip_button(obj, true);
             // update printing stage
             m_project_task_panel->update_left_time(obj->mc_left_time);
@@ -3752,6 +3803,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
     } else {
         reset_printing_values();
     }
+
+    m_project_task_panel->update_pausing_state(obj->GetStatus()->GetJobState() == DevJobState::JobStatePausing);
+    m_project_task_panel->update_stopping_state(obj->GetStatus()->GetJobState() == DevJobState::JobStateStoppping);
 }
 
 void StatusPanel::update_partskip_subtask(MachineObject *obj)
@@ -3849,6 +3903,8 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 
 void StatusPanel::reset_printing_values()
 {
+    m_project_task_panel->update_pausing_state(false);
+    m_project_task_panel->update_stopping_state(false);
     m_project_task_panel->enable_partskip_button(nullptr, false);
     m_project_task_panel->enable_pause_resume_button(false, "pause_disable");
     m_project_task_panel->enable_abort_button(false);

@@ -42,6 +42,7 @@
 #include "DeviceCore/DevBed.h"
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevFan.h"
+#include "DeviceCore/DevStatus.h"
 #include "DeviceCore/DevStorage.h"
 #include "DeviceCore/DevNozzleRack.h"
 
@@ -567,11 +568,11 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
         m_extder_system = new DevExtderSystem(this);
         m_extension_tool = DevExtensionTool::Create(this);
         m_nozzle_system = new DevNozzleSystem(this);
-        // m_fila_system   = new DevFilaSystem(this);
         m_fila_system = std::make_shared<DevFilaSystem>(this);
         m_upgrade       = DevUpgrade::Create(this);
         m_hms_system    = new DevHMS(this);
         m_config = new DevConfig(this);
+        m_status = new DevStatus(this);
 
         m_ctrl = new DevCtrl(this);
         m_print_options = new DevPrintOptions(this);
@@ -633,6 +634,9 @@ MachineObject::~MachineObject()
 
         delete m_calib;
         m_calib = nullptr;
+
+        delete m_status;
+        m_status = nullptr;
     }
 }
 
@@ -2575,6 +2579,9 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             }
 
             if (!key_field_only) {
+                m_config->ParseConfig(jj);
+                m_status->ParseStatus(jj);
+                m_fan->ParseV2_0(jj);
 
                 if (!m_manager->IsMultiMachineEnabled() && !is_support_agora) {
                     if (jj.contains("support_tunnel_mqtt")) {
@@ -2604,9 +2611,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
                 }
 
-                //supported function
-                m_config->ParseConfig(jj);
-
                 if (jj.contains("support_flow_calibration") && jj["support_flow_calibration"].is_boolean())
                 {
                     is_support_pa_calibration = jj["support_flow_calibration"].get<bool>();
@@ -2617,8 +2621,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                         is_support_send_to_sdcard = jj["support_send_to_sd"].get<bool>();
                     }
                 }
-
-              m_fan->ParseV2_0(jj);
 
                 if (jj.contains("support_filament_backup")) {
                     if (jj["support_filament_backup"].is_boolean()) {
@@ -2709,8 +2711,6 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
                 }
             }
-
-
 
             if (jj.contains("command")) {
                 m_auto_nozzle_mapping.ParseAutoNozzleMapping(this, jj);
