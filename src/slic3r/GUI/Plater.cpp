@@ -13807,14 +13807,28 @@ void Plater::update_all_plate_thumbnails(bool force_update)
     }
 }
 
-void Plater::update_obj_preview_thumbnail(ModelObject *mo, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+void Plater::update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+{
+    PartPlate *        plate            = get_partplate_list().get_plate(0);
+    ThumbnailsParams   thumbnail_params = {{}, false, true, true, true, 0, false};
+    GLVolumeCollection cur_volumes;
+    for (int i = 0; i < model_objects.size(); i++) {
+        auto &mo = model_objects[i];
+        cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
+    }
+    get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_origin_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
+                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false, GLCanvas3D::ThumbnailRenderRype::CustomMeshOrVertexColors);
+}
+
+void Plater::update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
 {
     PartPlate *      plate            = get_partplate_list().get_plate(0);
     ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0, false};
     GLVolumeCollection cur_volumes;
-    cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
-    ModelObjectPtrs model_objects;
-    model_objects.emplace_back(mo);
+    for (int i = 0; i < model_objects.size(); i++) {
+        auto &mo = model_objects[i];
+        cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
+    }
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                             model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false);
 }

@@ -2719,7 +2719,8 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_d
                                   Camera::EType                      camera_type,
                                   Camera::ViewAngleType              camera_view_angle_type,
                                   bool                               for_picking,
-                                  bool                               ban_light)
+                                  bool                               ban_light,
+                                  ThumbnailRenderRype                render_type)
 {
     const auto& shader = wxGetApp().get_shader("thumbnail");
     if (!shader) {
@@ -2730,8 +2731,10 @@ void GLCanvas3D::render_thumbnail(ThumbnailData &                    thumbnail_d
     p_ogl_manager->bind_vao();
     p_ogl_manager->bind_shader(shader);
 
-    render_thumbnail_framebuffer(p_ogl_manager, thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors, shader,
-        camera_type, camera_view_angle_type, for_picking, ban_light);
+
+    render_thumbnail_framebuffer(p_ogl_manager, thumbnail_data, w, h, thumbnail_params, wxGetApp().plater()->get_partplate_list(), model_objects, volumes, extruder_colors,
+                                 shader, camera_type, camera_view_angle_type, for_picking, ban_light, render_type);
+
 
     p_ogl_manager->unbind_shader();
     p_ogl_manager->unbind_vao();
@@ -5352,12 +5355,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 //deselect all the objects
                 if (m_gizmos.get_current_type() != GLGizmosManager::MeshBoolean && m_hover_volume_idxs.empty()) {
                     bool ignore = false;
-                    
+
                     auto mo                 = get_selected_model_object(*this);
                     auto cur_selection_mode = m_selection.get_mode();
                     ignore                  = cur_selection_mode == Selection::Volume && mo && m_gizmos.is_allow_multi_select_parts_or_objects() &&
                         is_mouse_in_screen_convex_hull(Vec2i(evt.GetX(), evt.GetY()), mo->bounding_box());
-                    
+
                     if (!ignore) {
                         deselect_all();
                     }
@@ -6760,13 +6763,21 @@ static void debug_output_thumbnail(const ThumbnailData& thumbnail_data)
 }
 #endif // ENABLE_THUMBNAIL_GENERATOR_DEBUG_OUTPUT
 
-void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager>& p_ogl_manager, ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
-    PartPlateList& partplate_list, ModelObjectPtrs& model_objects, const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
-                                              const std::shared_ptr<GLShaderProgram>& shader,
-                                              Camera::EType                      camera_type,
-                                              Camera::ViewAngleType              camera_view_angle_type,
-                                              bool                               for_picking,
-                                              bool                               ban_light)
+void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager> &  p_ogl_manager,
+                                              ThumbnailData &                         thumbnail_data,
+                                              unsigned int                            w,
+                                              unsigned int                            h,
+                                              const ThumbnailsParams &                thumbnail_params,
+                                              PartPlateList &                         partplate_list,
+                                              ModelObjectPtrs &                       model_objects,
+                                              const GLVolumeCollection &              volumes,
+                                              std::vector<std::array<float, 4>> &     extruder_colors,
+                                              const std::shared_ptr<GLShaderProgram> &shader,
+                                              Camera::EType                           camera_type,
+                                              Camera::ViewAngleType                   camera_view_angle_type,
+                                              bool                                    for_picking,
+                                              bool                                    ban_light,
+                                              ThumbnailRenderRype                     render_type)
 {
     thumbnail_data.set(w, h);
     if (!thumbnail_data.is_valid())
@@ -6814,9 +6825,13 @@ void GLCanvas3D::render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManage
         thumbnail_fb.set_width(w);
         thumbnail_fb.set_height(h);
     }
-
-    _render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
-        for_picking, ban_light);
+    if (render_type != ThumbnailRenderRype::GLVolumes) {
+        _render_custom_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
+                                          for_picking, ban_light, render_type);
+    } else {
+        _render_thumbnail_internal(thumbnail_data, thumbnail_params, partplate_list, model_objects, volumes, extruder_colors, shader, camera_type, camera_view_angle_type,
+                                   for_picking, ban_light);
+    }
 
     std::string write_to_framebuffer_name = thumbnail_fb_name;
     if (thumbnail_params.post_processing_enabled) {
@@ -10961,6 +10976,196 @@ void GLCanvas3D::_render_thumbnail_internal(ThumbnailData& thumbnail_data, const
     // restore background color
     //if (thumbnail_params.transparent_background)
     //    glsafe(::glClearColor(1.0f, 1.0f, 1.0f, 1.0f));
+    BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
+}
+
+void GLCanvas3D::_render_custom_thumbnail_internal(ThumbnailData &                         thumbnail_data,
+                                            const ThumbnailsParams &                thumbnail_params,
+                                            PartPlateList &                         partplate_list,
+                                            ModelObjectPtrs &                       model_objects,
+                                            const GLVolumeCollection &              volumes,
+                                            std::vector<std::array<float, 4>> &     extruder_colors,
+                                            const std::shared_ptr<GLShaderProgram> &shader,
+                                            Camera::EType                           camera_type,
+                                            Camera::ViewAngleType                   camera_view_angle_type,
+                                            bool                                    for_picking,
+                                                   bool                                    ban_light,
+                                                   ThumbnailRenderRype                     render_type)
+{
+    static std::array<float, 4>       curr_color;
+    static const std::array<float, 4> orange = {0.923f, 0.504f, 0.264f, 1.0f};
+    static const std::array<float, 4> gray   = {0.64f, 0.64f, 0.64f, 1.0f};
+    GLVolumePtrs                      visible_volumes;
+    GLVolumePtrs                      visible_render_mesh_volumes;
+    GLVolumePtrs                      visible_render_vertice_volumes;
+    BoundingBoxf3                     plate_build_volume;
+    if (thumbnail_params.use_plate_box) {
+        int        plate_idx = thumbnail_params.plate_id;
+        PartPlate *plate     = partplate_list.get_plate(plate_idx);
+        plate_build_volume   = plate->get_build_volume();
+
+        for (GLVolume *vol : volumes.volumes) {
+            if (!vol->is_modifier && !vol->is_wipe_tower && (!thumbnail_params.parts_only || vol->composite_id.volume_id >= 0) &&
+                (vol->partly_inside || is_volume_in_plate_boundingbox(*vol, plate_idx, plate_build_volume))) {
+                visible_volumes.emplace_back(vol);
+                if (vol->get_origin_mesh_or_vertice_render()) {
+                    visible_render_mesh_volumes.emplace_back(vol);
+                } else {
+                    visible_render_vertice_volumes.emplace_back(vol);
+                }
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: plate_idx %1% volumes size %2%,  use_top_view=%4%, for_picking=%5%") % plate_idx %
+                                       visible_volumes.size() %  (int) camera_view_angle_type % for_picking;
+    } else {
+        visible_volumes = volumes.volumes;
+        for (GLVolume *vol : volumes.volumes) {
+            if (vol->get_origin_mesh_or_vertice_render()) {
+                visible_render_mesh_volumes.emplace_back(vol);
+            } else {
+                visible_render_vertice_volumes.emplace_back(vol);
+            }
+        }
+    }
+    // BoundingBoxf3 volumes_box = plate_build_volume;
+    BoundingBoxf3 volumes_box;
+    volumes_box.min.z() = 0;
+    volumes_box.max.z() = 0;
+    if (!visible_volumes.empty()) {
+        for (const GLVolume *vol : visible_volumes) {
+            volumes_box.merge(vol->transformed_bounding_box());
+        }
+    }
+    volumes_box.min.z() = -Slic3r::BuildVolume::SceneEpsilon;
+    double width        = volumes_box.max.x() - volumes_box.min.x();
+    double depth        = volumes_box.max.y() - volumes_box.min.y();
+    double height       = volumes_box.max.z() - volumes_box.min.z();
+    volumes_box.max.x() = volumes_box.max.x() + width * 0.1f;
+    volumes_box.min.x() = volumes_box.min.x() - width * 0.1f;
+    volumes_box.max.y() = volumes_box.max.y() + depth * 0.1f;
+    volumes_box.min.y() = volumes_box.min.y() - depth * 0.1f;
+    volumes_box.max.z() = volumes_box.max.z() + height * 0.2f;
+    volumes_box.min.z() = volumes_box.min.z() - height * 0.2f;
+
+    Camera camera;
+    camera.set_type(camera_type);
+
+    if (thumbnail_params.use_plate_box) { camera.set_scene_box(plate_build_volume); }
+
+    camera.apply_viewport(0, 0, thumbnail_data.width, thumbnail_data.height);
+
+    if (camera_view_angle_type == Camera::ViewAngleType::Top_Plate) {
+        float  center_x   = (plate_build_volume.max(0) + plate_build_volume.min(0)) / 2;
+        float  center_y   = (plate_build_volume.max(1) + plate_build_volume.min(1)) / 2;
+        float  distance_z = plate_build_volume.max(2) - plate_build_volume.min(2);
+        Vec3d  center(center_x, center_y, 0.f);
+        double zoom_ratio, scale_x, scale_y;
+
+        scale_x    = ((double) thumbnail_data.width) / (plate_build_volume.max(0) - plate_build_volume.min(0));
+        scale_y    = ((double) thumbnail_data.height) / (plate_build_volume.max(1) - plate_build_volume.min(1));
+        zoom_ratio = (scale_x <= scale_y) ? scale_x : scale_y;
+        camera.look_at(center + distance_z * Vec3d::UnitZ(), center, Vec3d::UnitY());
+        camera.set_zoom(zoom_ratio);
+        // camera.select_view("top");
+    } else {
+        camera.select_view(camera_view_angle_type);
+        camera.zoom_to_box(volumes_box);
+    }
+
+    if (thumbnail_params.use_plate_box) {
+        camera.apply_projection(plate_build_volume);
+    } else {
+        camera.apply_projection(volumes_box);
+    }
+
+    if (for_picking)
+        glsafe(::glClearColor(0.f, 0.f, 0.f, 0.f));
+    else {
+        const auto &bg_color = thumbnail_params.background_color;
+        glsafe(::glClearColor(bg_color.x(), bg_color.y(), bg_color.z(), bg_color.w()));
+    }
+
+    glsafe(::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    if (ban_light) { glsafe(::glDisable(GL_BLEND)); }
+
+    const auto &view_matrix       = camera.get_view_matrix();
+    const auto &projection_matrix = camera.get_projection_matrix();
+    const auto &ogl_manager     = wxGetApp().get_opengl_manager();
+
+    std::vector<GLModel> glmodels;
+    if (visible_render_mesh_volumes.size() > 0) {
+        auto new_shader = ogl_manager->get_shader("thumbnail");
+        ogl_manager->bind_shader(new_shader);
+        new_shader->set_uniform("ban_light", ban_light);
+        new_shader->set_uniform("emission_factor", 0.1f);
+        for (GLVolume *vol : visible_render_mesh_volumes) {
+            new_shader->set_uniform("volume_world_matrix", vol->world_matrix());
+            const Transform3d matrix = view_matrix * vol->world_matrix();
+            new_shader->set_uniform("view_model_matrix", matrix);
+            new_shader->set_uniform("projection_matrix", projection_matrix);
+            new_shader->set_uniform("normal_matrix", (Matrix3d) matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+
+            if (vol->object_idx() >= 0 && vol->volume_idx() >= 0) {
+                int obj_idx   = vol->object_idx();
+                int vol_idx   = vol->volume_idx();
+                if (obj_idx < (int)model_objects.size()) {
+                    const ModelObject* mo = model_objects[obj_idx];
+                    if (vol_idx < (int)mo->volumes.size()) {
+                        ModelVolume* mv = mo->volumes[vol_idx];
+                        if(mv->get_origin_mesh_or_vertice_render() && mv->origin_render_info_ptr) {
+                            for (int i = 0; i < mv->origin_render_info_ptr->mesh_with_colors.size(); i++) {
+                                auto&    temp_pair = mv->origin_render_info_ptr->mesh_with_colors[i];
+                                GLModel temp_render_model;
+                                temp_render_model.init_from(temp_pair.first.its);
+                                std::array<float, 4> new_color = adjust_color_for_rendering(temp_pair.second);
+                                temp_render_model.set_color(ColorRGBA(new_color)); // shader->set_uniform("uniform_color", new_color);
+                                temp_render_model.render_geometry();
+                                glmodels.emplace_back(temp_render_model);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (visible_render_vertice_volumes.size() > 0) {
+        auto new_shader = ogl_manager->get_shader("thumbnailWithColor");
+        ogl_manager->bind_shader(new_shader);
+        new_shader->set_uniform("ban_light", ban_light);
+        new_shader->set_uniform("emission_factor", 0.1f);
+        for (GLVolume *vol : visible_render_vertice_volumes) {
+            new_shader->set_uniform("volume_world_matrix", vol->world_matrix());
+            const Transform3d matrix = view_matrix * vol->world_matrix();
+            new_shader->set_uniform("view_model_matrix", matrix);
+            new_shader->set_uniform("projection_matrix", projection_matrix);
+            new_shader->set_uniform("normal_matrix", (Matrix3d) matrix.matrix().block(0, 0, 3, 3).inverse().transpose());
+
+            if (vol->object_idx() >= 0 && vol->volume_idx() >= 0) {
+                int obj_idx = vol->object_idx();
+                int vol_idx = vol->volume_idx();
+                if (obj_idx < (int) model_objects.size()) {
+                    const ModelObject *mo = model_objects[obj_idx];
+                    if (vol_idx < (int) mo->volumes.size()) {
+                        ModelVolume *mv = mo->volumes[vol_idx];
+                        if (!mv->get_origin_mesh_or_vertice_render() && mv->origin_render_info_ptr) {
+                            auto &  temp_pair = mv->origin_render_info_ptr->vertices_with_colors;
+                            if (temp_pair.first.its.vertices.size() == temp_pair.second.size()) {
+                                GLModel temp_render_model;
+                                temp_render_model.init_from_its_and_color(temp_pair.first.its, temp_pair.second);
+                                temp_render_model.render_geometry_with_vertice_color();
+                                glmodels.emplace_back(temp_render_model);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    glsafe(::glDisable(GL_DEPTH_TEST));
+
     BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail: finished");
 }
 
