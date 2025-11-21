@@ -56,7 +56,7 @@ COPY ./ BambuStudio
 
 WORKDIR BambuStudio
 
-# These can run together, but we run them seperate for podman caching
+# These can run together, but we run them separate for podman caching
 # Update System dependencies
 RUN ./BuildLinux.sh -u ${BUILD_LINUX_EXTRA_ARGS}
 
