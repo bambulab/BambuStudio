@@ -89,6 +89,7 @@ class DevLamp;
 class DevNozzleSystem;
 class DevNozzleRack;
 class DeviceManager;
+class DevStatus;
 class DevStorage;
 class DevUpgrade;
 struct DevPrintTaskRatingInfo;
@@ -136,6 +137,9 @@ private:
 
     /*Upgrade*/
     std::shared_ptr<DevUpgrade> m_upgrade;
+
+    /*Status*/
+    DevStatus* m_status;
 
     /*HMS*/
     DevHMS* m_hms_system;
@@ -353,6 +357,7 @@ public:
     DevBed *        GetBed()    const { return m_bed; };
     DevStorage*     GetStorage()const { return m_storage; }
     DevCalib*       GetCalib()  const { return m_calib; }
+    DevStatus*      GetStatus() const { return m_status; }; /* status*/
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
     DevHMS*    GetHMS() const { return m_hms_system; }   /* hms*/
