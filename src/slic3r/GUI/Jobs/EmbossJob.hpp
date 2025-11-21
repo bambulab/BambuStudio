@@ -265,6 +265,9 @@ struct CreateTextInput
 {
     std::vector<TriangleMesh> m_chars_mesh_result;
     std::vector<float> m_text_cursors;
+    std::vector<float>        m_text_absolute_cursors;
+    std::vector<Vec2f>        m_text_align_offsets;
+    std::pair<int, int>       m_align_type;
     EmbossShape               m_text_shape;
     TextInfo                  text_info;
     DataBasePtr               base;
@@ -355,6 +358,9 @@ public:
         //Transform3d               m_object_cs_to_world_tran;
         std::vector<TriangleMesh> m_chars_mesh_result;
         std::vector<float>        m_text_cursors;
+        std::vector<float>        m_text_absolute_cursors;
+        std::vector<Vec2f>        m_text_align_offsets;
+        std::pair<int, int>       m_align_type;
         Vec3d                     m_text_position_in_world;
         Vec3f                     m_text_normal_in_world;
         float                     m_text_gap;
@@ -383,16 +389,22 @@ public:
     static bool update_text_positions(InputInfo &input_info);
     static bool generate_text_points(InputInfo &input_info);
     static Geometry::Transformation get_sub_mesh_tran(const Vec3d &position, const Vec3d &normal, const Vec3d &text_up_dir, float embeded_depth);
-    static void                     get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i, Geometry::Transformation& local_tran);
+    static void get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i, const Vec2f &mesh_offset, Geometry::Transformation &local_tran);
     static void                     get_text_mesh(TriangleMesh &            result_mesh,
                                                   EmbossShape &             text_shape,
                                                   BoundingBoxes &           line_bbs,
                                                   SurfaceVolumeData::ModelSources& input_ms_es,
                                                   DataBase &input_db,
                                                   int                       i,
+                                                  const Vec2f     & mesh_offset,
                                                   Geometry::Transformation &mv_tran,
                                                   Geometry::Transformation &local_tran_to_object_cs,
                                                   TriangleMesh &            slice_mesh);
+    static Vec2f                    calc_mesh_offset(const std::pair<int, int>&  align_type,
+                                                     const std::vector<float> & text_cursors,
+                                                     const std::vector<float> & text_absolute_cursors,
+                                                     const std::vector<Vec2f> & text_align_offsets,
+                                                     int                        i);
     static void generate_mesh_according_points(InputInfo& input_info);
     static std::vector<Vec3d>       debug_cut_points_in_world;
 
