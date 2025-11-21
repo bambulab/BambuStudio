@@ -1,7 +1,7 @@
 
 # Building Bambu Studio on MacOS
 
-## Enviroment setup
+## Environment setup
 
 Install Following tools:
 
