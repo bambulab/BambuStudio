@@ -534,6 +534,30 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     return mesh;
 }
 
+void TriangleMesh::extract_son_mesh(TriangleMesh &temp_mesh, int face_start, int face_end) const
+{
+    indexed_triangle_set temp_its;
+    if (face_end > face_start && face_end  < its.indices.size()) {
+        auto new_face_count = face_end - face_start + 1;
+        temp_its.vertices.reserve(new_face_count *3);
+        temp_its.indices.reserve(new_face_count);
+
+        for (int i = face_start; i <= face_end; i++) {
+            auto face = its.indices[i];
+            auto v0   = its.vertices[face[0]];
+            auto v1   = its.vertices[face[1]];
+            auto v2   = its.vertices[face[2]];
+            temp_its.vertices.emplace_back(v0);
+            temp_its.vertices.emplace_back(v1);
+            temp_its.vertices.emplace_back(v2);
+            auto  new_i = i - face_start;
+            Vec3i new_face(new_i * 3 + 0, new_i * 3 + 1, new_i * 3 + 2);
+            temp_its.indices.emplace_back(new_face);
+        }
+        temp_mesh.its =temp_its;
+    }
+}
+
 std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z) const
 {
     // convert doubles to floats

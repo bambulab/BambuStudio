@@ -1329,6 +1329,7 @@ int GLVolumeCollection::load_object_volume(
     GLVolume* new_volume = new GLVolume(color[0], color[1], color[2], color[3], false);
     this->volumes.emplace_back(new_volume);
     GLVolume& v = *new_volume;
+    v.set_origin_mesh_render_type(model_volume->get_origin_mesh_or_vertice_render());
     v.set_color(color_from_model_volume(*model_volume));
     v.name = model_volume->name;
     v.is_text_shape = model_volume->is_text();

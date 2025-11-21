@@ -41,6 +41,7 @@ std::pair<bool, std::string> GLShadersManager::init()
     valid &= append_shader("gouraud_light", { glsl_version_prefix + "gouraud_light.vs", glsl_version_prefix + "gouraud_light.fs" });
     //used to render thumbnail
     valid &= append_shader("thumbnail", { glsl_version_prefix + "thumbnail.vs", glsl_version_prefix + "thumbnail.fs" });
+    valid &= append_shader("thumbnailWithColor", {glsl_version_prefix + "thumbnailWithColor.vs", glsl_version_prefix + "thumbnailWithColor.fs"});
     // used to render first layer for calibration
     valid &= append_shader("flat", { glsl_version_prefix + "flat.vs", glsl_version_prefix + "flat.fs"});
     valid &= append_shader("flat_instance", { glsl_version_prefix + "flat_instance.vs", glsl_version_prefix + "flat.fs"});

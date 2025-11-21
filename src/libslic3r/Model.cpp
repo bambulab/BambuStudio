@@ -300,8 +300,10 @@ Model Model::read_from_file(const std::string&                                  
                 if (objFn) { // 1.result is ok and pop up a dialog
                     in_out.input_colors      = std::move(obj_info.face_colors);
                     in_out.mtl_colors        = std::move(obj_info.mtl_colors);
+                    in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
                     in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
                     in_out.is_single_color   = obj_info.is_single_mtl;
+                    in_out.usemtls           = obj_info.usemtls;
                     in_out.deal_vertex_color = false;
                     objFn(in_out);
                 }
