@@ -332,6 +332,8 @@ protected:
     Geometry::Transformation m_volume_transformation;
     // BBS
     Vec3d m_offset_to_assembly{ 0.0, 0.0, 0.0 };
+    // Origin mesh or vertice render flag//true mean mesh render//false mean vertice render
+    bool m_origin_mesh_or_vertice_render = true;
 
     // Shift in z required by sla supports+pad
     double        m_sla_shift_z;
@@ -608,6 +610,12 @@ public:
     bool                is_sinking() const;
     bool                is_below_printbed() const;
     void                render_sinking_contours(const GUI::Camera &camera,Model& model);
+
+    // Origin mesh or vertice render control
+    void set_origin_mesh_render_type(bool is_mesh){
+        m_origin_mesh_or_vertice_render = is_mesh;
+    }
+    bool get_origin_mesh_or_vertice_render() {return m_origin_mesh_or_vertice_render;}
 
     // Return an estimate of the memory consumed by this class.
     size_t 				cpu_memory_used() const {

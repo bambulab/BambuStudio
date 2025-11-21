@@ -868,12 +868,20 @@ struct TextInfo
     TextConfiguration text_configuration;
 };
 
+class OriginRenderInfo
+{
+    public:
+       std::vector<std::pair<TriangleMesh,RGBA>> mesh_with_colors;
+       std::pair<TriangleMesh, std::vector<RGBA>> vertices_with_colors;
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
 {
 public:
     std::string         name;
+    std::shared_ptr<OriginRenderInfo> origin_render_info_ptr{nullptr};
     // struct used by reload from disk command to recover data from disk
     struct Source
     {
@@ -1083,6 +1091,10 @@ public:
     bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
 
+    void set_origin_mesh_render_type(bool is_mesh){
+        m_origin_mesh_or_vertice_render = is_mesh;
+    }
+    bool get_origin_mesh_or_vertice_render()const {return m_origin_mesh_or_vertice_render;}
 protected:
 	friend class Print;
     friend class SLAPrint;
@@ -1114,6 +1126,8 @@ private:
     Geometry::Transformation        	m_transformation;
 
     TextInfo m_text_info;
+
+    bool       m_origin_mesh_or_vertice_render = true;//true mean mesh render//false mean vertice render
     // Is set only when volume is Embossed Text type
     // Contain information how to re-create volume
     //std::optional<TextConfiguration> text_configuration;

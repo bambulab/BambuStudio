@@ -135,6 +135,7 @@ public:
     Vec3d center() const { return this->bounding_box().center(); }
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
+    void         extract_son_mesh(TriangleMesh& temp_mesh,int face_start, int face_end) const;
     // Slice this mesh at the provided Z levels and return the vector
     std::vector<ExPolygons> slice(const std::vector<double>& z) const;
     size_t facets_count() const { assert(m_stats.number_of_facets == this->its.indices.size()); return m_stats.number_of_facets; }
