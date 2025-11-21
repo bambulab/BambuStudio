@@ -189,6 +189,9 @@ struct EmbossShape
     std::optional<SvgFile> svg_file;
     std::vector<float> text_scales;
     std::vector<float> text_cursors;
+    std::vector<float>     text_absolute_cursors;
+    std::vector<Vec2f>     text_align_offsets;
+    std::pair<int, int>    align_type;
     // undo / redo stack recovery
     template<class Archive> void save(Archive &ar) const
     {

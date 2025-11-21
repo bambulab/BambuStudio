@@ -26,8 +26,9 @@ enum class SLAGizmoEventType : unsigned char;
 //2.0 mean v2.2 bambu version(202507)
 //2.2 mean v2.2 bambu version(20250815) fix char gap of text
 // 2.3 mean v2.3 bambu version(20250826) add custom boldness and skew
+//2.5 mean v2.3 bambu version(20251130) fix text more accurate layout
 const std::string NEW_FONT_BEGIN_VERSION  = "2.0";
-const std::string CUR_FONT_VERSION        = "2.3";
+const std::string CUR_FONT_VERSION        = "2.5";
 class GLGizmoText : public GLGizmoBase
 {
 private:

@@ -1396,7 +1396,11 @@ void GenerateTextJob::process(Ctl &ctl)
     auto canceled = was_canceled(ctl, *m_input.m_data_update.base);
     if (canceled)
         return;
-    create_all_char_mesh(*m_input.m_data_update.base, m_input.m_chars_mesh_result, m_input.m_text_cursors,m_input.m_text_shape);
+    create_all_char_mesh(*m_input.m_data_update.base, m_input.m_chars_mesh_result, m_input.m_text_cursors, m_input.m_text_shape);
+    m_input.m_text_absolute_cursors = m_input.m_text_shape.text_absolute_cursors;
+    m_input.m_text_align_offsets    = m_input.m_text_shape.text_align_offsets;
+    m_input.m_align_type = m_input.m_text_shape.align_type;
+
     if (m_input.m_chars_mesh_result.empty()) {
         return;
     }
@@ -1606,7 +1610,8 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
             int    left_num    = text_num / 2;
             while (left_num > 0) {
                 double gap_length = (text_lengths[left_num] + m_text_gap + text_lengths[left_num - 1]);
-                if (gap_length < 0) gap_length = 0;
+                if (gap_length < 0)
+                    gap_length = 0;
 
                 while (gap_length > left_length) {
                     gap_length -= left_length;
@@ -1639,7 +1644,8 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
             int    right_num    = text_num / 2;
             while (right_num > 0) {
                 double gap_length = (text_lengths[text_num - right_num] + m_text_gap + text_lengths[text_num - right_num - 1]);
-                if (gap_length < 0) gap_length = 0;
+                if (gap_length < 0)
+                    gap_length = 0;
 
                 while (gap_length > right_length) {
                     gap_length -= right_length;
@@ -1832,7 +1838,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     return local_tran;
 }
 
-void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i,  Geometry::Transformation &local_tran)
+void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<TriangleMesh> &chars_mesh, int i, const Vec2f &mesh_offset, Geometry::Transformation &local_tran)
 {
     if (chars_mesh.size() == 0) {
         BOOST_LOG_TRIVIAL(info) << boost::format("check error:get_text_mesh");
@@ -1842,7 +1848,7 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &result_mesh, std::vector<Trian
     }
     TriangleMesh mesh = chars_mesh[i]; // m_cur_font_name
     auto         box  = mesh.bounding_box();
-    mesh.translate(-box.center().x(), 0, 0);
+    mesh.translate(mesh_offset[0], mesh_offset[1], 0);
 
     mesh.transform(local_tran.get_matrix());
     result_mesh = mesh; // mesh in object cs
@@ -1854,19 +1860,21 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &            result_mesh,
                                     SurfaceVolumeData::ModelSources &input_ms_es,
                                     DataBase &                       input_db,
                                     int                       i,
+                                    const Vec2f &             mesh_offset,
                                     Geometry::Transformation &mv_tran,
                                     Geometry::Transformation &local_tran_to_object_cs,
                                     TriangleMesh &            slice_mesh)
 {
+    float              text_scale  = input_db.shape.scale;
     ExPolygons glyph_shape = text_shape.shapes_with_ids[i].expoly;
     const BoundingBox &glyph_bb    = line_bbs[i];
-    Point              offset(-glyph_bb.center().x(), 0);
+    Point   offset(mesh_offset[0] / text_scale, mesh_offset[1] / text_scale);
     for (ExPolygon &s : glyph_shape) {
         s.translate(offset);
     }
     auto                 modify    = local_tran_to_object_cs.get_matrix();
     Transform3d          tr        = mv_tran.get_matrix() * modify;
-    float                text_scale = input_db.shape.scale;
+
     if (i < text_shape.text_scales.size() && text_shape.text_scales[i] > 0) {
         text_scale = text_shape.text_scales[i];
     }
@@ -1882,7 +1890,23 @@ void GenerateTextJob::get_text_mesh(TriangleMesh &            result_mesh,
     result_mesh = TriangleMesh(glyph_its);
 }
 
-void GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
+Vec2f GenerateTextJob::calc_mesh_offset(const std::pair<int, int> &align_type,
+                                        const std::vector<float> & text_cursors,
+                                        const std::vector<float> &text_absolute_cursors,
+                                        const std::vector<Vec2f> &text_align_offsets,
+                                        int                       i)
+{
+    Vec2f mesh_offset(Vec2f::Zero());
+    if (i < text_absolute_cursors.size()) {
+        if (align_type.first == (int) Slic3r::FontProp::HorizontalAlign::center) {
+            mesh_offset[0] = -text_absolute_cursors[i] - text_align_offsets[0][0] + text_cursors[i] / 2.f;
+        } // else todo
+    }
+    return mesh_offset;
+}
+
+
+void  GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
 {
     auto &m_position_points        = input_info.m_position_points;
     auto &m_normal_points          = input_info.m_normal_points;
@@ -1927,11 +1951,12 @@ void GenerateTextJob::generate_mesh_according_points(InputInfo &input_info)
         auto         normal        = m_normal_points[i];
         TriangleMesh sub_mesh;
         auto         local_tran = get_sub_mesh_tran(position, normal, cut_plane_dir, m_embeded_depth);
+        Vec2f mesh_offset = calc_mesh_offset(input_info.m_align_type, input_info.m_text_cursors, input_info.m_text_absolute_cursors, input_info.m_text_align_offsets, i);
         if (input_info.use_surface) {
-            get_text_mesh(sub_mesh, input_info.m_text_shape, bbs[line_idx], ms_es, input_db, i, text_tran_in_object, local_tran, input_info.slice_mesh);
+            get_text_mesh(sub_mesh, input_info.m_text_shape, bbs[line_idx], ms_es, input_db, i, mesh_offset, text_tran_in_object, local_tran, input_info.slice_mesh);
         }
         else {
-            get_text_mesh(sub_mesh, m_chars_mesh_result, i, local_tran);
+            get_text_mesh(sub_mesh, m_chars_mesh_result, i, mesh_offset, local_tran);
         }
         mesh.merge(sub_mesh);
     }
@@ -1946,6 +1971,10 @@ CreateObjectTextJob::CreateObjectTextJob(CreateTextInput &&input) : m_input(std:
 
 void CreateObjectTextJob::process(Ctl &ctl) {
     create_all_char_mesh(*m_input.base, m_input.m_chars_mesh_result, m_input.m_text_cursors, m_input.m_text_shape);
+    m_input.m_text_absolute_cursors = m_input.m_text_shape.text_absolute_cursors;
+    m_input.m_text_align_offsets    = m_input.m_text_shape.text_align_offsets;
+    m_input.m_align_type            = m_input.m_text_shape.align_type;
+
     if (m_input.m_chars_mesh_result.empty()) {
         return;
     }
@@ -1964,7 +1993,8 @@ void CreateObjectTextJob::finalize(bool canceled, std::exception_ptr &eptr) {
         TriangleMesh sub_mesh;
         auto         position   = m_input.m_position_points[i];
         auto         local_tran = GenerateTextJob::get_sub_mesh_tran(position, Vec3d::UnitZ(), Vec3d(0, 1, 0), m_input.text_info.m_embeded_depth);
-        GenerateTextJob::get_text_mesh(sub_mesh, m_input.m_chars_mesh_result, i, local_tran);
+        Vec2f        mesh_offset = GenerateTextJob::calc_mesh_offset(m_input.m_align_type, m_input.m_text_cursors, m_input.m_text_absolute_cursors, m_input.m_text_align_offsets, i);
+        GenerateTextJob::get_text_mesh(sub_mesh, m_input.m_chars_mesh_result, i, mesh_offset, local_tran);
         final_mesh.merge(sub_mesh);
     }
 
