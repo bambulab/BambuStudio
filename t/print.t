@@ -59,7 +59,7 @@ use Slic3r::Test;
     $print->apply($model2, $config);
 
     is $print->print->regions->[0]->config->infill_extruder, 3, 'extruder setting is correctly expanded';
-    is $print->print->regions->[0]->config->perimeter_extruder, 2, 'extruder setting does not override explicitely specified extruders';
+    is $print->print->regions->[0]->config->perimeter_extruder, 2, 'extruder setting does not override explicitly specified extruders';
 }
 
 __END__
