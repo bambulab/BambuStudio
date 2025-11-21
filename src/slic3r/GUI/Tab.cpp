@@ -5701,8 +5701,29 @@ bool Tab::select_preset(
         if (current_dirty)
             m_presets->discard_current_changes();
 
-        const bool is_selected = m_presets->select_preset_by_name(preset_name, false) || delete_current;
+        const bool is_selected = m_presets->select_preset_by_name(preset_name, false, true) || delete_current;
         assert(m_presets->get_edited_preset().name == preset_name || ! is_selected);
+        if (is_selected && m_type == Preset::TYPE_PRINTER) {
+            Preset* selected_preset = m_presets->find_preset(preset_name, false);
+            if (selected_preset && selected_preset->vendor) {
+                const std::string &model = selected_preset->config.opt_string("printer_model");
+                const std::string &variant = selected_preset->config.opt_string("printer_variant");
+                if (!model.empty() && !variant.empty()) {
+                    wxGetApp().app_config->set_variant(selected_preset->vendor->id, model, variant, true);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": updated AppConfig for %1% %2% %3%") % selected_preset->vendor->id % model % variant;
+                    for (auto& preset : m_presets->get_presets()) {
+                        if (preset.name == selected_preset->name) continue;
+                        if (!preset.vendor || preset.vendor->id != selected_preset->vendor->id) continue;
+                        const std::string &p_model = preset.config.opt_string("printer_model");
+                        if (p_model != model) continue;
+                        const std::string &p_variant = preset.config.opt_string("printer_variant");
+                        if (p_variant.empty()) continue;
+                        wxGetApp().app_config->set_variant(preset.vendor->id, p_model, p_variant, true);
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": updated AppConfig for %1% %2% %3%") % selected_preset->vendor->id % model % variant;
+                    }
+                }
+            }
+        }
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
         // if they are compatible with the current printer.

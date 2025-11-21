@@ -3066,7 +3066,7 @@ Preset& PresetCollection::select_preset(size_t idx)
     return m_presets[idx];
 }
 
-bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, bool force)
+bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, bool force, bool select_invisible)
 {
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1%, try to select by name %2%, force %3%")%Preset::get_type_string(m_type) %name_w_suffix %force;
@@ -3074,9 +3074,14 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
     // 1) Try to find the preset by its name.
     auto it = this->find_preset_internal(name);
     size_t idx = 0;
-    if (it != m_presets.end() && it->name == name && it->is_visible)
+    if (it != m_presets.end() && it->name == name && (it->is_visible || select_invisible)) {
         // Preset found by its name and it is visible.
         idx = it - m_presets.begin();
+        if (select_invisible && !it->is_visible) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1%, set %2% to visible") % Preset::get_type_string(m_type) % name_w_suffix;
+            it->is_visible = true;
+        }
+    }
     else {
         // Find the first visible preset.
         for (size_t i = m_default_suppressed ? m_num_default_presets : 0; i < m_presets.size(); ++ i)
