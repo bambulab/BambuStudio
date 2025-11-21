@@ -17,7 +17,7 @@
 # To build dependencies for either 64 or 32 bit OS, use the respective compiler command line.
 #
 # WARNING: On UNIX platforms wxWidgets hardcode the destdir path into its `wx-conffig` utility,
-# therefore, unfortunatelly, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
+# therefore, unfortunately, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
 project(BambuStudio-deps)
@@ -78,7 +78,7 @@ endif ()
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
 message(STATUS "BambuStudio deps DESTDIR: ${DESTDIR}")
-message(STATUS "BambuStudio dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
+message(STATUS "BambuStudio download dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "BambuStudio deps debug build: ${DEP_DEBUG}")
 
 find_package(Git REQUIRED)
