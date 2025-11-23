@@ -8,6 +8,7 @@
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevPrintOptions.h"
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
@@ -57,7 +58,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             int         level = ai_monitoring_level_list->GetSelection();
             std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
             if (!lvl.empty())
-                obj->command_xcam_control_ai_monitoring(m_cb_ai_monitoring->GetValue(), lvl);
+                obj->GetPrintOptions()->command_xcam_control_ai_monitoring(m_cb_ai_monitoring->GetValue(), lvl);
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
@@ -71,7 +72,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             int         level = spaghetti_detection_level_list->GetSelection();
             std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
             if (!lvl.empty())
-                obj->command_xcam_control_spaghetti_detection(m_cb_spaghetti_detection->GetValue(), lvl);
+                obj->GetPrintOptions()->command_xcam_control_spaghetti_detection(m_cb_spaghetti_detection->GetValue(), lvl);
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
@@ -84,7 +85,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
             int         level = purgechutepileup_detection_level_list->GetSelection();
             std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
             if (!lvl.empty())
-                obj->command_xcam_control_purgechutepileup_detection(m_cb_purgechutepileup_detection->GetValue(), lvl);
+                obj->GetPrintOptions()->command_xcam_control_purgechutepileup_detection(m_cb_purgechutepileup_detection->GetValue(), lvl);
             else
                 BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
         }
@@ -97,7 +98,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
                int         level = nozzleclumping_detection_level_list->GetSelection();
                std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
                if (!lvl.empty())
-                   obj->command_xcam_control_nozzleclumping_detection(m_cb_nozzleclumping_detection->GetValue(), lvl);
+                   obj->GetPrintOptions()->command_xcam_control_nozzleclumping_detection(m_cb_nozzleclumping_detection->GetValue(), lvl);
                else
                    BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
            }
@@ -109,7 +110,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
                int         level = airprinting_detection_level_list->GetSelection();
                std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
                if (!lvl.empty())
-                   obj->command_xcam_control_airprinting_detection(m_cb_airprinting_detection->GetValue(), lvl);
+                   obj->GetPrintOptions()->command_xcam_control_airprinting_detection(m_cb_airprinting_detection->GetValue(), lvl);
                else
                    BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
            }
@@ -120,14 +121,14 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
 
     m_cb_first_layer->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_first_layer_inspector(m_cb_first_layer->GetValue(), false);
+            obj->GetPrintOptions()->command_xcam_control_first_layer_inspector(m_cb_first_layer->GetValue(), false);
         }
         evt.Skip();
     });
 
     m_cb_auto_recovery->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_auto_recovery_step_loss(m_cb_auto_recovery->GetValue());
+            obj->GetPrintOptions()->command_xcam_control_auto_recovery_step_loss(m_cb_auto_recovery->GetValue());
         }
         evt.Skip();
     });
@@ -140,32 +141,32 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
 
     m_cb_plate_mark->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_buildplate_marker_detector(m_cb_plate_mark->GetValue());
+            obj->GetPrintOptions()->command_xcam_control_buildplate_marker_detector(m_cb_plate_mark->GetValue());
         }
         evt.Skip();
     });
     m_cb_plate_type->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_build_plate_type_detector(m_cb_plate_type->GetValue());
+            obj->GetPrintOptions()->command_xcam_control_build_plate_type_detector(m_cb_plate_type->GetValue());
         }
         evt.Skip();
     });
     m_cb_plate_align->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_build_plate_align_detector(m_cb_plate_align->GetValue());
+            obj->GetPrintOptions()->command_xcam_control_build_plate_align_detector(m_cb_plate_align->GetValue());
         }
         evt.Skip();
     });
 
     m_cb_sup_sound->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_allow_prompt_sound(m_cb_sup_sound->GetValue());
+            obj->GetPrintOptions()->command_xcam_control_allow_prompt_sound(m_cb_sup_sound->GetValue());
         }
         evt.Skip();
     });
     m_cb_filament_tangle->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_xcam_control_filament_tangle_detect(m_cb_filament_tangle->GetValue());
+            obj->GetPrintOptions()->command_xcam_control_filament_tangle_detect(m_cb_filament_tangle->GetValue());
         }
         evt.Skip();
     });
@@ -268,7 +269,10 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
 {
     if (!obj_) return;
 
-    if (obj_->is_support_spaghetti_detection || obj_->is_support_purgechutepileup_detection || obj_->is_support_nozzleclumping_detection || obj_->is_support_airprinting_detection) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).is_support_detect) {
         ai_refine_panel->Show();
         text_ai_detections->Show();
         text_ai_detections_caption->Show();
@@ -280,7 +284,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_line->Hide();
     }
 
-    if (obj_->GetConfig()->SupportAIMonitor() && !obj_->xcam_disable_ai_detection_display) {
+    if (obj_->GetConfig()->SupportAIMonitor() && !obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring).is_support_detect) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
         text_ai_monitoring_caption->Show();
@@ -297,7 +301,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
    //refine printer function options
-    if (obj_->is_support_spaghetti_detection) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).is_support_detect) {
         text_spaghetti_detection->Show();
         m_cb_spaghetti_detection->Show();
         text_spaghetti_detection_caption0->Show();
@@ -316,8 +320,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         //line1->Hide();
     }
 
-
-    if (obj_->is_support_purgechutepileup_detection) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).is_support_detect) {
         text_purgechutepileup_detection->Show();
         m_cb_purgechutepileup_detection->Show();
         text_purgechutepileup_detection_caption0->Show();
@@ -335,8 +338,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
        // line1->Hide();
     }
 
-
-    if (obj_->is_support_nozzleclumping_detection) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).is_support_detect) {
         text_nozzleclumping_detection->Show();
         m_cb_nozzleclumping_detection->Show();
         text_nozzleclumping_detection_caption0->Show();
@@ -355,7 +357,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
        // line1->Hide();
     }
 
-    if (obj_->is_support_airprinting_detection) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).is_support_detect) {
         text_airprinting_detection->Show();
         m_cb_airprinting_detection->Show();
         text_airprinting_detection_caption0->Show();
@@ -373,28 +375,32 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         airprinting_bottom_space->Show(false);
     }
 
-    if (obj_->is_support_build_plate_type_detect || obj_->is_support_build_plate_align_detect){
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect)
+    {
         text_plate_build->Show();
         text_plate_build_caption->Show();
 
-        m_cb_plate_type->Show(obj_->is_support_build_plate_type_detect);
-        text_plate_type->Show(obj_->is_support_build_plate_type_detect);
-        text_plate_type_caption->Show(obj_->is_support_build_plate_type_detect);
+        m_cb_plate_type->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect);
+        text_plate_type->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect);
+        text_plate_type_caption->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect);
 
-        m_cb_plate_align->Show(obj_->is_support_build_plate_align_detect);
-        text_plate_align->Show(obj_->is_support_build_plate_align_detect);
-        text_plate_align_caption->Show(obj_->is_support_build_plate_align_detect);
+        m_cb_plate_align->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect);
+        text_plate_align->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect);
+        text_plate_align_caption->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect);
 
         text_plate_mark->Hide();
         m_cb_plate_mark->Hide();
         text_plate_mark_caption->Hide();
     }
-    else if (obj_->is_support_build_plate_marker_detect) {
-        if (obj_->m_plate_maker_detect_type == MachineObject::POS_CHECK && (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
+    else if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection).is_support_detect)
+    {
+        if (obj_->GetPrintOptions()->GetPlateMakerDectectType() == DevPrintOptions::POS_CHECK &&
+            (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
             text_plate_mark->SetLabel(_L("Enable detection of build plate position"));
             text_plate_mark_caption->SetLabel(_L("The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."));
             text_plate_mark_caption->Wrap(FromDIP(400));
-        } else if (obj_->m_plate_maker_detect_type == MachineObject::TYPE_POS_CHECK && (text_plate_mark->GetLabel() != _L("Build Plate Detection"))) {
+        } else if (obj_->GetPrintOptions()->GetPlateMakerDectectType() == DevPrintOptions::TYPE_POS_CHECK && (text_plate_mark->GetLabel() != _L("Build Plate Detection"))) {
             text_plate_mark->SetLabel(_L("Build Plate Detection"));
             text_plate_mark_caption->SetLabel(_L("Identifies the type and position of the build plate on the heatbed. Pausing printing if a mismatch is detected."));
             text_plate_mark_caption->Wrap(FromDIP(400));
@@ -446,17 +452,20 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line3->Hide();
     }
 
-    if (obj_->is_support_auto_recovery_step_loss) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection).is_support_detect)
+    {
         text_auto_recovery->Show();
         m_cb_auto_recovery->Show();
         //line4->Show();
     }
-    else {
+    else
+    {
         text_auto_recovery->Hide();
         m_cb_auto_recovery->Hide();
         line4->Hide();
     }
-    if (obj_->is_support_prompt_sound) {
+
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection).is_support_detect) {
         text_sup_sound->Show();
         m_cb_sup_sound->Show();
       //  line5->Show();
@@ -466,7 +475,8 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_sup_sound->Hide();
         line5->Hide();
     }
-    if (obj_->is_support_filament_tangle_detect) {
+
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection).is_support_detect) {
         text_filament_tangle->Show();
         m_cb_filament_tangle->Show();
        // line6->Show();
@@ -476,6 +486,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_cb_filament_tangle->Hide();
         line6->Hide();
     }
+
     if (false/*obj_->is_support_nozzle_blob_detection*/) {
         text_nozzle_blob->Show();
         m_cb_nozzle_blob->Show();
@@ -493,53 +504,52 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     UpdateOptionOpenDoorCheck(obj_);
 
     this->Freeze();
-
-    m_cb_first_layer->SetValue(obj_->xcam_first_layer_inspector);
-    m_cb_plate_mark->SetValue(obj_->xcam_buildplate_marker_detector);
-    m_cb_auto_recovery->SetValue(obj_->xcam_auto_recovery_step_loss);
-    m_cb_sup_sound->SetValue(obj_->xcam_allow_prompt_sound);
-    m_cb_filament_tangle->SetValue(obj_->xcam_filament_tangle_detect);
+    m_cb_first_layer->SetValue( obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::First_Layer_Detection).current_detect_value);
+    m_cb_plate_mark->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection).current_detect_value);
+    m_cb_auto_recovery->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection).current_detect_value);
+    m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection).current_detect_value);
+    m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection).current_detect_value);
     m_cb_nozzle_blob->SetValue(obj_->nozzle_blob_detection_enabled);
-    m_cb_plate_type->SetValue(obj_->xcam_build_plate_type_detect.GetValue());
-    m_cb_plate_align->SetValue(obj_->xcam_build_plate_align_detect.GetValue());
+    m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).current_detect_value);
+    m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).current_detect_value);
 
 
-    m_cb_ai_monitoring->SetValue(obj_->xcam_ai_monitoring);
+    m_cb_ai_monitoring->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring).current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->xcam_ai_monitoring_sensitivity) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring).current_detect_sensitivity_value) {
             ai_monitoring_level_list->SetSelection((int) i);
             break;
         }
     }
     //refine printer function options
-    m_cb_spaghetti_detection->SetValue(obj_->xcam_spaghetti_detection);
+    m_cb_spaghetti_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->xcam_spaghetti_detection_sensitivity) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).current_detect_sensitivity_value) {
             spaghetti_detection_level_list->SetSelection((int) i);
             break;
         }
     }
 
-    m_cb_purgechutepileup_detection->SetValue(obj_->xcam_purgechutepileup_detection);
+    m_cb_purgechutepileup_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-         if (sensitivity_level_to_msg_string(i) == obj_->xcam_purgechutepileup_detection_sensitivity) {
+         if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).current_detect_sensitivity_value) {
             purgechutepileup_detection_level_list->SetSelection((int) i);
             break;
         }
     }
 
-    m_cb_nozzleclumping_detection->SetValue(obj_->xcam_nozzleclumping_detection);
+    m_cb_nozzleclumping_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->xcam_nozzleclumping_detection_sensitivity) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).current_detect_sensitivity_value) {
             nozzleclumping_detection_level_list->SetSelection((int) i);
             break;
         }
     }
 
 
-    m_cb_airprinting_detection->SetValue(obj_->xcam_airprinting_detection);
+    m_cb_airprinting_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->xcam_airprinting_detection_sensitivity) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).current_detect_sensitivity_value) {
             airprinting_detection_level_list->SetSelection((int) i);
             break;
         }
@@ -1122,7 +1132,7 @@ void PrintOptionsDialog::set_ai_monitor_sensitivity(wxCommandEvent &evt)
     std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
 
     if (obj && !lvl.empty()) {
-        obj->command_xcam_control_ai_monitoring(m_cb_ai_monitoring->GetValue(), lvl);
+        obj->GetPrintOptions()->command_xcam_control_ai_monitoring(m_cb_ai_monitoring->GetValue(), lvl);
     } else {
         BOOST_LOG_TRIVIAL(warning) << "print_option: obj is null or lvl = " << lvl;
     }
@@ -1135,7 +1145,7 @@ void PrintOptionsDialog::set_spaghetti_detection_sensitivity(wxCommandEvent &evt
     std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
 
     if (obj && !lvl.empty()) {
-        obj->command_xcam_control_spaghetti_detection(m_cb_spaghetti_detection->GetValue(), lvl);
+        obj->GetPrintOptions()->command_xcam_control_spaghetti_detection(m_cb_spaghetti_detection->GetValue(), lvl);
     } else {
         BOOST_LOG_TRIVIAL(warning) << "print_option: obj is null or lvl = " << lvl;
     }
@@ -1147,7 +1157,7 @@ void PrintOptionsDialog::set_purgechutepileup_detection_sensitivity(wxCommandEve
     std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
 
     if (obj && !lvl.empty()) {
-        obj->command_xcam_control_purgechutepileup_detection(m_cb_purgechutepileup_detection->GetValue(), lvl);
+        obj->GetPrintOptions()->command_xcam_control_purgechutepileup_detection(m_cb_purgechutepileup_detection->GetValue(), lvl);
     } else {
         BOOST_LOG_TRIVIAL(warning) << "print_option: obj is null or lvl = " << lvl;
     }
@@ -1159,7 +1169,7 @@ void PrintOptionsDialog::set_nozzleclumping_detection_sensitivity(wxCommandEvent
     std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
 
     if (obj && !lvl.empty()) {
-        obj->command_xcam_control_nozzleclumping_detection(m_cb_nozzleclumping_detection->GetValue(), lvl);
+        obj->GetPrintOptions()->command_xcam_control_nozzleclumping_detection(m_cb_nozzleclumping_detection->GetValue(), lvl);
     } else {
         BOOST_LOG_TRIVIAL(warning) << "print_option: obj is null or lvl = " << lvl;
     }
@@ -1171,7 +1181,7 @@ void PrintOptionsDialog::set_airprinting_detection_sensitivity(wxCommandEvent &e
     std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
 
     if (obj && !lvl.empty()) {
-        obj->command_xcam_control_airprinting_detection(m_cb_airprinting_detection->GetValue(), lvl);
+        obj->GetPrintOptions()->command_xcam_control_airprinting_detection(m_cb_airprinting_detection->GetValue(), lvl);
     } else {
         BOOST_LOG_TRIVIAL(warning) << "print_option: obj is null or lvl = " << lvl;
     }
