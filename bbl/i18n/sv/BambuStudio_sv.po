@@ -6365,8 +6365,8 @@ msgstr "Spara skickade filer på extern lagring"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Spara utskrifts filerna som initierats från Bambu Studio, Bambu Handy och MakerWorld på extern lagring"
 
-msgid "Allow Prompt Sound"
-msgstr "Tillåt Prompt Ljud"
+msgid "Enable notification sounds"
+msgstr "Aktivera aviseringsljud"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"

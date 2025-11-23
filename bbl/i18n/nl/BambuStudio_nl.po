@@ -6368,8 +6368,8 @@ msgstr "Verzonden bestanden opslaan op externe opslag"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Sla de afdrukbestanden op die gestart zijn vanuit Bambu Studio, Bambu Handy en MakerWorld op een extern opslagmedium"
 
-msgid "Allow Prompt Sound"
-msgstr "Promptgeluid toestaan"
+msgid "Enable notification sounds"
+msgstr "Meldingsgeluiden inschakelen"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
