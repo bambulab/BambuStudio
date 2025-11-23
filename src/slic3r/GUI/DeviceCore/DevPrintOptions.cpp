@@ -3,162 +3,282 @@
 
 #include "slic3r/GUI/DeviceManager.hpp"
 
-namespace Slic3r
-{
+namespace Slic3r {
 
-void DevPrintOptionsParser::Parse(DevPrintOptions* opts, const nlohmann::json& print_json)
-{
-    try
-    {
-        if (print_json.contains("spd_lvl"))
-        {
-            opts->m_speed_level = static_cast<DevPrintingSpeedLevel>(print_json["spd_lvl"].get<int>());
-        }
-
-        if (print_json.contains("cfg"))
-        {
-            const std::string& cfg = print_json["cfg"].get<std::string>();
-            opts->m_speed_level = (DevPrintingSpeedLevel)DevUtil::get_flag_bits(cfg, 8, 3);
-        }
-    }
-    catch (const std::exception& e)
-    {
-        BOOST_LOG_TRIVIAL(error) << "DevPrintOptionsParser::Parse: Failed to parse print options from JSON." << e.what();
-    }
-}
-
-void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, MachineObject *obj, const nlohmann::json &print_json)
+void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nlohmann::json &print_json)
 {
     try {
+        if (print_json.contains("home_flag")) {
+            {
+                int flag = print_json["home_flag"].get<int>();
+                if (time(nullptr) - opts->m_auto_recovery_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                    opts->m_auto_recovery_detection.current_detect_value = ((flag >> 4) & 0x1) != 0;
+                }
+
+                if (time(nullptr) - opts->m_allow_prompt_sound_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                    opts->m_allow_prompt_sound_detection.current_detect_value = ((flag >> 17) & 0x1) != 0;
+                }
+
+                if (time(nullptr) - opts->m_filament_tangle_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                    opts->m_filament_tangle_detection.current_detect_value = ((flag >> 20) & 0x1) != 0;
+                }
+
+                 opts->m_allow_prompt_sound_detection.is_support_detect = ((flag >> 18) & 0x1) != 0;
+                opts->m_filament_tangle_detection.is_support_detect    = ((flag >> 19) & 0x1) != 0;
+
+            }
+        }
+
+        if (print_json.contains("spd_lvl")) { opts->m_speed_level = static_cast<DevPrintingSpeedLevel>(print_json["spd_lvl"].get<int>()); }
+
         if (print_json.contains("xcam")) {
-            if (time(nullptr) - opts->xcam_ai_monitoring_hold_start > HOLD_TIME_3SEC) {
-                if (print_json["xcam"].contains("printing_monitor")) {
+            if (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                if (print_json["xcam"].contains("cfg")) {
+                    opts->m_ai_monitoring_detection.is_support_detect = true;
+
+                    int cfg                                          = print_json["xcam"]["cfg"].get<int>();
+                    opts->m_spaghetti_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 7);
+                    switch (DevUtil::get_flag_bits(cfg, 8, 2)) {
+                    case 0: opts->m_spaghetti_detection.current_detect_sensitivity_value = "low"; break;
+                    case 1: opts->m_spaghetti_detection.current_detect_sensitivity_value = "medium"; break;
+                    case 2: opts->m_spaghetti_detection.current_detect_sensitivity_value = "high"; break;
+                    default: break;
+                    }
+
+                    opts->m_purgechutepileup_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 10);
+                    switch (DevUtil::get_flag_bits(cfg, 11, 2)) {
+                    case 0: opts->m_purgechutepileup_detection.current_detect_sensitivity_value = "low"; break;
+                    case 1: opts->m_purgechutepileup_detection.current_detect_sensitivity_value = "medium"; break;
+                    case 2: opts->m_purgechutepileup_detection.current_detect_sensitivity_value = "high"; break;
+                    default: break;
+                    }
+
+                    opts->m_nozzleclumping_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 13);
+                    switch (DevUtil::get_flag_bits(cfg, 14, 2)) {
+                    case 0: opts->m_nozzleclumping_detection.current_detect_sensitivity_value = "low"; break;
+                    case 1: opts->m_nozzleclumping_detection.current_detect_sensitivity_value = "medium"; break;
+                    case 2: opts->m_nozzleclumping_detection.current_detect_sensitivity_value = "high"; break;
+                    default: break;
+                    }
+
+                    opts->m_airprinting_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 16);
+                    switch (DevUtil::get_flag_bits(cfg, 17, 2)) {
+                    case 0: opts->m_airprinting_detection.current_detect_sensitivity_value = "low"; break;
+                    case 1: opts->m_airprinting_detection.current_detect_sensitivity_value = "medium"; break;
+                    case 2: opts->m_airprinting_detection.current_detect_sensitivity_value = "high"; break;
+                    default: break;
+                    }
+
+                    opts->m_buildplate_type_detection.is_support_detect     = true;
+                    opts->m_buildplate_align_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 20);
+                } else if (print_json["xcam"].contains("printing_monitor")) {
                     // new protocol
-                    opts->xcam_ai_monitoring = print_json["xcam"]["printing_monitor"].get<bool>();
+                    opts->m_ai_monitoring_detection.current_detect_value = print_json["xcam"]["printing_monitor"].get<bool>();
                 } else {
                     // old version protocol
                     if (print_json["xcam"].contains("spaghetti_detector")) {
-                        opts->xcam_ai_monitoring = print_json["xcam"]["spaghetti_detector"].get<bool>();
+                        opts->m_ai_monitoring_detection.current_detect_value = print_json["xcam"]["spaghetti_detector"].get<bool>();
                         if (print_json["xcam"].contains("print_halt")) {
                             bool print_halt = print_json["xcam"]["print_halt"].get<bool>();
-                            if (print_halt) { opts->xcam_ai_monitoring_sensitivity = "medium"; }
+                            if (print_halt) { opts->m_ai_monitoring_detection.current_detect_sensitivity_value = "medium"; }
                         }
                     }
                 }
+
                 if (print_json["xcam"].contains("halt_print_sensitivity")) {
-                    opts->xcam_ai_monitoring_sensitivity = print_json["xcam"]["halt_print_sensitivity"].get<std::string>();
+                    opts->m_ai_monitoring_detection.current_detect_sensitivity_value = print_json["xcam"]["halt_print_sensitivity"].get<std::string>();
                 }
             }
 
-            if (time(nullptr) - opts->xcam_first_layer_hold_start > HOLD_TIME_3SEC) {
-                if (print_json["xcam"].contains("first_layer_inspector")) { opts->xcam_first_layer_inspector = print_json["xcam"]["first_layer_inspector"].get<bool>(); }
+            if (time(nullptr) - opts->m_first_layer_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                if (print_json["xcam"].contains("first_layer_inspector")) {
+                    opts->m_first_layer_detection.current_detect_value = print_json["xcam"]["first_layer_inspector"].get<bool>();
+                }
             }
 
-            if (time(nullptr) - opts->xcam_buildplate_marker_hold_start > HOLD_TIME_3SEC) {
+            if (time(nullptr) - opts->m_buildplate_mark_detection.detect_hold_start > HOLD_TIME_3SEC) {
                 if (print_json["xcam"].contains("buildplate_marker_detector")) {
-                    opts->xcam_buildplate_marker_detector      = print_json["xcam"]["buildplate_marker_detector"].get<bool>();
-                    obj->is_support_build_plate_marker_detect = true;
+                    opts->m_buildplate_mark_detection.current_detect_value = print_json["xcam"]["buildplate_marker_detector"].get<bool>();
+                    opts->m_buildplate_mark_detection.is_support_detect    = true;
                 } else {
-                    obj->is_support_build_plate_marker_detect = false;
+                    opts->m_buildplate_mark_detection.is_support_detect = false;
+                }
+            }
+            if (print_json["xcam"].contains("buildplate_marker_detector")) {
+                opts->m_buildplate_type_detection.current_detect_value = print_json["xcam"]["buildplate_marker_detector"].get<bool>();
+            }
+        }
+
+        // senond part
+        if (print_json.contains("module_name")) {
+            if (print_json.contains("enable") || print_json.contains("control")) {
+                bool enable = false;
+                if (print_json.contains("enable"))
+                    enable = print_json["enable"].get<bool>();
+                else if (print_json.contains("control"))
+                    enable = print_json["control"].get<bool>();
+                else {
+                    ;
+                }
+
+                if (print_json["module_name"].get<std::string>() == "first_layer_inspector") {
+                    if (time(nullptr) - opts->m_first_layer_detection.detect_hold_start > HOLD_TIME_3SEC) { opts->m_first_layer_detection.current_detect_value = enable; }
+                } else if (print_json["module_name"].get<std::string>() == "buildplate_marker_detector") {
+                    if (time(nullptr) - opts->m_buildplate_mark_detection.detect_hold_start > HOLD_TIME_3SEC) { opts->m_buildplate_mark_detection.current_detect_value = enable; }
+                    opts->m_buildplate_type_detection.current_detect_value = enable;
+
+                } else if (print_json["module_name"].get<std::string>() == "plate_offset_switch") {
+                    opts->m_buildplate_type_detection.current_detect_value = enable;
+                } else if (print_json["module_name"].get<std::string>() == "printing_monitor") {
+                    if (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                        opts->m_ai_monitoring_detection.current_detect_value = enable ? 1 : 0;
+                        if (print_json.contains("halt_print_sensitivity")) {
+                            opts->m_ai_monitoring_detection.current_detect_sensitivity_value = print_json["halt_print_sensitivity"].get<std::string>();
+                        }
+                    }
+                } else if (print_json["module_name"].get<std::string>() == "spaghetti_detector") {
+                    if (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                        // old protocol
+                        opts->m_ai_monitoring_detection.current_detect_value = enable ? 1 : 0;
+                        if (print_json.contains("print_halt")) {
+                            if (print_json["print_halt"].get<bool>()) { opts->m_ai_monitoring_detection.current_detect_sensitivity_value = "medium"; }
+                        }
+                    }
                 }
             }
         }
-    } catch (...) {
-        ;
-    }
 
-}
-
-void DevPrintOptionsParser::ParseDetectionV1_1(DevPrintOptions *opts, MachineObject *obj, const nlohmann::json &print_json,bool enable)
-{
-    if (print_json["module_name"].get<std::string>() == "first_layer_inspector") {
-        if (time(nullptr) - opts->xcam_first_layer_hold_start > HOLD_TIME_3SEC) {
-            opts->xcam_first_layer_inspector = enable;
-        }
-    } else if (print_json["module_name"].get<std::string>() == "buildplate_marker_detector") {
-        if (time(nullptr) - opts->xcam_buildplate_marker_hold_start > HOLD_TIME_3SEC) {
-            opts->xcam_buildplate_marker_detector = enable;
-        }
-    } else if (print_json["module_name"].get<std::string>() == "printing_monitor") {
-        if (time(nullptr) - opts->xcam_ai_monitoring_hold_start > HOLD_TIME_3SEC) {
-            opts->xcam_ai_monitoring = enable;
-            if (print_json.contains("halt_print_sensitivity")) {
-                opts->xcam_ai_monitoring_sensitivity = print_json["halt_print_sensitivity"].get<std::string>();
-            }
-        }
-    } else if (print_json["module_name"].get<std::string>() == "spaghetti_detector") {
-        if (time(nullptr) - opts->xcam_ai_monitoring_hold_start > HOLD_TIME_3SEC) {
-            // old protocol
-            opts->xcam_ai_monitoring = enable;
-            if (print_json.contains("print_halt")) {
-                if (print_json["print_halt"].get<bool>()) { opts->xcam_ai_monitoring_sensitivity = "medium"; }
-            }
-        }
-    }
-}
-
-void DevPrintOptionsParser::ParseDetectionV1_2(DevPrintOptions *opts, MachineObject *obj, const nlohmann::json &print_json) {
-
-    try {
         if (print_json.contains("option")) {
             if (print_json["option"].is_number()) {
                 int option = print_json["option"].get<int>();
-                if (time(nullptr) - opts->xcam_auto_recovery_hold_start > HOLD_TIME_3SEC) { opts->xcam_auto_recovery_step_loss = ((option & 0x01) != 0); }
+                if (time(nullptr) - opts->m_auto_recovery_detection.detect_hold_start > HOLD_TIME_3SEC) {
+                    opts->m_auto_recovery_detection.current_detect_value = ((option & 0x01) != 0);
+                }
             }
         }
 
-        if (time(nullptr) - opts->xcam_auto_recovery_hold_start > HOLD_TIME_3SEC) {
-            if (print_json.contains("auto_recovery")) { opts->xcam_auto_recovery_step_loss = print_json["auto_recovery"].get<bool>(); }
+        if (time(nullptr) - opts->m_auto_recovery_detection.detect_hold_start > HOLD_TIME_3SEC) {
+            if (print_json.contains("auto_recovery")) { opts->m_auto_recovery_detection.current_detect_value = print_json["auto_recovery"].get<bool>(); }
         }
     } catch (...) {}
 
-}
+    // cfg part
+    if (print_json.contains("cfg")) {
 
-void DevPrintOptionsParser::ParseDetectionV2_0(DevPrintOptions *opts, std::string print_json)
-{
+        std::string cfg = print_json["cfg"].get<std::string>();
+        opts->m_speed_level = (DevPrintingSpeedLevel) DevUtil::get_flag_bits(cfg, 8, 3);
 
-    if (time(nullptr) - opts->xcam_first_layer_hold_start > HOLD_TIME_3SEC) {
-        opts->xcam_first_layer_inspector = DevUtil::get_flag_bits(print_json, 12);
+        if (time(nullptr) - opts->m_first_layer_detection.detect_hold_start > HOLD_TIME_3SEC) {
+            opts->m_first_layer_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 12);
+        }
+
+        if (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start > HOLD_COUNT_MAX) {
+            opts->m_ai_monitoring_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 15);
+
+            switch (DevUtil::get_flag_bits(cfg, 13, 2)) {
+            case 0: opts->m_ai_monitoring_detection.current_detect_sensitivity_value = "never_halt"; break;
+            case 1: opts->m_ai_monitoring_detection.current_detect_sensitivity_value = "low"; break;
+            case 2: opts->m_ai_monitoring_detection.current_detect_sensitivity_value = "medium"; break;
+            case 3: opts->m_ai_monitoring_detection.current_detect_sensitivity_value = "high"; break;
+            default: break;
+            }
+        }
+
+        if (time(nullptr) - opts->m_auto_recovery_detection.detect_hold_start > HOLD_COUNT_MAX) {
+            opts->m_auto_recovery_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 16);
+        }
+
+        if (time(nullptr) - opts->m_allow_prompt_sound_detection.detect_hold_start > HOLD_TIME_3SEC) {
+            opts->m_allow_prompt_sound_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 22);
+        }
+
+        if (time(nullptr) - opts->m_filament_tangle_detection.detect_hold_start > HOLD_TIME_3SEC) {
+            opts->m_filament_tangle_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 23);
+        }
+
+        if (time(nullptr) - opts->m_idel_heating_protect_detection.detect_hold_start > HOLD_TIME_3SEC)
+            opts->m_idel_heating_protect_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 32, 2);
     }
 
-    if (time(nullptr) - opts->xcam_ai_monitoring_hold_start > HOLD_COUNT_MAX) {
-        opts->xcam_ai_monitoring = DevUtil::get_flag_bits(print_json, 15);
+    // fun1 part
+    if (print_json.contains("fun")) {
+        std::string fun = print_json["fun"].get<std::string>();
+        if (!fun.empty()) {
+            opts->m_filament_tangle_detection.is_support_detect      = DevUtil::get_flag_bits(fun, 9) == 0 ? false : true;
+            opts->m_spaghetti_detection.is_support_detect            = DevUtil::get_flag_bits(fun, 42);
+            opts->m_purgechutepileup_detection.is_support_detect     = DevUtil::get_flag_bits(fun, 43);
+            opts->m_nozzleclumping_detection.is_support_detect       = DevUtil::get_flag_bits(fun, 44);
+            opts->m_airprinting_detection.is_support_detect          = DevUtil::get_flag_bits(fun, 45);
+            opts->m_idel_heating_protect_detection.is_support_detect = DevUtil::get_flag_bits(fun, 62);
+            opts->m_allow_prompt_sound_detection.is_support_detect   = DevUtil::get_flag_bits(fun, 8);
 
-        switch (DevUtil::get_flag_bits(print_json, 13, 2)) {
-        case 0: opts->xcam_ai_monitoring_sensitivity = "never_halt"; break;
-        case 1: opts->xcam_ai_monitoring_sensitivity = "low"; break;
-        case 2: opts->xcam_ai_monitoring_sensitivity = "medium"; break;
-        case 3: opts->xcam_ai_monitoring_sensitivity = "high"; break;
-        default: break;
+            opts->m_nozzle_blob_detection.is_support_detect = DevUtil::get_flag_bits(fun, 13);
+        }
+
+    }
+
+
+    if (print_json.contains("support_build_plate_marker_detect")) {
+        if (print_json["support_build_plate_marker_detect"].is_boolean()) {
+            opts->m_buildplate_mark_detection.is_support_detect = print_json["support_build_plate_marker_detect"].get<bool>();
         }
     }
 
-    if (time(nullptr) - opts->xcam_auto_recovery_hold_start > HOLD_COUNT_MAX){
-        opts->xcam_auto_recovery_step_loss =DevUtil::get_flag_bits(print_json, 16);
+    if (print_json.contains("support_build_plate_marker_detect_type") && print_json["support_build_plate_marker_detect_type"].is_number()) {
+        opts->m_plate_maker_detect_type = (DevPrintOptions::PlateMakerDectect) print_json["support_build_plate_marker_detect_type"].get<int>();
     }
 
-    if (time(nullptr) - opts->xcam_prompt_sound_hold_start > HOLD_TIME_3SEC) {
-        opts->xcam_allow_prompt_sound = DevUtil::get_flag_bits(print_json, 22);
+    if (print_json.contains("support_auto_recovery_step_loss")) {
+        if (print_json["support_auto_recovery_step_loss"].is_boolean()) {
+            opts->m_auto_recovery_detection.is_support_detect = print_json["support_auto_recovery_step_loss"].get<bool>();
+        }
     }
 
-    if (time(nullptr) - opts->xcam_filament_tangle_detect_hold_start > HOLD_TIME_3SEC) {
-        opts->xcam_filament_tangle_detect = DevUtil::get_flag_bits(print_json, 23);
+    if (print_json.contains("support_prompt_sound")) {
+        if (print_json["support_prompt_sound"].is_boolean()) { opts->m_allow_prompt_sound_detection.is_support_detect = print_json["support_prompt_sound"].get<bool>(); }
     }
+
+    if (print_json.contains("support_filament_tangle_detect")) {
+        if (print_json["support_filament_tangle_detect"].is_boolean()) {
+            opts->m_filament_tangle_detection.is_support_detect = print_json["support_filament_tangle_detect"].get<bool>();
+        }
+    }
+
+    // fun2 part
+    std::string fun2;
+    if (print_json.contains("fun2") && print_json["fun2"].is_string()) {
+        fun2 = print_json["fun2"].get<std::string>();
+        BOOST_LOG_TRIVIAL(info) << "new print data fun2 = " << fun2;
+    }
+
+    opts->m_buildplate_align_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
 }
 
-void DevPrintOptionsParser::ParseDetectionV2_1(DevPrintOptions *opts, std::string cfg) {
-    if (time(nullptr) - opts->idel_heating_protect_hold_strat > HOLD_TIME_3SEC)
-        opts->idel_heating_protect_enabled = DevUtil::get_flag_bits(cfg, 32, 2);
+DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
+{
+    m_detection_list = {{PrintOptionEnum::AI_Monitoring, &m_ai_monitoring_detection},
+                        {PrintOptionEnum::Spaghetti_Detection, &m_spaghetti_detection},
+                        {PrintOptionEnum::PurgeChutePileup_Detection, &m_purgechutepileup_detection},
+                        {PrintOptionEnum::NozzleClumping_Detection, &m_nozzleclumping_detection},
+                        {PrintOptionEnum::AirPrinting_Detection, &m_airprinting_detection},
+                        {PrintOptionEnum::Buildplate_Mark_Detection, &m_buildplate_mark_detection},
+                        {PrintOptionEnum::Buildplate_Type_Detection, &m_buildplate_type_detection},
+                        {PrintOptionEnum::Buildplate_Align_Detection, &m_buildplate_align_detection},
+                        {PrintOptionEnum::Auto_Recovery_Detection, &m_auto_recovery_detection},
+                        {PrintOptionEnum::Save_Remote_Print_File_To_Storage, &m_save_remote_print_file_to_storage},
+                        {PrintOptionEnum::Allow_Prompt_Sound_Detection, &m_allow_prompt_sound_detection},
+                        {PrintOptionEnum::Filament_Tangle_Detection, &m_filament_tangle_detection},
+                        {PrintOptionEnum::Nozzle_Blob_Detection, &m_nozzle_blob_detection},
+                        {PrintOptionEnum::Open_Door_Detection, &m_open_door_detection},
+                        {PrintOptionEnum::Idle_Heating_Protect_Detection, &m_idel_heating_protect_detection},
+                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection}};
 }
 
 void DevPrintOptions::SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level)
 {
-    if (speed_level >= SPEED_LEVEL_INVALID && speed_level < SPEED_LEVEL_COUNT)
-    {
+    if (speed_level >= SPEED_LEVEL_INVALID && speed_level < SPEED_LEVEL_COUNT) {
         m_speed_level = speed_level;
-    }
-    else
-    {
+    } else {
         m_speed_level = SPEED_LEVEL_INVALID; // Reset to invalid if out of range
     }
 }
@@ -167,75 +287,118 @@ int DevPrintOptions::command_xcam_control_ai_monitoring(bool on_off, std::string
 {
     bool print_halt = (lvl == "never_halt") ? false : true;
 
-    xcam_ai_monitoring             = on_off;
-    xcam_ai_monitoring_hold_start  = time(nullptr);
-    xcam_ai_monitoring_sensitivity = lvl;
+    m_ai_monitoring_detection.current_detect_value             = on_off;
+    m_ai_monitoring_detection.detect_hold_start                = time(nullptr);
+    m_ai_monitoring_detection.current_detect_sensitivity_value = lvl;
+
     return command_xcam_control("printing_monitor", on_off, m_obj, lvl);
+}
+
+int DevPrintOptions::command_xcam_control_spaghetti_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    m_spaghetti_detection.current_detect_value             = on_off;
+    m_spaghetti_detection.detect_hold_start                = time(nullptr);
+    m_spaghetti_detection.current_detect_sensitivity_value = lvl;
+
+    return command_xcam_control("spaghetti_detector", on_off, m_obj, lvl);
 }
 
 int DevPrintOptions::command_xcam_control_idelheatingprotect_detector(bool on_off)
 {
-    idel_heating_protect_enabled    = on_off;
-    idel_heating_protect_hold_strat = time(nullptr);
+    m_idel_heating_protect_detection.current_detect_value = on_off;
+    m_idel_heating_protect_detection.detect_hold_start    = time(nullptr);
     return command_set_against_continued_heating_mode(on_off);
 }
 
 int DevPrintOptions::command_xcam_control_buildplate_marker_detector(bool on_off)
 {
-    xcam_buildplate_marker_detector   = on_off;
-    xcam_buildplate_marker_hold_start = time(nullptr);
-    return command_xcam_control("buildplate_marker_detector", on_off ,m_obj);
+    m_buildplate_mark_detection.current_detect_value = on_off;
+    m_buildplate_mark_detection.detect_hold_start    = time(nullptr);
+    return command_xcam_control("buildplate_marker_detector", on_off, m_obj);
 }
 
 int DevPrintOptions::command_xcam_control_first_layer_inspector(bool on_off, bool print_halt)
 {
-    xcam_first_layer_inspector  = on_off;
-    xcam_first_layer_hold_start = time(nullptr);
+    m_first_layer_detection.current_detect_value = on_off;
+    m_first_layer_detection.detect_hold_start    = time(nullptr);
     return command_xcam_control("first_layer_inspector", on_off, m_obj);
 }
 
 int DevPrintOptions::command_xcam_control_auto_recovery_step_loss(bool on_off)
 {
-    xcam_auto_recovery_step_loss  = on_off;
-    xcam_auto_recovery_hold_start = time(nullptr);
+    m_auto_recovery_detection.current_detect_value             = on_off;
+    m_auto_recovery_detection.current_detect_sensitivity_value = time(nullptr);
     return command_set_printing_option(on_off, m_obj);
+}
+
+int DevPrintOptions::command_xcam_control_build_plate_type_detector(bool on_off)
+{
+    m_buildplate_type_detection.current_detect_value             = on_off;
+    m_buildplate_type_detection.current_detect_sensitivity_value = time(nullptr);
+    return command_xcam_control("buildplate_marker_detector", on_off, m_obj);
+}
+
+int DevPrintOptions::command_xcam_control_purgechutepileup_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    m_purgechutepileup_detection.current_detect_value             = on_off;
+    m_purgechutepileup_detection.detect_hold_start                = time(nullptr);
+    m_purgechutepileup_detection.current_detect_sensitivity_value = lvl;
+    return command_xcam_control("pileup_detector", on_off, m_obj, lvl);
+}
+
+int DevPrintOptions::command_xcam_control_nozzleclumping_detection(bool on_off, std::string lvl)
+{
+    bool print_halt = (lvl == "never_halt") ? false : true;
+
+    m_nozzleclumping_detection.current_detect_value             = on_off;
+    m_nozzleclumping_detection.detect_hold_start                = time(nullptr);
+    m_nozzleclumping_detection.current_detect_sensitivity_value = lvl;
+    return command_xcam_control("clump_detector", on_off, m_obj, lvl);
+}
+
+int DevPrintOptions::command_xcam_control_airprinting_detection(bool on_off, std::string lvl)
+{
+    bool print_halt                                          = (lvl == "never_halt") ? false : true;
+    m_airprinting_detection.current_detect_value             = on_off;
+    m_airprinting_detection.detect_hold_start                = time(nullptr);
+    m_airprinting_detection.current_detect_sensitivity_value = lvl;
+    return command_xcam_control("airprint_detector", on_off, m_obj, lvl);
+}
+
+int DevPrintOptions::command_xcam_control_build_plate_align_detector(bool on_off)
+{
+    m_buildplate_align_detection.current_detect_value             = on_off;
+    m_buildplate_align_detection.current_detect_sensitivity_value = time(nullptr);
+    return command_xcam_control("plate_offset_switch", on_off, m_obj);
 }
 
 int DevPrintOptions::command_xcam_control_allow_prompt_sound(bool on_off)
 {
-    xcam_allow_prompt_sound      = on_off;
-    xcam_prompt_sound_hold_start = time(nullptr);
+    m_allow_prompt_sound_detection.current_detect_value = on_off;
+    m_allow_prompt_sound_detection.detect_hold_start    = time(nullptr);
     return command_set_prompt_sound(on_off, m_obj);
 }
 
 int DevPrintOptions::command_xcam_control_filament_tangle_detect(bool on_off)
 {
-    xcam_filament_tangle_detect            = on_off;
-    xcam_filament_tangle_detect_hold_start = time(nullptr);
+    m_filament_tangle_detection.current_detect_value = on_off;
+    m_filament_tangle_detection.detect_hold_start    = time(nullptr);
     return command_set_filament_tangle_detect(on_off, m_obj);
 }
 
-void DevPrintOptions::parse_auto_recovery_step_loss_status(int flag) {
-    if (time(nullptr) - xcam_auto_recovery_hold_start > HOLD_TIME_3SEC) {
-        xcam_auto_recovery_step_loss = ((flag >> 4) & 0x1) != 0;
-    }
-}
-
-void DevPrintOptions::parse_allow_prompt_sound_status(int flag)
+PrintOptionData &DevPrintOptions::GetDetectionOption(PrintOptionEnum print_option)
 {
-    if (time(nullptr) - xcam_prompt_sound_hold_start > HOLD_TIME_3SEC) {
-        xcam_allow_prompt_sound = ((flag >> 17) & 0x1) != 0;
-    }
+    PrintOptionData *p_data = m_detection_list.at(print_option);
+    return *p_data;
 }
 
-void DevPrintOptions::parse_filament_tangle_detect_status(int flag)
-{
-    if (time(nullptr) - xcam_filament_tangle_detect_hold_start > HOLD_TIME_3SEC) {
-        xcam_filament_tangle_detect = ((flag >> 20) & 0x1) != 0;
-    }
-}
 
-int DevPrintOptions::command_xcam_control(std::string module_name, bool on_off , MachineObject *obj, std::string lvl)
+
+int DevPrintOptions::command_xcam_control(std::string module_name, bool on_off, MachineObject *obj, std::string lvl)
 {
     json j;
     j["xcam"]["command"]     = "xcam_control_set";
@@ -289,11 +452,5 @@ int DevPrintOptions::command_set_filament_tangle_detect(bool filament_tangle_det
     return obj->publish_json(j);
 }
 
-
-
-
-
-
-
-}
+} // namespace Slic3r
 // namespace Slic3r
