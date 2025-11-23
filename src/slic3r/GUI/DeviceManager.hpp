@@ -486,8 +486,6 @@ public:
     int  camera_resolution_hold_count = 0;
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
-    bool xcam_first_layer_inspector { false };
-    time_t  xcam_first_layer_hold_start = 0;
     std::string local_rtsp_url;
     std::string tutk_state;
     enum LiveviewLocal {
@@ -514,11 +512,6 @@ public:
         FR_TutkAgora
     } file_remote{ FR_None };
 
-    enum PlateMakerDectect : int
-    {
-        POS_CHECK      = 1,
-        TYPE_POS_CHECK = 2,
-    };
 
     enum DoorOpenCheckState : int
     {
@@ -530,29 +523,6 @@ public:
     bool        file_model_download{false};
     bool        virtual_camera{false};
 
-    bool xcam_ai_monitoring{ false };
-    bool xcam_disable_ai_detection_display{false};
-    bool xcam_spaghetti_detection{false};
-    bool xcam_purgechutepileup_detection{false};
-    bool xcam_nozzleclumping_detection{false};
-    bool xcam_airprinting_detection{false};
-
-    time_t xcam_ai_monitoring_hold_start = 0;
-    std::string xcam_ai_monitoring_sensitivity;
-    std::string xcam_spaghetti_detection_sensitivity;
-    std::string xcam_purgechutepileup_detection_sensitivity;
-    std::string xcam_nozzleclumping_detection_sensitivity;
-    std::string xcam_airprinting_detection_sensitivity;
-
-    bool xcam_buildplate_marker_detector{ false };
-    time_t  xcam_buildplate_marker_hold_start = 0;
-    bool xcam_auto_recovery_step_loss{ false };
-    bool xcam_allow_prompt_sound{ false };
-    bool xcam_filament_tangle_detect{ false };
-    time_t  xcam_auto_recovery_hold_start = 0;
-    time_t  xcam_prompt_sound_hold_start = 0;
-    time_t  xcam_filament_tangle_detect_hold_start = 0;
-
     // part skip
     std::vector<int> m_partskip_ids;
 
@@ -561,30 +531,17 @@ public:
 
     //supported features
 
-    bool is_support_build_plate_marker_detect{false};
-    PlateMakerDectect m_plate_maker_detect_type{ POS_CHECK };
-
-    /* plate build type & align detect*/
-    DevDirtyHandler<bool> xcam_build_plate_type_detect{true, HOLD_TIME_3SEC, DirtyMode::TIMER};
-    DevDirtyHandler<bool> xcam_build_plate_align_detect{true, HOLD_TIME_3SEC, DirtyMode::TIMER};
-
-    bool is_support_build_plate_type_detect{false};
-    bool is_support_build_plate_align_detect{false};
 
     /*PA flow calibration is using in sending print*/
     bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
 
     bool is_support_send_to_sdcard {false};
-
     bool is_support_filament_backup{false};
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
     int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
-    bool is_support_auto_recovery_step_loss{false};
     bool is_support_ams_humidity {false};
-    bool is_support_prompt_sound{false};
-    bool is_support_filament_tangle_detect{false};
     bool is_support_1080dpi {false};
     bool is_support_cloud_print_only {false};
     bool is_support_command_ams_switch{false};
@@ -604,12 +561,6 @@ public:
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
 
-      // refine printer function options
-    bool is_support_spaghetti_detection{false};
-    bool is_support_purgechutepileup_detection{false};
-    bool is_support_nozzleclumping_detection{false};
-    bool is_support_airprinting_detection{false};
-    bool is_support_idelheadingprotect_detection{false};
 
     // fun2
     bool is_support_print_with_emmc{false};
@@ -761,22 +712,6 @@ public:
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
-    int command_xcam_control(std::string module_name, bool on_off, std::string lvl = "");
-
-    //refine printer
-    int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
-    int command_xcam_control_spaghetti_detection(bool on_off, std::string lvl);
-    int command_xcam_control_purgechutepileup_detection(bool on_off, std::string lvl);
-    int command_xcam_control_nozzleclumping_detection(bool on_off, std::string lvl);
-    int command_xcam_control_airprinting_detection(bool on_off, std::string lvl);
-
-    int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
-    int command_xcam_control_buildplate_marker_detector(bool on_off);
-    int command_xcam_control_auto_recovery_step_loss(bool on_off);
-    int command_xcam_control_allow_prompt_sound(bool on_off);
-    int command_xcam_control_filament_tangle_detect(bool on_off);
-    int command_xcam_control_build_plate_type_detector(bool on_off);
-    int command_xcam_control_build_plate_align_detector(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !get_dev_ip().empty(); }
