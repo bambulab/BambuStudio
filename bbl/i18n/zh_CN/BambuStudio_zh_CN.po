@@ -6321,8 +6321,8 @@ msgstr "将发送的文件存储到外部存储"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "将从 Bambu Studio、Bambu Handy 和 MakerWorld 启动的打印文件保存在外部存储中"
 
-msgid "Allow Prompt Sound"
-msgstr "支持提示音"
+msgid "Enable notification sounds"
+msgstr "启用通知音"
 
 msgid "Filament Tangle Detect"
 msgstr "缠料检测"

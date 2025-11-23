@@ -6356,8 +6356,8 @@ msgstr "전송한 파일을 외부 저장소에 저장"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Bambu Studio, Bambu Handy, MakerWorld에서 시작한 출력 파일을 외부 저장소에 저장합니다"
 
-msgid "Allow Prompt Sound"
-msgstr "프롬프트 사운드 허용"
+msgid "Enable notification sounds"
+msgstr "알림음 활성화"
 
 msgid "Filament Tangle Detect"
 msgstr "필라멘트 엉킴 감지"

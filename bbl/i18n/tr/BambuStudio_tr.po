@@ -6364,8 +6364,8 @@ msgstr "Gönderilen Dosyaları Harici Depolama Alanında Saklama"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Bambu Studio, Bambu Handy ve MakerWorld'den başlatılan yazdırma dosyalarını Harici Depolama Alanına kaydedin"
 
-msgid "Allow Prompt Sound"
-msgstr "Uyarı Sesine İzin Ver"
+msgid "Enable notification sounds"
+msgstr "Bildirim seslerini etkinleştir"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"

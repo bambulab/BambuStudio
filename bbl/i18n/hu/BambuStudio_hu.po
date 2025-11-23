@@ -6368,8 +6368,8 @@ msgstr "Elküldött fájlok tárolása külső tárhelyen"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "A Bambu Studio, a Bambu Handy és a MakerWorld által kezdeményezett nyomtatási fájlok mentése külső tárhelyre"
 
-msgid "Allow Prompt Sound"
-msgstr "Hangjelzés engedélyezése"
+msgid "Enable notification sounds"
+msgstr "Értesítési hangok engedélyezése"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"

@@ -6330,8 +6330,8 @@ msgstr "送信したファイルを外部ストレージに保存"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Bambu Studio、Bambu Handy、MakerWorldから開始した印刷ファイルを外部ストレージに保存する"
 
-msgid "Allow Prompt Sound"
-msgstr "プロンプト音の許可"
+msgid "Enable notification sounds"
+msgstr "通知音を有効にする"
 
 msgid "Filament Tangle Detect"
 msgstr "フィラメント絡み検出"
