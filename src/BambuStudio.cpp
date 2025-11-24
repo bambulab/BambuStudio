@@ -916,12 +916,17 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
             cluster_colors            = mtl_colors;
             cluster_labels.clear();
             cluster_labels.reserve(input_colors.size());
+            std::set<int> cluster_number_set;
             for (int i = 0; i < input_colors.size(); i++) {
                 bool can_find = false;
                 for (int j = 0; j < cluster_colors.size(); j++) {
                     if (Slic3r::color_is_equal(input_colors[i],cluster_colors[j])) {
                         cluster_labels.emplace_back(j);
                         can_find = true;
+                        if (cluster_number_set.find(j) == cluster_number_set.end()) {
+                            cluster_number_set.insert(j);
+                        }
+                        break;
                     }
                 }
                 if (!can_find) {
@@ -929,6 +934,7 @@ bool convert_obj_cluster_colors(std::vector<Slic3r::RGBA> & input_colors,
                     cluster_labels.emplace_back(0);
                 }
             }
+            cluster_number = cluster_number_set.size();
         } else {
             obj_color_deal_algo(input_colors, cluster_colors, cluster_labels, cluster_number, (int) EnforcerBlockerType::ExtruderMax);
         }
