@@ -1194,7 +1194,15 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             printer_extruder_variant))
     //Orca
     ((ConfigOptionBool,                has_scarf_joint_seam))
-)
+    //ams chamber
+    ((ConfigOptionStrings,  filament_dev_ams_drying_ams_limitations))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_temperature))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_time))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_heat_distortion_temperature))
+    ((ConfigOptionFloats,   filament_dev_chamber_drying_bed_temperature))
+    ((ConfigOptionFloats,   filament_dev_chamber_drying_time))
+    ((ConfigOptionFloats,   filament_dev_drying_softening_temperature))
+    ((ConfigOptionFloats,   filament_dev_drying_cooling_temperature)))
 
 // This object is mapped to Perl as Slic3r::Config::Print.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE(
