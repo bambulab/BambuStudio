@@ -851,12 +851,17 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
         m_cluster_colors_from_algo             = m_obj_in_out.mtl_colors;
         m_cluster_labels_from_algo.clear();
         m_cluster_labels_from_algo.reserve(m_input_colors.size());
+        std::set<int> cluster_number_set;
         for (int i = 0; i < m_input_colors.size(); i++) {
             bool can_find = false;
             for (int j = 0; j < m_cluster_colors_from_algo.size(); j++) {
                 if (Slic3r::color_is_equal(m_input_colors[i],m_cluster_colors_from_algo[j])) {
                     m_cluster_labels_from_algo.emplace_back(j);
                     can_find = true;
+                    if (cluster_number_set.find(j) == cluster_number_set.end()) {
+                        cluster_number_set.insert(j);
+                    }
+                    break;
                 }
             }
             if (!can_find) {
@@ -864,6 +869,7 @@ void ObjColorPanel::deal_algo(char cluster_number, bool redraw_ui)
                 m_cluster_labels_from_algo.emplace_back(0);
             }
         }
+        cluster_number = cluster_number_set.size();
     } else {
         obj_color_deal_algo(m_input_colors, m_cluster_colors_from_algo, m_cluster_labels_from_algo, cluster_number, g_max_color);
     }
