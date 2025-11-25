@@ -222,6 +222,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createLaserWidgets(m_main_left_sizer);
     createAirPumpWidgets(m_main_left_sizer);
     createExtinguishWidgets(m_main_left_sizer);
+    createExhaustFan(m_main_left_sizer);
 
     // nozzle rack widgets
     createNozzleRackWidgets(m_main_left_sizer);
@@ -427,6 +428,34 @@ void MachineInfoPanel::createCuttingWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_cutting_sizer, 0, wxEXPAND, 0);
 };
 
+void MachineInfoPanel::createExhaustFan(wxBoxSizer *main_left_sizer)
+{
+
+    m_exhaustfan_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_exhaustfan_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_exhaustfan_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_exhaustfan_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_exhaustfan_img->SetBitmap(m_img_exhaustfan.bmp());
+
+    auto        panel_exhaustfan = new wxPanel(this);
+    wxBoxSizer *content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_exhaustfan_version = new uiDeviceUpdateVersion(panel_exhaustfan, wxID_ANY);
+
+    content_sizer_h->Add(m_exhaustfan_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_exhaustfan->SetSizer(content_sizer_v);
+
+    m_exhaustfan_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_exhaustfan_sizer->Add(m_exhaustfan_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_exhaustfan_sizer->Add(panel_exhaustfan, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_exhaustfan_sizer, 0, wxEXPAND, 0);
+};
+
 void MachineInfoPanel::createLaserWidgets(wxBoxSizer* main_left_sizer)
 {
     m_laser_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
@@ -508,18 +537,15 @@ void MachineInfoPanel::init_bitmaps()
         m_img_air_pump  = ScalableBitmap(this, "air_pump", 160);
         m_img_extra_ams = ScalableBitmap(this, "extra_icon_png", 160);
 
-        m_img_laser      = ScalableBitmap(this, "laser", 160);
-        m_img_cutting    = ScalableBitmap(this, "cut", 160);
-        m_img_extinguish = ScalableBitmap(this, "extinguish", 160); // TODO
+        m_img_laser       = ScalableBitmap(this, "laser", 160);
+        m_img_cutting     = ScalableBitmap(this, "cut", 160);
+        m_img_extinguish  = ScalableBitmap(this, "extinguish", 160); // TODO
         m_img_nozzle_rack = ScalableBitmap(this, "nozzle_rack", 160);
-
+        m_img_exhaustfan  = ScalableBitmap(this, "exhaustfan", 160);
+      
         upgrade_green_icon  = ScalableBitmap(this, "monitor_upgrade_online", 5);
         upgrade_gray_icon   = ScalableBitmap(this, "monitor_upgrade_offline", 5);
-        upgrade_yellow_icon = ScalableBitmap(this, "monitor_upgrade_busy", 5);
-
-        upgrade_green_icon   = ScalableBitmap(this, "monitor_upgrade_online", 5);
-        upgrade_gray_icon    = ScalableBitmap(this, "monitor_upgrade_offline", 5);
-        upgrade_yellow_icon  = ScalableBitmap(this, "monitor_upgrade_busy", 5);
+        upgrade_yellow_icon = ScalableBitmap(this, "monitor_upgrade_busy", 5);       
     }
     catch (const std::exception &e)
     {
@@ -630,6 +656,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_laszer(obj);
         update_extinguish(obj);
         update_nozzle_rack(obj);
+        update_exhaustfan(obj);
 
         //update progress
         if (upgrade_ptr) {
@@ -1239,6 +1266,15 @@ void MachineInfoPanel::update_nozzle_rack(MachineObject* obj)
     }
 }
 
+void MachineInfoPanel::update_exhaustfan(MachineObject *obj)
+{
+    if (obj && obj->exhaustfan_version_info.isValid()) {
+        m_exhaustfan_version->UpdateInfo(obj->exhaustfan_version_info);
+        show_exhaustfan(true);
+    } else {
+        show_exhaustfan(false);
+    }
+}
 
 void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
 {
@@ -1391,6 +1427,16 @@ void MachineInfoPanel::show_nozzle_rack(bool show)
         m_nozzle_rack_text->Show(show);
     }
 }
+
+void MachineInfoPanel::show_exhaustfan(bool show)
+{
+    if (m_exhaustfan_version->IsShown() != show) {
+        m_exhaustfan_img->Show(show);
+        m_exhaustfan_line_above->Show(show);
+        m_exhaustfan_version->Show(show);
+    }
+}
+
 
 void MachineInfoPanel::on_sys_color_changed()
 {

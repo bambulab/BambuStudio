@@ -42,6 +42,8 @@ public:
     bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
     bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }// Auto Fire Extinguishing System
     bool isWTM() const { return name.find("wtm") != string::npos; } // nozzle
+    bool isExhaustFan() const { return product_name.Contains("Exhaust Fan"); }
+
 };
 
 

@@ -830,6 +830,7 @@ void MachineObject::clear_version_info()
     extinguish_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
     m_nozzle_system->ClearFirmwareInfoWTM();
+    extinguish_version_info = DevFirmwareVersionInfo();
 }
 
 void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
@@ -844,6 +845,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         extinguish_version_info = info;
     }else if (info.isWTM()) {
         m_nozzle_system->AddFirmwareInfoWTM(info);
+    }else if (info.isExhaustFan()){
+        exhaustfan_version_info = info;
     }
 
     module_vers.emplace(info.name, info);
