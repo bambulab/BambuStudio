@@ -37,6 +37,7 @@ protected:
     std::string  m_current_slot_right;
     std::string  m_current_show_ams_left;
     std::string  m_current_show_ams_right;
+    std::string  m_current_show_ams_center;
     std::map<std::string, int> m_ams_selection;
 
     std::map<std::string, AMSPreview*> m_ams_preview_list;
@@ -49,6 +50,8 @@ protected:
     std::string                      m_dev_id;
     std::vector<std::vector<std::string>> m_item_ids{ {}, {} };
     std::vector<std::pair<string, string>> pair_id;
+
+    bool    m_ams_mixed{false};
 
     int         m_total_ext_count = 1;
     AMSextruder *m_extruder{nullptr};
@@ -64,14 +67,23 @@ protected:
     wxBoxSizer* m_sizer_ams_items{nullptr};
     wxScrolledWindow* m_panel_prv_left {nullptr};
     wxScrolledWindow* m_panel_prv_right{nullptr};
+    wxScrolledWindow* m_panel_prv_arrow_left{nullptr};
+    wxScrolledWindow* m_panel_prv_arrow_right{nullptr};
     wxBoxSizer* m_sizer_prv_left{nullptr};
     wxBoxSizer* m_sizer_prv_right{nullptr};
+    wxBoxSizer* m_sizer_prv_arrow_left{nullptr};
+    wxBoxSizer* m_sizer_prv_arrow_right{nullptr};
 
     /*ams */
     wxBoxSizer *m_sizer_ams_body{nullptr};
     wxBoxSizer* m_sizer_ams_area_left{nullptr};
     wxBoxSizer* m_sizer_ams_area_right{nullptr};
+    wxBoxSizer* m_sizer_ams_area_arrow_left{nullptr};
+    wxBoxSizer* m_sizer_ams_area_arrow_right{nullptr};
     wxBoxSizer* m_sizer_down_road{ nullptr };
+
+    wxSizerItem* m_item_ams_area_arrow_left{nullptr};
+    wxSizerItem* m_item_ams_area_arrow_right{nullptr};
 
     /*option*/
     wxBoxSizer *m_sizer_ams_option{nullptr};
@@ -85,10 +97,14 @@ protected:
 
     //wxSimplebook *m_simplebook_right{nullptr};
     wxSimplebook *m_simplebook_ams_left{nullptr};
-    wxSimplebook *m_simplebook_ams_right{ nullptr };
+    wxSimplebook *m_simplebook_ams_right{nullptr};
+    wxSimplebook *m_simplebook_ams_arrow_left{nullptr};
+    wxSimplebook *m_simplebook_ams_arrow_right{nullptr};
     wxSimplebook *m_simplebook_bottom{nullptr};
     int          m_left_page_index = 0;
     int          m_right_page_index = 0;
+    int          m_arrow_left_page_index = 0;
+    int          m_arrow_right_page_index = 0;
 
 
     wxStaticText *m_tip_right_top{nullptr};
@@ -201,6 +217,7 @@ public:
 private:
     std::string get_filament_id(const std::string& ams_id, const std::string& can_id);
 
+    bool IsAmsMixed(const std::vector<AMSinfo>& ams_info);
     void AddAms(AMSinfo info, AMSPanelPos pos);
     void AddAms(std::vector<AMSinfo> single_info, const std::string& series_name, const std::string& printer_type, AMSPanelPos pos);
 

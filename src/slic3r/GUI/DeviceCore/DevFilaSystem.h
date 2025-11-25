@@ -176,12 +176,15 @@ public:
     std::string GetAmsId() const { return m_ams_id; }
     wxString    GetDisplayName() const; // display
 
-    void     SetAmsType(int type) { m_ams_type = (DevAmsType) type; }
-    void     SetAmsType(DevAmsType type) { m_ams_type = type; }
-    DevAmsType  GetAmsType() const { return m_ams_type;}
+    void       SetAmsType(int type) { m_ams_type = (DevAmsType) type; }
+    void       SetAmsType(DevAmsType type) { m_ams_type = type; }
+    DevAmsType GetAmsType() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED ? DevAmsType::AMS_LITE : m_ams_type; }
 
     // exist or not
     bool  IsExist() const { return m_exist; }
+
+    // mixed ams lite for N9
+    bool IsAmsLiteMixed() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED; }
 
     // slots
     int   GetSlotCount() const;
