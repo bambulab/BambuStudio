@@ -84,7 +84,6 @@ std::string DevPrinterConfigUtil::get_printer_ext_img(const std::string& type_st
 
 std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, const std::string& key)
 {
-    std::vector<std::string> filaments;
     std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
     boost::nowide::ifstream  json_file(config_file.c_str());
     try
@@ -105,6 +104,25 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, cons
     }
     catch (...) {}
     return std::string();
+}
+
+std::vector<std::string> DevPrinterConfigUtil::get_fan_text_params(const std::string& type_str, const std::string& key)
+{
+    std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try {
+        json jj;
+        if (json_file.is_open()) {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00")) {
+                json const& printer = jj["00.00.00.00"];
+                if (printer.contains("fan") && printer["fan"].contains(key)) {
+                    return printer["fan"][key].get<std::vector<std::string>>();
+                }
+            }
+        }
+    } catch (...) {}
+    return std::vector<std::string>();
 }
 
 std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int airduct_mode, int airduct_func, int submode)
