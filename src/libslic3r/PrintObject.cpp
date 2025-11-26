@@ -462,10 +462,6 @@ void PrintObject::make_perimeters()
         }
         m_typed_slices = false;
     }
-    if (this->config().enable_circle_compensation) { // we need the circle_compensation information
-        for (Layer *layer : m_layers) layer->apply_auto_circle_compensation();
-        m_typed_slices = true;
-    }
 
     // compare each layer to the one below, and mark those slices needing
     // one additional inner perimeter, like the top of domed objects-
