@@ -3458,7 +3458,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
             }
 
             if (obj_->GetConfig()->HasChamber()) {
-                const auto& msg = wxString::Format(_L("[ %s ] requires printing in a high-temperature environment.Please close the door."), filament_strs);
+                const auto& msg = wxString::Format(_L("[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."), filament_strs);
                 show_status(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor, { msg });
                 if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusFilamentWarningHighChamberTempCloseDoor)) { return; }
             } else {
