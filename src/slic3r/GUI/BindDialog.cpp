@@ -319,9 +319,10 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent && agent->is_user_login() && ping_code.length() == PING_CODE_LENGTH) {
         auto result = agent->ping_bind(ping_code.ToStdString());
-
-        if(result < 0){
-            MessageDialog msg_wingow(nullptr, _L("Log in failed. Please check the Pin Code."), "", wxAPPLY | wxOK);
+        if (result < 0) {
+            MessageDialog msg_wingow(nullptr, _L("Login failed. Please check the following items:\n"
+                                                 "1. Ensure the Pin code is entered correctly.\n"
+                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxAPPLY | wxOK);
             msg_wingow.ShowModal();
             return;
         }
