@@ -5554,8 +5554,12 @@ void GCode::mass_load_limited_machine_acceleration(
         if (accumulated_mass_res > EPSILON) {
             curr_acceleration_temp = virtual_force_g_mms2 / (machine_bed_mass_Y + accumulated_mass_res);
             y_acceleration_limit_res = std::min(curr_acceleration_temp, curr_acceleration_y_config);
-        } else
+        } else {
+            y_acceleration_limit_res = curr_acceleration_y_config;
             BOOST_LOG_TRIVIAL(info) << "mass_load_limited_machine_acceleration: Printed mass not detected";
+        }
+    }else{
+        y_acceleration_limit_res = curr_acceleration_y_config;
     }
 }
 
