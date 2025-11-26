@@ -65,7 +65,8 @@ public:
     static std::string get_printer_ext_img(const std::string& type_str, int pos);//printer_ext_image
 
     /*fan*/
-    static std::string get_fan_text(const std::string& type_str, const std::string& key);
+    static std::string              get_fan_text(const std::string& type_str, const std::string& key);
+    static std::vector<std::string> get_fan_text_params(const std::string& type_str, const std::string& key);
     static std::string get_fan_text(const std::string& type_str, int airduct_mode, int airduct_func, int submode);
 
     /*extruder*/
