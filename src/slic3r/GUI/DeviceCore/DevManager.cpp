@@ -3,6 +3,14 @@
 #include "DevManager.h"
 #include "DevUtil.h"
 
+/* mac need the macro while including <boost/stacktrace.hpp>*/
+#ifdef  __APPLE__
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#endif
+#include <boost/stacktrace.hpp>
+
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
@@ -412,6 +420,20 @@ namespace Slic3r
             << " cur_selected=" << BBLCrossTalk::Crosstalk_DevId(selected_machine);
         auto my_machine_list = get_my_machine_list();
         auto it = my_machine_list.find(dev_id);
+
+        // Check the dev_id is in my_machine_list
+        if (!dev_id.empty() && it == my_machine_list.end()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": "
+                << BBLCrossTalk::Crosstalk_DevId(dev_id) << " not in my_machine_list";
+
+            static std::unordered_set<std::string> s_unknown_devs;
+            if (s_unknown_devs.find(dev_id) == s_unknown_devs.end()) {
+                s_unknown_devs.insert(dev_id);
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::stacktrace::stacktrace();
+            };
+
+            return false;
+        };
 
         // disconnect last if dev_id difference from previous one
         auto last_selected = my_machine_list.find(selected_machine);
