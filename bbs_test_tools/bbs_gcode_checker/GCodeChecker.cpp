@@ -741,7 +741,7 @@ GCodeCheckResult GCodeChecker::check_G0_G1_width(const GCodeLine& line)
     for (unsigned char a = X; a <= E; ++a)
         delta_pos[a] = m_end_position[a] - m_start_position[a];
 
-    // Todo: currently, for precision, there always a possiblility to generate
+    // Todo: currently, for precision, there alwasy has possible to generate
     // such gcode because of decimal truncation
     /*if (line.has(Axis(E)) && delta_pos[E] == 0.0 && !m_wiping) {
         std::cout << "Invalid GCode because has E axis but 0 extrusion" << std::endl;
@@ -753,7 +753,7 @@ GCodeCheckResult GCodeChecker::check_G0_G1_width(const GCodeLine& line)
         type = EMoveType::Travel;
 
     //BBS: calculate line width and compare.
-    //Don't need to check gap fill which has various width
+    //Don't need to check gap fill which has verious width
     if (type == EMoveType::Extrude &&
         m_role != erGapFill &&
         delta_pos[E] > CHECK_WIDTH_E_THRESHOLD) {
@@ -847,7 +847,7 @@ GCodeCheckResult GCodeChecker::check_G2_G3_width(const GCodeLine& line)
     }
 
     //BBS: calculate line width and compare
-    //Don't need to check gap fill which has various width
+    //Don't need to check gap fill which has verious width
     if (type == EMoveType::Extrude &&
         m_role != erGapFill &&
         delta_e > CHECK_WIDTH_E_THRESHOLD) {
