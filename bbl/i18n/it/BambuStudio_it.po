@@ -5736,7 +5736,7 @@ msgid "Click to view thermal preconditioning explanation"
 msgstr "Fai clic per visualizzare la spiegazione del preriscaldamento termico"
 
 msgid "Estimated finish time: "
-msgstr "Tempo di completamento stimato: "
+msgstr "Orario di completamento stimato: "
 
 msgid ""
 "The estimated printing time for \n"
