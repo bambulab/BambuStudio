@@ -49,7 +49,7 @@ Index of this file:
 #else
 #include <stdint.h>     // intptr_t
 #endif
-
+#include <regex>
 //-------------------------------------------------------------------------
 // Warnings
 //-------------------------------------------------------------------------
@@ -4166,9 +4166,58 @@ bool ImGui::TempInputScalar(const ImRect& bb, ImGuiID id, const char* label, ImG
     return value_changed;
 }
 
+
+struct CalculationResult
+{
+    float       num1;
+    float       num2;
+    char        operation;
+    double      result;
+    bool        success{false};
+    std::string error;
+};
+CalculationResult calculateWithRegex(const char *input)
+{
+    CalculationResult result{0, 0, '\0', 0, false, ""};
+    std::string str(input);
+    std::regex        pattern(R"((-?\d+\.?\d*)([+\-*/])(-?\d+\.?\d*))");
+    std::smatch matches;
+
+    if (std::regex_search(str, matches, pattern) && matches.size() == 4) {
+        try {
+            result.num1      = std::stof(matches[1].str());
+            result.operation = matches[2].str()[0];
+            result.num2      = std::stof(matches[3].str());
+
+            switch (result.operation) {
+            case '+': result.result = result.num1 + result.num2; break;
+            case '-': result.result = result.num1 - result.num2; break;
+            default: {
+                result.error = "unkonwn operation";
+                return result;
+            }
+            }
+
+            result.success = true;
+        } catch (const std::exception &e) {
+            result.error = "Number parsing error: " + std::string(e.what());
+        }
+    } else {
+        result.error = "String format mismatch, expected format such as 10+20 or -20-30";
+    }
+
+    return result;
+}
 // Note: p_data, p_step, p_step_fast are _pointers_ to a memory address holding the data. For an Input widget, p_step and p_step_fast are optional.
 // Read code of e.g. InputFloat(), InputInt() etc. or examples in 'Demo->Widgets->Data Types' to understand how to use this function directly.
-bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_data, const void *p_step, const void *p_step_fast, const char *format, ImGuiInputTextFlags flags)
+bool ImGui::BBLInputScalar(const char *        label,
+                           ImGuiDataType       data_type,
+                           void *              p_data,
+                           const void *        p_step,
+                           const void *        p_step_fast,
+                           const char *        format,
+                           ImGuiInputTextFlags flags,
+                           bool                support_numerical_operation)
 {
     ImGuiWindow *window = GetCurrentWindow();
     if (window->SkipItems) return false;
@@ -4238,7 +4287,15 @@ bool ImGui::BBLInputScalar(const char *label, ImGuiDataType data_type, void *p_d
         PopID();
         EndGroup();
     } else {
-        if (InputText(label, buf, IM_ARRAYSIZE(buf), flags)) value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
+        if (InputText(label, buf, IM_ARRAYSIZE(buf), flags)) {
+            if (support_numerical_operation) {
+                auto result_cal = calculateWithRegex(buf);
+                if (result_cal.success) {
+                    DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, &result_cal.result, format);
+                }
+            }
+            value_changed = DataTypeApplyOpFromText(buf, g.InputTextState.InitialTextA.Data, data_type, p_data, format);
+        }
     }
     if (value_changed) MarkItemEdited(window->DC.LastItemId);
 
@@ -4407,11 +4464,12 @@ bool ImGui::InputDouble(const char* label, double* v, double step, double step_f
     return InputScalar(label, ImGuiDataType_Double, (void*)v, (void*)(step > 0.0 ? &step : NULL), (void*)(step_fast > 0.0 ? &step_fast : NULL), format, flags);
 }
 
-bool ImGui::BBLInputDouble(const char *label, double *v, double step, double step_fast, const char *format, ImGuiInputTextFlags flags)
+bool ImGui::BBLInputDouble(const char *label, double *v, double step, double step_fast, const char *format, ImGuiInputTextFlags flags, bool support_numerical_operation)
 {
     ImGui::PushStyleColor(ImGuiCol_BorderActive, ImVec4(0.00f, 0.68f, 0.26f, 1.00f));
     flags |= ImGuiInputTextFlags_CharsScientific;
-    bool bbl_input_scalar = BBLInputScalar(label, ImGuiDataType_Double, (void *) v, (void *) (step > 0.0 ? &step : NULL), (void *) (step_fast > 0.0 ? &step_fast : NULL), format,flags);
+    bool bbl_input_scalar = BBLInputScalar(label, ImGuiDataType_Double, (void *) v, (void *) (step > 0.0 ? &step : NULL), (void *) (step_fast > 0.0 ? &step_fast : NULL), format,
+                                           flags, support_numerical_operation);
     ImGui::PopStyleColor(1);
     return bbl_input_scalar;
 }

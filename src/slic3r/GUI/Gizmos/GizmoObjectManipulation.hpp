@@ -59,6 +59,13 @@ public:
     bool            m_use_object_cs{false};
 
     GLGizmoAlignment::AlignType m_align_type{GLGizmoAlignment::AlignType::NONE};
+    enum class AlignChoiceType {
+        AlignPartOrObject = 0,
+        AlignParent,
+    };
+    AlignChoiceType             m_align_choice_type{AlignChoiceType::AlignParent};
+    bool m_align_to_parent_node{false};
+    GLGizmoAlignment *          get_alignment_helper() { return m_alignment_helper; }
     // Mirroring buttons and their current state
     //enum MirrorButtonState {
     //    mbHidden,
@@ -179,7 +186,7 @@ private:
     void reset_scale_value();
 
     GLCanvas3D& m_glcanvas;
-    GLGizmoAlignment* m_alignment_helper;
+    GLGizmoAlignment * m_alignment_helper{nullptr};
     unsigned int m_last_active_item { 0 };
     std::map<std::string, wxString> m_desc_move;
     std::map<std::string, wxString> m_desc_rotate;
