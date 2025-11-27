@@ -1909,32 +1909,35 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         has_slice_warnings = true;
     }
 
-    //check blacklist
-    for (const auto& slicing_fila : m_filaments) {
+    //check blacklist, using physical filament info
+    for (const auto& physical_fila : m_ams_mapping_result) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        check_info.fila_id = slicing_fila.filament_id;
-        check_info.fila_type = slicing_fila.type;
+        check_info.fila_id = physical_fila.filament_id;
+        check_info.fila_type = physical_fila.type;
 
         auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name = option ? option->filament_name : "";
-        check_info.fila_vendor = slicing_fila.brand;
+        check_info.fila_vendor = physical_fila.brand;
+        if (check_info.fila_vendor.empty() && option) {
+            check_info.fila_vendor = option->vendor;
+        }
 
         // usage of filament
         if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
             for (auto used_fila : gcode_result->used_filaments) {
-                if (used_fila.filament_id == slicing_fila.id) {
+                if (used_fila.filament_id == physical_fila.id) {
                     check_info.used_for_print_support = used_fila.use_for_support;
                     break;
                 }
             };
         }
 
-        const auto& mapped_fila = get_mapped_filament_info(slicing_fila.id);
+        const auto& mapped_fila = get_mapped_filament_info(physical_fila.id);
         if (!mapped_fila.has_value()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: cannot find mapped fila for logic fila_id= " << slicing_fila.id;
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: cannot find mapped fila for logic fila_id= " << physical_fila.id;
             continue;
         }
 
@@ -5064,29 +5067,32 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     }
 
     // filaments check for black list
-    for (const auto& slicing_fila : m_filaments) {
+    for (const auto& physical_fila : m_ams_mapping_result) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        check_info.fila_id = slicing_fila.filament_id;
-        check_info.fila_type = slicing_fila.type;
+        check_info.fila_id = physical_fila.filament_id;
+        check_info.fila_type = physical_fila.type;
 
         auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name = option ? option->filament_name : "";
-        check_info.fila_vendor = slicing_fila.brand;
+        check_info.fila_vendor = physical_fila.brand;
+        if (check_info.fila_vendor.empty() && option) {
+            check_info.fila_vendor = option->vendor;
+        }
 
         // usage of filament
         if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
             for (auto used_fila : gcode_result->used_filaments) {
-                if (used_fila.filament_id == slicing_fila.id) {
+                if (used_fila.filament_id == physical_fila.id) {
                     check_info.used_for_print_support = used_fila.use_for_support;
                     break;
                 }
             };
         }
 
-        const auto& mapped_fila = get_mapped_filament_info(slicing_fila.id);
+        const auto& mapped_fila = get_mapped_filament_info(physical_fila.id);
         if (!mapped_fila.has_value()) {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
             return false;
