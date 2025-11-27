@@ -2955,12 +2955,6 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
-    def = this->add("auto_disable_filter_on_overheat", coBool);
-    def->label = L("Auto turn off filter on overheat");
-    def->tooltip = L("Enable this if printer support cooling filter");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
     def = this->add("gcode_flavor", coEnum);
     def->label = L("G-code flavor");
     def->tooltip = L("What kind of gcode the printer is compatible with");

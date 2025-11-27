@@ -148,7 +148,6 @@
     "support_air_filtration": "0",
     "support_cooling_filter": "0",
     "cooling_filter_enabled": "0",
-    "auto_disable_filter_on_overheat": "0",
     "support_chamber_temp_control": "0",
     "support_object_skip_flush": "0",
     "wipe": [
