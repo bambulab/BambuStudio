@@ -4383,7 +4383,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("support_chamber_temp_control");
         optgroup->append_single_option_line("support_air_filtration");
         optgroup->append_single_option_line("cooling_filter_enabled");
-        optgroup->append_single_option_line("auto_disable_filter_on_overheat");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -5067,7 +5066,6 @@ void TabPrinter::toggle_options()
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_line("support_air_filtration", !m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
         toggle_line("cooling_filter_enabled", m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
-        toggle_line("auto_disable_filter_on_overheat", m_config->opt_bool("cooling_filter_enabled") && is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.

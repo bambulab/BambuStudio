@@ -1180,7 +1180,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionBool,                support_cooling_filter))
     ((ConfigOptionBool,                cooling_filter_enabled))
-    ((ConfigOptionBool,                auto_disable_filter_on_overheat))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
