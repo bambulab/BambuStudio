@@ -84,15 +84,14 @@ void CalibrationCaliPage::on_subtask_pause_resume(wxCommandEvent& event)
 
 void CalibrationCaliPage::on_subtask_abort(wxCommandEvent& event)
 {
-    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return;
-    MachineObject* obj = dev->get_selected_machine();
-    if (!obj) return;
-
     if (abort_dlg == nullptr) {
         abort_dlg = new SecondaryCheckDialog(this->GetParent(), wxID_ANY, _L("Cancel print"));
-        abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, obj](wxCommandEvent& e) {
-            if (obj) obj->command_task_abort();
+        abort_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [](wxCommandEvent& e) {
+                DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                if (!dev) return;
+                MachineObject* obj = dev->get_selected_machine();
+
+                if (obj) obj->command_task_abort();
             });
     }
     abort_dlg->update_text(_L("Are you sure to stop printing?"));
