@@ -6007,13 +6007,17 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
     std::string 		 gcode;
     ExtrusionEntitiesPtr extrusions;
     const char*          extrusion_name = ironing ? "ironing" : "infill";
+    bool                 has_ironing_extrusions = false;
     for (const ObjectByExtruder::Island::Region &region : by_region)
         if (! region.infills.empty()) {
             extrusions.clear();
             extrusions.reserve(region.infills.size());
             for (ExtrusionEntity *ee : region.infills)
-                if ((ee->role() == erIroning) == ironing)
+                if ((ee->role() == erIroning) == ironing) {
                     extrusions.emplace_back(ee);
+                    if (!has_ironing_extrusions && ironing) //record if any ironing exist
+                        has_ironing_extrusions = true;
+                }
             if (! extrusions.empty()) {
                 m_config.apply(print.get_print_region(&region - &by_region.front()).config());
                 chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
@@ -6027,6 +6031,12 @@ std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectBy
                 }
             }
         }
+    if (has_ironing_extrusions){
+        std::string prefix = "M1031 S1 ;IRONING_EXTRUSIONS_START\n";
+        std::string suffix = "M1031 S0 ;IRONING_EXTRUSIONS_END\n";
+
+        gcode =  prefix + gcode + suffix;
+    }
     return gcode;
 }
 
