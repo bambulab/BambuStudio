@@ -2667,7 +2667,7 @@ void AMSPreview::doRender(wxDC &dc)
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, 0);
 
     // draw container
-    auto color = *wxWHITE;
+    auto color = wxColour("#F7F7F7");
     dc.SetBrush(StateColor::darkModeColorFor(color));
     dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(3));
 
