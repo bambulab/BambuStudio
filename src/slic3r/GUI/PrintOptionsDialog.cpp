@@ -9,6 +9,7 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevPrintOptions.h"
+#include "DeviceCore/DevFan.h"
 
 static const wxColour STATIC_BOX_LINE_COL = wxColour(238, 238, 238);
 static const wxColour STATIC_TEXT_CAPTION_COL = wxColour(100, 100, 100);
@@ -65,7 +66,6 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
-
       // refine printer function options
     m_cb_spaghetti_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
@@ -79,8 +79,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
-
-       m_cb_purgechutepileup_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+    m_cb_purgechutepileup_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
         if (obj) {
             int         level = purgechutepileup_detection_level_list->GetSelection();
             std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
@@ -92,32 +91,29 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
+    m_cb_nozzleclumping_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        if (obj) {
+            int         level = nozzleclumping_detection_level_list->GetSelection();
+            std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
+            if (!lvl.empty())
+                obj->GetPrintOptions()->command_xcam_control_nozzleclumping_detection(m_cb_nozzleclumping_detection->GetValue(), lvl);
+            else
+                BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
+        }
+        evt.Skip();
+    });
 
-       m_cb_nozzleclumping_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
-           if (obj) {
-               int         level = nozzleclumping_detection_level_list->GetSelection();
-               std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
-               if (!lvl.empty())
-                   obj->GetPrintOptions()->command_xcam_control_nozzleclumping_detection(m_cb_nozzleclumping_detection->GetValue(), lvl);
-               else
-                   BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
-           }
-           evt.Skip();
-       });
-
-        m_cb_airprinting_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
-           if (obj) {
-               int         level = airprinting_detection_level_list->GetSelection();
-               std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
-               if (!lvl.empty())
-                   obj->GetPrintOptions()->command_xcam_control_airprinting_detection(m_cb_airprinting_detection->GetValue(), lvl);
-               else
-                   BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
-           }
-           evt.Skip();
-       });
-
-
+    m_cb_airprinting_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        if (obj) {
+            int         level = airprinting_detection_level_list->GetSelection();
+            std::string lvl   = sensitivity_level_to_msg_string((AiMonitorSensitivityLevel) level);
+            if (!lvl.empty())
+                obj->GetPrintOptions()->command_xcam_control_airprinting_detection(m_cb_airprinting_detection->GetValue(), lvl);
+            else
+                BOOST_LOG_TRIVIAL(warning) << "print_option: lvl = " << lvl;
+        }
+        evt.Skip();
+    });
 
     m_cb_first_layer->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
@@ -199,6 +195,33 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
+    m_cb_purify_air_at_print_end->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        if (obj)
+        {
+            obj->GetPrintOptions()->command_xcam_control_purify_air_at_print_end(m_cb_purify_air_at_print_end->GetValue());
+        }
+        evt.Skip();
+    });
+
+    purify_air_switch_board->Bind(wxCUSTOMEVT_SWITCH_POS, [this](wxCommandEvent &evt) {
+        if (evt.GetInt() == 0)
+        {
+            if (obj) { obj->GetPrintOptions()->command_xcam_control_purify_air_at_print_end((int)DevPrintOptions::PurifyAirAtPrintEndState::PurifyAirByOutside); }
+        }
+        else if (evt.GetInt() == 1)
+        {
+            if (obj) { obj->GetPrintOptions()->command_xcam_control_purify_air_at_print_end((int)DevPrintOptions::PurifyAirAtPrintEndState::PurifyAirByInside); }
+        }
+        evt.Skip();
+    });
+    m_print_option_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent& e){
+            if (m_print_option_toast)
+            {
+                m_print_option_toast->Destroy();
+                m_print_option_toast = nullptr;
+            }},m_print_option_timer->GetId());
+    purify_air_bind_toast();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
@@ -210,6 +233,28 @@ PrintOptionsDialog::~PrintOptionsDialog()
     purgechutepileup_detection_level_list->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_purgechutepileup_detection_sensitivity), NULL, this);
     nozzleclumping_detection_level_list->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_nozzleclumping_detection_sensitivity), NULL, this);
     airprinting_detection_level_list->Disconnect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_airprinting_detection_sensitivity), NULL, this);
+}
+
+void PrintOptionsDialog::purify_air_bind_toast() {
+    m_cb_purify_air_at_print_end->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e){
+        if (m_print_option_disable) { show_print_option_toast(_L("Unavailable during the task")); }
+        e.Skip();
+    });
+
+    purify_air_switch_board->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        if (m_print_option_disable) { show_print_option_toast(_L("Unavailable during the task")); }
+        e.Skip();
+    });
+
+    text_purify_air->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        if (m_print_option_disable) { show_print_option_toast(_L("Unavailable during the task")); }
+        e.Skip();
+    });
+
+    text_purify_air_context->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        if (m_print_option_disable) { show_print_option_toast(_L("Unavailable during the task")); }
+        e.Skip();
+    });
 }
 
 void PrintOptionsDialog::on_dpi_changed(const wxRect& suggested_rect)
@@ -264,15 +309,92 @@ void PrintOptionsDialog::update_airprinting_detection_status()
     }
 }
 
+void PrintOptionsDialog::update_purify_air_at_print_end(MachineObject *obj_)
+{
+    if (!obj_) return;
+
+    //do not support this feature
+    if (!obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Purify_Air_At_Print_End)->is_support_detect)
+    {
+        purify_air_switch_board->Disable();
+        m_cb_purify_air_at_print_end->Hide();
+        text_purify_air->Hide();
+        text_purify_air_context->Hide();
+        purify_air_switch_board->Hide();
+        return;
+    }
+
+    // support this feature
+    m_print_option_disable = false;
+    m_cb_purify_air_at_print_end->Show();
+    text_purify_air->Show();
+    m_cb_purify_air_at_print_end->Enable();
+    purify_air_switch_board->Enable();
+    text_purify_air_context->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    text_purify_air->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    if (obj_->GetFan()->GetAirDuctData().IsExaustFanExit())
+    {
+        text_purify_air_context->SetLabel(_L("Purifies the chamber air as the print finishes, based on the selected mode."));
+        purify_air_switch_board->Show();
+
+        if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Purify_Air_At_Print_End)->current_detect_value != 0)
+        {
+            m_cb_purify_air_at_print_end->SetValue(true);
+            purify_air_switch_board->updateState(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Purify_Air_At_Print_End)->current_detect_value == 1 ? "left" : "right");
+            purify_air_switch_board->Refresh();
+        }
+        else
+        {
+            purify_air_switch_board->Disable();
+            m_cb_purify_air_at_print_end->SetValue(false);
+        }
+    }
+    else
+    {
+        text_purify_air_context->SetLabel(_L("Purifies the chamber air through internal circulation as each print finishes."));
+        purify_air_switch_board->Hide();
+        m_cb_purify_air_at_print_end->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Purify_Air_At_Print_End)->current_detect_value);
+    }
+    text_purify_air_context->Show();
+    text_purify_air_context->Wrap(FromDIP(400));
+
+    // in printing state
+    if (obj_->is_in_printing()) {
+        m_cb_purify_air_at_print_end->Disable();
+        purify_air_switch_board->Disable();
+        text_purify_air_context->SetForegroundColour(wxColour(170, 170, 170));
+        text_purify_air->SetForegroundColour(wxColour(170, 170, 170));
+        m_print_option_disable = true;
+    }
+}
+
+void PrintOptionsDialog::show_print_option_toast(const wxString &text) {
+    if (m_print_option_toast)
+    {
+        m_print_option_toast->Destroy();
+        m_print_option_toast = nullptr;
+    }
+
+    m_print_option_toast = new PrintOptionToast(this, text);
+    wxRect parentRect = this->GetScreenRect();
+    wxSize toastSize = m_print_option_toast->GetSize();
+    int x = parentRect.x + (parentRect.width - toastSize.GetWidth()) / 2;
+    int y = parentRect.y + (parentRect.height - toastSize.GetHeight()) / 2;
+    m_print_option_toast->Move(x,y);
+    m_print_option_toast->Show();
+    m_print_option_timer->Stop();
+    m_print_option_timer->StartOnce(3000);
+}
 
 void PrintOptionsDialog::update_options(MachineObject* obj_)
 {
     if (!obj_) return;
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).is_support_detect ||
-        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).is_support_detect ||
-        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).is_support_detect ||
-        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->is_support_detect) {
         ai_refine_panel->Show();
         text_ai_detections->Show();
         text_ai_detections_caption->Show();
@@ -284,7 +406,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         m_line->Hide();
     }
 
-    if (obj_->GetConfig()->SupportAIMonitor() && !obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring).is_support_detect) {
+    if (obj_->GetConfig()->SupportAIMonitor() && !obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring)->is_support_detect) {
         text_ai_monitoring->Show();
         m_cb_ai_monitoring->Show();
         text_ai_monitoring_caption->Show();
@@ -301,7 +423,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     }
 
    //refine printer function options
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection)->is_support_detect) {
         text_spaghetti_detection->Show();
         m_cb_spaghetti_detection->Show();
         text_spaghetti_detection_caption0->Show();
@@ -320,7 +442,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         //line1->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection)->is_support_detect) {
         text_purgechutepileup_detection->Show();
         m_cb_purgechutepileup_detection->Show();
         text_purgechutepileup_detection_caption0->Show();
@@ -338,7 +460,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
        // line1->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection)->is_support_detect) {
         text_nozzleclumping_detection->Show();
         m_cb_nozzleclumping_detection->Show();
         text_nozzleclumping_detection_caption0->Show();
@@ -357,7 +479,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
        // line1->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->is_support_detect) {
         text_airprinting_detection->Show();
         m_cb_airprinting_detection->Show();
         text_airprinting_detection_caption0->Show();
@@ -375,25 +497,25 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         airprinting_bottom_space->Show(false);
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect ||
-        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect)
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->is_support_detect)
     {
         text_plate_build->Show();
         text_plate_build_caption->Show();
 
-        m_cb_plate_type->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect);
-        text_plate_type->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect);
-        text_plate_type_caption->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).is_support_detect);
+        m_cb_plate_type->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->is_support_detect);
+        text_plate_type->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->is_support_detect);
+        text_plate_type_caption->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->is_support_detect);
 
-        m_cb_plate_align->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect);
-        text_plate_align->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect);
-        text_plate_align_caption->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).is_support_detect);
+        m_cb_plate_align->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->is_support_detect);
+        text_plate_align->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->is_support_detect);
+        text_plate_align_caption->Show(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->is_support_detect);
 
         text_plate_mark->Hide();
         m_cb_plate_mark->Hide();
         text_plate_mark_caption->Hide();
     }
-    else if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection).is_support_detect)
+    else if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection)->is_support_detect)
     {
         if (obj_->GetPrintOptions()->GetPlateMakerDectectType() == DevPrintOptions::POS_CHECK &&
             (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
@@ -452,7 +574,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line3->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection).is_support_detect)
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->is_support_detect)
     {
         text_auto_recovery->Show();
         m_cb_auto_recovery->Show();
@@ -465,7 +587,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line4->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection)->is_support_detect) {
         text_sup_sound->Show();
         m_cb_sup_sound->Show();
       //  line5->Show();
@@ -476,7 +598,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line5->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection).is_support_detect) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection)->is_support_detect) {
         text_filament_tangle->Show();
         m_cb_filament_tangle->Show();
        // line6->Show();
@@ -504,52 +626,51 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     UpdateOptionOpenDoorCheck(obj_);
 
     this->Freeze();
-    m_cb_first_layer->SetValue( obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::First_Layer_Detection).current_detect_value);
-    m_cb_plate_mark->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection).current_detect_value);
-    m_cb_auto_recovery->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection).current_detect_value);
-    m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection).current_detect_value);
-    m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection).current_detect_value);
+    m_cb_first_layer->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::First_Layer_Detection)->current_detect_value);
+    m_cb_plate_mark->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection)->current_detect_value);
+    m_cb_auto_recovery->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->current_detect_value);
+    m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection)->current_detect_value);
+    m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection)->current_detect_value);
     m_cb_nozzle_blob->SetValue(obj_->nozzle_blob_detection_enabled);
-    m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection).current_detect_value);
-    m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection).current_detect_value);
+    m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->current_detect_value);
+    m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->current_detect_value);
 
 
-    m_cb_ai_monitoring->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring).current_detect_value);
+    m_cb_ai_monitoring->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring).current_detect_sensitivity_value) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring)->current_detect_sensitivity_value) {
             ai_monitoring_level_list->SetSelection((int) i);
             break;
         }
     }
     //refine printer function options
-    m_cb_spaghetti_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).current_detect_value);
+    m_cb_spaghetti_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection).current_detect_sensitivity_value) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection)->current_detect_sensitivity_value) {
             spaghetti_detection_level_list->SetSelection((int) i);
             break;
         }
     }
 
-    m_cb_purgechutepileup_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).current_detect_value);
+    m_cb_purgechutepileup_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-         if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection).current_detect_sensitivity_value) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection)->current_detect_sensitivity_value) {
             purgechutepileup_detection_level_list->SetSelection((int) i);
             break;
         }
     }
 
-    m_cb_nozzleclumping_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).current_detect_value);
+    m_cb_nozzleclumping_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection).current_detect_sensitivity_value) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection)->current_detect_sensitivity_value) {
             nozzleclumping_detection_level_list->SetSelection((int) i);
             break;
         }
     }
 
-
-    m_cb_airprinting_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).current_detect_value);
+    m_cb_airprinting_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
-        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection).current_detect_sensitivity_value) {
+        if (sensitivity_level_to_msg_string(i) == obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->current_detect_sensitivity_value) {
             airprinting_detection_level_list->SetSelection((int) i);
             break;
         }
@@ -561,12 +682,11 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     update_purgechutepileup_detection_status();
     update_nozzleclumping_detection_status();
     update_airprinting_detection_status();
-
+    update_purify_air_at_print_end(obj_);
 
     this->Thaw();
     Layout();
 }
-
 
 
 void PrintOptionsDialog::UpdateOptionSavePrintFileToStorage(MachineObject *obj)
@@ -855,7 +975,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     airprinting_bottom_space = ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
-      ai_refine_panel->SetSizer(ai_refine_sizer);
+    ai_refine_panel->SetSizer(ai_refine_sizer);
     sizer->Add(ai_refine_panel, 0, wxEXPAND | wxRIGHT, FromDIP(18));
 
     //    sizer->Add(line1, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
@@ -969,6 +1089,26 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line3->SetLineColour(STATIC_BOX_LINE_COL);
     sizer->Add(line3, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     line3->Hide();
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    //purify air at print end
+    line_sizer     = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_purify_air_at_print_end = new CheckBox(parent);
+    text_purify_air = new Label(parent, _L("Purify Air at Print End"));
+    text_purify_air->SetFont(Label::Body_14);
+    text_purify_air_context = new Label(parent, wxEmptyString);
+    text_purify_air_context->SetFont(Label::Body_12);
+    text_purify_air_context->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+
+    purify_air_switch_board = new SwitchBoard(parent, _L("Internal Circulation"), _L("Exhaust"), wxSize(FromDIP(300), FromDIP(26)));
+    purify_air_switch_board->Disable();
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_purify_air_at_print_end, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_purify_air, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(text_purify_air_context, 0, wxLEFT, FromDIP(58));
+    sizer->Add(purify_air_switch_board, 0, wxLEFT, FromDIP(58));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
     // auto-recovery from step loss
@@ -1087,7 +1227,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
-      ai_monitoring_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this);
+    ai_monitoring_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this);
 
     // refine printer function options
     spaghetti_detection_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_spaghetti_detection_sensitivity), NULL, this);
@@ -1640,5 +1780,22 @@ void PrinterPartsDialog::UpdateNozzleInfo(){
     Layout();
     Fit();
 }
+
+ PrintOptionToast::PrintOptionToast(wxWindow *parent, const wxString &text): wxPopupWindow(parent)
+ {
+     SetBackgroundColour(wxColour(200, 200, 200));
+
+     wxStaticText *textContent = new wxStaticText(this, wxID_ANY, text);
+     textContent->SetForegroundColour(*wxWHITE);
+     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+     sizer->Add(textContent, 1, wxALIGN_CENTER | wxALL, 10);
+     SetSizer(sizer);
+
+     SetMinSize(textContent->GetSize() + wxSize(20, 20));
+     SetMaxSize(textContent->GetSize() + wxSize(20, 20));
+
+     Layout();
+     Fit();
+ }
 
 }} // namespace Slic3r::GUI

@@ -198,6 +198,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
 
         if (time(nullptr) - opts->m_idel_heating_protect_detection.detect_hold_start > HOLD_TIME_3SEC)
             opts->m_idel_heating_protect_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 32, 2);
+
+         if (time(nullptr) - opts->m_purify_air_at_print_end.detect_hold_start > HOLD_TIME_3SEC)
+            opts->m_purify_air_at_print_end.current_detect_value = DevUtil::get_flag_bits(cfg, 36, 2);
     }
 
     // fun1 part
@@ -211,12 +214,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
             opts->m_airprinting_detection.is_support_detect          = DevUtil::get_flag_bits(fun, 45);
             opts->m_idel_heating_protect_detection.is_support_detect = DevUtil::get_flag_bits(fun, 62);
             opts->m_allow_prompt_sound_detection.is_support_detect   = DevUtil::get_flag_bits(fun, 8);
-
-            opts->m_nozzle_blob_detection.is_support_detect = DevUtil::get_flag_bits(fun, 13);
+            opts->m_nozzle_blob_detection.is_support_detect          = DevUtil::get_flag_bits(fun, 13);
         }
-
     }
-
 
     if (print_json.contains("support_build_plate_marker_detect")) {
         if (print_json["support_build_plate_marker_detect"].is_boolean()) {
@@ -235,7 +235,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
     }
 
     if (print_json.contains("support_prompt_sound")) {
-        if (print_json["support_prompt_sound"].is_boolean()) { opts->m_allow_prompt_sound_detection.is_support_detect = print_json["support_prompt_sound"].get<bool>(); }
+        if (print_json["support_prompt_sound"].is_boolean()) {
+            opts->m_allow_prompt_sound_detection.is_support_detect = print_json["support_prompt_sound"].get<bool>();
+        }
     }
 
     if (print_json.contains("support_filament_tangle_detect")) {
@@ -249,9 +251,10 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
     if (print_json.contains("fun2") && print_json["fun2"].is_string()) {
         fun2 = print_json["fun2"].get<std::string>();
         BOOST_LOG_TRIVIAL(info) << "new print data fun2 = " << fun2;
-    }
 
-    opts->m_buildplate_align_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
+        opts->m_buildplate_align_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
+        opts->m_purify_air_at_print_end.is_support_detect    = DevUtil::get_flag_bits_no_border(fun2, 4);
+    }
 }
 
 DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
@@ -271,7 +274,9 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Nozzle_Blob_Detection, &m_nozzle_blob_detection},
                         {PrintOptionEnum::Open_Door_Detection, &m_open_door_detection},
                         {PrintOptionEnum::Idle_Heating_Protect_Detection, &m_idel_heating_protect_detection},
-                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection}};
+                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection},
+                        {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
+    };
 }
 
 void DevPrintOptions::SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level)
@@ -390,13 +395,15 @@ int DevPrintOptions::command_xcam_control_filament_tangle_detect(bool on_off)
     return command_set_filament_tangle_detect(on_off, m_obj);
 }
 
-PrintOptionData &DevPrintOptions::GetDetectionOption(PrintOptionEnum print_option)
+PrintOptionData *DevPrintOptions::GetDetectionOption(PrintOptionEnum print_option)
 {
-    PrintOptionData *p_data = m_detection_list.at(print_option);
-    return *p_data;
+    auto it = m_detection_list.find(print_option);
+    if (it != m_detection_list.end())
+    {
+        return it->second;
+    }
+    return nullptr;
 }
-
-
 
 int DevPrintOptions::command_xcam_control(std::string module_name, bool on_off, MachineObject *obj, std::string lvl)
 {
@@ -449,6 +456,28 @@ int DevPrintOptions::command_set_filament_tangle_detect(bool filament_tangle_det
     j["print"]["sequence_id"]            = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["filament_tangle_detect"] = filament_tangle_detect;
 
+    return obj->publish_json(j);
+}
+
+int DevPrintOptions::command_xcam_control_purify_air_at_print_end(int on_off)
+{
+    m_purify_air_at_print_end.current_detect_value = on_off;
+    m_purify_air_at_print_end.detect_hold_start    = time(nullptr);
+    return command_set_purify_air_at_print_end((PurifyAirAtPrintEndState)on_off, m_obj);
+}
+
+int DevPrintOptions::command_set_purify_air_at_print_end(PurifyAirAtPrintEndState state, MachineObject *obj)
+{
+    json j;
+    j["print"]["command"]                = "print_option";
+    j["print"]["sequence_id"]            = std::to_string(MachineObject::m_sequence_id++);
+    switch (state)
+    {
+        case PurifyAirAtPrintEndState::PurifyAirDisable: j["print"]["air_purification"] = 0; break;
+        case PurifyAirAtPrintEndState::PurifyAirByInside: j["print"]["air_purification"] = 1; break;
+        case PurifyAirAtPrintEndState::PurifyAirByOutside: j["print"]["air_purification"] = 2; break;
+        default: assert(0);
+    }
     return obj->publish_json(j);
 }
 

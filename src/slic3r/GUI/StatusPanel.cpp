@@ -2766,8 +2766,8 @@ void StatusPanel::update(MachineObject *obj)
 
         DevConfig *config = obj->GetConfig();
 
-        if (config->SupportFirstLayerInspect() || config->SupportAIMonitor() || obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection).is_support_detect ||
-            obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection).is_support_detect) {
+        if (config->SupportFirstLayerInspect() || config->SupportAIMonitor() || obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection)->is_support_detect ||
+            obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->is_support_detect) {
             m_options_btn->Show();
             if (print_options_dlg) {
                 print_options_dlg->update_machine_obj(obj);
