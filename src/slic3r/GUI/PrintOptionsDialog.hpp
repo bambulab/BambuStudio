@@ -69,6 +69,12 @@ private:
     wxString GetString(float diameter) const { return wxString::FromDouble(diameter); };
 };
 
+class PrintOptionToast : public wxPopupWindow
+{
+public:
+    PrintOptionToast(wxWindow* parent, const wxString& text);
+};
+
 
 class PrintOptionsDialog : public DPIDialog
 {
@@ -88,6 +94,7 @@ protected:
     CheckBox* m_cb_filament_tangle;
     CheckBox* m_cb_nozzle_blob;
     CheckBox* m_cb_open_door;
+    CheckBox* m_cb_purify_air_at_print_end;
     Label* text_first_layer;
     Label* text_ai_detections;
     Label* text_ai_detections_caption;
@@ -131,6 +138,8 @@ protected:
     Label* text_nozzle_blob;
     Label* text_nozzle_blob_caption;
     Label* text_open_door;
+    Label* text_purify_air;
+    Label* text_purify_air_context;
     StaticLine* line1;
     StaticLine* line2;
     StaticLine* line3;
@@ -139,6 +148,7 @@ protected:
     StaticLine* line6;
     StaticLine* line7;
     SwitchBoard* open_door_switch_board;
+    SwitchBoard *purify_air_switch_board;
     wxBoxSizer* create_settings_group(wxWindow* parent);
     wxPanel     *m_line;
 
@@ -153,6 +163,11 @@ protected:
 
     bool print_halt = false;
 
+    //print option toast
+    PrintOptionToast *m_print_option_toast{nullptr};
+    bool           m_print_option_disable{false};
+    wxTimer          *m_print_option_timer;
+
 public:
     PrintOptionsDialog(wxWindow* parent);
     ~PrintOptionsDialog();
@@ -164,6 +179,9 @@ public:
     void update_purgechutepileup_detection_status();
     void update_nozzleclumping_detection_status();
     void update_airprinting_detection_status();
+    void update_purify_air_at_print_end(MachineObject *obj_);
+    void show_print_option_toast(const wxString &text);
+    void purify_air_bind_toast();
 
     MachineObject *obj { nullptr };
 

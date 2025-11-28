@@ -157,7 +157,7 @@ void SafetyOptionsDialog::updateOpenDoorCheck(MachineObject *obj) {
 
 void SafetyOptionsDialog::updateIdelHeatingProtect(MachineObject *obj)
 {
-    if (obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Idle_Heating_Protect_Detection).is_support_detect) {
+    if (obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Idle_Heating_Protect_Detection)->is_support_detect) {
         m_idel_heating_container->Show();
     } else {
         m_idel_heating_container->Hide();
@@ -165,7 +165,7 @@ void SafetyOptionsDialog::updateIdelHeatingProtect(MachineObject *obj)
         return;
     }
 
-    if (obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Idle_Heating_Protect_Detection).current_detect_value == 2)
+    if (obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Idle_Heating_Protect_Detection)->current_detect_value == 2)
     {
         m_cb_idel_heating_protection->SetValue(false);
         m_cb_idel_heating_protection->Enable(false);
@@ -175,7 +175,7 @@ void SafetyOptionsDialog::updateIdelHeatingProtect(MachineObject *obj)
         m_idel_protect_unavailable = true;
     } else {
         m_cb_idel_heating_protection->Enable(true);
-        m_cb_idel_heating_protection->SetValue(obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Idle_Heating_Protect_Detection).current_detect_value);
+        m_cb_idel_heating_protection->SetValue(obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Idle_Heating_Protect_Detection)->current_detect_value);
         m_text_idel_heating_protection->SetForegroundColour(*wxBLACK);
         m_text_idel_heating_protection_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
         m_cb_idel_heating_protection->SetForegroundColour(*wxBLACK);
