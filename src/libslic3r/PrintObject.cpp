@@ -1238,7 +1238,9 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
+            || opt_key == "top_surface_density"
             || opt_key == "bottom_surface_pattern"
+            || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_anchor"

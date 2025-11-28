@@ -1660,6 +1660,18 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
+    def           = this->add("top_surface_density", coPercent);
+    def->label    = L("Top surface density");
+    def->category = L("Strength");
+    def->tooltip  = L("Density of top surface infill, 100% means a fully solid filled top layer."
+                       "Lower values create a textured top surface, at 0%, only the walls are created on the top layer."
+                       "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.");
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
     def->category = L("Strength");
@@ -1668,6 +1680,19 @@ void PrintConfigDef::init_fff_params()
     def->enum_values = def_top_fill_pattern->enum_values;
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    def           = this->add("bottom_surface_density", coPercent);
+    def->label    = L("Bottom surface density");
+    def->category = L("Strength");
+    def->tooltip  = L("Density of bottom surface infill, 100% means a fully solid filled top layer."
+                       "Lower values create a textured bottom surface, "
+                       "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+                       "WARNING: Lowering this value may negatively affect bed adhesion.");
+    def->sidetext = "%";
+    def->min      = 10;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
 
     def                = this->add("internal_solid_infill_pattern", coEnum);
     def->label         = L("Internal solid infill pattern");
