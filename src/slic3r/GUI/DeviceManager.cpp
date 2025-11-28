@@ -211,7 +211,7 @@ wxString Slic3r::get_stage_string(int stage)
     case 63:
         return _L("Waiting for the Chamber temperature to equalize"); // O1S  O1E/U1   O1D/U2.5
     case 64:
-        return _L(" Preparing Hotend");//O1C/U0
+        return _L("Preparing Hotend");//O1C/U0
     case 65:
         return _L("Calibrating the detection position of nozzle clumping"); // N7
     case 66:
@@ -1632,24 +1632,6 @@ int MachineObject::command_nozzle_blob_detect(bool nozzle_blob_detect)
     j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
     nozzle_blob_detection_enabled = nozzle_blob_detect;
     nozzle_blob_detection_hold_start = time(nullptr);
-    return this->publish_json(j);
-}
-
-int MachineObject::command_set_prompt_sound(bool prompt_sound){
-    json j;
-    j["print"]["command"] = "print_option";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["sound_enable"] = prompt_sound;
-
-    return this->publish_json(j);
-}
-
-int MachineObject::command_set_filament_tangle_detect(bool filament_tangle_detect) {
-    json j;
-    j["print"]["command"] = "print_option";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["filament_tangle_detect"] = filament_tangle_detect;
-
     return this->publish_json(j);
 }
 
@@ -4539,7 +4521,6 @@ void MachineObject::check_ams_filament_valid()
     }
 }
 
-
 void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
 {
     json j;
@@ -4559,7 +4540,6 @@ void MachineObject::command_set_door_open_check(DoorOpenCheckState state)
         xcam_door_open_check_start_time = time(nullptr);
     }
 }
-
 
 void MachineObject::command_set_save_remote_print_file_to_storage(bool save)
 {
