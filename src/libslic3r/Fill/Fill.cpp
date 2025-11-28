@@ -197,13 +197,13 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                     params.skin_pattern      = region_config.locked_skin_infill_pattern.value;
                     params.skeleton_pattern  = region_config.locked_skeleton_infill_pattern.value;
 				}
-            if (params.pattern == ipCrossZag || params.pattern == ipLockedZag){
-                params.infill_shift_step     = scale_(region_config.infill_shift_step);
-                params.symmetric_infill_y_axis  = region_config.symmetric_infill_y_axis;
-            }else if (params.pattern == ipZigZag){
-                params.infill_rotate_step    =  region_config.infill_rotate_step * M_PI / 360;
-								params.symmetric_infill_y_axis  = region_config.symmetric_infill_y_axis;
-            }
+                if (params.pattern == ipCrossZag || params.pattern == ipLockedZag) {
+                    params.infill_shift_step       = scale_(region_config.infill_shift_step);
+                    params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
+                } else if (params.pattern == ipZigZag) {
+                    params.infill_rotate_step      = region_config.infill_rotate_step * M_PI / 360;
+                    params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
+                }
 
 				if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -212,9 +212,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 						params.pattern = InfillPattern::ipFloatingConcentric;
 					else if (surface.is_solid_infill())
                         params.pattern = region_config.internal_solid_infill_pattern.value;
-					else if (surface.is_external() && !is_bridge)
-						params.pattern = surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value;
-					else
+                    else if (surface.is_external() && !is_bridge) {
+                        params.pattern = surface.is_top() ? region_config.top_surface_pattern.value : region_config.bottom_surface_pattern.value;
+                        params.density = surface.is_top() ? region_config.top_surface_density.value : region_config.bottom_surface_density.value;
+                    } else
 						params.pattern = region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
 
 		        } else if (params.density <= 0)
