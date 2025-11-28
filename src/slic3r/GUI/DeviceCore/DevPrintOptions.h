@@ -26,10 +26,8 @@ enum class PrintOptionEnum{
     Open_Door_Detection,
     Idle_Heating_Protect_Detection,
     First_Layer_Detection,
+    Purify_Air_At_Print_End,
 };
-
-
-
 
 struct PrintOptionData
 {
@@ -51,13 +49,17 @@ public:
         TYPE_POS_CHECK = 2,
     };
 
+    enum class PurifyAirAtPrintEndState : int {
+        PurifyAirDisable = 0,
+        PurifyAirByInside = 1,
+        PurifyAirByOutside = 2,
+    };
 public:
 
     void SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level);
     DevPrintingSpeedLevel GetPrintingSpeedLevel() const { return m_speed_level;}
     PlateMakerDectect     GetPlateMakerDectectType() { return m_plate_maker_detect_type; }
-    PrintOptionData& GetDetectionOption(PrintOptionEnum print_option);
-
+    PrintOptionData* GetDetectionOption(PrintOptionEnum print_option);
 
     // detect options
     int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
@@ -72,16 +74,17 @@ public:
     int command_xcam_control_filament_tangle_detect(bool on_off);
     int command_xcam_control_idelheatingprotect_detector(bool on_off);
     int command_xcam_control(std::string module_name, bool on_off,  MachineObject *obj ,std::string lvl = "");
+    int command_xcam_control_build_plate_type_detector(bool on_off);
+    int command_xcam_control_build_plate_align_detector(bool on_off);
+    int command_xcam_control_purify_air_at_print_end(int on_off);
+
+private:
+    int command_set_purify_air_at_print_end(PurifyAirAtPrintEndState state, MachineObject *obj);
     int command_set_printing_option(bool auto_recovery, MachineObject *obj);
     int command_set_prompt_sound(bool prompt_sound, MachineObject *obj);
     int command_set_filament_tangle_detect(bool fliament_tangle_detect, MachineObject *obj);
     int command_set_against_continued_heating_mode(bool on_off);
-    int command_xcam_control_build_plate_type_detector(bool on_off);
-    int command_xcam_control_build_plate_align_detector(bool on_off);
-
-
-
-private:
+ private:
     MachineObject *m_obj; /*owner*/
 
     PrintOptionData m_ai_monitoring_detection;
@@ -100,19 +103,17 @@ private:
     PrintOptionData m_open_door_detection;
     PrintOptionData m_idel_heating_protect_detection;
     PrintOptionData m_first_layer_detection;
+    PrintOptionData m_purify_air_at_print_end;
 
-    std::map<PrintOptionEnum, PrintOptionData *> m_detection_list;
+    std::map<PrintOptionEnum, PrintOptionData*> m_detection_list;
     DevPrintingSpeedLevel m_speed_level = SPEED_LEVEL_INVALID;
     PlateMakerDectect m_plate_maker_detect_type{POS_CHECK};
 };
 
-
 class DevPrintOptionsParser
 {
 public:
-
     static void ParseDetectionV1_0(DevPrintOptions *opts, const nlohmann::json &print_json);
-
 };
 
 } // namespace Slic3r
