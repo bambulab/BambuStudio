@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <ctime>
 #include <stdexcept>
 #include <unordered_map>
 #include <boost/format.hpp>
@@ -1849,9 +1850,19 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
     bool need_update = false;
     if ((iter != m_presets.end()) && (iter->name == name)) {
         BOOST_LOG_TRIVIAL(info) << "Found the Preset locally: " << name;
+        // Prefer the local copy if its saved timestamp indicates it is newer than the
+        // cloud version. Some profiles may miss a valid updated_time in their
+        // metadata but still have a more recent file on disk (for example after
+        // editing while offline). Guard against overwriting such profiles with an
+        // older cloud payload by comparing the file mtime as an additional signal.
+        boost::system::error_code ec;
+        const bool file_exists = boost::filesystem::exists(iter->file, ec) && !ec;
+        const auto local_mtime = file_exists ? boost::filesystem::last_write_time(iter->file, ec) : time_t{0};
+        const long long local_freshness = std::max(iter->updated_time,
+                                                   static_cast<long long>(local_mtime));
         //BBS: we should compare the time between cloud and local
-        if ((cloud_update_time == 0) || (cloud_update_time <= iter->updated_time)) {
-            if (cloud_update_time < iter->updated_time)
+        if ((cloud_update_time == 0) || (cloud_update_time <= local_freshness)) {
+            if (cloud_update_time < local_freshness)
                 iter->sync_info = "update";
             else
                 iter->sync_info.clear();
@@ -1860,7 +1871,9 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             fs::path idx_file(iter->file);
             idx_file.replace_extension(".info");
             iter->save_info(idx_file.string());
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("preset %1%'s update_time is eqaul or newer, cloud  update_time %2%, local update_time %3%")%name %cloud_update_time %iter->updated_time;
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(
+                "preset %1%'s update_time is equal or newer, cloud update_time %2%, local freshness %3%")
+                % name % cloud_update_time % local_freshness;
             unlock();
             return false;
         }
