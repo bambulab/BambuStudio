@@ -3770,6 +3770,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_velocity_adaptation_factor");
         optgroup->append_single_option_line("filament_cost");
         optgroup->append_single_option_line("temperature_vitrification");
+        optgroup->append_single_option_line("filament_printable");
 
         optgroup->append_single_option_line("filament_cooling_before_tower");
         //BBS
@@ -6894,7 +6895,7 @@ NozzleVolumeType Tab::get_actual_nozzle_volume_type(int extruder_id)
     int extruder_count = m_preset_bundle->get_printer_extruder_count();
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     if (extruder_count == 1) {
-        if (extruder_id < 0) 
+        if (extruder_id < 0)
             return NozzleVolumeType::nvtStandard;
 
         return NozzleVolumeType(nozzle_volumes->values[extruder_id]);
