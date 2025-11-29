@@ -149,9 +149,6 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_ams_content_sizer->Add(0, 10, 0, wxEXPAND, FromDIP(5));
     m_ams_content_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
-    m_ahb_panel = new AmsPanel(this, wxID_ANY);
-    m_ams_content_sizer->Add(m_ahb_panel, 0, wxEXPAND, 0);
-
 
     m_ams_info_sizer = new wxFlexGridSizer(0, 2, FromDIP(30), FromDIP(30));
     m_ams_info_sizer->SetFlexibleDirection(wxHORIZONTAL);
@@ -218,6 +215,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     m_main_left_sizer->Add(m_ext_sizer, 0, wxEXPAND, 0);
 
     /* cutting module */
+    createAmshubWidgets(m_main_left_sizer);
     createCuttingWidgets(m_main_left_sizer);
     createLaserWidgets(m_main_left_sizer);
     createAirPumpWidgets(m_main_left_sizer);
@@ -511,6 +509,33 @@ void MachineInfoPanel::createExtinguishWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_extinguish_sizer, 0, wxEXPAND, 0);
 }
 
+void MachineInfoPanel::createAmshubWidgets(wxBoxSizer *main_left_sizer)
+{
+    m_amshub_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_amshub_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_amshub_line_above, 0,wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_amshub_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_amshub_img->SetBitmap(m_img_amshub.bmp());
+
+    auto        panel_amshub    = new wxPanel(this);
+    wxBoxSizer *content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_amshub_version = new uiDeviceUpdateVersion(panel_amshub, wxID_ANY);
+
+    content_sizer_h->Add(m_amshub_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_amshub->SetSizer(content_sizer_v);
+
+    m_amshub_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_amshub_sizer->Add(m_amshub_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_amshub_sizer->Add(panel_amshub, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_amshub_sizer, 0, wxEXPAND, 0);
+}
+
 void MachineInfoPanel::msw_rescale()
 {
     rescale_bitmaps();
@@ -542,10 +567,11 @@ void MachineInfoPanel::init_bitmaps()
         m_img_extinguish  = ScalableBitmap(this, "extinguish", 160); // TODO
         m_img_nozzle_rack = ScalableBitmap(this, "nozzle_rack", 160);
         m_img_exhaustfan  = ScalableBitmap(this, "exhaustfan", 160);
-      
+        m_img_amshub      = ScalableBitmap(this, "amshub_N7", 160);
+
         upgrade_green_icon  = ScalableBitmap(this, "monitor_upgrade_online", 5);
         upgrade_gray_icon   = ScalableBitmap(this, "monitor_upgrade_offline", 5);
-        upgrade_yellow_icon = ScalableBitmap(this, "monitor_upgrade_busy", 5);       
+        upgrade_yellow_icon = ScalableBitmap(this, "monitor_upgrade_busy", 5);
     }
     catch (const std::exception &e)
     {
@@ -604,10 +630,42 @@ void MachineInfoPanel::update_printer_imgs(MachineObject* obj)
     }
 }
 
+void MachineInfoPanel::update_amshub_imgs(MachineObject* obj)
+{
+    if (!obj)
+        return;
+    string amshub_str = "";
+    if (DevPrinterConfigUtil::get_printer_type(obj->printer_type) == "N6")
+        amshub_str = "amshub_N6";
+    else if (DevPrinterConfigUtil::get_printer_type(obj->printer_type) == "N7")
+        amshub_str = "amshub_N7";
+
+    if (amshub_str != "")
+    {
+        try
+        {
+            m_img_amshub = ScalableBitmap(this, amshub_str, 160);
+            m_amshub_img->SetBitmap(m_img_amshub.bmp());
+            m_amshub_img->Refresh();
+        }
+        catch (const std::exception &e)
+        {
+            BOOST_LOG_TRIVIAL(error) << "amshubimg error : " << e.what();
+        }
+        catch (...)
+        {
+            BOOST_LOG_TRIVIAL(error) << "amshubimg failed: unknown error";
+        }
+    }
+}
+
 void MachineInfoPanel::update(MachineObject* obj)
 {
     if (m_obj != obj)
+    {
         update_printer_imgs(obj);
+        update_amshub_imgs(obj);
+    }
 
     m_obj = obj;
     if (obj) {
@@ -651,6 +709,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         update_ams_ext(obj);
 
         // update
+        update_amshub(obj);
         update_air_pump(obj);
         update_cut(obj);
         update_laszer(obj);
@@ -792,90 +851,6 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     bool has_hub_model = false;
 
     bool is_o_series = obj->is_series_o();
-
-    //hub
-    if (!obj->online_ahb || obj->module_vers.find("ahb") == obj->module_vers.end() || is_o_series)
-        m_ahb_panel->Hide();
-    else {
-        has_hub_model = true;
-        show_ams(true);
-
-        for (auto i = 0; i < m_amspanel_list.GetCount(); i++) {
-            AmsPanel *amspanel = m_amspanel_list[i];
-            amspanel->Hide();
-        }
-
-
-        m_ahb_panel->Show();
-        wxString hub_name = "-";
-        if (!obj->module_vers.find("ahb")->second.product_name.empty())
-        {
-            hub_name = obj->module_vers.find("ahb")->second.product_name;
-        }
-        else
-        {
-            hub_name = "AMS HUB";
-        }
-
-
-        wxString hub_sn = "-";
-        if (!obj->module_vers.find("ahb")->second.sn.empty()) {
-            wxString sn_text = obj->module_vers.find("ahb")->second.sn;
-            hub_sn           = sn_text.MakeUpper();
-        }
-
-
-        wxString hub_ver = "-";
-        if (!obj->module_vers.find("ahb")->second.sw_ver.empty()) {
-            wxString sn_text = obj->module_vers.find("ahb")->second.sw_ver;
-            hub_ver          = sn_text.MakeUpper();
-        }
-
-       /* auto ver_item = obj->new_ver_list.find("ahb");
-        if (ver_item != obj->new_ver_list.end()) {
-            m_ahb_panel->m_ams_new_version_img->Show();
-            hub_ver = wxString::Format("%s->%s", hub_ver, ver_item->second.sw_new_ver);
-        } else {
-            m_ahb_panel->m_ams_new_version_img->Hide();
-            hub_ver = wxString::Format("%s(%s)", hub_ver, _L("Latest version"));
-        }*/
-
-        if (new_version_list.empty()) {
-            if (upgrade_ptr->HasNewVersion() && obj->ahb_new_version_number.compare(obj->module_vers.find("ahb")->second.sw_ver) != 0) {
-                m_ahb_panel->m_ams_new_version_img->Show();
-
-                if (obj->ahb_new_version_number.empty()) {
-                    hub_ver = wxString::Format("%s", obj->module_vers.find("ahb")->second.sw_ver);
-                } else {
-                    hub_ver = wxString::Format("%s->%s", obj->module_vers.find("ahb")->second.sw_ver, obj->ahb_new_version_number);
-                }
-            } else {
-                m_ahb_panel->m_ams_new_version_img->Hide();
-                wxString ver_text = wxString::Format("%s(%s)", obj->module_vers.find("ahb")->second.sw_ver, _L("Latest version"));
-                hub_ver = ver_text;
-            }
-        } else {
-            auto ver_item = new_version_list.find("ahb");
-            if (ver_item == new_version_list.end()) {
-                m_ahb_panel->m_ams_new_version_img->Hide();
-                wxString ver_text = wxString::Format("%s(%s)", obj->module_vers.find("ahb")->second.sw_ver, _L("Latest version"));
-                hub_ver           = ver_text;
-            } else {
-                if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
-                    m_ahb_panel->m_ams_new_version_img->Show();
-                    wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
-                    hub_ver           = ver_text;
-                } else {
-                    m_ahb_panel->m_ams_new_version_img->Hide();
-                    wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
-                    hub_ver           = ver_text;
-                }
-            }
-        }
-        m_ahb_panel->m_staticText_ams->SetLabel(hub_name);
-        m_ahb_panel->m_staticText_ams_sn_val->SetLabelText(hub_sn);
-        m_ahb_panel->m_staticText_ams_ver_val->SetLabelText(hub_ver);
-    }
 
     //ams
     if (obj->ams_exist_bits != 0)
@@ -1110,12 +1085,11 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
                 amspanel->m_staticText_ams->SetLabelText(ams_name);
                 amspanel->m_staticText_ams_sn_val->SetLabelText(ams_sn);
                 amspanel->m_staticText_ams_ver_val->SetLabelText(ams_ver);
-
                 ams_index++;
            }
         }
     } else {
-        if (!has_hub_model) { show_ams(false); }
+        show_ams(false);
         show_extra_ams(false);
     }
 
@@ -1250,6 +1224,16 @@ void MachineInfoPanel::update_extinguish(MachineObject* obj)
     else
     {
         show_extinguish(false);
+    }
+}
+
+void MachineInfoPanel::update_amshub(MachineObject *obj)
+{
+    if (obj && obj->amshub_version_info.isValid()) {
+        m_amshub_version->UpdateInfo(obj->amshub_version_info);
+        show_amshub(true);
+    } else {
+        show_amshub(false);
     }
 }
 
@@ -1417,6 +1401,14 @@ void MachineInfoPanel::show_extinguish(bool show)
     }
 }
 
+void MachineInfoPanel::show_amshub(bool show)
+{
+    if (m_amshub_version->IsShown() != show) {
+        m_amshub_img->Show(show);
+        m_amshub_line_above->Show(show);
+        m_amshub_version->Show(show);
+    }
+}
 
 void MachineInfoPanel::show_nozzle_rack(bool show)
 {
