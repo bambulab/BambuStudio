@@ -2717,11 +2717,16 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     for (auto value : m_config.travel_acceleration.values) {
         travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
     }
+    std::vector<unsigned int> short_travel_accelerations;
+    for (auto value : m_config.short_travel_acceleration.values) {
+        short_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
+    }
     std::vector<unsigned int> first_layer_travel_accelerations;
     for (auto value : m_config.initial_layer_travel_acceleration.values) {
         first_layer_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
     }
     m_writer.set_travel_acceleration(travel_accelerations);
+    m_writer.set_short_travel_acceleration(short_travel_accelerations);
     m_writer.set_first_layer_travel_acceleration(first_layer_travel_accelerations);
     // OrcaSlicer: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
@@ -6352,6 +6357,23 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
 
     // use G1 because we rely on paths being straight (G0 may make round paths)
     if (travel.size() >= 2) {
+        // Determine if we should use short travel acceleration
+        // This helps reduce VFA (Vertical Fine Artifacts) by using lower acceleration
+        // for short travels near external perimeters
+        bool use_short_travel_accel = false;
+        if (!this->on_first_layer()) {
+            // Check if short travel acceleration is enabled (value > 0)
+            unsigned int extruder_id = m_writer.filament()->id();
+            auto& short_accel = m_writer.get_short_travel_acceleration();
+            if (extruder_id < short_accel.size() && short_accel[extruder_id] > 0) {
+                // Use short travel acceleration for external perimeters with short travel distance
+                double travel_length = unscaled(travel.length());
+                double min_travel = FILAMENT_CONFIG(retraction_minimum_travel);
+                use_short_travel_accel = (role == erExternalPerimeter || role == erOverhangPerimeter) &&
+                                         travel_length < min_travel;
+            }
+        }
+
         // OrcaSlicer
         if (this->on_first_layer()) {
             if (m_config.default_jerk.value > 0 && m_config.initial_layer_jerk.value > 0 && !this->is_BBL_Printer())
@@ -6362,13 +6384,13 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         if (m_spiral_vase) {
             // No lazy z lift for spiral vase mode
             for (size_t i = 1; i < travel.size(); ++i)
-                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment);
+                gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel);
         } else {
             if (travel.size() == 2) {
                 // No extra movements emitted by avoid_crossing_perimeters, simply move to the end point with z change
                 const auto &dest2d = this->point_to_gcode(travel.points.back());
                 Vec3d       dest3d(dest2d(0), dest2d(1), z == DBL_MAX ? m_nominal_z : z);
-                gcode += m_writer.travel_to_xyz(dest3d, comment);
+                gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
             } else {
                 // Extra movements emitted by avoid_crossing_perimeters, lift the z to normal height at the beginning, then apply the z
                 // ratio at the last point
@@ -6377,15 +6399,15 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
                         // Lift to normal z at beginning
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), m_nominal_z);
-                        gcode += m_writer.travel_to_xyz(dest3d, comment);
+                        gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
                     } else if (z != DBL_MAX && i == travel.size() - 1) {
                         // Apply z_ratio for the very last point
                         Vec2d dest2d = this->point_to_gcode(travel.points[i]);
                         Vec3d dest3d(dest2d(0), dest2d(1), z);
-                        gcode += m_writer.travel_to_xyz(dest3d, comment);
+                        gcode += m_writer.travel_to_xyz(dest3d, comment, use_short_travel_accel);
                     } else {
                         // For all points in between, no z change
-                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment );
+                        gcode += m_writer.travel_to_xy(this->point_to_gcode(travel.points[i]), comment, use_short_travel_accel);
                     }
                 }
             }
