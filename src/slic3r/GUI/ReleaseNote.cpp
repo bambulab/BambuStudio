@@ -2043,7 +2043,8 @@ void InputIpAddressDialog::workerThreadFunc(std::string str_ip, std::string str_
         detectData.dev_name = sn;
         detectData.dev_id = sn;
         detectData.connect_type = "lan";
-        detectData.connect_type = "free";
+        detectData.bind_state = "free";
+        detectData.model_id = model_id;
     }
 
     if (w.expired()) return;
