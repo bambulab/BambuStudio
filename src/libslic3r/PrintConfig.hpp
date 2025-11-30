@@ -237,6 +237,13 @@ enum OverhangThresholdParticipatingCooling {
     Overhang_threshold_participating_cooling_bridge
 };
 
+// Cooling slowdown logic - determines how printer slows down for layer cooling
+// Ported from PrusaSlicer 2.9.3 for VFA reduction
+enum CoolingSlowdownLogicType {
+    cslUniformCooling = 0,      // Default: slow down all features equally
+    cslConsistentSurface = 1,   // Prioritize slowing infill/internal perimeters first
+};
+
 // BBS
 enum BedType {
     btDefault = 0,
@@ -1230,8 +1237,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                other_layers_print_sequence_nums))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
     ((ConfigOptionBools,              no_slow_down_for_cooling_on_outwalls))
+    ((ConfigOptionEnumsGeneric,       cooling_slowdown_logic))
+    ((ConfigOptionFloats,             cooling_perimeter_transition_distance))
     ((ConfigOptionFloatsNullable,     default_acceleration))
     ((ConfigOptionFloatsNullable,     travel_acceleration))
+    ((ConfigOptionFloatsNullable,     short_travel_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_travel_acceleration))
     ((ConfigOptionFloatsNullable,     inner_wall_acceleration))
     ((ConfigOptionFloatsOrPercentsNullable,   sparse_infill_acceleration))

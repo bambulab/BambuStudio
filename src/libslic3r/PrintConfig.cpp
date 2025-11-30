@@ -376,6 +376,13 @@ static const t_config_enum_values s_keys_map_OverhangThresholdParticipatingCooli
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(OverhangThresholdParticipatingCooling)
 
+// Cooling slowdown logic for VFA reduction (ported from PrusaSlicer 2.9.3)
+static const t_config_enum_values s_keys_map_CoolingSlowdownLogicType = {
+    { "uniform_cooling",     cslUniformCooling },
+    { "consistent_surface",  cslConsistentSurface },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CoolingSlowdownLogicType)
+
 // BBS
 static const t_config_enum_values s_keys_map_BedType = {
     { "Default Plate",      btDefault },
@@ -1408,6 +1415,35 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBools{false});
 
+    // Cooling slowdown logic - ported from PrusaSlicer 2.9.3 for VFA reduction
+    def = this->add("cooling_slowdown_logic", coEnums);
+    def->label = L("Cooling slowdown logic");
+    def->tooltip = L("Determines how the printer slows down when minimum layer time isn't reached.\n\n"
+                     "'Uniform cooling' slows down all print features equally (current default behavior).\n\n"
+                     "'Consistent surface' prioritizes slowing infill and internal perimeters first, "
+                     "preserving external perimeter speed for better surface finish on glossy filaments. "
+                     "This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine.");
+    def->enum_keys_map = &ConfigOptionEnum<CoolingSlowdownLogicType>::get_enum_values();
+    def->enum_values.push_back("uniform_cooling");
+    def->enum_values.push_back("consistent_surface");
+    def->enum_labels.push_back(L("Uniform cooling"));
+    def->enum_labels.push_back(L("Consistent surface"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnumsGeneric{(int)cslUniformCooling});
+
+    def = this->add("cooling_perimeter_transition_distance", coFloats);
+    def->label = L("Perimeter transition distance");
+    def->tooltip = L("Distance in millimeters before the end of slowed perimeters where the original "
+                     "print speed is gradually restored. This reduces quality issues when transitioning "
+                     "from slowed features to fast external perimeter printing.\n\n"
+                     "Only applies when 'Consistent surface' cooling logic is selected.\n"
+                     "Recommended value: 5-10mm. Set to 0 to disable.");
+    def->sidetext = L("mm");
+    def->min = 0;
+    def->max = 50;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloats{5.0});
+
     def = this->add("default_acceleration", coFloats);
     def->label = L("Normal printing");
     def->tooltip = L("The default acceleration of both normal printing and travel except initial layer");
@@ -1425,6 +1461,20 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{500.0});
+
+    // Short travel acceleration - ported from PrusaSlicer 2.9.3 for VFA reduction
+    def           = this->add("short_travel_acceleration", coFloats);
+    def->label    = L("Short travel");
+    def->tooltip  = L("Acceleration used for short travel moves near external perimeters. "
+                      "Short travels are moves shorter than the 'Retraction minimum travel' distance.\n\n"
+                      "Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners "
+                      "without significantly impacting print time.\n\n"
+                      "Set to 0 to disable (uses normal travel acceleration).");
+    def->sidetext = "mm/s²";
+    def->min      = 0;
+    def->mode     = comAdvanced;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
 
     def           = this->add("initial_layer_travel_acceleration", coFloats);
     def->label    = L("Initial layer travel");

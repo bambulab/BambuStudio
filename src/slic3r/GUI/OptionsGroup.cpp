@@ -959,6 +959,31 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
     wxString text_value = wxString("");
     const ConfigOptionDef* opt = config.def()->get(opt_key);
 
+    // If the option doesn't exist in the config, return the default value from the definition
+    if (!config.has(opt_key)) {
+        if (opt && opt->default_value) {
+            switch (opt->type) {
+            case coFloat:
+            case coPercent:
+                return double_to_string(opt->default_value->getFloat());
+            case coFloats:
+            case coPercents:
+            case coInts:
+            case coEnums:
+                return opt->default_value->getInt();
+            case coBool:
+            case coBools:
+                return opt->default_value->getBool();
+            case coString:
+            case coStrings:
+                return wxString("");
+            default:
+                return opt->default_value->getInt();
+            }
+        }
+        return 0;
+    }
+
     if (opt->nullable)
     {
         switch (opt->type)
