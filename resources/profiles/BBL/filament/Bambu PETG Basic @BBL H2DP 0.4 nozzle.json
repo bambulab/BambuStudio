@@ -49,6 +49,12 @@
     "pre_start_fan_time": [
         "2"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.4 nozzle"
     ],

@@ -50,6 +50,12 @@
         "220",
         "220"
     ],
+    "supertack_plate_temp": [
+        "40"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "40"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.4 nozzle"
     ],

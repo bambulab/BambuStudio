@@ -58,6 +58,12 @@
         "0",
         "0"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "compatible_printers": [
         "Bambu Lab P2S 0.4 nozzle"
     ],
