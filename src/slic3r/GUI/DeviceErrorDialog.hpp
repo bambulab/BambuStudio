@@ -85,6 +85,8 @@ protected:
     void on_button_click(ActionButton btn_id);
     void on_webrequest_state(wxWebRequestEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect);
+    bool get_fail_snapshot_from_cloud();
+    bool get_fail_snapshot_from_local(const wxString& image_url);
 
 private:
     MachineObject* m_obj;
@@ -93,6 +95,8 @@ private:
     std::unordered_set<Button*> m_used_button;
 
     wxWebRequest web_request;
+    wxString m_local_img_url;
+
     wxStaticBitmap* m_error_picture;
     Label* m_error_msg_label{ nullptr };
     Label* m_error_code_label{ nullptr };
