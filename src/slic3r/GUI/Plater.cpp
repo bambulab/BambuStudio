@@ -1564,8 +1564,13 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
                 continue;
             }
             // hack code, only use standard flow for 0.2
+<<<<<<< HEAD   (1f20e2 FIX:[Process/Filament]  fix some issues of start gcode of H2)
             if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
                 target_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) - 1);
+=======
+            if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON)
+                target_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id));
+>>>>>>> CHANGE (ef0c4f ENH: support TPU1.75 nozzle flow)
         }
         if (select_type)
             target_type = *select_type;
