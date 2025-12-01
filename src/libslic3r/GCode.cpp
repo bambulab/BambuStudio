@@ -1956,7 +1956,6 @@ namespace DoExport {
 		PrintStatistics 		    &print_statistics)
     {
 		std::string filament_stats_string_out;
-        print_statistics.layer_used_weight = 0.0;
 
 	    print_statistics.clear();
         print_statistics.total_toolchanges = std::max(0, wipe_tower_data.number_of_toolchanges);
@@ -1988,7 +1987,6 @@ namespace DoExport {
 	            //append(out_filament_used_cm3, "%.2lf", extruded_volume * 0.001);
 	            if (filament_weight > 0.) {
 	                print_statistics.total_weight = print_statistics.total_weight + filament_weight;
-                    print_statistics.layer_used_weight = print_statistics.layer_used_weight + filament_weight;
 	                //append(out_filament_used_g, "%.2lf", filament_weight);
 	                if (filament_cost > 0.) {
 	                    print_statistics.total_cost = print_statistics.total_cost + filament_cost;
@@ -2102,6 +2100,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_last_layer_z = 0.f;
     m_max_layer_z  = 0.f;
     m_last_width = 0.f;
+    m_last_layer_accumulated_mass = 0.0f;
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     m_last_mm3_per_mm = 0.;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -4179,8 +4178,14 @@ GCode::LayerResult GCode::process_layer(
         has_wipe_tower, print.wipe_tower_data(), m_writer.extruders(),// Const inputs
         curr_print_statistics); // Modifies
     double curr_y_acceleration_limit = -1, curr_accumulated_mass = -1, curr_layer_mass = -1;
-    mass_load_limited_machine_acceleration(curr_print_statistics, print,// Const inputs
-        curr_y_acceleration_limit, curr_accumulated_mass, curr_layer_mass);// Modifies
+    mass_load_limited_machine_acceleration(curr_print_statistics, print,                      // Const inputs
+                                           curr_y_acceleration_limit, curr_accumulated_mass); // Modifies
+    double curr_layer_mass_temp = curr_print_statistics.total_weight - m_last_layer_accumulated_mass;
+    if (curr_layer_mass_temp > EPSILON)
+        curr_layer_mass = curr_layer_mass_temp;
+    else
+        curr_layer_mass = 0.0f;
+    m_last_layer_accumulated_mass = curr_print_statistics.total_weight;
 
     ZHopType z_hope_type = ZHopType(FILAMENT_CONFIG(z_hop_types));
     LiftType auto_lift_type = LiftType::NormalLift;
@@ -5535,15 +5540,13 @@ void GCode::mass_load_limited_machine_acceleration(
     const PrintStatistics curr_print_statistics,
     const Print &print,// input
     double &y_acceleration_limit_res,//output
-    double &accumulated_mass_res,
-    double &layer_mass_res)
+    double &accumulated_mass_res)
 {
     double curr_acceleration_y_config = 1e10;
     auto  &machine_max_acceleration_y = print.config().machine_max_acceleration_y.values;
     for (auto &temp : machine_max_acceleration_y)
         if (curr_acceleration_y_config > temp) curr_acceleration_y_config = temp;
     accumulated_mass_res = curr_print_statistics.total_weight;
-    layer_mass_res       = curr_print_statistics.layer_used_weight;
     // mass in g, acceleration in mm/s2
     double machine_max_force_Y = print.config().machine_max_force_Y.getFloat(),
         machine_bed_mass_Y = print.config().machine_bed_mass_Y.getFloat();
