@@ -262,6 +262,61 @@ std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_
     return pseudo_button;
 }
 
+bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
+{
+    if (!m_obj || m_obj->m_print_error_img_id.empty()) { return false; }
+
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (!agent) { return false; }
+
+    agent->get_hms_snapshot(m_obj->get_dev_id(), m_obj->m_print_error_img_id,
+    [this](std::string body, int status) {
+        if (status == 200) {
+            wxMemoryInputStream stream(body.data(), body.size());
+            wxImage             success_image;
+            if (success_image.LoadFile(stream, wxBITMAP_TYPE_ANY)) {
+                CallAfter([this, success_image]() {
+                    wxImage resize_img = success_image.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+                    wxBitmap error_prompt_pic = resize_img;
+                    m_error_picture->SetBitmap(error_prompt_pic);
+                    Layout();
+                    Fit();
+                });
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: status = " << status;
+            CallAfter([this]() {
+                this->get_fail_snapshot_from_local(this->m_local_img_url);
+            });
+        }
+    });
+
+    return true;
+}
+
+bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
+{
+    if (image_url.empty()) {
+        return false;
+    }
+
+    const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
+    if (!img.IsOk() && image_url.Contains("http"))
+    {
+        web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
+        BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
+        if (web_request.GetState() == wxWebRequest::State_Idle) web_request.Start();
+        BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
+    }
+    else
+    {
+        const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+        m_error_picture->SetBitmap(wxBitmap(resize_img));
+    }
+
+    return true;
+}
+
 void DeviceErrorDialog::update_contents(const wxString& title, const wxString& text, const wxString& error_code, const wxString& image_url, const std::vector<int>& btns)
 {
     if (error_code.empty()) { return; }
@@ -305,22 +360,13 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
     }
 
     /* image */
-    if (!image_url.empty())
+    m_local_img_url = image_url;
+    if (get_fail_snapshot_from_cloud())
     {
-        const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
-        if (!img.IsOk() && image_url.Contains("http"))
-        {
-            web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
-            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
-            if (web_request.GetState() == wxWebRequest::State_Idle) web_request.Start();
-            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
-        }
-        else
-        {
-            const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
-            m_error_picture->SetBitmap(wxBitmap(resize_img));
-        }
-
+        m_error_picture->Show();
+    }
+    else if (get_fail_snapshot_from_local(image_url))
+    {
         m_error_picture->Show();
     }
     else
@@ -349,7 +395,7 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
         auto text_size = m_error_msg_label->GetBestSize();
         if (text_size.y < FromDIP(360))
         {
-            if (!image_url.empty())
+            if (!image_url.empty() || !m_obj->m_print_error_img_id.empty())
             {
                 m_scroll_area->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(220)));
             }

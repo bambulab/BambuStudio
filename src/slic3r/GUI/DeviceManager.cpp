@@ -543,6 +543,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     mc_print_sub_stage = 0;
     mc_left_time = 0;
     hw_switch_state = 0;
+    m_print_error_img_id = "";
 
     has_ipcam = true; // default true
 
@@ -2716,6 +2717,13 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 if (jj.contains("support_refresh_nozzle")) {
                     if (jj["support_refresh_nozzle"].is_boolean()) {
                         is_support_refresh_nozzle = jj["support_refresh_nozzle"].get<bool>();
+                    }
+                }
+
+                if (jj.contains("err2") && jj["err2"].is_object()) {
+                    json err2 = jj["err2"];
+                    if (err2.contains("img_id") && err2["img_id"].is_string()) {
+                        m_print_error_img_id = err2["img_id"].get<std::string>();
                     }
                 }
             }

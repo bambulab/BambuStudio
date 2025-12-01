@@ -398,6 +398,7 @@ public:
     bool    is_system_printing();
 
     int     print_error;
+    std::string m_print_error_img_id;
     static std::string get_error_code_str(int error_code);
     std::string get_print_error_str() const { return MachineObject::get_error_code_str(this->print_error); }
 
