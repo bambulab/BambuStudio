@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2025-12-01 15:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -65,8 +65,8 @@ msgstr "O PVA úmido se tornará flexível e ficará preso dentro do AMS. Por fa
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "O PVA úmido é flexível e pode ficar preso no extrusor. Seque antes de usar."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "A superfície áspera do PLA Glow pode acelerar o desgaste do sistema AMS, principalmente nos componentes internos do AMS Lite."
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "Os filamentos CF/GF são duros e quebradiços. É fácil quebrar ou ficar presos no AMS, use com cuidado."
@@ -76,6 +76,12 @@ msgstr "O PPS-CF é quebradiço e pode quebrar em um tubo de PTFE dobrado acima 
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "O PPA-CF é quebradiço e pode quebrar em um tubo de PTFE dobrado acima do cabeçote."
+
+msgid "The filament may require slicing parameter adjustments."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "As configurações padrão podem afetar a qualidade de impressão. Ajuste conforme necessário para obter os melhores resultados."
@@ -2042,11 +2048,11 @@ msgstr "Filamento %d"
 msgid "current"
 msgstr "atual"
 
-msgid "Scale to build volume"
-msgstr "Dimensione para aumentar o volume"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "Dimensionar um objeto para se ajustar ao volume da construção"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
 msgstr "Opções de descarga"
@@ -2197,6 +2203,12 @@ msgstr "Clonar"
 
 msgid "Simplify Model"
 msgstr "Simplifique o modelo"
+
+msgid "Smooth mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "Centro"
@@ -2694,8 +2706,13 @@ msgstr "O modo de aquecimento é adequado para impressão de materiais ABS/ASA/P
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "O modo de resfriamento forte é adequado para imprimir materiais PLA/TPU. Nesse modo, as impressões serão totalmente resfriadas."
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
-msgstr "O modo de resfriamento é adequado para impressão de materiais PLA/PETG/TPU."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -3656,6 +3673,18 @@ msgid ""
 msgstr ""
 "Espaçamento de engomar muito pequeno\n"
 "Foi redefinido para 0,1"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to disable the support ironing?\n"
+"Yes: disable the support ironing.\n"
+"No: make the support interface solid."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -8050,8 +8079,8 @@ msgid "both extruders"
 msgstr "ambas as extrusoras"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
-msgstr "[ %s ] requer impressão em ambiente de alta temperatura. Por favor, feche a porta."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
+msgstr ""
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8209,9 +8238,6 @@ msgstr "Esta impressora não suporta a impressão de todas as chapas"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "O firmware atual suporta no máximo 16 materiais. Você pode reduzir o número de materiais para 16 ou menos na Página de Preparação ou tentar atualizar o firmware. Se ainda houver restrições após a atualização, aguarde o suporte do firmware subsequente."
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr "É necessária uma alta temperatura da câmara. Por favor, feche a porta."
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Por favor, verifique se o diâmetro do bico e a taxa de fluxo necessários correspondem à exibição atual."
 
@@ -8324,8 +8350,11 @@ msgstr "Vinculação..."
 msgid "Please confirm on the printer screen"
 msgstr "Confirme na tela da impressora"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "Falha no login. Verifique o código PIN."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Fazer login na impressora"
@@ -8561,6 +8590,9 @@ msgstr "Jangada"
 
 msgid "Support filament"
 msgstr "Filamento para suportes"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr "Suporte Arvore."
@@ -10735,11 +10767,24 @@ msgstr "Acordes de Arquimedes"
 msgid "Octagram Spiral"
 msgstr "Espiral do octagrama"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Padrão de superfície inferior"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Padrão de linha do preenchimento da superfície inferior, não do preenchimento da ponte"
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "Padrão interno de preenchimento sólido"
@@ -11439,9 +11484,6 @@ msgstr "Usar filtro de resfriamento"
 
 msgid "Enable this if printer support cooling filter"
 msgstr "Ative essa opção se a impressora suportar filtro de resfriamento"
-
-msgid "Auto turn off filter on overheat"
-msgstr "Desligamento automático do filtro em caso de superaquecimento"
 
 msgid "G-code flavor"
 msgstr "Sabor de g-code"
@@ -12325,8 +12367,32 @@ msgstr "Igual ao topo"
 msgid "Top interface spacing"
 msgstr "Espaçamento da interface superior"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Esse é o espaçamento das linhas da interface. 0 significa interface sólida."
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "Espaçamento da interface inferior"
@@ -12494,8 +12560,8 @@ msgstr "Esse é o número de camadas de penetração superior da tinta."
 msgid "Bottom paint penetration layers"
 msgstr "Camadas de penetração de tinta inferior"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "Esse é o número de camadas de penetração superior e inferior."
+msgid "This is the number of layers of bottom paint penetration."
+msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr "Use preenchimento interno em vez de superfícies superiores e inferiores"
@@ -15303,6 +15369,37 @@ msgid ""
 msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
+
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "A superfície áspera do PLA Glow pode acelerar o desgaste do sistema AMS, principalmente nos componentes internos do AMS Lite."
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Dimensione para aumentar o volume"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Dimensionar um objeto para se ajustar ao volume da construção"
+
+#~ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#~ msgstr "O modo de resfriamento é adequado para impressão de materiais PLA/PETG/TPU."
+
+#, c-format, boost-format
+#~ msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+#~ msgstr "[ %s ] requer impressão em ambiente de alta temperatura. Por favor, feche a porta."
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "É necessária uma alta temperatura da câmara. Por favor, feche a porta."
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "Falha no login. Verifique o código PIN."
+
+#~ msgid "Auto turn off filter on overheat"
+#~ msgstr "Desligamento automático do filtro em caso de superaquecimento"
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Esse é o espaçamento das linhas da interface. 0 significa interface sólida."
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "Esse é o número de camadas de penetração superior e inferior."
 
 #~ msgid "Distribute along Y axis"
 #~ msgstr "Distribuir ao longo do eixo Y"

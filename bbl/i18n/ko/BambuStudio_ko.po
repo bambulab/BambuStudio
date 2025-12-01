@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2025-12-01 15:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -61,8 +61,8 @@ msgstr "젖은 PVA는 유연해져 AMS 내부에 달라붙을 수 있으므로 �
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "습기가 많은 PVA는 유연하며 압출기에 걸릴 수 있습니다. 사용하기 전에 건조시키세요."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow의 거친 표면은 AMS 시스템, 특히 AMS Lite의 내부 구성 요소의 마모를 가속화할 수 있습니다."
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
@@ -72,6 +72,12 @@ msgstr "PPS-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브�
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
+
+msgid "The filament may require slicing parameter adjustments."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
@@ -2038,11 +2044,11 @@ msgstr "필라멘트 %d"
 msgid "current"
 msgstr "현재"
 
-msgid "Scale to build volume"
-msgstr "최대빌드볼륨에 맞춰 스케일조정"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "최대빌드볼륨에 맞춰 객체 스케일조정"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
 msgstr "플러시 옵션"
@@ -2193,6 +2199,12 @@ msgstr "복제"
 
 msgid "Simplify Model"
 msgstr "모델 단순화"
+
+msgid "Smooth mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "중앙"
@@ -2685,8 +2697,13 @@ msgstr "가열 모드는 ABS/ASA/PC/PA 소재를 출력하는 데 적합하며 �
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "강력한 냉각 모드는 PLA/TPU 소재를 출력하는 데 적합합니다. 이 모드에서는 출력물이 완전히 냉각됩니다."
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
-msgstr "냉각 모드는 PLA/PETG/TPU 소재 출력에 적합합니다."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -3648,6 +3665,18 @@ msgid ""
 msgstr ""
 "다림질 간격이 너무 작음\n"
 "0.1로 재설정"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to disable the support ironing?\n"
+"Yes: disable the support ironing.\n"
+"No: make the support interface solid."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -8037,8 +8066,8 @@ msgid "both extruders"
 msgstr "두 압출기"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
-msgstr "[ %s ] 고온 환경에서 출력해야 합니다. 문을 닫아 주세요."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
+msgstr ""
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8194,9 +8223,6 @@ msgstr "이 프린터는 모든 플레이트 출력을 지원하지 않습니다
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "현재 펌웨어는 최대 16개의 재료를 지원합니다. 준비 페이지에서 재료 수를 16개 이하로 줄이거나 펌웨어를 업데이트해 보세요. 업데이트 후에도 여전히 제한이 있는 경우, 다음 펌웨어 지원이 나올 때까지 기다려 주세요."
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr "높은 챔버 온도가 필요합니다. 문을 닫아주세요."
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "필요한 노즐 직경과 유량이 현재 표시와 일치하는지 확인하세요."
 
@@ -8309,8 +8335,11 @@ msgstr "바인딩 진행 중..."
 msgid "Please confirm on the printer screen"
 msgstr "프린터 화면에서 확인하시기 바랍니다"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "로그인에 실패했습니다. 핀 코드를 확인해 주세요."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "프린터 로그인"
@@ -8544,6 +8573,9 @@ msgstr "라프트"
 
 msgid "Support filament"
 msgstr "서포트 필라멘트"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr "나뭇가지 지지대"
@@ -10713,11 +10745,24 @@ msgstr "아르키메데스 코드"
 msgid "Octagram Spiral"
 msgstr "옥타그램 나선형"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "바닥 표면 패턴"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "하단 표면 내부채움 라인 패턴, 브릿지 내부채움 제외"
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "내부채움 패턴"
@@ -11417,9 +11462,6 @@ msgstr "냉각 필터 사용"
 
 msgid "Enable this if printer support cooling filter"
 msgstr "프린터가 냉각 필터를 지원하는 경우 이 기능을 활성화하세요."
-
-msgid "Auto turn off filter on overheat"
-msgstr "과열 시 필터 자동 끄기"
 
 msgid "G-code flavor"
 msgstr "G-코드 형식"
@@ -12305,8 +12347,32 @@ msgstr "상단과 동일"
 msgid "Top interface spacing"
 msgstr "상단 인터페이스 간격"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "인터페이스 라인 간격입니다. 0은 솔리드 인터페이스를 의미합니다."
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "하단 인터페이스 간격"
@@ -12474,8 +12540,8 @@ msgstr "이는 상단 페인트 침투 레이어 수입니다."
 msgid "Bottom paint penetration layers"
 msgstr "하단 페인트 침투 레이어"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "이는 상단 하단 침투 레이어 수입니다."
+msgid "This is the number of layers of bottom paint penetration."
+msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr "상단 및 하단 표면 대신 인필 사용"
@@ -15282,6 +15348,37 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "PLA Glow의 거친 표면은 AMS 시스템, 특히 AMS Lite의 내부 구성 요소의 마모를 가속화할 수 있습니다."
+
+#~ msgid "Scale to build volume"
+#~ msgstr "최대빌드볼륨에 맞춰 스케일조정"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "최대빌드볼륨에 맞춰 객체 스케일조정"
+
+#~ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#~ msgstr "냉각 모드는 PLA/PETG/TPU 소재 출력에 적합합니다."
+
+#, c-format, boost-format
+#~ msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+#~ msgstr "[ %s ] 고온 환경에서 출력해야 합니다. 문을 닫아 주세요."
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "높은 챔버 온도가 필요합니다. 문을 닫아주세요."
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "로그인에 실패했습니다. 핀 코드를 확인해 주세요."
+
+#~ msgid "Auto turn off filter on overheat"
+#~ msgstr "과열 시 필터 자동 끄기"
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "인터페이스 라인 간격입니다. 0은 솔리드 인터페이스를 의미합니다."
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "이는 상단 하단 침투 레이어 수입니다."
 
 #~ msgid "Distribute along Y axis"
 #~ msgstr "Y 축을 따라 분포시키기"

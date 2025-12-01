@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2025-12-01 15:41+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -61,8 +61,8 @@ msgstr "Nemli PVA esnekleşecek ve AMS'nin içine sıkışacaktır, lütfen kull
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "Nemli PVA esnektir ve ekstrüderde sıkışabilir. Kullanmadan önce kurutun."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow'un pürüzlü yüzeyi AMS sisteminde, özellikle de AMS Lite'ın iç bileşenlerinde aşınmayı hızlandırabilir."
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF filamentleri sert ve kırılgandır. AMS'de kırılması veya sıkışması kolaydır, lütfen dikkatli kullanın."
@@ -72,6 +72,12 @@ msgstr "PPS-CF kırılgandır ve Baskı Kafası üzerindeki bükülmüş PTFE t�
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF kırılgandır ve Baskı Kafasının üzerindeki bükülmüş PTFE tüp içinde kırılabilir."
+
+msgid "The filament may require slicing parameter adjustments."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
@@ -2040,11 +2046,11 @@ msgstr "Filament %d"
 msgid "current"
 msgstr "geçerli"
 
-msgid "Scale to build volume"
-msgstr "Yapı hacmine göre ölçeklendir"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "Bir nesneyi yapı hacmine uyacak şekilde ölçeklendirin"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
 msgstr "Hizalama Seçenekleri"
@@ -2195,6 +2201,12 @@ msgstr "Klon"
 
 msgid "Simplify Model"
 msgstr "Modeli Basitleştir"
+
+msgid "Smooth mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "Merkez"
@@ -2692,8 +2704,13 @@ msgstr "Isıtma modu ABS/ASA/PC/PA malzemelerin baskısı için uygundur ve hazn
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Güçlü soğutma modu PLA/TPU malzemelerin baskısı için uygundur. Bu modda, çıktılar tamamen soğutulacaktır."
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
-msgstr "Soğutma modu PLA/PETG/TPU malzemelerin baskısı için uygundur."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -3655,6 +3672,18 @@ msgid ""
 msgstr ""
 "Çok küçük ütüleme aralığı.\n"
 "0,1'e sıfırla"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to disable the support ironing?\n"
+"Yes: disable the support ironing.\n"
+"No: make the support interface solid."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -8041,8 +8070,8 @@ msgid "both extruders"
 msgstr "her iki ekstruder"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
-msgstr "[ %s ] yüksek sıcaklık ortamında yazdırma gerektirir. Lütfen kapıyı kapatın."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
+msgstr ""
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8198,9 +8227,6 @@ msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "Mevcut ürün yazılımı en fazla 16 malzemeyi desteklemektedir. Hazırlık Sayfasında malzeme sayısını 16'ya veya daha azına düşürebilir ya da ürün yazılımını güncellemeyi deneyebilirsiniz. Güncellemeden sonra da kısıtlama devam ederse, lütfen sonraki ürün yazılımı desteğini bekleyin."
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Yüksek oda sıcaklığı gereklidir. Lütfen kapıyı kapatın."
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
 
@@ -8311,8 +8337,11 @@ msgstr "Bağlanıyor..."
 msgid "Please confirm on the printer screen"
 msgstr "Lütfen yazıcı ekranında onaylayın"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "Giriş başarısız oldu. Lütfen Pin Kodunu kontrol edin."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Yazıcıda oturum aç"
@@ -8548,6 +8577,9 @@ msgstr "Raft"
 
 msgid "Support filament"
 msgstr "Destek Filamenti"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr "Ağaç Desteği"
@@ -10722,11 +10754,24 @@ msgstr "Arşimet akorları"
 msgid "Octagram Spiral"
 msgstr "Sekizgen spiral"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Alt yüzey deseni"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni"
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "İç dolgu deseni"
@@ -11425,9 +11470,6 @@ msgid "Use cooling filter"
 msgstr ""
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
-
-msgid "Auto turn off filter on overheat"
 msgstr ""
 
 msgid "G-code flavor"
@@ -12312,8 +12354,32 @@ msgstr "Üsttekiyle aynı"
 msgid "Top interface spacing"
 msgstr "Üst arayüz aralığı"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Arayüz çizgilerinin aralığı. Sıfır, sağlam arayüz anlamına gelir"
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "Alt arayüz aralığı"
@@ -12481,8 +12547,8 @@ msgstr "Bu,   üst yüzey deki kaplama katmanlarının sayısıdır."
 msgid "Bottom paint penetration layers"
 msgstr "Alt yüzey deki kaplama katmanları"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "Bu,   alt yüzey deki kaplama katmanlarının sayısıdır."
+msgid "This is the number of layers of bottom paint penetration."
+msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr ""
@@ -15285,6 +15351,34 @@ msgid ""
 msgstr ""
 "Büzülme, Çarpılma ve Gerilim\n"
 "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
+
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "PLA Glow'un pürüzlü yüzeyi AMS sisteminde, özellikle de AMS Lite'ın iç bileşenlerinde aşınmayı hızlandırabilir."
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Yapı hacmine göre ölçeklendir"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Bir nesneyi yapı hacmine uyacak şekilde ölçeklendirin"
+
+#~ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#~ msgstr "Soğutma modu PLA/PETG/TPU malzemelerin baskısı için uygundur."
+
+#, c-format, boost-format
+#~ msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+#~ msgstr "[ %s ] yüksek sıcaklık ortamında yazdırma gerektirir. Lütfen kapıyı kapatın."
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Yüksek oda sıcaklığı gereklidir. Lütfen kapıyı kapatın."
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "Giriş başarısız oldu. Lütfen Pin Kodunu kontrol edin."
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Arayüz çizgilerinin aralığı. Sıfır, sağlam arayüz anlamına gelir"
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "Bu,   alt yüzey deki kaplama katmanlarının sayısıdır."
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"

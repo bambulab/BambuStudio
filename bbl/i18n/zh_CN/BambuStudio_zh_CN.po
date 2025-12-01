@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2025-12-01 15:41+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -65,8 +65,8 @@ msgstr "潮湿的PVA会变得柔软并粘在AMS内，请在使用前注意干燥
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "受潮的PVA会变柔，可能会卡在挤出机中。使用前请先烘干。"
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "PLA Glow的粗糙表面可能加速AMS系统的磨损，尤其是AMS Lite的内部部件。"
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
@@ -76,6 +76,12 @@ msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
+
+msgid "The filament may require slicing parameter adjustments."
+msgstr "该材料可能需要调整切片参数。"
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "使用默认参数打印可能影响打印质量，请根据实际效果调整参数以获得最佳结果。"
@@ -1102,7 +1108,7 @@ msgid "First font"
 msgstr "第一个字体"
 
 msgid "Default font"
-msgstr "缺省字体"
+msgstr "默认字体"
 
 msgid "Save the parameters of the current text tool as a style for easy subsequent use."
 msgstr ""
@@ -2024,7 +2030,7 @@ msgid "Set filament for selected items"
 msgstr "设置所选项的耗材丝"
 
 msgid "Default"
-msgstr "缺省"
+msgstr "默认"
 
 #, c-format, boost-format
 msgid "Filament %d"
@@ -2033,11 +2039,11 @@ msgstr "耗材丝%d"
 msgid "current"
 msgstr "当前"
 
-msgid "Scale to build volume"
-msgstr "缩放到构建空间大小"
+msgid "Scale to print volume"
+msgstr "缩放到打印体积"
 
-msgid "Scale an object to fit the build volume"
-msgstr "缩放对象以适应构建空间大小"
+msgid "Scale the selected object to fit the print volume"
+msgstr "缩放所选对象以适应打印体积"
 
 msgid "Flush Options"
 msgstr "换料冲刷选项"
@@ -2188,6 +2194,12 @@ msgstr "克隆"
 
 msgid "Simplify Model"
 msgstr "简化模型"
+
+msgid "Smooth mesh"
+msgstr "平滑网格"
+
+msgid "(Lost color)"
+msgstr "(丢失颜色)"
 
 msgid "Center"
 msgstr "居中"
@@ -2679,8 +2691,13 @@ msgstr "腔温保持模式适合打印ABS/ASA/PC/PA材质，在机箱内部循�
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "强冷却模式适合打印PLA/TPU材质。该模式下打印件会得到全方位的冷却"
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
-msgstr "冷却模式适合打印PLA/PETG/TPU材质"
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -3630,6 +3647,18 @@ msgid ""
 msgstr "熨烫线距过小。将重置为0.1"
 
 msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to disable the support ironing?\n"
+"Yes: disable the support ironing.\n"
+"No: make the support interface solid."
+msgstr ""
+
+msgid ""
 "Zero initial layer height is invalid.\n"
 "\n"
 "The first layer height will be reset to 0.2."
@@ -3669,9 +3698,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height and Independent Support Layer Height"
 msgstr ""
-"擦拭塔不支持和自适应层高或支撑独立层高。同时开启\n"
+"擦料塔不支持和自适应层高或支撑独立层高。同时开启\n"
 "如何选择？\n"
-"是 - 选择开启擦拭塔\n"
+"是 - 选择开启擦料塔\n"
 "否 - 选择保留自适应层高或支撑独立层高"
 
 msgid ""
@@ -3680,9 +3709,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Adaptive Layer Height"
 msgstr ""
-"擦拭塔不支持和自适应层高同时开启。\n"
+"擦料塔不支持和自适应层高同时开启。\n"
 "如何选择？\n"
-"是 - 选择开启擦拭塔\n"
+"是 - 选择开启擦料塔\n"
 "否 - 选择保留自适应层高"
 
 msgid ""
@@ -3691,9 +3720,9 @@ msgid ""
 "YES - Keep Prime Tower\n"
 "NO  - Keep Independent Support Layer Height"
 msgstr ""
-"擦拭塔不支持和支撑独立层高同时开启。\n"
+"擦料塔不支持和支撑独立层高同时开启。\n"
 "如何选择？\n"
-"是 - 选择开启擦拭塔\n"
+"是 - 选择开启擦料塔\n"
 "否 - 选择保留支撑独立层高"
 
 #, boost-format
@@ -4061,7 +4090,7 @@ msgid "Unknown error."
 msgstr "未知错误。"
 
 msgid "default"
-msgstr "缺省"
+msgstr "默认"
 
 msgid "parameter name"
 msgstr "参数名称"
@@ -7103,7 +7132,7 @@ msgid "Plate Settings"
 msgstr "盘参数设置"
 
 msgid "Prime Tower:"
-msgstr "擦拭塔："
+msgstr "擦料塔："
 
 msgid "A cube printed during a filament change to purge old color and ensure smooth color transition."
 msgstr "在换材料过程中打印的立方体，用于清除旧材料并确保平滑的颜色过渡"
@@ -7158,7 +7187,7 @@ msgid "Parameter recommendation"
 msgstr "参数推荐"
 
 msgid "In the process preset, under \"Others-Advanced\", check \"Enable clumping detection by probing\". This feature generates a small wipe tower and performs probing detection to identify clumping issues early in the print and stop printing, preventing print failures or printer damage.\n"
-msgstr "在工艺预设的“其他-高级”中，勾选“启用触碰裹头检测”。此功能将生成一个小型擦拭塔，并执行触碰裹头检测，以便在打印初期识别裹头问题并停止打印，从而防止打印失败或打印机损坏。\n"
+msgstr "在工艺预设的“其他-高级”中，勾选“启用触碰裹头检测”。此功能将生成一个小型擦料塔，并执行触碰裹头检测，以便在打印初期识别裹头问题并停止打印，从而防止打印失败或打印机损坏。\n"
 
 msgid "Currently, the object configuration form cannot be used with a multiple-extruder printer."
 msgstr "多喷嘴打印机暂不支持对象配置表单功能。"
@@ -7324,7 +7353,7 @@ msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "清除 “加载 3mf” 对话框设置。"
 
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr ""
+msgstr "导入非 Bambu 3MF 文件时再次显示警告对话框"
 
 msgid "3D Settings"
 msgstr "3D设置"
@@ -7411,19 +7440,19 @@ msgid "Associate .3mf files to Bambu Studio"
 msgstr "使用Bambu Studio打开.3mf文件"
 
 msgid "If enabled, sets Bambu Studio as default application to open .3mf files"
-msgstr "开启后，将缺省使用Bambu Studio打开.3mf文件"
+msgstr "开启后，将默认使用Bambu Studio打开.3mf文件"
 
 msgid "Associate .stl files to Bambu Studio"
 msgstr "使用Bambu Studio打开.stl文件"
 
 msgid "If enabled, sets Bambu Studio as default application to open .stl files"
-msgstr "开启后，将缺省使用Bambu Studio打开.stl文件"
+msgstr "开启后，将默认使用Bambu Studio打开.stl文件"
 
 msgid "Associate .step/.stp files to Bambu Studio"
 msgstr "使用Bambu Studio打开.step/.stp文件"
 
 msgid "If enabled, sets Bambu Studio as default application to open .step files"
-msgstr "开启后，将缺省使用Bambu Studio打开.step文件"
+msgstr "开启后，将默认使用Bambu Studio打开.step文件"
 
 msgid "Online Models"
 msgstr "在线模型"
@@ -7995,8 +8024,8 @@ msgid "both extruders"
 msgstr "两侧挤出机"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
-msgstr "[ %s ] 需要在高温环境下打印。请关上门。"
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
+msgstr ""
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8156,9 +8185,6 @@ msgstr "该打印机不支持打印所有盘"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "当前固件最多支持 16 种材料。您可以在准备页将材料数量减少至 16 种及以下，或尝试更新固件。若更新后仍受限，请等待后续固件支持。"
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr "需高腔温打印，请关门。"
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "请确认所需喷嘴直径和流量是否和当前显示一致。"
 
@@ -8269,8 +8295,11 @@ msgstr "绑定..."
 msgid "Please confirm on the printer screen"
 msgstr "请在打印机屏幕上确认。"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "登录失败，请检查Pin码。"
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "登录打印机"
@@ -8357,13 +8386,13 @@ msgid "Prime tower is required for smooth timeplase. There may be flaws on the m
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您确定要关闭擦料塔吗？"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
-msgstr "触碰裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。您确定关闭料塔吗？"
+msgstr "触碰裹头检测需要擦料塔，否则打印件上可能会有瑕疵。您确定关闭料塔吗？"
 
 msgid "Enabling both precise Z height and the prime tower may cause the size of prime tower to increase. Do you still want to enable?"
-msgstr "同时启用精准Z高度和料塔将可能导致擦拭塔的尺寸变大，是否仍要开启？"
+msgstr "同时启用精准Z高度和料塔将可能导致擦料塔的尺寸变大，是否仍要开启？"
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
-msgstr "触碰裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。您确定开启裹头检测吗？"
+msgstr "触碰裹头检测需要擦料塔，否则打印件上可能会有瑕疵。您确定开启裹头检测吗？"
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "平滑模式的延时摄影需要擦料塔，否则打印件上可能会有瑕疵。您想打开擦料塔吗？"
@@ -8504,11 +8533,14 @@ msgstr "筏层"
 msgid "Support filament"
 msgstr "支撑耗材"
 
+msgid "Support ironing"
+msgstr ""
+
 msgid "Tree Support"
 msgstr "树状支撑"
 
 msgid "Prime tower"
-msgstr "擦拭塔"
+msgstr "擦料塔"
 
 msgid "Special mode"
 msgstr "特殊模式"
@@ -8555,7 +8587,7 @@ msgid "Filament prime volume"
 msgstr "材料清理量"
 
 msgid "The volume of material to prime extruder on tower."
-msgstr "擦拭塔上的清理量"
+msgstr "擦料塔上的清理量。"
 
 msgid "Filament ramming length"
 msgstr "材料预冲刷长度"
@@ -10029,7 +10061,7 @@ msgid " is too close to clumping detection area, there may be collisions when pr
 msgstr "太靠近裹头检测触碰区域，打印时可能发生碰撞。"
 
 msgid "Prime Tower"
-msgstr "擦拭塔"
+msgstr "擦料塔"
 
 msgid " is too close to others, and collisions may be caused.\n"
 msgstr "离其它对象太近，可能会发生碰撞。\n"
@@ -10065,7 +10097,7 @@ msgid "Clumping detection is not supported when \"by object\" sequence is enable
 msgstr "触碰裹头检测不支持在逐件打印模式下使用。"
 
 msgid "Prime tower is required for clumping detection; otherwise, there may be flaws on the model."
-msgstr "触碰裹头检测需要擦拭塔，否则打印件上可能会有瑕疵。"
+msgstr "触碰裹头检测需要擦料塔，否则打印件上可能会有瑕疵。"
 
 msgid "Please select \"By object\" print sequence to print multiple objects in spiral vase mode."
 msgstr "请选择逐件打印以支持在旋转花瓶模式下打印多个对象。"
@@ -10077,34 +10109,34 @@ msgid "Variable layer height is not supported with Organic supports."
 msgstr "不支持同时使用可变层高和有机树支撑。"
 
 msgid "Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled."
-msgstr "启用擦拭塔时，不允许使用不同的喷嘴直径和不同的材料直径。"
+msgstr "启用擦料塔时，不允许使用不同的喷嘴直径和不同的材料直径。"
 
 msgid "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1)."
-msgstr "当前仅支持使用相对挤出器寻址（use_relative_e_distances=1）的情况下使用擦拭塔。"
+msgstr "当前仅支持使用相对挤出器寻址（use_relative_e_distances=1）的情况下使用擦料塔。"
 
 msgid "Ooze prevention is currently not supported with the prime tower enabled."
-msgstr "当启用擦拭塔时，目前不支持防滴功能。"
+msgstr "当启用擦料塔时，目前不支持防滴功能。"
 
 msgid "The prime tower is currently only supported for the Marlin, RepRap/Sprinter, RepRapFirmware and Repetier G-code flavors."
-msgstr "擦拭塔目前仅支持Marlin、RepRap/Sprinter、RepRapFirmware和Repetier G-code风格。"
+msgstr "擦料塔目前仅支持Marlin、RepRap/Sprinter、RepRapFirmware和Repetier G-code风格。"
 
 msgid "The prime tower is not supported in \"By object\" print."
-msgstr "擦拭塔不支持在逐件打印模式下使用。"
+msgstr "擦料塔不支持在逐件打印模式下使用。"
 
 msgid "The prime tower is not supported when adaptive layer height is on. It requires that all objects have the same layer height."
-msgstr "不支持在可变层高开启时使用擦拭塔。它要求所有对象拥有相同的层高。"
+msgstr "不支持在可变层高开启时使用擦料塔。它要求所有对象拥有相同的层高。"
 
 msgid "The prime tower requires \"support gap\" to be multiple of layer height"
-msgstr "擦拭塔要求”支撑间隙“为层高的整数倍。"
+msgstr "擦料塔要求”支撑间隙“为层高的整数倍"
 
 msgid "The prime tower requires that all objects have the same layer heights"
-msgstr "擦拭塔要求各个对象拥有同样的层高。"
+msgstr "擦料塔要求各个对象拥有同样的层高"
 
 msgid "The prime tower requires that all objects are printed over the same number of raft layers"
-msgstr "擦拭塔要求各个对象使用同样的筏层数量。"
+msgstr "擦料塔要求各个对象使用同样的筏层数量"
 
 msgid "The prime tower requires that all objects are sliced with the same layer heights."
-msgstr "擦拭塔要求各个对象拥有同样的层高。"
+msgstr "擦料塔要求各个对象拥有同样的层高。"
 
 msgid "The prime tower is only supported if all objects have the same variable layer height"
 msgstr "各个对象的层高存在差异，无法启用擦料塔"
@@ -10116,7 +10148,7 @@ msgid "Too large line width"
 msgstr "线宽太大"
 
 msgid "The prime tower requires that support has the same layer height as object."
-msgstr "擦拭塔要求支撑和对象采用同样的层高。"
+msgstr "擦料塔要求支撑和对象采用同样的层高。"
 
 msgid "Support enforcers are used but support is not enabled. Please enable support."
 msgstr "使用了支撑添加器但没有打开支撑。请打开支撑。"
@@ -10670,11 +10702,24 @@ msgstr "阿基米德螺旋"
 msgid "Octagram Spiral"
 msgstr "八角螺旋"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "底面图案"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "除了桥接外的底面填充的走线图案"
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "内部实心填充图案"
@@ -10818,10 +10863,10 @@ msgid "Part cooling fan will be enabled for layers of which estimated time is sh
 msgstr "当层预估打印时间小于该数值时，部件冷却风扇将会被开启。风扇转速将根据层打印时间在最大和最小风扇转速之间插值获得"
 
 msgid "Default color"
-msgstr "缺省颜色"
+msgstr "默认颜色"
 
 msgid "Default filament color"
-msgstr "缺省材料颜色"
+msgstr "默认材料颜色"
 
 msgid "Required nozzle HRC"
 msgstr "喷嘴硬度要求"
@@ -10878,7 +10923,7 @@ msgid "The maximum volumetric speed for ramming before a hotend change, where -1
 msgstr "热端更换前的最大预冲刷体积速度，其中 -1 表示使用最大体积速度。"
 
 msgid "Minimal purge on wipe tower"
-msgstr "擦拭塔上的最小清理量"
+msgstr "擦料塔上的最小清理量"
 
 msgid "mm³"
 msgstr "mm³"
@@ -11030,16 +11075,16 @@ msgid "Filament change"
 msgstr "耗材丝更换"
 
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
-msgstr "除了换热端外的擦拭塔的清理量。"
+msgstr "除了换热端外的擦料塔的清理量。"
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
-msgstr "换热端所需的擦拭塔上的清理量。"
+msgstr "换热端所需的擦料塔上的清理量。"
 
 msgid "Wipe tower cooling"
 msgstr "擦料塔冷却"
 
 msgid "Temperature drop before entering filament tower"
-msgstr "进入擦拭塔前的降温量"
+msgstr "进入擦料塔前的降温量"
 
 msgid "Softening temperature"
 msgstr "软化温度"
@@ -11377,9 +11422,6 @@ msgstr "开启冷却过滤"
 
 msgid "Enable this if printer support cooling filter"
 msgstr "开启该功能后，当腔温过高时，会自动关闭过滤以提高冷却效果"
-
-msgid "Auto turn off filter on overheat"
-msgstr "开启自动关闭过滤"
 
 msgid "G-code flavor"
 msgstr "G-code风格"
@@ -12113,7 +12155,7 @@ msgid "Maximum distance to move points in XY to try to achieve a smooth spiralIf
 msgstr "最大的XY平面移动距离。当以%为单位时，基于喷嘴直径计算。"
 
 msgid "If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle."
-msgstr "如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进行喷嘴擦拭。"
+msgstr "如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦料塔进行喷嘴擦拭。"
 
 msgid "Traditional"
 msgstr "传统模式"
@@ -12265,8 +12307,32 @@ msgstr "和顶部相同"
 msgid "Top interface spacing"
 msgstr "顶部接触面线距"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "接触面的线距。0代表实心接触面。"
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "底部接触面线距"
@@ -12434,8 +12500,8 @@ msgstr "顶部涂色渗透的层数"
 msgid "Bottom paint penetration layers"
 msgstr "底部涂色渗透层数"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "顶部涂色渗透的层数"
+msgid "This is the number of layers of bottom paint penetration."
+msgstr "底部涂色渗透的层数。"
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr "使用填充纹理以取代封闭的顶面和底面"
@@ -12471,13 +12537,13 @@ msgid "Describe how long the nozzle will move along the last path when retractin
 msgstr "表示回抽时擦拭的移动距离。"
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
-msgstr "擦拭塔可以用来清理喷嘴上的残留料和让喷嘴内部的腔压达到稳定状态，以避免打印物体时出现外观瑕疵。"
+msgstr "擦料塔可以用来清理喷嘴上的残留料和让喷嘴内部的腔压达到稳定状态，以避免打印物体时出现外观瑕疵。"
 
 msgid "Internal ribs"
 msgstr "内支撑肋"
 
 msgid "Enable internal ribs to increase the stability of the prime tower."
-msgstr "启用内支撑肋以增强擦拭塔的稳定性。"
+msgstr "启用内支撑肋以增强擦料塔的稳定性。"
 
 msgid "Auto circle contour-hole compensation"
 msgstr "自动圆形轴孔补偿"
@@ -12489,7 +12555,7 @@ msgid "User Customized Offset"
 msgstr "用户自设定补偿"
 
 msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
-msgstr "如果您需要更近或者更松的装配，请调整这个参数。该参数为正时表示装配调松，反之调紧"
+msgstr "如果您需要更紧或者更松的装配，请调整这个参数。该参数为正时表示装配调松，反之调紧"
 
 msgid "Scarf Seam On Compensation Circles"
 msgstr "在补偿的圆形上应用斜拼接缝"
@@ -12579,16 +12645,16 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "实际冲刷量等于冲刷量乘数乘以表格单元中的冲刷量"
 
 msgid "Width of prime tower"
-msgstr "擦拭塔宽度"
+msgstr "擦料塔宽度"
 
 msgid "Max speed"
 msgstr "最大速度"
 
 msgid "The maximum printing speed on the prime tower excluding ramming."
-msgstr "擦拭塔上除了预冲刷外的最大打印速度。"
+msgstr "擦料塔上除了预冲刷外的最大打印速度。"
 
 msgid "Brim width of prime tower, negative number means auto calculated width based on the height of prime tower."
-msgstr "擦拭塔的Brim宽度，负数意味着宽度根据擦拭塔的高度自动计算。"
+msgstr "擦料塔的Brim宽度，负数意味着宽度根据擦拭塔的高度自动计算。"
 
 msgid "Extra rib length"
 msgstr "斜肋额外的长度"
@@ -12612,7 +12678,7 @@ msgid "Rib wall"
 msgstr "斜肋外墙"
 
 msgid "The wall of prime tower will add four ribs and make its cross-section as close to a square as possible, so the width will be fixed."
-msgstr "擦拭塔的外墙增加四个肋角，并使其横截面近似正方形，因此宽度不能修改。"
+msgstr "擦料塔的外墙增加四个肋角，并使其横截面近似正方形，因此宽度不能修改。"
 
 msgid "Fillet wall"
 msgstr "外墙倒圆角"
@@ -15223,6 +15289,37 @@ msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
 
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "PLA Glow的粗糙表面可能加速AMS系统的磨损，尤其是AMS Lite的内部部件。"
+
+#~ msgid "Scale to build volume"
+#~ msgstr "缩放到构建空间大小"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "缩放对象以适应构建空间大小"
+
+#~ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#~ msgstr "冷却模式适合打印PLA/PETG/TPU材质"
+
+#, c-format, boost-format
+#~ msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+#~ msgstr "[ %s ] 需要在高温环境下打印。请关上门。"
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "需高腔温打印，请关门。"
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "登录失败，请检查Pin码。"
+
+#~ msgid "Auto turn off filter on overheat"
+#~ msgstr "开启自动关闭过滤"
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "接触面的线距。0代表实心接触面。"
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "顶部涂色渗透的层数"
+
 #~ msgid "Distribute along Y axis"
 #~ msgstr "在包围盒Y轴上均匀分布"
 
@@ -15269,9 +15366,6 @@ msgstr ""
 
 #~ msgid "The current filament doesn't support the high-flow nozzle and can't be used."
 #~ msgstr "当前材料不支持高流量喷嘴，无法使用。"
-
-#~ msgid "The filament may require slicing parameter adjustments."
-#~ msgstr "该材料可能需要调整切片参数。"
 
 #~ msgid "Align objects to the minimum X position"
 #~ msgstr "将对象或零件对齐到包围盒X轴最小位置"
@@ -22030,12 +22124,6 @@ msgstr ""
 
 #~ msgid "Set extruder for selected items"
 #~ msgstr "为选定的项设置挤出机"
-
-#~ msgid "Scale to print volume"
-#~ msgstr "缩放打印体积"
-
-#~ msgid "Scale the selected object to fit the print volume"
-#~ msgstr "缩放所选对象以适合可打印体积"
 
 #~ msgid "Merge objects to the one multipart object"
 #~ msgstr "合并多个对象为一个多零件对象"
