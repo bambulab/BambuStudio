@@ -3435,7 +3435,11 @@ bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& vo
     if (volume_id < 0) {
         if ( split_part || (*m_objects)[obj_idx]->volumes.size() > 1 )
             return false;
-        volume = (*m_objects)[obj_idx]->volumes[0];
+        if ((*m_objects)[obj_idx]->volumes.size() >=1) {
+            volume = (*m_objects)[obj_idx]->volumes[0];
+        } else {
+            return false;
+        }
     }
     // volume is selected
     else
@@ -3463,7 +3467,9 @@ bool ObjectList::is_splittable(bool to_objects)
             }
             if ((*m_objects)[obj_idx]->volumes.size() > 1)
                 return true;
-            return (*m_objects)[obj_idx]->volumes[0]->is_splittable();
+            if ((*m_objects)[obj_idx]->volumes.size() >= 1) {
+                return (*m_objects)[obj_idx]->volumes[0]->is_splittable();
+            }
         }
         return false;
     }
