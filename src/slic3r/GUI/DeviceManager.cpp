@@ -834,6 +834,7 @@ void MachineObject::clear_version_info()
     laser_version_info = DevFirmwareVersionInfo();
     cutting_module_version_info = DevFirmwareVersionInfo();
     extinguish_version_info = DevFirmwareVersionInfo();
+    rotary_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
     m_nozzle_system->ClearFirmwareInfoWTM();
 }
@@ -848,6 +849,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         cutting_module_version_info = info;
     } else if (info.isExtinguishSystem()) {
         extinguish_version_info = info;
+    } else if (info.isRotary()) {
+        rotary_version_info = info;
     }else if (info.isWTM()) {
         m_nozzle_system->AddFirmwareInfoWTM(info);
     }
