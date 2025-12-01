@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2025-12-01 15:41+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -69,8 +69,8 @@ msgstr "Влажный PVA становится гибким и застрева
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr ""
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "CF/GF пластиковые нити твердые и хрупкие, легко ломаются или застревают в АСПП, поэтому используйте их с осторожностью."
@@ -79,6 +79,12 @@ msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
+msgstr ""
+
+msgid "The filament may require slicing parameter adjustments."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
@@ -2077,11 +2083,11 @@ msgstr "Пруток %d"
 msgid "current"
 msgstr "текущий"
 
-msgid "Scale to build volume"
-msgstr "Отмасштабировать под область печати"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "Отмасштабировать выбранную модель до объёма стола"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
 msgstr "Опции очистки"
@@ -2234,6 +2240,12 @@ msgstr "Сделать копию"
 
 msgid "Simplify Model"
 msgstr "Упростить полигональную сетку"
+
+msgid "Smooth mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "По центру"
@@ -2748,7 +2760,12 @@ msgstr ""
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Режим интенсивного охлаждения подходит для печати такими материалами, как PLA/TPU. В этом случае охлаждение будет осуществляться в максимальном режиме."
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
 msgctxt "air_duct"
@@ -3723,6 +3740,18 @@ msgid ""
 msgstr ""
 "Слишком маленькое расстояние между линиями разглаживания.\n"
 "Значение будет сброшено на 0,1."
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to disable the support ironing?\n"
+"Yes: disable the support ironing.\n"
+"No: make the support interface solid."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -8211,7 +8240,7 @@ msgid "both extruders"
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
 msgstr ""
 
 #, c-format, boost-format
@@ -8373,9 +8402,6 @@ msgstr "Данный принтер не поддерживает печать �
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr ""
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
 
@@ -8487,8 +8513,11 @@ msgstr "Привязка..."
 msgid "Please confirm on the printer screen"
 msgstr "Пожалуйста, подтвердите привязку на экране принтера."
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "Не удалось выполнить вход в систему. Пожалуйста, проверьте пин-код."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Войти в принтер"
@@ -8720,6 +8749,9 @@ msgstr "Подложка"
 
 msgid "Support filament"
 msgstr "Пруток для поддержки"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr "Древовидная поддержка"
@@ -10946,11 +10978,24 @@ msgstr "Хорды Архимеда"
 msgid "Octagram Spiral"
 msgstr "Спиральная октаграмма"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Шаблон заполнения нижней поверхности"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Шаблон заполнения нижней поверхности, кроме мостов."
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "Шаблон сплошного заполнения"
@@ -11673,9 +11718,6 @@ msgid "Use cooling filter"
 msgstr ""
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
-
-msgid "Auto turn off filter on overheat"
 msgstr ""
 
 msgid "G-code flavor"
@@ -12580,8 +12622,32 @@ msgstr "Как и сверху"
 msgid "Top interface spacing"
 msgstr "Расстояние между линиями связующего слоя сверху"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Расстояние между линиями связующего слоя сверху. Установите 0, чтобы получить сплошной слой."
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "Расстояние между линиями связующего слоя снизу"
@@ -12756,8 +12822,8 @@ msgstr "Количество слоёв, через которые проник�
 msgid "Bottom paint penetration layers"
 msgstr "Слоёв проникновения нижней покраски"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "Количество слоёв, через которые проникает покраска на нижней поверхности модели."
+msgid "This is the number of layers of bottom paint penetration."
+msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr ""
@@ -15573,6 +15639,24 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Отмасштабировать под область печати"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Отмасштабировать выбранную модель до объёма стола"
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "Не удалось выполнить вход в систему. Пожалуйста, проверьте пин-код."
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Расстояние между линиями связующего слоя сверху. Установите 0, чтобы получить сплошной слой."
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "Количество слоёв, через которые проникает покраска на нижней поверхности модели."
 
 #~ msgid ""
 #~ "This is your first time slicing with the H2D machine.\n"
