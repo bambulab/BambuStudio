@@ -69,6 +69,12 @@
     "slow_down_min_speed": [
         "20"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "compatible_printers": [
         "Bambu Lab H2S 0.8 nozzle"
     ],

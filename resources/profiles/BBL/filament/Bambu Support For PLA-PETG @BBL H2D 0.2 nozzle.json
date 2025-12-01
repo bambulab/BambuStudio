@@ -37,6 +37,9 @@
     "pre_start_fan_time": [
         "2"
     ],
+    "supertack_plate_temp": [
+        "0"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"
     ],
