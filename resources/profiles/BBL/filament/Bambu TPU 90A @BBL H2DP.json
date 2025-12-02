@@ -30,6 +30,9 @@
         "0.7",
         "0.7"
     ],
+    "filament_printable": [
+        "3"
+    ],
     "filament_retraction_length": [
         "1.5",
         "1.5"
