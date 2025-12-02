@@ -120,7 +120,7 @@
         "14"
     ],
     "support_chamber_temp_control": "1",
-    "support_cooling_filter": "1",
+    "support_cooling_filter": "0",
     "unprintable_filament_types": [
         "TPU",
         "PPS-CF,PPA-CF"
