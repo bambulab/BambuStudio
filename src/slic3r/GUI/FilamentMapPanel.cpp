@@ -160,6 +160,7 @@ std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
     std::vector<int> left_filaments = this->GetLeftFilaments();
     std::vector<int> right_high_flow_filaments = this->GetRightHighFlowFilaments();
     std::vector<int> right_standard_filaments = this->GetRightStandardFilaments();
+    std::vector<int> right_tpu_high_flow_filaments = this->GetRightTPUHighFlowFilaments();
 
     auto preset_bundle = wxGetApp().preset_bundle;
     auto proj_config = preset_bundle->project_config;
@@ -178,6 +179,9 @@ std::vector<int> FilamentMapManualPanel::GetFilamentVolumeMaps() const
         }
         else if (std::find(right_standard_filaments.begin(), right_standard_filaments.end(), filament_id) != right_standard_filaments.end()) {
             volume_map[i] = 0;
+        }
+        else if (std::find(right_tpu_high_flow_filaments.begin(), right_tpu_high_flow_filaments.end(), filament_id) != right_tpu_high_flow_filaments.end()) {
+            volume_map[i] = 3;
         }
     }
 

@@ -1513,6 +1513,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         return true;
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
+    std::unordered_map<std::string, int> nozzle_fils;
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
             int filament_id = filament_idx - 1;
@@ -1520,11 +1521,28 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
+
+            PresetCollection& filament_presets = wxGetApp().preset_bundle->filaments;
+            auto filament_names = wxGetApp().preset_bundle->filament_presets;
             if (!(filament_printable_status >> extruder_idx & 1)) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
+                error_message = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_names[filament_id]); // todo：显示耗材名字更好，因为部分TPU可以左头打印
                 return false;
             }
+
+            auto filament_variants = m_print->get_full_filament_extruder_variants(filament_idx);
+            std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
+            std::string extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
+            if (filament_variants_set.count(extruder_variant) == 0) {
+                wxString variant_name = extruder_variant;
+                error_message = wxString::Format(_L("The %s nozzle can not print %s."), variant_name, filament_names[filament_id]);
+                return false;
+			}
+            nozzle_fils[extruder_variant]++;
+        }
+        if (nozzle_fils["Direct Drive TPU High Flow"] > 1) {
+            error_message = wxString::Format(_L("The TPU High Flow nozzle doesn’t support auto filament switching, so only one filament can be assigned."));
+            return false;
         }
     }
     return true;
