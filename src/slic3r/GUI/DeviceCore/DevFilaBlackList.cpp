@@ -106,6 +106,7 @@ void check_filaments(const std::string& dev_id,
     }
 
     in_blacklist = false;
+    const auto original_tag_name = tag_name;
     std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
     std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
     std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
@@ -208,12 +209,8 @@ void check_filaments(const std::string& dev_id,
                 if (!name_suffix.empty()) {
                     std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::toupper);
                     info = wxString::Format(info, name_suffix);
-                } else if (!type.empty()) {
-                    std::transform(type.begin(), type.end(), type.begin(), ::toupper);
-                    info = wxString::Format(info, type);
                 } else {
-                    std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::toupper);
-                    info = wxString::Format(info, tag_name);
+                    info = wxString::Format(info, original_tag_name);
                 }
             }
 
