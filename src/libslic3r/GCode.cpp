@@ -727,7 +727,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         //BBS: increase toolchange count
-        gcodegen.m_toolchange_count++;
+        //gcodegen.m_toolchange_count++;
 
         std::string toolchange_gcode_str;
 
@@ -825,7 +825,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("relative_e_axis", new ConfigOptionBool(full_config.use_relative_e_distances));
-                config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count));
+                config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count+1));
                 //BBS: fan speed is useless placeholer now, but we don't remove it to avoid
                 //slicing error in old change_filament_gcode in old 3MF
                 config.set_key_value("fan_speed", new ConfigOptionInt((int)0));
@@ -1029,6 +1029,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string tcr_gcode, tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_filament_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tcr_gcode;
+        if (custom_gcode_changes_tool(tcr_gcode, gcodegen.writer().toolchange_prefix(), new_filament_id))
+            gcodegen.m_toolchange_count++; //BBS: only increase the toolchange_count when realy happend
         check_add_eol(toolchange_gcode_str);
 
         //OrcaSlicer: set new PA for new filament. BBS: never use for Bambu Printer
