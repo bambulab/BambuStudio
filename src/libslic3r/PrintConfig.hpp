@@ -327,7 +327,8 @@ enum NozzleVolumeType {
     nvtStandard = 0,
     nvtHighFlow,
     nvtHybrid,
-    nvtMaxNozzleVolumeType = nvtHybrid
+    nvtTPUHighFlow,
+    nvtMaxNozzleVolumeType = nvtTPUHighFlow
 };
 
 enum FilamentMapMode {
@@ -340,6 +341,16 @@ enum FilamentMapMode {
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
+
+static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
+    std::set<NozzleVolumeType> type;
+    for (int i = 0; i <= nvtMaxNozzleVolumeType; ++i) {
+        auto t = static_cast<NozzleVolumeType>(i);
+        if (t == nvtHybrid) continue;
+        type.insert(t);
+    }
+    return type;
+}
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 static std::string bed_type_to_gcode_string(const BedType type)
