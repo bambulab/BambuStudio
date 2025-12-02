@@ -505,7 +505,7 @@ public:
     bool can_support_pa_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
-    bool is_nozzle_hrc_matched(const NozzleType& nozzle_type, std::string& filament_type) const;
+    bool is_nozzle_hrc_matched(const NozzleType& nozzle_type, const std::string& filament_id) const;
     bool check_sdcard_for_timelpase(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
