@@ -214,6 +214,7 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
 
     /* error code str*/
     std::string error_str = m_obj->get_error_code_str(error_code);
+    m_error_code = error_code;
 
     /* error code message*/
     wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_obj, error_code);
