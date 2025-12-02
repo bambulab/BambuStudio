@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Bambu TPU 90A @BBL H2DP",
+    "name": "Bambu TPU 90A @BBL H2DP 0.6 nozzle",
     "inherits": "Bambu TPU 90A @base",
     "from": "system",
-    "setting_id": "GFSU03_03",
+    "setting_id": "GFSU03_25",
     "instantiation": "true",
     "additional_cooling_fan_speed": [
         "100"
@@ -13,6 +13,9 @@
     ],
     "eng_plate_temp_initial_layer": [
         "35"
+    ],
+    "filament_density": [
+        "1.22"
     ],
     "filament_deretraction_speed": [
         "10",
@@ -71,7 +74,8 @@
         "0"
     ],
     "compatible_printers": [
-        "Bambu Lab H2D Pro 0.4 nozzle"
+        "Bambu Lab H2D Pro 0.6 nozzle",
+        "Bambu Lab H2D Pro 0.8 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
