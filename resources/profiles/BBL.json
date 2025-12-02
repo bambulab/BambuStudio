@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.04.00.05",
+    "version": "02.04.00.06",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -5892,8 +5892,16 @@
             "sub_path": "filament/Bambu TPU 90A @BBL H2D.json"
         },
         {
+            "name": "Bambu TPU 90A @BBL H2D 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2D 0.6 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 90A @BBL H2DP",
             "sub_path": "filament/Bambu TPU 90A @BBL H2DP.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL H2DP 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2DP 0.6 nozzle.json"
         },
         {
             "name": "Bambu TPU 90A @BBL H2S",
