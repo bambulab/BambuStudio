@@ -922,10 +922,12 @@ static std::vector<std::string> s_Preset_print_options {
     "wall_sequence", "is_infill_first", "sparse_infill_density", "fill_multiline", "sparse_infill_pattern", "sparse_infill_anchor", "sparse_infill_anchor_max", "top_surface_pattern",
     "locked_skin_infill_pattern", "locked_skeleton_infill_pattern",
     "bottom_surface_pattern", "internal_solid_infill_pattern", "infill_direction", "bridge_angle", "infill_shift_step", "skeleton_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_density",
-    "infill_rotate_step",
+    "infill_rotate_step","top_surface_density", "bottom_surface_density",
     "symmetric_infill_y_axis",
     "minimum_sparse_infill_area", "reduce_infill_retraction", "ironing_pattern", "ironing_type",
     "ironing_flow", "ironing_speed", "ironing_spacing","ironing_direction", "ironing_inset",
+    "enable_support_ironing","support_ironing_pattern","support_ironing_speed",
+    "support_ironing_flow","support_ironing_spacing","support_ironing_inset","support_ironing_direction",
     "max_travel_detour_distance", "avoid_crossing_wall_includes_support",
     "fuzzy_skin", "fuzzy_skin_thickness", "fuzzy_skin_point_distance",
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -1015,7 +1017,11 @@ static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", *
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
     "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp",
-    "long_retractions_when_ec", "retraction_distances_when_ec", "filament_cooling_before_tower"
+    "long_retractions_when_ec", "retraction_distances_when_ec", "filament_cooling_before_tower",
+    //ams chamber
+    "filament_dev_ams_drying_ams_limitations", "filament_dev_ams_drying_temperature", "filament_dev_ams_drying_time", "filament_dev_ams_drying_heat_distortion_temperature",
+    "filament_dev_chamber_drying_bed_temperature", "filament_dev_chamber_drying_time",
+    "filament_dev_drying_softening_temperature", "filament_dev_drying_cooling_temperature"
 };
 
 static std::vector<std::string> s_Preset_machine_limits_options {
@@ -1037,7 +1043,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "silent_mode",
     // BBS
     "scan_first_layer", "wrapping_detection_layers", "wrapping_exclude_area", "machine_load_filament_time", "machine_unload_filament_time", "machine_pause_gcode", "template_custom_gcode","machine_hotend_change_time",
-    "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","auto_disable_filter_on_overheat","printer_structure","thumbnail_size",
+    "nozzle_type","auxiliary_fan", "fan_direction", "nozzle_volume","upward_compatible_machine", "z_hop_types","support_chamber_temp_control","support_air_filtration","support_cooling_filter","cooling_filter_enabled","printer_structure","thumbnail_size",
     "best_object_pos", "head_wrap_detect_zone","printer_notes",
     "enable_long_retraction_when_cut","long_retractions_when_cut","retraction_distances_when_cut",
     //OrcaSlicer
@@ -3066,7 +3072,7 @@ Preset& PresetCollection::select_preset(size_t idx)
     return m_presets[idx];
 }
 
-bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, bool force)
+bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, bool force, bool select_invisible)
 {
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1%, try to select by name %2%, force %3%")%Preset::get_type_string(m_type) %name_w_suffix %force;
@@ -3074,9 +3080,14 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
     // 1) Try to find the preset by its name.
     auto it = this->find_preset_internal(name);
     size_t idx = 0;
-    if (it != m_presets.end() && it->name == name && it->is_visible)
+    if (it != m_presets.end() && it->name == name && (it->is_visible || select_invisible)) {
         // Preset found by its name and it is visible.
         idx = it - m_presets.begin();
+        if (select_invisible && !it->is_visible) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": %1%, set %2% to visible") % Preset::get_type_string(m_type) % name_w_suffix;
+            it->is_visible = true;
+        }
+    }
     else {
         // Find the first visible preset.
         for (size_t i = m_default_suppressed ? m_num_default_presets : 0; i < m_presets.size(); ++ i)

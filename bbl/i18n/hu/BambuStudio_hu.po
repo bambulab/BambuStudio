@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2025-12-01 15:41+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -61,8 +61,8 @@ msgstr "A nedves PVA rugalmassá válik és elakadhat az AMS belsejében; kérj�
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "A nedves PVA felpuhul, ezért elakadhat az extruderben. Használat előtt szárítsd ki."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
 
 msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
@@ -72,6 +72,12 @@ msgstr "A PPS-CF rideg és eltörhet szerszámfej feletti hajlított PTFE-csőbe
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "A PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben."
+
+msgid "The filament may require slicing parameter adjustments."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
 
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
@@ -2038,11 +2044,11 @@ msgstr "Filament %d"
 msgid "current"
 msgstr "jelenlegi"
 
-msgid "Scale to build volume"
-msgstr "Átméretezés a nyomtatótérhez"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "Átméretez egy objektumot, hogy beférjen a nyomtatótérbe"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
 msgstr "Öblítési lehetőségek"
@@ -2193,6 +2199,12 @@ msgstr "Klónozás"
 
 msgid "Simplify Model"
 msgstr "Modell egyszerűsítése"
+
+msgid "Smooth mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "Közép"
@@ -2690,8 +2702,13 @@ msgstr "A fűtési mód alkalmas ABS/ASA/PC/PA anyagok nyomtatására, és kerin
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Az erős hűtési mód PLA/TPU anyagok nyomtatására alkalmas. Ebben az üzemmódban a nyomatok teljesen lehűlnek."
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
-msgstr "A hűtési mód alkalmas PLA/PETG/TPU anyagok nyomtatására."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -3653,6 +3670,18 @@ msgid ""
 msgstr ""
 "Túl kicsi vasalási térköz.\n"
 "Visszaállítva 0,1-re"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to disable the support ironing?\n"
+"Yes: disable the support ironing.\n"
+"No: make the support interface solid."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -8046,8 +8075,8 @@ msgid "both extruders"
 msgstr "mindkét extruder"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
-msgstr "[ %s ] magas hőmérsékleten történő nyomtatást igényel. Kérjük, csukd be az ajtót."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
+msgstr ""
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8203,9 +8232,6 @@ msgstr "Ez a nyomtató nem támogatja az összes tálcára való nyomtatást"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "A jelenlegi firmware maximum 16 anyagot támogat. Vagy csökkentsd az anyagok számát 16-ra (vagy kevesebbre) az Előkészítés oldalon, vagy próbáld meg frissíteni a firmware-t. Ha a frissítés után sem tudsz több filamentet használni, kérjük várj a következő firmware-verzióra."
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Magas kamrahőmérséklet szükséges. Kérjük, csukd be az ajtót."
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Kérjük, ellenőrizd, hogy a fúvókaátmérő és áramlási sebesség megegyezik-e a kijelzőn lévővel."
 
@@ -8318,8 +8344,11 @@ msgstr "Párosítás..."
 msgid "Please confirm on the printer screen"
 msgstr "Kérjük, erősítsd meg a nyomtató képernyőjén"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "A bejelentkezés sikertelen. Kérjük, ellenőrizd a PIN-kódot."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Bejelentkezés a nyomtatóra"
@@ -8551,6 +8580,9 @@ msgstr "Tutaj"
 
 msgid "Support filament"
 msgstr "Filament a támaszhoz"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr "Fa típusú támasz"
@@ -10725,11 +10757,24 @@ msgstr "Archimédeszi vonalak"
 msgid "Octagram Spiral"
 msgstr "Nyolcágú spirál"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Alsó felület mintázata"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Az alsó felület kitöltésének mintája, kivéve az áthidalásokat"
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "Belső tömör kitöltés mintája"
@@ -11429,9 +11474,6 @@ msgstr "Hűtőszűrő használata"
 
 msgid "Enable this if printer support cooling filter"
 msgstr "Engedélyezd a beállítást, ha a nyomtató támogatja a hűtőszűrőt"
-
-msgid "Auto turn off filter on overheat"
-msgstr "Szűrő automatikus kikapcsolása túlmelegedés esetén"
 
 msgid "G-code flavor"
 msgstr "G-kód változat"
@@ -12317,8 +12359,32 @@ msgstr "Ugyanaz, mint a felső"
 msgid "Top interface spacing"
 msgstr "Felső érintkező felület térköze"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Az érintkező réteg vonalai közötti távolság. A nulla szilárd kitöltést jelent"
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "Alső érintkező réteg térköz"
@@ -12486,8 +12552,8 @@ msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
 msgid "Bottom paint penetration layers"
 msgstr "Alsó festett rétegek mélysége"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
+msgid "This is the number of layers of bottom paint penetration."
+msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr "Kitöltés használata a felső és alsó felület helyett"
@@ -15292,6 +15358,37 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Átméretezés a nyomtatótérhez"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Átméretez egy objektumot, hogy beférjen a nyomtatótérbe"
+
+#~ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#~ msgstr "A hűtési mód alkalmas PLA/PETG/TPU anyagok nyomtatására."
+
+#, c-format, boost-format
+#~ msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+#~ msgstr "[ %s ] magas hőmérsékleten történő nyomtatást igényel. Kérjük, csukd be az ajtót."
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Magas kamrahőmérséklet szükséges. Kérjük, csukd be az ajtót."
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "A bejelentkezés sikertelen. Kérjük, ellenőrizd a PIN-kódot."
+
+#~ msgid "Auto turn off filter on overheat"
+#~ msgstr "Szűrő automatikus kikapcsolása túlmelegedés esetén"
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Az érintkező réteg vonalai közötti távolság. A nulla szilárd kitöltést jelent"
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
 
 #~ msgid "Distribute along Y axis"
 #~ msgstr "Egyenletes elosztás az Y tengely mentén"

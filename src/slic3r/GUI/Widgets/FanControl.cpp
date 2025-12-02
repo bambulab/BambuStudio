@@ -1012,11 +1012,40 @@ void FanControlPopupNew::init_names(MachineObject* obj) {
 
     // special texts
     if (obj) {
-        const std::string& special_cooling_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "special_cooling_text");
-        if (!special_cooling_text.empty()) {
-            L("Cooling mode is suitable for printing PLA/PETG/TPU materials."); //some potential text, add i18n flags
-            L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
-            label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L(special_cooling_text);
+        {
+            wxString special_cooling_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "AIR_DUCT_COOLING_FILT");
+            if (!special_cooling_text.empty()) {
+                //some potential text, add i18n flags
+                L("Cooling mode is suitable for printing %s materials.");
+
+                // label with params
+                if (special_cooling_text == "Cooling mode is suitable for printing %s materials.") {
+                    const std::vector<std::string>& params = DevPrinterConfigUtil::get_fan_text_params(obj->printer_type, "AIR_DUCT_COOLING_FILT_PARAM");
+                    if (!params.empty()) {
+                        special_cooling_text = wxString::Format(_L(special_cooling_text), params[0]);
+                    }
+                }
+
+                label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L(special_cooling_text);
+            }
+        }
+
+        {
+            wxString special_heating_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "AIR_DUCT_HEATING_INTERNAL_FILT");
+            if (!special_heating_text.empty()) {
+                //some potential text, add i18n flags
+                L("Heating mode is suitable for printing %s materials and circulates filters the chamber air.");
+
+                // label with params
+                if (special_heating_text == "Heating mode is suitable for printing %s materials and circulates filters the chamber air.") {
+                    const std::vector<std::string>& params = DevPrinterConfigUtil::get_fan_text_params(obj->printer_type, "AIR_DUCT_HEATING_INTERNAL_FILT_PARAM");
+                    if (!params.empty()) {
+                        special_heating_text = wxString::Format(_L(special_heating_text), params[0]);
+                    }
+                }
+
+                label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L(special_heating_text);
+            }
         }
     }
 }

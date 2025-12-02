@@ -2613,10 +2613,12 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Top/bottom shells"), L"param_shell");
         optgroup->append_single_option_line("interface_shells");
         optgroup->append_single_option_line("top_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
+        optgroup->append_single_option_line("top_surface_density");
         optgroup->append_single_option_line("top_shell_layers");
         optgroup->append_single_option_line("top_shell_thickness");
         optgroup->append_single_option_line("top_color_penetration_layers");
         optgroup->append_single_option_line("bottom_surface_pattern", "fill-patterns#Infill of the top surface and bottom surface");
+        optgroup->append_single_option_line("bottom_surface_density");
         optgroup->append_single_option_line("bottom_shell_layers");
         optgroup->append_single_option_line("bottom_shell_thickness");
         optgroup->append_single_option_line("bottom_color_penetration_layers");
@@ -2739,6 +2741,15 @@ void TabPrint::build()
         optgroup->append_single_option_line("support_interface_not_for_body", "support#support-filament");
 
         //optgroup = page->new_optgroup(L("Options for support material and raft"));
+
+        optgroup = page->new_optgroup(L("Support ironing"), L"param_ironing");
+        optgroup->append_single_option_line("enable_support_ironing");
+        optgroup->append_single_option_line("support_ironing_pattern");
+        optgroup->append_single_option_line("support_ironing_speed");
+        optgroup->append_single_option_line("support_ironing_flow");
+        optgroup->append_single_option_line("support_ironing_spacing");
+        optgroup->append_single_option_line("support_ironing_inset");
+        optgroup->append_single_option_line("support_ironing_direction");
 
         //BBS
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
@@ -4371,7 +4382,6 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("support_chamber_temp_control");
         optgroup->append_single_option_line("support_air_filtration");
         optgroup->append_single_option_line("cooling_filter_enabled");
-        optgroup->append_single_option_line("auto_disable_filter_on_overheat");
 
     const int gcode_field_height = 15; // 150
     const int notes_field_height = 25; // 250
@@ -5065,7 +5075,6 @@ void TabPrinter::toggle_options()
         toggle_option("use_firmware_retraction", !is_BBL_printer);
         toggle_line("support_air_filtration", !m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
         toggle_line("cooling_filter_enabled", m_config->opt_bool("support_cooling_filter") && is_BBL_printer);
-        toggle_line("auto_disable_filter_on_overheat", m_config->opt_bool("cooling_filter_enabled") && is_BBL_printer);
         auto flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value;
         bool is_marlin_flavor = flavor == gcfMarlinLegacy || flavor == gcfMarlinFirmware;
         // Disable silent mode for non-marlin firmwares.
@@ -5699,8 +5708,29 @@ bool Tab::select_preset(
         if (current_dirty)
             m_presets->discard_current_changes();
 
-        const bool is_selected = m_presets->select_preset_by_name(preset_name, false) || delete_current;
+        const bool is_selected = m_presets->select_preset_by_name(preset_name, false, true) || delete_current;
         assert(m_presets->get_edited_preset().name == preset_name || ! is_selected);
+        if (is_selected && m_type == Preset::TYPE_PRINTER) {
+            Preset* selected_preset = m_presets->find_preset(preset_name, false);
+            if (selected_preset && selected_preset->vendor) {
+                const std::string &model = selected_preset->config.opt_string("printer_model");
+                const std::string &variant = selected_preset->config.opt_string("printer_variant");
+                if (!model.empty() && !variant.empty()) {
+                    wxGetApp().app_config->set_variant(selected_preset->vendor->id, model, variant, true);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": updated AppConfig for %1% %2% %3%") % selected_preset->vendor->id % model % variant;
+                    for (auto& preset : m_presets->get_presets()) {
+                        if (preset.name == selected_preset->name) continue;
+                        if (!preset.vendor || preset.vendor->id != selected_preset->vendor->id) continue;
+                        const std::string &p_model = preset.config.opt_string("printer_model");
+                        if (p_model != model) continue;
+                        const std::string &p_variant = preset.config.opt_string("printer_variant");
+                        if (p_variant.empty()) continue;
+                        wxGetApp().app_config->set_variant(preset.vendor->id, p_model, p_variant, true);
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": updated AppConfig for %1% %2% %3%") % selected_preset->vendor->id % model % variant;
+                    }
+                }
+            }
+        }
         // Mark the print & filament enabled if they are compatible with the currently selected preset.
         // The following method should not discard changes of current print or filament presets on change of a printer profile,
         // if they are compatible with the current printer.

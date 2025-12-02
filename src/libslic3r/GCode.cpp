@@ -932,8 +932,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (need_travel_after_change_filament_gcode) {
             // After a filament change, the travel path leading to the wipe tower:
             // start_point inside the previous printed object,
-            // end_point at the towerâ€™s start_pos or at the starting point of the towerâ€™s detour path.
-            // In this case, disable â€œavoid crossing perimetersâ€ to prevent inserting additional path points inside the previous printed object.
+            // end_point at the tower¡¯s start_pos or at the starting point of the tower¡¯s detour path.
+            // In this case, disable ¡°avoid crossing perimeters¡± to prevent inserting additional path points inside the previous printed object.
             gcodegen.m_avoid_crossing_perimeters.disable_once();
 
             // move to start_pos for wiping after toolchange
@@ -2580,7 +2580,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
     }
     {                                                                         // hold chamber temp for flat print: Flag
-        double print_area_sum_threshold = 40000.0, pring_hight_threshold = 0.3; // thresholds in mm^2 and mm as units
+        double print_area_sum_threshold = 40000.0, pring_hight_threshold = initial_layer_print_height + EPSILON;
+        // thresholds in mm^2 and mm as units
 
         double   area_sum_temp  = 0.0;
         coordf_t max_hight_temp = -1.0;
@@ -2589,13 +2590,13 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             // object hight
             if (!print_object->layers().empty() && print_object->layers().back()->print_z > max_hight_temp) max_hight_temp = print_object->layers().back()->print_z;
             // object area
-            if (!print_object->layers().empty() && print_object->layers().front()->print_z < print.config().initial_layer_print_height + EPSILON &&
+            if (!print_object->layers().empty() && print_object->layers().front()->print_z < initial_layer_print_height + EPSILON &&
                 !print_object->layers().front()->lslices.empty()) {
                 ExPolygons temp_Expolys = print_object->layers().front()->lslices;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
             }
             // suport area
-            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < print.config().initial_layer_print_height + EPSILON &&
+            if (!print_object->support_layers().empty() && print_object->support_layers().front()->print_z < initial_layer_print_height + EPSILON &&
                 !print_object->support_layers().front()->support_islands.empty()) {
                 ExPolygons temp_Expolys = print_object->support_layers().front()->support_islands;
                 for (ExPolygon &temp_Expoly : temp_Expolys) { area_sum_temp += temp_Expoly.area(); }
@@ -2614,7 +2615,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             Polygon temp_Expoly = print.wipe_tower_data().wipe_tower_mesh_data->bottom;
             area_sum_temp += temp_Expoly.area();
         }
-        bool hold_chamber_temp_for_flat_print = max_hight_temp > 0 && max_hight_temp < pring_hight_threshold && area_sum_temp > print_area_sum_threshold * 1.0e10;
+        bool hold_chamber_temp_for_flat_print = (max_hight_temp > 0) && (max_hight_temp < pring_hight_threshold) && ( area_sum_temp > (print_area_sum_threshold * 1.0e10 - 1) );
         m_placeholder_parser.set("hold_chamber_temp_for_flat_print", new ConfigOptionBool(hold_chamber_temp_for_flat_print));
     }
 
@@ -5353,39 +5354,66 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
 {
     static constexpr const char *support_label            = "support material";
     static constexpr const char *support_interface_label  = "support material interface";
-    const char* support_transition_label = "support transition";
+    static constexpr const char *support_transition_label = "support transition";
+    static constexpr const char *support_ironing_label    = "support ironing";
 
     std::string gcode;
     if (! support_fills.entities.empty()) {
-        const double support_speed  = NOZZLE_CONFIG(support_speed);
-        const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
-        for (const ExtrusionEntity *ee : support_fills.entities) {
-            ExtrusionRole role = ee->role();
-            assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition);
-            const char* label = (role == erSupportMaterial) ? support_label :
-                ((role == erSupportMaterialInterface) ? support_interface_label : support_transition_label);
-            // BBS
-            //const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
-            const double speed = -1.0;
-            const ExtrusionPath* path = dynamic_cast<const ExtrusionPath*>(ee);
-            const ExtrusionMultiPath* multipath = dynamic_cast<const ExtrusionMultiPath*>(ee);
-            const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(ee);
-            const ExtrusionEntityCollection* collection = dynamic_cast<const ExtrusionEntityCollection*>(ee);
-            if (path)
-                gcode += this->extrude_path(*path, label, speed);
-            else if (multipath) {
-                gcode += this->extrude_multi_path(*multipath, label, speed);
-            }
-            else if (loop) {
-                gcode += this->extrude_loop(*loop, label, speed);
-            }
-            else if (collection) {
-                gcode += extrude_support(*collection);
-            }
-            else {
-                throw Slic3r::InvalidArgument("Unknown extrusion type");
+        ExtrusionEntitiesPtr extrusions, ironing_extrusions;
+        bool                 has_support_ironing = false;
+        extrusions.reserve(support_fills.entities.size());
+        for (ExtrusionEntity *ee : support_fills.entities) {
+            const auto role = ee->role();
+            if (role == erSupportIroning) {
+                ironing_extrusions.emplace_back(ee);
+                has_support_ironing = true;
+            } else {
+                extrusions.emplace_back(ee);
             }
         }
+        if (extrusions.empty()) return gcode;
+        has_support_ironing = has_support_ironing && m_config.enable_support_ironing.value;
+        if (has_support_ironing) {
+            chain_and_reorder_extrusion_entities(ironing_extrusions, &m_last_pos);
+        } else{
+            ironing_extrusions.clear();
+        }
+        chain_and_reorder_extrusion_entities(extrusions, &m_last_pos);
+
+        const double support_speed  = NOZZLE_CONFIG(support_speed);
+        const double support_interface_speed = NOZZLE_CONFIG(support_interface_speed);
+        const double support_ironing_speed = m_config.support_ironing_speed.value; //seems useless here
+        auto         process_extrusion_entitys = [&](const ExtrusionEntitiesPtr &entities_set) -> void {
+            for (const ExtrusionEntity *ee : entities_set) {
+                ExtrusionRole role = ee->role();
+                assert(role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition || role == erSupportIroning);
+                const char *label = (role == erSupportMaterial)          ? support_label :
+                                    (role == erSupportMaterialInterface) ? support_interface_label :
+                                    (role == erSupportIroning)           ? support_ironing_label :
+                                                                           support_transition_label;
+                // BBS
+                // const double speed = (role == erSupportMaterial) ? support_speed : support_interface_speed;
+                const double                     speed      = -1.0;
+                const ExtrusionPath             *path       = dynamic_cast<const ExtrusionPath *>(ee);
+                const ExtrusionMultiPath        *multipath  = dynamic_cast<const ExtrusionMultiPath *>(ee);
+                const ExtrusionLoop             *loop       = dynamic_cast<const ExtrusionLoop *>(ee);
+                const ExtrusionEntityCollection *collection = dynamic_cast<const ExtrusionEntityCollection *>(ee);
+                if (path)
+                    gcode += this->extrude_path(*path, label, speed);
+                else if (multipath) {
+                    gcode += this->extrude_multi_path(*multipath, label, speed);
+                } else if (loop) {
+                    gcode += this->extrude_loop(*loop, label, speed);
+                } else if (collection) {
+                    gcode += extrude_support(*collection);
+                } else {
+                    throw Slic3r::InvalidArgument("Unknown extrusion type");
+                }
+            }
+        };
+        process_extrusion_entitys(extrusions);
+        if (has_support_ironing) // make sure the ironing was after the support extrusions
+            process_extrusion_entitys(ironing_extrusions);
     }
     return gcode;
 }
@@ -6025,6 +6053,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             speed = NOZZLE_CONFIG(top_surface_speed);
         } else if (path.role() == erIroning) {
             speed = m_config.get_abs_value("ironing_speed");
+        } else if (path.role() == erSupportIroning) {
+            speed = m_config.get_abs_value("support_ironing_speed");
         } else if (path.role() == erBottomSurface) {
             speed = NOZZLE_CONFIG(initial_layer_infill_speed);
         } else if (path.role() == erGapFill) {

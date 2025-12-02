@@ -841,6 +841,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 support_interface_bottom_layers))
     // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
     ((ConfigOptionFloat,               support_interface_spacing))
+    // ironing support related configs
+    ((ConfigOptionBool, enable_support_ironing))
+    ((ConfigOptionEnum<InfillPattern>, support_ironing_pattern))
+    ((ConfigOptionPercent, support_ironing_flow))
+    ((ConfigOptionFloat, support_ironing_spacing))
+    ((ConfigOptionFloat, support_ironing_inset))
+    ((ConfigOptionFloat, support_ironing_direction))
+    ((ConfigOptionFloat, support_ironing_speed))
     ((ConfigOptionFloatsNullable,      support_interface_speed))
     ((ConfigOptionEnum<SupportMaterialPattern>, support_base_pattern))
     ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))
@@ -919,6 +927,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, bottom_surface_pattern))
+    ((ConfigOptionPercent, top_surface_density))
+    ((ConfigOptionPercent, bottom_surface_density))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
     ((ConfigOptionFloat, outer_wall_line_width))
     ((ConfigOptionFloatsNullable, outer_wall_speed))
@@ -1173,7 +1183,6 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_air_filtration))
     ((ConfigOptionBool,                support_cooling_filter))
     ((ConfigOptionBool,                cooling_filter_enabled))
-    ((ConfigOptionBool,                auto_disable_filter_on_overheat))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
@@ -1187,7 +1196,15 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             printer_extruder_variant))
     //Orca
     ((ConfigOptionBool,                has_scarf_joint_seam))
-)
+    //ams chamber
+    ((ConfigOptionStrings,  filament_dev_ams_drying_ams_limitations))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_temperature))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_time))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_heat_distortion_temperature))
+    ((ConfigOptionFloats,   filament_dev_chamber_drying_bed_temperature))
+    ((ConfigOptionFloats,   filament_dev_chamber_drying_time))
+    ((ConfigOptionFloats,   filament_dev_drying_softening_temperature))
+    ((ConfigOptionFloats,   filament_dev_drying_cooling_temperature)))
 
 // This object is mapped to Perl as Slic3r::Config::Print.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE(
@@ -1735,6 +1752,9 @@ public:
     bool                timestamp_matches(const ModelConfig &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
     // Not thread safe! Should not be called from other than the main thread!
     void                touch() { m_timestamp = ++ s_last_timestamp; }
+    bool operator==(const ModelConfig &other) const {
+        return m_data == other.m_data;
+    }
 
 private:
     friend class cereal::access;

@@ -174,8 +174,7 @@ void check_filaments(const std::string& dev_id,
 
             // check name suffix
             std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::tolower);
-            if (!name_suffix.empty())
-            {
+            if (!name_suffix.empty()) {
                 if (tag_name.length() < name_suffix.length()) { continue; }
                 if ((tag_name.substr(tag_name.length() - name_suffix.length()) != name_suffix)) { continue; }
             }
@@ -186,17 +185,13 @@ void check_filaments(const std::string& dev_id,
             }
 
             // check loc
-            if (!slot.empty())
-            {
+            if (!slot.empty()) {
                 bool is_virtual_slot = devPrinterUtil::IsVirtualSlot(ams_id);
                 bool check_virtual_slot = (slot == "ext");
                 bool check_ams_slot = (slot == "ams");
-                if (is_virtual_slot && !check_virtual_slot)
-                {
+                if (is_virtual_slot && !check_virtual_slot) {
                     continue;
-                }
-                else if (!is_virtual_slot && !check_ams_slot)
-                {
+                } else if (!is_virtual_slot && !check_ams_slot) {
                     continue;
                 }
             }
@@ -235,10 +230,12 @@ void check_filaments(const std::string& dev_id,
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
             L("Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use.");
             L("Damp PVA is flexible and may get stuck in extruder. Dry it before use.");
-            L("The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite.");
+            L("PLA Glow may wear the AMS first stage feeder. Use an external spool instead.");
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
+            L("The filament may require slicing parameter adjustments.");
+            L("Using non-bambu filament may have printing quality issues.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
             L("Using non-bambu filament may have printing quality issues.");
             L("When using %s on the right extruder, it can only be used as support material.");

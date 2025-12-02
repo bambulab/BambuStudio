@@ -1610,6 +1610,18 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Octagram Spiral"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
 
+    def           = this->add("top_surface_density", coPercent);
+    def->label    = L("Top surface density");
+    def->category = L("Strength");
+    def->tooltip  = L("Density of top surface infill, 100% means a fully solid filled top layer."
+                       "Lower values create a textured top surface, at 0%, only the walls are created on the top layer."
+                       "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.");
+    def->sidetext = "%";
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
+
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
     def->category = L("Strength");
@@ -1618,6 +1630,19 @@ void PrintConfigDef::init_fff_params()
     def->enum_values = def_top_fill_pattern->enum_values;
     def->enum_labels = def_top_fill_pattern->enum_labels;
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    def           = this->add("bottom_surface_density", coPercent);
+    def->label    = L("Bottom surface density");
+    def->category = L("Strength");
+    def->tooltip  = L("Density of bottom surface infill, 100% means a fully solid filled top layer."
+                       "Lower values create a textured bottom surface, "
+                       "Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+                       "WARNING: Lowering this value may negatively affect bed adhesion.");
+    def->sidetext = "%";
+    def->min      = 10;
+    def->max      = 100;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionPercent(100));
 
     def                = this->add("internal_solid_infill_pattern", coEnum);
     def->label         = L("Internal solid infill pattern");
@@ -2901,12 +2926,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("cooling_filter_enabled", coBool);
     def->label = L("Use cooling filter");
-    def->tooltip = L("Enable this if printer support cooling filter");
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
-
-    def = this->add("auto_disable_filter_on_overheat", coBool);
-    def->label = L("Auto turn off filter on overheat");
     def->tooltip = L("Enable this if printer support cooling filter");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -4673,11 +4692,83 @@ void PrintConfigDef::init_fff_params()
     def = this->add("support_interface_spacing", coFloat);
     def->label = L("Top interface spacing");
     def->category = L("Support");
-    def->tooltip = L("Spacing of interface lines. Zero means solid interface");
+    def->tooltip = L("Spacing of interface lines. Zero means solid interface."
+                     "And zero spacing is required to access the enable_support_ironing option");
     def->sidetext = L("mm");
     def->min = 0;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.5));
+
+    def = this->add("enable_support_ironing", coBool);
+    def->label = L("Enable ironing support interface");
+    def->category = L("Support");
+    def->tooltip  = L("Ironing is using small flow to print on same height of surface again to make flat surface more smooth. "
+                       "This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,"
+                       "that is, support_interface_spacing was zero and support_interface_pattern was't grid");
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def                = this->add("support_ironing_pattern", coEnum);
+    def->label         = L("Support ironing pattern");
+    def->category      = L("Support");
+    def->enum_keys_map = &ConfigOptionEnum<InfillPattern>::get_enum_values();
+    def->enum_values.push_back("concentric");
+    def->enum_values.push_back("zig-zag");
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipRectilinear));
+
+    def             = this->add("support_ironing_flow", coPercent);
+    def->label      = L("Support ironing flow");
+    def->category   = L("Support");
+    def->tooltip    = L("The amount of material to extrude during ironing. Relative to flow of normal layer height. "
+                           "Too high value results in overextrusion on the surface");
+    def->sidetext   = "%";
+    def->ratio_over = "layer_height";
+    def->min        = 0;
+    def->max        = 100;
+    def->mode       = comDevelop;
+    def->set_default_value(new ConfigOptionPercent(10));
+
+    def           = this->add("support_ironing_spacing", coFloat);
+    def->label    = L("Support ironing line spacing");
+    def->category = L("Support");
+    def->tooltip  = L("The distance between the lines of ironing");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 1;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0.1));
+
+    def           = this->add("support_ironing_inset", coFloat);
+    def->label    = L("Support ironing inset");
+    def->category = L("Support");
+    def->tooltip  = L("The distance to keep the from the edges of ironing line. 0 means not apply.");
+    def->sidetext = L("mm");
+    def->min      = 0;
+    def->max      = 100;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0));
+
+    def           = this->add("support_ironing_speed", coFloat);
+    def->label    = L("Support ironing speed");
+    def->category = L("Support");
+    def->tooltip  = L("Print speed of ironing lines");
+    def->sidetext = L("mm/s");
+    def->min      = 0;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(20));
+
+    def           = this->add("support_ironing_direction", coFloat);
+    def->label    = L("Support ironing direction");
+    def->category = L("Support");
+    def->tooltip  = L("Angle for ironing, which controls the relative angle between the top surface and ironing");
+    def->sidetext = L("°");
+    def->min      = 0;
+    def->max      = 360;
+    def->mode     = comDevelop;
+    def->set_default_value(new ConfigOptionFloat(0));
 
     //BBS
     def = this->add("support_bottom_interface_spacing", coFloat);
@@ -4989,7 +5080,7 @@ void PrintConfigDef::init_fff_params()
     def           = this->add("bottom_color_penetration_layers", coInt);
     def->label    = L("Bottom paint penetration layers");
     def->category = L("Strength");
-    def->tooltip  = L("This is  the number of layers of top bottom penetration.");
+    def->tooltip  = L("This is the number of layers of bottom paint penetration.");
     def->min      = 1;
     def->set_default_value(new ConfigOptionInt(3));
 
@@ -5430,6 +5521,30 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->min = 0;
     def->set_default_value(new ConfigOptionPercent(85));
+
+    def = this->add("filament_dev_ams_drying_ams_limitations", coStrings);
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    def = this->add("filament_dev_ams_drying_temperature", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def = this->add("filament_dev_ams_drying_time", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def = this->add("filament_dev_ams_drying_heat_distortion_temperature", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def = this->add("filament_dev_chamber_drying_bed_temperature", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def = this->add("filament_dev_chamber_drying_time", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def = this->add("filament_dev_drying_softening_temperature", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
+
+    def = this->add("filament_dev_drying_cooling_temperature", coFloats);
+    def->set_default_value(new ConfigOptionFloats{0});
 
     // Declare retract values for filament profile, overriding the printer's extruder profile.
     for (auto& opt_key : filament_extruder_override_keys) {

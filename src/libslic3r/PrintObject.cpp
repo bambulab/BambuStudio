@@ -462,10 +462,6 @@ void PrintObject::make_perimeters()
         }
         m_typed_slices = false;
     }
-    if (this->config().enable_circle_compensation) { // we need the circle_compensation information
-        for (Layer *layer : m_layers) layer->apply_auto_circle_compensation();
-        m_typed_slices = true;
-    }
 
     // compare each layer to the one below, and mark those slices needing
     // one additional inner perimeter, like the top of domed objects-
@@ -1185,6 +1181,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_expansion"
             //|| opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
+            || opt_key == "enable_support_ironing"
+            || opt_key == "support_ironing_pattern"
+            || opt_key == "support_ironing_flow"
+            || opt_key == "support_ironing_spacing"
+            || opt_key == "support_ironing_inset"
+            || opt_key == "support_ironing_direction"
+            || opt_key == "support_ironing_speed"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
@@ -1242,7 +1245,9 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
+            || opt_key == "top_surface_density"
             || opt_key == "bottom_surface_pattern"
+            || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_anchor"

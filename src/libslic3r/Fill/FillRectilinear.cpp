@@ -379,7 +379,7 @@ static void adjust_sort_for_segment_intersections(std::vector<SegmentIntersectio
             switch (type) {
             case SegmentIntersection::OUTER_LOW: return false;
             case SegmentIntersection::OUTER_HIGH: return top_type == IntersectionType::OUTER_LOW;
-            case SegmentIntersection::INNER_LOW: return top_type != IntersectionType::OUTER_HIGH;
+            case SegmentIntersection::INNER_LOW: return top_type == IntersectionType::OUTER_LOW || top_type == IntersectionType::INNER_HIGH;
             case SegmentIntersection::INNER_HIGH: return top_type == IntersectionType::INNER_LOW;
             default: break;
             }
@@ -3326,8 +3326,12 @@ void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, co
     // Rotate polygons so that we can work with vertical lines here
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
 
+    coord_t line_spacing = 0;
     assert(params.full_infill());
-    coord_t line_spacing = params.flow.scaled_spacing();
+    if (params.density < (float) params.flow.spacing() / (float) INT32_MAX || params.density < EPSILON)
+        line_spacing = INT32_MAX;
+    else
+        line_spacing = params.flow.scaled_spacing() / params.density;
 
     // On the polygons of poly_with_offset, the infill lines will be connected.
     ExPolygonWithOffset poly_with_offset(

@@ -118,6 +118,7 @@ namespace Slic3r
                 { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
                 { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
                 { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
+                { 0.60f, 1.00f, 0.60f, 1.0f },   // erSupportIroning
                 { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
                 { 0.37f, 0.82f, 0.58f, 1.0f },    // erCustom
                 { 0.85f, 0.65f, 0.95f, 1.0f }    // erFlush
@@ -799,8 +800,12 @@ namespace Slic3r
                     {
                         auto plate_print_statistics = plate->get_slice_result()->print_statistics;
                         auto plate_extruders = plate->get_extruders(true);
+                        auto max_extruders_colors   = wxGetApp().plater()->get_extruders_colors().size();
                         for (size_t extruder_id : plate_extruders) {
                             extruder_id -= 1;
+                            if (extruder_id >= max_extruders_colors) {
+                                continue;
+                            }
                             if (plate_print_statistics.model_volumes_per_extruder.find(extruder_id) == plate_print_statistics.model_volumes_per_extruder.end())
                                 model_volume_of_extruders_all_plates[extruder_id] += 0;
                             else {
