@@ -6,6 +6,8 @@
 #include "GCode/ToolOrderUtils.hpp"
 #include "FilamentGroupUtils.hpp"
 #include "I18N.hpp"
+#include "Preset.hpp"
+#include "PresetBundle.hpp"
 
 // #define SLIC3R_DEBUG
 
@@ -64,17 +66,32 @@ bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
     return false;
 }
 
-bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, const PrintConfig *print_config)
+bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, std::unordered_map<int, std::vector<std::string>>& filament_variants, const PrintConfig *print_config)
 {
+    std::unordered_map<std::string, int> nozzle_fils;
     for (unsigned int filament_id : used_filaments) {
         std::string filament_type = print_config->filament_type.get_at(filament_id);
         int printable_status = print_config->filament_printable.get_at(filament_id);
         int extruder_idx = filament_maps[filament_id];
         if (!(printable_status >> extruder_idx & 1)) {
             std::string extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-            std::string error_msg     = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
+            std::string error_msg     = _L("Grouping error: ") + filament_type +  _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
             throw Slic3r::RuntimeError(error_msg);
         }
+
+        int filament_id_1 = filament_id + 1;
+        std::string extruder_variant = print_config->option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
+        std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id_1].begin(), filament_variants[filament_id_1].end());
+        if (filament_variants_set.count(extruder_variant) == 0){
+            std::string error_msg = _L("Grouping error: filament ") + std::to_string(filament_id_1) + _L(" can not be placed in the ") + extruder_variant + _L(" nozzle");
+            throw Slic3r::RuntimeError(error_msg);
+        }
+
+        nozzle_fils[extruder_variant]++;
+    }
+    if (nozzle_fils["Direct Drive TPU High Flow"] > 1) {
+        std::string error_msg = _L("The TPU High Flow nozzle doesn’t support auto filament switching, so only one filament can be assigned.");
+        throw Slic3r::RuntimeError(error_msg);
     }
     return true;
 }
@@ -1343,6 +1360,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     std::vector<std::set<int>>geometric_unprintables = m_print->get_geometric_unprintable_filaments();
     std::vector<std::set<int>>physical_unprintables = m_print->get_physical_unprintable_filaments(used_filaments);
+    std::vector<std::set<int>>flow_unprintables = m_print->get_flow_unprintable_filaments(used_filaments);
 
     filament_maps = m_print->get_filament_maps();
     map_mode = m_print->get_filament_map_mode();
@@ -1373,7 +1391,13 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             );
 
         }
-        check_filament_printable_after_group(used_filaments, filament_maps, print_config);
+
+        std::unordered_map<int, std::vector<std::string>> filaments_variants;
+        for (auto fil_id : used_filaments){
+            filaments_variants[fil_id + 1] = m_print->get_full_filament_extruder_variants(fil_id + 1);
+        }
+
+        check_filament_printable_after_group(used_filaments, filament_maps, filaments_variants, print_config);
     }
     else {
         // we just need to change the map to 0 based

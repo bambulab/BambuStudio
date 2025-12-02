@@ -150,6 +150,7 @@ namespace Slic3r
     public:
         std::vector<int> calc_filament_group_for_match(int* cost = nullptr);
         std::vector<int> calc_filament_group_for_flush(int* cost = nullptr);
+        std::vector<int> calc_filament_group_for_tpu(int* cost = nullptr);
 
     private:
         std::vector<int> calc_min_flush_group(int* cost = nullptr);

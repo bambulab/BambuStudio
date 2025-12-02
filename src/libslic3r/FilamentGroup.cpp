@@ -897,6 +897,11 @@ namespace Slic3r
 
     std::vector<int> FilamentGroup::calc_filament_group(int* cost)
     {
+        auto extruder_variant_list = ctx.nozzle_info.extruder_nozzle_list;
+        for (auto nozzle : ctx.nozzle_info.nozzle_list)
+            if (nozzle.volume_type == NozzleVolumeType::nvtTPUHighFlow)
+                return calc_filament_group_for_tpu(cost);
+
         try {
             if (FGMode::MatchMode == ctx.group_info.mode)
                 return calc_filament_group_for_match(cost);
@@ -1089,6 +1094,48 @@ namespace Slic3r
         return ret;
     }
 
+    std::vector<int> FilamentGroup::calc_filament_group_for_tpu(int *cost) {
+
+        auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
+        std::vector<FilamentGroupUtils::FilamentInfo> used_filament_list;
+        for (auto f : used_filaments)
+            used_filament_list.emplace_back(ctx.model_info.filament_info[f]);
+
+
+        std::vector<std::vector<float>> print_time_matrix(used_filaments.size(), std::vector<float>(ctx.nozzle_info.extruder_nozzle_list.size()));
+        for (int i = 0; i < used_filaments.size(); ++i){
+            for (int j = 0; j < ctx.nozzle_info.extruder_nozzle_list.size(); ++j){
+                print_time_matrix[i][j] = ctx.speed_info.filament_print_time[used_filaments[i]][j];
+            }
+        }
+
+        std::vector<int> l_nodes(used_filaments.size());
+        std::iota(l_nodes.begin(), l_nodes.end(), 0);
+        std::vector<int> r_nodes(ctx.nozzle_info.extruder_nozzle_list.size());
+        std::iota(r_nodes.begin(), r_nodes.end(), 0);
+        std::vector<int> machine_filament_capacity ({int(used_filaments.size()) - 1, 1});
+
+        std::unordered_map<int, std::vector<int>> unlink_limits(used_filaments.size());
+        auto unprintable_filaments = ctx.model_info.unprintable_filaments;
+        std::unordered_map<int, int> used_filament_map;
+        for (int i = 0; i < used_filaments.size(); ++i)
+            used_filament_map[used_filaments[i]] = i;
+
+        for (int e_id = 0; e_id < unprintable_filaments.size(); ++e_id) {
+            for (int f_id : unprintable_filaments[e_id]) {
+                if (used_filament_map.count(f_id)) unlink_limits[used_filament_map[f_id]].emplace_back(e_id);
+            }
+        }
+
+        MatchModeGroupSolver s(print_time_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits);
+        auto ret = s.solve();
+        std::vector<int> group(ctx.group_info.total_filament_num, ctx.machine_info.master_extruder_id);
+        for (int i = 0; i < ret.size(); ++i) { group[used_filaments[i]] = ret[i];
+        }
+
+
+        return group;
+    }
 
     // sorted used_filaments
     std::vector<int> FilamentGroup::calc_min_flush_group_by_enum(const std::vector<unsigned int>& used_filaments, int* cost)

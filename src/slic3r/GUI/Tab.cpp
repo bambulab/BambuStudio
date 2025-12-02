@@ -1065,7 +1065,7 @@ void Tab::update_all_extruder_options_status()
 
     std::set<int> all_config_indices;
     for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
-        for (auto nozzle_type : {NozzleVolumeType::nvtStandard, NozzleVolumeType::nvtHighFlow}) {
+        for (auto nozzle_type : get_valid_nozzle_volume_type()) {
             auto variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type];
             int config_index = m_config->get_index_for_extruder(
                 extruder_id + 1,

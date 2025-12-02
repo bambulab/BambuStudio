@@ -2751,6 +2751,19 @@ FilamentMapMode Print::get_filament_map_mode() const
 {
     return m_config.filament_map_mode;
 }
+std::vector<std::string> Print::get_full_filament_extruder_variants(const size_t filament_id) const
+{
+    std::vector<std::string> filament_extruder_variants;
+    auto filament_variants = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+    auto filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+
+    for (int i = 0; i < filament_self_index.size(); i++){
+        if (filament_self_index[i] == filament_id) {
+            filament_extruder_variants.emplace_back(filament_variants[i]);
+        }
+    }
+    return filament_extruder_variants;
+}
 
 std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const
 {
@@ -2786,6 +2799,31 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     return physical_unprintables;
 }
 
+std::vector<std::set<int>> Print::get_flow_unprintable_filaments(const std::vector<unsigned int> &used_filaments) const
+{
+    std::vector<std::string> extruder_variant_list = m_config.printer_extruder_variant.values;
+    std::vector<std::string> filament_variant_list = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+    std::vector<int>         filament_self_index   = m_ori_full_print_config.option < ConfigOptionInts>("filament_self_index")->values;
+
+    std::vector<std::set<int>> flow_unprintables(extruder_variant_list.size());
+    if (extruder_variant_list.size() < 2) return flow_unprintables;
+
+    std::unordered_map<int, std::set<std::string>> filament_variant_map;
+    for(int i = 0; i < filament_variant_list.size(); ++i){
+        filament_variant_map[filament_self_index[i]].insert(filament_variant_list[i]);
+    }
+
+    for (auto iter : filament_variant_map){
+        int fil_idx = iter.first - 1;
+        const std::set<std::string>& variants = iter.second;
+        for (int exd_idx = 0; exd_idx < extruder_variant_list.size(); ++exd_idx){
+            if (variants.find(extruder_variant_list[exd_idx]) == variants.end()){
+                flow_unprintables[exd_idx].insert(fil_idx);
+            }
+        }
+    }
+    return flow_unprintables;
+}
 
 std::vector<double> Print::get_extruder_printable_height() const
 {

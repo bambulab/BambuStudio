@@ -578,6 +578,22 @@ std::vector<int> SeparatedDragDropPanel::GetStandardFilaments() const
     return {};
 }
 
+std::vector<int> SeparatedDragDropPanel::GetTPUHighFlowFilaments() const 
+{
+    if (m_use_separation) {
+        return {};
+    }
+    auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    const int right_eid = 1;
+    if (nozzle_volumes->values.size() > right_eid) {
+        int volume_type = nozzle_volumes->values[right_eid];
+        if (volume_type == static_cast<int>(NozzleVolumeType::nvtTPUHighFlow)) {
+            return m_unified_panel->GetAllFilaments();
+        }
+    }
+    return {};
+}
+
 std::vector<ColorPanel *> SeparatedDragDropPanel::get_filament_blocks() const
 {
     if (m_use_separation) {

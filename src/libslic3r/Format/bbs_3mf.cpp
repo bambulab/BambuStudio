@@ -2697,37 +2697,55 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     void _BBS_3MF_Importer::_extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", stat.m_uncomp_size is %1%")%stat.m_uncomp_size;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", stat.m_uncomp_size is %1%") % stat.m_uncomp_size;
         if (stat.m_uncomp_size > 0) {
             std::string dest_file;
             if (stat.m_is_utf8) {
                 dest_file = stat.m_filename;
-            } else {
+            }
+            else {
                 std::string extra(1024, 0);
                 size_t n = mz_zip_reader_get_extra(&archive, stat.m_file_index, extra.data(), extra.size());
                 dest_file = ZipUnicodePathExtraField::decode(extra.substr(0, n), stat.m_filename);
             }
+
+            if (dest_file.empty() ||
+                dest_file.find("..") != std::string::npos ||
+                dest_file[0] == '/' ||
+                dest_file[0] == '\\') {
+                return;
+            }
+
             std::string temp_path = model.get_auxiliary_file_temp_path();
-            //aux directory from model
             boost::filesystem::path dir = boost::filesystem::path(temp_path);
+
             std::size_t found = dest_file.find(AUXILIARY_DIR);
             if (found != std::string::npos)
                 dest_file = dest_file.substr(found + AUXILIARY_STR_LEN);
             else
                 return;
 
-            if (dest_file.find('/') != std::string::npos) {
+            if (dest_file.empty() || dest_file.find("..") != std::string::npos || dest_file[0] == '/' || dest_file[0] == '\\') {
+                BOOST_LOG_TRIVIAL(error) << "Invalid sub path";
+                return;
+            }
+
+            if (dest_file.find('/') != std::string::npos || dest_file.find('\\') != std::string::npos) {
                 boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
-                std::string temp_path = dir.string() + std::string("/") + parent_path.string();
-                boost::filesystem::path parent_full_path =  boost::filesystem::path(temp_path);
+
+                boost::filesystem::path parent_full_path = dir / parent_path;
+
                 if (!boost::filesystem::exists(parent_full_path))
                     boost::filesystem::create_directories(parent_full_path);
             }
-            dest_file = dir.string() + std::string("/") + dest_file;
-            std::string dest_zip_file = encode_path(dest_file.c_str());
+
+            boost::filesystem::path final_path = dir / dest_file;
+            std::string dest_zip_file = encode_path(final_path.string().c_str());
+
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
+
             if (res == 0) {
                 add_error("Error while extract auxiliary file to file");
                 return;
@@ -2739,12 +2757,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         if (stat.m_uncomp_size > 0) {
             std::string src_file = decode_path(stat.m_filename);
-            // BBS: use backup path
-            //aux directory from model
-            boost::filesystem::path dest_path = boost::filesystem::path(m_backup_path + "/" + src_file);
+
+            if (src_file.find("..") != std::string::npos) {
+                add_error("invalid file name");
+                return;
+            }
+
+            boost::filesystem::path base_path(m_backup_path);
+            boost::filesystem::path dest_path = base_path / src_file;
+
+            if (dest_path.has_parent_path() && !boost::filesystem::exists(dest_path.parent_path())) {
+                boost::filesystem::create_directories(dest_path.parent_path());
+            }
+
             std::string dest_zip_file = encode_path(dest_path.string().c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
+
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_path) % stat.m_filename % res;
+
             if (res == 0) {
                 add_error("Error while extract file to temp directory");
                 return;

@@ -85,6 +85,7 @@ public:
     std::vector<int> GetAllFilaments() const;
     std::vector<int> GetHighFlowFilaments() const;
     std::vector<int> GetStandardFilaments() const;
+    std::vector<int> GetTPUHighFlowFilaments() const;
 
     std::vector<ColorPanel *> get_filament_blocks() const;
     std::vector<ColorPanel *> get_high_flow_blocks() const;
