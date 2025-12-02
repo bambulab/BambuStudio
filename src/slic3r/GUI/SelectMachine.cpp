@@ -1793,27 +1793,12 @@ static std::unordered_set<int> _get_used_nozzle_idxes()
     return used_nozzle_idxes;
 }
 
-bool SelectMachineDialog::is_nozzle_hrc_matched(const NozzleType& nozzle_type, std::string& filament_type) const
+bool SelectMachineDialog::is_nozzle_hrc_matched(const NozzleType& nozzle_type, const std::string& filament_id) const
 {
     auto printer_nozzle_hrc = Print::get_hrc_by_nozzle_type(nozzle_type);
-
     auto preset_bundle = wxGetApp().preset_bundle;
-    MaterialHash::const_iterator iter = m_materialList.begin();
-    while (iter != m_materialList.end()) {
-        Material* item = iter->second;
-        MaterialItem* m = item->item;
-        auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_id(m->m_filament_id);
-
-        if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
-            filament_type = m->m_material_name.ToStdString();
-            BOOST_LOG_TRIVIAL(info) << "filaments hardness mismatch: filament = " << filament_type << " printer_nozzle_hrc = " << printer_nozzle_hrc;
-            return false;
-        }
-
-        iter++;
-    }
-
-    return true;
+    auto filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_id(filament_id);
+    return abs(printer_nozzle_hrc) >= abs(filament_nozzle_hrc);
 }
 
 bool SelectMachineDialog::is_same_printer_model()
@@ -1910,39 +1895,43 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
 
     //check blacklist, using physical filament info
-    for (const auto& physical_fila : m_ams_mapping_result) {
+    for (const auto& fila : m_ams_mapping_result) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        check_info.fila_id = physical_fila.filament_id;
-        check_info.fila_type = physical_fila.type;
-
-        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
-        check_info.fila_name = option ? option->filament_name : "";
-        check_info.fila_vendor = physical_fila.brand;
-        if (check_info.fila_vendor.empty() && option) {
-            check_info.fila_vendor = option->vendor;
-        }
-
-        // usage of filament
-        if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
-            for (auto used_fila : gcode_result->used_filaments) {
-                if (used_fila.filament_id == physical_fila.id) {
-                    check_info.used_for_print_support = used_fila.use_for_support;
-                    break;
-                }
-            };
-        }
-
-        const auto& mapped_fila = get_mapped_filament_info(physical_fila.id);
+        const auto& mapped_fila = get_mapped_filament_info(fila.id);
         if (!mapped_fila.has_value()) {
-            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: cannot find mapped fila for logic fila_id= " << physical_fila.id;
+            assert(false);
             continue;
         }
 
         check_info.ams_id = mapped_fila->get_ams_id();
         check_info.slot_id = mapped_fila->get_slot_id();
+        auto tray_opt = obj_->get_tray(std::to_string(check_info.ams_id), std::to_string(check_info.slot_id));
+        if (!tray_opt.has_value()) {
+            assert(false);
+            continue;
+        }
+
+        check_info.fila_id = tray_opt->get_filament_id();
+        check_info.fila_type = tray_opt->get_filament_type();
+
+        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
+        check_info.fila_name = option ? option->filament_name : "";
+        check_info.fila_vendor = option ? option->vendor : "";
+
+        // usage of filament
+        if (m_print_type == PrintFromType::FROM_NORMAL) {
+            if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
+                for (auto used_fila : gcode_result->used_filaments) {
+                    if (used_fila.filament_id == fila.id) {
+                        check_info.used_for_print_support = used_fila.use_for_support;
+                        break;
+                    }
+                };
+            }
+        };
 
         check_info.extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(check_info.ams_id));
         check_info.nozzle_flow = obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(check_info.ams_id));
@@ -4806,19 +4795,6 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                     return false;
                 }
             }
-
-            // check nozzle type
-            {
-                std::string filament_type;
-                auto installed_ext_nozzle_type = installed_ext_nozzle.GetNozzleType();
-                if (!is_nozzle_hrc_matched(installed_ext_nozzle_type, filament_type)) {
-                    std::vector<wxString> error_msg;
-                    error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
-                        filament_type, _get_nozzle_name(ext_sys->GetTotalExtderCount(), installed_ext_nozzle.GetNozzleId()), format_steel_name(installed_ext_nozzle_type)));
-                    show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
-                    return false;
-                }
-            }
         }
     }
 
@@ -5067,32 +5043,12 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     }
 
     // filaments check for black list
-    for (const auto& physical_fila : m_ams_mapping_result) {
+    for (const auto& fila : m_ams_mapping_result) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        check_info.fila_id = physical_fila.filament_id;
-        check_info.fila_type = physical_fila.type;
-
-        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
-        check_info.fila_name = option ? option->filament_name : "";
-        check_info.fila_vendor = physical_fila.brand;
-        if (check_info.fila_vendor.empty() && option) {
-            check_info.fila_vendor = option->vendor;
-        }
-
-        // usage of filament
-        if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
-            for (auto used_fila : gcode_result->used_filaments) {
-                if (used_fila.filament_id == physical_fila.id) {
-                    check_info.used_for_print_support = used_fila.use_for_support;
-                    break;
-                }
-            };
-        }
-
-        const auto& mapped_fila = get_mapped_filament_info(physical_fila.id);
+        const auto& mapped_fila = get_mapped_filament_info(fila.id);
         if (!mapped_fila.has_value()) {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
             return false;
@@ -5100,6 +5056,30 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
 
         check_info.ams_id = mapped_fila->get_ams_id();
         check_info.slot_id = mapped_fila->get_slot_id();
+        auto tray_opt = obj_->get_tray(std::to_string(check_info.ams_id), std::to_string(check_info.slot_id));
+        if (!tray_opt.has_value()) {
+            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+            return false;
+        }
+
+        check_info.fila_id = tray_opt->get_filament_id();
+        check_info.fila_type = tray_opt->get_filament_type();
+
+        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
+        check_info.fila_name = option ? option->filament_name : "";
+        check_info.fila_vendor = option ? option->vendor : "";
+
+        // usage of filament
+        if (m_print_type == PrintFromType::FROM_NORMAL) {
+            if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
+                for (auto used_fila : gcode_result->used_filaments) {
+                    if (used_fila.filament_id == fila.id) {
+                        check_info.used_for_print_support = used_fila.use_for_support;
+                        break;
+                    }
+                };
+            }
+        };
 
         check_info.extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(check_info.ams_id));
         check_info.nozzle_flow = obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(check_info.ams_id));
@@ -5112,6 +5092,35 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 return false;
             } else if (result.action == "warning") {
                 show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, error_msg, result.wiki_url);/** warning check **/
+            }
+        }
+
+        // Check nozzle hardness check
+        if (check_info.extruder_id.has_value()) {
+            int ext_id = check_info.extruder_id.value();
+            if (ext_id == MAIN_EXTRUDER_ID && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+                if (obj_->get_nozzle_mapping_result().HasResult()) {
+                    int nozzle_pos = obj_->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj_, fila.id);
+                    auto nozzle_sys = obj_->GetNozzleSystem();
+                    auto nozzle = nozzle_sys->GetNozzleByPosId(nozzle_pos);
+                    if (!is_nozzle_hrc_matched(nozzle_sys->GetNozzleByPosId(nozzle_pos).GetNozzleType(), check_info.fila_id)) {
+                        std::vector<wxString> error_msg;
+                        error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                                               check_info.fila_name, get_mapped_nozzle_str(nozzle_pos), format_steel_name(nozzle.GetNozzleType())));
+                        show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+                        return false;
+                    }
+                }
+            } else {
+                auto exter = obj_->GetExtderSystem()->GetExtderById(ext_id);
+                if (exter && !is_nozzle_hrc_matched(exter->GetNozzleType(), check_info.fila_id)) {
+                    std::vector<wxString> error_msg;
+                    error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                                           check_info.fila_name, _get_nozzle_name(obj_->GetExtderSystem()->GetTotalExtderCount(),
+                                           exter->GetExtId()), format_steel_name(exter->GetNozzleType())));
+                    show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+                    return false;
+                }
             }
         }
     }
