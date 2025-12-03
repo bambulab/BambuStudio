@@ -3157,6 +3157,21 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
     return polylines_out;
 }
 
+Polylines Fill2DLattice::fill_surface(const Surface *surface, const FillParams &params)
+{
+    Polylines polylines_out;
+    coordf_t  lattice_angle_1 = std::clamp(params.lattice_angle_1, -85.0, 85.0); //protect from very large tan value
+    coordf_t  lattice_angle_2 = std::clamp(params.lattice_angle_2, -85.0, 85.0);
+    coordf_t  dx1             = tan(Geometry::deg2rad(lattice_angle_1)) * z; // tan(angel_1)*z get the x direction delta
+    coordf_t  dx2             = tan(Geometry::deg2rad(params.lattice_angle_2)) * z;
+    if (!this->fill_surface_by_multilines(surface, params, {{float(M_PI / 2.), float(dx1)}, {float(M_PI / 2.), float(dx2)}}, polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "Fill2DLattice::fill_surface() failed to fill a region.";
+
+    if (this->layer_id % 2 == 1)
+        for (int i = 0; i < polylines_out.size(); i++) std::reverse(polylines_out[i].begin(), polylines_out[i].end());
+    return polylines_out;
+}
+
 Polylines FillSupportBase::fill_surface(const Surface *surface, const FillParams &params)
 {
     assert(! params.full_infill());

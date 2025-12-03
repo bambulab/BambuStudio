@@ -1259,6 +1259,8 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (opt_key == "sparse_infill_pattern"
                    || opt_key == "symmetric_infill_y_axis"
                    || opt_key == "infill_shift_step"
+                   || opt_key == "sparse_infill_lattice_angle_1"
+                   || opt_key == "sparse_infill_lattice_angle_2"
                    || opt_key == "infill_rotate_step"
                    || opt_key == "skeleton_infill_density"
                    || opt_key == "skin_infill_density"
@@ -3641,6 +3643,7 @@ void PrintObject::combine_infill()
                 ((region.config().sparse_infill_pattern == ipRectilinear   ||
                   region.config().sparse_infill_pattern == ipMonotonic     ||
                   region.config().sparse_infill_pattern == ipGrid          ||
+                  region.config().sparse_infill_pattern == ip2DLattice     ||
                   region.config().sparse_infill_pattern == ipLine          ||
                   region.config().sparse_infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();
