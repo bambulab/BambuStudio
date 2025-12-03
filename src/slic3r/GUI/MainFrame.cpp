@@ -3017,7 +3017,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang"), _L("Show object overhang highlight in 3D scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang") + "\t" + ctrl + "L", _L("Show object overhang highlight in 3D scene"),
             [this](wxCommandEvent &) {
                 m_plater->show_view3D_overhang(!m_plater->is_view3D_overhang_shown());
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
