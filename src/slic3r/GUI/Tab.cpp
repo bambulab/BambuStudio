@@ -2640,6 +2640,8 @@ void TabPrint::build()
 
         optgroup->append_single_option_line("symmetric_infill_y_axis");
         optgroup->append_single_option_line("infill_shift_step");
+        optgroup->append_single_option_line("sparse_infill_lattice_angle_1", "", -1, true); // 2DLattice pattern use this
+        optgroup->append_single_option_line("sparse_infill_lattice_angle_2", "", -1, true); // 2DLattice pattern use this
 
         optgroup->append_single_option_line("infill_rotate_step");
         optgroup->append_single_option_line("sparse_infill_anchor");

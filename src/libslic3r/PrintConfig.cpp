@@ -190,7 +190,8 @@ static t_config_enum_values s_keys_map_InfillPattern {
     { "crosshatch",         ipCrossHatch},
     { "zigzag",             ipZigZag },
     { "crosszag",           ipCrossZag },
-    { "lockedzag",          ipLockedZag }
+    { "lockedzag",          ipLockedZag },
+    { "2dlattice",          ip2DLattice  }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(InfillPattern)
 
@@ -2474,6 +2475,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("zigzag");
     def->enum_values.push_back("crosszag");
     def->enum_values.push_back("lockedzag");
+    def->enum_values.push_back("2dlattice");
     def->enum_labels.push_back(L("Concentric"));
     def->enum_labels.push_back(L("Rectilinear"));
     def->enum_labels.push_back(L("Grid"));
@@ -2495,6 +2497,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("Zig Zag"));
     def->enum_labels.push_back(L("Cross Zag"));
     def->enum_labels.push_back(L("Locked Zag"));
+    def->enum_labels.push_back(L("2D Lattice"));
     def->set_default_value(new ConfigOptionEnum<InfillPattern>(ipCubic));
 
     def                = this->add("locked_skin_infill_pattern", coEnum);
@@ -3119,6 +3122,26 @@ void PrintConfigDef::init_fff_params()
                       " and you want these parts to have symmetric textures, please click this option on one of the parts.");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def           = this->add("sparse_infill_lattice_angle_1", coFloat);
+    def->label    = L("Lattice angle 1");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(-45));
+
+    def           = this->add("sparse_infill_lattice_angle_2", coFloat);
+    def->label    = L("Lattice angle 2");
+    def->category = L("Strength");
+    def->tooltip  = L("The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical.");
+    def->sidetext = L("°");
+    def->min      = -75;
+    def->max      = 75;
+    def->mode     = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(45));
 
     auto def_infill_anchor_min = def = this->add("sparse_infill_anchor", coFloatOrPercent);
     def->label = L("Length of sparse infill anchor");

@@ -103,7 +103,8 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
                     {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},
-                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"top_surface_pattern", "",1},{"top_surface_density", "",1},
+                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"sparse_infill_lattice_angle_1", "",1},{"sparse_infill_lattice_angle_2", "",1},
+                    {"top_surface_pattern", "",1},{"top_surface_density", "",1},
                     {"bottom_surface_pattern", "",1}, {"bottom_surface_density", "",1}, {"internal_solid_infill_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
                     }},
