@@ -54,8 +54,7 @@
         "6000",
         "6000"
     ],
-    "ironing_speed": "20",
-    "ironing_flow": "25%",
+    "ironing_flow": "15%",
     "outer_wall_speed": [
         "200",
         "500"
