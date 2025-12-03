@@ -3962,6 +3962,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #endif /* __APPLE__ */
             break;
 
+#ifdef __APPLE__
+        case 'l':
+        case 'L':
+#else  /* __APPLE__ */
+        case WXK_CONTROL_L:
+#endif /* __APPLE__ */
+        {
+            show_overhang(!is_overhang_shown());
+            m_dirty = true;
+            break;
+        }
 
 #ifdef __APPLE__
         case 'y':
