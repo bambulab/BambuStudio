@@ -598,6 +598,7 @@ coordf_t Layer::get_sparse_infill_max_void_area()
             case ipHilbertCurve:
             case ip3DHoneycomb:
             case ipArchimedeanChords:
+            case ip2DLattice: //this function seems to have been abandoned, there's no anywhere called this
                 max_void_area = std::max(max_void_area, spacing * spacing);
                 break;
             case ipGrid:

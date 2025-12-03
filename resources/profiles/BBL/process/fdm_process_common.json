@@ -156,6 +156,8 @@
     "seam_slope_gap": "0",
     "seam_slope_min_length": "10",
     "symmetric_infill_y_axis": "0",
+    "sparse_infill_lattice_angle_1": "-45",
+    "sparse_infill_lattice_angle_2": "45",
     "top_shell_layers": "3",
     "top_color_penetration_layers": "3",
     "top_shell_thickness": "0.8",

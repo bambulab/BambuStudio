@@ -97,6 +97,10 @@ struct FillParams
     bool            symmetric_infill_y_axis{false};
     coord_t         symmetric_y_axis{0};
     bool            locked_zag{false};
+
+    // For 2D lattice
+    coordf_t        lattice_angle_1{0.f};
+    coordf_t        lattice_angle_2{0.f};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 

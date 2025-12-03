@@ -71,6 +71,10 @@ struct SurfaceFillParams
     float           infill_rotate_step         = 0; // param for zig zag to get cross texture
     bool            symmetric_infill_y_axis = false;
 
+    // Params for 2Dlattice infill angles
+    float lattice_angle_1 = -45.0f;
+    float lattice_angle_2 = 45.0f;
+
 	bool operator<(const SurfaceFillParams &rhs) const {
 #define RETURN_COMPARE_NON_EQUAL(KEY) if (this->KEY < rhs.KEY) return true; if (this->KEY > rhs.KEY) return false;
 #define RETURN_COMPARE_NON_EQUAL_TYPED(TYPE, KEY) if (TYPE(this->KEY) < TYPE(rhs.KEY)) return true; if (TYPE(this->KEY) > TYPE(rhs.KEY)) return false;
@@ -100,6 +104,8 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(infill_shift_step);
 		RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
+        RETURN_COMPARE_NON_EQUAL(lattice_angle_1);
+        RETURN_COMPARE_NON_EQUAL(lattice_angle_2);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skin_pattern);
         RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, skeleton_pattern);
 		return false;
@@ -126,6 +132,8 @@ struct SurfaceFillParams
 				this->infill_shift_step             == rhs.infill_shift_step &&
 				this->infill_rotate_step            == rhs.infill_rotate_step &&
 				this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis &&
+			    this->lattice_angle_1 == rhs.lattice_angle_1 &&
+                this->lattice_angle_2 == rhs.lattice_angle_2&&
 				this-> skin_pattern     == rhs.skin_pattern &&
 				this-> skeleton_pattern == rhs.skeleton_pattern;
 	}
@@ -203,7 +211,10 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                 } else if (params.pattern == ipZigZag) {
                     params.infill_rotate_step      = region_config.infill_rotate_step * M_PI / 360;
                     params.symmetric_infill_y_axis = region_config.symmetric_infill_y_axis;
-                }
+                } else if (params.pattern == ip2DLattice) {
+                    params.lattice_angle_1 = region_config.sparse_infill_lattice_angle_1;
+                    params.lattice_angle_2 = region_config.sparse_infill_lattice_angle_2;
+				}
 
 				if (surface.is_solid()) {
 		            params.density = 100.f;
@@ -701,7 +712,10 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 
         } else if( surface_fill.params.pattern == ipZigZag ) {
 			params.symmetric_infill_y_axis = surface_fill.params.symmetric_infill_y_axis;
-		}
+        } else if (surface_fill.params.pattern == ip2DLattice) {
+            params.lattice_angle_1 = surface_fill.params.lattice_angle_1;
+            params.lattice_angle_2 = surface_fill.params.lattice_angle_2;
+        }
 
 		if (surface_fill.params.pattern == ipGrid || surface_fill.params.pattern == ipFloatingConcentric)
 			params.can_reverse = false;
@@ -778,6 +792,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipOctagramSpiral:
         case ipZigZag:
         case ipCrossZag:
+        case ip2DLattice:
 		case ipLockedZag: break;
         }
 
