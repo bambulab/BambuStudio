@@ -1900,14 +1900,8 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        const auto& mapped_fila = get_mapped_filament_info(fila.id);
-        if (!mapped_fila.has_value()) {
-            assert(false);
-            continue;
-        }
-
-        check_info.ams_id = mapped_fila->get_ams_id();
-        check_info.slot_id = mapped_fila->get_slot_id();
+        check_info.ams_id = fila.get_ams_id();
+        check_info.slot_id = fila.get_slot_id();
         auto tray_opt = obj_->get_tray(std::to_string(check_info.ams_id), std::to_string(check_info.slot_id));
         if (!tray_opt.has_value()) {
             assert(false);
@@ -1934,12 +1928,19 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         };
 
         check_info.extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(check_info.ams_id));
-        check_info.nozzle_flow = obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(check_info.ams_id));
+        const auto& nozzle = get_mapped_nozzle(fila.id); // not check it if it's nullopt
+        if (nozzle.has_value()) {
+            check_info.nozzle_flow = DevNozzle::GetNozzleFlowTypeString(nozzle->GetNozzleFlowType());
+            check_info.nozzle_diameter = nozzle->GetNozzleDiameter();
+        }
 
-        auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
-        if (result.in_blacklist && result.action == "warning") {
-            confirm_text.push_back(ConfirmBeforeSendInfo(result.info_msg, result.wiki_url));
-            has_slice_warnings = true;
+        // here are only warnings level, the errors have been blocked before
+        const auto& result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
+        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
+            for (auto item : warning_items) {
+                confirm_text.push_back(ConfirmBeforeSendInfo(item.info_msg, item.wiki_url));
+                has_slice_warnings = true;
+            }
         }
     }
 
@@ -4889,6 +4890,67 @@ void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
     event.Skip();
 }
 
+
+std::optional<Slic3r::DevNozzle> SelectMachineDialog::get_mapped_nozzle(int fila_id) const
+{
+    auto obj_ = get_current_machine();
+    if (!obj_) {
+        return std::nullopt;
+    }
+
+    int total_ext_count = 0;
+    if (m_print_type == FROM_NORMAL) {
+        const auto& full_config = wxGetApp().preset_bundle->full_config();
+        const auto opt = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        total_ext_count = opt ? opt->values.size() : 0;
+    } else {
+        const auto opt = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        total_ext_count = opt ? opt->values.size() : 0;
+    }
+
+    if (total_ext_count != obj_->GetExtderSystem()->GetTotalExtderCount()) {
+        return std::nullopt;
+    }
+
+    if (!obj_->GetNozzleRack()->IsSupported()) {
+        if (total_ext_count == 1) {
+            return obj_->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
+        } else if (total_ext_count == 2) {
+            if (m_filaments_map.size() <= fila_id) {
+                return std::nullopt;
+            }
+
+            if (m_filaments_map[fila_id] == 1) {
+                return obj_->GetNozzleSystem()->GetExtNozzle(DEPUTY_EXTRUDER_ID);
+            } else if (m_filaments_map[fila_id] == 2) {
+                return obj_->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
+            };
+        };
+    } else {
+        if (m_print_type == FROM_NORMAL) {
+            if (m_filaments_map[fila_id] == 1) {
+                return obj_->GetNozzleSystem()->GetExtNozzle(DEPUTY_EXTRUDER_ID);
+            };
+
+            auto iter = m_nozzle_mapping_result.find(fila_id);
+            if (iter == m_nozzle_mapping_result.end()) {
+                return std::nullopt;
+            }
+
+            if (obj_->GetNozzleSystem()->GetReplaceNozzleTar().has_value() && iter->second == obj_->GetNozzleSystem()->GetReplaceNozzleTar().value()) {
+                return obj_->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
+            } else {
+                return obj_->GetNozzleSystem()->GetNozzleByPosId(iter->second);
+            }
+        } else {
+            // the mapping is not supported
+            return std::nullopt;
+        }
+    };
+
+    return std::nullopt;
+}
+
 // return empty string if not supported
 // return ? if not mapped
 wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
@@ -5048,14 +5110,8 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         check_info.dev_id = obj_->get_dev_id();
         check_info.model_id = obj_->printer_type;
 
-        const auto& mapped_fila = get_mapped_filament_info(fila.id);
-        if (!mapped_fila.has_value()) {
-            show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
-            return false;
-        }
-
-        check_info.ams_id = mapped_fila->get_ams_id();
-        check_info.slot_id = mapped_fila->get_slot_id();
+        check_info.ams_id = fila.get_ams_id();
+        check_info.slot_id = fila.get_slot_id();
         auto tray_opt = obj_->get_tray(std::to_string(check_info.ams_id), std::to_string(check_info.slot_id));
         if (!tray_opt.has_value()) {
             show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
@@ -5082,45 +5138,44 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         };
 
         check_info.extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(check_info.ams_id));
-        check_info.nozzle_flow = obj_->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(check_info.ams_id));
+        const auto& nozzle = get_mapped_nozzle(fila.id);
+        if (nozzle.has_value()) {
+            check_info.nozzle_flow = DevNozzle::GetNozzleFlowTypeString(nozzle->GetNozzleFlowType());
+            check_info.nozzle_diameter = nozzle->GetNozzleDiameter();
+        }
 
         auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
-        if (result.in_blacklist) {
-            std::vector<wxString> error_msg{ result.info_msg };
-            if (result.action == "prohibition") {
-                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, error_msg, result.wiki_url);
-                return false;
-            } else if (result.action == "warning") {
-                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, error_msg, result.wiki_url);/** warning check **/
+        if (const auto& prohibition_items = result.get_items_by_action("prohibition"); !prohibition_items.empty()) {
+            for (auto item : prohibition_items) {
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListError, { item.info_msg } , item.wiki_url);
+            }
+
+            return false;
+        }
+
+        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
+            for (auto item : warning_items) {
+                show_status(PrintDialogStatus::PrintStatusHasFilamentInBlackListWarning, { item.info_msg }, item.wiki_url);
             }
         }
 
         // Check nozzle hardness check
-        if (check_info.extruder_id.has_value()) {
-            int ext_id = check_info.extruder_id.value();
-            if (ext_id == MAIN_EXTRUDER_ID && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
-                if (obj_->get_nozzle_mapping_result().HasResult()) {
-                    int nozzle_pos = obj_->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj_, fila.id);
-                    auto nozzle_sys = obj_->GetNozzleSystem();
-                    auto nozzle = nozzle_sys->GetNozzleByPosId(nozzle_pos);
-                    if (!is_nozzle_hrc_matched(nozzle_sys->GetNozzleByPosId(nozzle_pos).GetNozzleType(), check_info.fila_id)) {
-                        std::vector<wxString> error_msg;
-                        error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
-                                               check_info.fila_name, get_mapped_nozzle_str(nozzle_pos), format_steel_name(nozzle.GetNozzleType())));
-                        show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
-                        return false;
-                    }
-                }
+        if (nozzle.has_value() && !is_nozzle_hrc_matched(nozzle->GetNozzleType(), check_info.fila_id)) {
+            if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+                std::vector<wxString> error_msg;
+                int nozzle_pos_id = nozzle->GetNozzlePosId();
+                const std::string& nozzle_str = (nozzle_pos_id == 0) ? "R" : "R" + std::to_string(nozzle_pos_id - 0x10 + 1);
+                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                                       check_info.fila_name, nozzle_str, format_steel_name(nozzle->GetNozzleType())));
+                show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+                return false;
             } else {
-                auto exter = obj_->GetExtderSystem()->GetExtderById(ext_id);
-                if (exter && !is_nozzle_hrc_matched(exter->GetNozzleType(), check_info.fila_id)) {
-                    std::vector<wxString> error_msg;
-                    error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
-                                           check_info.fila_name, _get_nozzle_name(obj_->GetExtderSystem()->GetTotalExtderCount(),
-                                           exter->GetExtId()), format_steel_name(exter->GetNozzleType())));
-                    show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
-                    return false;
-                }
+                std::vector<wxString> error_msg;
+                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                                       check_info.fila_name, _get_nozzle_name(obj_->GetExtderSystem()->GetTotalExtderCount(),
+                                       nozzle->GetNozzleId()), format_steel_name(nozzle->GetNozzleType())));
+                show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
+                return false;
             }
         }
     }

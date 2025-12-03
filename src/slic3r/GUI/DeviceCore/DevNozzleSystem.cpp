@@ -35,7 +35,7 @@ bool DevNozzle::IsInfoReliable() const
 
 bool DevNozzle::IsNormal() const
 {
-    if (IsEmpty()) { return false;}
+    if (IsEmpty()) { return false; }
     return DevUtil::get_flag_bits(m_stat, 1, 2) == 0;
 }
 

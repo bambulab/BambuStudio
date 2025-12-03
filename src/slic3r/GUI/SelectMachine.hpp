@@ -553,8 +553,11 @@ private:
     void on_nozzle_offset_option_changed(wxCommandEvent& event);
     void on_pa_value_switch_changed(wxCommandEvent &event);
 
-    // get mapping nozzle display string
+    // get mapping nozzle display string for rack
     wxString get_mapped_nozzle_str(int fila_id);
+
+    // get mapping nozzle for all
+    std::optional<DevNozzle> get_mapped_nozzle(int fila_id) const;
 
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
