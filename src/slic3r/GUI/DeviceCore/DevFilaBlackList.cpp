@@ -85,28 +85,13 @@ static std::string _get_filament_name_from_ams(const std::string& dev_id, int am
 }
 
 // moved from tao.wang and zhimin.zeng
-void check_filaments(const std::string& dev_id,
-                     std::string  model_id,
-                     std::string  tag_vendor,
-                     std::string  tag_type,
-                     const std::optional<bool>& fila_used_for_support,
-                     int          ams_id,
-                     int          slot_id,
-                     std::string  tag_name,
-                     const std::optional<int>& extruder_id,
-                     std::string  nozzle_flow,
-                     bool& in_blacklist,
-                     std::string& ac,
-                     wxString& info,
-                     wxString& wiki_url)
+DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info)
 {
-    if (tag_name.empty())
-    {
-        tag_name = _get_filament_name_from_ams(dev_id, ams_id, slot_id);
-    }
+    DevFilaBlacklist::CheckResult result;
 
-    in_blacklist = false;
-    const auto original_tag_name = tag_name;
+    std::string  tag_type = check_info.fila_type;
+    std::string  tag_name = check_info.fila_name;
+    std::string  tag_vendor = check_info.fila_vendor;
     std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
     std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
     std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
@@ -116,7 +101,20 @@ void check_filaments(const std::string& dev_id,
     {
         for (auto filament_item : DevFilaBlacklist::filaments_blacklist["blacklist"])
         {
+            std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
+            std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
 
+            // white items
+            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
+            if (!white_names.empty() && !tag_name.empty()) {
+                for (auto white_name : white_names) {
+                    if (tag_name.find(white_name) != std::string::npos) {
+                        continue;// the filament name is in white names, skip this blacklist item
+                    }
+                }
+            }
+
+            // blacklist items
             std::string vendor = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
             std::string type = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
             std::string type_suffix = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
@@ -127,14 +125,19 @@ void check_filaments(const std::string& dev_id,
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::vector<int> extruder_ids = filament_item.contains("extruder_id") ? filament_item["extruder_id"].get<std::vector<int>>() : std::vector<int>();
             std::vector<std::string> nozzle_flows = filament_item.contains("nozzle_flows") ? filament_item["nozzle_flows"].get<std::vector<std::string>>() : std::vector<std::string>();
-            std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
-            std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
 
             // check model id
-            if (!model_ids.empty() && std::find(model_ids.begin(), model_ids.end(), model_id) == model_ids.end()) { continue; }
+            if (!model_ids.empty() && std::find(model_ids.begin(), model_ids.end(), check_info.model_id) == model_ids.end()) { continue; }
 
             // check nozzle flows
-            if (!nozzle_flows.empty() && std::find(nozzle_flows.begin(), nozzle_flows.end(), nozzle_flow) == nozzle_flows.end()) { continue; }
+            if (!nozzle_flows.empty() && std::find(nozzle_flows.begin(), nozzle_flows.end(), check_info.nozzle_flow.value_or("")) == nozzle_flows.end()) { continue; }
+
+            // check nozzle diameter
+            const std::vector<float> nozzle_diameters = filament_item.contains("nozzle_diameters") ? filament_item["nozzle_diameters"].get<std::vector<float>>() : std::vector<float>();
+            if (!nozzle_diameters.empty() && check_info.nozzle_diameter.has_value() &&
+                std::find(nozzle_diameters.begin(), nozzle_diameters.end(), check_info.nozzle_diameter.value()) == nozzle_diameters.end()) {
+                continue;
+            }
 
             // check vendor
             std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
@@ -163,16 +166,6 @@ void check_filaments(const std::string& dev_id,
             std::transform(name.begin(), name.end(), name.begin(), ::tolower);
             if (!name.empty() && (name != tag_name)) { continue; }
 
-            // check white names
-            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
-            if (!white_names.empty() && !tag_name.empty()) {
-                for (auto white_name : white_names) {
-                    if (tag_name.find(white_name) != std::string::npos) {
-                        continue;// the filament name is in white names, skip this blacklist item
-                    }
-                }
-            }
-
             // check name suffix
             std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::tolower);
             if (!name_suffix.empty()) {
@@ -181,13 +174,13 @@ void check_filaments(const std::string& dev_id,
             }
 
             // check filament used for print support
-            if (used_for_print_support.has_value() && used_for_print_support != fila_used_for_support) {
+            if (used_for_print_support.has_value() && used_for_print_support != check_info.used_for_print_support) {
                 continue;
             }
 
             // check loc
             if (!slot.empty()) {
-                bool is_virtual_slot = devPrinterUtil::IsVirtualSlot(ams_id);
+                bool is_virtual_slot = devPrinterUtil::IsVirtualSlot(check_info.ams_id);
                 bool check_virtual_slot = (slot == "ext");
                 bool check_ams_slot = (slot == "ams");
                 if (is_virtual_slot && !check_virtual_slot) {
@@ -198,24 +191,34 @@ void check_filaments(const std::string& dev_id,
             }
 
             // check extruder id
-            if(!extruder_ids.empty() && extruder_id.has_value() && std::find(extruder_ids.begin(), extruder_ids.end(), extruder_id.value()) == extruder_ids.end()){
+            if(!extruder_ids.empty() && check_info.extruder_id.has_value() && std::find(extruder_ids.begin(), extruder_ids.end(), check_info.extruder_id.value()) == extruder_ids.end()){
                 continue;
             }
 
-            in_blacklist = true;
-            ac = action;
-            info = _L(description);
-            if (info == _L("When using %s on the right extruder, it can only be used as support material.")) {
+            // the item is matched
+            DevFilaBlacklist::CheckResultItem result_item;
+            result_item.action = action;
+            result_item.wiki_url = filament_item.contains("wiki") ? filament_item["wiki"].get<std::string>() : "";
+
+            if (description == "When using %s on the right extruder, it can only be used as support material.") {
                 if (!name_suffix.empty()) {
                     std::transform(name_suffix.begin(), name_suffix.end(), name_suffix.begin(), ::toupper);
-                    info = wxString::Format(info, name_suffix);
+                    result_item.info_msg = wxString::Format(_L(description), name_suffix);
                 } else {
-                    info = wxString::Format(info, original_tag_name);
+                    result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
                 }
+            } else if (description == "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
+            } else if (description == "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
+            } else if (description == "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.") {
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
+            } else {
+                result_item.info_msg = _L(description);
             }
 
-            wiki_url = filament_item.contains("wiki") ? filament_item["wiki"].get<std::string>() : "";
-            return;
+            result.action_items[result_item.action].push_back(result_item);
+            continue;
 
             // Error in description
             L("TPU is not supported by AMS.");
@@ -231,13 +234,16 @@ void check_filaments(const std::string& dev_id,
             L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
-            L("The filament may require slicing parameter adjustments.");
-            L("Using non-bambu filament may have printing quality issues.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
             L("Using non-bambu filament may have printing quality issues.");
             L("When using %s on the right extruder, it can only be used as support material.");
-        }
+            L("%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
+            L("%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
+            L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
+        };
     }
+
+    return result;
 }
 
 
@@ -291,14 +297,14 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
         return result;
     }
 
-    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_type, info.fila_id, info.ams_id, result.in_blacklist, result.action, result.info_msg)) {
+    bool in_blacklist = false;
+    CheckResultItem blacklist_item;
+    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_type, info.fila_id, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
+        result.action_items[blacklist_item.action].push_back(blacklist_item);
         return result;
     }
 
-    check_filaments(info.dev_id, info.model_id, info.fila_vendor, info.fila_type, info.used_for_print_support,
-                    info.ams_id, info.slot_id, info.fila_name, info.extruder_id, info.nozzle_flow, 
-                    result.in_blacklist, result.action, result.info_msg, result.wiki_url);
-    return result;
+    return check_filaments(info);
 };
 
 }
