@@ -853,8 +853,19 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     //ams
     if (obj->ams_exist_bits != 0)
     {
-        std::string extra_ams_str = (boost::format("ams_f1/%1%") % 0).str();
-        auto extra_ams_it = obj->module_vers.find(extra_ams_str);
+        std::string extra_ams_str = "ams_f1";
+        auto extra_ams_it = obj->module_vers.end();
+
+        for (auto it = obj->module_vers.begin(); it != obj->module_vers.end(); it++)
+        {
+            const std::string ams_if_key = it->first;
+            if (ams_if_key.find(extra_ams_str) != std::string::npos)
+            {
+                extra_ams_it = it;
+                break;
+            }
+        }
+
         if (extra_ams_it != obj->module_vers.end()) {
             wxString sn_text = extra_ams_it->second.sn;
             sn_text = sn_text.MakeUpper();
