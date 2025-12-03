@@ -17,6 +17,8 @@
         "40",
         "40"
     ],
+    "ironing_speed": "20",
+    "ironing_flow": "20%",
     "outer_wall_speed": [
         "100",
         "100",
