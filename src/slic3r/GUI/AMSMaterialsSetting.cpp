@@ -595,26 +595,46 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                     check_info.model_id = obj->printer_type;
                     check_info.fila_id = it->filament_id;
                     it->get_filament_type(check_info.fila_type);
-                    check_info.fila_name = it->alias;
+
+                    auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
+                    check_info.fila_name = option ? option->filament_name : "";
+                    check_info.fila_vendor = option ? option->vendor : "";
+
                     check_info.ams_id = ams_id;
                     check_info.slot_id = slot_id;
-                    check_info.nozzle_flow = obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
+                    check_info.extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
 
-                    auto vendor = dynamic_cast<ConfigOptionStrings *>(it->config.option("filament_vendor"));
-                    if (vendor && (vendor->values.size() > 0)) {
-                        check_info.fila_vendor = vendor->values[0];
+                    if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj->GetNozzleRack()->IsSupported()) {
+                        ;
+                    } else {
+                        check_info.nozzle_flow = obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
+                        auto nozzle = obj->GetNozzleSystem()->GetNozzleByPosId(check_info.extruder_id.value_or(-1));
+                        if (!nozzle.IsEmpty()) {
+                            check_info.nozzle_diameter = nozzle.GetNozzleDiameter();
+                        }
+                    }
 
-                        auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
-                        if (result.in_blacklist) {
-                            if (result.action == "prohibition") {
-                                MessageDialog msg_wingow(nullptr, result.info_msg, _L("Error"), wxICON_WARNING | wxOK);
-                                msg_wingow.ShowModal();
-                                //m_comboBox_filament->SetSelection(m_filament_selection);
-                                return;
-                            } else if (result.action == "warning") {
-                                MessageDialog msg_wingow(nullptr, result.info_msg, _L("Warning"), wxICON_INFORMATION | wxOK);
-                                msg_wingow.ShowModal();
+                    auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
+                    if (!result.action_items.empty()) {
+                        if (const auto& prohibit_items = result.get_items_by_action("prohibition"); !prohibit_items.empty()) {
+                            wxString info_msg;
+                            for (auto item : prohibit_items) {
+                                info_msg += item.info_msg + "\n";
                             }
+
+                            MessageDialog msg_wingow(nullptr, info_msg, _L("Error"), wxICON_WARNING | wxOK);
+                            msg_wingow.ShowModal();
+                            return;
+                        }
+
+                        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
+                            wxString info_msg;
+                            for (auto item : warning_items) {
+                                info_msg += item.info_msg + "\n";
+                            }
+
+                            MessageDialog msg_wingow(nullptr, info_msg, _L("Warning"), wxICON_WARNING | wxOK);
+                            msg_wingow.ShowModal();
                         }
                     }
                 }

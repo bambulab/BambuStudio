@@ -23,17 +23,29 @@ public:
         int ams_id;
         int slot_id;
 
-        std::optional<int> extruder_id;
-        std::string nozzle_flow;// optional
+        std::optional<int> extruder_id;// optional
+        std::optional<std::string> nozzle_flow;// optional
+        std::optional<float> nozzle_diameter;// optional
+    };
 
+    struct CheckResultItem
+    {
+        std::string action;
+        wxString    info_msg;
+        wxString    wiki_url;
     };
 
     struct CheckResult
     {
-        bool        in_blacklist{false};
-        std::string action;
-        wxString    info_msg;
-        wxString    wiki_url;
+        std::map<std::string, std::vector<CheckResultItem>> action_items;
+        std::vector<CheckResultItem> get_items_by_action(const std::string& action) const
+        {
+            auto it = action_items.find(action);
+            if (it != action_items.end()) {
+                return it->second;
+            }
+            return std::vector<CheckResultItem>();
+        }
     };
 
 public:

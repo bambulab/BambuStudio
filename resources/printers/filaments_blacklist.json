@@ -44,12 +44,14 @@
     {
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
+      "model_id":["BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
+      "model_id":["BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
@@ -164,6 +166,60 @@
       "action": "warning",
       "description": "Default settings may affect print quality. Adjust as needed for best results.",
       "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "type_suffix": "CF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type": "PA6-GF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type_suffix": "CF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type": "PA6-GF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "name_suffix": "TPU 85A",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+    },
+    {
+      "name_suffix": "TPU 90A",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
     }
   ]
 }

@@ -1510,7 +1510,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         preset->get_filament_type(check_info.fila_type);
         check_info.ams_id = ams_id;
         check_info.slot_id = slot_id;
-        check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
+        check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)); // NOTE: to be fixed
 
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
@@ -1518,19 +1518,27 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
             result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
         }
 
-        if (result.in_blacklist) {
-            error_tips = result.info_msg.ToUTF8().data();
-            if (result.action == "prohibition") {
-                return false;
+        if (const auto& prohibition_items = result.get_items_by_action("prohibition"); !prohibition_items.empty()) {
+            wxString combined_msg;
+            for (auto item : prohibition_items) {
+                combined_msg += item.info_msg + "\n";
             }
-            else if (result.action == "warning") {
-                return true;
-            }
+
+            error_tips = combined_msg.ToUTF8().data();
+            return false;
         }
-        else {
-            error_tips = "";
+
+        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
+            wxString combined_msg;
+            for (auto item : warning_items) {
+                combined_msg += item.info_msg + "\n";
+            }
+
+            error_tips = combined_msg.ToUTF8().data();
             return true;
         }
+
+        return true;
     }
     if (devPrinterUtil::IsVirtualSlot(ams_id)) {
         if (m_cali_mode == CalibMode::Calib_PA_Line && (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)) {
