@@ -27,6 +27,8 @@ namespace Slic3r
        float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
 
    public:
+       bool     IsEmpty() const { return m_nozzle_id < 0; }
+
        /**/
        void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
 
@@ -46,7 +48,7 @@ namespace Slic3r
        wxString GetNozzleTypeStr() const;
 
        static wxString      GetNozzleFlowTypeStr(NozzleFlowType type);
-       static std::string   GetNozzleFlowTypeString(NozzleFlowType type);
+       static std::string   GetNozzleFlowTypeString(NozzleFlowType type);// no translation
        static wxString      GetNozzleTypeStr(NozzleType type);
        static std::string   GetNozzleTypeString(NozzleType type);
 
@@ -63,7 +65,6 @@ namespace Slic3r
        bool IsOnRack() const { return m_on_rack; }
        bool IsInfoReliable() const;
 
-       bool IsEmpty() const { return m_nozzle_id < 0; }
        bool IsNormal() const;
        bool IsAbnormal() const;
        bool IsUnknown() const;
