@@ -31,24 +31,16 @@
         "0.7"
     ],
     "filament_retraction_length": [
-        "2",
-        "2"
+        "1",
+        "1"
     ],
     "filament_retraction_speed": [
         "10",
         "10"
     ],
-    "filament_wipe": [
-        "1",
-        "1"
-    ],
-    "filament_wipe_distance": [
-        "1",
-        "1"
-    ],
     "filament_z_hop_types": [
-        "Spiral Lift",
-        "Spiral Lift"
+        "nil",
+        "nil"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -76,8 +68,8 @@
         "0",
         "0"
     ],
-    "slow_down_for_layer_cooling": [
-        "0"
+    "slow_down_min_speed": [
+        "30"
     ],
     "volumetric_speed_coefficients": [
         "85.1441 -0.1306 48.4938 -43.6862 -5.8088 5.5653",
