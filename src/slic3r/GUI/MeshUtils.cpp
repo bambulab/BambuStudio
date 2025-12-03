@@ -257,10 +257,11 @@ void MeshClipper::recalculate_triangles()
             pt.x() = -plane_offset / normal_old.x();
         pt                  = tr.inverse() * pt;
         const double offset = -(normal_new.dot(pt));
+        const bool   is_bottom_view = m_plane.get_normal().normalized().dot(Vec3d(0.f, 0.f, -1.f)) > 0.99;
 
         if (std::abs(normal_old.dot(m_plane.get_normal().normalized())) > 0.99) {
             // The cuts are parallel, show all or nothing.
-            if (normal_old.dot(m_plane.get_normal().normalized()) < 0.0 && offset < height_mesh) expolys.clear();
+            if (normal_old.dot(m_plane.get_normal().normalized()) < 0.0 && offset < height_mesh && !is_bottom_view) expolys.clear();
         } else {
             // The cut is a horizontal plane defined by z=height_mesh.
             // ax+by+e=0 is the line of intersection with the limiting plane.
