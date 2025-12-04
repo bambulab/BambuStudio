@@ -20,6 +20,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/algorithm/string.hpp>
 
 /* mac need the macro while including <boost/stacktrace.hpp>*/
 #ifdef  __APPLE__
@@ -3326,9 +3327,14 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     std::string result;
                     if (jj.contains("result")) {
                         result = jj["result"].get<std::string>();
-                        if (result == "FAIL") {
+                        boost::to_lower(result);
+                        if (result == "fail" ) {
                             wxString text = _L("Failed to start printing job");
                             GUI::wxGetApp().push_notification(this, text);
+
+                            if(this->calib_send_status == CalibSendStatus::SENDING) {
+                                this->calib_send_status = CalibSendStatus::FAILED;
+                            }
                         }
                     }
                 } else if (jj["command"].get<std::string>() == "ams_filament_setting" && !key_field_only) {
