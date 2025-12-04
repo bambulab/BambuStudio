@@ -67,6 +67,12 @@ enum ManualPaCaliMethod {
     PA_PATTERN,
 };
 
+enum class CalibSendStatus {
+    IDLE = 0,
+    SENDING,
+    FAILED,
+};
+
 // Previous definitions
 class DevAms;
 class DevAmsTray;
@@ -411,6 +417,7 @@ public:
     bool    nozzle_blob_detection_enabled{ false };
     time_t  nozzle_blob_detection_hold_start = 0;
 
+    CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
     bool    is_support_new_auto_cali_method{false};
     int last_cali_version = -1;
     int cali_version = -1;
