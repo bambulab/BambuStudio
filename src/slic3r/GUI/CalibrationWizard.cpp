@@ -140,6 +140,17 @@ void CalibrationWizard::show_step(CalibrationWizardPageStep* step)
     if (!step)
         return;
 
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (dev) {
+        MachineObject *obj = dev->get_selected_machine();
+        if (obj && obj->calib_send_status == CalibSendStatus::FAILED) {
+            obj->calib_send_status = CalibSendStatus::IDLE;
+            back_preset_info(obj, true, false);
+            step->page->on_reset_page();
+            return;
+        }
+    }
+
     if (m_curr_step) {
         m_curr_step->page->Hide();
     }
@@ -889,6 +900,8 @@ void PressureAdvanceWizard::on_cali_start()
 
     CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
     cali_page->clear_last_job_status();
+
+    if (curr_obj) { curr_obj->calib_send_status = CalibSendStatus::SENDING; }
 }
 
 bool PressureAdvanceWizard::can_save_cali_result(const std::vector<PACalibResult> &new_pa_cali_results)
@@ -1383,6 +1396,7 @@ void FlowRateWizard::on_cali_start(CaliPresetStage stage, float cali_value, Flow
     } else {
         assert(false);
     }
+    if (curr_obj) { curr_obj->calib_send_status = CalibSendStatus::SENDING; }
 }
 
 void FlowRateWizard::on_cali_save()
@@ -1744,6 +1758,8 @@ void MaxVolumetricSpeedWizard::on_cali_start()
 
     CalibrationCaliPage* cali_page = (static_cast<CalibrationCaliPage*>(cali_step->page));
     cali_page->clear_last_job_status();
+
+    if (curr_obj) { curr_obj->calib_send_status = CalibSendStatus::SENDING; }
 }
 
 void MaxVolumetricSpeedWizard::on_cali_save()
