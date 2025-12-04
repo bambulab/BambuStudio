@@ -162,6 +162,7 @@
         "10000",
         "10000"
     ],
+    "top_shell_layers": "4",
     "vertical_shell_speed": [
         "80%",
         "80%"
