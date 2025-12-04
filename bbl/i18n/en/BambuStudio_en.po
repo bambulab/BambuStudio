@@ -11220,7 +11220,7 @@ msgid "Precise wall"
 msgstr ""
 
 msgid "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency."
-msgstr "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option will be ignored unless the wall sequence is inner/outer"
+msgstr "Improve shell precision by adjusting outer wall spacing. This also improves layer consistency. NOTE: This option will be ignored unless the order of walls is changed to inner/outer"
 
 msgid "Speed of gap infill. Gap usually has irregular line width and should be printed more slowly"
 msgstr "This is the speed for gap infill. Gaps usually have irregular line width and should be printed more slowly."
