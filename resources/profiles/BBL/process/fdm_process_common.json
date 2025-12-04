@@ -144,7 +144,7 @@
     "support_threshold_angle": "30",
     "support_top_z_distance": "0.2",
     "support_type": "tree(auto)",
-    "enable_support_ironing":"false",
+    "enable_support_ironing":"0",
     "support_ironing_pattern":"zig-zag",
     "support_ironing_speed":"30",
     "support_ironing_flow":"10%",
