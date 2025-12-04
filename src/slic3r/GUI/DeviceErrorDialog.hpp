@@ -85,6 +85,7 @@ protected:
     void on_button_click(ActionButton btn_id);
     void on_webrequest_state(wxWebRequestEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect);
+    wxBitmap get_default_loading_image();
     bool get_fail_snapshot_from_cloud();
     bool get_fail_snapshot_from_local(const wxString& image_url);
 

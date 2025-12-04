@@ -263,6 +263,36 @@ std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_
     return pseudo_button;
 }
 
+wxBitmap DeviceErrorDialog::get_default_loading_image()
+{
+    const int w = FromDIP(320);
+    const int h = FromDIP(180);
+
+    wxBitmap bmp(wxSize(w, h));
+    wxMemoryDC dc(bmp);
+    dc.SetBackground(wxBrush(wxColour(238, 238, 238))); // gray300
+    dc.Clear();
+
+    ScalableBitmap icon = ScalableBitmap(this, "dev_hms_diag_loading", 80);
+    wxBitmap icon_bmp = icon.bmp();
+    if (icon_bmp.IsOk()) {
+        int ix = (w - icon_bmp.GetWidth()) / 2;
+        int iy = (h - icon_bmp.GetHeight()) / 3;
+        dc.DrawBitmap(icon_bmp, ix, iy, true);
+    }
+
+    dc.SetTextForeground(wxColour(158, 158, 158)); // gray500
+    dc.SetFont(::Label::Body_14);
+    const wxString txt = _L("Loading...");
+    wxSize txtSize = dc.GetTextExtent(txt);
+    int tx = (w - txtSize.GetWidth()) / 2;
+    int ty = h - txtSize.GetHeight() - FromDIP(45);
+    dc.DrawText(txt, tx, ty);
+
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
 bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
 {
     if (!m_obj || m_obj->m_print_error_img_id.empty()) { return false; }
@@ -362,6 +392,7 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
 
     /* image */
     m_local_img_url = image_url;
+    m_error_picture->SetBitmap(get_default_loading_image());
     if (get_fail_snapshot_from_cloud())
     {
         m_error_picture->Show();
