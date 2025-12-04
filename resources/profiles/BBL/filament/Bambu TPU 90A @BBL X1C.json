@@ -10,16 +10,24 @@
         "2.8"
     ],
     "filament_retraction_length": [
-        "0.4",
+        "0.8",
         "0.4"
     ],
     "filament_flow_ratio": [
-        "1",
+        "1.029",
         "1"
     ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_z_hop": [
+        "0.6",
+        "nil"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "nil"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -38,6 +46,9 @@
     ],
     "retraction_distances_when_ec": [
         "0",
+        "0"
+    ],
+    "slow_down_layer_time": [
         "0"
     ],
     "compatible_printers": [
