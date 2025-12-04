@@ -1535,7 +1535,14 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return except;
             }
         }
-    }
+
+            // check wall sequence and precise outer wall
+            if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter)
+            {
+                warning->string = L("Precise outer wall will be ignored unless the wall sequence is set to inner/outer");
+                warning->opt_key = "precise_outer_wall";
+            }
+        }
 
     return {};
 }
