@@ -23,6 +23,10 @@
     "fan_min_speed": [
         "5"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "11.5",
         "11.5"
@@ -32,9 +36,6 @@
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "first_x_layer_fan_speed": [
-        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
         "215",
@@ -50,6 +51,9 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_change_length_nc": [
         "4"

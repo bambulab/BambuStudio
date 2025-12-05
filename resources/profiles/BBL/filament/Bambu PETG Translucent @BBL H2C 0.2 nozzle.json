@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG01_24",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "1",
         "1"
@@ -14,9 +18,6 @@
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "first_x_layer_fan_speed": [
-        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
         "205",
@@ -37,6 +38,9 @@
     "filament_change_length": [
         "4"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "filament_change_length_nc": [
         "4"
     ],
@@ -54,14 +58,14 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "slow_down_layer_time": [
-        "8"
-    ],
     "supertack_plate_temp": [
         "60"
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "temperature_vitrification": [
         "55"

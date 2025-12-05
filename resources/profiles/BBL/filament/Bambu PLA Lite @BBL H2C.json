@@ -32,6 +32,10 @@
     "fan_min_speed": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_cost": [
         "24.99"
     ],
@@ -68,9 +72,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "filament_pre_cooling_temperature_nc": [
         "180",
         "180"
@@ -89,6 +90,9 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_change_length_nc": [
         "4"

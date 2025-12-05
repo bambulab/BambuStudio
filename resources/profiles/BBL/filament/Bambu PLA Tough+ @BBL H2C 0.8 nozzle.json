@@ -20,6 +20,10 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -47,9 +51,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "filament_pre_cooling_temperature_nc": [
         "205",
         "205"
@@ -68,6 +69,9 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_change_length_nc": [
         "4"
