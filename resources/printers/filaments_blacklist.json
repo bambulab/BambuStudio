@@ -32,26 +32,28 @@
     {
       "type": "PLA-Aero",
       "nozzle_flows": ["High Flow"],
+      "model_id":["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "type": "ASA-Aero",
       "nozzle_flows": ["High Flow"],
+      "model_id":["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
-      "model_id":["BL-P001"],
+      "model_id": ["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
-      "model_id":["BL-P001"],
+      "model_id": ["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
