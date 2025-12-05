@@ -70,7 +70,8 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     }
 
                     opts->m_buildplate_type_detection.is_support_detect     = true;
-                    opts->m_buildplate_align_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 20);
+                    if (time(nullptr) - opts->m_buildplate_align_detection.detect_hold_start > HOLD_TIME_3SEC)
+                        opts->m_buildplate_align_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 20);
                 } else if (print_json["xcam"].contains("printing_monitor")) {
                     // new protocol
                     opts->m_ai_monitoring_detection.current_detect_value = print_json["xcam"]["printing_monitor"].get<bool>();
@@ -105,6 +106,7 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                 }
             }
             if (print_json["xcam"].contains("buildplate_marker_detector")) {
+                if (time(nullptr) - opts->m_buildplate_type_detection.detect_hold_start > HOLD_TIME_3SEC)
                 opts->m_buildplate_type_detection.current_detect_value = print_json["xcam"]["buildplate_marker_detector"].get<bool>();
             }
         }
@@ -124,11 +126,14 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                 if (print_json["module_name"].get<std::string>() == "first_layer_inspector") {
                     if (time(nullptr) - opts->m_first_layer_detection.detect_hold_start > HOLD_TIME_3SEC) { opts->m_first_layer_detection.current_detect_value = enable; }
                 } else if (print_json["module_name"].get<std::string>() == "buildplate_marker_detector") {
-                    if (time(nullptr) - opts->m_buildplate_mark_detection.detect_hold_start > HOLD_TIME_3SEC) { opts->m_buildplate_mark_detection.current_detect_value = enable; }
-                    opts->m_buildplate_type_detection.current_detect_value = enable;
+                    if (time(nullptr) - opts->m_buildplate_mark_detection.detect_hold_start > HOLD_TIME_3SEC)
+                        opts->m_buildplate_mark_detection.current_detect_value = enable;
+                    if (time(nullptr) - opts->m_buildplate_type_detection.detect_hold_start > HOLD_TIME_3SEC)
+                        opts->m_buildplate_type_detection.current_detect_value = enable;
 
                 } else if (print_json["module_name"].get<std::string>() == "plate_offset_switch") {
-                    opts->m_buildplate_type_detection.current_detect_value = enable;
+                    if (time(nullptr) - opts->m_buildplate_align_detection.detect_hold_start > HOLD_TIME_3SEC)
+                        opts->m_buildplate_align_detection.current_detect_value = enable;
                 } else if (print_json["module_name"].get<std::string>() == "printing_monitor") {
                     if (time(nullptr) - opts->m_ai_monitoring_detection.detect_hold_start > HOLD_TIME_3SEC) {
                         opts->m_ai_monitoring_detection.current_detect_value = enable ? 1 : 0;
@@ -334,14 +339,14 @@ int DevPrintOptions::command_xcam_control_first_layer_inspector(bool on_off, boo
 int DevPrintOptions::command_xcam_control_auto_recovery_step_loss(bool on_off)
 {
     m_auto_recovery_detection.current_detect_value             = on_off;
-    m_auto_recovery_detection.current_detect_sensitivity_value = time(nullptr);
+    m_auto_recovery_detection.detect_hold_start    = time(nullptr);
     return command_set_printing_option(on_off, m_obj);
 }
 
 int DevPrintOptions::command_xcam_control_build_plate_type_detector(bool on_off)
 {
     m_buildplate_type_detection.current_detect_value             = on_off;
-    m_buildplate_type_detection.current_detect_sensitivity_value = time(nullptr);
+    m_buildplate_type_detection.detect_hold_start    = time(nullptr);
     return command_xcam_control("buildplate_marker_detector", on_off, m_obj);
 }
 
@@ -377,7 +382,7 @@ int DevPrintOptions::command_xcam_control_airprinting_detection(bool on_off, std
 int DevPrintOptions::command_xcam_control_build_plate_align_detector(bool on_off)
 {
     m_buildplate_align_detection.current_detect_value             = on_off;
-    m_buildplate_align_detection.current_detect_sensitivity_value = time(nullptr);
+    m_buildplate_align_detection.detect_hold_start    = time(nullptr);
     return command_xcam_control("plate_offset_switch", on_off, m_obj);
 }
 
