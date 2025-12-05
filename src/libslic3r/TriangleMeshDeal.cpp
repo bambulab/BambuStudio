@@ -6,7 +6,8 @@
 #include <igl/false_barycentric_subdivision.h>
 
 namespace Slic3r {
-    TriangleMesh TriangleMeshDeal::smooth_triangle_mesh(const TriangleMesh &mesh) {
+TriangleMesh TriangleMeshDeal::smooth_triangle_mesh(const TriangleMesh &mesh, bool &ok)
+{
         {
             using namespace std;
             using namespace igl;
@@ -29,7 +30,11 @@ namespace Slic3r {
             F = OF;
 
             //igl::upsample(Eigen::MatrixXd(V), Eigen::MatrixXi(F), V, F);
-            igl::loop(Eigen::MatrixXd(V), Eigen::MatrixXi(F), V, F);
+            ok = true;
+            if (!igl::loop(Eigen::MatrixXd(V), Eigen::MatrixXi(F), V, F)) {
+                ok = false;
+                return TriangleMesh();
+            }
             //igl::false_barycentric_subdivision(Eigen::MatrixXd(V), Eigen::MatrixXi(F), V, F);
             indexed_triangle_set its;
             int         vertex_count = V.rows();
