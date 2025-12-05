@@ -8,8 +8,8 @@
         "0"
     ],
     "filament_cooling_before_tower": [
-        "10",
-        "10"
+        "0",
+        "0"
     ],
     "filament_deretraction_speed": [
         "nil",
