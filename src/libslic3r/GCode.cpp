@@ -4031,7 +4031,9 @@ GCode::LayerResult GCode::process_layer(
         // BBS
         int bed_temp = 0;
         if (m_config.bed_temperature_formula == BedTempFormula::btfHighestTemp)
-            bed_temp = get_highest_bed_temperature(false,print);
+            // Keep using the hottest requirement from the first layer so later filaments that never touch the bed
+            // don't raise the bed temperature unnecessarily.
+            bed_temp = get_highest_bed_temperature(true, print);
         else
             bed_temp = get_bed_temperature(first_extruder_id, false, m_config.curr_bed_type);
         gcode += m_writer.set_bed_temperature(bed_temp);
