@@ -331,7 +331,7 @@ void PrintOptionsDialog::update_purify_air_at_print_end(MachineObject *obj_)
     m_cb_purify_air_at_print_end->Enable();
     purify_air_switch_board->Enable();
     text_purify_air_context->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
-    text_purify_air->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    text_purify_air->SetForegroundColour(*wxBLACK);
 
     if (obj_->GetFan()->GetAirDuctData().IsExaustFanExit())
     {
@@ -377,14 +377,14 @@ void PrintOptionsDialog::show_print_option_toast(const wxString &text) {
     }
 
     m_print_option_toast = new PrintOptionToast(this, text);
-    wxRect parentRect = this->GetScreenRect();
-    wxSize toastSize = m_print_option_toast->GetSize();
-    int x = parentRect.x + (parentRect.width - toastSize.GetWidth()) / 2;
-    int y = parentRect.y + (parentRect.height - toastSize.GetHeight()) / 2;
+    wxRect  anchor = text_purify_air->GetScreenRect();
+    wxSize  toastSize = m_print_option_toast->GetSize();
+    int x = anchor.GetBottomLeft().x + (anchor.width - toastSize.GetWidth()) / 2 - FromDIP(40);
+    int y = anchor.GetRightTop().y - toastSize.y -  FromDIP(5);
     m_print_option_toast->Move(x,y);
     m_print_option_toast->Show();
     m_print_option_timer->Stop();
-    m_print_option_timer->StartOnce(3000);
+    m_print_option_timer->StartOnce(1500);
 }
 
 void PrintOptionsDialog::update_options(MachineObject* obj_)
@@ -1784,7 +1784,7 @@ void PrinterPartsDialog::UpdateNozzleInfo(){
 
  PrintOptionToast::PrintOptionToast(wxWindow *parent, const wxString &text): wxPopupWindow(parent)
  {
-     SetBackgroundColour(wxColour(200, 200, 200));
+     SetBackgroundColour(wxColour(0, 0, 0));
 
      wxStaticText *textContent = new wxStaticText(this, wxID_ANY, text);
      textContent->SetForegroundColour(*wxWHITE);
