@@ -3498,6 +3498,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         old_filament_profile_names->values.resize(num_filaments, std::string());
 
         auto old_machine_profile_name = config.option<ConfigOptionString>("printer_settings_id", true);
+        auto machine_inherit          = config.option<ConfigOptionString>("inherits", true);
 
         if (num_filaments <= 1) {
             // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
@@ -3521,10 +3522,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load single filament preset from filament_settings_id");
             if (is_external) {
+                auto machine_name = machine_inherit->empty() ? old_machine_profile_name->value : machine_inherit->value;
                 if (inherits.empty())
-                    convert_filament_preset_name(old_machine_profile_name->value, old_filament_profile_names->values.front());
+                    convert_filament_preset_name(machine_name, old_filament_profile_names->values.front());
                 else
-                    convert_filament_preset_name(old_machine_profile_name->value, inherits);
+                    convert_filament_preset_name(machine_name, inherits);
                 loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, filament_different_keys_set, PresetCollection::LoadAndSelect::Always, file_version, filament_id).first;
             }
             else {
@@ -3592,10 +3594,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
                 // Load all filament presets, but only select the first one in the preset dialog.
                 std::string& filament_inherit = cfg.opt_string("inherits", true);
+                auto machine_name = machine_inherit->empty() ? old_machine_profile_name->value : machine_inherit->value;
                 if (filament_inherit.empty() && (i < int(old_filament_profile_names->values.size())))
-                    convert_filament_preset_name(old_machine_profile_name->value, old_filament_profile_names->values[i]);
+                    convert_filament_preset_name(machine_name, old_filament_profile_names->values[i]);
                 else
-                    convert_filament_preset_name(old_machine_profile_name->value, filament_inherit);
+                    convert_filament_preset_name(machine_name, filament_inherit);
                 auto [loaded, modified] = this->filaments.load_external_preset(name_or_path, name,
                     (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
                     std::move(cfg),
