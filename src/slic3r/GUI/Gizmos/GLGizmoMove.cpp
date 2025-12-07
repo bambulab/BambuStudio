@@ -230,6 +230,9 @@ void GLGizmoMove3D::on_render()
                     cur_box         = curr_plate->get_plate_box();
                     auto temp_world_box = m_bounding_box.transformed(m_orient_matrix);
                     cur_box.max[2]      = temp_world_box.max[2];
+                    // Adjust the bounding box by reducing max by 0.1 and increasing min by 0.1
+                    cur_box.min += Vec3d(0.1f, 0.1f, 0.1f);
+                    cur_box.max -= Vec3d(0.1f, 0.1f, 0.1f);
                 } else {
                     ModelObject *mo = get_selected_model_object(m_parent);
                     if (mo) {
@@ -338,7 +341,7 @@ void GLGizmoMove3D::on_render()
             const Camera &camera            = wxGetApp().plater()->get_camera();
             const auto &  view_matrix       = camera.get_view_matrix();
             const auto &  projection_matrix = camera.get_projection_matrix();
-            auto          volume_size       = selection.get_volume_idxs().size();
+            auto          volume_size       = selection.get_volume_idxs().size() > 6 ? 6 : selection.get_volume_idxs().size();//limit max volume size,avoid rendering  render too much
             if (GLGizmoAlignment::AlignType::DISTRIBUTE_X == m_object_manipulation->m_align_type) {
                 float step  = m_bounding_box.size()[0] / (volume_size + 1);
                 auto  start = cur_tran.get_offset();
