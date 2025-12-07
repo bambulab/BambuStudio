@@ -530,7 +530,7 @@ public:
 
     bool        file_model_download{false};
     bool        virtual_camera{false};
-
+    bool        m_has_timelapse_kit{false};
     // part skip
     std::vector<int> m_partskip_ids;
 
