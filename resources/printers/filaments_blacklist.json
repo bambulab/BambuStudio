@@ -65,7 +65,8 @@
     {
       "type": "TPU-AMS",
       "action": "warning",
-      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.",
+      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
     },
     {
       "type": "PVA",
