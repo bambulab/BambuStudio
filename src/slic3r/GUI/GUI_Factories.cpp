@@ -745,12 +745,21 @@ wxMenuItem* MenuFactory::append_menu_item_change_type(wxMenu* menu)
     return append_menu_item(menu, wxID_ANY, _L("Change type"), "",
         [](wxCommandEvent&) { obj_list()->change_part_type(); }, "", menu,
         []() {
-            const Selection &selection = plater()->canvas3D()->get_selection();
-            if (selection.get_volume_idxs().size() != 1) {
+            auto has_volume_in_list = []() {
+                wxDataViewItemArray sels;
+                obj_list()->GetSelections(sels);
+                for (auto item : sels) {
+                    const auto type = obj_list()->GetModel()->GetItemType(item);
+                    if (type & itVolume)
+                        return true;
+                    if ((type & itSettings) && (obj_list()->GetModel()->GetItemType(obj_list()->GetModel()->GetParent(item)) & itVolume))
+                        return true;
+                }
                 return false;
-            }
-            wxDataViewItem item = obj_list()->GetSelection();
-            return item.IsOk() || obj_list()->GetModel()->GetItemType(item) == itVolume;
+            };
+
+            const Selection &selection = plater()->canvas3D()->get_selection();
+            return has_volume_in_list() || !selection.get_volume_idxs().empty();
         }, m_parent);
 }
 
@@ -1717,6 +1726,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
+        append_menu_item_change_type(menu);
         append_menu_items_convert_unit(menu);
         append_menu_item_change_filament(menu);
         append_menu_item_reload_from_disk(menu);
