@@ -250,7 +250,12 @@ public:
     * 0 based group id
     */
 
-    static MultiNozzleUtils::MultiNozzleGroupResult get_recommended_filament_maps(Print* print, const std::vector<std::vector<unsigned int>>& layer_filaments, const FilamentMapMode mode, const std::vector<std::set<int>>& physical_unprintables, const std::vector<std::set<int>>& geometric_unprintables);
+    static MultiNozzleUtils::MultiNozzleGroupResult get_recommended_filament_maps(Print                                           *print,
+                                                                                  const std::vector<std::vector<unsigned int>>    &layer_filaments,
+                                                                                  const FilamentMapMode                            mode,
+                                                                                  const std::vector<std::set<int>>                &physical_unprintables,
+                                                                                  const std::vector<std::set<int>>                &geometric_unprintables,
+                                                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes);
 
     // should be called after doing reorder
     FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
