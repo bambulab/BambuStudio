@@ -564,6 +564,31 @@ std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std
     return extruder_ams_count_str;
 }
 
+NozzleVolumeType convert_to_nvt_type(const std::string &variant_str) {
+    const auto &ext_types = ConfigOptionEnum<ExtruderType>::get_enum_names();
+
+    auto trim = [](std::string &s) {
+        s.erase(s.find_last_not_of(" \t\r\n") + 1);
+        s.erase(0, s.find_first_not_of(" \t\r\n"));
+    };
+
+    for (auto ext_type : ext_types) {
+        size_t pos = variant_str.find(ext_type);
+        if (pos == std::string::npos)
+            continue;
+
+        std::string result = variant_str;
+        result.erase(pos, ext_type.size());
+        trim(result);
+
+        auto iter = s_keys_map_NozzleVolumeType.find(result);
+        if (iter != s_keys_map_NozzleVolumeType.end())
+            return NozzleVolumeType(iter->second);
+    }
+
+    return nvtHybrid;
+}
+
 std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType,int>>& extruder_nozzle_stats)
 {
     std::vector<std::string> extruder_nozzle_count_str;

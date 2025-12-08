@@ -90,7 +90,8 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
         nozzle_fils[extruder_variant]++;
     }
     if (nozzle_fils["Direct Drive TPU High Flow"] > 1) {
-        std::string error_msg = _L("The TPU High Flow nozzle doesn’t support auto filament switching, so only one filament can be assigned.");
+        std::string error_msg = _L("The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n") +
+                                std::to_string(nozzle_fils["Direct Drive TPU High Flow"]) + _L(" filaments are assigned to the TPU High Flow nozzle");
         throw Slic3r::RuntimeError(error_msg);
     }
     return true;
@@ -1097,7 +1098,12 @@ float get_flush_volume(const std::vector<int> &filament_maps, const std::vector<
 }
 
 
-MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print* print, const std::vector<std::vector<unsigned int>>& layer_filaments, const FilamentMapMode mode,const std::vector<std::set<int>>&physical_unprintables,const std::vector<std::set<int>>&geometric_unprintables)
+MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print                                        *print,
+                                                                                     const std::vector<std::vector<unsigned int>> &layer_filaments,
+                                                                                     const FilamentMapMode                         mode,
+                                                                                     const std::vector<std::set<int>>             &physical_unprintables,
+                                                                                     const std::vector<std::set<int>>             &geometric_unprintables,
+                                                                                     const std::map<int, std::set<NozzleVolumeType>>   &unprintable_volumes)
 {
     using namespace FilamentGroupUtils;
     using namespace MultiNozzleUtils;
@@ -1227,6 +1233,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
             context.model_info.unprintable_filaments = ext_unprintable_filaments;
             context.model_info.layer_filaments = layer_filaments;
             context.model_info.filament_ids = filament_ids;
+            context.model_info.unprintable_volumes = unprintable_volumes;
 
             context.speed_info.filament_print_time = print->get_filament_print_time();
             context.speed_info.group_with_time = print->config().group_algo_with_time;
@@ -1360,7 +1367,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     std::vector<std::set<int>>geometric_unprintables = m_print->get_geometric_unprintable_filaments();
     std::vector<std::set<int>>physical_unprintables = m_print->get_physical_unprintable_filaments(used_filaments);
-    std::vector<std::set<int>>flow_unprintables = m_print->get_flow_unprintable_filaments(used_filaments);
+    auto filament_unprintable_volumes = m_print->get_filament_unprintable_flow(used_filaments);
 
     filament_maps = m_print->get_filament_maps();
     map_mode = m_print->get_filament_map_mode();
@@ -1376,7 +1383,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 filament_maps =m_print->get_nozzle_group_result()->get_extruder_map();
             }
             else{
-                auto group_result = ToolOrdering::get_recommended_filament_maps(m_print,layer_filaments,map_mode,physical_unprintables,geometric_unprintables);
+                auto group_result = ToolOrdering::get_recommended_filament_maps(m_print, layer_filaments, map_mode, physical_unprintables, geometric_unprintables, filament_unprintable_volumes);
                 m_print->set_nozzle_group_result(group_result);
                 filament_maps = group_result.get_extruder_map();
             }
@@ -1502,7 +1509,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         if (map_mode != fmmAutoForFlush)
         {
             std::vector<std::vector<unsigned int>>filament_sequences_one_extruder;
-            auto group_result_auto = get_recommended_filament_maps(m_print, layer_filaments, fmmAutoForFlush, physical_unprintables, geometric_unprintables);
+            auto group_result_auto = get_recommended_filament_maps(m_print, layer_filaments, fmmAutoForFlush, physical_unprintables, geometric_unprintables, filament_unprintable_volumes);
             reorder_filaments_for_multi_nozzle_extruder(
                 filament_lists,
                 group_result_auto,

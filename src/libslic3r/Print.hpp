@@ -969,8 +969,7 @@ public:
     * @return A vector of sets representing unprintable filaments for each extruder.Return an empty vecto if extruder num is 1
     */
     std::vector<std::set<int>> get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const;
-
-    std::vector<std::set<int>> get_flow_unprintable_filaments(const std::vector<unsigned int> &used_filaments) const;
+    std::map<int, std::set<NozzleVolumeType>> get_filament_unprintable_flow(const std::vector<unsigned int> &used_filaments) const;
 
     std::vector<double> get_extruder_printable_height() const;
     std::vector<Polygons> get_extruder_printable_polygons() const;

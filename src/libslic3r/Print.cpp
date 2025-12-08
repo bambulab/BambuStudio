@@ -2125,11 +2125,12 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
             auto physical_unprintables = this->get_physical_unprintable_filaments(used_filaments);
             auto geometric_unprintables = this->get_geometric_unprintable_filaments();
+            auto filament_unprintable_volumes = this->get_filament_unprintable_flow(used_filaments);
             // get recommended filament map
             {
                 if (!get_nozzle_group_result().has_value()) {
                     auto map_mode = get_filament_map_mode();
-                    auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables);
+                    auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables, filament_unprintable_volumes);
                     set_nozzle_group_result(group_result);
                 }
                 auto group_result = get_nozzle_group_result();
@@ -2751,10 +2752,15 @@ FilamentMapMode Print::get_filament_map_mode() const
 {
     return m_config.filament_map_mode;
 }
+
 std::vector<std::string> Print::get_full_filament_extruder_variants(const size_t filament_id) const
 {
     std::vector<std::string> filament_extruder_variants;
     auto filament_variants = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+
+    if (!m_ori_full_print_config.has("filament_self_index"))
+        return filament_variants;
+
     auto filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
 
     for (int i = 0; i < filament_self_index.size(); i++){
@@ -2799,30 +2805,35 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     return physical_unprintables;
 }
 
-std::vector<std::set<int>> Print::get_flow_unprintable_filaments(const std::vector<unsigned int> &used_filaments) const
+std::map<int, std::set<NozzleVolumeType>> Print::get_filament_unprintable_flow(const std::vector<unsigned int> &used_filaments) const
 {
     std::vector<std::string> extruder_variant_list = m_config.printer_extruder_variant.values;
     std::vector<std::string> filament_variant_list = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-    std::vector<int>         filament_self_index   = m_ori_full_print_config.option < ConfigOptionInts>("filament_self_index")->values;
+    std::vector<int> filament_self_index;
+    if (!m_ori_full_print_config.has("filament_self_index"))
+        filament_self_index.resize(filament_variant_list.size(), 1);
+    else
+        filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+    std::map<int, std::set<NozzleVolumeType>> ret;
+    std::unordered_set<int> used_fils_set(used_filaments.begin(), used_filaments.end());
 
-    std::vector<std::set<int>> flow_unprintables(extruder_variant_list.size());
-    if (extruder_variant_list.size() < 2) return flow_unprintables;
-
-    std::unordered_map<int, std::set<std::string>> filament_variant_map;
+    std::unordered_map<int, std::set<NozzleVolumeType>> filament_variant_map;
     for(int i = 0; i < filament_variant_list.size(); ++i){
-        filament_variant_map[filament_self_index[i]].insert(filament_variant_list[i]);
+        NozzleVolumeType volume = convert_to_nvt_type(filament_variant_list[i]);
+        if(volume != nvtHybrid) filament_variant_map[filament_self_index[i]].insert(volume);
     }
 
-    for (auto iter : filament_variant_map){
+    for (auto iter : filament_variant_map) {
         int fil_idx = iter.first - 1;
-        const std::set<std::string>& variants = iter.second;
-        for (int exd_idx = 0; exd_idx < extruder_variant_list.size(); ++exd_idx){
-            if (variants.find(extruder_variant_list[exd_idx]) == variants.end()){
-                flow_unprintables[exd_idx].insert(fil_idx);
-            }
+        if (used_fils_set.find(fil_idx) == used_fils_set.end()) continue;
+        const std::set<NozzleVolumeType> &volumes = iter.second;
+        for (int exd_idx = 0; exd_idx < extruder_variant_list.size(); ++exd_idx) {
+            auto exd_volume = convert_to_nvt_type(extruder_variant_list[exd_idx]);
+            assert(exd_volume != nvtHybrid);
+            if (volumes.find(exd_volume) == volumes.end() && exd_volume != nvtHybrid) ret[fil_idx].insert(exd_volume);
         }
     }
-    return flow_unprintables;
+    return ret;
 }
 
 std::vector<double> Print::get_extruder_printable_height() const
