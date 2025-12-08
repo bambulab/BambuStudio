@@ -77,6 +77,7 @@ namespace Slic3r
             std::vector<FilamentGroupUtils::FilamentInfo> filament_info;
             std::vector<std::string> filament_ids;
             std::vector<std::set<int>> unprintable_filaments;
+            std::map<int, std::set<NozzleVolumeType>> unprintable_volumes;
         } model_info;
 
         struct GroupInfo {
@@ -157,6 +158,8 @@ namespace Slic3r
         std::vector<int> calc_min_flush_group_by_enum(const std::vector<unsigned int>& used_filaments, int* cost = nullptr);
         std::vector<int> calc_min_flush_group_by_pam2(const std::vector<unsigned int>& used_filaments, int* cost = nullptr, int timeout_ms = 300);
         std::vector<int> calc_min_flush_group_by_pam (const std::vector<unsigned int>& used_filaments, int* cost = nullptr, int timeout_ms = 300, int retry = 15);
+
+        std::map<int, int> rebuild_unprintables(const std::vector<unsigned int>& used_filaments, const std::map<int,int>& extruder_unprintables);
 
         std::unordered_map<int, std::vector<int>> try_merge_filaments();
         void rebuild_context(const std::unordered_map<int, std::vector<int>>& merged_filaments);
@@ -255,7 +258,7 @@ namespace Slic3r
         // set max group size
         void set_max_cluster_size(const std::vector<int>& group_size) { m_max_cluster_size = group_size; }
 
-        void set_cluster_group_size(const std::vector<std::pair<std::set<int>,int>>& cluster_group_size); 
+        void set_cluster_group_size(const std::vector<std::pair<std::set<int>,int>>& cluster_group_size);
 
         // key stores elem, value stores the cluster id that the elem must be placed
         void set_placable_limits(const std::unordered_map<int, std::vector<int>>& placable_limits) { m_placeable_limits = placable_limits; }
