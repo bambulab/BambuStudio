@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,6 +49,9 @@ msgstr ""
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr ""
 
@@ -70,13 +73,26 @@ msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -549,19 +565,28 @@ msgstr ""
 msgid "World coordinates"
 msgstr "World coordinates"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr ""
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
 msgid "Align"
 msgstr ""
 
 msgid "Distribute"
-msgstr ""
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
 msgid "Align left"
@@ -1850,7 +1875,7 @@ msgid "Support"
 msgstr "Support"
 
 msgid "Flush options"
-msgstr "Flush options"
+msgstr "Purge options"
 
 msgid "Speed"
 msgstr "Speed"
@@ -2037,16 +2062,16 @@ msgid "Scale the selected object to fit the print volume"
 msgstr ""
 
 msgid "Flush Options"
-msgstr "Flush Options"
+msgstr "Purge Options"
 
 msgid "Flush into objects' infill"
-msgstr "Flush into objects' infill"
+msgstr "Purge into objects' infill"
 
 msgid "Flush into this object"
-msgstr "Flush into this object"
+msgstr "Purge into this object"
 
 msgid "Flush into objects' support"
-msgstr "Flush into objects' support"
+msgstr "Purge into objects' support"
 
 msgid "Edit in Parameter Table"
 msgstr "Edit in Parameter Table"
@@ -2186,7 +2211,7 @@ msgstr "Clone"
 msgid "Simplify Model"
 msgstr "Simplify Model"
 
-msgid "Smooth mesh"
+msgid "Subdivision mesh"
 msgstr ""
 
 msgid "(Lost color)"
@@ -2428,6 +2453,17 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "Repairing was canceled"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "Additional process preset"
@@ -4090,6 +4126,9 @@ msgstr "Resume"
 msgid "Unknown error."
 msgstr ""
 
+msgid "Loading..."
+msgstr "Loading..."
+
 msgid "default"
 msgstr "default"
 
@@ -4180,7 +4219,7 @@ msgid "Display"
 msgstr "Display"
 
 msgid "Flushed"
-msgstr "Flushed"
+msgstr "Purged"
 
 msgid "Tower"
 msgstr "Tower"
@@ -4709,7 +4748,7 @@ msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
-msgstr ""
+msgstr "Partial purging volume set to 0. Multi-color printing may cause color mixing in models. Please redjust purging settings."
 
 msgid "Click Wiki for help."
 msgstr ""
@@ -4718,7 +4757,7 @@ msgid "Click here to regroup"
 msgstr ""
 
 msgid "Flushing Volume"
-msgstr ""
+msgstr "Purging Volume"
 
 msgid "Calibration step selection"
 msgstr "Calibration step selection"
@@ -5424,9 +5463,6 @@ msgstr "Playing..."
 
 msgid "DLL load error"
 msgstr ""
-
-msgid "Loading..."
-msgstr "Loading..."
 
 msgid "Year"
 msgstr "Year"
@@ -6571,7 +6607,7 @@ msgid "Purge mode"
 msgstr ""
 
 msgid "Flushing volumes"
-msgstr "Flushing volumes"
+msgstr "Purging volumes"
 
 msgid "Add one filament"
 msgstr "Add one filament"
@@ -7306,10 +7342,10 @@ msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
-msgstr ""
+msgstr "Auto Purge"
 
 msgid "Auto calculate flush volumes"
-msgstr ""
+msgstr "Auto calculate purge volumes"
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr "Multi-device Management(Take effect after restarting Studio)."
@@ -7405,6 +7441,12 @@ msgid "Set grabber size for move,rotate,scale tool."
 msgstr ""
 
 msgid "Value range"
+msgstr ""
+
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
 msgstr ""
 
 msgid "Presets"
@@ -8059,10 +8101,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr ""
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
 
@@ -8079,6 +8117,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
 msgstr ""
 
 msgid "Cool"
@@ -8436,10 +8478,10 @@ msgid "Ignore"
 msgstr "Ignore"
 
 msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."
-msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."
+msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize purge. Although it can notably reduce purge,  it may also elevate the risk of nozzle clogs or other printing complications."
 
 msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."
-msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications. Please use with the latest printer firmware."
+msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize purge. Although it can notably reduce purge, it may also elevate the risk of nozzle clogs or other printing complications. Please use with the latest printer firmware."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
@@ -9223,14 +9265,14 @@ msgid "OK"
 msgstr ""
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
-msgstr "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
+msgstr "Studio would re-calculate your purging volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Flushing volume (mm³) for each filament pair."
+msgstr "Purging volume (mm³) for each filament pair."
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
-msgstr "Suggestion: Flushing Volume in range [%d, %d]"
+msgstr "Suggestion: Purging Volume in range [%d, %d]"
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -9249,7 +9291,7 @@ msgid "Multiplier"
 msgstr "Multiplier"
 
 msgid "Flushing volumes for filament change"
-msgstr "Flushing volumes for filament change"
+msgstr "Purging volumes for filament change"
 
 msgid "Please choose the filament colour"
 msgstr "Please choose the filament colour"
@@ -9827,7 +9869,7 @@ msgid "Maybe parts of the object at these height are too thin, or the object has
 msgstr "Parts of the object at these heights may be too thin or the object may have a faulty mesh."
 
 msgid "Flush volumes matrix do not match to the correct size!"
-msgstr ""
+msgstr "Purge volumes matrix do not match to the correct size!"
 
 msgid "No object can be printed. Maybe too small"
 msgstr "No object can be printed. Maybe too small"
@@ -9907,7 +9949,7 @@ msgid "Multiple"
 msgstr "Multiple"
 
 msgid "Flush"
-msgstr ""
+msgstr "Purge"
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
@@ -10841,7 +10883,7 @@ msgid "filament mapping mode"
 msgstr ""
 
 msgid "Auto For Flush"
-msgstr ""
+msgstr "Auto For Purge"
 
 msgid "Auto For Match"
 msgstr ""
@@ -10853,16 +10895,16 @@ msgid "Nozzle Manual"
 msgstr ""
 
 msgid "Flush temperature"
-msgstr ""
+msgstr "Purge temperature"
 
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
-msgstr ""
+msgstr "temperature when purging filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 
 msgid "Flush volumetric speed"
-msgstr ""
+msgstr "Purge volumetric speed"
 
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
-msgstr ""
+msgstr "Volumetric speed when purging filament. 0 indicates the max volumetric speed"
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -11139,6 +11181,9 @@ msgid "Cross Zag"
 msgstr ""
 
 msgid "Locked Zag"
+msgstr ""
+
+msgid "2D Lattice"
 msgstr ""
 
 msgid "Skin infill pattern"
@@ -11448,6 +11493,18 @@ msgid "Symmetric infill y axis"
 msgstr ""
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
+msgstr ""
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -11880,7 +11937,7 @@ msgid "Long retraction when cut(experimental)"
 msgstr "Long retraction when cut (experimental)"
 
 msgid "Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems."
-msgstr "Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems."
+msgstr "Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces purge significantly, it may also raise the risk of nozzle clogs or other printing problems."
 
 msgid "Retraction distance when cut"
 msgstr "Retraction distance when cut"
@@ -12592,10 +12649,10 @@ msgid "Purging volumes"
 msgstr "Purging volumes"
 
 msgid "Flush multiplier"
-msgstr "Flush multiplier"
+msgstr "Purge multiplier"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
-msgstr "The actual flushing volumes is equal to the flush multiplier value multiplied by the flushing volumes in the table."
+msgstr "The actual purging volumes is equal to the purge multiplier value multiplied by the purging volumes in the table."
 
 msgid "Width of prime tower"
 msgstr "Width of prime tower"
@@ -15062,8 +15119,8 @@ msgid ""
 "Flush into support/objects/infill\n"
 "Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
 msgstr ""
-"Flush into support/objects/infill\n"
-"Did you know that you can reduce wasted filament by flushing it into support/objects/infill during filament changes?"
+"Purge into support/objects/infill\n"
+"Did you know that you can reduce wasted filament by purging it into support/objects/infill during filament changes?"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
