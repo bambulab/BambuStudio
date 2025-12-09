@@ -1761,11 +1761,20 @@ void ObjectList::key_event(wxKeyEvent& event)
         int keyCode = event.GetKeyCode();
         if (keyCode >= '0' && keyCode <= '9') {
             int digit = keyCode - '0';
-            if (m_extruder_input_value < 0 || !m_timer_set_extruder.IsRunning()) {
-                m_extruder_input_value = digit;
-            } else {
-                m_extruder_input_value = m_extruder_input_value * 10 + digit;
+            const bool starting_new_sequence = (m_extruder_input_value < 0 || !m_timer_set_extruder.IsRunning());
+            if (starting_new_sequence && digit == 0) {
+                // Map single zero key to filament #10
+                if (m_timer_set_extruder.IsRunning())
+                    m_timer_set_extruder.Stop();
+                if (filaments_count() >= 10)
+                    set_extruder_for_selected_items(10);
+                m_extruder_input_value = -1;
+                return;
             }
+            if (starting_new_sequence)
+                m_extruder_input_value = digit;
+            else
+                m_extruder_input_value = m_extruder_input_value * 10 + digit;
             if (m_timer_set_extruder.IsRunning()) m_timer_set_extruder.Stop();
             m_timer_set_extruder.StartOnce(500);
         }

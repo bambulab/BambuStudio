@@ -3999,7 +3999,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case '8':
         case '9': {
             int digit = keyCode - '0';
-            if (m_color_input_value < 0 || !m_timer_set_color.IsRunning()) {
+            const bool starting_new_sequence = (m_color_input_value < 0 || !m_timer_set_color.IsRunning());
+            if (starting_new_sequence && digit == 0) {
+                // Map single zero key to filament #10 immediately
+                if (m_timer_set_color.IsRunning())
+                    m_timer_set_color.Stop();
+                if (obj_list != nullptr && m_gizmos.get_current_type() != GLGizmosManager::MmuSegmentation)
+                    obj_list->set_extruder_for_selected_items(10);
+                m_color_input_value = -1;
+                break;
+            }
+            else if (starting_new_sequence) {
                 m_color_input_value = digit;
             } else {
                 m_color_input_value = m_color_input_value * 10 + digit;
