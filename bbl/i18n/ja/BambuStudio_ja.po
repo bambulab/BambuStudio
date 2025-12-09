@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,6 +52,9 @@ msgstr "AMSは「Bambu Lab PET-CF」に対応していません。"
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "詰まり防止のために、TPUの造形前にコールドプルを行ってください。プリンターのコールドプルメンテナンス機能をご利用いただけます。"
 
@@ -73,13 +76,26 @@ msgstr "PPS-CF は脆いため、ツールヘッド上部で曲がったPTFEチ�
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CFは脆いため、ツールヘッド上部で曲がったPTFEチューブ内で破損する可能性があります。"
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -552,20 +568,29 @@ msgstr "オブジェクト座標"
 msgid "World coordinates"
 msgstr "空間座標"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr "相対移動"
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
 msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "Ctrlキーを押しながら左クリックで複数のオブジェクトを選択できます。Altキーを押しながら左クリックすると、複数のパーツを選択できます。"
 
 msgid "Align"
 msgstr "整列"
 
 msgid "Distribute"
 msgstr "分布"
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Ctrlキーを押しながら左クリックで複数のオブジェクトを選択できます。Altキーを押しながら左クリックすると、複数のパーツを選択できます。"
 
 msgid "Align left"
 msgstr ""
@@ -2198,7 +2223,7 @@ msgstr "複製"
 msgid "Simplify Model"
 msgstr "モデルを簡略化"
 
-msgid "Smooth mesh"
+msgid "Subdivision mesh"
 msgstr ""
 
 msgid "(Lost color)"
@@ -2435,6 +2460,17 @@ msgstr[0] ""
 
 msgid "Repairing was canceled"
 msgstr "修復は取消しました"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "他のプリセット"
@@ -4102,6 +4138,9 @@ msgstr "再開"
 msgid "Unknown error."
 msgstr "不明なエラーです。"
 
+msgid "Loading..."
+msgstr "読込み中"
+
 msgid "default"
 msgstr "デフォルト"
 
@@ -5434,9 +5473,6 @@ msgstr "再生中..."
 
 msgid "DLL load error"
 msgstr "DLL読み込みエラー"
-
-msgid "Loading..."
-msgstr "読込み中"
 
 msgid "Year"
 msgstr "年"
@@ -7426,6 +7462,12 @@ msgstr "移動、回転、拡大縮小ツールのグラブサイズを設定"
 msgid "Value range"
 msgstr "値の範囲"
 
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
 msgid "Presets"
 msgstr "プリセット"
 
@@ -8086,10 +8128,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "現在のノズル径（%.1fmm）とスライスファイル（%.1fmm）が一致していません。取り付けられているノズルがプリンタの設定と一致していることを確認し、スライス時に対応するプリンタのプリセットを設定してください。"
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "現在の素材（%s）の硬度が、%s（%s）の硬度を超えています。ノズルまたは材料の設定を確認し、再度お試しください。"
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "ノズルの自動マッピング要求の送信に失敗しました（エラーコード：%d）。プリンター情報を更新してみてください。改善しない場合は、プリンターの再紐付けやネットワーク接続の確認をお試しください。"
 
@@ -8107,6 +8145,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "現在のノズルマッピングでは、追加で%0.2f gの廃材が発生する可能性があります。"
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "現在の素材（%s）の硬度が、%s（%s）の硬度を超えています。ノズルまたは材料の設定を確認し、再度お試しください。"
 
 msgid "Cool"
 msgstr "クール"
@@ -11196,6 +11238,9 @@ msgstr "クロスザグ"
 msgid "Locked Zag"
 msgstr "ロックされたザグ"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Skin infill pattern"
 msgstr "スキン充填パターン"
 
@@ -11508,6 +11553,18 @@ msgstr "Y軸対称のインフィル"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "モデルにY軸を中心に対称な2つのパーツがあり、それらのパーツに対して対称的なテクスチャを適用したい場合は、1つのパーツでこのオプションをクリックしてください。"
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "スパースインフィルアンカーの長さ"

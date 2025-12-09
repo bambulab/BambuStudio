@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,6 +52,9 @@ msgstr "AMS ondersteunt 'Bambu Lab PET-CF' niet."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Trek a.u.b. koud voordat u TPU afdrukt om verstopping te voorkomen. U kunt cold pull-onderhoud op de printer gebruiken."
 
@@ -73,13 +76,26 @@ msgstr "PPS-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead.
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is bros en kan breken in een gebogen PTFE-buis boven de toolhead."
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -552,20 +568,29 @@ msgstr "Object coördinaten"
 msgid "World coordinates"
 msgstr "Wereld coördinaten"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr "Vertalen(Relatief)"
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
 msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "Door de Ctrl-toets ingedrukt te houden en met de linkermuisknop te klikken, kunt u meerdere objecten selecteren, of door de Alt-toets ingedrukt te houden en met de linkermuisknop te klikken, kunt u meerdere onderdelen selecteren"
 
 msgid "Align"
 msgstr "Uitlijnen"
 
 msgid "Distribute"
 msgstr "Verdelen"
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Door de Ctrl-toets ingedrukt te houden en met de linkermuisknop te klikken, kunt u meerdere objecten selecteren, of door de Alt-toets ingedrukt te houden en met de linkermuisknop te klikken, kunt u meerdere onderdelen selecteren"
 
 msgid "Align left"
 msgstr ""
@@ -2200,7 +2225,7 @@ msgstr "Dupliceren"
 msgid "Simplify Model"
 msgstr "Model vereenvoudigen"
 
-msgid "Smooth mesh"
+msgid "Subdivision mesh"
 msgstr ""
 
 msgid "(Lost color)"
@@ -2442,6 +2467,17 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "Repareren is geannuleerd"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "Extra procesvoorinstelling"
@@ -4117,6 +4153,9 @@ msgstr "Hervatten"
 msgid "Unknown error."
 msgstr "Onbekende fout."
 
+msgid "Loading..."
+msgstr "Laden..."
+
 msgid "default"
 msgstr "Standaard"
 
@@ -5461,9 +5500,6 @@ msgstr "Afspelen..."
 
 msgid "DLL load error"
 msgstr "DLL-laadfout"
-
-msgid "Loading..."
-msgstr "Laden..."
 
 msgid "Year"
 msgstr "Jaar"
@@ -7470,6 +7506,12 @@ msgstr "Stel de grijpergrootte in voor gereedschappen voor verplaatsen, roteren 
 msgid "Value range"
 msgstr "Waarde bereik"
 
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
 msgid "Presets"
 msgstr "Voorinstellingen"
 
@@ -8132,10 +8174,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestand (%.1fmm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de corresponderende voorinstelling van de printer in tijdens het slicen."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "De hardheid van het huidige materiaal (%s) is groter dan de hardheid van %s(%s). Controleer het mondstuk of de materiaalinstellingen en probeer het opnieuw."
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "Mislukt om nozzle auto-mapping verzoek naar printer te sturen { code: %d }. Vernieuw de printerinformatie aub. Als het probleem blijft, probeer dan de printer opnieuw te koppelen en controleer de netwerkverbinding."
 
@@ -8153,6 +8191,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "De huidige nozzle-mapping kan een extra %0.2f g afval opleveren."
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "De hardheid van het huidige materiaal (%s) is groter dan de hardheid van %s(%s). Controleer het mondstuk of de materiaalinstellingen en probeer het opnieuw."
 
 msgid "Cool"
 msgstr "Koel"
@@ -11243,6 +11285,9 @@ msgstr "Dwars Zag"
 msgid "Locked Zag"
 msgstr "Vergrendelde Zag"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Skin infill pattern"
 msgstr ""
 
@@ -11551,6 +11596,18 @@ msgstr "Symmetrische invulling y-as"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "Als het model twee delen heeft die symmetrisch zijn over de y-as, en je wilt dat deze delen symmetrische texturen hebben, klik dan op deze optie op een van de delen."
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "Lengte van de dunne invul anker"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,6 +52,9 @@ msgstr "Az AMS nem támogatja a „Bambu Lab PET-CF“ anyagot."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
 
@@ -73,13 +76,26 @@ msgstr "A PPS-CF rideg és eltörhet szerszámfej feletti hajlított PTFE-csőbe
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "A PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben."
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -552,20 +568,29 @@ msgstr "Objektum koordináták"
 msgid "World coordinates"
 msgstr "Világkoordináták"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr "Fordítás (Relatív)"
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
 msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "A Ctrl billentyű lenyomva tartása és az egér bal gombjának kattintása több objektum kiválasztását teszi lehetővé, míg az Alt billentyű lenyomva tartása és az egér bal gombjának kattintása több alkatrész kiválasztását eredményezi"
 
 msgid "Align"
 msgstr "Igazítás"
 
 msgid "Distribute"
 msgstr "Elosztás"
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "A Ctrl billentyű lenyomva tartása és az egér bal gombjának kattintása több objektum kiválasztását teszi lehetővé, míg az Alt billentyű lenyomva tartása és az egér bal gombjának kattintása több alkatrész kiválasztását eredményezi"
 
 msgid "Align left"
 msgstr ""
@@ -2200,7 +2225,7 @@ msgstr "Klónozás"
 msgid "Simplify Model"
 msgstr "Modell egyszerűsítése"
 
-msgid "Smooth mesh"
+msgid "Subdivision mesh"
 msgstr ""
 
 msgid "(Lost color)"
@@ -2442,6 +2467,17 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "A javítás meg lett szakítva"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "További folyamatbeállítások"
@@ -4117,6 +4153,9 @@ msgstr "Folytatás"
 msgid "Unknown error."
 msgstr "Ismeretlen hiba."
 
+msgid "Loading..."
+msgstr "Betöltés…"
+
 msgid "default"
 msgstr "alapértelmezett"
 
@@ -5461,9 +5500,6 @@ msgstr "Lejátszás..."
 
 msgid "DLL load error"
 msgstr "DLL betöltési hiba"
-
-msgid "Loading..."
-msgstr "Betöltés…"
 
 msgid "Year"
 msgstr "Év"
@@ -7467,6 +7503,12 @@ msgstr ""
 msgid "Value range"
 msgstr "Értéktartomány"
 
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
 msgid "Presets"
 msgstr "Beállítások"
 
@@ -8129,10 +8171,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban megadott értékkel (%.1f mm). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeleteléskor használd a megfelelő nyomtatóbeállítást."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "Az aktuális anyag keménysége (%s) meghaladja a(z) %s (%s) keménységét. Kérjük, ellenőrizd a fúvóka vagy az anyag beállításait, és próbáld újra."
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "Nem sikerült elküldeni a fúvóka automatikus kiosztását a nyomtatónak {kód: %d}. Kérjük, próbáld meg frissíteni a nyomtató adatait. Ha ezután sem működik, próbáld meg újból párosítani a nyomtatót, és ellenőrizd a hálózati kapcsolatot."
 
@@ -8150,6 +8188,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "A jelenlegi fúvókakiosztás további %0.2f g hulladékot eredményezhet."
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "Az aktuális anyag keménysége (%s) meghaladja a(z) %s (%s) keménységét. Kérjük, ellenőrizd a fúvóka vagy az anyag beállításait, és próbáld újra."
 
 msgid "Cool"
 msgstr ""
@@ -11238,6 +11280,9 @@ msgstr ""
 msgid "Locked Zag"
 msgstr "Zárt cakkozás"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Skin infill pattern"
 msgstr "Bőr kitöltési mintája"
 
@@ -11546,6 +11591,18 @@ msgstr "Szimmetrikus kitöltés Y-tengelyen"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "Ha a modellnek két olyan része van, amelyek az Y-tengelyre szimmetrikusak, és azt szeretnéd, hogy ezek a részek szimmetrikus textúrával rendelkezzenek, kattints erre az opcióra az egyik tárgyon."
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "Ritkás kitöltés horgony hossza"

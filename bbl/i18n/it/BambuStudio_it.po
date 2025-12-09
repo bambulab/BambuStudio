@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,6 +52,9 @@ msgstr "L'AMS non supporta \"Bambu Lab PET-CF\"."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "Il filamento attuale non supporta il nozzle E3D high-flow e non può essere usato."
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Tira a freddo prima di stampare il TPU per evitare intasamenti. Puoi utilizzare la manutenzione a freddo della stampante."
 
@@ -73,14 +76,27 @@ msgstr "Il PPS-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra l
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "Il PPA-CF è fragile e potrebbe rompersi in un tubo PTFE piegato sopra la testa di stampa."
 
-msgid "The filament may require slicing parameter adjustments."
-msgstr ""
+msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr "Le impostazioni predefinite possono influenzare la qualità di stampa. Regola secondo necessità per ottenere i migliori risultati."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr "Le impostazioni predefinite possono influenzare la qualità di stampa. Regola secondo necessità per ottenere i migliori risultati."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -552,20 +568,29 @@ msgstr "Coordinate oggetto"
 msgid "World coordinates"
 msgstr "Coordinate globali"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr "Traduci (relativo)"
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
 msgstr "Allinea alto-basso al centro"
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "Tenendo premuto il tasto Ctrl e cliccando con il pulsante sinistro del mouse è possibile selezionare più oggetti, oppure tenendo premuto il tasto Alt e cliccando con il pulsante sinistro del mouse è possibile selezionare più parti"
 
 msgid "Align"
 msgstr "Allinea"
 
 msgid "Distribute"
 msgstr "Distribuisci"
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Tenendo premuto il tasto Ctrl e cliccando con il pulsante sinistro del mouse è possibile selezionare più oggetti, oppure tenendo premuto il tasto Alt e cliccando con il pulsante sinistro del mouse è possibile selezionare più parti"
 
 msgid "Align left"
 msgstr "Allinea sinistra"
@@ -2200,7 +2225,7 @@ msgstr "Clona"
 msgid "Simplify Model"
 msgstr "Semplifica Modello"
 
-msgid "Smooth mesh"
+msgid "Subdivision mesh"
 msgstr ""
 
 msgid "(Lost color)"
@@ -2442,6 +2467,17 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "La riparazione è stata annullata"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "Preset processo aggiuntivo"
@@ -4119,6 +4155,9 @@ msgstr "Continua"
 msgid "Unknown error."
 msgstr "Errore sconosciuto."
 
+msgid "Loading..."
+msgstr "Caricamento…"
+
 msgid "default"
 msgstr "predefinito"
 
@@ -5457,9 +5496,6 @@ msgstr "Riproduzione"
 
 msgid "DLL load error"
 msgstr "Errore caricamento DLL"
-
-msgid "Loading..."
-msgstr "Caricamento…"
 
 msgid "Year"
 msgstr "Anno"
@@ -7464,6 +7500,12 @@ msgstr "Imposta la dimensione del grabber per gli strumenti di spostamento, rota
 msgid "Value range"
 msgstr "Intervallo di valori"
 
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
 msgid "Presets"
 msgstr "Preset"
 
@@ -8124,10 +8166,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Il diametro del nozzle attuale (%.1f mm) non corrisponde a quello del file di slicing (%.1f mm). Assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "La durezza del materiale attuale (%s) supera la durezza di %s (%s). Verifica le impostazioni del nozzle o del materiale e riprova."
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "Impossibile inviare la richiesta di mappatura automatica del nozzle alla stampante { code: %d }. Provvedi ad aggiornare le informazioni della stampante. Se il problema persiste, è possibile provare a ricollegare la stampante e controllare la connessione di rete."
 
@@ -8145,6 +8183,10 @@ msgstr "La stampante non è riuscita a creare la tabella di auto-mappatura del n
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "La mappatura attuale del nozzle potrebbe generare uno scarto aggiuntivo di %0.2f g."
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "La durezza del materiale attuale (%s) supera la durezza di %s (%s). Verifica le impostazioni del nozzle o del materiale e riprova."
 
 msgid "Cool"
 msgstr ""
@@ -11232,6 +11274,9 @@ msgstr "Zag Incrociato"
 msgid "Locked Zag"
 msgstr "Zag bloccato"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Skin infill pattern"
 msgstr ""
 
@@ -11540,6 +11585,18 @@ msgstr "Riempimento simmetrico sull'asse Y."
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "Se il modello ha due parti simmetriche rispetto all'asse Y e desideri che abbiano texture simmetriche, seleziona questa opzione su una delle parti."
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "Lunghezza ancoraggio riempimento"

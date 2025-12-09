@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,6 +52,9 @@ msgstr "AMS는 'Bambu Lab PET-CF'를 지원하지 않습니다."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "막히지 않도록 TPU를 출력하기 전에 저온 당겨주세요. 저온 당기기는 프린터 유지 관리에 사용할 수 있습니다."
 
@@ -73,13 +76,26 @@ msgstr "PPS-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브�
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF는 취성이 강하여 툴헤드 위의 구부러진 PTFE 튜브에서 파손될 수 있습니다."
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -552,20 +568,29 @@ msgstr "객체 좌표"
 msgid "World coordinates"
 msgstr "월드 좌표계"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr "번역(상대)"
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
 msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "Ctrl 키를 계속 누른 상태에서 왼쪽 마우스 버튼을 클릭하면 여러 개체를 선택할 수 있고, Alt 키를 계속 누른 상태에서 왼쪽 마우스 버튼을 클릭하면 여러 부품을 선택할 수 있습니다."
 
 msgid "Align"
 msgstr "정렬"
 
 msgid "Distribute"
 msgstr "분배"
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "Ctrl 키를 계속 누른 상태에서 왼쪽 마우스 버튼을 클릭하면 여러 개체를 선택할 수 있고, Alt 키를 계속 누른 상태에서 왼쪽 마우스 버튼을 클릭하면 여러 부품을 선택할 수 있습니다."
 
 msgid "Align left"
 msgstr ""
@@ -2200,7 +2225,7 @@ msgstr "복제"
 msgid "Simplify Model"
 msgstr "모델 단순화"
 
-msgid "Smooth mesh"
+msgid "Subdivision mesh"
 msgstr ""
 
 msgid "(Lost color)"
@@ -2437,6 +2462,17 @@ msgstr[0] ""
 
 msgid "Repairing was canceled"
 msgstr "오류수정이 취소되었습니다"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "추가 프로세스 프리셋"
@@ -4112,6 +4148,9 @@ msgstr "재개"
 msgid "Unknown error."
 msgstr "알 수 없는 오류."
 
+msgid "Loading..."
+msgstr "로드 중…"
+
 msgid "default"
 msgstr "기본값"
 
@@ -5454,9 +5493,6 @@ msgstr "출력 중..."
 
 msgid "DLL load error"
 msgstr "DLL 로드 오류"
-
-msgid "Loading..."
-msgstr "로드 중…"
 
 msgid "Year"
 msgstr "년"
@@ -7458,6 +7494,12 @@ msgstr "이동, 회전, 스케일 도구의 그래버 크기를 설정합니다.
 msgid "Value range"
 msgstr "값 범위"
 
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
 msgid "Presets"
 msgstr "프리셋"
 
@@ -8120,10 +8162,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "현재 노즐 직경(%.1fmm)이 슬라이싱 파일(%.1fmm)과 일치하지 않습니다. 설치된 노즐이 프린터의 설정과 일치하는지 확인한 다음 슬라이싱할 때 해당 프린터 프리셋을 설정하세요."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "현재 재료의 경도 (%s) 가 경도 %s (%s) 를 초과합니다. 노즐 또는 재료 설정을 확인하고 다시 시도하십시오."
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "프린터에 노즐 자동 매핑 요청을 전송하지 못했습니다. {코드: %d }. 프린터 정보를 새로 고쳐 보세요. 그래도 문제가 해결되지 않으면 프린터를 다시 바인딩하고 네트워크 연결을 확인해 보세요."
 
@@ -8141,6 +8179,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "현재 노즐 매핑으로 출력하면 약 %0.2f g의 낭비물이 추가로 발생할 수 있습니다."
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "현재 재료의 경도 (%s) 가 경도 %s (%s) 를 초과합니다. 노즐 또는 재료 설정을 확인하고 다시 시도하십시오."
 
 msgid "Cool"
 msgstr "쿨한"
@@ -11226,6 +11268,9 @@ msgstr "크로스 재그"
 msgid "Locked Zag"
 msgstr "잠긴 재그"
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Skin infill pattern"
 msgstr "표면 채우기 패턴"
 
@@ -11534,6 +11579,18 @@ msgstr "대칭 채우기 y 축"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "모델에 Y축을 기준으로 대칭인 두 개의 출력물이 있고 이러한 파트에 대칭 텍스처를 적용하려면 출력물 중 하나에서 이 옵션을 클릭하세요."
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "내부채움 앵커 길이"
