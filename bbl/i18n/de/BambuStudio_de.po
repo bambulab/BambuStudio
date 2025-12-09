@@ -6364,8 +6364,8 @@ msgstr "Gesendete Dateien auf externem Speicher speichern"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Speichert die von Bambu Studio, Bambu Handy und MakerWorld initiierten Druckdateien auf einem externen Speicher"
 
-msgid "Allow Prompt Sound"
-msgstr "Aufforderungston zulassen"
+msgid "Enable notification sounds"
+msgstr "Benachrichtigungstöne aktivieren"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"

@@ -6484,8 +6484,8 @@ msgstr "Сохранять отправленные файлы на внешни
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Сохранение файлов печати, созданных с помощью Bambu Studio, Bambu Handy и Maker World на внешнем носителе."
 
-msgid "Allow Prompt Sound"
-msgstr "Разрешить звуковые уведомления"
+msgid "Enable notification sounds"
+msgstr "Включить звуки уведомлений"
 
 msgid "Filament Tangle Detect"
 msgstr "Обнаружение запутывания прутка"

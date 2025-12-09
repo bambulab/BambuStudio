@@ -6295,8 +6295,8 @@ msgstr ""
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr ""
 
-msgid "Allow Prompt Sound"
-msgstr ""
+msgid "Enable notification sounds"
+msgstr "Zapnout zvuky oznámení"
 
 msgid "Filament Tangle Detect"
 msgstr ""
