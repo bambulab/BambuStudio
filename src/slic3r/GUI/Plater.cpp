@@ -10049,7 +10049,6 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
-        helio_background_process.reset();
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
