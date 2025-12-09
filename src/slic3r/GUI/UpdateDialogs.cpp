@@ -187,7 +187,10 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 
     auto *versions = new wxBoxSizer(wxVERTICAL);
     // BBS: use changelog string instead of url
-    wxStaticText *changelog_textctrl = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(560), -1));
+    const int changelog_width = FromDIP(560);
+    wxStaticText *changelog_textctrl = new wxStaticText(m_scrollwindw_release_note, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(changelog_width, -1));
+    changelog_textctrl->SetMinSize(wxSize(changelog_width, -1));
+    changelog_textctrl->SetMaxSize(wxSize(changelog_width, -1));
 
 
     for (const auto &update : updates) {
@@ -225,6 +228,8 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 
     ////BBS: use changelog string instead of url
     if (changelog_textctrl) 
+        changelog_textctrl->Wrap(changelog_width);
+    if (changelog_textctrl)
 		content_sizer->Add(changelog_textctrl, 1, wxEXPAND | wxTOP, FromDIP(30));
 
 
