@@ -4930,14 +4930,10 @@ void GUI_App::save_privacy_policy_history(bool agree, std::string source)
     wxGetApp().report_consent_common(agree, "studio_improvement_policy_enable", "StudioImprovementPolicy");
 
     json j;
-    wxDateTime::TimeZone tz(wxDateTime::Local);
-    long offset = tz.GetOffset();
-    std::string timezone = get_timezone_utc_hm(offset);
-
     std::time_t now = std::time(nullptr);
     std::tm* utc_time = std::gmtime(&now);
     std::ostringstream time_str;
-    time_str << std::put_time(utc_time, "%Y-%m-%d %H:%M:%S") << " " << timezone;
+    time_str << std::put_time(utc_time, "%Y-%m-%d %H:%M:%S") << " UTC";
     j["action"] = agree ? "agree" : "skip";
     j["source"] = source;
     if (app_config)
