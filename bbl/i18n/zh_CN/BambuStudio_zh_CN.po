@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-09 15:13+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -56,6 +56,9 @@ msgstr "AMS 不支持 'Bambu Lab PET-CF'。"
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "当前耗材不支持 E3D 大流量喷嘴，无法使用。"
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的冷拔维护功能。"
 
@@ -77,14 +80,27 @@ msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
-msgid "The filament may require slicing parameter adjustments."
-msgstr "该材料可能需要调整切片参数。"
+msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr "使用默认参数打印可能影响打印质量，请根据实际效果调整参数以获得最佳结果。"
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr "使用默认参数打印可能影响打印质量，请根据实际效果调整参数以获得最佳结果。"
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -556,20 +572,29 @@ msgstr "物体坐标"
 msgid "World coordinates"
 msgstr "世界坐标"
 
+msgid "Align selected"
+msgstr "对齐所选的"
+
 msgid "Translate(Relative)"
 msgstr "平移(相对)"
 
+msgid "Align Object"
+msgstr "对齐对象"
+
+msgid "Align Plate"
+msgstr "对齐盘"
+
 msgid "Align top-bottom center"
 msgstr "上下居中"
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
 
 msgid "Align"
 msgstr "对齐"
 
 msgid "Distribute"
 msgstr "分布"
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "持续按住Ctrl键并单击鼠标左键可以选择多个对象，或者持续按住Alt键并单击小鼠左键可以选中多个部分"
 
 msgid "Align left"
 msgstr "左侧对齐"
@@ -2195,8 +2220,8 @@ msgstr "克隆"
 msgid "Simplify Model"
 msgstr "简化模型"
 
-msgid "Smooth mesh"
-msgstr "平滑网格"
+msgid "Subdivision mesh"
+msgstr "细分网格"
 
 msgid "(Lost color)"
 msgstr "(丢失颜色)"
@@ -2431,6 +2456,17 @@ msgstr[0] "以下模型对象修复失败"
 
 msgid "Repairing was canceled"
 msgstr "修复被取消"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr "BambuStudio警告"
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "附加工艺预设"
@@ -3649,7 +3685,7 @@ msgstr "熨烫线距过小。将重置为0.1"
 msgid ""
 "Too small support ironing spacing.\n"
 "Reset to 0.1"
-msgstr ""
+msgstr "支撑熨烫线距过小。将重置为0.1"
 
 msgid ""
 "Support ironing will not work with sparse support interface.\n"
@@ -3657,6 +3693,10 @@ msgid ""
 "Yes: disable the support ironing.\n"
 "No: make the support interface solid."
 msgstr ""
+"支撑熨烫无法在稀疏的支撑界面上使用。\n"
+"是否需要关闭支撑熨烫选项？\n"
+"是：关闭支撑熨烫。\n"
+"否：调整支撑界面设置使其实心。"
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -4088,6 +4128,9 @@ msgstr "继续"
 
 msgid "Unknown error."
 msgstr "未知错误。"
+
+msgid "Loading..."
+msgstr "正在加载视频……"
 
 msgid "default"
 msgstr "默认"
@@ -5427,9 +5470,6 @@ msgstr "正在播放中……"
 
 msgid "DLL load error"
 msgstr "DLL加载错误"
-
-msgid "Loading..."
-msgstr "正在加载视频……"
 
 msgid "Year"
 msgstr "年"
@@ -7418,6 +7458,12 @@ msgstr "为平移，旋转，缩放工具设置抓手比例"
 msgid "Value range"
 msgstr "值范围"
 
+msgid "Tooltip offset"
+msgstr "信息提示偏移量"
+
+msgid "Set tooltip offset for different mouse size."
+msgstr "设置不同鼠标尺寸的信息提示偏移量。"
+
 msgid "Presets"
 msgstr "预设"
 
@@ -8082,10 +8128,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "当前材料(%s) 所需喷嘴的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "向打印机发送喷嘴自动映射请求失败 {错误代码：%d}。请尝试刷新打印机信息。若问题仍未解决，可尝试重新绑定打印机并检查网络连接。"
 
@@ -8103,6 +8145,10 @@ msgstr "打印机未能构建喷嘴自动映射表 { code: %d }。请刷新喷�
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "当前的喷嘴映射可能会产生额外 %0.2f 克的废料。"
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "当前材料(%s) 所需喷嘴的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
 
 msgid "Cool"
 msgstr ""
@@ -8534,7 +8580,7 @@ msgid "Support filament"
 msgstr "支撑耗材"
 
 msgid "Support ironing"
-msgstr ""
+msgstr "支撑熨烫"
 
 msgid "Tree Support"
 msgstr "树状支撑"
@@ -10703,10 +10749,10 @@ msgid "Octagram Spiral"
 msgstr "八角螺旋"
 
 msgid "Top surface density"
-msgstr ""
+msgstr "顶面密度"
 
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
-msgstr ""
+msgstr "顶面的填充密度，100%表示顶层完全实心填充。较低值会产生有纹理的顶层表面，0%时只有顶层墙体被创建。此设置用于美观或功能性目的，不用于解决诸如过量挤出等问题。"
 
 msgid "Bottom surface pattern"
 msgstr "底面图案"
@@ -10715,11 +10761,11 @@ msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "除了桥接外的底面填充的走线图案"
 
 msgid "Bottom surface density"
-msgstr ""
+msgstr "底面密度"
 
 #, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
-msgstr ""
+msgstr "底面的填充密度，100%%表示底面为完全实心填充。较低数值会产生纹理化的底面，旨在满足美观或功能需求，而非用于修复诸如过度挤出等问题。警告：降低此值可能会负面影响打印平台附着性。"
 
 msgid "Internal solid infill pattern"
 msgstr "内部实心填充图案"
@@ -11186,6 +11232,9 @@ msgstr ""
 msgid "Locked Zag"
 msgstr ""
 
+msgid "2D Lattice"
+msgstr ""
+
 msgid "Skin infill pattern"
 msgstr "表皮填充图案"
 
@@ -11494,6 +11543,18 @@ msgstr "填充关于y轴对称"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "如果一个模型中有两个关于y轴对称的部件，并且您希望使得这两个部分的填充纹理关于y轴对称。请在其中一个部件上勾选上这个功能。"
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
 
 msgid "Length of sparse infill anchor"
 msgstr "稀疏填充铆线长度"
@@ -12266,7 +12327,7 @@ msgid "Support/raft base"
 msgstr "支撑/筏层主体"
 
 msgid "Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used"
-msgstr "打印支撑主体和筏层的耗材丝。\"缺省\"代表不指定特定的耗材丝，并使用当前耗材"
+msgstr "打印支撑主体和筏层的耗材丝。\"默认\"代表不指定特定的耗材丝，并使用当前耗材"
 
 msgid "Avoid interface filament for base"
 msgstr "界面材料不用于主体"
@@ -12287,7 +12348,7 @@ msgid "Support/raft interface"
 msgstr "支撑/筏层界面"
 
 msgid "Filament to print support interface. \"Default\" means no specific filament for support interface and current filament is used"
-msgstr "打印支撑接触面的耗材丝。\"缺省\"代表不指定特定的耗材丝，并使用当前耗材"
+msgstr "打印支撑接触面的耗材丝。\"默认\"代表不指定特定的耗材丝，并使用当前耗材"
 
 msgid "Top interface layers"
 msgstr "顶部接触面层数"
@@ -12308,31 +12369,31 @@ msgid "Top interface spacing"
 msgstr "顶部接触面线距"
 
 msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
-msgstr ""
+msgstr "接触面的线距。零表示实心接触面。线距需要为零以使用enable_support_ironing"
 
 msgid "Enable ironing support interface"
-msgstr ""
+msgstr "启用支撑界面熨烫"
 
 msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
-msgstr ""
+msgstr "熨烫指的是使用小流量在表面的同高度打印，从而使平面更加光滑。此设置控制是否对支撑界面进行熨烫。支持熨烫仅适用于实心界面，即 support_interface_spacing 为零且 support_interface_pattern 不是网格"
 
 msgid "Support ironing pattern"
-msgstr ""
+msgstr "支撑熨烫模式"
 
 msgid "Support ironing flow"
-msgstr ""
+msgstr "支撑熨烫流量"
 
 msgid "Support ironing line spacing"
-msgstr ""
+msgstr "支撑熨烫间距"
 
 msgid "Support ironing inset"
-msgstr ""
+msgstr "支撑熨烫内缩"
 
 msgid "Support ironing speed"
-msgstr ""
+msgstr "支撑熨烫速度"
 
 msgid "Support ironing direction"
-msgstr ""
+msgstr "支撑熨烫方向"
 
 msgid "Bottom interface spacing"
 msgstr "底部接触面线距"
@@ -12359,7 +12420,7 @@ msgid "Interface pattern"
 msgstr "支撑面图案"
 
 msgid "Line pattern of support interface. Default pattern for support interface is Rectilinear Interlaced"
-msgstr "支撑接触面的走线图案。支撑接触面的缺省图案为交叠的直线。"
+msgstr "支撑接触面的走线图案。支撑接触面的默认图案为交叠的直线"
 
 msgid "Rectilinear Interlaced"
 msgstr "交叠的直线"
@@ -15288,6 +15349,12 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "The filament may require slicing parameter adjustments."
+#~ msgstr "该材料可能需要调整切片参数。"
+
+#~ msgid "Smooth mesh"
+#~ msgstr "平滑网格"
 
 #~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
 #~ msgstr "PLA Glow的粗糙表面可能加速AMS系统的磨损，尤其是AMS Lite的内部部件。"
