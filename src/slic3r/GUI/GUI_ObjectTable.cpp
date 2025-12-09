@@ -288,7 +288,9 @@ wxGridActivationResult GridCellFilamentsEditor::TryActivate(int row, int col, wx
         wxString choice;
 
         int digital_value = keyCode - '0';
-        if ((digital_value >= 1) && (digital_value <= 9))
+        if (digital_value == 0)
+            m_cached_value = 10;
+        else if ((digital_value >= 1) && (digital_value <= 9))
             m_cached_value = digital_value;
         else
             m_cached_value = -1;
@@ -480,7 +482,9 @@ wxGridActivationResult GridCellChoiceEditor::TryActivate(int row, int col, wxGri
         wxString          choice;
 
         int digital_value = keyCode - '0';
-        if ((digital_value >= 1) && (digital_value <= 9))
+        if (digital_value == 0)
+            m_cached_value = 10;
+        else if ((digital_value >= 1) && (digital_value <= 9))
             m_cached_value = digital_value;
         else
             m_cached_value = -1;
