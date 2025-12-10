@@ -1495,6 +1495,48 @@ void Selection::scale(const Vec3d& scale, TransformationType transformation_type
 }
 
 #if ENABLE_ENHANCED_PRINT_VOLUME_FIT
+ BoundingBoxf3 find_largest_remaining_volume(const BoundingBoxf3 &big_box, const BoundingBoxf3 &small_box)
+{ // require big_box contain small_box
+    BoundingBoxf3 largest_box = big_box;
+    float        max_area = 0.0f;
+    auto          box_size = big_box.size();
+    auto          width_x  = box_size[0];
+    auto          height_y = box_size[1];
+
+    float right_area = (big_box.max.x() - small_box.max.x()) * height_y;
+    if (right_area > max_area) {
+        max_area = right_area;
+        largest_box.min       = Vec3d(small_box.max.x(), big_box.min.y(), big_box.min.z());
+        largest_box.max       = big_box.max;
+        largest_box.defined = true;
+    }
+
+    double left_area = (small_box.min.x() - big_box.min.x()) * height_y;
+    if (left_area > max_area) {
+        max_area            = left_area;
+        largest_box.min = big_box.min;
+        largest_box.max     = Vec3d(small_box.min.x(), big_box.max.y(), big_box.max.z());
+        largest_box.defined = true;
+    }
+
+    double bottom_area = (small_box.min.y() - big_box.min.y()) * width_x;
+    if (bottom_area > max_area) {
+        max_area            = bottom_area;
+        largest_box.min     = big_box.min;
+        largest_box.max     = Vec3d(big_box.max.x(), small_box.min.y(), big_box.max.z());
+        largest_box.defined = true;
+    }
+
+    double up_area = (big_box.max.y() - small_box.max.y()) * width_x;
+    if (up_area > max_area) {
+        max_area            = up_area;
+        largest_box.min     = Vec3d(big_box.min.x(), small_box.max.y(), big_box.min.z());
+        largest_box.max     = big_box.max;
+        largest_box.defined = true;
+    }
+    return largest_box;
+}
+
 void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
 {
     auto fit = [this](double s, Vec3d offset) {
@@ -1528,21 +1570,30 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
     auto fit_rectangle = [this, fit](const BuildVolume& build_volume) {
         BoundingBoxf3 print_volume = build_volume.bounding_volume();
         auto                exclude_area = wxGetApp().plater()->get_partplate_list().get_exclude_area();
+        auto          plate        = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         if (exclude_area.size() == 4) {
-            auto pt = exclude_area[2];
-            Vec3d temp_min = print_volume.min;
-            if (pt[0] < pt[1]) {
-                temp_min += Vec3d(pt[0],0,0);
+            BoundingBoxf temp_box(exclude_area);
+            if (temp_box.defined) {
+                auto origin = plate->get_origin();
+                BoundingBoxf3 small_box(Vec3d(origin.x() + temp_box.min.x(), origin.y() + temp_box.min.y(), 0),
+                                        Vec3d(origin.x() + temp_box.max.x(), origin.y() + temp_box.max.y(), 0));
+                auto  largest_remaining_box = find_largest_remaining_volume(print_volume, small_box);
+                print_volume = largest_remaining_box;
             }
-            else {
-                temp_min += Vec3d(0, pt[1], 0);
-            }
-            Vec3d temp_max = print_volume.max;
-            print_volume.reset();
-            print_volume.merge(temp_min);
-            print_volume.merge(temp_max);
         }
         if (build_volume.get_extruder_area_count() > 0) {
+            auto cur_extruders     = plate->get_extruders();
+            auto cur_filament_maps = plate->get_filament_maps();
+            bool use_left_extruder = false;
+            for (int extruder : cur_extruders) {
+                auto index = extruder - 1;
+                if (index >= 0 && index < cur_filament_maps.size()) {
+                    if (cur_filament_maps[index] == 1) {
+                        use_left_extruder = true;
+                        break;
+                    }
+                }
+            }
             auto                 printable_area    = build_volume.printable_area();
             std::array<float, 4> full_print_volume = {(float) printable_area[0].x(), (float) printable_area[0].y(), (float) printable_area[2].x(), (float) printable_area[2].y()};
             const BuildVolume::BuildSharedVolume &shared_volume = build_volume.get_shared_volume();
@@ -1552,6 +1603,10 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
 
             Vec3d temp_min = print_volume.min;
             Vec3d temp_max(xy_data[2], xy_data[3], zs[1]);
+            if (!use_left_extruder) {
+                temp_min = Vec3d(xy_data[0], xy_data[1], 0);
+                temp_max = print_volume.max;
+            }
             print_volume.reset();
             print_volume.merge(temp_min);
             print_volume.merge(temp_max);
@@ -1559,6 +1614,12 @@ void Selection::scale_to_fit_print_volume(const BuildVolume& volume)
         const Vec3d print_volume_size = print_volume.size();
 
          // adds 1/100th of a mm on both xy sides to avoid false out of print volume detections due to floating-point roundings
+        setup_cache();
+        TransformationType transformation_type;
+        scale(Vec3d::Ones(), transformation_type);
+        wxGetApp().plater()->canvas3D()->do_scale("");
+        set_bounding_boxes_dirty();
+
         Vec3d box_size = get_bounding_box().size();
         box_size.x() += 0.02f;
         box_size.y() += 0.02f;
