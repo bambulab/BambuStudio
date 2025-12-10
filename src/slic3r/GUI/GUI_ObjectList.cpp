@@ -5302,6 +5302,34 @@ void ObjectList::select_all()
     selection_changed();
 }
 
+void ObjectList::expand_collapse_plate(int plate_idx, bool expand)
+{
+    if (m_objects_model == nullptr)
+        return;
+
+    wxDataViewItem plate_item = m_objects_model->GetItemByPlateId(plate_idx);
+    if (!plate_item.IsOk())
+        return;
+
+    auto walk = [this, expand](const auto& self, const wxDataViewItem& item) -> void {
+        if (!item.IsOk())
+            return;
+
+        if (expand)
+            Expand(item);
+
+        wxDataViewItemArray children;
+        m_objects_model->GetChildren(item, children);
+        for (const auto& child : children)
+            self(self, child);
+
+        if (!expand)
+            Collapse(item);
+    };
+
+    walk(walk, plate_item);
+}
+
 void ObjectList::select_item_all_children()
 {
     if (wxGetApp().plater()  && !wxGetApp().plater()->canvas3D()->get_gizmos_manager().is_allow_select_all()) {
