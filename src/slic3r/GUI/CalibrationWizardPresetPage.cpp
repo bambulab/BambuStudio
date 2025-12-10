@@ -1920,8 +1920,9 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         return;
 
     if (m_page_status != status)
-        //BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: show_status = " << status << "(" << get_print_status_info(status) << ")";
-    m_page_status = status;
+        m_page_status = status;
+    else
+        return;
 
     // other
     if (status == CaliPresetPageStatus::CaliPresetStatusInit) {
