@@ -1501,6 +1501,27 @@ void MenuFactory::create_plate_menu()
             return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty() && !plater()->is_background_process_slicing();
         }, m_parent);
 
+    auto get_plate_idx = []() {
+        int plate_idx = plater()->GetPlateIndexByRightMenuInLeftUI();
+        if (plate_idx < 0)
+            plate_idx = plater()->get_partplate_list().get_curr_plate_index();
+        return plate_idx;
+    };
+
+    append_menu_item(
+        menu, wxID_ANY, _L("Expand all"), _L("Expand all objects on this plate"),
+        [get_plate_idx](wxCommandEvent&) {
+            obj_list()->expand_collapse_plate(get_plate_idx(), true);
+        },
+        "", nullptr, []() { return true; }, m_parent);
+
+    append_menu_item(
+        menu, wxID_ANY, _L("Collapse all"), _L("Collapse all objects on this plate"),
+        [get_plate_idx](wxCommandEvent&) {
+            obj_list()->expand_collapse_plate(get_plate_idx(), false);
+        },
+        "", nullptr, []() { return true; }, m_parent);
+
     // delete current plate
 #ifdef __WINDOWS__
     append_menu_item(menu, wxID_ANY, _L("Delete Plate"), _L("Remove the selected plate"),
