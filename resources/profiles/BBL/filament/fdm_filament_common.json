@@ -79,9 +79,15 @@
         "0"
     ],
     "filament_dev_ams_drying_temperature": [
+        "40.0",
+        "40.0",
+        "40.0",
         "40.0"
     ],
     "filament_dev_ams_drying_time": [
+        "8.0",
+        "8.0",
+        "8.0",
         "8.0"
     ],
     "filament_dev_drying_softening_temperature": [
@@ -218,12 +224,21 @@
     ],
     "filament_ramming_travel_time": [
         "0"
-    ],    
+    ],
     "filament_ramming_travel_time_nc": [
         "0"
     ],
     "filament_retract_length_nc": [
         "14"
+    ],
+    "filament_change_length": [
+        "10"
+    ],
+    "filament_velocity_adaptation_factor": [
+        "1"
+    ],
+    "filament_adaptive_volumetric_speed": [
+        "0"
     ],
     "hot_plate_temp": [
         "60"
@@ -264,6 +279,9 @@
     "nozzle_temperature_initial_layer": [
         "200"
     ],
+    "no_slow_down_for_cooling_on_outwalls": [
+        "0"
+    ],
     "overhang_fan_speed": [
         "100"
     ],
@@ -288,15 +306,6 @@
     "slow_down_for_layer_cooling": [
         "1"
     ],
-    "no_slow_down_for_cooling_on_outwalls": [
-        "0"
-    ],
-    "cooling_slowdown_logic": [
-        "uniform_cooling"
-    ],
-    "cooling_perimeter_transition_distance": [
-        "10"
-    ],
     "slow_down_layer_time": [
         "8"
     ],
@@ -312,11 +321,8 @@
     "textured_plate_temp_initial_layer": [
         "60"
     ],
-    "filament_change_length": [
-        "10"
-    ],
-    "filament_velocity_adaptation_factor":[
-        "1"
+    "volumetric_speed_coefficients": [
+        "0 0 0 0 0 0"
     ],
     "compatible_printers": [],
     "filament_start_gcode": [
@@ -324,11 +330,5 @@
     ],
     "filament_end_gcode": [
         "; filament end gcode \nM106 P3 S0\n"
-    ],
-	"filament_adaptive_volumetric_speed":[
-		"0"
-	],
-    "volumetric_speed_coefficients":[
-        "0 0 0 0 0 0"
     ]
 }
