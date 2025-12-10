@@ -5160,7 +5160,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
 
         // Check nozzle hardness check
-        if (nozzle.has_value() && !is_nozzle_hrc_matched(nozzle->GetNozzleType(), check_info.fila_id)) {
+        if (nozzle.has_value() && nozzle->GetNozzleType() != NozzleType::ntUndefine && !is_nozzle_hrc_matched(nozzle->GetNozzleType(), check_info.fila_id)) {
             if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
                 std::vector<wxString> error_msg;
                 int nozzle_pos_id = nozzle->GetNozzlePosId();
