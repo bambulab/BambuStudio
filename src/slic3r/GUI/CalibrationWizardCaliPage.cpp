@@ -129,7 +129,7 @@ void CalibrationCaliPage::set_cali_img()
         if (m_cali_method == CalibrationMethod::CALI_METHOD_MANUAL) {
             if (m_page_type == CaliPageType::CALI_PAGE_CALI)
                 m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse", 400));
-            if (m_page_type == CaliPageType::CALI_PAGE_FINE_CALI)
+            else if (m_page_type == CaliPageType::CALI_PAGE_FINE_CALI)
                 m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_fine", 400));
             else
                 m_picture_panel->set_bmp(ScalableBitmap(this, "flow_rate_calibration_coarse", 400));
@@ -416,9 +416,8 @@ void CalibrationCaliPage::update_subtask(MachineObject* obj)
     else {
         reset_printing_values();
     }
-
-    this->Layout();
-    this->Fit();
+    m_printing_panel->Layout();
+    m_printing_panel->Fit();
 }
 
 void CalibrationCaliPage::update_basic_print_data(bool def, float weight, int prediction)
@@ -447,8 +446,8 @@ void CalibrationCaliPage::reset_printing_values()
     m_printing_panel->update_left_time(NA_STR);
     m_printing_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
     update_basic_print_data(false);
-    this->Layout();
-    this->Fit();
+    m_printing_panel->Layout();
+    m_printing_panel->Fit();
 }
 
 void CalibrationCaliPage::on_device_connected(MachineObject* obj)
