@@ -9872,15 +9872,100 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
         }
     }
 
-    if (is_supported_by_helio) {
-        material_id = best_material_id;
-    }
-
+    // If no match found, try token-based matching as last resort
     if (!is_supported_by_helio) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
-        GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
+        size_t atPos = used_filament.find('@');
+        std::string target_name = (atPos != std::string::npos) ? used_filament.substr(0, atPos) : used_filament;
+        boost::trim(target_name);
+        
+        std::vector<std::string> target_tokens;
+        boost::split(target_tokens, target_name, boost::is_any_of(" "), boost::token_compress_on);
+        // Convert to lowercase
+        for (auto& token : target_tokens) {
+            boost::algorithm::to_lower(token);
+        }
+        
+        size_t best_token_match_length = 0;
+        std::string best_token_material_id;
+        std::string best_token_native_name;
+        
+        for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
+            if (!pdata.native_name.empty()) {
+                std::string native_name = pdata.native_name;
+                boost::algorithm::to_lower(native_name);
+                
+                std::vector<std::string> native_tokens;
+                boost::split(native_tokens, native_name, boost::is_any_of(" "), boost::token_compress_on);
+                
+                // Check if all native tokens appear in target tokens in order
+                // Also check if native tokens are embedded within target tokens
+                // (e.g., "bambu" in "bluebambu")
+                bool all_tokens_match = true;
+                size_t target_idx = 0;
+                for (const std::string& native_token : native_tokens) {
+                    bool found = false;
+                    for (size_t i = target_idx; i < target_tokens.size(); ++i) {
+                        // Check for exact match
+                        if (target_tokens[i] == native_token) {
+                            found = true;
+                            target_idx = i + 1;
+                            break;
+                        }
+                        // Check if native token is embedded in target token
+                        // (e.g., "bambu" in "bluebambu")
+                        else if (target_tokens[i].find(native_token) != std::string::npos) {
+                            found = true;
+                            target_idx = i + 1;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        all_tokens_match = false;
+                        break;
+                    }
+                }
+                
+                // Keep track of longest token match
+                if (all_tokens_match && native_name.length() > best_token_match_length) {
+                    best_token_match_length = native_name.length();
+                    best_token_material_id = pdata.id;
+                    best_token_native_name = pdata.native_name; // Keep original case for display
+                }
+            }
+        }
+        
+        // If token-based match found, prompt user for confirmation
+        if (best_token_match_length > 0) {
+            wxString message = wxString::Format(
+                _L("Helio found a potential material match using token-based matching:\n\nYour material: %s\nMatched material: %s\n\nDo you want to use this match, or would you prefer to rename your material profile?"),
+                used_filament, best_token_native_name);
+            
+            GUI::MessageDialog msgdialog(nullptr, message, _L("Helio Material Match Confirmation"), 
+                                        wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+            int result = msgdialog.ShowModal();
+            
+            if (result == wxID_YES) {
+                material_id = best_token_material_id;
+                is_supported_by_helio = true;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User accepted token-based match: %1% -> %2%") 
+                                        % used_filament % best_token_native_name;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User rejected token-based match for %1%") % used_filament;
+                GUI::MessageDialog errordialog(nullptr, 
+                    wxString::Format(_L("Helio does not support materials %s.\n\nPlease rename your material profile to match an official material name."), used_filament), 
+                    "", wxICON_WARNING | wxOK);
+                errordialog.ShowModal();
+                return -1;
+            }
+        } else {
+            // No match found at all
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
+            GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+            msgdialog.ShowModal();
+            return -1;
+        }
+    } else {
+        material_id = best_material_id;
     }
 
     /*has warning*/
