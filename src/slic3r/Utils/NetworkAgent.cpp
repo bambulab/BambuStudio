@@ -1456,7 +1456,7 @@ int NetworkAgent::get_mw_user_4ulist(int seed, int limit, std::function<void(std
 
 int NetworkAgent::get_hms_snapshot(std::string dev_id, std::string file_name, std::function<void(std::string, int)> callback)
 {
-    int ret = 0;
+    int ret = -1;
     if (network_agent && get_hms_snapshot_ptr) {
         ret = get_hms_snapshot_ptr(network_agent, dev_id, file_name, callback);
         if (ret) BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") % network_agent % ret;
