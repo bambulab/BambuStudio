@@ -1408,7 +1408,8 @@ bool SelectMachineDialog::can_hybrid_mapping(DevExtderSystem data) {
     std::vector<std::string>flow_type_of_machine;
     for (const auto& ext : data.GetExtruders())
     {
-        flow_type_of_machine.push_back(DevNozzle::ToNozzleFlowString(ext.GetNozzleFlowType()));
+        std::string type_str = ext.GetNozzleFlowType() == NozzleFlowType::H_FLOW ? "High Flow" : "Standard";
+        flow_type_of_machine.push_back(type_str);
     }
 
     //get the nozzle type of preset --> flow_types
@@ -4571,7 +4572,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         try {
             NozzleDef data;
             data.nozzle_diameter = boost::lexical_cast<float>(slicing_nozzle.diameter);
-            data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(slicing_nozzle.volume_type);
+            data.nozzle_flow_type = (slicing_nozzle.volume_type == NozzleVolumeType::nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::S_FLOW);
             need_nozzle_map[data]++;
         } catch (const std::exception& e) {
             assert(0);
@@ -4656,8 +4657,10 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
             nozzle_data.nozzle_flow_type = NozzleFlowType::S_FLOW;// default value
 
             auto volume_type = (NozzleVolumeType)nozzle_volume_type_opt->get_at(logic_extruder_idx);
-            if (volume_type != NozzleVolumeType::nvtHybrid) {
-                nozzle_data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(volume_type);
+            if (volume_type == NozzleVolumeType::nvtHighFlow) {
+                nozzle_data.nozzle_flow_type = NozzleFlowType::H_FLOW;
+            } else if (volume_type == NozzleVolumeType::nvtStandard) {
+                nozzle_data.nozzle_flow_type = NozzleFlowType::S_FLOW;
             } else if (volume_type == NozzleVolumeType::nvtHybrid) {
                 if (used_extuder_nozzles.find(physical_idx) != used_extuder_nozzles.end()){
                     continue;// already collected
@@ -4751,24 +4754,20 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
 
             // check nozzle flow type
             {
-                if (obj_->is_nozzle_flow_type_supported() && slicing_ext.nozzle_flow_type != installed_ext_nozzle.GetNozzleFlowType()) {
-                    if(ext_sys->GetTotalExtderCount() == 2) {
-                        show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid,
-                                        { _L("The current nozzle type doesn't match the slicing file. Please update the nozzle type on the printer and try again.") },
-                                        wxEmptyString, prePrintInfoStyle::NozzleState);
-                    } else {
-                        const wxString& pos = _get_nozzle_name(ext_sys->GetTotalExtderCount(), slicing_ext_idx);
-                        const wxString& installed_nozzle_str = installed_ext_nozzle.GetNozzleFlowTypeStr();
-                        const wxString& slicing_nozzle_str = DevNozzle::GetNozzleFlowTypeStr(slicing_ext.nozzle_flow_type);
-                        wxString error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
-                            "Please make sure the nozzle installed matches with settings in printer, "
-                            "then set the corresponding printer preset while slicing."),
-                            pos, installed_nozzle_str, slicing_nozzle_str);
+                if (obj_->is_nozzle_flow_type_supported() &&
+                    slicing_ext.nozzle_flow_type != installed_ext_nozzle.GetNozzleFlowType()) {
 
-                        std::vector<wxString> params{ error_message };
-                        params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
-                        show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
-                    }
+                    const wxString& pos = _get_nozzle_name(ext_sys->GetTotalExtderCount(), slicing_ext_idx);
+                    const wxString& installed_nozzle_str = installed_ext_nozzle.GetNozzleFlowTypeStr();
+                    const wxString& slicing_nozzle_str = DevNozzle::GetNozzleFlowTypeStr(slicing_ext.nozzle_flow_type);
+                    wxString error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "
+                        "Please make sure the nozzle installed matches with settings in printer, "
+                        "then set the corresponding printer preset while slicing."),
+                        pos, installed_nozzle_str, slicing_nozzle_str);
+
+                    std::vector<wxString> params{ error_message };
+                    params.emplace_back(_L("Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."));
+                    show_status(PrintDialogStatus::PrintStatusNozzleMatchInvalid, params);
                     return false;
                 }
             }
@@ -5191,7 +5190,7 @@ std::optional<FilamentInfo> SelectMachineDialog::get_slicing_filament_info(int f
             return fila;
         }
     }
-
+   
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not found for logic id " << fila_logic_id;
     return std::nullopt;
 }
@@ -6069,10 +6068,9 @@ void NozzleStatePanel::UpdateGui()
 void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
 {
     if (plater && obj) {
-        auto ext_sys    = obj->GetExtderSystem();
         auto nozzle_sys = obj->GetNozzleSystem();
         auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(plater);
-        if (nozzle_group_res && (nozzle_sys->GetNozzleRack()->IsSupported() || ext_sys->GetTotalExtderCount() == 2)) {
+        if (nozzle_group_res && nozzle_sys->GetNozzleRack()->IsSupported()) {
 
             ExtruderNozzleInfos slicing_nozzle_infos;
             slicing_nozzle_infos[MAIN_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), LOGIC_R_EXTRUDER_ID);

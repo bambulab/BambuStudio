@@ -75,8 +75,7 @@ enum NozzleFlowType : int
 {
     NONE_FLOWTYPE,
     S_FLOW,
-    H_FLOW,
-    U_FLOW, // TPU 1.75
+    H_FLOW
 };
 /* 0.2mm  0.4mm  0.6mm 0.8mm */
 enum NozzleDiameterType : int

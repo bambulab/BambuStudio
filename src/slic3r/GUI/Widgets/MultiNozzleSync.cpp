@@ -377,7 +377,8 @@ std::vector<int> HotEndTable::FilterHotEnds(const NozzleOption& option)
     for (auto& info : nozzles_to_search) {
 
         float diameter = atof(info.diameter.c_str());
-        NozzleFlowType flow = DevNozzle::ToNozzleFlowType(info.volume_type);
+        NozzleFlowType flow = info.volume_type == nvtStandard ? NozzleFlowType::S_FLOW :
+            info.volume_type == nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::NONE_FLOWTYPE;
         int extruder_id = 1 - info.extruder_id; //physical
 
         auto nozzles = rack->GetNozzleSystem()->CollectNozzles(extruder_id, flow, diameter);
@@ -685,8 +686,11 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
             int extruder_id = nozzle.AtLeftExtruder() ? 0 : 1;
             if (nozzle.AtRightExtruder())
                 has_right = true;
-
-            NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.m_nozzle_flow);
+            NozzleVolumeType volume_type;
+            if (nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW)
+                volume_type = nvtHighFlow;
+            else
+                volume_type = nvtStandard;
 
             m_badge->SetExtruderInfo(extruder_id, format_diameter_to_str(nozzle.GetNozzleDiameter()), volume_type);
         }
