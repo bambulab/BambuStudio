@@ -4627,9 +4627,12 @@ GCode::LayerResult GCode::process_layer(
                     ExtrusionRole support_extrusion_role = instance_to_print.object_by_extruder.support_extrusion_role;
                     bool is_overridden = support_extrusion_role == erSupportMaterialInterface ? support_intf_overridden : support_overridden;
                     if (is_overridden == (print_wipe_extrusions != 0)) {
-                        gcode += this->extrude_support(
-                            // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
-                            instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_extrusion_role));
+                        // support_extrusion_role is erSupportMaterial, erSupportTransition, erSupportMaterialInterface or erMixed for all extrusion paths.
+                        gcode += this->extrude_support(instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, support_extrusion_role));
+                        if (support_extrusion_role == erSupportMaterialInterface) {
+                            // erSupportMaterialInterface may be mixed with erSupportIroning, thus, should also make ironing here
+                            gcode += this->extrude_support(instance_to_print.object_by_extruder.support->chained_path_from(m_last_pos, erSupportIroning));
+                        }
                         if (!filament_info.use_for_support)
                             filament_info.use_for_support = true;
                     }
@@ -5376,7 +5379,7 @@ std::string GCode::extrude_support(const ExtrusionEntityCollection &support_fill
                 extrusions.emplace_back(ee);
             }
         }
-        if (extrusions.empty()) return gcode;
+        if (extrusions.empty() && ironing_extrusions.empty()) return gcode;
         has_support_ironing = has_support_ironing && m_config.enable_support_ironing.value;
         if (has_support_ironing) {
             chain_and_reorder_extrusion_entities(ironing_extrusions, &m_last_pos);
