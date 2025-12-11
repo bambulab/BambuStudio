@@ -85,6 +85,7 @@ public:
         int progress;
         int sizeKb;
         bool success;
+        std::vector<std::string> errors;
     };
 
     struct CreateGCodeResult

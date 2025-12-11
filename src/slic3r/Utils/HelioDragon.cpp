@@ -499,7 +499,7 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
     result.success = false;
 
     std::string poll_query = R"( {
-        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress } }",
+        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress errors } }",
         "variables": { "id": "%1%" }
     } )";
     std::string poll_body = (boost::format(poll_query) % gcode_id).str();
@@ -515,10 +515,27 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
                 json poll_obj = json::parse(poll_body);
                 if (!poll_obj["data"]["gcodeV2"].is_null()) {
                     auto gcode_data = poll_obj["data"]["gcodeV2"];
-                    result.status_str = gcode_data["status"];
-                    result.progress = gcode_data["progress"];
-                    result.sizeKb = gcode_data["sizeKb"];
-                    result.success = true;
+                    
+                    // Verify status field exists and is valid before considering the response successful
+                    if (gcode_data.contains("status") && gcode_data["status"].is_string()) {
+                        result.status_str = gcode_data["status"];
+                        result.progress = gcode_data["progress"];
+                        result.sizeKb = gcode_data["sizeKb"];
+                        
+                        // Parse errors if present
+                        if (gcode_data.contains("errors") && !gcode_data["errors"].is_null()) {
+                            auto errors_data = gcode_data["errors"];
+                            if (errors_data.is_array()) {
+                                for (const auto& error : errors_data) {
+                                    if (error.is_string()) {
+                                        result.errors.push_back(error.get<std::string>());
+                                    }
+                                }
+                            }
+                        }
+                        
+                        result.success = true;
+                    }
                 }
             }
             catch (...) {
@@ -609,6 +626,30 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
             res.status_str = gcode["status"];
             res.progress = gcode["progress"];
 
+            // Check for errors in initial response
+            if (gcode.contains("errors") && !gcode["errors"].is_null()) {
+                auto errors_data = gcode["errors"];
+                if (errors_data.is_array() && !errors_data.empty()) {
+                    std::string error_message;
+                    for (size_t i = 0; i < errors_data.size(); ++i) {
+                        if (errors_data[i].is_string()) {
+                            std::string current_error = errors_data[i].get<std::string>();
+                            if (errors_data.size() > 1) {
+                                error_message += std::to_string(i + 1) + ". " + current_error;
+                                if (i != errors_data.size() - 1) {
+                                    error_message += "\n";
+                                }
+                            } else {
+                                error_message = current_error;
+                            }
+                        }
+                    }
+                    res.success = false;
+                    res.error = error_message;
+                    return;
+                }
+            }
+
             int poll_count = 0;
             while (res.status_str != "READY" && poll_count < 60) {
                 std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -619,6 +660,24 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
                     res.status_str = poll_res.status_str;
                     res.progress = poll_res.progress;
                     res.sizeKb = poll_res.sizeKb;
+                    
+                    // Check for errors during polling
+                    if (!poll_res.errors.empty()) {
+                        std::string error_message;
+                        for (size_t i = 0; i < poll_res.errors.size(); ++i) {
+                            if (poll_res.errors.size() > 1) {
+                                error_message += std::to_string(i + 1) + ". " + poll_res.errors[i];
+                                if (i != poll_res.errors.size() - 1) {
+                                    error_message += "\n";
+                                }
+                            } else {
+                                error_message = poll_res.errors[i];
+                            }
+                        }
+                        res.success = false;
+                        res.error = error_message;
+                        return;
+                    }
                 }
 
                 poll_count++;
