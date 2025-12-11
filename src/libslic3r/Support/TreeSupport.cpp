@@ -3096,6 +3096,7 @@ void TreeSupport::drop_nodes()
                     const bool to_buildplate = !is_inside_ex(get_collision(0, obj_layer_nr_next), next_position);
                     SupportNode* next_node = m_ts_data->create_node(next_position, node_parent->distance_to_top + 1, obj_layer_nr_next, node_parent->support_roof_layers_below - 1, to_buildplate, node_parent,
                         print_z_next, height_next);
+                    next_node->radius = std::max(next_radius, std::max(p_node->radius, neighbour->radius));
                     get_max_move_dist(next_node);
                     m_ts_data->m_mutex.lock();
                     contact_nodes[layer_nr_next].push_back(next_node);
@@ -3113,7 +3114,7 @@ void TreeSupport::drop_nodes()
                             SupportNode* neighbour_node = nodes_this_part[neighbour];
                             if (neighbour_node->type == ePolygon) continue;
                             // only allow bigger node to merge smaller nodes. See STUDIO-6326
-                            if(node.dist_mm_to_top < neighbour_node->dist_mm_to_top) continue;
+                            if(node.radius < neighbour_node->radius) continue;
 
                             m_ts_data->m_mutex.lock();
                             if (p_node->valid)
