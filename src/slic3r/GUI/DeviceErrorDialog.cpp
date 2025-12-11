@@ -283,7 +283,7 @@ wxBitmap DeviceErrorDialog::get_default_loading_image()
 
     dc.SetTextForeground(wxColour(158, 158, 158)); // gray500
     dc.SetFont(::Label::Body_14);
-    const wxString txt = _L("Loading...");
+    const wxString txt = _L("Loading ...");
     wxSize txtSize = dc.GetTextExtent(txt);
     int tx = (w - txtSize.GetWidth()) / 2;
     int ty = h - txtSize.GetHeight() - FromDIP(45);
@@ -300,7 +300,7 @@ bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
     NetworkAgent* agent = GUI::wxGetApp().getAgent();
     if (!agent) { return false; }
 
-    agent->get_hms_snapshot(m_obj->get_dev_id(), m_obj->m_print_error_img_id,
+    int ret = agent->get_hms_snapshot(m_obj->get_dev_id(), m_obj->m_print_error_img_id,
     [this](std::string body, int status) {
         if (status == 200) {
             wxMemoryInputStream stream(body.data(), body.size());
@@ -313,6 +313,11 @@ bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
                     Layout();
                     Fit();
                 });
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: failed to resolve stream";
+                CallAfter([this]() {
+                    this->get_fail_snapshot_from_local(this->m_local_img_url);
+                });
             }
         } else {
             BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: status = " << status;
@@ -322,7 +327,7 @@ bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
         }
     });
 
-    return true;
+    return ret == 0;
 }
 
 bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
