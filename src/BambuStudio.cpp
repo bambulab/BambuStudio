@@ -1113,7 +1113,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                     convert_obj_cluster_colors(obj_info.vertex_colors, all_colours, max_filament_count, output_filament_ids, first_filament_id);
                     if (output_filament_ids.size() > 0) {
                         unsigned char first_eid = (unsigned char)first_filament_id;
-                        result = Model::obj_import_vertex_color_deal(output_filament_ids, first_eid, & obj_temp_model);
+                        result = Model::obj_import_color_deal(output_filament_ids, first_eid, &obj_temp_model, [](int) { return true; });
                     }
                     skip_filament = true;
                 } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
@@ -1121,7 +1121,7 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
                                                obj_info.mtl_colors);
                     if (output_filament_ids.size() > 0) {
                         unsigned char first_eid = (unsigned char)first_filament_id;
-                        result = Model::obj_import_face_color_deal(output_filament_ids, first_eid, & obj_temp_model);
+                        result = Model::obj_import_color_deal(output_filament_ids, first_eid, &obj_temp_model, [](int) { return false; });
                     }
                     skip_filament = true;
                 }

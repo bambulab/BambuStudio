@@ -5983,6 +5983,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
+                    // Used to store color group mapping information in standard 3MF files
+                    std::unordered_map<int, std::vector<std::string>> color_group_map;
+                    VolumeColorInfoMap volume_color_data;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
                                                              [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i,
@@ -5996,7 +5999,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
-                                                             });
+                                                             }, nullptr, &color_group_map, &volume_color_data);
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
@@ -6229,6 +6232,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         this->model.plates_custom_gcodes = model.plates_custom_gcodes;
                         this->model.design_info = model.design_info;
                         this->model.model_info = model.model_info;
+                    }
+
+                    // Process color information in standard 3MF files(similar to color processing in OBJ files).
+                    if (load_model && !color_group_map.empty() && !volume_color_data.empty() && en_3mf_file_type != En3mfType::From_BBS) {
+                        // Only process external standard 3MF files; the BBS's own 3MF files already have complete color processing logic
+                        ObjDialogInOut color_dialog_in_out;
+                        if (extract_colors_to_obj_dialog(&model, color_group_map, volume_color_data, color_dialog_in_out)) {
+                            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                            color_dialog_in_out.model = &model;
+                            color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
+                            color_dialog_in_out.volume_colors = volume_color_data;
+                            ObjColorDialog color_dlg(nullptr, color_dialog_in_out, extruder_colours);
+                            if (color_dlg.ShowModal() == wxID_OK) {
+                                color_dialog_in_out.filament_ids.clear();
+                            }
+                        }
                     }
                 }
 
@@ -13807,27 +13826,31 @@ void Plater::update_all_plate_thumbnails(bool force_update)
     }
 }
 
-void Plater::update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+void Plater::update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
 {
     PartPlate *        plate            = get_partplate_list().get_plate(0);
     ThumbnailsParams   thumbnail_params = {{}, false, true, true, true, 0, false};
     GLVolumeCollection cur_volumes;
     for (int i = 0; i < model_objects.size(); i++) {
         auto &mo = model_objects[i];
-        cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            cur_volumes.load_object_volume(mo, i, j, 0, "volume", true, false, false, false);
+        }
     }
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_origin_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                             model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false, GLCanvas3D::ThumbnailRenderRype::CustomMeshOrVertexColors);
 }
 
-void Plater::update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+void Plater::update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
 {
     PartPlate *      plate            = get_partplate_list().get_plate(0);
     ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0, false};
     GLVolumeCollection cur_volumes;
     for (int i = 0; i < model_objects.size(); i++) {
-        auto &mo = model_objects[i];
-        cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
+        auto& mo = model_objects[i];
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            cur_volumes.load_object_volume(mo, i, j, 0, "volume", true, false, false, false);
+        }
     }
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                             model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false);
