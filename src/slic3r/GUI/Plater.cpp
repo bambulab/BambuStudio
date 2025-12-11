@@ -114,6 +114,7 @@
 #include "NotificationManager.hpp"
 #include "PresetComboBoxes.hpp"
 #include "MsgDialog.hpp"
+#include "SingleChoiceDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
@@ -9748,6 +9749,67 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
 }
 
 
+// Helper function to extract material type keywords from material name
+static std::vector<std::string> extract_material_keywords(const std::string& material_name)
+{
+    std::vector<std::string> keywords;
+    std::string lower_name = material_name;
+    boost::algorithm::to_lower(lower_name);
+    
+    // Common material type keywords
+    std::vector<std::string> material_types = {
+        "abs", "pla", "tpu", "petg", "pc", "pa", "paht", "asa", "hips", "pp", "pe", "pva",
+        "pom", "pmma", "ps", "pbt", "peek", "pei", "pes", "pvdf", "tpe", "tpee", "tpc"
+    };
+    
+    for (const std::string& type : material_types) {
+        if (lower_name.find(type) != std::string::npos) {
+            keywords.push_back(type);
+        }
+    }
+    
+    return keywords;
+}
+
+// Helper function to find similar materials based on keywords
+static std::vector<HelioQuery::SupportedData> find_similar_materials(
+    const std::string& target_name,
+    const std::vector<std::string>& keywords)
+{
+    std::vector<HelioQuery::SupportedData> similar_materials;
+    
+    if (keywords.empty()) {
+        return similar_materials;
+    }
+    
+    std::string lower_target = target_name;
+    boost::algorithm::to_lower(lower_target);
+    
+    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+        if (pdata.native_name.empty()) {
+            continue;
+        }
+        
+        std::string lower_native = pdata.native_name;
+        boost::algorithm::to_lower(lower_native);
+        
+        // Check if any keyword appears in the native material name
+        bool has_keyword = false;
+        for (const std::string& keyword : keywords) {
+            if (lower_native.find(keyword) != std::string::npos) {
+                has_keyword = true;
+                break;
+            }
+        }
+        
+        if (has_keyword) {
+            similar_materials.push_back(pdata);
+        }
+    }
+    
+    return similar_materials;
+}
+
 int Plater::priv::update_helio_background_process(std::string& printer_id, std::string& material_id)
 {
     notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
@@ -9958,11 +10020,65 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                 return -1;
             }
         } else {
-            // No match found at all
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
-            GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
-            msgdialog.ShowModal();
-            return -1;
+            // No match found at all - try to find similar materials based on material type keywords
+            size_t atPos = used_filament.find('@');
+            std::string target_name = (atPos != std::string::npos) ? used_filament.substr(0, atPos) : used_filament;
+            boost::trim(target_name);
+            
+            std::vector<std::string> keywords = extract_material_keywords(target_name);
+            std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name, keywords);
+            
+            if (!similar_materials.empty()) {
+                // Create list of material names for selection dialog
+                wxArrayString material_choices;
+                std::vector<std::string> material_ids;
+                for (const auto& mat : similar_materials) {
+                    material_choices.Add(wxString::FromUTF8(mat.native_name));
+                    material_ids.push_back(mat.id);
+                }
+                
+                // Create warning message
+                wxString warning_message = _L("WARNING: Material Formulations Differ Greatly\n\n");
+                warning_message += _L("Material formulations differ greatly between manufacturers and variants. ");
+                warning_message += _L("There is no guarantee that using a different material will work correctly ");
+                warning_message += _L("and may result in print failures, poor quality, or other issues.\n\n");
+                warning_message += _L("If you proceed, it is STRONGLY RECOMMENDED to:\n");
+                warning_message += _L("• NOT use Helio's default settings\n");
+                warning_message += _L("• Use Slicer's default settings instead\n");
+                warning_message += _L("• Self-calibrate the maximum volumetric speed\n");
+                warning_message += _L("• Modify and test flow rate limits carefully\n\n");
+                warning_message += wxString::Format(_L("Your material: %s\n\n"), used_filament);
+                warning_message += _L("Please select a similar material from the list below, or cancel to rename your material profile:");
+                
+                // Show selection dialog
+                GUI::SingleChoiceDialog dialog(warning_message, 
+                                              _L("Select Similar Material for Helio"), 
+                                              material_choices, 
+                                              0, 
+                                              nullptr);
+                int selection = dialog.GetSingleChoiceIndex();
+                
+                if (selection >= 0 && selection < (int)material_ids.size()) {
+                    material_id = material_ids[selection];
+                    is_supported_by_helio = true;
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("User selected similar material: %1% -> %2% (original: %3%)") 
+                                                % used_filament % similar_materials[selection].native_name % material_id;
+                } else {
+                    // User cancelled
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User cancelled similar material selection for %1%") % used_filament;
+                    GUI::MessageDialog errordialog(nullptr, 
+                        wxString::Format(_L("Helio does not support materials %s.\n\nPlease rename your material profile to match an official material name."), used_filament), 
+                        "", wxICON_WARNING | wxOK);
+                    errordialog.ShowModal();
+                    return -1;
+                }
+            } else {
+                // No similar materials found
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1% and no similar materials found") % used_filament;
+                GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+                msgdialog.ShowModal();
+                return -1;
+            }
         }
     } else {
         material_id = best_material_id;
