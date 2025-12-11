@@ -8,6 +8,20 @@ namespace Slic3r {
 class TriangleMesh;
 class Model;
 class ModelObject;
+
+// TriangleColorData structure：Stores the color binding information for each triangle in 3MF
+struct TriangleColor {
+    int pid{ -1 };           // Color group ID(property ID)
+    int indices[3]{ -1, -1, -1 };  // The color indices of the three vertices (p1, p2, p3)
+};
+
+// Volume color information: Stores the triangle color binding data for each volume.
+struct VolumeColorInfo {
+    int pid{ -1 };
+    int pindex{ -1 };
+    std::vector<TriangleColor> triangle_colors;  // Color binding for each triangle
+};
+
 // Load an OBJ file into a provided model.
 struct ObjInfo {
     std::vector<RGBA> vertex_colors;
@@ -37,6 +51,8 @@ struct ObjDialogInOut
     std::vector<unsigned char> filament_ids;
     unsigned char              first_extruder_id{1};
     bool                       deal_vertex_color;
+    std::unordered_map<int, VolumeColorInfo> volume_colors;// Used when FormatType is Standard3mf
+    std::unordered_map<int, std::vector<RGBA>> color_group_map; // Used when FormatType is Standard3mf
     Model *                    model{nullptr};
     std::vector<RGBA>          mtl_colors;
     std::vector<std::string>   mtl_color_names;

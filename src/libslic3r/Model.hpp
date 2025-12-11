@@ -1666,11 +1666,11 @@ public:
                                 ImportstlProgressFn        stlFn                = nullptr,
                                 BBLProject *               project              = nullptr,
                                 int                        plate_id             = 0,
-                                ObjImportColorFn           objFn                = nullptr
-                                );
+                                ObjImportColorFn           objFn                = nullptr);
     // BBS
-    static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
-    static bool    obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, Model *model);
+    static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, const unsigned char& first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, const unsigned char& first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, ModelVolume *volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
@@ -1683,7 +1683,7 @@ public:
     static Model read_from_archive(
         const std::string& input_file,
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::unordered_map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
