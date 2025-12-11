@@ -303,18 +303,18 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (has_ironing_support)
         if (!can_ironing_support && config->opt_bool("enable_support_ironing")) {
             const wxString     msg_text = _(L("Support ironing will not work with sparse support interface.\n"
-                                                  "Do you want to disable the support ironing?\n"
-                                                  "Yes: disable the support ironing.\n"
-                                                  "No: make the support interface solid."));
+                                                  "Do you want to adjust the support interface config to use ironing?\n"
+                                                  "Yes: make the support interface solid.\n"
+                                                  "No: disable the support ironing."));
             MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxYES_NO);
             DynamicPrintConfig new_conf = *config;
             is_msg_dlg_already_exist    = true;
             if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("enable_support_ironing", new ConfigOptionBool(false));
-            } else {
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0.0f));
-                if ( config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipGrid )
+                if (config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipGrid)
                     new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipAuto));
+            } else {
+                new_conf.set_key_value("enable_support_ironing", new ConfigOptionBool(false));
             }
 
             apply(config, &new_conf);
