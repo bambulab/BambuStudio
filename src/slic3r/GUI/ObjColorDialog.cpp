@@ -185,7 +185,7 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     sizer_width      = sizer_width > MIN_OBJCOLOR_DIALOG_WIDTH ? sizer_width : MIN_OBJCOLOR_DIALOG_WIDTH;
     m_main_sizer->SetMinSize(wxSize(sizer_width, -1));
     bool some_face_no_color = false;
-    if (!in_out.deal_vertex_color) {
+    if (in_out.input_type == ObjDialogInOut::FormatType::Obj && !in_out.deal_vertex_color) {
         auto temp0 = in_out.input_colors.size();
         auto temp1 = in_out.model->objects[0]->volumes[0]->mesh_ptr()->facets_count();
         some_face_no_color = temp0 < temp1;
@@ -942,22 +942,72 @@ void ObjColorPanel::deal_default_strategy()
 void ObjColorPanel::deal_thumbnail() {
     update_filament_ids();
     // generate model volume
-    if (m_obj_in_out.deal_vertex_color) {
-        if (m_obj_in_out.filament_ids.size() > 0) {
-            m_deal_thumbnail_flag = Model::obj_import_vertex_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model);
-        }
-    } else {
-        if (m_obj_in_out.filament_ids.size() > 0) {
-            m_deal_thumbnail_flag = Model::obj_import_face_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model);
-        }
+    if (m_obj_in_out.filament_ids.empty()) {
+        return;
     }
+    // Check if there are different vertex colors in the volume specified by vol_idx
+    auto check_deal_vertex_color = [this](int vol_idx) {
+        if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Obj) {
+            return m_obj_in_out.deal_vertex_color;
+        }
+        // Extracting vertex colors from TriangleColors
+        auto vol_color_iter = m_obj_in_out.volume_colors.find(vol_idx);
+        if (vol_color_iter == m_obj_in_out.volume_colors.end()) {
+            return false;
+        }
+        for (const TriangleColor& binding : vol_color_iter->second.triangle_colors) {
+            if (binding.indices[0] != binding.indices[1] ||
+                binding.indices[1] != binding.indices[2] ||
+                binding.indices[0] != binding.indices[2]) {
+                return true;
+            }
+        }
+        return false;
+    };
+    // Remap filament id
+    auto get_filament_id_callback = (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Standard3mf) ? [this](int vol_idx, int triangle_idx, int vertex_idx) {
+        int result_filament_id = 1;
+        auto vol_color_iter = m_obj_in_out.volume_colors.find(vol_idx);
+        if (vol_color_iter == m_obj_in_out.volume_colors.end()) {
+            return result_filament_id;
+        }
+        if (0 > triangle_idx || triangle_idx >= vol_color_iter->second.triangle_colors.size()) {
+            return result_filament_id;
+        }
+        const TriangleColor& binding = vol_color_iter->second.triangle_colors[triangle_idx];
+        auto iter = m_obj_in_out.color_group_map.find(binding.pid);
+        if (iter == m_obj_in_out.color_group_map.end()) {
+            return result_filament_id;
+        }
+        RGBA used_color = UNDEFINE_COLOR;
+        for (size_t i = 0; i < iter->second.size(); i++) {
+            if (binding.indices[vertex_idx] == i) {
+                used_color = iter->second[i];
+                break;
+            }
+        }
+        if (color_is_equal(used_color, UNDEFINE_COLOR)) {
+            return result_filament_id;
+        }
+        for (size_t j = 0; j < m_input_colors_size; j++) {
+            if (color_is_equal(used_color, m_input_colors[j])) {
+                int algo_label = m_cluster_labels_from_algo[j];
+                if (m_cluster_map_filaments[algo_label] > 0) {
+                    result_filament_id = m_cluster_map_filaments[algo_label];
+                    break;
+                }
+            }
+        }
+        return result_filament_id;
+    } : std::function<int(int, int, int)>(nullptr);
 
+    m_deal_thumbnail_flag = Model::obj_import_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model, check_deal_vertex_color, get_filament_id_callback);
     generate_thumbnail();
 }
 
 void ObjColorPanel::generate_thumbnail()
 {
-    if (m_deal_thumbnail_flag && m_obj_in_out.model->objects.size() == 1) {
+    if (m_deal_thumbnail_flag) {
         std::vector<std::array<float, 4>> colors = GUI::wxGetApp().plater()->get_extruders_colors();
         for (size_t i = 0; i < m_new_add_colors.size(); i++) {
             std::array<float, 4> temp_color;
@@ -968,24 +1018,24 @@ void ObjColorPanel::generate_thumbnail()
             colors.emplace_back(temp_color);
         }
 
-            wxGetApp().plater()->update_obj_preview_thumbnail(m_obj_in_out.model->objects, 0, 0, colors, (int) m_camera_view_angle_type);
-            // get thumbnail image
-            PartPlate *plate = wxGetApp().plater()->get_partplate_list().get_plate(0);
-            auto &     data  = plate->obj_preview_thumbnail_data;
-            if (data.is_valid()) {
-                wxImage image(data.width, data.height);
-                image.InitAlpha();
-                for (unsigned int r = 0; r < data.height; ++r) {
-                    unsigned int rr = (data.height - 1 - r) * data.width;
-                    for (unsigned int c = 0; c < data.width; ++c) {
-                        unsigned char *px = (unsigned char *) data.pixels.data() + 4 * (rr + c);
-                        image.SetRGB((int) c, (int) r, px[0], px[1], px[2]);
-                        image.SetAlpha((int) c, (int) r, px[3]);
-                    }
+        wxGetApp().plater()->update_obj_preview_thumbnail(m_obj_in_out.model->objects, colors, (int)m_camera_view_angle_type);
+        // get thumbnail image
+        PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_plate(0);
+        auto& data = plate->obj_preview_thumbnail_data;
+        if (data.is_valid()) {
+            wxImage image(data.width, data.height);
+            image.InitAlpha();
+            for (unsigned int r = 0; r < data.height; ++r) {
+                unsigned int rr = (data.height - 1 - r) * data.width;
+                for (unsigned int c = 0; c < data.width; ++c) {
+                    unsigned char* px = (unsigned char*)data.pixels.data() + 4 * (rr + c);
+                    image.SetRGB((int)c, (int)r, px[0], px[1], px[2]);
+                    image.SetAlpha((int)c, (int)r, px[3]);
                 }
-                image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH));
-                m_right_image_button->SetBitmap(image);
             }
+            image = image.Rescale(FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH), FromDIP(RIGHT_THUMBNAIL_SIZE_WIDTH));
+            m_right_image_button->SetBitmap(image);
+        }
 
     }
     else {
@@ -1038,7 +1088,7 @@ void ObjColorPanel::generate_origin_thumbnail()
                         mv->origin_render_info_ptr->mesh_with_colors.emplace_back(tmp_result);
                     }
                 }
-                wxGetApp().plater()->update_obj_preview_origin_thumbnail(m_obj_in_out.model->objects, 0, 0, colors, (int) m_camera_view_angle_type);
+                wxGetApp().plater()->update_obj_preview_origin_thumbnail(m_obj_in_out.model->objects, colors, (int) m_camera_view_angle_type);
             } else {
                 mv->set_origin_mesh_render_type(false);
                 if(!mv->origin_render_info_ptr){
@@ -1048,10 +1098,10 @@ void ObjColorPanel::generate_origin_thumbnail()
                 mv->origin_render_info_ptr->vertices_with_colors.first = mesh;
                 mv->origin_render_info_ptr->vertices_with_colors.second = m_obj_in_out.input_colors;
 
-                wxGetApp().plater()->update_obj_preview_origin_thumbnail(m_obj_in_out.model->objects, 0, 0, colors, (int) m_camera_view_angle_type);
+                wxGetApp().plater()->update_obj_preview_origin_thumbnail(m_obj_in_out.model->objects, colors, (int) m_camera_view_angle_type);
             }
         } else if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Standard3mf) {
-            wxGetApp().plater()->update_obj_preview_origin_thumbnail(m_obj_in_out.model->objects, 0, 0, colors, (int) m_camera_view_angle_type);
+            wxGetApp().plater()->update_obj_preview_origin_thumbnail(m_obj_in_out.model->objects, colors, (int) m_camera_view_angle_type);
         } else {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "error:unkonwn type.";
         }
