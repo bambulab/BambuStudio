@@ -46,7 +46,7 @@ DevUtilBackend::CollectNozzleInfo(MultiNozzleUtils::MultiNozzleGroupResult* nozz
         try {
             NozzleDef data;
             data.nozzle_diameter = boost::lexical_cast<float>(slicing_nozzle.diameter);
-            data.nozzle_flow_type = (slicing_nozzle.volume_type == NozzleVolumeType::nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::S_FLOW);
+            data.nozzle_flow_type = DevNozzle::ToNozzleFlowType(slicing_nozzle.volume_type);
             need_nozzle_map[data]++;
         } catch (const std::exception& e) {
             assert(0);

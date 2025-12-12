@@ -515,7 +515,7 @@ float CalibrationCaliPage::get_selected_calibration_nozzle_dia(MachineObject* ob
 {
     // return selected if this is set
     if(obj->GetCalib()->GetSelectedNozzleDiameter() != NozzleDiameterType::NONE_DIAMETER_TYPE)
-        return to_nozzle_diameter_float(obj->GetCalib()->GetSelectedNozzleDiameter());
+        return DevNozzle::ToNozzleDiameterFloat(obj->GetCalib()->GetSelectedNozzleDiameter());
 
     // return default nozzle if nozzle diameter is set
     if (obj->GetExtderSystem()->GetNozzleDiameter(0) > 1e-3 && obj->GetExtderSystem()->GetNozzleDiameter(0) < 10.0f)
