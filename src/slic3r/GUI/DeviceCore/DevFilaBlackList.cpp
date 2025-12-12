@@ -122,6 +122,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             std::string name = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
             std::string slot = filament_item.contains("slot") ? filament_item["slot"].get<std::string>() : "";
             std::optional<bool> used_for_print_support = filament_item.contains("used_for_print_support") ? filament_item["used_for_print_support"].get<bool>() : std::optional<bool>();
+            std::optional<bool> used_for_print_object = filament_item.contains("used_for_print_object") ? filament_item["used_for_print_object"].get<bool>() : std::optional<bool>();
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::vector<int> extruder_ids = filament_item.contains("extruder_id") ? filament_item["extruder_id"].get<std::vector<int>>() : std::vector<int>();
             std::vector<std::string> nozzle_flows = filament_item.contains("nozzle_flows") ? filament_item["nozzle_flows"].get<std::vector<std::string>>() : std::vector<std::string>();
@@ -175,6 +176,11 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
 
             // check filament used for print support
             if (used_for_print_support.has_value() && used_for_print_support != check_info.used_for_print_support) {
+                continue;
+            }
+
+            // check filament used for print object
+            if (used_for_print_object.has_value() && used_for_print_object != check_info.used_for_print_object) {
                 continue;
             }
 

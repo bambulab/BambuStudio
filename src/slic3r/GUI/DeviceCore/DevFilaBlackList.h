@@ -19,6 +19,7 @@ public:
         std::string fila_name;
         std::string fila_vendor;
         std::optional<bool> used_for_print_support;// optional
+        std::optional<bool> used_for_print_object;// optional
 
         int ams_id;
         int slot_id;
