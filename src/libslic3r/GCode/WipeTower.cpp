@@ -3726,12 +3726,12 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         return buffer;
     };
     auto add_M104_by_requirement = [&writer, &format_line_M104, this]() {
-        if (!m_is_multiple_nozzle||m_filpar[m_current_tool].filament_cooling_before_tower < EPSILON) return;
+        if (m_filpar[m_current_tool].filament_cooling_before_tower < EPSILON) return;
         float target_temp = is_first_layer() ? m_filpar[m_current_tool].nozzle_temperature_initial_layer : m_filpar[m_current_tool].nozzle_temperature;
         writer.append(format_line_M104(target_temp, m_filament_map[this->m_current_tool] - 1));
     };
     float speed_factor = 1.f;
-    if (m_is_multiple_nozzle && m_filpar[m_current_tool].filament_cooling_before_tower > EPSILON) {
+    if (m_filpar[m_current_tool].filament_cooling_before_tower > EPSILON) {
         float estimate_time = estimate_wipe_time();
         int   extruder_id   = m_filament_map[m_current_tool] - 1;
         float heat_time     = m_filpar[m_current_tool].filament_cooling_before_tower / m_hotend_heating_rate[extruder_id];
