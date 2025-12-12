@@ -1943,6 +1943,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
                 for (auto used_fila : gcode_result->used_filaments) {
                     if (used_fila.filament_id == fila.id) {
                         check_info.used_for_print_support = used_fila.use_for_support;
+                        check_info.used_for_print_object = used_fila.use_for_object;
                         break;
                     }
                 };
@@ -5161,6 +5162,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 for (auto used_fila : gcode_result->used_filaments) {
                     if (used_fila.filament_id == fila.id) {
                         check_info.used_for_print_support = used_fila.use_for_support;
+                        check_info.used_for_print_object = used_fila.use_for_object;
                         break;
                     }
                 };
