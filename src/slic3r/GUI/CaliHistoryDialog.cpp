@@ -893,7 +893,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
             for (auto item : nozzle_volume_type_def->enum_labels) {
                 if (item == "Hybrid") continue;
-                m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{to_nozzle_flow_type(item)});
+                m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{DevNozzle::ToNozzleFlowType(item)});
             }
         }
         m_comboBox_nozzle_type->SetSelection(-1);
@@ -909,7 +909,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     for (int i = 0; i < nozzle_diameter_list.size(); i++)
     {
         auto diameter = nozzle_diameter_list[i];
-        m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", to_nozzle_diameter_float(diameter)), wxNullBitmap, new int{diameter});
+        m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});
 
         if(obj->GetExtderSystem()->GetNozzleDiameterType(0) == diameter){
             m_comboBox_nozzle_diameter->SetSelection(i);
@@ -1050,9 +1050,9 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
     auto   sel          = m_comboBox_nozzle_diameter->GetSelection();
     double nozzle_value = 0.0f;
     if (sel != wxNOT_FOUND) {
-        nozzle_value = to_nozzle_diameter_float(NozzleDiameterType(*(int *) m_comboBox_nozzle_diameter->GetClientData(sel)));
+        nozzle_value = DevNozzle::ToNozzleDiameterFloat(NozzleDiameterType(*(int *) m_comboBox_nozzle_diameter->GetClientData(sel)));
     } else {
-        nozzle_value = to_nozzle_diameter_float(NozzleDiameterType::NONE_DIAMETER_TYPE);
+        nozzle_value = DevNozzle::ToNozzleDiameterFloat(NozzleDiameterType::NONE_DIAMETER_TYPE);
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle diameter type sel";
     }
 
@@ -1082,7 +1082,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         }
         auto sel = m_comboBox_nozzle_type->GetSelection();
         if (sel != wxNOT_FOUND) {
-            m_new_result.nozzle_volume_type = to_nozzle_volume_type(NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(sel)));
+            m_new_result.nozzle_volume_type = DevNozzle::ToNozzleVolumeType(NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(sel)));
         } else {
             m_new_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle flow type sel";
