@@ -1186,10 +1186,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
         nozzle_flow_type = sel_pair->second;
     }
 
-    NozzleVolumeType nozzle_volume_type = NozzleVolumeType::nvtStandard;
-    if (nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE) {
-        nozzle_volume_type = NozzleVolumeType(nozzle_flow_type - 1);
-    }
+    NozzleVolumeType nozzle_volume_type = nozzle_flow_type != NozzleFlowType::NONE_FLOWTYPE ? DevNozzle::ToNozzleVolumeType(nozzle_flow_type) : NozzleVolumeType::nvtStandard;
 
     wxArrayString items;
     m_pa_profile_items.clear();
@@ -1286,6 +1283,7 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
             switch(pair.second) {
                 case NozzleFlowType::S_FLOW: item += _L("Standard Flow"); break;
                 case NozzleFlowType::H_FLOW: item += _L("High Flow"); break;
+                case NozzleFlowType::U_FLOW: item += _L("TPU High Flow"); break;
                 default: item += _L("Unknown"); break;
             }
             m_comboBox_nozzle_type->Append(item, wxNullBitmap, new std::pair<NozzleDiameterType, NozzleFlowType>(pair));

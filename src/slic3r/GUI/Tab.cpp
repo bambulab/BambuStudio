@@ -7160,6 +7160,8 @@ NozzleFlowType Tab::get_actual_nozzle_flow_type(int selection)
                 return NozzleFlowType::H_FLOW;
             } else if (variant.find("Standard") != std::string::npos) {
                 return NozzleFlowType::S_FLOW;
+            } else if (variant.find("TPU High Flow") != std::string::npos) {
+                return NozzleFlowType::U_FLOW;
             }
             return NozzleFlowType::S_FLOW;
         }

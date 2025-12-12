@@ -21,10 +21,97 @@ wxString DevNozzle::GetNozzleFlowTypeStr(NozzleFlowType type)
     switch (type) {
     case NozzleFlowType::H_FLOW: return _L("High Flow");
     case NozzleFlowType::S_FLOW: return _L("Standard");
+    case NozzleFlowType::U_FLOW: return _L("TPU High Flow");
     default: break;
     }
 
     return _L("Unknown");
+}
+
+std::string DevNozzle::GetNozzleFlowTypeString(NozzleFlowType type)
+{
+    switch (type) {
+        case NozzleFlowType::H_FLOW: return "High Flow";
+        case NozzleFlowType::S_FLOW: return "Standard";
+        case NozzleFlowType::U_FLOW: return "TPU High Flow";
+        default: return "Unknown";
+    }
+}
+
+NozzleVolumeType DevNozzle::ToNozzleVolumeType(const NozzleFlowType& type)
+{
+    switch (type) {
+        case NozzleFlowType::S_FLOW: return NozzleVolumeType::nvtStandard;
+        case NozzleFlowType::H_FLOW: return NozzleVolumeType::nvtHighFlow;
+        case NozzleFlowType::U_FLOW: return NozzleVolumeType::nvtTPUHighFlow;
+        default: {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "nozzle flow type None convert to nozzle volume type Standard";
+            return NozzleVolumeType::nvtStandard;
+        }
+    }
+}
+
+NozzleFlowType DevNozzle::ToNozzleFlowType(const NozzleVolumeType& type)
+{
+    switch (type) {
+        case NozzleVolumeType::nvtStandard:     return NozzleFlowType::S_FLOW;
+        case NozzleVolumeType::nvtHighFlow:     return NozzleFlowType::H_FLOW;
+        case NozzleVolumeType::nvtTPUHighFlow:  return NozzleFlowType::U_FLOW;
+        default: return NozzleFlowType::NONE_FLOWTYPE;
+    }
+}
+
+NozzleFlowType DevNozzle::ToNozzleFlowType(const std::string& type)
+{
+    if(type == "Standard")
+        return NozzleFlowType::S_FLOW;
+    else if(type == "High Flow")
+        return NozzleFlowType::H_FLOW;
+    else if(type == "TPU High Flow")
+        return NozzleFlowType::U_FLOW;
+    else
+        return NozzleFlowType::NONE_FLOWTYPE;
+}
+
+std::string DevNozzle::ToNozzleFlowString(const NozzleFlowType& type)
+{
+    switch (type) {
+    case NozzleFlowType::S_FLOW: return "Standard";
+    case NozzleFlowType::H_FLOW: return "High Flow";
+    case NozzleFlowType::U_FLOW: return "TPU High Flow";
+    default: return std::string();
+    }
+}
+
+std::string DevNozzle::ToNozzleVolumeString(const NozzleVolumeType& type)
+{
+    return ToNozzleFlowString(ToNozzleFlowType(type));
+}
+
+float DevNozzle::ToNozzleDiameterFloat(const NozzleDiameterType &type)
+{
+    switch (type){
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return 0.2f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return 0.4f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return 0.6f;
+        case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return 0.8f;
+        default: return 0.4f;
+    }
+}
+
+NozzleDiameterType DevNozzle::ToNozzleDiameterType(float diameter)
+{
+    if(is_approx(diameter, 0.2f)) {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_2;
+    } else if(is_approx(diameter, 0.4f)) {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_4;
+    } else if(is_approx(diameter, 0.6f)) {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_6;
+    } else if(is_approx(diameter, 0.8f)) {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_8;
+    } else{
+        return NozzleDiameterType::NONE_DIAMETER_TYPE;
+    }
 }
 
 bool DevNozzle::IsInfoReliable() const
@@ -168,15 +255,6 @@ DevNozzle DevNozzleSystem::GetExtNozzle(int id) const
     return DevNozzle();
 }
 
-std::string DevNozzle::GetNozzleFlowTypeString(NozzleFlowType type)
-{
-    switch (type) {
-        case NozzleFlowType::H_FLOW: return "High Flow";
-        case NozzleFlowType::S_FLOW: return "Standard";
-        default: return "Unknown";
-    }
-}
-
 std::string DevNozzle::GetNozzleTypeString(NozzleType type)
 {
     switch (type) {
@@ -245,7 +323,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
         MultiNozzleUtils::NozzleGroupInfo info;
         info.extruder_id = nozzle.GetLogicExtruderId();
         info.diameter = format_diameter_to_str(nozzle.m_diameter);
-        info.volume_type = nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard;
+        info.volume_type = DevNozzle::ToNozzleVolumeType(nozzle.m_nozzle_flow);
         info.nozzle_count = 1;
         nozzle_groups.emplace_back(std::move(info));
     }
@@ -261,7 +339,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
             continue;
         int extruder_id = nozzle.GetLogicExtruderId();
         std::string diameter = format_diameter_to_str(nozzle.m_diameter);
-        NozzleVolumeType volume_type = nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW ? NozzleVolumeType::nvtHighFlow : NozzleVolumeType::nvtStandard;
+        NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.m_nozzle_flow);
 
         bool found = false;
         for (auto& group : nozzle_groups) {
@@ -449,7 +527,8 @@ static unordered_map<string, NozzleFlowType> _str2_nozzle_flow_type = {
     {"H", NozzleFlowType::H_FLOW},
     {"A", NozzleFlowType::S_FLOW},
     {"X", NozzleFlowType::S_FLOW},
-    {"E", NozzleFlowType::H_FLOW}
+    {"E", NozzleFlowType::H_FLOW},
+    {"U", NozzleFlowType::U_FLOW},
 };
 
 static unordered_map<string, NozzleType> _str2_nozzle_type = {

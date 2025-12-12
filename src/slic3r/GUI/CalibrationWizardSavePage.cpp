@@ -612,9 +612,10 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             default_name += "_";
             if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
                 default_name += "SF";
-            }
-            else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
+            } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
                 default_name += "HF";
+            } else if (info.nozzle_volume_type == NozzleVolumeType::nvtTPUHighFlow) {
+                default_name += "UHF";
             }
         }
 
@@ -740,8 +741,9 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                 }
                 nozzle_id_str += wxString::Format("%.1f mm ", item.nozzle_diameter);
                 switch(item.nozzle_volume_type){
-                    case NozzleVolumeType::nvtStandard: nozzle_id_str += _L("Standard Flow"); break;
-                    case NozzleVolumeType::nvtHighFlow: nozzle_id_str += _L("High Flow"); break;
+                    case NozzleVolumeType::nvtStandard:     nozzle_id_str += _L("Standard Flow"); break;
+                    case NozzleVolumeType::nvtHighFlow:     nozzle_id_str += _L("High Flow"); break;
+                    case NozzleVolumeType::nvtTPUHighFlow:  nozzle_id_str += _L("TPU High Flow"); break;
                     default: break;
                 }
                 nozzle_id_value->SetLabel(nozzle_id_str);

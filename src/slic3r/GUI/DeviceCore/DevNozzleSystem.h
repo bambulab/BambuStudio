@@ -26,6 +26,20 @@ namespace Slic3r
        NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
        float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
 
+    public:
+        static wxString      GetNozzleFlowTypeStr(NozzleFlowType type);
+        static std::string   GetNozzleFlowTypeString(NozzleFlowType type);// no translation
+        static wxString      GetNozzleTypeStr(NozzleType type);
+        static std::string   GetNozzleTypeString(NozzleType type);
+        
+        static NozzleVolumeType ToNozzleVolumeType(const NozzleFlowType& type);
+        static NozzleFlowType   ToNozzleFlowType(const NozzleVolumeType& type);
+        static NozzleFlowType   ToNozzleFlowType(const std::string& type);
+        static std::string      ToNozzleFlowString(const NozzleFlowType& type);
+        static std::string      ToNozzleVolumeString(const NozzleVolumeType& type);
+        static float            ToNozzleDiameterFloat(const NozzleDiameterType& type);
+        static NozzleDiameterType   ToNozzleDiameterType(float diameter);
+
    public:
        bool     IsEmpty() const { return m_nozzle_id < 0; }
 
@@ -46,11 +60,6 @@ namespace Slic3r
        wxString GetNozzleDiameterStr() const {  return wxString::Format("%.1f mm", m_diameter);}
        wxString GetNozzleFlowTypeStr() const;
        wxString GetNozzleTypeStr() const;
-
-       static wxString      GetNozzleFlowTypeStr(NozzleFlowType type);
-       static std::string   GetNozzleFlowTypeString(NozzleFlowType type);// no translation
-       static wxString      GetNozzleTypeStr(NozzleType type);
-       static std::string   GetNozzleTypeString(NozzleType type);
 
        // serial number
        wxString GetSerialNumber() const { return GetFirmwareInfo().sn; }
