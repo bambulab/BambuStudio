@@ -634,7 +634,8 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 						sexpolys.push_back(surface->expolygon);
 					}
 					sexpolys = union_ex(sexpolys);
-					lower_unsuporrt_expolys = union_ex(lower_unsuporrt_expolys, sexpolys);
+                    if (!sexpolys.empty())
+                       lower_unsuporrt_expolys = union_ex(lower_unsuporrt_expolys, sexpolys);
 				}
 				lower_unsuporrt_expolys = shrink_ex(lower_unsuporrt_expolys, SCALED_EPSILON);
         LockRegionParam temp_skin_inner_param;
