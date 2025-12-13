@@ -92,6 +92,11 @@
         "10",
         "10"
     ],
+    "filament_bridge_speed": [
+        "25",
+        "25",
+        "25"
+    ],
     "filament_ramming_volumetric_speed": [
         "0.7",
         "0.7",
