@@ -591,7 +591,8 @@ public:
                         const std::vector<std::array<float, 4>>& colors,
                         Model &            model,
                         bool               with_outline = false,
-                        const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f} ) const;
+                        const std::array<float, 4> &body_color = {1.0f, 1.0f, 1.0f, 1.0f},
+                        bool               disable_mmu_colors = false ) const;
 
     //BBS: add simple render function for thumbnail
     void simple_render(const std::shared_ptr<GLShaderProgram>& shader, ModelObjectPtrs& model_objects, std::vector<std::array<float, 4>>& extruder_colors,bool ban_light =false) const;
@@ -626,7 +627,8 @@ public:
                 const std::vector<std::array<float, 4>> & colors,
                 Model &                                  model,
                 bool                        with_outline = false,
-                const std::array<float, 4> & body_color  = {1.0f, 1.0f, 1.0f, 1.0f}) const override;
+                const std::array<float, 4> & body_color  = {1.0f, 1.0f, 1.0f, 1.0f},
+                bool                        disable_mmu_colors = false) const override;
 
     std::vector<GLIndexedVertexArray> iva_per_colors;
     bool                              IsTransparent();
@@ -678,6 +680,10 @@ private:
     std::array<float, 4>    m_color_clip_plane;
     bool                     m_use_color_clip_plane{false};
     std::array<ColorRGBA, 2> m_color_clip_plane_colors{ColorRGBA::RED(), ColorRGBA::BLUE()};
+
+    // Volume-based color override for gizmos (e.g., mesh boolean)
+    bool m_use_volume_color_override{false};
+    std::unordered_map<unsigned int, std::array<float, 4>> m_volume_color_overrides;
 
     struct Slope
     {
@@ -799,6 +805,29 @@ public:
         m_color_clip_plane[3] = offset;
     }
     void set_color_clip_plane_colors(const std::array<ColorRGBA, 2> &colors) { m_color_clip_plane_colors = colors; }
+
+    // Volume color override methods (similar to color_clip_plane methods)
+    void set_use_volume_color_override(bool use) { m_use_volume_color_override = use; }
+    void set_volume_color_override(unsigned int volume_idx, const std::array<float, 4>& color) {
+        m_volume_color_overrides[volume_idx] = color;
+    }
+    void set_volumes_color_override(const std::vector<unsigned int>& volume_indices, const std::array<float, 4>& color) {
+        for (unsigned int idx : volume_indices) {
+            m_volume_color_overrides[idx] = color;
+        }
+    }
+    void clear_volume_color_override(unsigned int volume_idx) {
+        m_volume_color_overrides.erase(volume_idx);
+    }
+    void clear_all_volume_color_overrides() {
+        m_volume_color_overrides.clear();
+        m_use_volume_color_override = false;
+    }
+    const std::array<float, 4>& get_volume_render_color(unsigned int volume_idx, const std::array<float, 4>& default_color) const {
+        if (!m_use_volume_color_override) return default_color;
+        auto it = m_volume_color_overrides.find(volume_idx);
+        return (it != m_volume_color_overrides.end()) ? it->second : default_color;
+    }
 
     bool is_slope_GlobalActive() const { return m_slope.isGlobalActive; }
     bool is_slope_active() const { return m_slope.active; }

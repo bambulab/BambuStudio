@@ -267,6 +267,8 @@ ObjectList::ObjectList(wxWindow* parent) :
     }
 #else //__WXOSX__
     Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
+    // BBS: 绑定定时器事件以支持多位数快捷键
+    m_timer_set_extruder.Bind(wxEVT_TIMER, &ObjectList::on_set_extruder_timer, this);
 #endif
 
 #ifdef __WXMSW__
@@ -734,7 +736,8 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
         }
         m_objects_model->SetExtruder(extruder, item);
 
-        static const char *keys[] = {"support_filament", "support_interface_filament"};
+        static const char *keys[] = {"support_filament", "support_interface_filament",
+            "sparse_infill_filament", "solid_infill_filament", "wall_filament"};
         for (auto key : keys) {
             if (object->config.has(key)) {
                 if(object->config.opt_int(key) == filament_id + 1)
@@ -1754,13 +1757,17 @@ void ObjectList::key_event(wxKeyEvent& event)
     //else if (event.GetUnicodeKey() == 'p')
     //    toggle_printable_state();
     else if (filaments_count() > 1) {
-        std::vector<wxChar> numbers = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-        wxChar key_char = event.GetUnicodeKey();
-        if (std::find(numbers.begin(), numbers.end(), key_char) != numbers.end()) {
-            long extruder_number;
-            if (wxNumberFormatter::FromString(wxString(key_char), &extruder_number) &&
-                filaments_count() >= extruder_number)
-                set_extruder_for_selected_items(int(extruder_number));
+        // BBS: 支持多位数快捷键（与3D场景保持一致，支持11~16）
+        int keyCode = event.GetKeyCode();
+        if (keyCode >= '0' && keyCode <= '9') {
+            int digit = keyCode - '0';
+            if (m_extruder_input_value < 0 || !m_timer_set_extruder.IsRunning()) {
+                m_extruder_input_value = digit;
+            } else {
+                m_extruder_input_value = m_extruder_input_value * 10 + digit;
+            }
+            if (m_timer_set_extruder.IsRunning()) m_timer_set_extruder.Stop();
+            m_timer_set_extruder.StartOnce(500);
         }
         else
             event.Skip();
@@ -5534,8 +5541,8 @@ ModelVolume* ObjectList::get_selected_model_volume()
     const auto obj_idx = get_selected_obj_idx();
     if (vol_idx < 0 || obj_idx < 0)
         return nullptr;
-
-    return (*m_objects)[obj_idx]->volumes[vol_idx];
+    auto new_vol_idx = m_objects_model->get_real_volume_index_in_3d(obj_idx, vol_idx);
+    return (*m_objects)[obj_idx]->volumes[new_vol_idx];
 }
 
 void ObjectList::change_part_type()
@@ -6188,6 +6195,16 @@ void ObjectList::OnEditingDone(wxDataViewEvent &event)
     Plater* plater = wxGetApp().plater();
     if (plater)
         plater->set_current_canvas_as_dirty();
+}
+
+// BBS: 定时器回调函数，处理多位数快捷键输入
+void ObjectList::on_set_extruder_timer(wxTimerEvent& evt)
+{
+    if (m_extruder_input_value > 0 && filaments_count() >= m_extruder_input_value) {
+        set_extruder_for_selected_items(m_extruder_input_value);
+    }
+    m_extruder_input_value = -1;
+    m_timer_set_extruder.Stop();
 }
 
 // BBS: remove "const" qualifier

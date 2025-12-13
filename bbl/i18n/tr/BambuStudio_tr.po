@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-14 18:46+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -49,6 +49,9 @@ msgstr "TPU, AMS tarafından desteklenmez."
 msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "AMS, 'Bambu Lab PET-CF'yi desteklemiyor."
 
+msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Tıkanmayı önlemek için TPU'yu yazdırmadan önce lütfen filamenti soğuduktan sonra çekin. Yazıcıda soğuk çekme bakımını kullanabilirsiniz."
 
@@ -70,9 +73,66 @@ msgstr "PPS-CF kırılgandır ve Baskı Kafası üzerindeki bükülmüş PTFE t�
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF kırılgandır ve Baskı Kafasının üzerindeki bükülmüş PTFE tüp içinde kırılabilir."
 
+msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s, %s ekstrüder tarafından desteklenmiyor."
+
+msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
+msgstr ""
+
+msgid "Warning"
+msgstr "Uyarı"
+
+msgid "Hotend information may be inaccurate. Would you like to re-read the hotend? (Hotend information may change during power-off)."
+msgstr ""
+
+msgid "I confirm all"
+msgstr ""
+
+msgid "Re-read all"
+msgstr ""
+
+msgid "Reading the hotends, please wait."
+msgstr ""
+
+msgid "During the hotend upgrade, the toolhead will move. Don't reach into the chamber."
+msgstr ""
+
+msgid "Update"
+msgstr "Güncelle"
+
+msgid "High Flow"
+msgstr "Yüksek akış"
+
+msgid "Standard"
+msgstr "Standart"
+
+msgid "Unknown"
+msgstr "Bilinmeyen"
+
+msgid "Hardened Steel"
+msgstr "Güçlendirilmiş çelik"
+
+msgid "Stainless Steel"
+msgstr "Paslanmaz çelik"
+
+msgid "Tungsten Carbide"
+msgstr "Tungsten Karbür"
+
+msgid "Update successful."
+msgstr "Güncelleme başarılı."
+
+msgid "Downloading failed."
+msgstr "İndirme başarısız oldu."
+
+msgid "Verification failed."
+msgstr "Doğrulama başarısız oldu."
+
+msgid "Update failed."
+msgstr "Güncelleme başarısız."
 
 msgid "Current AMS humidity"
 msgstr "AMS mevcut nem oranı"
@@ -107,6 +167,72 @@ msgstr "Sürüm:"
 
 msgid "Latest version"
 msgstr "Son sürüm"
+
+msgid "Row A"
+msgstr ""
+
+msgid "Row B"
+msgstr ""
+
+msgid "Toolhead"
+msgstr ""
+
+msgid "Empty"
+msgstr "Boş"
+
+msgid "Error"
+msgstr "Hata"
+
+msgid "Induction Hotend Rack"
+msgstr ""
+
+msgid "Hotends Info"
+msgstr ""
+
+msgid "Read All"
+msgstr ""
+
+msgid "Reading "
+msgstr ""
+
+msgid "Please wait"
+msgstr ""
+
+msgid "Reading"
+msgstr ""
+
+msgid "Running..."
+msgstr ""
+
+msgid "Raised"
+msgstr ""
+
+msgid "The hotend is in an abnormal state and currently unavailable. Please go to 'Device -> Upgrade' to upgrade firmware."
+msgstr ""
+
+msgid "Abnormal Hotend"
+msgstr ""
+
+msgid "Cancel"
+msgstr "İptal"
+
+msgid "Jump to the upgrade page"
+msgstr ""
+
+msgid "SN"
+msgstr "SN"
+
+msgid "Version"
+msgstr "Sürüm"
+
+msgid "Hotend Rack"
+msgstr ""
+
+msgid "ToolHead"
+msgstr ""
+
+msgid "Nozzle information needs to be read"
+msgstr ""
 
 msgid "Supports Painting"
 msgstr "Destek Boyama"
@@ -195,9 +321,6 @@ msgstr "Yüzleri çıkıntı açısına göre vurgulayın."
 
 msgid "No auto support"
 msgstr "Otomatik destek yok"
-
-msgid "Warning"
-msgstr "Uyarı"
 
 msgid "Painting below the build plate is not allowed."
 msgstr "Yapı plakasının altının boyanmasına izin verilmez."
@@ -369,6 +492,18 @@ msgstr "Parça seçimi"
 msgid "Fixed step drag"
 msgstr "Sabit adım sürükle"
 
+msgid "Keep holding down Ctrl"
+msgstr ""
+
+msgid "Select multiple objects"
+msgstr "Birden fazla nesne seç"
+
+msgid "Keep holding down Alt"
+msgstr ""
+
+msgid "Select multiple parts"
+msgstr ""
+
 msgid "Single sided scaling"
 msgstr "Tek taraflı ölçeklendirme"
 
@@ -413,6 +548,54 @@ msgstr "Dünya koordinatları"
 
 msgid "Translate(Relative)"
 msgstr "Çevir(Göreceli)"
+
+msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Align"
+msgstr ""
+
+msgid "Distribute"
+msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr ""
+
+msgid "Align left"
+msgstr ""
+
+msgid "Align left-right center"
+msgstr ""
+
+msgid "Align right"
+msgstr ""
+
+msgid "Distribute left-right"
+msgstr ""
+
+msgid "Please select at least 3 parts or objects"
+msgstr ""
+
+msgid "Align front"
+msgstr ""
+
+msgid "Align front-back center"
+msgstr ""
+
+msgid "Align back"
+msgstr ""
+
+msgid "Distribute front-back"
+msgstr ""
+
+msgid "Align bottom"
+msgstr ""
+
+msgid "Align top"
+msgstr ""
+
+msgid "Distribute top-bottom"
+msgstr ""
 
 msgid "°"
 msgstr "°/s"
@@ -622,9 +805,6 @@ msgstr "Boşluk"
 msgid "Confirm connectors"
 msgstr "Bağlayıcıları onayla"
 
-msgid "Cancel"
-msgstr "İptal"
-
 msgid "Invalid connectors detected"
 msgstr "Geçersiz bağlayıcılar algılandı"
 
@@ -683,9 +863,6 @@ msgstr "Sadeleştir"
 
 msgid "Simplification is currently only allowed when a single part is selected"
 msgstr "Sadeleştirmeye şu anda yalnızca tek bir parça seçildiğinde izin veriliyor"
-
-msgid "Error"
-msgstr "Hata"
 
 msgid "Extra high"
 msgstr "Ekstra yüksek"
@@ -1462,9 +1639,6 @@ msgstr "Beta sürümü"
 msgid "V"
 msgstr "V"
 
-msgid "Version"
-msgstr "Sürüm"
-
 msgid "BambuStudio will terminate because of running out of memory.It may be a bug. It will be appreciated if you report the issue to our team."
 msgstr "BambuStudio hafızasının yetersiz olması nedeniyle sonlandırılacak. Bir hata olabilir. Sorunu ekibimize bildirirseniz seviniriz."
 
@@ -1492,6 +1666,9 @@ msgstr "Bambu Ağı Eklentisi İndiriliyor"
 
 msgid "Login information expired. Please login again."
 msgstr "Giriş bilgilerinin süresi doldu. Lütfen tekrar giriş yapın."
+
+msgid "Failed to connect to the cloud device server. Please check your network and firewall."
+msgstr ""
 
 msgid "Incorrect password"
 msgstr "Yanlış parola"
@@ -1911,6 +2088,12 @@ msgstr "Mesh bölme"
 msgid "Mesh boolean operations including union and subtraction"
 msgstr "Birleştirme ve çıkarma dahil mesh bölme işlemleri"
 
+msgid "Merge into Single Part"
+msgstr ""
+
+msgid "Merge the selected parts into one part"
+msgstr ""
+
 msgid "Along X axis"
 msgstr "X ekseni boyunca"
 
@@ -2004,6 +2187,9 @@ msgstr "Plakayı Sil"
 msgid "Remove the selected plate"
 msgstr "Seçilen plakayı kaldır"
 
+msgid "Move Plate"
+msgstr ""
+
 msgid "Clone"
 msgstr "Klon"
 
@@ -2012,6 +2198,12 @@ msgstr "Modeli Basitleştir"
 
 msgid "Center"
 msgstr "Merkez"
+
+msgid "Align/Distribute"
+msgstr ""
+
+msgid "Align and distribute objects"
+msgstr ""
 
 msgid "Sub merge"
 msgstr "Alt birleştirme"
@@ -2904,11 +3096,11 @@ msgstr "min"
 msgid "The input value should be greater than %1% and less than %2%"
 msgstr "Giriş değeri %1%'den büyük ve %2%'den küçük olmalıdır"
 
-msgid "SN"
-msgstr "SN"
-
 msgid "Factors of Flow Dynamics Calibration"
 msgstr "Akış Dinamiği Kalibrasyonunun Faktörleri"
+
+msgid "Nozzle Type"
+msgstr "Nozul tipi"
 
 msgid "PA Profile"
 msgstr "PA Profili"
@@ -2938,6 +3130,12 @@ msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde, N %.1f~%.1f içinde)"
+
+msgid "Standard Flow"
+msgstr ""
+
+msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3079,6 +3277,16 @@ msgstr "Nozul"
 
 msgid "Ext"
 msgstr "Harici"
+
+msgid "Select Filament && Hotends"
+msgstr ""
+
+msgid "Select Filament"
+msgstr "Filament Seçin"
+
+#, c-format, boost-format
+msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -3733,23 +3941,29 @@ msgstr "Kesim Modülü Ofset Kalibrasyonu"
 msgid "Measuring Surface"
 msgstr "Ölçüm Yüzeyi"
 
+msgid "Homing Blade Holder"
+msgstr ""
+
+msgid "Calibrating Camera Offset"
+msgstr ""
+
+msgid "Calibrating Blade Holder Position"
+msgstr ""
+
+msgid "Hotend Pick and Place Test"
+msgstr ""
+
+msgid "Waiting for the Chamber temperature to equalize"
+msgstr ""
+
+msgid " Preparing Hotend"
+msgstr ""
+
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "Nozul Topaklanma Tespit Konumunun Kalibrasyonu"
 
-msgid "Unknown"
-msgstr "Bilinmeyen"
-
-msgid "Update successful."
-msgstr "Güncelleme başarılı."
-
-msgid "Downloading failed."
-msgstr "İndirme başarısız oldu."
-
-msgid "Verification failed."
-msgstr "Doğrulama başarısız oldu."
-
-msgid "Update failed."
-msgstr "Güncelleme başarısız."
+msgid "Purifying the chamber air"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse bu yazıcıda desteklenmez."
@@ -3860,6 +4074,9 @@ msgstr "Kurutmayı Durdur"
 
 msgid "Proceed"
 msgstr "Devam Et"
+
+msgid "Abort"
+msgstr ""
 
 msgid "Done"
 msgstr "Tamamlandı"
@@ -4604,6 +4821,9 @@ msgstr "Hazırlık"
 msgid "Preview"
 msgstr "Ön İzleme"
 
+msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
+
 msgid "Device"
 msgstr "Yazıcı"
 
@@ -4629,21 +4849,17 @@ msgid "Print plate"
 msgstr "Plakayı Yazdır"
 
 msgid ""
-"This is your first time slicing with the H2D machine.\n"
+"This is your first time slicing with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"H2D makinesi ile ilk kez dilimleme yapıyorsunuz.\n"
-"Hızlı bir öğretici video izlemek ister misiniz?"
 
 msgid "First Guide"
 msgstr "Başlangıç Kılavuzu"
 
 msgid ""
-"This is your first time printing tpu filaments with the H2D machine.\n"
+"This is your first time printing tpu filaments with the dual extruder machine.\n"
 "Would you like to watch a quick tutorial video?"
 msgstr ""
-"Bu, H2D makinesi ile tpu filamentlerini ilk kez yazdırmanızdır.\n"
-"Hızlı bir öğretici video izlemek ister misiniz?"
 
 msgid "PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. "
 msgstr "PPS-CF/PPA-CF kırılgandır ve Baskı Kafası üzerindeki bükülmüş PTFE tüpte kırılabilir. Kullanmadan önce lütfen Wiki'ye bakın. "
@@ -5206,6 +5422,9 @@ msgstr "Ağa ulaşılamıyor"
 msgid "Information"
 msgstr "Bilgi"
 
+msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
+msgstr ""
+
 msgid "Playing..."
 msgstr "Oynatılıyor..."
 
@@ -5571,6 +5790,9 @@ msgstr "Yazdırma Seçenekleri"
 msgid "Safety Options"
 msgstr "Güvenlik Seçenekleri"
 
+msgid "Hotends"
+msgstr ""
+
 msgid "100%"
 msgstr "100%"
 
@@ -5579,9 +5801,6 @@ msgstr "Lamba"
 
 msgid "Bed"
 msgstr "Yatak"
-
-msgid "Debug Info"
-msgstr "Hata Ayıklama Bilgisi"
 
 msgid "Filament loading..."
 msgstr "Filament yükleniyor..."
@@ -5650,6 +5869,9 @@ msgstr "Eksenleri Sıfırla"
 msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
 msgstr "Filamenti yüklemeden veya çıkarmadan önce lütfen nozulu 170 derecenin üzerine ısıtın."
 
+msgid "Right extruder hotend not detected. Cannot set nozzle temperature."
+msgstr ""
+
 msgid "Chamber temperature cannot be changed in cooling mode while printing."
 msgstr "Yazdırma sırasında veya soğutma modunda oda sıcaklığı değiştirilemez."
 
@@ -5668,9 +5890,6 @@ msgstr "Bu yalnızca yazdırma sırasında etkili olur"
 msgid "Silent"
 msgstr "Sessiz"
 
-msgid "Standard"
-msgstr "Standart"
-
 msgid "Sport"
 msgstr "Spor"
 
@@ -5683,8 +5902,8 @@ msgstr "Görev sırasında ışıkların kapatılması, spagetti algılama gibi 
 msgid "Keep it On"
 msgstr "Açık Tut"
 
-msgid "Turn it Off"
-msgstr "Kapat"
+msgid "Still turn it Off"
+msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "Depolama olmadan buna başlayamazsınız."
@@ -6100,23 +6319,38 @@ msgstr "Duraklatma Hassasiyeti:"
 msgid "Spaghetti Detection"
 msgstr "Spagetti Algılama"
 
-msgid "Detect spaghetti failure(scattered lose filament)."
-msgstr "Spagetti hatasını algıla (etrafa dağılmış filament)."
+msgid "Detects spaghetti failure(scattered lose filament)."
+msgstr ""
 
 msgid "Purge Chute Pile-Up Detection"
 msgstr "Temizleme Kanalı Yığılma Algılama"
 
-msgid "Monitor if the waste is piled up in the purge chute."
-msgstr "Atıkların boşaltma kanalında birikip birikmediğini kontrol edin."
+msgid "Monitors if the waste is piled up in the purge chute."
+msgstr ""
 
 msgid "Nozzle Clumping Detection"
 msgstr "Nozul Toplanması Tespiti"
 
-msgid "Check if the nozzle is clumping by filaments or other foreign objects."
-msgstr "Nozulun filamentler veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+msgid "Checks if the nozzle is clumping by filaments or other foreign objects."
+msgstr ""
 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Nozul tıkanması veya filament aşınması nedeniyle oluşan hava basıncını tespit eder."
+
+msgid "Ensures the build plate type and placement are correct."
+msgstr ""
+
+msgid "Type Detection"
+msgstr ""
+
+msgid "Pauses printing when the detected build plate type does not match the selected one."
+msgstr ""
+
+msgid "Alignment Detection"
+msgstr ""
+
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "First Layer Inspection"
 msgstr "İlk Katman Kontrolü"
@@ -6136,8 +6370,8 @@ msgstr "Uyarı Sesine İzin Ver"
 msgid "Filament Tangle Detect"
 msgstr "Filament Dolaşma Tespiti"
 
-msgid "Check if the nozzle is clumping by filament or other foreign objects."
-msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+msgid "Checks if the nozzle is clumping by filament or other foreign objects."
+msgstr ""
 
 msgid "Open Door Detection"
 msgstr "Açık Kapı Algılama"
@@ -6166,15 +6400,6 @@ msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 msgid "View wiki"
 msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
 
-msgid "Hardened Steel"
-msgstr "Güçlendirilmiş çelik"
-
-msgid "Stainless Steel"
-msgstr "Paslanmaz çelik"
-
-msgid "Tungsten Carbide"
-msgstr "Tungsten Karbür"
-
 msgid "Brass"
 msgstr "Pirinç"
 
@@ -6190,8 +6415,8 @@ msgstr "Yenileniyor"
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Isıtma, bakım işlevi açıkken kullanılamaz."
 
-msgid "Idel Heating Protection"
-msgstr "Idel Isıtma Koruması"
+msgid "Idle Heating Protection"
+msgstr ""
 
 msgid "Stops heating automatically after 5 mins of idle to ensure safety."
 msgstr "Güvenlik için 5 dakika boşta kaldıktan sonra otomatik olarak ısınmayı durdurur."
@@ -6216,6 +6441,27 @@ msgstr "Filament Ayarları"
 
 msgid "Printer settings"
 msgstr "Yazıcı Ayarları"
+
+msgid "Remove current plate (if not last one)"
+msgstr ""
+
+msgid "Auto orient objects on current plate"
+msgstr ""
+
+msgid "Arrange objects on current plate"
+msgstr ""
+
+msgid "Unlock current plate"
+msgstr ""
+
+msgid "Edit filament grouping"
+msgstr ""
+
+msgid "Edit current plate name"
+msgstr ""
+
+msgid "Customize current plate"
+msgstr ""
 
 #, c-format, boost-format
 msgid "The %s nozzle can not print %s."
@@ -6336,6 +6582,9 @@ msgstr "Nozul bilgilerini ve AMS sayısını senkronize edin"
 msgid "Project Filaments"
 msgstr "Proje Filamentleri"
 
+msgid "Purge mode"
+msgstr ""
+
 msgid "Flushing volumes"
 msgstr "Temizleme hacimleri"
 
@@ -6404,6 +6653,12 @@ msgstr "Filamentin gerektirdiği nozul sertliği, yazıcının varsayılan nozul
 
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
 msgstr "Geleneksel timelapse etkinleştirilmesi yüzey kusurlarına neden olabilir. Yumuşak moda geçilmesi önerilir."
+
+msgid "\n"
+msgstr ""
+
+msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
+msgstr ""
 
 msgid "Smooth mode for timelapse is enabled, but the prime tower is off, which may cause print defects. Please enable the prime tower, re-slice and print again."
 msgstr "Timelapse için pürüzsüz mod etkinleştirildi, ancak ana kule kapalı, bu da baskı hatalarına neden olabilir. Lütfen ana kuleyi etkinleştirin, yeniden dilimleyin ve tekrar yazdırın."
@@ -7445,9 +7700,6 @@ msgstr "Yazıcıları Seç/Kaldır (sistem ön ayarları)"
 msgid "Create printer"
 msgstr "Yazıcı oluştur"
 
-msgid "Empty"
-msgstr "Boş"
-
 msgid "Incompatible"
 msgstr "Uyumsuz"
 
@@ -7504,6 +7756,21 @@ msgstr "Nesneye göre"
 
 msgid "Plate name"
 msgstr "Plaka adı"
+
+msgid "Move the current plate to"
+msgstr ""
+
+msgid "Move forward"
+msgstr ""
+
+msgid "Move backwards"
+msgstr ""
+
+msgid "Move to the front"
+msgstr ""
+
+msgid "Move to the back"
+msgstr ""
 
 msgid "Accept"
 msgstr "Kabul etmek"
@@ -7598,6 +7865,34 @@ msgstr "\"%1%\" için \"%2%\"yi yeni ön ayar olarak ekleyin"
 msgid "Simply switch to \"%1%\""
 msgstr "Kolayca \"%1%\"e geçin"
 
+msgid ""
+"Turning off this option will affect print quality if:\n"
+"1. Uncalibrated hotends is used\n"
+"2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions\n"
+"3. The toolhead hotend was manually removed or installed"
+msgstr ""
+
+msgid "After modifying this option, the system will reassign the nozzles based on the calibrated dynamic flow calibration coefficient."
+msgstr ""
+
+msgid "There are not enough available hotends currently."
+msgstr ""
+
+msgid "No hotends available."
+msgstr ""
+
+msgid "Please complete the hotend rack setup and try again."
+msgstr ""
+
+msgid "Please refresh the nozzle information and try again."
+msgstr ""
+
+msgid "Please re-slice."
+msgstr ""
+
+msgid "Please re-slice to avoid filament waste."
+msgstr ""
+
 msgid "Task canceled"
 msgstr "Görev iptal edildi"
 
@@ -7667,18 +7962,14 @@ msgstr ""
 "Baskı kalitesini artırmak için nozul ofsetlerini kalibre edin.\n"
 "*Otomatik mod: Yazdırmadan önce kalibrasyonu kontrol edin. Gereksizse atlayın."
 
+msgid "Nozzles and filaments of the same type share the same PA profile"
+msgstr ""
+
 msgid "send completed"
 msgstr "gönderme tamamlandı"
 
 msgid "Error code"
 msgstr "Hata kodu"
-
-msgid "High Flow"
-msgstr "Yüksek akış"
-
-#, c-format, boost-format
-msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
-msgstr "%s(%s) nozul akış ayarı dilimleme dosyası (%s) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -7749,21 +8040,6 @@ msgstr "nozul"
 msgid "both extruders"
 msgstr "her iki ekstruder"
 
-msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
-msgstr "İpuçları: Yazıcınızın nozülünü yakın zamanda değiştirdiyseniz, nozül ayarınızı değiştirmek için lütfen 'Cihaz -> Yazıcı parçaları' bölümüne gidin."
-
-#, c-format, boost-format
-msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Mevcut yazıcının %s çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
-
-#, c-format, boost-format
-msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
-msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
-
-#, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "Mevcut malzemenin (%s) sertliği %s'nin (%s) sertliğini aşıyor. Lütfen nozul veya malzeme ayarlarını doğrulayın ve tekrar deneyin."
-
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
 msgstr "[ %s ] yüksek sıcaklık ortamında yazdırma gerektirir. Lütfen kapıyı kapatın."
@@ -7780,11 +8056,66 @@ msgstr "%s üzerindeki filament yumuşamış olabilir. Lütfen çıkartın."
 msgid "The filament on %s is unknown and may soften. Please set filament."
 msgstr "%s üzerindeki filament bilinmiyor ve yumuşayabilir. Lütfen filamenti ayarlayın."
 
+msgid ""
+"Upper half area:  Original\n"
+"Middle  area:  Filament in AMS\n"
+"Lower half area:  Selected nozzle\n"
+"And you can click it to modify"
+msgstr ""
+
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Uygun filamentle otomatik olarak eşleştirilemiyor. Manuel olarak eşleştirmek için lütfen tıklayın."
 
 msgid "Install toolhead enhanced cooling fan to prevent filament softening."
 msgstr "Filamentin yumuşamasını önlemek için gelişmiş soğutma fanı takın."
+
+#, c-format, boost-format
+msgid "Refreshing information of hotends(%d/%d)."
+msgstr ""
+
+msgid "Please wait a moment..."
+msgstr ""
+
+msgid "The toolhead and hotend rack are full. Please remove at least one hotend before printing."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset while slicing."
+msgstr "%s(%s) nozul akış ayarı dilimleme dosyası (%s) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+
+msgid "Tips: If you changed your nozzle of your printer lately, Please go to 'Device -> Printer parts' to change your nozzle setting."
+msgstr "İpuçları: Yazıcınızın nozülünü yakın zamanda değiştirdiyseniz, nozül ayarınızı değiştirmek için lütfen 'Cihaz -> Yazıcı parçaları' bölümüne gidin."
+
+#, c-format, boost-format
+msgid "The %s diameter(%.1fmm) of current printer doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+msgstr "Mevcut yazıcının %s çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+
+#, c-format, boost-format
+msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
+msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgstr "Mevcut malzemenin (%s) sertliği %s'nin (%s) sertliğini aşıyor. Lütfen nozul veya malzeme ayarlarını doğrulayın ve tekrar deneyin."
+
+#, c-format, boost-format
+msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
+msgstr ""
+
+msgid "The printer is calculating nozzle mapping."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
+msgstr ""
 
 msgid "Cool"
 msgstr "Güzel"
@@ -7800,6 +8131,9 @@ msgstr "Soğuk (Supertack)"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Yazıcıya bağlanamıyorsanız burayı tıklayın"
+
+msgid "Sliced file"
+msgstr ""
 
 msgid "No login account, only printers in LAN mode are displayed"
 msgstr "Oturum açma hesabı yok, yalnızca LAN modundaki yazıcılar görüntüleniyor"
@@ -7864,8 +8198,17 @@ msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "Mevcut ürün yazılımı en fazla 16 malzemeyi desteklemektedir. Hazırlık Sayfasında malzeme sayısını 16'ya veya daha azına düşürebilir ya da ürün yazılımını güncellemeyi deneyebilirsiniz. Güncellemeden sonra da kısıtlama devam ederse, lütfen sonraki ürün yazılımı desteğini bekleyin."
 
+msgid "High chamber temperature is required. Please close the door."
+msgstr "Yüksek oda sıcaklığı gereklidir. Lütfen kapıyı kapatın."
+
+msgid "Please check if the required nozzle diameter and flow rate match the current display."
+msgstr ""
+
 msgid "Please refer to Wiki before use->"
 msgstr "Lütfen kullanmadan önce Wiki'ye bakın->"
+
+msgid "How to install"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "Mevcut ürün yazılımı, dahili depolama alanına dosya aktarımını desteklemiyor."
@@ -7911,6 +8254,9 @@ msgstr "Gönderiliyor..."
 
 msgid "File upload timed out. Please check if the firmware version supports this operation or verify if the printer is functioning properly."
 msgstr "Dosya yükleme zaman aşımına uğradı. Lütfen ürün yazılımı sürümünün bu işlemi destekleyip desteklemediğini kontrol edin veya yazıcının düzgün çalışıp çalışmadığını doğrulayın."
+
+msgid "Sending failed, please try again!"
+msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
 
 msgid "Helio action completed successfully."
 msgstr "Helio eylemi başarıyla tamamlandı."
@@ -8034,11 +8380,20 @@ msgstr "Bu ön ayarı sil"
 msgid "Search in preset"
 msgstr "Ön ayarda ara"
 
+msgid "Synchronization of different extruder drives or nozzle volume types is not supported."
+msgstr ""
+
 msgid "Synchronize the modification of parameters to the corresponding parameters of another extruder."
 msgstr "Parametrelerin değiştirilmesini başka bir ekstrüderin karşılık gelen parametreleriyle senkronize edin."
 
+msgid "Click to learn more"
+msgstr ""
+
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın."
+
+msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
+msgstr ""
 
 msgid "Prime tower is required for smooth timeplase. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Sorunsuz timeplace için Prime kulesi gereklidir. Prime kulesi olmayan modelde kusurlar olabilir. Prime kulesi'ı devre dışı bırakmak istediğinizden emin misiniz?"
@@ -8067,23 +8422,21 @@ msgstr ""
 
 msgid ""
 "When using PLA to support TPU, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use PLA for both support interface and support base"
 msgstr ""
-"TPU'yu desteklemek için PLA kullanırken aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
-"XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü hem de destek tabanı için PLA kullan"
+"TPU'yu desteklemek için PLA kullanırken, aşağıdaki ayarları öneririz:\n"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için PLA kullanın"
 
 msgid ""
 "When using soluble material for the support, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
-"XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
-"hem de destek tabanı için çözünebilir malzemeler kullan"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Change these settings automatically? \n"
@@ -8096,23 +8449,19 @@ msgstr ""
 
 msgid ""
 "When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
-"independent support layer height"
+"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
 msgstr ""
 "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, taramalı doğrusal desen, Z'nin XY'yi geçersiz kılması ve \n"
-"bağımsız destek katmanı yüksekliğinin devre dışı bırakılması"
+"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
 
 msgid ""
 "When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
-"overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
-"and support base"
+"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
-"Destek arayüzü için çözünür malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
-"XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
-"hem de destek tabanı için çözünür malzemeler kullan"
+"Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8250,6 +8599,30 @@ msgstr "Geri Çekme"
 msgid "Basic information"
 msgstr "Temel Bilgiler"
 
+msgid "Filament prime volume"
+msgstr "Filament ana hacmi"
+
+msgid "The volume of material to prime extruder on tower."
+msgstr "Kule üzerindeki ana ekstruder malzeme hacmi."
+
+msgid "Filament ramming length"
+msgstr "Filament sıkıştırma uzunluğu"
+
+msgid "Filament length used in ramming."
+msgstr ""
+
+msgid "Travel time after ramming"
+msgstr "Çarpma sonrası seyahat süresi"
+
+msgid "A reverse travel movement after ramming."
+msgstr ""
+
+msgid "Precooling target temperature"
+msgstr "Ön soğutma hedef sıcaklığı"
+
+msgid "Precooling target temperature during ramming."
+msgstr ""
+
 msgid "Recommended nozzle temperature"
 msgstr "Önerilen nozul sıcaklığı"
 
@@ -8291,6 +8664,12 @@ msgstr "Yazdırma sırasında nozul sıcaklığı"
 
 msgid "Volumetric speed limitation"
 msgstr "Hacimsel Hız Sınırlaması"
+
+msgid "Ramming volumetric speed"
+msgstr "Çarpma hacimsel hızı"
+
+msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
+msgstr "Çarpma için maksimum hacimsel hız, burada -1 maksimum hacimsel hızın kullanılması anlamına gelir."
 
 msgid "Filament scarf seam settings"
 msgstr "Filament atkı eklem dikişi ayarları"
@@ -8461,12 +8840,8 @@ msgid "Set"
 msgstr "Ayarla"
 
 #, c-format, boost-format
-msgid "Left: %s"
-msgstr "Sol: %s"
-
-#, c-format, boost-format
-msgid "Right: %s"
-msgstr "Sağ: %s"
+msgid "%s: %s"
+msgstr ""
 
 msgid "No modifications need to be copied."
 msgstr "Hiçbir değişikliğin kopyalanmasına gerek yoktur."
@@ -8485,6 +8860,12 @@ msgstr "Sağ nozulun aşağıdaki parametrelerini sol nozulunkilerle değiştirm
 
 msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 msgstr "Sol nozulun aşağıdaki parametrelerini sağ nozulunkilerle değiştirmek istiyor musunuz?"
+
+msgid "No available nozzles for current preset"
+msgstr ""
+
+msgid "Available nozzles for current preset: "
+msgstr ""
 
 msgid "Click to reset current value and attach to the global value."
 msgstr "Geçerli değeri sıfırlamak ve genel değere eklemek için tıklayın."
@@ -8515,9 +8896,6 @@ msgstr "Filament Ön Ayarının Değiştirilmiş Değerini Kullan"
 
 msgid "Use Modified Value of Printer Preset"
 msgstr "Yazıcı Ön Ayarının Değiştirilmiş Değerini Kullan"
-
-msgid "(Modified)"
-msgstr "(Değiştirildi)"
 
 msgid "Preset(Old)"
 msgstr "Ön Ayar (Eski)"
@@ -9004,9 +9382,6 @@ msgstr "Kamera alanında hareket"
 msgid "Select a part"
 msgstr "Parça seçin"
 
-msgid "Select multiple objects"
-msgstr "Birden fazla nesne seç"
-
 msgid "Shift+Left mouse button"
 msgstr "Shift+Sol fare düğmesi"
 
@@ -9325,8 +9700,14 @@ msgstr "Eklentiler mevcut: "
 msgid "Optimise Outer Walls"
 msgstr "Dış Duvarları Optimize Edin"
 
-msgid "Advanced Settings"
-msgstr "Gelişmiş Ayarlar"
+msgid "Helio default (recommended)"
+msgstr ""
+
+msgid "Slicer default"
+msgstr ""
+
+msgid "Limits"
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "Min Hız"
@@ -9343,8 +9724,8 @@ msgstr "Maksimum Hacimsel Hız"
 msgid "Last Trace ID: "
 msgstr "Son İz Kimliği: "
 
-msgid "Buy Now"
-msgstr "Satın Al"
+msgid "Buy Now / Manage Account"
+msgstr ""
 
 msgid "Click for more details"
 msgstr "Daha fazla bilgi için tıklayın"
@@ -9394,8 +9775,17 @@ msgstr "Daha fazla bilgi için burayı tıklayın"
 msgid "Update firmware"
 msgstr "Ürün yazılımını güncelle"
 
+msgid "Hotends on Rack"
+msgstr ""
+
 msgid "Beta version"
 msgstr "Beta sürüm"
+
+msgid "Refreshing hotend information..."
+msgstr ""
+
+msgid "Checking version..."
+msgstr ""
 
 msgid "Updating"
 msgstr "Güncelleniyor"
@@ -9417,6 +9807,9 @@ msgstr "Ürün yazılımı sürümü anormal. Yazdırmadan önce onarım ve gün
 
 msgid "Extension Board"
 msgstr "Uzatma Kartı"
+
+msgid "Do you want to save the changes ?"
+msgstr ""
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Nesneleri 3mf'ye kaydetme işlemi başarısız oldu."
@@ -9529,6 +9922,9 @@ msgstr "Gruplama hatası: "
 
 msgid " can not be placed in the "
 msgstr " içerisine yerleştirilemez "
+
+msgid "Group error in manual mode. Please check nozzle count or regroup."
+msgstr ""
 
 msgid "Inner wall"
 msgstr "İç duvar"
@@ -9895,8 +10291,8 @@ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyu
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z boyunca duvar hızını yumuşatma (deneysel)"
 
-msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
-msgstr "Daha iyi yüzey kalitesi elde etmek için z yönünde dış duvar hızını yumuşatma. Baskı süresi artacaktır. Spiral vazo modunda çalışmaz."
+msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. This does not work on spiral vase mode."
+msgstr ""
 
 msgid "Avoid crossing wall - Max detour length"
 msgstr "Duvarı geçmekten kaçının - maksimum servis yolu uzunluğu"
@@ -10500,6 +10896,9 @@ msgstr "Eşleşme için Otomatik"
 msgid "Manual"
 msgstr "Manuel"
 
+msgid "Nozzle Manual"
+msgstr ""
+
 msgid "Flush temperature"
 msgstr "Temizleme sıcaklığı"
 
@@ -10518,11 +10917,17 @@ msgstr "mm³/s"
 msgid "This setting stands for how much volume of filament can be melted and extruded per second. Printing speed is limited by max volumetric speed, in case of too high and unreasonable speed setting. Can't be zero"
 msgstr "Bu ayar, saniyede ne kadar miktarda filamentin eritilip ekstrude edilebileceğini gösterir. Çok yüksek ve makul olmayan hız ayarı durumunda, yazdırma hızı maksimum hacimsel hız ile sınırlanır. Sıfır olamaz"
 
-msgid "Ramming volumetric speed"
-msgstr "Çarpma hacimsel hızı"
+msgid "Extruder change"
+msgstr ""
 
-msgid "The maximum volumetric speed for ramming, where -1 means using the maximum volumetric speed."
-msgstr "Çarpma için maksimum hacimsel hız, burada -1 maksimum hacimsel hızın kullanılması anlamına gelir."
+msgid "The maximum volumetric speed for ramming before extruder change, where -1 means using the maximum volumetric speed."
+msgstr ""
+
+msgid "Hotend change"
+msgstr ""
+
+msgid "The maximum volumetric speed for ramming before a hotend change, where -1 means using the maximum volumetric speed."
+msgstr ""
 
 msgid "Minimal purge on wipe tower"
 msgstr "Temizleme kulesi üzerinde minimum tahliye"
@@ -10547,6 +10952,12 @@ msgstr "Ekstrüder değiştirme süresi"
 
 msgid "Time to switch extruder. For statistics only"
 msgstr "Ekstrüder değiştirme zamanı. Sadece istatistikler için"
+
+msgid "Hotend change time"
+msgstr ""
+
+msgid "Time to change hotend."
+msgstr ""
 
 msgid "Bed temperature type"
 msgstr "Yatak sıcaklığı tipi"
@@ -10646,11 +11057,11 @@ msgstr "Atkı uzunluğu"
 msgid "Length of the scarf. Setting this parameter to zero effectively disables the scarf."
 msgstr "Atkının uzunluğu. Bu parametrenin 0 a ayarlanması atkıyı dolaylı yoldan devre dışı bırakır."
 
-msgid "Filament ramming length"
-msgstr "Filament sıkıştırma uzunluğu"
-
 msgid "When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing."
 msgstr "Ekstrüderi değiştirirken, orijinal ekstrüderden belirli bir uzunlukta filamentin ekstrüde edilmesi önerilir. Bu, nozül sızmasını en aza indirmeye yardımcı olur."
+
+msgid "When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing."
+msgstr ""
 
 msgid "Support material"
 msgstr "Destek malzemesi"
@@ -10664,11 +11075,20 @@ msgstr "Filamentle basılabilir"
 msgid "The filament is printable in extruder"
 msgstr "Filament ekstrüderde basılabilir"
 
-msgid "Filament prime volume"
-msgstr "Filament ana hacmi"
+msgid "Filament change"
+msgstr ""
 
-msgid "The volume of material to prime extruder on tower."
-msgstr "Kule üzerindeki ana ekstruder malzeme hacmi."
+msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
+msgstr ""
+
+msgid "The volume of material required to prime the extruder for a hotend change on the tower."
+msgstr ""
+
+msgid "Wipe tower cooling"
+msgstr ""
+
+msgid "Temperature drop before entering filament tower"
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "Yumuşama sıcaklığı"
@@ -10676,17 +11096,14 @@ msgstr "Yumuşama sıcaklığı"
 msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
 msgstr "Filament bu sıcaklıkta yumuşar, bu nedenle yatak sıcaklığı bununla eşit veya daha yüksekse, tıkanmaları önlemek için ön kapağı açmanız ve/veya üst camı çıkarmanız şiddetle önerilir."
 
-msgid "Travel time after ramming"
-msgstr "Çarpma sonrası seyahat süresi"
-
 msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
 msgstr "Sızmayı önlemek için nozul, sıkıştırma tamamlandıktan sonra belirli bir süre boyunca ters hareket hareketi gerçekleştirecektir. Ayar, hareket süresini tanımlar."
 
-msgid "Precooling target temperature"
-msgstr "Ön soğutma hedef sıcaklığı"
-
 msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
 msgstr "Sızıntıyı önlemek için, nozul sıcaklığı tokmaklama sırasında soğutulacaktır. Bu nedenle, sıkıştırma süresi soğuma süresinden büyük olmalıdır. 0 devre dışı anlamına gelir."
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled."
+msgstr ""
 
 msgid "Price"
 msgstr "Fiyat"
@@ -10718,6 +11135,12 @@ msgstr "Dolgu yoğunluğu"
 #, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "İç boş dolgu yoğunluğu, 100 yüz katıdır, yani tamamen doludur"
+
+msgid "Fill multiline"
+msgstr ""
+
+msgid "Using multiple lines for the infill pattern, if supported by infill pattern."
+msgstr ""
 
 msgid "Sparse infill pattern"
 msgstr "Dolgu deseni"
@@ -10989,11 +11412,23 @@ msgstr "Destek kontrol ortam sıcaklığı"
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Bu seçenek, makine oda sıcaklığını kontrol etmeyi destekliyorsa etkinleştirilir"
 
+msgid "Apply top surface compensation"
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Hava filtrasyonunun iyileştirilmesi"
 
 msgid "Enable this if printer support air filtration enhancement."
 msgstr "Yazıcı hava filtreleme geliştirmesini destekliyorsa bunu etkinleştirin."
+
+msgid "Use cooling filter"
+msgstr ""
+
+msgid "Enable this if printer support cooling filter"
+msgstr ""
+
+msgid "Auto turn off filter on overheat"
+msgstr ""
 
 msgid "G-code flavor"
 msgstr "G-Kod Uyumu"
@@ -11087,6 +11522,9 @@ msgstr "Seyrek bir dolgu çizgisini ek bir çevrenin kısa bir segmentiyle bir i
 
 msgid "0 (not anchored)"
 msgstr "0 (bağlı değil)"
+
+msgid "Sparse infill filament"
+msgstr ""
 
 msgid "Filament to print internal sparse infill."
 msgstr "İç seyrek dolguyu yazdırmak için filament."
@@ -11406,6 +11844,12 @@ msgstr "Pürüzsüz katsayı"
 msgid "The smaller the number, the longer the speed transition path. 0 means not apply."
 msgstr "Sayı ne kadar küçükse, hız geçiş yolu o kadar uzundur. 0 geçerli değil anlamına gelir."
 
+msgid "Walls filament"
+msgstr ""
+
+msgid "Filament to print walls"
+msgstr ""
+
 msgid "Line width of inner wall"
 msgstr "İç duvarın çizgi genişliği"
 
@@ -11414,6 +11858,12 @@ msgstr "İç duvarın hızı"
 
 msgid "Number of walls of every layer"
 msgstr "Her katmanın duvar sayısı"
+
+msgid "Embedding the wall into the infill"
+msgstr ""
+
+msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
+msgstr ""
 
 msgid "Post-processing Scripts"
 msgstr "İşlem Sonrası Komut Dosyaları"
@@ -11532,8 +11982,20 @@ msgstr "Bowden"
 msgid "Nozzle Volume Type"
 msgstr "Nozul Hacim Tipi"
 
+msgid "Hybrid"
+msgstr ""
+
 msgid "Default Nozzle Volume Type"
 msgstr "Varsayılan Nozul Hacim Tipi"
+
+msgid "Saving"
+msgstr ""
+
+msgid "length when change hotend"
+msgstr ""
+
+msgid "When this retraction value is modified, it will be used as the amount of filament retracted inside the hotend before changing hotends."
+msgstr ""
 
 msgid "Extra length on restart"
 msgstr "Yeniden başlatma sırasında ekstra uzunluk"
@@ -11669,6 +12131,12 @@ msgstr "Eşik değerinden küçük olan seyrek dolgu alanı, yerini iç katı do
 
 msgid "mm²"
 msgstr "mm²"
+
+msgid "Solid infill filament"
+msgstr ""
+
+msgid "Filament to print solid infill"
+msgstr ""
 
 msgid "Line width of internal solid infill"
 msgstr "İç katı dolgunun çizgi genişliği"
@@ -11917,8 +12385,8 @@ msgstr "Ağaç Organik"
 msgid "Z overrides X/Y"
 msgstr "Z, X/Y'yi geçersiz kılar"
 
-msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
-msgstr "Üst Z mesafesi, destek-nesne XY mesafesine göre öncelikli olduğunda; desteklerin çıkıntıların altına mutlaka oluşturulmasına öncelik verilir ve model ile arasında 'üst Z mesafesi' kadar dikey bir boşluk bırakılır. Aksi durumda ise destekler ile model arasındaki yatay boşluk her zaman 'destek-nesne XY mesafesi' kuralına uyar"
+msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time. Only recommended to enable when using HybridTree."
+msgstr ""
 
 msgid "Independent support layer height"
 msgstr "Bağımsız destek katmanı yüksekliği"
@@ -12015,6 +12483,12 @@ msgstr "Alt yüzey deki kaplama katmanları"
 
 msgid "This is  the number of layers of top bottom penetration."
 msgstr "Bu,   alt yüzey deki kaplama katmanlarının sayısıdır."
+
+msgid "Use infill instead of top and bottom surfaces"
+msgstr ""
+
+msgid "Using infill instead of top and bottom surfaces."
+msgstr ""
 
 msgid "Speed of travel which is faster and without extrusion"
 msgstr "Daha hızlı ve ekstrüzyonsuz seyahat hızı"
@@ -12644,6 +13118,9 @@ msgstr "Lütfen yazıcıya kaydetmek istediğiniz adı girin."
 msgid "The name cannot exceed 40 characters."
 msgstr "Ad 40 karakteri aşamaz."
 
+msgid "Nozzle ID"
+msgstr ""
+
 msgid "Please find the best line on your plate"
 msgstr "Lütfen plakadaki en iyi çizgiyi bulun"
 
@@ -12747,6 +13224,15 @@ msgstr "filament konumu"
 
 msgid "Filament For Calibration"
 msgstr "Kalibrasyon İçin Filament"
+
+msgid ""
+"Tips for calibration material: \n"
+"- Materials that can share same hot bed temperature\n"
+"- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
+msgstr ""
+
+msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
+msgstr ""
 
 msgid ""
 "Tips for calibration material: \n"
@@ -13078,11 +13564,14 @@ msgstr "Kesişim işlemi için en az iki nesne gerekir."
 msgid "Difference operation requires at least one object in both A and B lists."
 msgstr "Fark işlemleri için, A ve B listelerinde en az birer birim bulunması gerekir."
 
-msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
-msgstr "Nesnelere göre parçaları gruplandırma ve birleştirme işlemi başarısız oldu. Kendi kendine kesişmeler, manifold olmayan geometri veya açık ağlar olup olmadığını kontrol edin."
+msgid "Failed to group parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+msgstr ""
 
 msgid "No overlapping region found. Boolean intersection failed."
 msgstr "Çakışan bölge bulunamadı. Boolean kesişimi başarısız oldu."
+
+msgid "Mesh preparation failed."
+msgstr ""
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
@@ -13122,6 +13611,15 @@ msgstr "Yalnızca nesneler üzerinde Boolean işlemleri gerçekleştirin."
 
 msgid "This object contains non-part components."
 msgstr "Bu nesne, parça olmayan bileşenler içerir."
+
+msgid "Preparing data..."
+msgstr ""
+
+msgid "Computing..."
+msgstr ""
+
+msgid "Applying result.."
+msgstr ""
 
 msgid "Network Test"
 msgstr "Ağ testi"
@@ -13721,6 +14219,9 @@ msgstr ""
 "Şu anda seçili olan %s ekstrüder nozul tipi gerçek yazıcı nozul tipiyle eşleşmiyor.\n"
 "Lütfen yukarıdaki Senkronizasyon düğmesine tıklayın ve kalibrasyonu yeniden başlatın."
 
+msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
+msgstr ""
+
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Kalibre edilemiyor: ayarlanan kalibrasyon değeri aralığı çok büyük veya adım çok küçük olduğu için olabilir"
 
@@ -14286,11 +14787,33 @@ msgstr "Daha fazla bilgi edin"
 msgid "(Sync with printer)"
 msgstr "(Yazıcı ile senkronize edin)"
 
+#, c-format, boost-format
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr ""
+
 msgid "We will slice according to this grouping method:"
 msgstr "Bu gruplama yöntemine göre dilimleyeceğiz:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "İpuçları: Filamentleri farklı nozullara yeniden atamak için sürükleyebilirsiniz."
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Left Extruder(%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(Std: %d, HF: %d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right Extruder(%d)"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Mevcut plaka için filament gruplama yöntemi, dilimleme plakası düğmesindeki açılır seçenek tarafından belirlenir."
@@ -14353,9 +14876,6 @@ msgstr "Nesneleri atlıyor."
 msgid "Continue"
 msgstr "Devam et"
 
-msgid "Select Filament"
-msgstr "Filament Seçin"
-
 msgid "Null Color"
 msgstr "Boş Renk"
 
@@ -14367,6 +14887,55 @@ msgstr "Resmi Filament"
 
 msgid "More Colors"
 msgstr "Daha Fazla Renk"
+
+msgid "Please set nozzle count"
+msgstr ""
+
+msgid "Error: Can not set both nozzle count to zero."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error: Nozzle count can not exceed %d."
+msgstr ""
+
+msgid "Nozzle Selection"
+msgstr ""
+
+msgid "Available Nozzles"
+msgstr ""
+
+msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
+msgstr ""
+
+msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
+msgstr ""
+
+msgid "Unknown nozzle detected. Refresh to update (unrefreshed nozzles will be skipped in slicing)."
+msgstr ""
+
+msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
+msgstr ""
+
+msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
+msgstr ""
+
+msgid "Purge Mode Settings"
+msgstr ""
+
+msgid "Standard Mode"
+msgstr ""
+
+msgid "Performs full purging for the best print quality. Requires more material and time."
+msgstr ""
+
+msgid "Purge Saving"
+msgstr ""
+
+msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
+
+msgid "Learn more about purge mode"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -14498,7 +15067,8 @@ msgstr ""
 "Baskılarınızı plakalara ayırın\n"
 "Çok sayıda parçası olan bir modeli baskıya hazır ayrı kalıplara bölebileceğinizi biliyor muydunuz? Bu, tüm parçaları takip etme sürecini basitleştirecektir."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -14570,7 +15140,8 @@ msgstr ""
 "Gücü artırın\n"
 "Modelin gücünü artırmak için daha fazla duvar halkası ve daha yüksek seyrek dolgu yoğunluğu kullanabileceğinizi biliyor muydunuz?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -14674,7 +15245,8 @@ msgstr ""
 "Ekstrüzyon Sıcaklığı Modeli\n"
 "Malzeme özellikleri erime eğrisini şekillendirir, ancak yazıcı geometrisi filamentin gerçekte ne kadar ısı kazandığını belirler, bu nedenle model malzemeye özeldir ve yazıcıya göre kalibre edilir."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320 °C?]
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
 msgid ""
 "Nozzle setting of 190 °C vs 320 °C?\n"
 "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
@@ -14714,6 +15286,107 @@ msgstr ""
 "Büzülme, Çarpılma ve Gerilim\n"
 "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
 
+#~ msgid ""
+#~ "This is your first time slicing with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "H2D makinesi ile ilk kez dilimleme yapıyorsunuz.\n"
+#~ "Hızlı bir öğretici video izlemek ister misiniz?"
+
+#~ msgid ""
+#~ "This is your first time printing tpu filaments with the H2D machine.\n"
+#~ "Would you like to watch a quick tutorial video?"
+#~ msgstr ""
+#~ "Bu, H2D makinesi ile tpu filamentlerini ilk kez yazdırmanızdır.\n"
+#~ "Hızlı bir öğretici video izlemek ister misiniz?"
+
+#~ msgid ""
+#~ "When using PLA to support TPU, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use PLA for both support interface and support base"
+#~ msgstr ""
+#~ "TPU'yu desteklemek için PLA kullanırken aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
+#~ "XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü hem de destek tabanı için PLA kullan"
+
+#~ msgid ""
+#~ "When using soluble material for the support, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
+#~ "XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
+#~ "hem de destek tabanı için çözünebilir malzemeler kullan"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern, enable Z overrides XY and disable \n"
+#~ "independent support layer height"
+#~ msgstr ""
+#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, taramalı doğrusal desen, Z'nin XY'yi geçersiz kılması ve \n"
+#~ "bağımsız destek katmanı yüksekliğinin devre dışı bırakılması"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, enable Z \n"
+#~ "overrides XY, disable independent support layer height and use soluble materials for both support interface \n"
+#~ "and support base"
+#~ msgstr ""
+#~ "Destek arayüzü için çözünür malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, taramalı doğrusal desen, Z'yi etkinleştir \n"
+#~ "XY'yi geçersiz kıl, bağımsız destek katmanı yüksekliğini devre dışı bırak ve hem destek arayüzü \n"
+#~ "hem de destek tabanı için çözünür malzemeler kullan"
+
+#~ msgid "Advanced Settings"
+#~ msgstr "Gelişmiş Ayarlar"
+
+#~ msgid "Buy Now"
+#~ msgstr "Satın Al"
+
+#~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
+#~ msgstr "Daha iyi yüzey kalitesi elde etmek için z yönünde dış duvar hızını yumuşatma. Baskı süresi artacaktır. Spiral vazo modunda çalışmaz."
+
+#~ msgid "When top z distance overrides support/object xy distance, give priority to ensuring that supports are generated beneath overhangs, and a gap of the same size as top z distance is leaved with the model. Whereas in the opposite case, the gap between supports and the model follows support/object xy distance all the time"
+#~ msgstr "Üst Z mesafesi, destek-nesne XY mesafesine göre öncelikli olduğunda; desteklerin çıkıntıların altına mutlaka oluşturulmasına öncelik verilir ve model ile arasında 'üst Z mesafesi' kadar dikey bir boşluk bırakılır. Aksi durumda ise destekler ile model arasındaki yatay boşluk her zaman 'destek-nesne XY mesafesi' kuralına uyar"
+
+#~ msgid "Detect spaghetti failure(scattered lose filament)."
+#~ msgstr "Spagetti hatasını algıla (etrafa dağılmış filament)."
+
+#~ msgid "Monitor if the waste is piled up in the purge chute."
+#~ msgstr "Atıkların boşaltma kanalında birikip birikmediğini kontrol edin."
+
+#~ msgid "Check if the nozzle is clumping by filaments or other foreign objects."
+#~ msgstr "Nozulun filamentler veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+
+#~ msgid "Check if the nozzle is clumping by filament or other foreign objects."
+#~ msgstr "Nozulun filament veya diğer yabancı cisimler tarafından tıkanıp tıkanmadığını kontrol edin."
+
+#~ msgid "Idel Heating Protection"
+#~ msgstr "Idel Isıtma Koruması"
+
+#~ msgid "Failed to group and merge parts by object. Please check for self-intersections, non-manifold geometry, or open meshes."
+#~ msgstr "Nesnelere göre parçaları gruplandırma ve birleştirme işlemi başarısız oldu. Kendi kendine kesişmeler, manifold olmayan geometri veya açık ağlar olup olmadığını kontrol edin."
+
+#~ msgid "Debug Info"
+#~ msgstr "Hata Ayıklama Bilgisi"
+
+#~ msgid "Turn it Off"
+#~ msgstr "Kapat"
+
+#, c-format, boost-format
+#~ msgid "Left: %s"
+#~ msgstr "Sol: %s"
+
+#, c-format, boost-format
+#~ msgid "Right: %s"
+#~ msgstr "Sağ: %s"
+
+#~ msgid "(Modified)"
+#~ msgstr "(Değiştirildi)"
+
 #~ msgid "click to retry"
 #~ msgstr "tekrar denemek için tıklayın"
 
@@ -14722,43 +15395,6 @@ msgstr ""
 
 #~ msgid "Media capability acquisition timeout, please check if the firmware version supports it."
 #~ msgstr "Medya yeteneği edinme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
-
-#~ msgid "Sending failed, please try again!"
-#~ msgstr "Gönderme başarısız oldu, lütfen tekrar deneyin!"
-
-#~ msgid ""
-#~ "When using PLA to support TPU, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use PLA for both support interface and support base"
-#~ msgstr ""
-#~ "TPU'yu desteklemek için PLA kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için PLA kullanın"
-
-#~ msgid ""
-#~ "When using soluble material for the support, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Destek için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 #~ msgid "Filter out gaps smaller than the threshold specified. This setting won't affact top/bottom layers"
 #~ msgstr "Belirtilen eşikten daha küçük boşlukları filtreleyin. Bu ayar üst/alt katmanları etkilemez"
@@ -14807,9 +15443,6 @@ msgstr ""
 
 #~ msgid "Automatic calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "Otomatik kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
-
-#~ msgid "Nozzle Type"
-#~ msgstr "Nozul tipi"
 
 #~ msgid "Helio Options"
 #~ msgstr "Helio Seçenekleri"
@@ -14864,9 +15497,6 @@ msgstr ""
 
 #~ msgid "Custom filaments"
 #~ msgstr "Özel filamentler"
-
-#~ msgid "High chamber temperature is required. Please close the door."
-#~ msgstr "Yüksek oda sıcaklığı gereklidir. Lütfen kapıyı kapatın."
 
 #~ msgctxt "air_duct"
 #~ msgid "Right"
@@ -15167,9 +15797,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "TPU is not supported by %s extruder for this printer."
 #~ msgstr "TPU, bu yazıcı için %s ekstrüder tarafından desteklenmiyor."
-
-#~ msgid "Update"
-#~ msgstr "Güncelle"
 
 #, c-format, boost-format
 #~ msgid ""

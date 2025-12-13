@@ -64,6 +64,8 @@ struct MsgDialog : DPIDialog
 	void show_dsa_button(wxString const & title = {});
 	bool get_checkbox_state();
 	virtual void on_dpi_changed(const wxRect& suggested_rect);
+
+	void AddButton(wxWindowID btn_id, const wxString& label, bool set_focus = false) { add_button(btn_id, set_focus, label); };
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);
 
 protected:

@@ -98,6 +98,7 @@ static std::unordered_map<std::string, float> nozzle_diameter_map = {{"0.2", 0.2
                                                                      {"0.8", 0.8}, {"1.0", 1.0},   {"1.2", 1.2}};
 
 static std::set<int> cannot_input_key = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 44, 46, 47, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
+static std::set<int> cannot_input_key_for_filament = {9, 10, 13, 33, 35, 36, 37, 38, 40, 41, 42, 44, 46, 59, 60, 62, 63, 64, 92, 94, 95, 124, 126};
 
 static std::set<char> special_key = {'\n', '\t', '\r', '\v', '@', ';'};
 
@@ -225,7 +226,7 @@ static wxBoxSizer* create_checkbox(wxWindow* parent, Preset* preset, wxString& p
     ::CheckBox *  checkbox = new ::CheckBox(parent);
     sizer->Add(checkbox, 0, 0, 0);
     preset_checkbox.push_back(std::make_pair(checkbox, preset));
-    wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name);
+    wxStaticText *preset_name_str = new wxStaticText(parent, wxID_ANY, preset_name, wxDefaultPosition, wxDefaultSize, wxST_ELLIPSIZE_END);
     wxToolTip *   toolTip         = new wxToolTip(preset_name);
     preset_name_str->SetToolTip(toolTip);
     sizer->Add(preset_name_str, 0, wxLEFT, 5);
@@ -724,7 +725,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input Custom Vendor"));
     m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
-        if (cannot_input_key.find(key) != cannot_input_key.end()) {
+        if (cannot_input_key_for_filament.find(key) != cannot_input_key_for_filament.end()) {
             event.Skip(false);
             return;
         }
@@ -835,7 +836,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
     m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
         int key = event.GetKeyCode();
-        if (cannot_input_key.find(key) != cannot_input_key.end()) {
+        if (cannot_input_key_for_filament.find(key) != cannot_input_key_for_filament.end()) {
             event.Skip(false);
             return;
         }

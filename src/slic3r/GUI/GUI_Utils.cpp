@@ -482,5 +482,125 @@ bool generate_image(const std::string &filename, wxImage &image, wxSize img_size
 
 std::deque<wxDialog*> dialogStack;
 
+WikiPanel::WikiPanel(wxWindow *parent, const wxString &wiki_text, const wxString &tooltip, const std::string &wiki_url)
+    : wxPanel(parent, wxID_ANY), m_wiki_url(wiki_url), m_wiki_text(wiki_text), m_tooltip(tooltip)
+{
+    init_components();
+    setup_layout();
+    bind_events();
+
+    // Initially hidden by default
+    Show();
+}
+
+void WikiPanel::init_components()
+{
+    SetBackgroundColour(*wxWHITE);
+
+    // Create scalable icons
+    m_wiki_icon       = new ScalableBitmap(this, "wiki", 16);
+    m_wiki_icon_hover = new ScalableBitmap(this, "wiki_hover", 16);
+
+    // Create bitmap control
+    m_wiki_bmp = new wxStaticBitmap(this, wxID_ANY, m_wiki_icon->bmp());
+
+    // Create text label
+    m_wiki_label = new wxStaticText(this, wxID_ANY, m_wiki_text);
+    m_wiki_label->SetForegroundColour(wxColour("#6B6B6B"));
+    m_wiki_label->SetFont(Label::Body_13);
+
+    // Set tooltip if provided
+    if (!m_tooltip.IsEmpty()) {
+        SetToolTip(m_tooltip);
+        m_wiki_bmp->SetToolTip(m_tooltip);
+        m_wiki_label->SetToolTip(m_tooltip);
+    }
+    wxGetApp().UpdateDarkUI(this);
+}
+
+void WikiPanel::setup_layout()
+{
+    m_main_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_main_sizer->Add(m_wiki_bmp, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxBOTTOM, 2);
+    m_main_sizer->Add(m_wiki_label, 0, wxALIGN_CENTER_VERTICAL);
+
+    SetSizer(m_main_sizer);
+}
+
+void WikiPanel::bind_events()
+{
+    auto set_hover = [this](bool hover) { set_hover_state(hover); };
+
+    auto open_wiki = [this](wxMouseEvent &) { open_wiki_url(); };
+
+    // Bind events for both bitmap and label
+    m_wiki_bmp->Bind(wxEVT_LEFT_DOWN, open_wiki);
+    m_wiki_label->Bind(wxEVT_LEFT_DOWN, open_wiki);
+
+    m_wiki_bmp->Bind(wxEVT_ENTER_WINDOW, [set_hover](wxMouseEvent &) { set_hover(true); });
+    m_wiki_label->Bind(wxEVT_ENTER_WINDOW, [set_hover](wxMouseEvent &) { set_hover(true); });
+
+    m_wiki_bmp->Bind(wxEVT_LEAVE_WINDOW, [set_hover](wxMouseEvent &) { set_hover(false); });
+    m_wiki_label->Bind(wxEVT_LEAVE_WINDOW, [set_hover](wxMouseEvent &) { set_hover(false); });
+}
+
+void WikiPanel::set_hover_state(bool hover)
+{
+    wxColour color = hover ? wxColour("#00AE42") : wxColour("#6B6B6B");
+    m_wiki_bmp->SetBitmap(hover ? m_wiki_icon_hover->bmp() : m_wiki_icon->bmp());
+    m_wiki_label->SetForegroundColour(color);
+    m_wiki_label->SetFont(hover ? Label::Body_13.Underlined() : Label::Body_13);
+    m_wiki_label->SetCursor(hover ? wxCURSOR_HAND : wxCURSOR_ARROW);
+
+    // Refresh to update the display
+    Refresh();
+}
+
+void WikiPanel::open_wiki_url()
+{
+    if (!m_wiki_url.empty()) { wxLaunchDefaultBrowser(m_wiki_url); }
+}
+
+bool WikiPanel::Show(bool show)
+{
+    if (m_wiki_bmp) m_wiki_bmp->Show(show);
+    if (m_wiki_label) m_wiki_label->Show(show);
+    return wxPanel::Show(show);
+}
+
+void WikiPanel::SetWikiText(const wxString &text)
+{
+    m_wiki_text = text;
+    if (m_wiki_label) {
+        m_wiki_label->SetLabel(text);
+        Layout();
+    }
+}
+
+void WikiPanel::SetWikiUrl(const std::string &url) {
+    m_wiki_url = url;
+}
+
+void WikiPanel::SetTooltip(const wxString &tooltip)
+{
+    m_tooltip = tooltip;
+    if (!tooltip.IsEmpty()) {
+        SetToolTip(tooltip);
+        if (m_wiki_bmp) m_wiki_bmp->SetToolTip(tooltip);
+        if (m_wiki_label) m_wiki_label->SetToolTip(tooltip);
+    }
+}
+
+void WikiPanel::msw_rescale()
+{
+    if (m_wiki_icon) {
+        m_wiki_icon->msw_rescale();
+        m_wiki_bmp->SetBitmap(m_wiki_icon->bmp());
+    }
+    if (m_wiki_icon_hover) {
+        m_wiki_icon_hover->msw_rescale();
+    }
+}
+
 }
 }

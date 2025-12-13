@@ -2610,4 +2610,67 @@ void Fill::connect_base_support(Polylines &&infill_ordered, const Polygons &boun
     connect_base_support(std::move(infill_ordered), polygons_src, bbox, polylines_out, spacing, params);
 }
 
+//Fill MultiLine
+void multiline_fill(Polylines& polylines, const FillParams& params, float spacing)
+{
+    if (params.multiline > 1) {
+        const int n_lines = params.multiline;
+        const int n_polylines = static_cast<int>(polylines.size());
+        Polylines all_polylines;
+        all_polylines.reserve(n_lines * n_polylines);
+
+        const float center = (n_lines - 1) / 2.0f;
+
+        //current polyline as the center line, offset to both sides
+        for (int line = 0; line < n_lines; ++line) {
+            float offset = (static_cast<float>(line) - center) * spacing;
+
+            for (const Polyline& pl : polylines) {
+                const size_t n = pl.points.size();
+                if (n < 2) {
+                    all_polylines.emplace_back(pl);
+                    continue;
+                }
+
+                Points new_points;
+                new_points.reserve(n);
+                // Offset each point along the normal direction
+                for (size_t i = 0; i < n; ++i) {
+                    Vec2f tangent;
+                    if (i == 0)
+                        tangent = Vec2f(pl.points[1].x() - pl.points[0].x(), pl.points[1].y() - pl.points[0].y());
+                    else if (i == n - 1)
+                        tangent = Vec2f(pl.points[n - 1].x() - pl.points[n - 2].x(), pl.points[n - 1].y() - pl.points[n - 2].y());
+                    else
+                    {
+                        tangent = Vec2f(pl.points[i + 1].x() - pl.points[i - 1].x(), pl.points[i + 1].y() - pl.points[i - 1].y());
+                        /*Vec2f prev_tangent(pl.points[i].x() - pl.points[i - 1].x(), pl.points[i].y() - pl.points[i - 1].y());
+                        Vec2f next_tangent(pl.points[i + 1].x() - pl.points[i].x(), pl.points[i + 1].y() - pl.points[i].y());
+                        prev_tangent.normalize();
+                        next_tangent.normalize();
+                        tangent = (prev_tangent + next_tangent) / 2.0f;
+
+                        float sin_half_angle = std::sqrt((1 - prev_tangent.dot(next_tangent)) / 2.0f);
+                        if (sin_half_angle > 1e-6f)
+                            offset /= sin_half_angle;*/
+                    }
+                    float len = std::hypot(tangent.x(), tangent.y());
+                    if (len == 0)
+                        len = 1.0f;
+                    tangent /= len;
+                    Vec2f normal(-tangent.y(), tangent.x());
+
+                    Point p = pl.points[i];
+                    p.x() += scale_(normal.x() * offset);
+                    p.y() += scale_(normal.y() * offset);
+                    new_points.push_back(p);
+                }
+
+                all_polylines.emplace_back(std::move(new_points));
+            }
+        }
+        polylines = std::move(all_polylines);
+    }
+}
+
 } // namespace Slic3r

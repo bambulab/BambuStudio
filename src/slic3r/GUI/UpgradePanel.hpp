@@ -134,6 +134,12 @@ protected:
     wxStaticLine* m_extinguish_line_above = nullptr;;
     uiDeviceUpdateVersion* m_extinguish_version = nullptr;
 
+    /* nozzle_rack*/
+    wxStaticLine * m_nozzle_rack_line_above{nullptr};
+    wxStaticBitmap *m_nozzle_rack_img = nullptr;
+    wxBoxSizer   *m_nozzle_rack_sizer{nullptr};
+    wxStaticText *m_nozzle_rack_text{nullptr};
+
     /* upgrade widgets */
     wxBoxSizer*     m_upgrading_sizer;
     wxStaticText *  m_staticText_upgrading_info;
@@ -142,6 +148,8 @@ protected:
     wxStaticBitmap *m_upgrade_retry_img;
     wxStaticText *  m_staticText_release_note;
     Button *        m_button_upgrade_firmware;
+    Button *        m_nozzle_rack_update_btn;
+
 
     wxPanel* create_caption_panel(wxWindow *parent);
     AmsPanelHash             m_amspanel_list;
@@ -158,6 +166,7 @@ protected:
     ScalableBitmap upgrade_gray_icon;
     ScalableBitmap upgrade_green_icon;
     ScalableBitmap upgrade_yellow_icon;
+    ScalableBitmap m_img_nozzle_rack;
     int last_status = -1;
     std::string last_status_str = "";
 
@@ -212,16 +221,20 @@ private:
     void createCuttingWidgets(wxBoxSizer* main_left_sizer);
     void createLaserWidgets(wxBoxSizer* main_left_sizer);
     void createExtinguishWidgets(wxBoxSizer* main_left_sizer);
+    void createNozzleRackWidgets(wxBoxSizer* main_left_sizer);
 
     void update_air_pump(MachineObject* obj);
     void update_cut(MachineObject* obj);
     void update_laszer(MachineObject* obj);
     void update_extinguish(MachineObject* obj);
+    void update_nozzle_rack(MachineObject *obj);
+    void on_nozzle_rack_update(wxCommandEvent &event);
 
     void show_air_pump(bool show = true);
     void show_cut(bool show = true);
     void show_laszer(bool show = true);
     void show_extinguish(bool show = true);
+    void show_nozzle_rack(bool show = true);
 };
 
 //enum UpgradeMode {
@@ -242,8 +255,8 @@ protected:
     bool enable_select_firmware = false;
     bool m_need_update = false;
     //hint of force upgrade or consistency upgrade
-    DevFirmwareUpgradingState last_forced_hint_status = DevFirmwareUpgradingState::DC;
-    DevFirmwareUpgradingState last_consistency_hint_status = DevFirmwareUpgradingState::DC;
+    DevFirmwareUpgradeState last_forced_hint_status = DevFirmwareUpgradeState::DC;
+    DevFirmwareUpgradeState last_consistency_hint_status = DevFirmwareUpgradeState::DC;
     int last_status;
     bool m_show_forced_hint = true;
     bool m_show_consistency_hint = true;

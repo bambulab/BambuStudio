@@ -1,3 +1,7 @@
+#ifdef __WINDOWS__
+#include <windows.h>
+#endif
+
 #include "NetworkTestDialog.hpp"
 #include "I18N.hpp"
 
@@ -12,6 +16,188 @@
 
 namespace Slic3r {
 namespace GUI {
+
+#ifdef __WINDOWS__
+namespace WindowsUtils {
+
+static const int WINDOWS_SERVER2016_BUILD = 14393;
+static const int WINDOWS_SERVER2019_BUILD = 17763;
+static const int WINDOWS_SERVER2022_BUILD = 20348;
+static const int WINDOWS_SERVER2025_BUILD = 26100;
+static const int FIRST_WINDOWS11_BUILD = 22000;
+static OSVERSIONINFOEXW getWindowsVersionInfo()
+{
+    OSVERSIONINFOEXW osvi;
+    ::ZeroMemory(&osvi, sizeof(osvi));
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+
+    HMODULE hNtdll = ::GetModuleHandleW(L"ntdll.dll");
+    if (hNtdll)
+    {
+        typedef LONG (WINAPI *RtlGetVersion_t)(OSVERSIONINFOEXW*);
+        RtlGetVersion_t pRtlGetVersion = reinterpret_cast<RtlGetVersion_t>(
+            ::GetProcAddress(hNtdll, "RtlGetVersion")
+        );
+
+        if (pRtlGetVersion
+            && pRtlGetVersion(&osvi) == 0)
+        {
+            return osvi;
+        }
+    }
+
+    ::GetVersionExW(reinterpret_cast<OSVERSIONINFOW *>(&osvi));
+    return osvi;
+}
+
+static int isWindowsServer()
+{
+#ifdef VER_NT_WORKSTATION
+    switch ( getWindowsVersionInfo().wProductType )
+    {
+        case VER_NT_WORKSTATION:
+            return 0;
+
+        case VER_NT_SERVER:
+        case VER_NT_DOMAIN_CONTROLLER:
+            return 1;
+    }
+#endif // VER_NT_WORKSTATION
+    return -1;
+}
+
+static bool isPlatform64Bit()
+{
+#if defined(__WIN64__)
+    return true;
+#else // Win32
+    typedef BOOL (WINAPI *IsWow64Process_t)(HANDLE, PBOOL);
+
+    HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
+
+    IsWow64Process_t pIsWow64Process = reinterpret_cast<IsWow64ProcessPtr>(
+        GetProcAddress(hKernel32, "IsWow64Process")
+    );
+
+    BOOL isWow64 = FALSE;
+    if (pIsWow64Process)
+    {
+        pfnIsWow64Process(::GetCurrentProcess(), &isWow64);
+    }
+    return isWow64 != FALSE;
+#endif // Win64/Win32
+}
+
+static wxString getWinOsDescription()
+{
+    wxString str;
+    const OSVERSIONINFOEXW info = getWindowsVersionInfo();
+    switch ( info.dwPlatformId )
+    {
+        case VER_PLATFORM_WIN32_NT:
+            switch ( info.dwMajorVersion )
+            {
+                case 5:
+                    switch ( info.dwMinorVersion )
+                    {
+                        case 2:
+                            // we can't distinguish between XP 64 and 2003
+                            // as they both are 5.2, so examine the product
+                            // type to resolve this ambiguity
+                            if ( isWindowsServer() == 1 )
+                            {
+                                str = "Windows Server 2003";
+                                break;
+                            }
+                            //else: must be XP, fall through
+                        case 1:
+                            str = "Windows XP";
+                            break;
+                    }
+                    break;
+
+                case 6:
+                    switch ( info.dwMinorVersion )
+                    {
+                        case 0:
+                            str = isWindowsServer() == 1
+                                    ? "Windows Server 2008"
+                                    : "Windows Vista";
+                            break;
+
+                        case 1:
+                            str = isWindowsServer() == 1
+                                    ? "Windows Server 2008 R2"
+                                    : "Windows 7";
+                            break;
+
+                        case 2:
+                            str = isWindowsServer() == 1
+                                    ? "Windows Server 2012"
+                                    : "Windows 8";
+                            break;
+
+                        case 3:
+                            str = isWindowsServer() == 1
+                                    ? "Windows Server 2012 R2"
+                                    : "Windows 8.1";
+                            break;
+                    }
+                    break;
+
+                case 10:
+                    if ( isWindowsServer() == 1 )
+                    {
+                        switch ( info.dwBuildNumber )
+                        {
+                            case WINDOWS_SERVER2016_BUILD:
+                                str = "Windows Server 2016";
+                                break;
+                            case WINDOWS_SERVER2019_BUILD:
+                                str = "Windows Server 2019";
+                                break;
+                            case WINDOWS_SERVER2022_BUILD:
+                                str = "Windows Server 2022";
+                                break;
+                            case WINDOWS_SERVER2025_BUILD:
+                                str = "Windows Server 2025";
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        str = info.dwBuildNumber >= FIRST_WINDOWS11_BUILD
+                            ? "Windows 11"
+                            : "Windows 10";
+                    }
+                    break;
+            }
+
+            if ( str.empty() )
+            {
+                str.Printf("Windows %s%lu.%lu",
+                            isWindowsServer() == 1 ? "Server " : "",
+                            info.dwMajorVersion,
+                            info.dwMinorVersion);
+            }
+
+            str << wxT(" (")
+                << wxString::Format("build %lu", info.dwBuildNumber);
+            if ( !wxIsEmpty(info.szCSDVersion) )
+            {
+                str << wxT(", ") << info.szCSDVersion;
+            }
+            str << wxT(')');
+
+            if ( isPlatform64Bit() )
+                str << wxT(", 64-bit edition");
+            break;
+    }
+
+    return str;
+}
+}
+#endif // __WINDOWS__
 
 wxDECLARE_EVENT(EVT_UPDATE_RESULT, wxCommandEvent);
 
@@ -335,10 +521,16 @@ void NetworkTestDialog::init_bind()
 
 wxString NetworkTestDialog::get_os_info()
 {
+    wxString text_sys_version;
 	int major = 0, minor = 0, micro = 0;
 	wxGetOsVersion(&major, &minor, &micro);
 	std::string os_version = (boost::format("%1%.%2%.%3%") % major % minor % micro).str();
-	wxString text_sys_version = wxGetOsDescription() + wxString::Format("%d.%d.%d", major, minor, micro);
+#ifdef __WINDOWS__
+    text_sys_version = WindowsUtils::getWinOsDescription();
+#else
+    text_sys_version = wxGetOsDescription();
+#endif
+    text_sys_version += wxString::Format(" %d.%d.%d", major, minor, micro);
 	return text_sys_version;
 }
 

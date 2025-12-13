@@ -22,14 +22,24 @@
 #include <wx/tglbtn.h>
 
 #include <boost/log/trivial.hpp>
+#include <boost/system/error_code.hpp>
+
+#include <wx/base64.h>
+#include <wx/msgdlg.h>
 
 #include "wxExtensions.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "MainFrame.hpp"
+#include "GUI_Utils.hpp"
 #include <slic3r/GUI/Widgets/WebView.hpp>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <regex>
+#include <fstream>
+#include <stdexcept>
+#include <set>
+#include <cwctype>
 
 namespace Slic3r { namespace GUI {
 
@@ -46,10 +56,10 @@ const std::vector<std::string> license_list = {
 
 ProjectPanel::ProjectPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size, long style) : wxPanel(parent, id, pos, size, style)
 {
-    m_project_home_url = wxString::Format("file://%s/web/model/index.html", from_u8(resources_dir()));
+    m_project_home_url = wxString::Format("file://%s/web/model_new/index.html", from_u8(resources_dir()));
     wxString strlang = wxGetApp().current_language_code_safe();
     if (strlang != "")
-        m_project_home_url = wxString::Format("file://%s/web/model/index.html?lang=%s", from_u8(resources_dir()), strlang);
+        m_project_home_url = wxString::Format("file://%s/web/model_new/index.html?lang=%s", from_u8(resources_dir()), strlang);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -215,21 +225,25 @@ void ProjectPanel::on_reload(wxCommandEvent& evt)
         j["profile"]["cover_img"] = wxGetApp().url_encode(p_cover_file);
         j["profile"]["preview_img"] = files["Profile Pictures"];
 
-        json m_Res = json::object();
-        m_Res["command"] = "show_3mf_info";
-        m_Res["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
-        m_Res["model"] = j;
+        json payload = json::object();
+        payload["command"] = "show_3mf_info";
+        payload["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+        payload["model"] = j;
 
-        wxString strJS = wxString::Format("HandleStudio(%s)", m_Res.dump(-1, ' ', false, json::error_handler_t::ignore));
+        m_last_payload = payload;
 
-
+        auto dispatch_payload = [this](const json& data) {
+            wxString strJS = wxString::Format("HandleStudio(%s)", data.dump(-1, ' ', false, json::error_handler_t::ignore));
 #ifdef __APPLE__
-        wxGetApp().CallAfter([this, strJS] { RunScript(strJS.ToStdString()); });
-#else
-        if (m_web_init_completed) {
             wxGetApp().CallAfter([this, strJS] { RunScript(strJS.ToStdString()); });
-        }
+#else
+            if (m_web_init_completed) {
+                wxGetApp().CallAfter([this, strJS] { RunScript(strJS.ToStdString()); });
+            }
 #endif
+        };
+
+        dispatch_payload(m_last_payload);
 
     });
 }
@@ -298,6 +312,44 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
         }
         else if (strCmd == "request_3mf_info") {
             m_web_init_completed = true;
+            if (!m_last_payload.empty()) {
+                auto payload_copy = m_last_payload;
+                payload_copy["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+                wxString strJS = wxString::Format("HandleStudio(%s)", payload_copy.dump(-1, ' ', false, json::error_handler_t::ignore));
+                wxGetApp().CallAfter([this, strJS] {
+                    RunScript(strJS.ToStdString());
+                });
+            }
+        }
+        else if (strCmd == "request_confirm_save_project") {
+            std::string sequence_id;
+            if (j.contains("sequence_id")) {
+                const auto& seq = j["sequence_id"];
+                if (seq.is_string())
+                    sequence_id = seq.get<std::string>();
+                else if (seq.is_number_integer())
+                    sequence_id = std::to_string(seq.get<long long>());
+            }
+
+            MessageDialog dlg(this,
+                              _L("Do you want to save the changes ?"),
+                              _L("Save"),
+                              wxYES_NO | wxCANCEL | wxYES_DEFAULT | wxCENTRE);
+            int res = dlg.ShowModal();
+            if (res == wxID_YES) {
+                save_project();
+            }else if (res == wxID_NO ) {
+                json resp = json::object();
+                resp["command"] = "discard_project";
+                if (!sequence_id.empty())
+                    resp["sequence_id"] = sequence_id;
+
+                wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                                  resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+                wxGetApp().CallAfter([this, strJS] {
+                    RunScript(strJS.ToStdString());
+                });
+            } else {}
         }
         else if (strCmd == "modelmall_model_open") {
             if (j.contains("data")) {
@@ -317,6 +369,358 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                 }
             }
         }
+        else if (strCmd == "editor_upload_file") {
+            json response = json::object();
+            std::string sequence_id;
+            if (j.contains("sequence_id"))
+                sequence_id = j["sequence_id"].get<std::string>();
+
+            response["command"]     = "editor_upload_file_result";
+            response["sequence_id"] = sequence_id;
+
+            try {
+                if (!j.contains("data") || !j["data"].is_object())
+                    throw std::runtime_error("missing payload");
+
+                const json& payload = j["data"];
+                std::string base64  = payload.value("base64", std::string());
+                if (base64.empty())
+                    throw std::runtime_error("empty file content");
+
+                std::string original_name = payload.value("filename", std::string());
+                std::string extension;
+                if (!original_name.empty()) {
+                    fs::path original_path(original_name);
+                    if (original_path.has_extension())
+                        extension = original_path.extension().string();
+                }
+
+                size_t decoded_capacity = wxBase64DecodedSize(base64.length());
+                if (decoded_capacity == 0)
+                    throw std::runtime_error("invalid base64 length");
+
+                std::string decoded;
+                decoded.resize(decoded_capacity);
+                size_t decoded_size = wxBase64Decode(decoded.data(), decoded.size(), base64.c_str(), base64.length());
+                if (decoded_size == wxInvalidSize || decoded_size == 0)
+                    throw std::runtime_error("base64 decode failed");
+                decoded.resize(decoded_size);
+
+                fs::path temp_dir;
+                try {
+                    temp_dir = fs::temp_directory_path();
+                } catch (const std::exception& e) {
+                    throw std::runtime_error(std::string("failed to locate temp directory: ") + e.what());
+                }
+                temp_dir /= "bambu_editor";
+
+                boost::system::error_code ec;
+                fs::create_directories(temp_dir, ec);
+                if (ec) {
+                    throw std::runtime_error("failed to create temp directory: " + ec.message());
+                }
+
+                fs::path temp_file = temp_dir / fs::unique_path("editor-%%%%%%%%-%%%%%%%%");
+                if (!extension.empty()) {
+                    if (extension.front() != '.')
+                        extension.insert(extension.begin(), '.');
+                    temp_file.replace_extension(extension);
+                }
+
+                std::ofstream output(temp_file.string(), std::ios::binary | std::ios::trunc);
+                if (!output.is_open())
+                    throw std::runtime_error("failed to open temp file for writing");
+                output.write(decoded.data(), static_cast<std::streamsize>(decoded.size()));
+                if (!output.good())
+                    throw std::runtime_error("failed to write temp file");
+                output.close();
+
+                wxString stored_path_wx(temp_file.wstring());
+                std::string stored_path(stored_path_wx.utf8_str());
+
+                json data = json::object();
+                data["path"]         = stored_path;
+                data["encoded_path"] = wxGetApp().url_encode(stored_path);
+                data["filename"]     = original_name;
+                if (payload.contains("size"))
+                    data["size"] = payload["size"];
+                if (payload.contains("type"))
+                    data["type"] = payload["type"];
+
+                response["data"] = data;
+            } catch (const std::exception& e) {
+                response["error"] = e.what();
+            }
+
+            wxString payload = wxString::FromUTF8(response.dump(-1, ' ', false, json::error_handler_t::ignore));
+            wxString script  = wxString::Format("window.HandleEditor && window.HandleEditor(%s);", payload);
+            wxGetApp().CallAfter([this, script] {
+                RunScript(script.ToStdString());
+            });
+        }
+        else if (strCmd == "update_3mf_info") {
+            json response = json::object();
+
+            response["command"]     = "update_3mf_info_result";
+            response["sequence_id"] = j["sequence_id"];
+
+            try {
+                if (!j.contains("model") || !j["model"].is_object())
+                    throw std::runtime_error("invalid payload");
+
+                const json& payload = j["model"];
+
+                Model& model_ref = wxGetApp().plater()->model();
+                if (model_ref.model_info == nullptr)
+                    model_ref.model_info = std::make_shared<ModelInfo>();
+                if (model_ref.profile_info == nullptr)
+                    model_ref.profile_info = std::make_shared<ModelProfileInfo>();
+
+                auto decode_string = [](const json& node, const char* key) -> std::string {
+                    if (!node.contains(key))
+                        return std::string();
+                    const auto& val = node.at(key);
+                    if (!val.is_string())
+                        return std::string();
+                    std::string out = val.get<std::string>();
+                    if (out.empty())
+                        return out;
+                    try {
+                        return wxGetApp().url_decode(out);
+                    } catch (...) {
+                        return out;
+                    }
+                };
+
+                auto decode_required = [&](const json& node, const char* key) -> std::string {
+                    std::string value = decode_string(node, key);
+                    if (value.empty())
+                        throw std::runtime_error(std::string("missing ") + key);
+                    return value;
+                };
+
+                const json model_section   = payload.value("model", json::object());
+                const json file_section    = payload.value("file", json::object());
+                const json profile_section = payload.value("profile", json::object());
+
+                model_ref.model_info->model_name  = decode_required(model_section, "name");
+                model_ref.model_info->description = decode_required(model_section, "description");
+
+
+                model_ref.profile_info->ProfileTile        = decode_string(profile_section, "name");
+                model_ref.profile_info->ProfileDescription = decode_string(profile_section, "description");
+
+                std::string auxiliary_root = encode_path(model_ref.get_auxiliary_file_temp_path().c_str());
+                if (auxiliary_root.empty())
+                    throw std::runtime_error("failed to locate auxiliary directory");
+
+                wxString aux_root_wx(auxiliary_root.c_str());
+
+                auto sanitize_filename = [](std::string name) -> std::string {
+                    if (name.empty())
+                        return name;
+                    for (char& ch : name) {
+                        if (ch == '\\' || ch == '/' || ch == ':' || ch == '*' ||
+                            ch == '?'  || ch == '"' || ch == '<' || ch == '>' || ch == '|')
+                            ch = '_';
+                    }
+                    return name;
+                };
+
+                auto json_array_or_empty = [](const json& parent, const char* key) -> json {
+                    if (parent.contains(key) && parent.at(key).is_array())
+                        return parent.at(key);
+                    return json::array();
+                };
+
+                auto ensure_directory = [&](const wxString& folder_name) -> fs::path {
+                    wxString full_path = aux_root_wx + "/" + folder_name;
+                    fs::path dir_path(full_path.ToStdWstring());
+                    boost::system::error_code ec;
+                    if (!fs::exists(dir_path, ec)) {
+                        fs::create_directories(dir_path, ec);
+                        if (ec)
+                            throw std::runtime_error("failed to create auxiliary directory: " + ec.message());
+                    }
+                    return dir_path;
+                };
+
+                auto detect_extension_from_data_uri = [](const std::string& data_uri) -> std::string {
+                    auto slash = data_uri.find('/');
+                    auto semicolon = data_uri.find(';');
+                    if (slash != std::string::npos && semicolon != std::string::npos && semicolon > slash) {
+                        std::string ext = data_uri.substr(slash + 1, semicolon - slash - 1);
+                        if (!ext.empty())
+                            return "." + ext;
+                    }
+                    return std::string();
+                };
+
+                auto normalize_path = [](const fs::path& path) {
+                    std::wstring w = path.lexically_normal().wstring();
+                    std::transform(w.begin(), w.end(), w.begin(), towlower);
+                    return w;
+                };
+
+                auto copy_entries = [&](const json& list, const wxString& folder_name, bool is_image, std::vector<fs::path>* stored_paths) {
+                    fs::path dest_dir = ensure_directory(folder_name);
+                    if (stored_paths)
+                        stored_paths->clear();
+
+                    if (!list.is_array())
+                        return;
+
+                    size_t index = 0;
+                    std::set<std::wstring> desired_paths;
+                    for (const auto& entry : list) {
+                        if (!entry.is_object())
+                            continue;
+
+                        std::string raw_filepath = entry.value("filepath", std::string());
+                        std::string raw_filename = entry.value("filename", std::string());
+
+                        bool is_data_uri = boost::algorithm::starts_with(raw_filepath, "data:");
+                        std::string decoded_filepath = raw_filepath;
+                        if (!is_data_uri)
+                            decoded_filepath = wxGetApp().url_decode(raw_filepath);
+
+                        fs::path dest_file;
+                        bool reused_existing = false;
+
+                        if (!is_data_uri && !decoded_filepath.empty()) {
+                            fs::path src_path(decoded_filepath);
+                            boost::system::error_code ec;
+                            if (fs::exists(src_path, ec) && fs::equivalent(src_path.parent_path(), dest_dir, ec)) {
+                                dest_file = src_path;
+                                reused_existing = true;
+                            }
+                        }
+
+                        std::string filename = sanitize_filename(wxGetApp().url_decode(raw_filename));
+                        if (!reused_existing) {
+                            std::string extension;
+                            if (!filename.empty()) {
+                                auto pos = filename.find_last_of('.');
+                                if (pos != std::string::npos)
+                                    extension = filename.substr(pos);
+                            }
+
+                            if (filename.empty()) {
+                                extension = !extension.empty() ? extension : (is_data_uri ? detect_extension_from_data_uri(raw_filepath) : fs::path(decoded_filepath).extension().string());
+                                if (!extension.empty() && extension.front() != '.')
+                                    extension.insert(extension.begin(), '.');
+                                filename = "file_" + std::to_string(index++) + extension;
+                            }
+
+                            dest_file = dest_dir / filename;
+                            while (desired_paths.count(dest_file.lexically_normal().wstring()) != 0)
+                                dest_file = dest_dir / (dest_file.stem().string() + "_" + std::to_string(index++) + dest_file.extension().string());
+
+                            if (is_data_uri) {
+                                auto comma = raw_filepath.find(',');
+                                if (comma == std::string::npos)
+                                    throw std::runtime_error("invalid data url");
+                                std::string base64 = raw_filepath.substr(comma + 1);
+                                std::string buffer;
+                                buffer.resize(wxBase64DecodedSize(base64.length()));
+                                size_t decoded_size = wxBase64Decode(buffer.data(), buffer.size(), base64.c_str(), base64.length());
+                                if (decoded_size == wxInvalidSize || decoded_size == 0)
+                                    throw std::runtime_error("failed to decode image data");
+                                buffer.resize(decoded_size);
+                                std::ofstream out(dest_file.string(), std::ios::binary | std::ios::trunc);
+                                if (!out.is_open())
+                                    throw std::runtime_error("failed to write file");
+                                out.write(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+                                out.close();
+                            } else {
+                                if (decoded_filepath.empty())
+                                    throw std::runtime_error("missing attachment path");
+                                fs::path src_path(decoded_filepath);
+                                if (!fs::exists(src_path))
+                                    throw std::runtime_error("attachment not found: " + decoded_filepath);
+                                boost::system::error_code ec;
+                                fs::copy_file(src_path, dest_file, fs::copy_option::overwrite_if_exists, ec);
+                                if (ec)
+                                    throw std::runtime_error("copy attachment failed: " + ec.message());
+                            }
+                        }
+
+                        desired_paths.insert(normalize_path(dest_file));
+                        if (stored_paths)
+                            stored_paths->push_back(dest_file);
+                    }
+
+                    boost::system::error_code ec;
+                    fs::directory_iterator end_it;
+                    for (fs::directory_iterator it(dest_dir, ec); !ec && it != end_it; ++it) {
+                        if (fs::is_directory(it->path(), ec))
+                            continue;
+                        if (desired_paths.count(normalize_path(it->path())) == 0)
+                            fs::remove(it->path(), ec);
+                    }
+                };
+
+                std::vector<fs::path> model_picture_paths;
+                copy_entries(json_array_or_empty(model_section, "preview_img"), "Model Pictures", true, &model_picture_paths);
+                copy_entries(json_array_or_empty(file_section, "BOM"), "Bill of Materials", false, nullptr);
+                copy_entries(json_array_or_empty(file_section, "Assembly"), "Assembly Guide", false, nullptr);
+                copy_entries(json_array_or_empty(file_section, "Other"), "Others", false, nullptr);
+                std::vector<fs::path> profile_picture_paths;
+                copy_entries(json_array_or_empty(profile_section, "preview_img"), "Profile Pictures", true, &profile_picture_paths);
+
+                if (!model_picture_paths.empty()) {
+                    const fs::path &cover_src = model_picture_paths.front();
+                    model_ref.model_info->cover_file = cover_src.filename().string();
+
+                    fs::path full_path      = cover_src.parent_path();
+                    fs::path full_root_path = full_path.parent_path();
+                    wxString full_root_path_str = encode_path(full_root_path.string().c_str());
+                    wxString thumbnails_dir     = wxString::Format("%s/.thumbnails", full_root_path_str);
+                    fs::path dir_path(thumbnails_dir.ToStdWstring());
+
+                    boost::system::error_code ec;
+                    if (!fs::exists(dir_path, ec))
+                        fs::create_directories(dir_path, ec);
+
+                    wxImage thumbnail_img;
+                    if (generate_image(cover_src.string(), thumbnail_img, _3MF_COVER_SIZE)) {
+                        auto cover_img_path = dir_path / "thumbnail_3mf.png";
+                        thumbnail_img.SaveFile(encode_path(cover_img_path.string().c_str()));
+                    }
+                    if (generate_image(cover_src.string(), thumbnail_img, PRINTER_THUMBNAIL_SMALL_SIZE)) {
+                        auto small_img_path = dir_path / "thumbnail_small.png";
+                        thumbnail_img.SaveFile(encode_path(small_img_path.string().c_str()));
+                    }
+                    if (generate_image(cover_src.string(), thumbnail_img, PRINTER_THUMBNAIL_MIDDLE_SIZE)) {
+                        auto middle_img_path = dir_path / "thumbnail_middle.png";
+                        thumbnail_img.SaveFile(encode_path(middle_img_path.string().c_str()));
+                    }
+                } else {
+                    model_ref.model_info->cover_file.clear();
+                }
+
+                if (!profile_picture_paths.empty())
+                    model_ref.profile_info->ProfileCover = profile_picture_paths.front().filename().string();
+                else
+                    model_ref.profile_info->ProfileCover.clear();
+
+
+                wxGetApp().plater()->set_plater_dirty(true);
+                Slic3r::put_other_changes();
+                update_model_data();
+
+                response["status"]  = "success";
+                response["message"] = "Project information saved";
+            } catch (const std::exception& e) {
+                response["error"] = e.what();
+            }
+
+            wxString payload = wxString::FromUTF8(response.dump(-1, ' ', false, json::error_handler_t::ignore));
+            wxString script  = wxString::Format("window.HandleEditor && window.HandleEditor(%s);", payload);
+            wxGetApp().CallAfter([this, script] {
+                RunScript(script.ToStdString());
+            });
+        }
         else if (strCmd == "debug_info") {
             //wxString msg =  j["msg"];
             //OutputDebugString(wxString::Format("Model_Web: msg = %s \r\n", msg));
@@ -335,8 +739,18 @@ void ProjectPanel::update_model_data()
     clear_model_info();
 
     //basics info
-    if (model.model_info == nullptr)
+    //Note: Under the master branch, model_info will never return nullptr, but under the GitHub branch, it might. The reason is unclear.
+    if (model.model_info == nullptr) {
+        json payload = json::object();
+        payload["command"] = "show_3mf_info";
+        payload["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+        payload["model"] = json::object();
+
+        wxString js = wxString::Format("HandleStudio(%s)",
+                                    payload.dump(-1, ' ', false, json::error_handler_t::ignore));
+        wxGetApp().CallAfter([this, js]{ RunScript(js.ToStdString()); });
         return;
+    }
 
     auto event = wxCommandEvent(EVT_PROJECT_RELOAD);
     event.SetEventObject(this);
@@ -345,6 +759,8 @@ void ProjectPanel::update_model_data()
 
 void ProjectPanel::clear_model_info()
 {
+    m_last_payload = json::object();
+
     json m_Res = json::object();
     m_Res["command"] = "clear_3mf_info";
     m_Res["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
@@ -500,10 +916,33 @@ void ProjectPanel::RunScript(std::string content)
     WebView::RunScript(m_browser, content);
 }
 
+bool ProjectPanel::is_editing_page() const
+{
+    if (m_browser == nullptr)
+        return false;
+    wxString current_url = m_browser->GetCurrentURL();
+    if (current_url.IsEmpty())
+        return false;
+    return current_url.Lower().Contains("editor.html");
+}
+
 bool ProjectPanel::Show(bool show)
 {
     if (show) update_model_data();
     return wxPanel::Show(show);
+}
+
+void ProjectPanel::save_project()
+{
+    json resp = json::object();
+    resp["command"] = "save_project";
+    resp["sequence_id"] = std::to_string(ProjectPanel::m_sequence_id++);
+
+    wxString strJS = wxString::Format("window.HandleEditor && window.HandleEditor(%s);",
+                                      resp.dump(-1, ' ', false, json::error_handler_t::ignore));
+    wxGetApp().CallAfter([this, strJS] {
+        RunScript(strJS.ToStdString());
+    });
 }
 
 }} // namespace Slic3r::GUI

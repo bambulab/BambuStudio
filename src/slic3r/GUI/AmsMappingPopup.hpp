@@ -42,7 +42,18 @@
 
 #define MAPPING_ITEM_INVALID_REMAIN -1
 
-namespace Slic3r { namespace GUI {
+// Previous definitions
+namespace Slic3r
+{
+class DevNozzleRack;
+namespace GUI
+{
+class wgtDeviceNozzleRackSelect;
+};
+};
+
+namespace Slic3r {
+namespace GUI {
 
 
 #define AMS_TOTAL_COUNT 4
@@ -77,23 +88,48 @@ struct TrayData
 class MaterialItem: public wxPanel
 {
 protected:
-    int m_text_pos_x =  0;
     int m_text_pos_y = -1;
     bool m_dropdown_allow_painted = true;
+    wxString m_mapping_text;
 
 public:
-    MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname);
+    MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
     ~MaterialItem();
 
-    wxPanel*    m_main_panel;
+    void allow_paint_dropdown(bool flag);
+
+    void set_ams_info(wxColour col, wxString txt,
+                      int ctype = 0, std::vector<wxColour> cols = std::vector<wxColour>(),
+                      bool record_back_info = false);
+    void reset_ams_info();
+    virtual void reset_valid_info();
+
+    void set_nozzle_info(const wxString& mapped_nozzle_str);
+
+    void disable();
+    void enable();
+    void on_normal();
+    void on_selected();
+    void on_warning();
+
+    void msw_rescale();
+
+protected:
+    void messure_size();
+
+public:
+    std::string m_filament_id;
+
     wxColour    m_material_coloul;
     wxString    m_material_name;
+    wxString    m_mapped_nozzle_str;
 
     //info
     wxColour m_ams_coloul;
     wxString m_ams_name;
     int      m_ams_ctype = 0;
     std::vector<wxColour> m_ams_cols = std::vector<wxColour>();
+
     //reset
     wxColour              m_back_ams_coloul;
     wxString              m_back_ams_name;
@@ -106,34 +142,23 @@ public:
     ScalableBitmap m_filament_wheel_transparent;
     ScalableBitmap m_ams_wheel_mitem;
     ScalableBitmap m_ams_not_match;
+    ScalableBitmap m_rack_nozzle_bitmap;
 
     bool m_selected {false};
     bool m_warning{false};
     bool m_match {true};
     bool m_enable {true};
 
-    void msw_rescale();
-    void allow_paint_dropdown(bool flag);
-    void set_ams_info(wxColour col, wxString txt, int ctype=0, std::vector<wxColour> cols= std::vector<wxColour>(),bool record_back_info = false);
-    void reset_ams_info();
-
-    void disable();
-    void enable();
-    void on_normal();
-    void on_selected();
-    void on_warning();
-
     void paintEvent(wxPaintEvent &evt);
     virtual void render(wxDC &dc);
     void match(bool mat);
     virtual void doRender(wxDC &dc);
-    virtual void reset_valid_info();
 };
 
 class MaterialSyncItem : public MaterialItem
 {
 public:
-    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname);
+    MaterialSyncItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
     ~MaterialSyncItem();
     int  get_real_offset();
     void render(wxDC &dc) override;
@@ -206,12 +231,38 @@ protected:
     void doRender(wxDC& dc);
 };
 
+class DevIconLabel : public wxPanel
+{
+public:
+    DevIconLabel(wxWindow* parent, const wxString& icon, const wxString& label);
+
+public:
+    void SetAllBackgroundColor(const wxColour& color);
+
+    Label* GetLabelItem() const { return m_label; }
+    void SetLabel(const wxString& label);
+    void SetIcon(const wxString& icon);
+
+    void Rescale();
+
+private:
+    void CreateGui();
+
+private:
+    Label*          m_label{ nullptr };
+    wxString        m_icon_str;
+    wxStaticBitmap* m_icon{ nullptr };
+};
+
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
     bool m_ams_remain_detect_flag = false;
     bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
+
+    wgtDeviceNozzleRackSelect *m_rack_nozzle_select{nullptr};
+    DevIconLabel* m_flush_warning_panel;
 
 public:
     AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
@@ -258,6 +309,7 @@ public:
     wxBoxSizer* m_sizer_split_ams_right;
     bool        m_mapping_from_multi_machines {false};
 
+    bool         get_use_in_sync_dialog() { return m_use_in_sync_dialog; }
     void         set_sizer_title(wxBoxSizer *sizer, wxString text);
     wxBoxSizer*  create_split_sizer(wxWindow* parent, wxString text);
     void         set_send_win(wxWindow* win) {send_win = win;};
@@ -265,6 +317,7 @@ public:
     void         set_tag_texture(std::string texture);
     void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_title(MachineObject* obj);
+    void         update_rack_select(MachineObject* obj);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
@@ -294,6 +347,13 @@ public:
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
 
 private:
+    // events
+    void OnNozzleMappingSelected(wxCommandEvent& evt);
+    void update_flush_waste(MachineObject* obj);
+
+private:
+    std::weak_ptr<DevNozzleRack> m_rack;
+
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
     bool m_only_show_ext_spool{false};

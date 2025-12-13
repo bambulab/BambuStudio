@@ -291,14 +291,18 @@ void TempInput::Warning(bool warn, WarningType type)
 
 void TempInput::SetIconActive()
 {
-    actice = true;
-    Refresh();
+    if (!actice) {
+        actice = true;
+        Refresh();
+    }
 }
 
 void TempInput::SetIconNormal()
 {
-    actice = false;
-    Refresh();
+    if (actice) {
+        actice = false;
+        Refresh();
+    }
 }
 
 void TempInput::SetMaxTemp(int temp) { max_temp = temp; }

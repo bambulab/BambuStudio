@@ -781,7 +781,7 @@ void FanControlPopupNew::UpdatePartSubMode()
     if (AIR_DUCT(m_data.curren_mode) == AIR_DUCT::AIR_DUCT_COOLING_FILT && m_data.IsSupportCoolingFilter()) {
         if (!m_cooling_filter_switch_panel) {
             m_cooling_filter_switch_panel = new FanControlNewSwitchPanel(m_sub_mode_panel, _L("Filter"), _L("Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."));
-            m_cooling_filter_switch_panel->Bind(EVT_FANCTRL_SWITCH, [this] (wxCommandEvent& evt) 
+            m_cooling_filter_switch_panel->Bind(EVT_FANCTRL_SWITCH, [this] (wxCommandEvent& evt)
                 {
                   if (m_obj && m_obj->is_in_printing()) {
                       MessageDialog msg_wingow(nullptr, _L("Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"), "", wxICON_WARNING | wxCANCEL | wxOK);
@@ -1069,8 +1069,7 @@ FanControlNewSwitchPanel::FanControlNewSwitchPanel(wxWindow* parent, const wxStr
 
     wxSizer* m_label_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_label_sizer->Add(label, 0, wxALIGN_LEFT, 0);
-    m_label_sizer->AddSpacer(FromDIP(10));
-    m_label_sizer->Add(0, 1, wxEXPAND, FromDIP(10));
+    m_label_sizer->AddStretchSpacer(1);
     m_label_sizer->Add(m_switch_btn, 0, wxALIGN_RIGHT, 0);
 
     Label* tips_label = new Label(this);
@@ -1079,7 +1078,7 @@ FanControlNewSwitchPanel::FanControlNewSwitchPanel(wxWindow* parent, const wxStr
     tips_label->Wrap(FromDIP(400));
 
     wxSizer* m_sizer_main = new wxBoxSizer(wxVERTICAL);
-    m_sizer_main->Add(m_label_sizer, 0, wxALL | wxALIGN_LEFT, FromDIP(5));
+    m_sizer_main->Add(m_label_sizer, 0, wxALL | wxEXPAND, FromDIP(5));
     m_sizer_main->Add(tips_label, 0, wxALL | wxALIGN_LEFT, FromDIP(5));
     SetSizer(m_sizer_main);
 

@@ -4,6 +4,8 @@
 
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevUpgrade.h"
+
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 
 #include "slic3r/GUI/MsgDialog.hpp"
@@ -644,7 +646,7 @@ void AMSSettingTypePanel::Update(const MachineObject* obj)
     }
 
     if (ptr->IsSwitching())  {
-        int display_percent = obj->get_upgrade_percent();
+        int display_percent = obj->GetUpgrade().lock()->GetUpgradeProgressInt();
         if (display_percent == 100 || display_percent == 0) {
             display_percent = 1;// special case, sometimes it's switching but percent is 0 or 100
         }
@@ -663,11 +665,7 @@ void AMSSettingTypePanel::Update(const MachineObject* obj)
 
             m_type_combobox->Clear();
             for (auto ams_firmware : m_ams_firmwares) {
-                if (m_ams_firmware_current_idx == ams_firmware.first) {
-                    m_type_combobox->Append(_L(ams_firmware.second.m_name));
-                } else {
-                    m_type_combobox->Append(_L(ams_firmware.second.m_name));
-                }
+                m_type_combobox->Append(_L(ams_firmware.second.m_name));
             }
             m_type_combobox->SetSelection(m_ams_firmware_current_idx);
         }

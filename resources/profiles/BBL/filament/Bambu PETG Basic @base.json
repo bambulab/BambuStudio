@@ -42,14 +42,8 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
-    "filament_prime_volume_nc": [
-        "60"
-    ],
     "first_x_layer_fan_speed": [
         "0"
-    ],
-    "filament_change_length": [
-        "10"
     ],
     "filament_change_length_nc": [
         "10"
@@ -74,9 +68,6 @@
     ],
     "overhang_fan_threshold": [
         "10%"
-    ],
-    "override_process_overhang_speed": [
-        "0"
     ],
     "slow_down_layer_time": [
         "12"

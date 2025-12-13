@@ -6,7 +6,6 @@
     "setting_id": "GP204",
     "instantiation": "true",
     "description": "High quality profile for 0.2mm nozzle, prioritizing print quality.",
-    "bottom_surface_pattern": "monotonicline",
     "bridge_speed": [
         "50",
         "50"
@@ -143,7 +142,6 @@
         "80",
         "80"
     ],
-    "top_surface_pattern": "monotonic",
     "travel_speed": [
         "600",
         "600"

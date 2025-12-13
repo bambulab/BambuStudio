@@ -63,6 +63,9 @@
     "fan_min_speed": [
         "35"
     ],
+    "filament_cooling_before_tower": [
+        "10"
+    ],
     "filament_cost": [
         "0"
     ],
@@ -97,6 +100,9 @@
         "0"
     ],
     "filament_ramming_volumetric_speed": [
+        "-1"
+    ],
+    "filament_ramming_volumetric_speed_nc": [
         "-1"
     ],
     "filament_minimal_purge_on_wipe_tower": [
@@ -150,6 +156,9 @@
     "filament_prime_volume": [
         "45"
     ],
+    "filament_prime_volume_nc": [
+        "60"
+    ],
     "filament_z_hop": [
         "nil"
     ],
@@ -180,8 +189,17 @@
     "filament_pre_cooling_temperature": [
         "0"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "0"
+    ],
     "filament_ramming_travel_time": [
         "0"
+    ],    
+    "filament_ramming_travel_time_nc": [
+        "0"
+    ],
+    "filament_retract_length_nc": [
+        "14"
     ],
     "hot_plate_temp": [
         "60"
@@ -263,6 +281,9 @@
     ],
     "textured_plate_temp_initial_layer": [
         "60"
+    ],
+    "filament_change_length": [
+        "10"
     ],
     "filament_velocity_adaptation_factor":[
         "1"

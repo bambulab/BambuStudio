@@ -467,6 +467,8 @@ set(lisbslic3r_sources
     Interlocking/InterlockingGenerator.cpp
     Interlocking/VoxelUtils.hpp
     Interlocking/VoxelUtils.cpp
+    MultiNozzleUtils.hpp
+    MultiNozzleUtils.cpp
 )
 
 if (APPLE)

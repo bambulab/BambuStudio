@@ -84,6 +84,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/WebView.hpp
     GUI/Widgets/ErrorMsgStaticText.cpp
     GUI/Widgets/ErrorMsgStaticText.hpp
+    GUI/Widgets/MultiNozzleSync.hpp
+    GUI/Widgets/MultiNozzleSync.cpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/NetworkTestDialog.cpp
@@ -174,6 +176,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLSelectionRectangle.hpp
     GUI/Gizmos/GizmoObjectManipulation.cpp
     GUI/Gizmos/GizmoObjectManipulation.hpp
+    GUI/Gizmos/GLGizmoAlignment.cpp
+    GUI/Gizmos/GLGizmoAlignment.hpp
     GUI/GLModel.hpp
     GUI/GLModel.cpp
     GUI/GLTexture.hpp
@@ -348,6 +352,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/TextLines.hpp
     GUI/PlateSettingsDialog.cpp
     GUI/PlateSettingsDialog.hpp
+    GUI/PlateMoveDialog.cpp
+    GUI/PlateMoveDialog.hpp
     GUI/ImGuiWrapper.hpp
     GUI/ImGuiWrapper.cpp
     GUI/ImageMessageDialog.hpp
@@ -415,6 +421,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Jobs/BindJob.cpp
     GUI/Jobs/NotificationProgressIndicator.hpp
     GUI/Jobs/NotificationProgressIndicator.cpp
+    GUI/Jobs/BooleanOperationJob.hpp
+    GUI/Jobs/BooleanOperationJob.cpp
     GUI/PhysicalPrinterDialog.hpp
     GUI/PhysicalPrinterDialog.cpp
     GUI/ProgressStatusBar.hpp
@@ -517,6 +525,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Calibration.cpp
     GUI/PrintOptionsDialog.hpp
     GUI/PrintOptionsDialog.cpp
+    GUI/PurgeModeDialog.hpp
+    GUI/PurgeModeDialog.cpp
     GUI/SafetyOptionsDialog.hpp
     GUI/SafetyOptionsDialog.cpp
     GUI/CreatePresetsDialog.hpp

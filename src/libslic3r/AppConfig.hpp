@@ -24,6 +24,9 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+namespace MultiNozzleUtils{
+	struct NozzleGroupInfo;
+}
 class AppConfig
 {
 public:

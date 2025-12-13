@@ -518,3 +518,80 @@ function DisableDropAction()
 		event.preventDefault();
 	});
 }
+
+function showToast(message, duration = 2500) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerText = message;
+  document.body.appendChild(toast);
+
+  void toast.offsetWidth;
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+function isBase64String(value) {
+  if (typeof value !== 'string' || !value.trim()) return false;
+  const trimmed = value.trim();
+  if (trimmed.startsWith('data:') && trimmed.includes(';base64,')) return true;
+  const base64Body = trimmed.replace(/\s+/g, '');
+  return /^[A-Za-z0-9+/]+={0,2}$/.test(base64Body) && base64Body.length % 4 === 0;
+}
+
+function showBase64ImageLayer(base64Str) {
+  if (!base64Str) return;
+
+  const existingLayer = document.getElementById('base64-image-layer');
+  if (existingLayer) existingLayer.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'base64-image-layer';
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    inset: '0',
+    background: 'rgba(0, 0, 0, 0.65)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+    padding: '24px'
+  });
+
+  const imgWrapper = document.createElement('div');
+  Object.assign(imgWrapper.style, {
+    maxWidth: '90%',
+    maxHeight: '100%',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)'
+  });
+
+  const img = document.createElement('img');
+  img.src = base64Str;
+  Object.assign(img.style, {
+    display: 'block',
+    maxWidth: '100%',
+    maxHeight: '100%',
+    borderRadius: '8px'
+  });
+
+  imgWrapper.appendChild(img);
+  overlay.appendChild(imgWrapper);
+  document.body.appendChild(overlay);
+
+  const closeLayer = () => overlay.remove();
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) closeLayer();
+  });
+  window.addEventListener('keydown', function handler(evt) {
+    if (evt.key === 'Escape') {
+      window.removeEventListener('keydown', handler);
+      closeLayer();
+    }
+  });
+}

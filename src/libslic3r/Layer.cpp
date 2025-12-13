@@ -151,9 +151,9 @@ bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const 
     return config.wall_filament == other_config.wall_filament
            && config.wall_loops == other_config.wall_loops
            && config.wall_sequence == other_config.wall_sequence
-           && config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament)) == other_config.inner_wall_speed.get_at(get_extruder_id(config.wall_filament))
-           && config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament)) == other_config.outer_wall_speed.get_at(get_extruder_id(config.wall_filament))
-           && config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament)) == other_config.gap_infill_speed.get_at(get_extruder_id(config.wall_filament))
+           && config.inner_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament)) == other_config.inner_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament))
+           && config.outer_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament)) == other_config.outer_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament))
+           && config.gap_infill_speed.get_at(get_config_idx_for_filament(config.wall_filament)) == other_config.gap_infill_speed.get_at(get_config_idx_for_filament(config.wall_filament))
            && config.detect_overhang_wall == other_config.detect_overhang_wall
            && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
            && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
@@ -222,6 +222,7 @@ void Layer::make_perimeters()
 
 	        if (layerms.size() == 1) {  // optimization
 	            (*layerm)->fill_surfaces.surfaces.clear();
+                (*layerm)->fill_no_overlap_expolygons.clear();
                 (*layerm)->make_perimeters((*layerm)->slices, perimeter_regions, &(*layerm)->fill_surfaces, &(*layerm)->fill_no_overlap_expolygons, this->loop_nodes);
 
 	            (*layerm)->fill_expolygons = to_expolygons((*layerm)->fill_surfaces.surfaces);
@@ -235,8 +236,6 @@ void Layer::make_perimeters()
 	                for (LayerRegion *layerm : layerms) {
 	                    for (const Surface &surface : layerm->slices.surfaces)
 	                        slices[surface.extra_perimeters].emplace_back(surface);
-	                    if (layerm->region().config().sparse_infill_density > layerm_config->region().config().sparse_infill_density)
-	                    	layerm_config = layerm;
 	                }
 	                // merge the surfaces assigned to each group
 	                for (std::pair<const unsigned short,Surfaces> &surfaces_with_extra_perimeters : slices)
@@ -252,7 +251,7 @@ void Layer::make_perimeters()
 	            SurfaceCollection fill_surfaces;
                 //BBS
                 ExPolygons fill_no_overlap;
-                layerm_config->make_perimeters(new_slices, perimeter_regions, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
+                (*layerm)->make_perimeters(new_slices, perimeter_regions, &fill_surfaces, &fill_no_overlap, this->loop_nodes);
 
 	            // assign fill_surfaces to each layer
 	            if (!fill_surfaces.surfaces.empty()) {
@@ -600,6 +599,11 @@ coordf_t Layer::get_sparse_infill_max_void_area()
 size_t Layer::get_extruder_id(unsigned int filament_id) const
 {
     return m_object->print()->get_extruder_id(filament_id);
+}
+
+size_t Layer::get_config_idx_for_filament(unsigned int filament_id) const
+{
+    return m_object->print()->get_config_idx_for_filament(filament_id);
 }
 
 BoundingBox get_extents(const LayerRegion &layer_region)

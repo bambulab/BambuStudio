@@ -903,17 +903,9 @@ void MainFrame::update_layout()
         {
             // jump to 3deditor under preview_only mode
             if (evt.GetId() == tp3DEditor){
-                Sidebar& sidebar = GUI::wxGetApp().sidebar();
-                if (sidebar.need_auto_sync_after_connect_printer()) {
-                    sidebar.set_need_auto_sync_after_connect_printer(false);
-                    sidebar.sync_extruder_list();
-                }
-
-                m_plater->update(true);
-
-                m_plater->show_wrapping_detect_dialog_if_necessary();
-
-                if (!preview_only_hint())
+                wxCommandEvent event(EVT_SWITCH_TO_PREPARE_TAB);
+                wxPostEvent(m_plater, event);
+                if(!preview_only_hint())
                     return;
             }
             else if (evt.GetId() == tpCalibration) {
@@ -1125,6 +1117,23 @@ void MainFrame::init_tabpanel()
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();
+        if (old_sel != wxNOT_FOUND &&
+            new_sel != old_sel &&
+            m_project != nullptr &&
+            m_tabpanel->GetPage((size_t)old_sel) == m_project &&
+            m_project->is_editing_page()) {
+            MessageDialog dlg(this,
+                              _L("The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."),
+                              _L("Save"),
+                              wxYES_NO | wxCANCEL |wxCENTRE);
+            int ret = dlg.ShowModal();
+            if (ret == wxID_YES) {
+                m_project->save_project();
+            } else {
+                e.Veto();
+                return;
+            }
+        }
         if (wxGetApp().preset_bundle &&
             wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle) &&
             new_sel == tpMonitor) {
@@ -1179,6 +1188,10 @@ void MainFrame::init_tabpanel()
 #else
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {
 #endif
+        if (e.GetEventObject() != m_tabpanel){
+            return;// The event maybe from child TabPanel
+        }
+
         //BBS
         wxWindow* panel = m_tabpanel->GetCurrentPage();
         int sel = m_tabpanel->GetSelection();
@@ -1190,9 +1203,6 @@ void MainFrame::init_tabpanel()
                 m_param_panel->OnActivate();
             }
             else if (sel == tpPreview) {
-                m_plater->reset_check_status();
-                if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
-                    return;
                 wxPostEvent(m_plater, SimpleEvent(EVT_GLVIEWTOOLBAR_PREVIEW));
                 m_param_panel->OnActivate();
             }
@@ -1783,6 +1793,10 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
+            m_plater->reset_check_status();
+            if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
+                return;
+            m_plater->set_slice_from_slice_btn(true);
 
             //this->m_plater->select_view_3D("Preview");
             m_plater->exit_gizmo();
@@ -1799,9 +1813,10 @@ wxBoxSizer* MainFrame::create_side_tools()
 
             if (slice) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
-                if (printer_model == "Bambu Lab H2D") {
+                int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
+                if (extruder_count > 1) {
                     if (wxGetApp().app_config->get("play_slicing_video") == "true") {
-                        MessageDialog dlg(this, _L("This is your first time slicing with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
+                        MessageDialog dlg(this, _L("This is your first time slicing with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                         auto  res = dlg.ShowModal();
                         if (res == wxID_YES) {
                             play_dual_extruder_slice_video();
@@ -1810,13 +1825,13 @@ wxBoxSizer* MainFrame::create_side_tools()
                         wxGetApp().app_config->set("play_slicing_video", "false");
                     }
 
-                    if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true") ) {
+                    if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true")) {
                         auto used_filaments = curr_plate->get_extruders();
                         std::transform(used_filaments.begin(), used_filaments.end(), used_filaments.begin(), [](auto i) {return i - 1; });
                         auto full_config = wxGetApp().preset_bundle->full_config();
                         auto filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
                         if (std::any_of(used_filaments.begin(), used_filaments.end(), [filament_types](int idx) { return filament_types[idx] == "TPU"; })) {
-                            MessageDialog dlg(this, _L("This is your first time printing tpu filaments with the H2D machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
+                            MessageDialog dlg(this, _L("This is your first time printing tpu filaments with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                             auto  res = dlg.ShowModal();
                             if (res == wxID_YES) {
                                 play_dual_extruder_print_tpu_video();

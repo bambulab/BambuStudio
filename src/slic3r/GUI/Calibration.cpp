@@ -303,11 +303,15 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         else {
             m_calibration_btn->Enable();
         }
+
         m_calibration_flow->DeleteAllItems();
+        last_stage_list_info = obj->stage_list_info;
+
         m_calibration_btn->SetLabel(_L("Start Calibration"));
         if (!m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
             !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue() &&
-            !m_checkbox_list["nozzle_cali"]->GetValue() && !m_checkbox_list["bed_cali"]->GetValue())
+            !m_checkbox_list["nozzle_cali"]->GetValue() && !m_checkbox_list["bed_cali"]->GetValue() &&
+            !m_checkbox_list["clump_pos_cali"]->GetValue())
         {
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("No step selected"));
@@ -316,6 +320,8 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_btn->Enable();
         }
     }
+
+
 }
 
 bool CalibrationDialog::is_stage_list_info_changed(MachineObject *obj)

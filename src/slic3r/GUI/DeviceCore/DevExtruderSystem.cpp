@@ -48,17 +48,22 @@ namespace Slic3r
 
     NozzleType DevExtder::GetNozzleType() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_nozzle_type;
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).m_nozzle_type;
     }
 
     NozzleFlowType DevExtder::GetNozzleFlowType() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_nozzle_flow;
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).m_nozzle_flow;
     }
 
     float DevExtder::GetNozzleDiameter() const
     {
-        return system->Owner()->GetNozzleSystem()->GetNozzle(m_current_nozzle_id).m_diameter;
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).m_diameter;
+    }
+
+    NozzleDiameterType DevExtder::GetNozzleDiameterType() const
+    {
+        return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).GetNozzleDiameterType();
     }
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
@@ -96,9 +101,12 @@ namespace Slic3r
 
     std::optional<DevExtder> DevExtderSystem::GetExtderById(int extder_id) const
     {
-        if (extder_id >= m_extders.size())
-        {
-            assert(false && "Invalid extruder ID");
+        if (extder_id == 0xF) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " the extruder maybe changing: " << extder_id;
+            return std::nullopt;
+        }
+
+        if (extder_id >= m_extders.size()) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "No extruder found for " << extder_id;
             return std::nullopt;
         }

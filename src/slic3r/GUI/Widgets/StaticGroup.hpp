@@ -8,11 +8,12 @@
 class StaticGroup : public wxStaticBox
 {
 public:
-    StaticGroup(wxWindow *parent, wxWindowID id, const wxString &label);
+    StaticGroup(wxWindow *parent, wxWindowID id);
 
 public:
     void ShowBadge(bool show);
     void SetBorderColor(const wxColour &color);
+    bool Show(bool show=true) override;
 private:
 #ifdef __WXMSW__
     void OnPaint(wxPaintEvent &evt);

@@ -144,6 +144,19 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+    m_cb_plate_type->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->command_xcam_control_build_plate_type_detector(m_cb_plate_type->GetValue());
+        }
+        evt.Skip();
+    });
+    m_cb_plate_align->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->command_xcam_control_build_plate_align_detector(m_cb_plate_align->GetValue());
+        }
+        evt.Skip();
+    });
+
     m_cb_sup_sound->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
             obj->command_xcam_control_allow_prompt_sound(m_cb_sup_sound->GetValue());
@@ -360,9 +373,23 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         airprinting_bottom_space->Show(false);
     }
 
+    if (obj_->is_support_build_plate_type_detect || obj_->is_support_build_plate_align_detect){
+        text_plate_build->Show();
+        text_plate_build_caption->Show();
 
+        m_cb_plate_type->Show(obj_->is_support_build_plate_type_detect);
+        text_plate_type->Show(obj_->is_support_build_plate_type_detect);
+        text_plate_type_caption->Show(obj_->is_support_build_plate_type_detect);
 
-    if (obj_->is_support_build_plate_marker_detect) {
+        m_cb_plate_align->Show(obj_->is_support_build_plate_align_detect);
+        text_plate_align->Show(obj_->is_support_build_plate_align_detect);
+        text_plate_align_caption->Show(obj_->is_support_build_plate_align_detect);
+
+        text_plate_mark->Hide();
+        m_cb_plate_mark->Hide();
+        text_plate_mark_caption->Hide();
+    }
+    else if (obj_->is_support_build_plate_marker_detect) {
         if (obj_->m_plate_maker_detect_type == MachineObject::POS_CHECK && (text_plate_mark->GetLabel() != _L("Enable detection of build plate position"))) {
             text_plate_mark->SetLabel(_L("Enable detection of build plate position"));
             text_plate_mark_caption->SetLabel(_L("The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."));
@@ -376,12 +403,35 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         text_plate_mark->Show();
         m_cb_plate_mark->Show();
         text_plate_mark_caption->Show();
+
+        text_plate_build->Hide();
+        text_plate_build_caption->Hide();
+
+        m_cb_plate_type->Hide();
+        text_plate_type->Hide();
+        text_plate_type_caption->Hide();
+
+        m_cb_plate_align->Hide();
+        text_plate_align->Hide();
+        text_plate_align_caption->Hide();
       //  line2->Show();
     }
     else {
         text_plate_mark->Hide();
         m_cb_plate_mark->Hide();
         text_plate_mark_caption->Hide();
+
+        text_plate_build->Hide();
+        text_plate_build_caption->Hide();
+
+        m_cb_plate_type->Hide();
+        text_plate_type->Hide();
+        text_plate_type_caption->Hide();
+
+        m_cb_plate_align->Hide();
+        text_plate_align->Hide();
+        text_plate_align_caption->Hide();
+
         line2->Hide();
     }
 
@@ -450,6 +500,8 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_sup_sound->SetValue(obj_->xcam_allow_prompt_sound);
     m_cb_filament_tangle->SetValue(obj_->xcam_filament_tangle_detect);
     m_cb_nozzle_blob->SetValue(obj_->nozzle_blob_detection_enabled);
+    m_cb_plate_type->SetValue(obj_->xcam_build_plate_type_detect.GetValue());
+    m_cb_plate_align->SetValue(obj_->xcam_build_plate_align_detect.GetValue());
 
 
     m_cb_ai_monitoring->SetValue(obj_->xcam_ai_monitoring);
@@ -641,7 +693,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
-    text_spaghetti_detection_caption0 = new Label(ai_refine_panel, _L("Detect spaghetti failure(scattered lose filament)."));
+    text_spaghetti_detection_caption0 = new Label(ai_refine_panel, _L("Detects spaghetti failure(scattered lose filament)."));
     text_spaghetti_detection_caption0->SetFont(Label::Body_12);
     text_spaghetti_detection_caption0->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_spaghetti_detection_caption0->Wrap(-1);
@@ -685,7 +737,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer                        = new wxBoxSizer(wxHORIZONTAL);
-    text_purgechutepileup_detection_caption0 = new Label(ai_refine_panel, _L("Monitor if the waste is piled up in the purge chute."));
+    text_purgechutepileup_detection_caption0 = new Label(ai_refine_panel, _L("Monitors if the waste is piled up in the purge chute."));
     text_purgechutepileup_detection_caption0->SetFont(Label::Body_12);
     text_purgechutepileup_detection_caption0->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_purgechutepileup_detection_caption0->Wrap(-1);
@@ -725,7 +777,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line_sizer                               = new wxBoxSizer(wxHORIZONTAL);
-    text_nozzleclumping_detection_caption0 = new Label(ai_refine_panel, _L("Check if the nozzle is clumping by filaments or other foreign objects."));
+    text_nozzleclumping_detection_caption0 = new Label(ai_refine_panel, _L("Checks if the nozzle is clumping by filaments or other foreign objects."));
     text_nozzleclumping_detection_caption0->SetFont(Label::Body_12);
     text_nozzleclumping_detection_caption0->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
     text_nozzleclumping_detection_caption0->Wrap(-1);
@@ -829,6 +881,61 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     //m_line->SetBackgroundColour(wxColour(166, 169, 170));
     //sizer->Add(m_line, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    /* build plate detection  type & align */
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_plate_build = new Label(parent, _L("Build Plate Detection"));
+    text_plate_build->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(text_plate_build, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_plate_build_caption = new Label(parent, _L("Ensures the build plate type and placement are correct."));
+    text_plate_build_caption->SetFont(Label::Body_12);
+    text_plate_build_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(text_plate_build_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_plate_type = new CheckBox(parent);
+    text_plate_type = new Label(parent, _L("Type Detection"));
+    text_plate_type->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_plate_type, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_plate_type, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_plate_type_caption = new Label(parent, _L("Pauses printing when the detected build plate type does not match the selected one."));
+    text_plate_type_caption->Wrap(FromDIP(400));
+    text_plate_type_caption->SetFont(Label::Body_12);
+    text_plate_type_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(38), 0, 0, 0);
+    line_sizer->Add(text_plate_type_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_plate_align = new CheckBox(parent);
+    text_plate_align = new Label(parent, _L("Alignment Detection"));
+    text_plate_align->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_plate_align, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_plate_align, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_plate_align_caption = new Label(parent, _L("Pauses printing when build plate misalignment is detected."));
+    text_plate_align_caption->Wrap(FromDIP(400));
+    text_plate_align_caption->SetFont(Label::Body_12);
+    text_plate_align_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(38), 0, 0, 0);
+    line_sizer->Add(text_plate_align_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     line2 = new StaticLine(parent, false);
@@ -937,7 +1044,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(FromDIP(5), 0, 0, 0);
 
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxString nozzle_blob_caption_text = _L("Check if the nozzle is clumping by filament or other foreign objects.");
+    wxString nozzle_blob_caption_text = _L("Checks if the nozzle is clumping by filament or other foreign objects.");
     text_nozzle_blob_caption = new Label(parent, nozzle_blob_caption_text);
     text_nozzle_blob_caption->SetFont(Label::Body_12);
     text_nozzle_blob_caption->Wrap(-1);
@@ -1427,7 +1534,6 @@ wxString PrinterPartsDialog::GetString(NozzleType nozzle_type) const {
         case Slic3r::ntStainlessSteel:  return _L("Stainless Steel");
         case Slic3r::ntTungstenCarbide: return _L("Tungsten Carbide");
         case Slic3r::ntBrass:           return _L("Brass");
-        case Slic3r::ntE3D:             return "E3D";
         default: break;
     }
 
