@@ -1219,6 +1219,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                has_scarf_joint_seam))
     ((ConfigOptionBoolsNullable,       override_process_overhang_speed))
     ((ConfigOptionBoolsNullable,       filament_enable_overhang_speed))
+    ((ConfigOptionFloatsNullable,      filament_bridge_speed))
     ((ConfigOptionFloatsNullable,      filament_overhang_1_4_speed))
     ((ConfigOptionFloatsNullable,      filament_overhang_2_4_speed))
     ((ConfigOptionFloatsNullable,      filament_overhang_3_4_speed))

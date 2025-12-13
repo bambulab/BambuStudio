@@ -1017,14 +1017,16 @@ static std::vector<std::string> s_Preset_filament_options{/*"filament_colour", *
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
     "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp",
-    "long_retractions_when_ec", "retraction_distances_when_ec", "filament_cooling_before_tower",
+    "long_retractions_when_ec", "retraction_distances_when_ec",
     "filament_enable_overhang_speed",
+    "filament_bridge_speed",
     "filament_overhang_1_4_speed",
     "filament_overhang_2_4_speed",
     "filament_overhang_3_4_speed",
     "filament_overhang_4_4_speed",
     "filament_overhang_totally_speed",
     "override_process_overhang_speed",
+    "filament_cooling_before_tower",
     //ams chamber
     "filament_dev_ams_drying_ams_limitations", "filament_dev_ams_drying_temperature", "filament_dev_ams_drying_time", "filament_dev_ams_drying_heat_distortion_temperature",
     "filament_dev_chamber_drying_bed_temperature", "filament_dev_chamber_drying_time",

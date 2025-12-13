@@ -80,6 +80,7 @@ const std::vector<std::string> filament_extruder_override_keys = {
 
 const std::vector<std::string> filament_overhang_override_keys = {
     "filament_enable_overhang_speed",
+    "filament_bridge_speed",
     "filament_overhang_1_4_speed",
     "filament_overhang_2_4_speed",
     "filament_overhang_3_4_speed",
@@ -6686,6 +6687,7 @@ std::set<std::string> filament_options_with_variant = {
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
     "filament_enable_overhang_speed",
+    "filament_bridge_speed",
     "filament_overhang_1_4_speed",
     "filament_overhang_2_4_speed",
     "filament_overhang_3_4_speed",

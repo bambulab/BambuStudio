@@ -1531,7 +1531,8 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             }
 
             auto filament_variants = m_print->get_full_filament_extruder_variants(filament_idx);
-            std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
+            if (filament_variants.empty()) continue;
+			std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
             std::string extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
             if (filament_variants_set.count(extruder_variant) == 0) {
                 wxString variant_name = extruder_variant;

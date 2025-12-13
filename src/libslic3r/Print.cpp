@@ -2757,6 +2757,7 @@ std::vector<std::string> Print::get_full_filament_extruder_variants(const size_t
 {
     std::vector<std::string> filament_extruder_variants;
     auto filament_variants = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+    if (!m_ori_full_print_config.has("filament_extruder_variant")) return filament_extruder_variants;
 
     if (!m_ori_full_print_config.has("filament_self_index"))
         return filament_variants;
