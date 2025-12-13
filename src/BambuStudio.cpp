@@ -6535,9 +6535,11 @@ int CLI::run(int argc, char **argv)
                                         if (filament_type)
                                             temp_types[0]  = types[color_count % types.size()];
 
-                                        temp_config.option<ConfigOptionStrings>("filament_colour", true)->values = temp_colors;
-                                        temp_config.option<ConfigOptionStrings>("filament_type", true)->values = temp_types;
-                                        temp_config.option<ConfigOptionBools>("filament_is_support",true)->values = { 0 };
+                                        temp_config.set_key_value("filament_colour",new ConfigOptionStrings(temp_colors));
+                                        temp_config.set_key_value("filament_type", new ConfigOptionStrings(temp_types));
+                                        temp_config.set_key_value("filament_is_support", new ConfigOptionBools({false}));
+                                        temp_config.set_key_value("tray_name", new ConfigOptionStrings({"A1"}));
+
                                         extruder_filament_info[e_index].push_back(std::move(temp_config));
                                         color_count++;
                                     }
