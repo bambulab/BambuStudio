@@ -4470,7 +4470,13 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 
             config.apply(config_src);
             if (instantiation == "false" && "Template" != vendor_name) {
-                config_maps.emplace(preset_name, std::move(config));
+                if (preset_name.empty() || preset_name.find("gcode") != std::string::npos) {
+                    //pure included gcode file
+                    config_maps.emplace(subfile_iter.first, std::move(config_src));
+                    return reason;
+                }
+                else
+                    config_maps.emplace(preset_name, std::move(config));
                 if ((presets_collection->type() == Preset::TYPE_FILAMENT) && (!filament_id.empty()))
                     filament_id_maps.emplace(preset_name, filament_id);
                 return reason;
