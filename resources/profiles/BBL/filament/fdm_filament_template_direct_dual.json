@@ -15,6 +15,10 @@
         "nil",
         "nil"
     ],
+    "filament_enable_overhang_speed": [
+        "1",
+        "1"
+    ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow"
@@ -34,6 +38,30 @@
     "filament_long_retractions_when_cut": [
         "nil",
         "nil"
+    ],
+    "filament_overhang_1_4_speed": [
+        "0",
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30"
+    ],
+    "filament_overhang_4_4_speed": [
+        "10",
+        "10"
+    ],
+    "filament_overhang_totally_speed": [
+        "10",
+        "10"
+    ],
+    "filament_bridge_speed": [
+        "25",
+        "25"
     ],
     "filament_pre_cooling_temperature": [
         "0",
@@ -102,6 +130,10 @@
     "filament_z_hop_types": [
         "nil",
         "nil"
+    ],
+    "override_process_overhang_speed": [
+        "0",
+        "0"
     ],
     "long_retractions_when_ec": [
         "1",

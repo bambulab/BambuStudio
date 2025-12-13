@@ -231,6 +231,27 @@
     "filament_retract_length_nc": [
         "14"
     ],
+    "filament_enable_overhang_speed": [
+        "1"
+    ],
+    "filament_overhang_1_4_speed": [
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30"
+    ],
+    "filament_overhang_4_4_speed": [
+        "10"
+    ],
+    "filament_overhang_totally_speed": [
+        "10"
+    ],
+    "filament_bridge_speed": [
+        "25"
+    ],
     "filament_change_length": [
         "10"
     ],
@@ -287,6 +308,9 @@
     ],
     "overhang_fan_threshold": [
         "95%"
+    ],
+    "override_process_overhang_speed": [
+        "0"
     ],
     "reduce_fan_stop_start_freq": [
         "0"
