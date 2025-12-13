@@ -4976,7 +4976,7 @@ static std::map<int, std::string> filament_overhang_speed_key_map =
     {3, "filament_overhang_3_4_speed"},
     {4, "filament_overhang_4_4_speed"},
     {5, "filament_overhang_totally_speed"},
-    {6, "bridge_speed"}
+    {6, "filament_bridge_speed"}
 };
 
 bool GCode::is_enable_overhang_speed()
@@ -4990,7 +4990,7 @@ bool GCode::is_enable_overhang_speed()
     if(use_filament_overhang_speed)
         return m_config.filament_enable_overhang_speed.values[filament_idx];
     else
-        return m_config.enable_overhang_speed.get_at(cur_extruder_index());
+        return NOZZLE_CONFIG(enable_overhang_speed);
 }
 
 double GCode::get_path_speed(const ExtrusionPath &path)
@@ -5012,10 +5012,14 @@ double GCode::get_path_speed(const ExtrusionPath &path)
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
             speed            = new_speed == 0.0 ? speed : new_speed;
         }
-    } else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5)
-        speed = NOZZLE_CONFIG(overhang_totally_speed);
+    }
+    else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5) {
+        bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
+        speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_overhang_totally_speed) : NOZZLE_CONFIG(overhang_totally_speed);
+    }
     else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
-        speed = NOZZLE_CONFIG(bridge_speed);
+        bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
+        speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_bridge_speed) : NOZZLE_CONFIG(bridge_speed);
     }
     auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
 
@@ -6080,16 +6084,19 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 speed = new_speed == 0.0 ? speed : new_speed;
             }
         } else if (path.role() == erOverhangPerimeter && path.overhang_degree == 5) {
-            speed = NOZZLE_CONFIG(overhang_totally_speed);
+            bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
+            speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_overhang_totally_speed) : NOZZLE_CONFIG(overhang_totally_speed);
         } else if (path.role() == erOverhangPerimeter || path.role() == erBridgeInfill || path.role() == erSupportTransition) {
-            speed = NOZZLE_CONFIG(bridge_speed);
+            bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
+            speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_bridge_speed) : NOZZLE_CONFIG(bridge_speed);
         } else if (path.role() == erInternalInfill) {
             speed = NOZZLE_CONFIG(sparse_infill_speed);
         } else if (path.role() == erSolidInfill) {
             speed = NOZZLE_CONFIG(internal_solid_infill_speed);
         } else if (path.role() == erFloatingVerticalShell){
             if(use_seperate_speed){
-                speed = NOZZLE_CONFIG(bridge_speed);
+                bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
+                speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_bridge_speed) : NOZZLE_CONFIG(bridge_speed);
             }
             else{
                 speed = NOZZLE_CONFIG(vertical_shell_speed).get_abs_value(NOZZLE_CONFIG(internal_solid_infill_speed));

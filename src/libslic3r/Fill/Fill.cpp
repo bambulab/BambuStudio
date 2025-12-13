@@ -256,8 +256,16 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                         params.top_surface_speed = region_config.top_surface_speed.get_at(layer.get_config_idx_for_filament(params.extruder));
                     else if (params.extrusion_role == erSolidInfill)
                         params.solid_infill_speed = region_config.internal_solid_infill_speed.get_at(layer.get_config_idx_for_filament(params.extruder));
-					else if (params.extrusion_role == erFloatingVerticalShell)
-						params.solid_infill_speed = region_config.bridge_speed.get_at(layer.get_config_idx_for_filament(params.extruder));
+					else if (params.extrusion_role == erFloatingVerticalShell) {
+                        int  filament_id               = region_config.sparse_infill_filament - 1;
+                        bool use_filament_bridge_speed = layerm.layer()->object()->print()->config().filament_enable_overhang_speed.get_at(
+                            layer.get_config_idx_for_filament(filament_id));
+
+                        if (use_filament_bridge_speed)
+                            params.solid_infill_speed = layerm.layer()->object()->print()->config().filament_bridge_speed.get_at(layer.get_config_idx_for_filament(filament_id));
+                        else
+							params.solid_infill_speed = region_config.bridge_speed.get_at(layer.get_config_idx_for_filament(params.extruder));
+					}
                 }
 				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {

@@ -3692,6 +3692,7 @@ void TabFilament::add_filament_overrides_page()
     optgroup->append_single_option_line("filament_overhang_3_4_speed", "", extruder_idx);
     optgroup->append_single_option_line("filament_overhang_4_4_speed", "", extruder_idx);
     optgroup->append_single_option_line("filament_overhang_totally_speed", "", extruder_idx);
+    optgroup->append_single_option_line("filament_bridge_speed", "", extruder_idx);
 #else
     Line line = {L("Overhang speed"), L("This is the speed for various overhang degrees. Overhang degrees are expressed as a percentage of line width. 0 speed means no slowing "
                                         "down for the overhang degree range and wall speed is used")};
@@ -3775,6 +3776,7 @@ void TabFilament::update_filament_overrides_page()
 
     bool overhang_override = m_config->opt_bool_nullable("override_process_overhang_speed", extruder_idx);
     toggle_line("filament_enable_overhang_speed", overhang_override, extruder_idx + 256);
+    toggle_line("filament_bridge_speed", overhang_override, extruder_idx + 256);
     bool enable_overhang_speed = m_config->opt_bool_nullable("filament_enable_overhang_speed", extruder_idx);
 
     for(auto key : {

@@ -344,13 +344,20 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
         return max_volumetric_speed / mm3_per_mm;
     };
 
-    auto get_speed_from_role = [](ExtrusionRole role, const PrintRegionConfig &region_config, const PrintConfig &print_config, int extruder_id) -> double {
+    auto get_speed_from_role_with_filament = [](ExtrusionRole role, int filament_id, const PrintRegionConfig &region_config, const PrintConfig &print_config, int extruder_id) -> double {
         switch (role) {
         case erPerimeter: return region_config.inner_wall_speed.values[extruder_id];
         case erExternalPerimeter: return region_config.outer_wall_speed.values[extruder_id];
         case erOverhangPerimeter:
         case erBridgeInfill:
-        case erSupportTransition: return region_config.bridge_speed.values[extruder_id];
+        case erSupportTransition: {
+            bool use_filament_bridge_speed = print_config.filament_enable_overhang_speed.get_at(filament_id);
+
+            if (use_filament_bridge_speed)
+                return print_config.filament_bridge_speed.values[filament_id];
+            else
+                return region_config.bridge_speed.values[extruder_id];
+        }
         case erInternalInfill: return region_config.sparse_infill_speed.values[extruder_id];
         case erFloatingVerticalShell:
         case erSolidInfill: return region_config.internal_solid_infill_speed.values[extruder_id];
@@ -420,7 +427,6 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
                 for (auto &entities : entity_list) {
                     for (auto &entity : entities) {
                         auto   role              = entity->role();
-                        double speed_from_config = get_speed_from_role(role, region.config(), this->print()->config(), eidx);
                         int    filament          = 0;
                         if (is_perimeter(role))
                             filament = region.config().wall_filament - 1;
@@ -431,6 +437,7 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
                         else
                             continue;
 
+                        double speed_from_config = get_speed_from_role_with_filament(role, filament, region.config(), this->print()->config(), eidx);
                         process_entity(filament, eidx, entity, speed_from_config);
                     }
                 }
