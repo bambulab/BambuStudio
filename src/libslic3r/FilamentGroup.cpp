@@ -946,6 +946,7 @@ namespace Slic3r
     std::vector<int> FilamentGroup::calc_filament_group_for_match(int* cost)
     {
         using namespace FlushPredict;
+        constexpr int SupportPreferScore = 3;
 
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
         std::vector<FilamentGroupUtils::FilamentInfo> used_filament_list;
@@ -1006,19 +1007,17 @@ namespace Slic3r
             return unlink_limits;
             };
 
-        auto optimize_map_to_machine_filament = [&](const std::vector<int>& map_to_machine_filament, const std::vector<int>& l_nodes, const std::vector<int>& r_nodes, std::vector<int>& filament_map, bool consider_capacity) {
+        auto optimize_map_to_machine_filament = [&](const std::vector<int>& map_to_machine_filament, const std::vector<int>& l_nodes, const std::vector<int>& r_nodes, std::vector<int>& filament_map) {
             std::vector<int> ungrouped_filaments;
             std::vector<int> filaments_to_optimize;
 
             auto map_filament_to_machine_filament = [&](int filament_idx, int machine_filament_idx) {
                 auto& machine_filament = machine_filament_list[machine_filament_idx];
-                machine_filament_capacity[machine_filament_idx] = std::max(0, machine_filament_capacity[machine_filament_idx] - 1);  // decrease machine filament capacity
                 filament_map[used_filaments[filament_idx]] = machine_filament.extruder_id;  // set extruder id to filament map
                 extruder_filament_count[machine_filament.extruder_id] += 1; // increase filament count in extruder
                 };
             auto unmap_filament_to_machine_filament = [&](int filament_idx, int machine_filament_idx) {
                 auto& machine_filament = machine_filament_list[machine_filament_idx];
-                machine_filament_capacity[machine_filament_idx] += 1;  // increase machine filament capacity
                 extruder_filament_count[machine_filament.extruder_id] -= 1; // increase filament count in extruder
                 };
 
@@ -1038,25 +1037,63 @@ namespace Slic3r
             // try to optimize the result
             for (auto idx : filaments_to_optimize) {
                 int filament_idx = l_nodes[idx];
+                bool is_support_filament = used_filament_list[filament_idx].usage_type == FilamentUsageType::SupportOnly;
                 int old_machine_filament_idx = r_nodes[map_to_machine_filament[idx]];
                 auto& old_machine_filament = machine_filament_list[old_machine_filament_idx];
 
-                int curr_gap = std::abs(extruder_filament_count[0] - extruder_filament_count[1]);
                 unmap_filament_to_machine_filament(filament_idx, old_machine_filament_idx);
 
                 auto optional_filaments = machine_filament_set[old_machine_filament];
-                auto iter = optional_filaments.begin();
-                for (; iter != optional_filaments.end(); ++iter) {
-                    int new_extruder_id = machine_filament_list[*iter].extruder_id;
-                    int new_gap = std::abs(extruder_filament_count[new_extruder_id] + 1 - extruder_filament_count[1 - new_extruder_id]);
-                    if (new_gap < curr_gap && (!consider_capacity || machine_filament_capacity[*iter] > 0)) {
-                        map_filament_to_machine_filament(filament_idx, *iter);
-                        break;
+
+                // 第一阶段：找出所有满足容量约束的候选方案，并计算它们的偏好得分
+                std::vector<std::pair<int, int>> valid_candidates; // 存储可用的机器耗材idx与评分
+                for (auto machine_filament : optional_filaments) {
+                    int new_extruder_id = machine_filament_list[machine_filament].extruder_id;
+
+                    // 计算新分配的偏好得分
+                    int preference_score = 0;
+                    bool new_extruder_prefer_support = ctx.machine_info.prefer_non_model_filament[new_extruder_id];
+
+                    // 如果是支撑材料且分配给了偏好支撑的喷嘴，给予奖励
+                    if (is_support_filament && new_extruder_prefer_support) {
+                        preference_score += SupportPreferScore; // 给予奖励
+                    }
+
+                    valid_candidates.emplace_back(machine_filament, preference_score);
+                }
+                // 第二阶段：确定最佳偏好得分
+                int best_preference_score = 0;
+                for (const auto& candidate : valid_candidates) {
+                    if (candidate.second >= best_preference_score) {
+                        best_preference_score = candidate.second;
                     }
                 }
 
-                if (iter == optional_filaments.end())
+                // 第三阶段：在最佳偏好得分的候选方案中选择最均衡负载的方案
+                int best_candidate = -1;
+                int best_gap = std::numeric_limits<int>::max();
+                
+                for (const auto& candidate : valid_candidates) {
+                    // 只考虑具有最佳偏好得分的候选方案
+                    int machine_filament = candidate.first;
+                    int score = candidate.second;
+                    if (score == best_preference_score) {
+                        int new_extruder_id = machine_filament_list[machine_filament].extruder_id;
+                        int new_gap = std::abs(extruder_filament_count[new_extruder_id] + 1 - extruder_filament_count[1 - new_extruder_id]);
+
+                        // 在偏好得分相同的方案中寻找负载最均衡的选项
+                        if (new_gap < best_gap) {
+                            best_gap = new_gap;
+                            best_candidate = machine_filament;
+                        }
+                    }
+                }
+                // 应用最佳选择
+                if (best_candidate != -1) {
+                    map_filament_to_machine_filament(filament_idx, best_candidate);
+                } else {
                     map_filament_to_machine_filament(filament_idx, old_machine_filament_idx);
+                }
             }
             return ungrouped_filaments;
             };
@@ -1072,7 +1109,7 @@ namespace Slic3r
 
         {
             MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits_full);
-            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes,group,false);
+            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes,group);
             if (ungrouped_filaments.empty())
                 return group;
         }
@@ -1085,7 +1122,7 @@ namespace Slic3r
                 });
 
             MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, unlink_limits);
-            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group,false);
+            ungrouped_filaments = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group);
             if (ungrouped_filaments.empty())
                 return group;
         }
@@ -1094,7 +1131,7 @@ namespace Slic3r
         {
             l_nodes = ungrouped_filaments;
             MatchModeGroupSolver s(color_dist_matrix, l_nodes, r_nodes, machine_filament_capacity, {});
-            auto ret = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group,false);
+            auto ret = optimize_map_to_machine_filament(s.solve(), l_nodes, r_nodes, group);
             for (size_t idx = 0; idx < ret.size(); ++idx) {
                 if (ret[idx] == MaxFlowGraph::INVALID_ID)
                     assert(false);
