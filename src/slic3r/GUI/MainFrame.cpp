@@ -1715,6 +1715,9 @@ wxBoxSizer* MainFrame::create_side_tools()
         expand_program_holder->ShowExpandButton(expand_helio_id, false);
     }
 
+    expand_program_holder->SetExpandButtonRichTooltip(expand_helio_id, "monitor_speed", _L("Unlock faster, more reliable, warp-free prints with Helio Additive."));
+    expand_program_holder->SetExpandButtonRichTooltip(expand_program_id, "monitor_speed", _L("Unlock faster, more reliable, warp-free prints with Helio Additive."));
+
     /*slice*/
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
