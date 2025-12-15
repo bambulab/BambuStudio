@@ -9645,8 +9645,17 @@ msgstr "每月剩余配额： "
 msgid "Add-ons available: "
 msgstr "可用的配额："
 
-msgid "Optimise Outer Walls"
-msgstr "优化外墙"
+msgid "Print Priority"
+msgstr ""
+
+msgid "Preserve Surface Finish"
+msgstr ""
+
+msgid "Speed & Strength"
+msgstr ""
+
+msgid "Speed & Strength: Optimizes outer walls for improved performance.\n(Formerly 'Optimise Outer Walls: Yes')\n\nPreserve Surface Finish: Maintains outer wall quality and visual finish.\n(Formerly 'Optimise Outer Walls: No')"
+msgstr ""
 
 msgid "Helio default (recommended)"
 msgstr "Helio 默认设置（推荐）"
