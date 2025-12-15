@@ -129,6 +129,8 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StaticBox.hpp"
+#include "Widgets/ComboBox.hpp"
 #include "Widgets/StaticGroup.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 
@@ -4287,6 +4289,7 @@ public:
 
     BackgroundSlicingProcess    background_process;
     HelioBackgroundProcess      helio_background_process;
+    bool helio_using_reference_material { false }; // True when user selected a reference material for unsupported filament
     bool suppressed_backround_processing_update { false };
     // UIThreadWorker can be used as a replacement for BoostThreadWorker if
     // no additional worker threads are desired (useful for debugging or profiling)
@@ -10014,8 +10017,11 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
             } else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User rejected token-based match for %1%") % used_filament;
                 GUI::MessageDialog errordialog(nullptr, 
-                    wxString::Format(_L("Helio does not support materials %s.\n\nPlease rename your material profile to match an official material name."), used_filament), 
-                    "", wxICON_WARNING | wxOK);
+                    wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
+                    "", wxICON_WARNING | wxOK,
+                    wxString(), 
+                    _L("View supported materials"),
+                    [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
                 errordialog.ShowModal();
                 return -1;
             }
@@ -10037,38 +10043,377 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                     material_ids.push_back(mat.id);
                 }
                 
-                // Create warning message
-                wxString warning_message = _L("WARNING: Material Formulations Differ Greatly\n\n");
-                warning_message += _L("Material formulations differ greatly between manufacturers and variants. ");
-                warning_message += _L("There is no guarantee that using a different material will work correctly ");
-                warning_message += _L("and may result in print failures, poor quality, or other issues.\n\n");
-                warning_message += _L("If you proceed, it is STRONGLY RECOMMENDED to:\n");
-                warning_message += _L("• NOT use Helio's default settings\n");
-                warning_message += _L("• Use Slicer's default settings instead\n");
-                warning_message += _L("• Self-calibrate the maximum volumetric speed\n");
-                warning_message += _L("• Modify and test flow rate limits carefully\n\n");
-                warning_message += wxString::Format(_L("Your material: %s\n\n"), used_filament);
-                warning_message += _L("Please select a similar material from the list below, or cancel to rename your material profile:");
+                // Create custom dialog class
+                class MaterialSelectionDialog : public DPIDialog {
+                public:
+                    MaterialSelectionDialog(wxWindow* parent, const wxString& title, const wxArrayString& choices, 
+                                          const wxString& used_filament, ComboBox*& combo_out)
+                        : DPIDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+                        , m_combo_out(combo_out)
+                        , m_used_filament(used_filament)
+                    {
+                        // Use background color that adapts to dark mode
+                        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+                        wxWindow* mainframe = static_cast<wxWindow *>(wxGetApp().mainframe);
+                        
+                        wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+                        main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(450, mainframe), -1));
+                        
+                        // Check dark mode state early to set correct colors from the start
+                        bool is_dark_mode = wxGetApp().dark_mode();
+                        
+                        // Get text color that adapts to dark mode
+                        wxColour text_color = wxGetApp().get_label_clr_default();
+                        // Warning colors
+                        wxColour warning_color_light = wxColour("#FF6F00"); // Orange warning color
+                        wxColour warning_bg_light = wxColour(255, 245, 200); // Light yellow/orange
+                        wxColour warning_bg_dark = wxColour(70, 55, 35); // Dark orange/brown for dark mode
+                        
+                        // Warning header section with icon-like styling
+                        m_warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition, 
+                                                               wxSize(wxWindowBase::FromDIP(420, this), -1));
+                        StaticBox *warning_box = m_warning_box;
+                        // Set warning box background based on current mode
+                        wxColour warning_bg = is_dark_mode ? warning_bg_dark : warning_bg_light;
+                        warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+                        warning_box->SetBackgroundColour(warning_bg); // Also set wx background
+                        warning_box->SetBorderColor(StateColor(std::make_pair(warning_color_light, (int)StateColor::Normal)));
+                        warning_box->SetBorderWidth(2);
+                        warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+                        
+                        wxBoxSizer *warning_sizer = new wxBoxSizer(wxHORIZONTAL);
+                        warning_sizer->AddSpacer(wxWindowBase::FromDIP(16, this));
+                        
+                        wxBoxSizer *warning_content = new wxBoxSizer(wxVERTICAL);
+                        warning_content->AddSpacer(wxWindowBase::FromDIP(14, this));
+                        
+                        // Warning title - set color based on current mode
+                        m_warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Unsupported Material"));
+                        Label *warning_title = m_warning_title;
+                        // Use darker orange for light mode, lighter orange for dark mode
+                        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color_light) : wxColour(180, 90, 0);
+                        warning_title->SetForegroundColour(warning_title_color);
+                        warning_content->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        warning_content->AddSpacer(wxWindowBase::FromDIP(8, this));
+                        
+                        // Warning message - set text color based on current mode
+                        wxString warning_msg = wxString::Format(_L("You're using %s"), m_used_filament);
+                        warning_msg += _L(" which is not officially supported by Helio.");
+                        m_warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+                        Label *warning_text = m_warning_text;
+                        // Dark mode: use light text for contrast on dark background
+                        // Light mode: use dark text for contrast on light background
+                        wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+                        warning_text->SetForegroundColour(warning_text_color);
+                        warning_text->Wrap(wxWindowBase::FromDIP(380, this));
+                        warning_content->Add(warning_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        warning_content->AddSpacer(wxWindowBase::FromDIP(14, this));
+                        
+                        warning_sizer->Add(warning_content, 1, wxEXPAND);
+                        warning_sizer->AddSpacer(wxWindowBase::FromDIP(16, this));
+                        
+                        warning_box->SetSizer(warning_sizer);
+                        main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+                        
+                        // Main explanation section - more concise
+                        wxString main_explanation = _L("Helio uses material profiles to estimate flow limits and print behavior. ");
+                        main_explanation += _L("Because material formulations vary between brands, results may differ greatly.");
+                        
+                        Label *explanation_text = new Label(this, Label::Body_13, main_explanation, LB_AUTO_WRAP);
+                        explanation_text->SetForegroundColour(text_color);
+                        explanation_text->Wrap(wxWindowBase::FromDIP(420, this));
+                        main_sizer->Add(explanation_text, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                        
+                        // Additional explanation about reference material
+                        wxString reference_explanation = _L("You can proceed by selecting a supported reference material. ");
+                        reference_explanation += _L("This reference may not exactly match your filament, so results are an approximation.");
+                        
+                        Label *reference_explanation_text = new Label(this, Label::Body_13, reference_explanation, LB_AUTO_WRAP);
+                        reference_explanation_text->SetForegroundColour(text_color);
+                        reference_explanation_text->Wrap(wxWindowBase::FromDIP(420, this));
+                        main_sizer->Add(reference_explanation_text, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                        
+                        // Selection section with better spacing
+                        main_sizer->AddSpacer(wxWindowBase::FromDIP(5, this));
+                        Label *selection_label = new Label(this, Label::Head_14, _L("Reference material"));
+                        selection_label->SetForegroundColour(text_color);
+                        main_sizer->Add(selection_label, 0, wxLEFT | wxRIGHT | wxTOP, wxWindowBase::FromDIP(15, this));
+                        
+                        ComboBox *material_combo = new ComboBox(this, wxID_ANY, choices[0], 
+                                                               wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1), 
+                                                               0, NULL, wxCB_READONLY);
+                        for (const wxString &type_name : choices) { 
+                            material_combo->Append(type_name); 
+                        }
+                        material_combo->SetSelection(0);
+                        m_combo_out = material_combo;
+                        main_sizer->Add(material_combo, 0, wxLEFT | wxRIGHT | wxTOP, wxWindowBase::FromDIP(10, this));
+                        
+                        // Helper text with better styling
+                        wxString helper_text = _L("This only affects Helio's calculations — it does not change your filament.");
+                        Label *helper_label = new Label(this, Label::Body_12, helper_text, LB_AUTO_WRAP);
+                        helper_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
+                        helper_label->Wrap(wxWindowBase::FromDIP(420, this));
+                        main_sizer->Add(helper_label, 0, wxLEFT | wxRIGHT | wxTOP, wxWindowBase::FromDIP(8, this));
+                        main_sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+                        
+                        // Guidance callout box - use colors that are in the dark mode map
+                        StaticBox *guidance_box = new StaticBox(this, wxID_ANY, wxDefaultPosition, 
+                                                                wxSize(wxWindowBase::FromDIP(420, this), -1));
+                        // Use #F8F8F8 which maps to #36363C in dark mode
+                        guidance_box->SetBackgroundColor(StateColor(std::make_pair(wxColour("#F8F8F8"), (int)StateColor::Normal)));
+                        // Use #E8E8E8 which maps to #3E3E45 in dark mode
+                        guidance_box->SetBorderColor(StateColor(std::make_pair(wxColour("#E8E8E8"), (int)StateColor::Normal)));
+                        guidance_box->SetBorderWidth(1);
+                        guidance_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                        
+                        wxBoxSizer *guidance_sizer = new wxBoxSizer(wxVERTICAL);
+                        guidance_sizer->AddSpacer(wxWindowBase::FromDIP(16, this));
+                        
+                        // Use the same text color for guidance box labels
+                        wxColour guidance_text_color = text_color;
+                        
+                        Label *guidance_title = new Label(guidance_box, Label::Head_14, _L("📋 For best results:"));
+                        guidance_title->SetForegroundColour(guidance_text_color);
+                        guidance_sizer->Add(guidance_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        guidance_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        // Bullet point text (wrapping) with link on separate line
+                        Label *bullet_text = new Label(guidance_box, Label::Body_12, _L("• Calibrate the max volumetric flow for your material"), LB_AUTO_WRAP);
+                        bullet_text->SetForegroundColour(guidance_text_color);
+                        bullet_text->Wrap(wxWindowBase::FromDIP(380, this));
+                        guidance_sizer->Add(bullet_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        guidance_sizer->AddSpacer(wxWindowBase::FromDIP(4, this));
+                        
+                        // Link on its own line with indent
+                        wxBoxSizer *link_sizer = new wxBoxSizer(wxHORIZONTAL);
+                        Label *link_prefix = new Label(guidance_box, Label::Body_12, _L("  ("));
+                        link_prefix->SetForegroundColour(guidance_text_color);
+                        link_sizer->Add(link_prefix, 0, wxLEFT, wxWindowBase::FromDIP(16, this));
+                        
+                        wxString link_text = _L("example");
+                        m_link_label = new Label(guidance_box, Label::Body_12, link_text, LB_HYPERLINK);
+                        m_link_label->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent&) {
+                            wxLaunchDefaultBrowser("https://makerworld.com/en/models/85600-bambu-slicer-max-flow-test-tower#profileId-91493");
+                        });
+                        link_sizer->Add(m_link_label, 0, wxLEFT, 0);
+                        
+                        Label *link_suffix = new Label(guidance_box, Label::Body_12, _L(")"));
+                        link_suffix->SetForegroundColour(guidance_text_color);
+                        link_sizer->Add(link_suffix, 0, wxLEFT, 0);
+                        guidance_sizer->Add(link_sizer, 0, wxEXPAND);
+                        
+                        guidance_sizer->AddSpacer(wxWindowBase::FromDIP(16, this));
+                        
+                        guidance_box->SetSizer(guidance_sizer);
+                        main_sizer->Add(guidance_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+                        
+                        // Buttons
+                        wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                        
+                        StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), 
+                                               std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
+                                               std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+                        
+                        Button *cancel_button = new Button(this, _L("Cancel"));
+                        cancel_button->SetBackgroundColor(btn_bg_white);
+                        cancel_button->SetBorderColor(wxColour(38, 46, 48));
+                        cancel_button->SetFont(Label::Body_12);
+                        cancel_button->SetSize(wxSize(wxWindowBase::FromDIP(80, this), wxWindowBase::FromDIP(28, this)));
+                        cancel_button->SetMinSize(wxSize(wxWindowBase::FromDIP(80, this), wxWindowBase::FromDIP(28, this)));
+                        cancel_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                        cancel_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+                        button_sizer->Add(cancel_button, 0, wxRIGHT, wxWindowBase::FromDIP(10, this));
+                        
+                        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed), 
+                                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                               std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+                        
+                        Button *ok_button = new Button(this, _L("Proceed"));
+                        ok_button->SetBackgroundColor(btn_bg_green);
+                        ok_button->SetBorderColor(*wxWHITE);
+                        ok_button->SetTextColor(wxColour(0xFFFFFE));
+                        ok_button->SetFont(Label::Body_12);
+                        ok_button->SetSize(wxSize(wxWindowBase::FromDIP(80, this), wxWindowBase::FromDIP(28, this)));
+                        ok_button->SetMinSize(wxSize(wxWindowBase::FromDIP(80, this), wxWindowBase::FromDIP(28, this)));
+                        ok_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                        ok_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+                        button_sizer->Add(ok_button, 0);
+                        
+                        main_sizer->Add(button_sizer, 0, wxALIGN_RIGHT | wxALL, wxWindowBase::FromDIP(15, this));
+                        
+                        SetSizer(main_sizer);
+                        Layout();
+                        main_sizer->Fit(this);
+                        wxGetApp().UpdateDlgDarkUI(this);
+                        
+                        // Re-apply warning box colors after UpdateDlgDarkUI since it may have changed them
+                        // The warning box needs special handling because it has custom theme colors
+                        if (m_warning_box && m_warning_title && m_warning_text) {
+                            m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+                            m_warning_box->SetBackgroundColour(warning_bg);
+                            m_warning_title->SetForegroundColour(warning_title_color);
+                            m_warning_text->SetForegroundColour(warning_text_color);
+                            m_warning_box->Refresh();
+                            m_warning_box->Update();
+                        }
+                        
+                        // Update text color for other labels
+                        text_color = wxGetApp().get_label_clr_default();
+                        
+                        // Set text colors for all direct child labels (except warning box labels)
+                        auto children = GetChildren();
+                        for (auto child : children) {
+                            if (Label* label = dynamic_cast<Label*>(child)) {
+                                // Skip hyperlink labels - they have their own color
+                                if (!(label->GetWindowStyle() & LB_HYPERLINK)) {
+                                    label->SetForegroundColour(text_color);
+                                }
+                            }
+                            // Also check children of guidance_box and warning_box
+                            if (StaticBox* box = dynamic_cast<StaticBox*>(child)) {
+                                auto box_children = box->GetChildren();
+                                for (auto box_child : box_children) {
+                                    if (Label* label = dynamic_cast<Label*>(box_child)) {
+                                        // Skip warning box labels - they have custom colors
+                                        if (box == m_warning_box && (label == m_warning_title || label == m_warning_text)) {
+                                            continue;
+                                        }
+                                        if (!(label->GetWindowStyle() & LB_HYPERLINK)) {
+                                            label->SetForegroundColour(text_color);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Re-apply hyperlink styling after dark mode update to ensure green color is visible
+                        if (m_link_label) {
+                            m_link_label->SetWindowStyleFlag(m_link_label->GetWindowStyle() | LB_HYPERLINK);
+                            // Use StateColor to ensure proper dark mode color
+                            m_link_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#00AE42")));
+                            m_link_label->SetFont(Label::Body_12.Underlined());
+                            m_link_label->Refresh();
+                        }
+                        
+                        // Bind to theme change events to update colors when theme switches
+                        Bind(EVT_GLCANVAS_COLOR_MODE_CHANGED, [this](SimpleEvent&) { update_colors_for_theme(); });
+                        Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent&) { 
+                            update_colors_for_theme(); 
+                        });
+                    }
+                    
+                    void update_colors_for_theme() {
+                        // Update dark mode UI first
+                        wxGetApp().UpdateDlgDarkUI(this);
+                        
+                        // Get current text color that adapts to theme
+                        wxColour text_color = wxGetApp().get_label_clr_default();
+                        bool is_dark_mode = wxGetApp().dark_mode();
+                        wxColour warning_color_light = wxColour("#FF6F00"); // Orange warning color
+                        wxColour warning_bg_light = wxColour(255, 245, 200); // Light yellow/orange
+                        wxColour warning_bg_dark = wxColour(70, 55, 35); // Dark orange/brown for dark mode
+                        
+                        // Update warning box colors
+                        if (m_warning_box && m_warning_title && m_warning_text) {
+                            wxColour warning_bg = is_dark_mode ? warning_bg_dark : warning_bg_light;
+                            m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+                            m_warning_box->SetBackgroundColour(warning_bg); // Also set wx background
+                            
+                            if (is_dark_mode) {
+                                // Dark mode: use lighter orange for title for better visibility
+                                wxColour warning_title_dark = StateColor::darkModeColorFor(warning_color_light);
+                                m_warning_title->SetForegroundColour(warning_title_dark);
+                                
+                                // Use light text for dark mode
+                                m_warning_text->SetForegroundColour(wxColour(240, 240, 240));
+                            } else {
+                                // Light mode: use darker orange for title for better contrast
+                                m_warning_title->SetForegroundColour(wxColour(180, 90, 0));
+                                
+                                // Use dark text for light mode
+                                m_warning_text->SetForegroundColour(wxColour(60, 50, 40));
+                            }
+                            // Refresh to ensure colors are applied
+                            m_warning_box->Refresh();
+                            m_warning_box->Update();
+                            m_warning_title->Refresh();
+                            m_warning_text->Refresh();
+                        }
+                        
+                        // Update text colors for all labels
+                        auto children = GetChildren();
+                        for (auto child : children) {
+                            if (Label* label = dynamic_cast<Label*>(child)) {
+                                // Skip hyperlink labels - they have their own color
+                                if (!(label->GetWindowStyle() & LB_HYPERLINK)) {
+                                    label->SetForegroundColour(text_color);
+                                    label->Refresh();
+                                }
+                            }
+                            // Also check children of boxes
+                            if (StaticBox* box = dynamic_cast<StaticBox*>(child)) {
+                                auto box_children = box->GetChildren();
+                                for (auto box_child : box_children) {
+                                    if (Label* label = dynamic_cast<Label*>(box_child)) {
+                                        // Skip warning box labels - they have custom colors set above
+                                        if (box == m_warning_box && (label == m_warning_title || label == m_warning_text)) {
+                                            continue; // Skip - already set with proper contrast colors
+                                        }
+                                        if (!(label->GetWindowStyle() & LB_HYPERLINK)) {
+                                            label->SetForegroundColour(text_color);
+                                            label->Refresh();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Re-apply hyperlink styling
+                        if (m_link_label) {
+                            m_link_label->SetWindowStyleFlag(m_link_label->GetWindowStyle() | LB_HYPERLINK);
+                            m_link_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#00AE42")));
+                            m_link_label->SetFont(Label::Body_12.Underlined());
+                            m_link_label->Refresh();
+                        }
+                    }
+                    
+                    void on_dpi_changed(const wxRect &suggested_rect) override {}
+                    
+                private:
+                    ComboBox*& m_combo_out;
+                    wxString m_used_filament;
+                    Label* m_link_label = nullptr;
+                    Label* m_warning_title = nullptr;
+                    Label* m_warning_text = nullptr;
+                    StaticBox* m_warning_box = nullptr;
+                };
                 
-                // Show selection dialog
-                GUI::SingleChoiceDialog dialog(warning_message, 
-                                              _L("Select Similar Material for Helio"), 
+                ComboBox* material_combo = nullptr;
+                MaterialSelectionDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), 
+                                              _L("Choose a Reference Material"), 
                                               material_choices, 
-                                              0, 
-                                              nullptr);
-                int selection = dialog.GetSingleChoiceIndex();
+                                              wxString::FromUTF8(used_filament),
+                                              material_combo);
+                
+                int result = dialog.ShowModal();
+                int selection = (result == wxID_OK && material_combo) ? material_combo->GetSelection() : -1;
                 
                 if (selection >= 0 && selection < (int)material_ids.size()) {
                     material_id = material_ids[selection];
                     is_supported_by_helio = true;
+                    helio_using_reference_material = true; // User selected a reference material for unsupported filament
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("User selected similar material: %1% -> %2% (original: %3%)") 
                                                 % used_filament % similar_materials[selection].native_name % material_id;
                 } else {
                     // User cancelled
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User cancelled similar material selection for %1%") % used_filament;
                     GUI::MessageDialog errordialog(nullptr, 
-                        wxString::Format(_L("Helio does not support materials %s.\n\nPlease rename your material profile to match an official material name."), used_filament), 
-                        "", wxICON_WARNING | wxOK);
+                        wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
+                        "", wxICON_WARNING | wxOK,
+                        wxString(), 
+                        _L("View supported materials"),
+                        [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
                     errordialog.ShowModal();
                     return -1;
                 }
@@ -10082,6 +10427,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
         }
     } else {
         material_id = best_material_id;
+        helio_using_reference_material = false; // Material is directly supported
     }
 
     /*has warning*/
@@ -10194,6 +10540,10 @@ void Plater::priv::on_helio_process()
 
     if (update_helio_background_process(printer_id, material_id) > -1) {
         HelioInputDialog dlg;
+        // If user selected a reference material for unsupported filament, force "Slicer default" limits
+        if (helio_using_reference_material) {
+            dlg.set_force_slicer_default(true);
+        }
         while (dlg.ShowModal() == wxID_OK)
         {
             if (partplate_list.get_curr_plate()->empty()) return;
