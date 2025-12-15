@@ -5,6 +5,15 @@
     "from": "system",
     "setting_id": "GFSU03_02",
     "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
+    "eng_plate_temp": [
+        "35"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "35"
+    ],
     "filament_adaptive_volumetric_speed": [
         "0",
         "0",
@@ -14,15 +23,6 @@
         "10",
         "10",
         "10"
-    ],
-    "additional_cooling_fan_speed": [
-        "100"
-    ],
-    "eng_plate_temp": [
-        "35"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "35"
     ],
     "filament_deretraction_speed": [
         "25",
@@ -162,9 +162,6 @@
         "nil",
         "nil"
     ],
-    "impact_strength_z": [
-        "88.7"
-    ],
     "filament_wipe": [
         "nil",
         "nil",
@@ -182,8 +179,10 @@
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
-        "Spiral Lift",
         "Spiral Lift"
+    ],
+    "impact_strength_z": [
+        "88.7"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -218,7 +217,7 @@
     ],
     "slow_down_min_speed": [
         "25"
-    ],    
+    ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",
         "0 0 0 0 0 0",
