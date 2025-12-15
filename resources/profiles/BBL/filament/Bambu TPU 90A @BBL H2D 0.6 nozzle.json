@@ -53,8 +53,8 @@
         "0"
     ],
     "filament_flow_ratio": [
-        "1",
-        "1",
+        "1.05",
+        "1.05",
         "1"
     ],
     "filament_long_retractions_when_cut": [
@@ -178,7 +178,6 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "Spiral Lift",
         "Spiral Lift",
         "Spiral Lift"
     ],
