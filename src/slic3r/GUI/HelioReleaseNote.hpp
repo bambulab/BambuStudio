@@ -175,6 +175,8 @@ public:
 
     HelioQuery::SimulationInput get_simulation_input(bool& ok);
     HelioQuery::OptimizationInput get_optimization_input(bool& ok);
+    
+    // Force "Slicer default" limits mode (disables "Helio default" option)
     void set_force_slicer_default(bool force);
 
 private:
