@@ -107,6 +107,7 @@ public:
         // executing the gcode finish_layer_tcr.
         bool is_finish_first = false;
 
+        bool               is_contact = false;
         NozzleChangeResult nozzle_change_result;
 
 		// Sum the total length of the extrusion.
@@ -160,14 +161,12 @@ public:
                                    bool priming,
                                    size_t old_tool,
                                    bool is_finish,
-		                           bool is_tool_change,
-                                   float purge_volume) const;
+		                           bool is_tool_change, float purge_volume, bool is_contact) const;
 
     ToolChangeResult construct_block_tcr(WipeTowerWriter& writer,
                                    bool priming,
                                    size_t filament_id,
-                                   bool is_finish,
-                                   float purge_volume) const;
+                                   bool is_finish, float purge_volume) const;
 
 
 	// x			-- x coordinates of wipe tower in mm ( left bottom corner )
@@ -518,6 +517,9 @@ private:
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
     bool                       is_valid_last_layer(int tool) const;
     bool                       m_flat_ironing=false;
+    bool                       m_contact_ironing = false;
+    float                      m_contact_speed   = 20 * 60.f;
+
     std::vector<int>           m_physical_extruder_map;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
