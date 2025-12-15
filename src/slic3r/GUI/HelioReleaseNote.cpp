@@ -71,12 +71,8 @@ namespace Slic3r { namespace GUI {
      // We bind AFTER the checkbox is created so our handler runs after the internal one
      // The internal handler is bound in the CheckBox constructor, so it will run first
      m_agree_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
-         // Force refresh to ensure visual update (especially important on macOS)
          // The internal handler already called update(), but we need to ensure repaint
-         m_agree_checkbox->Refresh(false);
-         m_agree_checkbox->Update();
-         // Also refresh parent panel to ensure checkbox is visible
-         page_legal_panel->Refresh(false);
+         refresh_checkbox_visual();
          update_confirm_button_state();
          e.Skip(); // Ensure event propagates
      });
@@ -85,7 +81,9 @@ namespace Slic3r { namespace GUI {
      main_sizer->Add(page_pat_panel, 0, wxEXPAND, 0);
      main_sizer->Add(pat_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(30));
 
+    //
     // Page show/hide based on helio_enable state
+    //
     if (GUI::wxGetApp().app_config->get("helio_enable") == "true") {
         show_pat_page(); // This will set the title and hide the cancel button
         request_pat();
@@ -321,7 +319,10 @@ void HelioStatementDialog::create_legal_page()
         helio_tou_url = "https://www.helioadditive.com/en-us/policies/terms";
     }
     
-    // Build HTML content with embedded links - properly escape the text
+    // Build HTML content with embedded links
+    // Note: URLs are hardcoded and validated (not user input), so they are safe from XSS.
+    // Translated strings from _L() are trusted content (legal terms are carefully controlled).
+    // wxHtmlWindow provides basic HTML sanitization for rendered content.
     wxString terms_html = _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=\"") + 
         helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=\"") +
         helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=\"") +
@@ -359,12 +360,16 @@ void HelioStatementDialog::create_legal_page()
     terms_content_sizer->Add(terms_html_window, 1, wxEXPAND | wxALL, FromDIP(15));
     terms_content_panel->SetSizer(terms_content_sizer);
     
-    terms_section_sizer->Add(terms_header_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
+    // Create a dedicated header panel for the clickable area
+    wxPanel* terms_header_panel = new wxPanel(terms_section_panel);
+    terms_header_panel->SetBackgroundColour(wxColour(55, 55, 59));
+    terms_header_panel->SetSizer(terms_header_sizer);
+    // Make header clickable (only the header, not the entire section)
+    terms_header_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_terms_section(); });
+    
+    terms_section_sizer->Add(terms_header_panel, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
     terms_section_sizer->Add(terms_content_panel, 0, wxEXPAND, 0);
     terms_section_panel->SetSizer(terms_section_sizer);
-    
-    // Make header clickable
-    terms_section_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_terms_section(); });
     
     // Accordion Section 2: Special Note & Privacy Policy
     privacy_section_panel = new wxPanel(scroll_panel);
@@ -396,12 +401,16 @@ void HelioStatementDialog::create_legal_page()
     privacy_content_sizer->Add(privacy_text, 0, wxALL, FromDIP(15));
     privacy_content_panel->SetSizer(privacy_content_sizer);
     
-    privacy_section_sizer->Add(privacy_header_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
+    // Create a dedicated header panel for the clickable area
+    wxPanel* privacy_header_panel = new wxPanel(privacy_section_panel);
+    privacy_header_panel->SetBackgroundColour(wxColour(55, 55, 59));
+    privacy_header_panel->SetSizer(privacy_header_sizer);
+    // Make header clickable (only the header, not the entire section)
+    privacy_header_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_privacy_section(); });
+    
+    privacy_section_sizer->Add(privacy_header_panel, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
     privacy_section_sizer->Add(privacy_content_panel, 0, wxEXPAND, 0);
     privacy_section_panel->SetSizer(privacy_section_sizer);
-    
-    // Make header clickable
-    privacy_section_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_privacy_section(); });
     
     // Add sections to scroll panel
     scroll_sizer->Add(terms_section_panel, 0, wxEXPAND, 0);
@@ -425,11 +434,7 @@ void HelioStatementDialog::create_legal_page()
         // Toggle the checkbox value - SetValue() will call update() internally
         bool new_value = !m_agree_checkbox->GetValue();
         m_agree_checkbox->SetValue(new_value);
-        // Force refresh to ensure visual update (especially important on macOS)
-        m_agree_checkbox->Refresh(false);
-        m_agree_checkbox->Update();
-        // Also refresh parent to ensure the checkbox is repainted
-        page_legal_panel->Refresh(false);
+        refresh_checkbox_visual();
         update_confirm_button_state();
     });
     
@@ -552,11 +557,12 @@ void HelioStatementDialog::create_pat_page()
     });
     copy_pat_button->Hide(); // Hidden by default, will be shown when PAT is available
     
-    // Keep the old helio_pat_copy for backward compatibility (hidden)
+    // Legacy controls kept for backward compatibility with show_pat_option() method
+    // These are always hidden in the new design but still referenced in show_pat_option()
+    // TODO: Remove these once show_pat_option() is refactored to not reference them
     helio_pat_copy = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page_pat_panel, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
     helio_pat_copy->Hide();
     
-    // Keep these for backward compatibility but hide them
     helio_input_pat = new ::TextInput(page_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | wxTE_RIGHT);
     helio_input_pat->Hide();
     helio_pat_refresh = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
@@ -656,6 +662,19 @@ void HelioStatementDialog::toggle_privacy_section()
     page_legal_panel->Layout();
     Layout();
     Fit();
+}
+
+void HelioStatementDialog::refresh_checkbox_visual()
+{
+    // Force refresh to ensure visual update (especially important on macOS)
+    if (m_agree_checkbox) {
+        m_agree_checkbox->Refresh(false);
+        m_agree_checkbox->Update();
+        // Also refresh parent panel to ensure checkbox is visible
+        if (page_legal_panel) {
+            page_legal_panel->Refresh(false);
+        }
+    }
 }
 
 void HelioStatementDialog::update_confirm_button_state()

@@ -136,6 +136,7 @@ public:
         wxWindowID id = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
+    ~ExpandButton();
     
     void update_bitmap(std::string bmp);
     void msw_rescale();
@@ -175,6 +176,7 @@ public:
 
     void msw_rescale();
 private:
+    ExpandButton* FindExpandButton(wxWindowID id);
     void OnPaint(wxPaintEvent& event);
     void render(wxDC& dc);
     void doRender(wxDC& dc);

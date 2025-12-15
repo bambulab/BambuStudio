@@ -103,6 +103,7 @@ public:
     void toggle_terms_section();
     void toggle_privacy_section();
     void update_confirm_button_state();
+    void refresh_checkbox_visual();
 
     void OnLoaded(wxWebViewEvent& event);
     void OnTitleChanged(wxWebViewEvent& event);

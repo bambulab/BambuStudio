@@ -541,6 +541,7 @@ void RichTooltipPopup::ShowAtPosition(wxWindow* anchor)
 
 ExpandButton::ExpandButton(wxWindow* parent,  std::string bmp, wxWindowID id, const wxPoint& pos, const wxSize& size)
     : wxWindow(parent, id, pos, size)
+    , m_tooltip_popup(nullptr)
 {
     m_bmp_str = bmp;
     m_bmp = create_scaled_bitmap(m_bmp_str, this, 18);
@@ -561,6 +562,18 @@ ExpandButton::ExpandButton(wxWindow* parent,  std::string bmp, wxWindowID id, co
         event.SetInt(GetId());
         wxPostEvent(GetParent(), event);
     });
+}
+
+ExpandButton::~ExpandButton()
+{
+    // Clean up tooltip popup to prevent memory leak
+    if (m_tooltip_popup) {
+        if (m_tooltip_popup->IsShown()) {
+            m_tooltip_popup->Dismiss();
+        }
+        m_tooltip_popup->Destroy();
+        m_tooltip_popup = nullptr;
+    }
 }
 
 void ExpandButton::update_bitmap(std::string bmp)
@@ -585,16 +598,31 @@ void ExpandButton::ShowRichTooltip()
 {
     if (m_tooltip_text.IsEmpty()) return;
     
-    if (!m_tooltip_popup) {
-        m_tooltip_popup = new RichTooltipPopup(this, m_tooltip_icon, m_tooltip_text);
+    // Clean up any existing popup before creating a new one to prevent memory leaks
+    if (m_tooltip_popup) {
+        // Dismiss and destroy the existing popup
+        if (m_tooltip_popup->IsShown()) {
+            m_tooltip_popup->Dismiss();
+        }
+        m_tooltip_popup->Destroy();
+        m_tooltip_popup = nullptr;
     }
+    
+    // Create a new popup instance
+    m_tooltip_popup = new RichTooltipPopup(this, m_tooltip_icon, m_tooltip_text);
     m_tooltip_popup->ShowAtPosition(this);
 }
 
 void ExpandButton::HideRichTooltip()
 {
     if (m_tooltip_popup) {
-        m_tooltip_popup->Dismiss();
+        // Dismiss the popup if it's currently shown
+        if (m_tooltip_popup->IsShown()) {
+            m_tooltip_popup->Dismiss();
+        }
+        // Destroy the popup to prevent memory leak
+        m_tooltip_popup->Destroy();
+        m_tooltip_popup = nullptr;
     }
 }
 
@@ -745,7 +773,8 @@ void ExpandButtonHolder::EnableExpandButton(wxWindowID id, bool enb)
     }
 }
 
-void ExpandButtonHolder::SetExpandButtonTooltip(wxWindowID id, const wxString& tooltip)
+// Helper method to find an ExpandButton by ID
+ExpandButton* ExpandButtonHolder::FindExpandButton(wxWindowID id)
 {
     wxWindowList& children = this->GetChildren();
     for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
@@ -753,29 +782,26 @@ void ExpandButtonHolder::SetExpandButtonTooltip(wxWindowID id, const wxString& t
         wxWindow* child = *it;
         if (!child) continue;
         ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
-        if (expandBtn != nullptr)
-        {
-            if (expandBtn->GetId() == id) {
-                expandBtn->SetToolTip(tooltip);
-            }
+        if (expandBtn != nullptr && expandBtn->GetId() == id) {
+            return expandBtn;
         }
+    }
+    return nullptr;
+}
+
+void ExpandButtonHolder::SetExpandButtonTooltip(wxWindowID id, const wxString& tooltip)
+{
+    ExpandButton* expandBtn = FindExpandButton(id);
+    if (expandBtn != nullptr) {
+        expandBtn->SetToolTip(tooltip);
     }
 }
 
 void ExpandButtonHolder::SetExpandButtonRichTooltip(wxWindowID id, const wxString& iconName, const wxString& text)
 {
-    wxWindowList& children = this->GetChildren();
-    for (wxWindowList::iterator it = children.begin(); it != children.end(); ++it)
-    {
-        wxWindow* child = *it;
-        if (!child) continue;
-        ExpandButton* expandBtn = dynamic_cast<ExpandButton*>(child);
-        if (expandBtn != nullptr)
-        {
-            if (expandBtn->GetId() == id) {
-                expandBtn->SetRichTooltip(iconName, text);
-            }
-        }
+    ExpandButton* expandBtn = FindExpandButton(id);
+    if (expandBtn != nullptr) {
+        expandBtn->SetRichTooltip(iconName, text);
     }
 }
 
