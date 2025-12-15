@@ -34,7 +34,8 @@
         "Bambu Lab A1 0.4 nozzle template machine_start_gcode",
         "Bambu Lab A1 0.4 nozzle template machine_end_gcode",
         "Bambu Lab A1 0.4 nozzle template time_lapse_gcode",
-        "Bambu Lab A1 0.4 nozzle template change_filament_gcode"
+        "Bambu Lab A1 0.4 nozzle template change_filament_gcode",
+        "Bambu Lab A1 0.4 nozzle template layer_change_gcode"
     ],
     "machine_load_filament_time": "25",
     "machine_max_acceleration_extruding": [
