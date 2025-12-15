@@ -83,6 +83,7 @@ private:
     wxStaticBitmap* helio_pat_eview{ nullptr };
     wxStaticBitmap* helio_pat_dview{ nullptr };
     wxStaticBitmap* helio_pat_copy{ nullptr };
+    Button* copy_pat_button{ nullptr };
 
 public:
     HelioStatementDialog(wxWindow *parent = nullptr);
@@ -174,6 +175,7 @@ public:
 
     HelioQuery::SimulationInput get_simulation_input(bool& ok);
     HelioQuery::OptimizationInput get_optimization_input(bool& ok);
+    void set_force_slicer_default(bool force);
 
 private:
     wxBoxSizer* create_input_item(wxWindow* parent, std::string key, wxString name, wxString unit,

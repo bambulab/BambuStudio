@@ -4286,6 +4286,7 @@ public:
 
     BackgroundSlicingProcess    background_process;
     HelioBackgroundProcess      helio_background_process;
+    bool helio_using_reference_material { false }; // True when user selected a reference material for unsupported filament
     bool suppressed_backround_processing_update { false };
     // UIThreadWorker can be used as a replacement for BoostThreadWorker if
     // no additional worker threads are desired (useful for debugging or profiling)
@@ -9972,6 +9973,11 @@ void Plater::priv::on_helio_process()
                 NotificationManager::NotificationLevel::HintNotificationLevel,
                 into_u8(tutorial_msg)
             );
+        }
+        
+        // If user selected a reference material for unsupported filament, force "Slicer default" limits
+        if (helio_using_reference_material) {
+            dlg.set_force_slicer_default(true);
         }
         
         while (dlg.ShowModal() == wxID_OK)

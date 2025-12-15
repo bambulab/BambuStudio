@@ -1330,6 +1330,27 @@ void HelioInputDialog::show_advanced_mode()
     Fit();
 }
 
+void HelioInputDialog::set_force_slicer_default(bool force)
+{
+    if (force) {
+        only_advanced_settings = true;
+        use_advanced_settings = true;
+        if (m_combo_items.find("limits") != m_combo_items.end()) {
+            m_combo_items["limits"]->SetSelection(LIMITS_SLICER_DEFAULT);
+            m_combo_items["limits"]->Disable(); // Disable dropdown to prevent changing
+        }
+        if (panel_velocity_volumetric) {
+            panel_velocity_volumetric->Show();
+            if (panel_optimization) {
+                panel_optimization->Layout();
+                panel_optimization->Fit();
+            }
+        }
+        Layout();
+        Fit();
+    }
+}
+
 wxBoxSizer* HelioInputDialog::create_input_item(wxWindow* parent, std::string key, wxString name, wxString unit,
                                                 const std::vector<std::shared_ptr<TextInputValChecker>>& checkers)
 {
