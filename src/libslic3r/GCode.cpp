@@ -846,7 +846,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
                 config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
                 config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
-
                 auto flush_v_speed = m_print_config->filament_flush_volumetric_speed.values;
                 auto flush_temps = m_print_config->filament_flush_temp.values;
                 for (size_t idx = 0; idx < flush_v_speed.size(); ++idx) {
@@ -862,6 +861,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("flush_length", new ConfigOptionFloat(purge_length));
                 config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
                 config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
+
+                std::vector<double> filament_cooling_before_tower = m_print_config->filament_cooling_before_tower.values;
+                if (tcr.is_contact) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
+                config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
 
                 Vec2f stop_pos; // point for nozzle heating
                 {
@@ -6841,6 +6844,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("wipe_tower_center_pos_x", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("wipe_tower_center_pos_y", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("wipe_tower_center_pos_valid", new ConfigOptionBool(false));
+    dyn_config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(m_config.filament_cooling_before_tower.values));
 
     auto flush_v_speed = m_print->config().filament_flush_volumetric_speed.values;
     auto flush_temps =m_print->config().filament_flush_temp.values;
