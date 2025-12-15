@@ -648,6 +648,8 @@ static constexpr int LIMITS_HELIO_DEFAULT = 0;
 static constexpr int LIMITS_SLICER_DEFAULT = 1;
 // Width chosen to accommodate "Helio default (recommended)" text in dropdown
 static constexpr int LIMITS_DROPDOWN_WIDTH = 350;
+// Width chosen to accommodate "Preserve Surface Finish" text in dropdown
+static constexpr int PRINT_PRIORITY_DROPDOWN_WIDTH = 200;
 
  HelioInputDialog::HelioInputDialog(wxWindow *parent /*= nullptr*/)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
@@ -782,9 +784,18 @@ static constexpr int LIMITS_DROPDOWN_WIDTH = 350;
     }
 
     std::map<int, wxString> config_outerwall;
-    config_outerwall[0] = _L("No");
-    config_outerwall[1] = _L("Yes");
-    auto outerwall =  create_combo_item(panel_optimization, "optimiza_outerwall", _L("Optimise Outer Walls"), config_outerwall, 0);
+    config_outerwall[0] = _L("Preserve Surface Finish");
+    config_outerwall[1] = _L("Speed & Strength");
+    auto outerwall =  create_combo_item(panel_optimization, "optimiza_outerwall", _L("Print Priority"), config_outerwall, 1, PRINT_PRIORITY_DROPDOWN_WIDTH);
+    
+    // Add tooltip explaining the options and legacy mapping
+    if (m_combo_items.find("optimiza_outerwall") != m_combo_items.end()) {
+        m_combo_items["optimiza_outerwall"]->SetToolTip(
+            _L("Speed & Strength: Optimizes outer walls for improved performance.\n"
+               "(Formerly 'Optimise Outer Walls: Yes')\n\n"
+               "Preserve Surface Finish: Maintains outer wall quality and visual finish.\n"
+               "(Formerly 'Optimise Outer Walls: No')"));
+    }
 
     // layers to optimize - now top-level
     auto plater = Slic3r::GUI::wxGetApp().plater();
