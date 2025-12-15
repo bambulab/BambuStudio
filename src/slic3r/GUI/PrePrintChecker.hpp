@@ -97,7 +97,6 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusNozzleRackMaximumInstalled,
     PrintStatusNozzleDataInvalid,
     PrintStatusNozzleDiameterMismatch,
-    PrintStatusNozzleTypeMismatch,
     PrintStatusRefreshingMachineList,
     PrintStatusSending,
     PrintStatusLanModeNoSdcard,
@@ -139,6 +138,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusHasUnreliableNozzleWarning,
     PrintStatusRackNozzleNumUnmeetWarning,
     PrintStatusRackNozzleMappingWarning,
+    PrintStatusNozzleHRCMismatch,
     PrintStatusPrinterWarningEnd,
 
     // Warnings for filament
