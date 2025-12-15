@@ -97,12 +97,9 @@
         "0.7",
         "0.7"
     ],
-    "filament_printable": [
-        "3"
-    ],
     "filament_retraction_length": [
-        "1.5",
-        "1.5",
+        "0.6",
+        "0.6",
         "1.5"
     ],
     "filament_retraction_speed": [
@@ -165,9 +162,6 @@
         "nil",
         "nil"
     ],
-    "impact_strength_z": [
-        "88.7"
-    ],
     "filament_wipe": [
         "nil",
         "nil",
@@ -187,6 +181,9 @@
         "Spiral Lift",
         "Spiral Lift",
         "Spiral Lift"
+    ],
+    "impact_strength_z": [
+        "88.7"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
