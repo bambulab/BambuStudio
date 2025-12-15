@@ -1409,6 +1409,21 @@ void HelioInputDialog::on_confirm(wxMouseEvent& e)
     }
 }
 
+void HelioInputDialog::set_force_slicer_default(bool force)
+{
+    if (force && m_combo_items.count("limits") && panel_velocity_volumetric && panel_optimization) {
+        only_advanced_settings = true;
+        use_advanced_settings = true;
+        m_combo_items["limits"]->SetSelection(LIMITS_SLICER_DEFAULT);
+        m_combo_items["limits"]->Disable(); // Disable dropdown to prevent changing
+        panel_velocity_volumetric->Show();
+        panel_optimization->Layout();
+        panel_optimization->Fit();
+        Layout();
+        Fit();
+    }
+}
+
 void HelioInputDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 }
