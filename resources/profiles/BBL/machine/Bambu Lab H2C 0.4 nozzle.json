@@ -51,7 +51,8 @@
         "Bambu Lab H2C 0.4 nozzle template machine_end_gcode",
         "Bambu Lab H2C 0.4 nozzle template time_lapse_gcode",
         "Bambu Lab H2C 0.4 nozzle template wrapping_detection_gcode",
-        "Bambu Lab H2C 0.4 nozzle template change_filament_gcode"
+        "Bambu Lab H2C 0.4 nozzle template change_filament_gcode",
+        "Bambu Lab H2C 0.4 nozzle template layer_change_gcode"
     ],
     "long_retractions_when_cut": [
         "1",

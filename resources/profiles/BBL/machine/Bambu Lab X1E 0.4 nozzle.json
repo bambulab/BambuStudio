@@ -41,7 +41,8 @@
         "Bambu Lab X1E 0.4 nozzle template machine_start_gcode",
         "Bambu Lab X1E 0.4 nozzle template machine_end_gcode",
         "Bambu Lab X1E 0.4 nozzle template time_lapse_gcode",
-        "Bambu Lab X1E 0.4 nozzle template change_filament_gcode"
+        "Bambu Lab X1E 0.4 nozzle template change_filament_gcode",
+        "Bambu Lab X1E 0.4 nozzle template layer_change_gcode"
     ],
     "long_retractions_when_cut": [
         "0",
