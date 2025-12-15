@@ -511,6 +511,8 @@ RichTooltipPopup::RichTooltipPopup(wxWindow* parent, const wxString& iconName, c
     size.SetHeight(size.GetHeight() + FromDIP(16));
     SetSize(size);
     SetMinSize(size);
+    
+    Bind(wxEVT_PAINT, &RichTooltipPopup::OnPaint, this);
 }
 
 void RichTooltipPopup::OnPaint(wxPaintEvent& event)
