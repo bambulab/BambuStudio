@@ -31,7 +31,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusNozzleRackMaximumInstalled: return "PrintStatusNozzleRackMaximumInstalled";
     case PrintStatusNozzleDataInvalid: return "PrintStatusNozzleDataInvalid";
     case PrintStatusNozzleDiameterMismatch: return "PrintStatusNozzleDiameterMismatch";
-    case PrintStatusNozzleTypeMismatch: return "PrintStatusNozzleTypeMismatch";
+    case PrintStatusNozzleHRCMismatch: return "PrintStatusNozzleTypeMismatch";
     case PrintStatusRefreshingMachineList: return "PrintStatusRefreshingMachineList";
     case PrintStatusSending: return "PrintStatusSending";
     case PrintStatusLanModeNoSdcard: return "PrintStatusLanModeNoSdcard";

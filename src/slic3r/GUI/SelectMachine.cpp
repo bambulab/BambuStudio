@@ -1595,7 +1595,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusNozzleDiameterMismatch) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
-    } else if (status == PrintStatusNozzleTypeMismatch) {
+    } else if (status == PrintStatusNozzleHRCMismatch) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     } else if (status == PrintStatusColorQuantityExceed) {
@@ -5164,17 +5164,15 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 std::vector<wxString> error_msg;
                 int nozzle_pos_id = nozzle->GetNozzlePosId();
                 const std::string& nozzle_str = (nozzle_pos_id == 0) ? "R" : "R" + std::to_string(nozzle_pos_id - 0x10 + 1);
-                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."),
                                        check_info.fila_name, nozzle_str, format_steel_name(nozzle->GetNozzleType())));
-                show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
-                return false;
+                show_status(PrintDialogStatus::PrintStatusNozzleHRCMismatch, error_msg);
             } else {
                 std::vector<wxString> error_msg;
-                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."),
+                error_msg.emplace_back(wxString::Format(_L("The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."),
                                        check_info.fila_name, _get_nozzle_name(obj_->GetExtderSystem()->GetTotalExtderCount(),
                                        nozzle->GetNozzleId()), format_steel_name(nozzle->GetNozzleType())));
-                show_status(PrintDialogStatus::PrintStatusNozzleTypeMismatch, error_msg);
-                return false;
+                show_status(PrintDialogStatus::PrintStatusNozzleHRCMismatch, error_msg);
             }
         }
     }
