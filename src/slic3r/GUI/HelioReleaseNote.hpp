@@ -38,6 +38,7 @@
 #include "Widgets/ScrolledWindow.hpp"
 #include <wx/hashmap.h>
 #include <wx/webview.h>
+#include <wx/html/htmlwin.h>
 
 
 namespace Slic3r { namespace GUI {
@@ -59,15 +60,22 @@ private:
     Button *m_button_confirm{nullptr};
     Button *m_button_cancel{nullptr};
 
-    int current_page{ 0 };
+    int current_page{ 0 }; // 0 = legal terms page, 1 = PAT page
     std::shared_ptr<int> shared_ptr{nullptr};
 
-    wxPanel* page1_panel{ nullptr };
-    wxPanel* page2_panel{ nullptr };
-    wxPanel* page3_panel{ nullptr };
+    wxPanel* page_legal_panel{ nullptr };
+    wxPanel* page_pat_panel{ nullptr };
 
-    bool page1_agree{ false };
-    bool page2_agree{ false };
+    // Accordion sections
+    wxPanel* terms_section_panel{ nullptr };
+    wxPanel* terms_content_panel{ nullptr };
+    wxPanel* privacy_section_panel{ nullptr };
+    wxPanel* privacy_content_panel{ nullptr };
+    bool terms_expanded{ true };
+    bool privacy_expanded{ true };
+
+    // Checkbox for agreement
+    ::CheckBox* m_agree_checkbox{ nullptr };
 
     Label* pat_err_label{ nullptr };
     TextInput* helio_input_pat{ nullptr };
@@ -75,22 +83,27 @@ private:
     wxStaticBitmap* helio_pat_eview{ nullptr };
     wxStaticBitmap* helio_pat_dview{ nullptr };
     wxStaticBitmap* helio_pat_copy{ nullptr };
+    Button* copy_pat_button{ nullptr };
 
 public:
     HelioStatementDialog(wxWindow *parent = nullptr);
     ~HelioStatementDialog() {};
 
-    // void on_ok(wxMouseEvent &evt);
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void show_err_info(std::string type);
     void show_pat_option(std::string opt);
-    void show_agreement_page1();
-    void show_agreement_page2();
+    void show_legal_page();
     void show_pat_page();
     void request_pat();
     void on_confirm(wxMouseEvent& e);
     void report_consent_install();
     void open_url(std::string type);
+    void create_legal_page();
+    void create_pat_page();
+    void toggle_terms_section();
+    void toggle_privacy_section();
+    void update_confirm_button_state();
+    void refresh_checkbox_visual();
 
     void OnLoaded(wxWebViewEvent& event);
     void OnTitleChanged(wxWebViewEvent& event);

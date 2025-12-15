@@ -9618,6 +9618,18 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
 
+        // Show tutorial popup after successful slicing (if tutorial is active)
+        if (!has_error && !evt.cancelled() && evt.success() && is_finished) {
+            if (wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
+                wxString tutorial_msg = _L("Great! Now click the Helio button to start optimization.");
+                notification_manager->push_notification(
+                    NotificationType::CustomNotification,
+                    NotificationManager::NotificationLevel::HintNotificationLevel,
+                    into_u8(tutorial_msg)
+                );
+            }
+        }
+
         // BBS, Generate calibration thumbnail for current plate
         if (!has_error && preview) {
             // generate calibration data
@@ -10540,10 +10552,22 @@ void Plater::priv::on_helio_process()
 
     if (update_helio_background_process(printer_id, material_id) > -1) {
         HelioInputDialog dlg;
+        
+        // Show tutorial popup when HelioInputDialog is shown (if tutorial is active)
+        if (wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
+            wxString tutorial_msg = _L("Click the Optimize/Enhance button to start your first optimization.");
+            notification_manager->push_notification(
+                NotificationType::CustomNotification,
+                NotificationManager::NotificationLevel::HintNotificationLevel,
+                into_u8(tutorial_msg)
+            );
+        }
+        
         // If user selected a reference material for unsupported filament, force "Slicer default" limits
         if (helio_using_reference_material) {
             dlg.set_force_slicer_default(true);
         }
+        
         while (dlg.ShowModal() == wxID_OK)
         {
             if (partplate_list.get_curr_plate()->empty()) return;
