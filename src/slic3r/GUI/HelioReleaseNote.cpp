@@ -30,303 +30,71 @@
 
 namespace Slic3r { namespace GUI {
  HelioStatementDialog::HelioStatementDialog(wxWindow *parent /*= nullptr*/)
-    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Third-Party Extension"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Legal & Activation Terms"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
      shared_ptr = std::make_shared<int>(0);
 
      std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
      SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-     SetBackgroundColour(*wxWHITE);
+     SetBackgroundColour(wxColour(45, 45, 49)); // Dark background
 
      wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
-     wxPanel* line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-     line->SetBackgroundColour(wxColour(166, 169, 170));
+     // Create Legal Terms Page and PAT Page
+     create_legal_page();
+     create_pat_page();
 
-     wxBoxSizer* helio_top_hsizer = new wxBoxSizer(wxHORIZONTAL);
-     wxBoxSizer* helio_top_vsizer = new wxBoxSizer(wxVERTICAL);
-     wxBoxSizer* helio_top_content_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-     auto helio_top_background = new wxPanel(this);
-     helio_top_background->SetBackgroundColour(wxColour(16, 16, 16));
-     helio_top_background->SetMinSize(wxSize(-1, FromDIP(70)));
-     helio_top_background->SetMaxSize(wxSize(-1, FromDIP(70)));
-     auto helio_top_icon = new wxStaticBitmap(helio_top_background, wxID_ANY, create_scaled_bitmap("helio_icon", helio_top_background, 32), wxDefaultPosition, wxSize(FromDIP(32), FromDIP(32)), 0);
-     auto helio_top_label = new Label(helio_top_background, Label::Body_16 , L("HELIO ADDITIVE"));
-     wxFont bold_font = helio_top_label->GetFont();
-     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-     helio_top_label->SetFont(bold_font);
-     helio_top_label->SetForegroundColour(wxColour("#FEFEFF"));
-     //helio_top_hsizer->Add(0, 0, wxLEFT, FromDIP(40));
-     helio_top_content_sizer->Add(helio_top_icon, 0, wxLEFT|wxALIGN_CENTER, FromDIP(45));
-     helio_top_content_sizer->Add(helio_top_label, 0, wxLEFT|wxALIGN_CENTER,FromDIP(8));
-     helio_top_vsizer->Add(helio_top_content_sizer, 0, wxALIGN_CENTER, 0);
-     helio_top_hsizer->Add( helio_top_vsizer, 0, wxALIGN_CENTER, 0 );
-     helio_top_background->SetSizer(helio_top_hsizer);
-     helio_top_background->Layout();
-
-     //page 1
-     wxBoxSizer* page1_sizer = new wxBoxSizer(wxVERTICAL);
-     page1_panel = new wxPanel(this);
-     page1_panel->SetBackgroundColour(*wxWHITE);
-
-     wxWebView* m_vebview = WebView::CreateWebView(page1_panel, "");
-     m_vebview->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](const wxWebViewEvent& evt) {
-         open_url(evt.GetString().ToStdString());
-     });
-
-     std::string phurl1;
-     std::string phurl2;
-     if (GUI::wxGetApp().app_config->get("region") == "China") {
-         m_vebview->SetMinSize(wxSize(FromDIP(720), FromDIP(460)));
-         m_vebview->SetMaxSize(wxSize(FromDIP(720), FromDIP(460)));
-         phurl1 = "web/helio/helio_service_cn.html";
-         phurl2 = "web/helio/helio_service_snote_cn.html";
-     }
-     else {
-         m_vebview->SetMinSize(wxSize(FromDIP(720), FromDIP(650)));
-         m_vebview->SetMaxSize(wxSize(FromDIP(720), FromDIP(650)));
-         phurl1 = "web/helio/helio_service_en.html";
-         phurl2 = "web/helio/helio_service_snote_en.html";
-     }
-
-     phurl1 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0";
-     phurl2 += GUI::wxGetApp().dark_mode() ? "?darkmode=1" : "?darkmode=0";
-
-     auto _language = GUI::into_u8(GUI::wxGetApp().current_language_code());
-     fs::path ph(resources_dir());
-     ph /= phurl1;
-     if (!fs::exists(ph)) {
-         ph =  fs::path(resources_dir());
-         ph /= phurl1;
-     }
-     auto url = ph.string();
-     std::replace(url.begin(), url.end(), '\\', '/');
-     url = "file:///" + url;
-     m_vebview->LoadURL(from_u8(url));
-
-
-     page1_sizer->Add(m_vebview, 0, wxLEFT|wxRIGHT, FromDIP(33));
-     page1_panel->SetSizer(page1_sizer);
-     page1_panel->Layout();
-     page1_panel->Fit();
-
-     //page 2
-     wxBoxSizer* page2_sizer = new wxBoxSizer(wxVERTICAL);
-     page2_panel = new wxPanel(this);
-
-     wxWebView* m_vebview2 = WebView::CreateWebView(page2_panel, "");
-     m_vebview2->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](const wxWebViewEvent& evt) {
-         open_url(evt.GetString().ToStdString());
-     });
-     m_vebview2->SetMinSize(wxSize(FromDIP(720), FromDIP(200)));
-     m_vebview2->SetMaxSize(wxSize(FromDIP(720), FromDIP(200)));
-
-     fs::path ph2(resources_dir());
-     ph2 /= phurl2;
-     if (!fs::exists(ph2)) {
-         ph2 = fs::path(resources_dir());
-         ph2 /= phurl2;
-     }
-     auto url2 = ph2.string();
-     std::replace(url2.begin(), url2.end(), '\\', '/');
-     url2 = "file:///" + url2;
-     m_vebview2->LoadURL(from_u8(url2));
-
-     page2_sizer->Add(m_vebview2, 0, wxLEFT | wxRIGHT, FromDIP(33));
-     page2_panel->SetSizer(page2_sizer);
-     page2_panel->Layout();
-     page2_panel->Fit();
-
-     //page 3
-     wxBoxSizer* page3_sizer = new wxBoxSizer(wxVERTICAL);
-     wxBoxSizer* page3_content_sizer = new wxBoxSizer(wxVERTICAL);
-     page3_panel = new wxPanel(this);
-     auto page3_content_panel = new wxPanel(page3_panel);
-     page3_content_panel->SetBackgroundColour(*wxWHITE);
-     page3_content_panel->SetMinSize(wxSize(FromDIP(720), FromDIP(200)));
-     page3_content_panel->SetMaxSize(wxSize(FromDIP(720), FromDIP(200)));
-
-     auto enable_pat_title = new Label(page3_content_panel, Label::Head_14, _L("Helio Additive third - party software service feature has been successfully enabled!"));
-     bold_font = enable_pat_title->GetFont();
-     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-     enable_pat_title->SetFont(bold_font);
-
-     auto split_line = new wxPanel(page3_content_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-     split_line->SetMaxSize(wxSize(-1, FromDIP(1)));
-     split_line->SetBackgroundColour(wxColour(236, 236, 236));
-
-     wxBoxSizer* pat_token_sizer = new wxBoxSizer(wxHORIZONTAL);
-     auto helio_pat_title = new Label(page3_content_panel, Label::Body_15, L("Helio-PAT"));
-     helio_input_pat = new ::TextInput(page3_content_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | wxTE_RIGHT);
-     helio_input_pat->SetFont(Label::Body_15);
-     helio_input_pat->SetMinSize(wxSize(FromDIP(530), FromDIP(22)));
-     helio_input_pat->SetMaxSize(wxSize(FromDIP(530), FromDIP(22)));
-     helio_input_pat->Disable();
-     wxString pat = Slic3r::HelioQuery::get_helio_pat();
-     pat = wxString(pat.Length(), '*');
-     helio_input_pat->SetLabel(pat);
-     helio_pat_refresh = new wxStaticBitmap(page3_content_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page3_content_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-     helio_pat_refresh->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-     helio_pat_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-     helio_pat_refresh->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        request_pat();
-     });
-
-     helio_pat_eview = new wxStaticBitmap(page3_content_panel, wxID_ANY, create_scaled_bitmap("helio_eview", page3_content_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-     helio_pat_eview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-     helio_pat_eview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-     helio_pat_eview->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         wxString pat = helio_input_pat->GetLabel();
-         pat = wxString(pat.Length(), '*');
-         helio_input_pat->SetLabel(pat);
-         show_pat_option("dview");
-     });
-
-     helio_pat_dview = new wxStaticBitmap(page3_content_panel, wxID_ANY, create_scaled_bitmap("helio_dview", page3_content_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-     helio_pat_dview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-     helio_pat_dview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-     helio_pat_dview->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
-         show_pat_option("eview");
-     });
-
-     helio_pat_copy = new wxStaticBitmap(page3_content_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page3_content_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-     helio_pat_copy->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-     helio_pat_copy->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-
-
-     helio_pat_copy->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         bool copySuccess = false;
-         if (wxTheClipboard->Open()){
-             wxTheClipboard->Clear();
-             wxTextDataObject* dataObj = new wxTextDataObject(Slic3r::HelioQuery::get_helio_pat());
-             wxTheClipboard->SetData(dataObj);
-             wxTheClipboard->Close();
-         }
-         MessageDialog msg(this, _L("Copy successful!"), _L("Copy"), wxOK | wxYES_DEFAULT);
-         msg.ShowModal();
-     });
-
-     helio_pat_refresh->Hide();
-     helio_pat_eview->Hide();
-     helio_pat_dview->Hide();
-     helio_pat_copy->Hide();
-
-     pat_token_sizer->Add(helio_pat_title, 0, wxALIGN_CENTER, 0);
-     pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-     pat_token_sizer->Add(helio_input_pat, 0, wxALIGN_CENTER, 0);
-     pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-     pat_token_sizer->Add(helio_pat_eview, 0, wxALIGN_CENTER, 0);
-     pat_token_sizer->Add(helio_pat_dview, 0, wxALIGN_CENTER, 0);
-     pat_token_sizer->Add(helio_pat_refresh, 0, wxALIGN_CENTER, 0);
-     pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-     pat_token_sizer->Add(helio_pat_copy, 0, wxALIGN_CENTER, 0);
-
-     //pat failed
-     pat_err_label = new Label(page3_content_panel, Label::Body_14, wxEmptyString);
-     pat_err_label->SetMinSize(wxSize(FromDIP(720), -1));
-     pat_err_label->SetMaxSize(wxSize(FromDIP(720), -1));
-     pat_err_label->Wrap(FromDIP(720));
-     pat_err_label->SetForegroundColour(wxColour("#FC8800"));
-
-     wxBoxSizer* helio_links_sizer = new wxBoxSizer(wxHORIZONTAL);
-     LinkLabel* helio_home_link =  new LinkLabel(page3_content_panel, _L("Helio Additive"), "https://www.helioadditive.com/");
-     LinkLabel* helio_privacy_link = nullptr;
-     LinkLabel* helio_tou_link =  nullptr;
-
-     if (GUI::wxGetApp().app_config->get("region") == "China") {
-         helio_privacy_link = new LinkLabel(page3_content_panel, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/privacy");
-         helio_tou_link     = new LinkLabel(page3_content_panel, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/terms");
-     }
-     else {
-         helio_privacy_link = new LinkLabel(page3_content_panel, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/en-us/policies/privacy");
-         helio_tou_link     = new LinkLabel(page3_content_panel, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/en-us/policies/terms");
-     }
-
-     helio_home_link->SetFont(Label::Body_13);
-     helio_tou_link->SetFont(Label::Body_13);
-     helio_privacy_link->SetFont(Label::Body_13);
-     helio_home_link->SeLinkLabelFColour(wxColour(0, 119, 250));
-     helio_tou_link->SeLinkLabelFColour(wxColour(0, 119, 250));
-     helio_privacy_link->SeLinkLabelFColour(wxColour(0, 119, 250));
-
-     helio_links_sizer->Add(helio_home_link, 0, wxLEFT, 0);
-     helio_links_sizer->Add(helio_privacy_link, 0, wxLEFT, FromDIP(40));
-     helio_links_sizer->Add(helio_tou_link, 0, wxLEFT, FromDIP(40));
-
-
-     StateColor btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-
-     page3_content_sizer->Add(enable_pat_title, 0, wxTOP, FromDIP(2));
-     page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
-     page3_content_sizer->Add(split_line, 0, wxEXPAND, 0);
-     page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-     page3_content_sizer->Add(pat_token_sizer, 0, wxEXPAND, 0);
-     page3_content_sizer->Add(pat_err_label, 0, wxTOP, FromDIP(10));
-     page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(28));
-     page3_content_sizer->Add(helio_links_sizer, 0, wxEXPAND, 0);
-     page3_content_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
-     //page3_content_sizer->Add(m_button_uninstall, 0, wxLEFT, 0);
-
-
-     page3_content_panel->SetSizer(page3_content_sizer);
-     page3_content_panel->Layout();
-     page3_sizer->Add(page3_content_panel, 0, wxLEFT | wxRIGHT, FromDIP(33));
-     page3_panel->SetSizer(page3_sizer);
-     page3_panel->Layout();
-     page3_panel->Fit();
-
-     m_button_confirm = new Button(this, _L("Agree and proceed"));
-     m_button_confirm->SetBackgroundColor(btn_bg_green);
-     m_button_confirm->SetBorderColor(*wxWHITE);
-     m_button_confirm->SetTextColor(wxColour(255, 255, 254));
-     m_button_confirm->SetFont(Label::Body_12);
-     m_button_confirm->SetSize(wxSize(FromDIP(58), FromDIP(26)));
-     m_button_confirm->SetMinSize(wxSize(FromDIP(58), FromDIP(26)));
-     m_button_confirm->SetCornerRadius(FromDIP(12));
-     m_button_confirm->Bind(wxEVT_LEFT_DOWN, &HelioStatementDialog::on_confirm, this);
+     // Button colors for cancel button
+     StateColor btn_bg_green = StateColor(
+         std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+         std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
      m_button_cancel = new Button(this, _L("Got it"));
      m_button_cancel->SetBackgroundColor(btn_bg_green);
-     m_button_cancel->SetBorderColor(*wxWHITE);
+     m_button_cancel->SetBorderColor(wxColour(0, 174, 66));
      m_button_cancel->SetTextColor(wxColour(255, 255, 254));
-     m_button_cancel->SetFont(Label::Body_12);
-     m_button_cancel->SetSize(wxSize(FromDIP(58), FromDIP(26)));
-     m_button_cancel->SetMinSize(wxSize(FromDIP(58), FromDIP(26)));
-     m_button_cancel->SetCornerRadius(FromDIP(12));
+     m_button_cancel->SetFont(Label::Body_14);
+     m_button_cancel->SetSize(wxSize(FromDIP(100), FromDIP(36)));
+     m_button_cancel->SetMinSize(wxSize(FromDIP(100), FromDIP(36)));
+     m_button_cancel->SetCornerRadius(FromDIP(4));
      m_button_cancel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_NO); });
 
+     // Button sizer for PAT page (centered)
+     wxBoxSizer* pat_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+     pat_button_sizer->Add(0, 0, 1, wxEXPAND, 0);
+     pat_button_sizer->Add(m_button_cancel, 0, wxALIGN_CENTER, 0);
+     pat_button_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
-     wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
-     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
-     button_sizer->Add(m_button_confirm, 0, 0, 0);
-     button_sizer->Add(m_button_cancel, 0, wxLEFT, FromDIP(20));
-     button_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(50));
+     // Bind checkbox event (checkbox is created in create_legal_page)
+     // Note: The CheckBox class already has an internal handler that calls update()
+     // We bind AFTER the checkbox is created so our handler runs after the internal one
+     // The internal handler is bound in the CheckBox constructor, so it will run first
+     m_agree_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+         // Force refresh to ensure visual update (especially important on macOS)
+         // The internal handler already called update(), but we need to ensure repaint
+         m_agree_checkbox->Refresh(false);
+         m_agree_checkbox->Update();
+         // Also refresh parent panel to ensure checkbox is visible
+         page_legal_panel->Refresh(false);
+         update_confirm_button_state();
+         e.Skip(); // Ensure event propagates
+     });
 
-     main_sizer->Add(line, 0, wxEXPAND, 0);
-     main_sizer->Add(helio_top_background, 0, wxEXPAND, 0);
-     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
-     main_sizer->Add(page1_panel, 0, wxEXPAND, 0);
-     main_sizer->Add(page2_panel, 0, wxEXPAND, 0);
-     main_sizer->Add(page3_panel, 0, wxEXPAND, 0);
-     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
-     main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
-     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+     main_sizer->Add(page_legal_panel, 1, wxEXPAND, 0);
+     main_sizer->Add(page_pat_panel, 0, wxEXPAND, 0);
+     main_sizer->Add(pat_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(30));
 
-     //page show/hide
-
+     // Page show/hide based on helio_enable state
      if (GUI::wxGetApp().app_config->get("helio_enable") == "true") {
+         SetTitle(_L("Third-Party Extension"));
          show_pat_page();
          request_pat();
-         m_button_confirm->Hide();
-         //m_button_uninstall->Show();
+         m_button_cancel->Show();
      }
      else {
-         show_agreement_page1();
-         m_button_confirm->Show();
-         //m_button_uninstall->Hide();
+         show_legal_page();
+         m_button_cancel->Hide();
      }
 
 
@@ -335,7 +103,6 @@ namespace Slic3r { namespace GUI {
      Fit();
 
      CentreOnParent();
-     wxGetApp().UpdateDlgDarkUI(this);
  }
 
  void HelioStatementDialog::OnLoaded(wxWebViewEvent& event)
@@ -353,43 +120,30 @@ namespace Slic3r { namespace GUI {
  }
 
 void HelioStatementDialog::on_confirm(wxMouseEvent& e)
- {
-    if (current_page == 0) {
-        page1_agree = true;
-        show_agreement_page2();
-        m_button_confirm->Refresh();
-    }
-    else if (current_page == 1) {
-        page2_agree = true;
-        //m_button_uninstall->Show();
-        m_button_confirm->Hide();
+{
+    // User agreed to terms - enable Helio and show PAT page
+    wxGetApp().app_config->set_bool("helio_enable", true);
+    if (wxGetApp().getAgent()) {
+        json j;
+        j["operate"] = "switch";
+        j["content"] = "enable";
+        wxGetApp().getAgent()->track_event("helio_state", j.dump());
     }
 
-    if (page1_agree && page2_agree) {
-        wxGetApp().app_config->set_bool("helio_enable", true);
-        if (wxGetApp().getAgent()) {
-            json j;
-            j["operate"] = "switch";
-            j["content"] = "enable";
-            wxGetApp().getAgent()->track_event("helio_state", j.dump());
-        }
+    report_consent_install();
+    show_pat_page();
+    request_pat();
 
-        show_pat_page();
-        report_consent_install();
-        request_pat();
-
-        /*hide helio on main windows*/
-        if (wxGetApp().mainframe->expand_program_holder) {
-            wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, true);
-            wxGetApp().mainframe->Layout();
-        }
+    /*show helio on main windows*/
+    if (wxGetApp().mainframe->expand_program_holder) {
+        wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, true);
+        wxGetApp().mainframe->Layout();
     }
 
-    current_page++;
     Layout();
     Fit();
     CentreOnParent();
- }
+}
 
 void HelioStatementDialog::report_consent_install()
 {
@@ -501,25 +255,405 @@ void HelioStatementDialog::show_pat_option(std::string opt)
     Fit();
 }
 
-void HelioStatementDialog::show_agreement_page1()
+void HelioStatementDialog::create_legal_page()
 {
-    page1_panel->Show();
-    page2_panel->Hide();
-    page3_panel->Hide();
+    page_legal_panel = new wxPanel(this);
+    page_legal_panel->SetBackgroundColour(wxColour(45, 45, 49));
+    
+    wxBoxSizer* legal_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    // Title
+    wxBoxSizer* title_row = new wxBoxSizer(wxHORIZONTAL);
+    auto main_title = new Label(page_legal_panel, Label::Head_18, _L("Legal & Activation Terms"));
+    main_title->SetForegroundColour(wxColour("#FFFFFF"));
+    wxFont title_font = main_title->GetFont();
+    title_font.SetWeight(wxFONTWEIGHT_BOLD);
+    main_title->SetFont(title_font);
+    
+    title_row->Add(0, 0, 1, wxEXPAND, 0);
+    title_row->Add(main_title, 0, wxALIGN_CENTER, 0);
+    title_row->Add(0, 0, 1, wxEXPAND, 0);
+    
+    // Subtitle
+    auto subtitle = new Label(page_legal_panel, Label::Body_13, _L("You are activating Helio Additive's advanced simulation services."));
+    subtitle->SetForegroundColour(wxColour(180, 180, 180));
+    
+    // Scrollable content area
+    wxScrolledWindow* scroll_panel = new wxScrolledWindow(page_legal_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    scroll_panel->SetScrollRate(0, 10);
+    scroll_panel->SetBackgroundColour(wxColour(45, 45, 49));
+    wxBoxSizer* scroll_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    // Accordion Section 1: Software Service Terms & Conditions
+    terms_section_panel = new wxPanel(scroll_panel);
+    terms_section_panel->SetBackgroundColour(wxColour(55, 55, 59));
+    wxBoxSizer* terms_section_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    wxBoxSizer* terms_header_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto terms_title = new Label(terms_section_panel, Label::Body_14, _L("Software Service Terms & Conditions"));
+    terms_title->SetForegroundColour(wxColour("#FFFFFF"));
+    wxFont section_font = terms_title->GetFont();
+    section_font.SetWeight(wxFONTWEIGHT_BOLD);
+    terms_title->SetFont(section_font);
+    
+    auto terms_arrow = new Label(terms_section_panel, Label::Body_14, L("^"));
+    terms_arrow->SetForegroundColour(wxColour("#FFFFFF"));
+    
+    terms_header_sizer->Add(terms_title, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(15));
+    terms_header_sizer->Add(terms_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(15));
+    
+    // Terms content - use HTML for proper text flow with embedded links
+    terms_content_panel = new wxPanel(terms_section_panel);
+    terms_content_panel->SetBackgroundColour(wxColour(55, 55, 59));
+    wxBoxSizer* terms_content_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    // Get URLs based on region
+    std::string helio_home_url = "https://www.helioadditive.com/";
+    std::string helio_privacy_url;
+    std::string helio_tou_url;
+    
+    if (GUI::wxGetApp().app_config->get("region") == "China") {
+        helio_privacy_url = "https://www.helioadditive.com/zh-cn/policies/privacy";
+        helio_tou_url = "https://www.helioadditive.com/zh-cn/policies/terms";
+    } else {
+        helio_privacy_url = "https://www.helioadditive.com/en-us/policies/privacy";
+        helio_tou_url = "https://www.helioadditive.com/en-us/policies/terms";
+    }
+    
+    // Build HTML content with embedded links - properly escape the text
+    wxString terms_html = _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=\"") + 
+        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=\"") +
+        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=\"") +
+        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a> and refer to the <a href=\"") +
+        helio_privacy_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive Privacy Agreement</a> and <a href=\"") +
+        helio_tou_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive User Agreement</a> for detailed information.<br><br>") +
+        _L("Meanwhile, you understand that this product is provided to you \"as is\" based on <a href=\"") +
+        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>") +
+        _L("1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>") +
+        _L("2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;<br>") +
+        _L("3. Using this software and services for any improper or illegal activities.<br><br>") +
+        _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.");
+    
+    // Use wxHtmlWindow for proper text rendering with embedded links
+    wxHtmlWindow* terms_html_window = new wxHtmlWindow(terms_content_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO | wxHW_NO_SELECTION);
+    terms_html_window->SetBackgroundColour(wxColour(55, 55, 59));
+    terms_html_window->SetMinSize(wxSize(FromDIP(560), FromDIP(300)));
+    terms_html_window->SetMaxSize(wxSize(FromDIP(560), -1));
+    
+    // Set HTML page with proper styling
+    wxString html_content = wxString::Format(
+        "<html><body bgcolor=\"#37373B\" text=\"#C8C8C8\" style=\"font-family:system-ui,-apple-system,sans-serif; font-size:12px; line-height:1.5;\">%s</body></html>",
+        terms_html
+    );
+    terms_html_window->SetPage(html_content);
+    
+    // Handle link clicks
+    terms_html_window->Bind(wxEVT_HTML_LINK_CLICKED, [this](wxHtmlLinkEvent& event) {
+        wxString url = event.GetLinkInfo().GetHref();
+        if (url.StartsWith("http://") || url.StartsWith("https://")) {
+            wxLaunchDefaultBrowser(url);
+        }
+    });
+    
+    terms_content_sizer->Add(terms_html_window, 1, wxEXPAND | wxALL, FromDIP(15));
+    terms_content_panel->SetSizer(terms_content_sizer);
+    
+    terms_section_sizer->Add(terms_header_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
+    terms_section_sizer->Add(terms_content_panel, 0, wxEXPAND, 0);
+    terms_section_panel->SetSizer(terms_section_sizer);
+    
+    // Make header clickable
+    terms_section_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_terms_section(); });
+    
+    // Accordion Section 2: Special Note & Privacy Policy
+    privacy_section_panel = new wxPanel(scroll_panel);
+    privacy_section_panel->SetBackgroundColour(wxColour(55, 55, 59));
+    wxBoxSizer* privacy_section_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    wxBoxSizer* privacy_header_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto privacy_title = new Label(privacy_section_panel, Label::Body_14, _L("Special Note & Privacy Policy"));
+    privacy_title->SetForegroundColour(wxColour("#FFFFFF"));
+    privacy_title->SetFont(section_font);
+    
+    auto privacy_arrow = new Label(privacy_section_panel, Label::Body_14, L("^"));
+    privacy_arrow->SetForegroundColour(wxColour("#FFFFFF"));
+    
+    privacy_header_sizer->Add(privacy_title, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(15));
+    privacy_header_sizer->Add(privacy_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(15));
+    
+    // Privacy content - FULL original text
+    privacy_content_panel = new wxPanel(privacy_section_panel);
+    privacy_content_panel->SetBackgroundColour(wxColour(55, 55, 59));
+    wxBoxSizer* privacy_content_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    auto privacy_text = new Label(privacy_content_panel, Label::Body_12, 
+        _L("This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."));
+    privacy_text->SetForegroundColour(wxColour(200, 200, 200));
+    privacy_text->SetMinSize(wxSize(FromDIP(560), -1));
+    privacy_text->Wrap(FromDIP(560));
+    
+    privacy_content_sizer->Add(privacy_text, 0, wxALL, FromDIP(15));
+    privacy_content_panel->SetSizer(privacy_content_sizer);
+    
+    privacy_section_sizer->Add(privacy_header_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
+    privacy_section_sizer->Add(privacy_content_panel, 0, wxEXPAND, 0);
+    privacy_section_panel->SetSizer(privacy_section_sizer);
+    
+    // Make header clickable
+    privacy_section_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_privacy_section(); });
+    
+    // Add sections to scroll panel
+    scroll_sizer->Add(terms_section_panel, 0, wxEXPAND, 0);
+    scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    scroll_sizer->Add(privacy_section_panel, 0, wxEXPAND, 0);
+    scroll_panel->SetSizer(scroll_sizer);
+    
+    // Bottom row: Checkbox on left, button on right (same row)
+    wxBoxSizer* bottom_row_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_agree_checkbox = new ::CheckBox(page_legal_panel);
+    m_agree_checkbox->SetValue(false); // Initialize to unchecked state
+    m_agree_checkbox->Enable(true); // Ensure checkbox is enabled
+    // Ensure checkbox is properly shown and laid out
+    m_agree_checkbox->Show();
+    
+    auto checkbox_label = new Label(page_legal_panel, Label::Body_13, _L("I have read and agree to the terms\nand policies."));
+    checkbox_label->SetForegroundColour(wxColour("#FFFFFF"));
+    
+    // Make checkbox label clickable too
+    checkbox_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        // Toggle the checkbox value - SetValue() will call update() internally
+        bool new_value = !m_agree_checkbox->GetValue();
+        m_agree_checkbox->SetValue(new_value);
+        // Force refresh to ensure visual update (especially important on macOS)
+        m_agree_checkbox->Refresh(false);
+        m_agree_checkbox->Update();
+        // Also refresh parent to ensure the checkbox is repainted
+        page_legal_panel->Refresh(false);
+        update_confirm_button_state();
+    });
+    
+    // Confirm button (disabled until checkbox is checked)
+    StateColor btn_bg_green = StateColor(
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor btn_bg_disabled = StateColor(
+        std::pair<wxColour, int>(wxColour(100, 100, 100), StateColor::Disabled),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+
+    m_button_confirm = new Button(page_legal_panel, _L("Agree and Proceed"));
+    m_button_confirm->SetBackgroundColor(btn_bg_disabled);
+    m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
+    m_button_confirm->SetTextColor(wxColour(255, 255, 254));
+    m_button_confirm->SetFont(Label::Body_14);
+    m_button_confirm->SetSize(wxSize(FromDIP(160), FromDIP(36)));
+    m_button_confirm->SetMinSize(wxSize(FromDIP(160), FromDIP(36)));
+    m_button_confirm->SetCornerRadius(FromDIP(4));
+    m_button_confirm->Bind(wxEVT_LEFT_DOWN, &HelioStatementDialog::on_confirm, this);
+    m_button_confirm->Disable(); // Disabled until checkbox is checked
+    
+    bottom_row_sizer->Add(m_agree_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
+    bottom_row_sizer->Add(checkbox_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+    bottom_row_sizer->Add(0, 0, 1, wxEXPAND, 0);  // Spacer to push button right
+    bottom_row_sizer->Add(m_button_confirm, 0, wxALIGN_CENTER_VERTICAL, 0);
+    
+    // Layout
+    legal_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    legal_sizer->Add(title_row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    legal_sizer->Add(subtitle, 0, wxALIGN_CENTER | wxTOP, FromDIP(8));
+    legal_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    legal_sizer->Add(scroll_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    legal_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    legal_sizer->Add(bottom_row_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(30));
+    
+    page_legal_panel->SetSizer(legal_sizer);
+    page_legal_panel->SetMinSize(wxSize(FromDIP(680), FromDIP(600)));
+    page_legal_panel->Layout();
 }
 
-void HelioStatementDialog::show_agreement_page2()
+void HelioStatementDialog::create_pat_page()
 {
-    page1_panel->Hide();
-    page2_panel->Show();
-    page3_panel->Hide();
+    page_pat_panel = new wxPanel(this);
+    page_pat_panel->SetBackgroundColour(*wxWHITE);
+    
+    wxBoxSizer* pat_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    auto enable_pat_title = new Label(page_pat_panel, Label::Head_14, _L("Helio Additive third - party software service feature has been successfully enabled!"));
+    wxFont bold_font = enable_pat_title->GetFont();
+    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+    enable_pat_title->SetFont(bold_font);
+    
+    auto split_line = new wxPanel(page_pat_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
+    split_line->SetMaxSize(wxSize(-1, FromDIP(1)));
+    split_line->SetBackgroundColour(wxColour(236, 236, 236));
+    
+    wxBoxSizer* pat_token_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto helio_pat_title = new Label(page_pat_panel, Label::Body_15, L("Helio-PAT"));
+    helio_input_pat = new ::TextInput(page_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | wxTE_RIGHT);
+    helio_input_pat->SetFont(Label::Body_15);
+    helio_input_pat->SetMinSize(wxSize(FromDIP(400), FromDIP(22)));
+    helio_input_pat->SetMaxSize(wxSize(FromDIP(400), FromDIP(22)));
+    helio_input_pat->Disable();
+    wxString pat = Slic3r::HelioQuery::get_helio_pat();
+    pat = wxString(pat.Length(), '*');
+    helio_input_pat->SetLabel(pat);
+    
+    helio_pat_refresh = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_refresh->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_pat_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_pat_refresh->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { request_pat(); });
+    
+    helio_pat_eview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_eview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_eview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_pat_eview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_pat_eview->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        wxString pat = helio_input_pat->GetLabel();
+        pat = wxString(pat.Length(), '*');
+        helio_input_pat->SetLabel(pat);
+        show_pat_option("dview");
+    });
+    
+    helio_pat_dview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_dview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_dview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_pat_dview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_pat_dview->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
+        show_pat_option("eview");
+    });
+    
+    helio_pat_copy = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_copy->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_pat_copy->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_pat_copy->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        if (wxTheClipboard->Open()) {
+            wxTheClipboard->Clear();
+            wxTextDataObject* dataObj = new wxTextDataObject(Slic3r::HelioQuery::get_helio_pat());
+            wxTheClipboard->SetData(dataObj);
+            wxTheClipboard->Close();
+        }
+        MessageDialog msg(this, _L("Copy successful!"), _L("Copy"), wxOK | wxYES_DEFAULT);
+        msg.ShowModal();
+    });
+    
+    helio_pat_refresh->Hide();
+    helio_pat_eview->Hide();
+    helio_pat_dview->Hide();
+    helio_pat_copy->Hide();
+    
+    pat_token_sizer->Add(helio_pat_title, 0, wxALIGN_CENTER, 0);
+    pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
+    pat_token_sizer->Add(helio_input_pat, 0, wxALIGN_CENTER, 0);
+    pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
+    pat_token_sizer->Add(helio_pat_eview, 0, wxALIGN_CENTER, 0);
+    pat_token_sizer->Add(helio_pat_dview, 0, wxALIGN_CENTER, 0);
+    pat_token_sizer->Add(helio_pat_refresh, 0, wxALIGN_CENTER, 0);
+    pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
+    pat_token_sizer->Add(helio_pat_copy, 0, wxALIGN_CENTER, 0);
+    
+    pat_err_label = new Label(page_pat_panel, Label::Body_14, wxEmptyString);
+    pat_err_label->SetMinSize(wxSize(FromDIP(500), -1));
+    pat_err_label->SetMaxSize(wxSize(FromDIP(500), -1));
+    pat_err_label->Wrap(FromDIP(500));
+    pat_err_label->SetForegroundColour(wxColour("#FC8800"));
+    
+    wxBoxSizer* helio_links_sizer = new wxBoxSizer(wxHORIZONTAL);
+    LinkLabel* helio_home_link = new LinkLabel(page_pat_panel, _L("Helio Additive"), "https://www.helioadditive.com/");
+    LinkLabel* helio_privacy_link = nullptr;
+    LinkLabel* helio_tou_link = nullptr;
+    
+    if (GUI::wxGetApp().app_config->get("region") == "China") {
+        helio_privacy_link = new LinkLabel(page_pat_panel, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/privacy");
+        helio_tou_link = new LinkLabel(page_pat_panel, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/terms");
+    } else {
+        helio_privacy_link = new LinkLabel(page_pat_panel, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/en-us/policies/privacy");
+        helio_tou_link = new LinkLabel(page_pat_panel, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/en-us/policies/terms");
+    }
+    
+    helio_home_link->SetFont(Label::Body_13);
+    helio_tou_link->SetFont(Label::Body_13);
+    helio_privacy_link->SetFont(Label::Body_13);
+    helio_home_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+    helio_tou_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+    helio_privacy_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+    
+    helio_links_sizer->Add(helio_home_link, 0, wxLEFT, 0);
+    helio_links_sizer->Add(helio_privacy_link, 0, wxLEFT, FromDIP(40));
+    helio_links_sizer->Add(helio_tou_link, 0, wxLEFT, FromDIP(40));
+    
+    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    pat_sizer->Add(enable_pat_title, 0, wxLEFT, FromDIP(30));
+    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
+    pat_sizer->Add(split_line, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    pat_sizer->Add(pat_token_sizer, 0, wxLEFT, FromDIP(30));
+    pat_sizer->Add(pat_err_label, 0, wxLEFT | wxTOP, FromDIP(10));
+    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(28));
+    pat_sizer->Add(helio_links_sizer, 0, wxLEFT, FromDIP(30));
+    
+    page_pat_panel->SetSizer(pat_sizer);
+    page_pat_panel->SetMinSize(wxSize(FromDIP(550), FromDIP(200)));
+    page_pat_panel->Layout();
+}
+
+void HelioStatementDialog::toggle_terms_section()
+{
+    terms_expanded = !terms_expanded;
+    if (terms_expanded) {
+        terms_content_panel->Show();
+    } else {
+        terms_content_panel->Hide();
+    }
+    page_legal_panel->Layout();
+    Layout();
+    Fit();
+}
+
+void HelioStatementDialog::toggle_privacy_section()
+{
+    privacy_expanded = !privacy_expanded;
+    if (privacy_expanded) {
+        privacy_content_panel->Show();
+    } else {
+        privacy_content_panel->Hide();
+    }
+    page_legal_panel->Layout();
+    Layout();
+    Fit();
+}
+
+void HelioStatementDialog::update_confirm_button_state()
+{
+    if (m_agree_checkbox && m_agree_checkbox->GetValue()) {
+        m_button_confirm->Enable();
+    } else {
+        m_button_confirm->Disable();
+    }
+}
+
+void HelioStatementDialog::show_legal_page()
+{
+    current_page = 0;
+    SetBackgroundColour(wxColour(45, 45, 49));
+    SetTitle(_L("Legal & Activation Terms"));
+    page_legal_panel->Show();
+    page_pat_panel->Hide();
+    // m_button_confirm is now part of page_legal_panel, so it's shown/hidden with the panel
+    m_button_cancel->Hide();
+    Layout();
+    Fit();
 }
 
 void HelioStatementDialog::show_pat_page()
 {
-    page1_panel->Hide();
-    page2_panel->Hide();
-    page3_panel->Show();
+    current_page = 1;
+    SetBackgroundColour(*wxWHITE);
+    SetTitle(_L("Third-Party Extension"));
+    page_legal_panel->Hide();
+    page_pat_panel->Show();
+    // m_button_confirm is part of page_legal_panel, hidden with the panel
+    m_button_cancel->Show();
+    Layout();
+    Fit();
 }
 
 void HelioStatementDialog::request_pat()
