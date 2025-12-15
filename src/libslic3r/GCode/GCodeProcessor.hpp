@@ -384,6 +384,7 @@ namespace Slic3r {
             int end_filament = -1;
             unsigned int post_extrusion_start_id = -1;
             unsigned int post_extrusion_end_id = -1;
+            bool         ignore_cooling_before_tower = false;
 
             void initialize_step_1(int extruder_id_, int start_id_, int start_filament_) {
                 extruder_id = extruder_id_;
@@ -452,7 +453,8 @@ namespace Slic3r {
             MachineStartGCodeEnd,
             MachineEndGCodeStart,
             NozzleChangeStart,
-            NozzleChangeEnd
+            NozzleChangeEnd,
+            CP_TOOLCHANGE_WIPE
         };
 
         enum class CustomETags : unsigned char
@@ -852,7 +854,8 @@ namespace Slic3r {
                 unsigned int partial_free_upper_id;
                 int last_filament_id;
                 int next_filament_id;
-                int extruder_id;
+                int extruder_id; // 并不一定是真实的extruder_id，只是用来划分需要提前升降温的区块，可能是挤出机、热端
+                bool ignore_cooling_before_tower = false;
             };
 
             void process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines);
