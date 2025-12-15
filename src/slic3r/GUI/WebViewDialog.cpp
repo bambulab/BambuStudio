@@ -108,6 +108,49 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_info = new wxInfoBar(this);
     topsizer->Add(m_info, wxSizerFlags().Expand());
 
+    // Online container (toolbar + MakerWorld webview)
+    m_online_container       = new wxPanel(this);
+    m_online_container_sizer = new wxBoxSizer(wxVERTICAL);
+    m_online_container->SetSizer(m_online_container_sizer);
+    m_online_container->Hide();
+
+    m_online_toolbar_panel = new wxPanel(m_online_container);
+    m_online_toolbar_panel->SetBackgroundColour(*wxWHITE);
+    m_online_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_online_toolbar_panel->SetSizer(m_online_toolbar_sizer);
+
+    auto make_online_toolbar_button = [this](const std::string &icon, const wxString &tooltip) {
+        wxBitmap bitmap = create_scaled_bitmap(icon, this, m_online_toolbar_icon_px);
+        auto *btn       = new wxBitmapButton(m_online_toolbar_panel, wxID_ANY, bitmap, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        btn->SetToolTip(tooltip);
+        btn->SetBackgroundColour(m_online_toolbar_panel->GetBackgroundColour());
+        btn->SetBitmapDisabled(create_scaled_bitmap(icon, this, m_online_toolbar_icon_px, true));
+        btn->SetMinSize(wxSize(FromDIP(28), FromDIP(28)));
+        return btn;
+    };
+
+    wxBoxSizer *left_group  = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *right_group = new wxBoxSizer(wxHORIZONTAL);
+
+    m_online_back_btn    = make_online_toolbar_button("mall_control_back", _L("Back"));
+    m_online_refresh_btn = make_online_toolbar_button("mall_control_refresh", _L("Refresh"));
+    left_group->Add(m_online_back_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+    left_group->Add(m_online_refresh_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+
+    m_online_open_browser_btn = make_online_toolbar_button("open_in_browser", _L("Open in browser"));
+    right_group->Add(m_online_open_browser_btn, 0, wxALIGN_CENTER_VERTICAL);
+
+    m_online_toolbar_sizer->Add(left_group, 0, wxALIGN_CENTER_VERTICAL);
+    m_online_toolbar_sizer->AddStretchSpacer(1);
+    m_online_toolbar_sizer->Add(right_group, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT);
+
+    m_online_back_btn->Enable(false);
+    m_online_refresh_btn->Enable(false);
+    m_online_open_browser_btn->Enable(false);
+
+    m_online_toolbar_panel->Hide();
+    m_online_container_sizer->Add(m_online_toolbar_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
+
     //Create Webview Panel
     m_home_web = new wxBoxSizer(wxHORIZONTAL);
 
@@ -130,7 +173,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     }
 
     // Makerworld webview
-    m_browserMW = WebView::CreateWebView(this, "about:blank");
+    m_browserMW = WebView::CreateWebView(m_online_container, "about:blank");
     if (m_browserMW == nullptr) {
         wxLogError("Could not init  m_browserMW");
         return;
@@ -171,7 +214,8 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     // Position
     m_home_web->Add(m_browserLeft, 0, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browser, 1, wxEXPAND | wxALL, 0);
-    m_home_web->Add(m_browserMW, 1, wxEXPAND | wxALL, 0);
+    m_online_container_sizer->Add(m_browserMW, 1, wxEXPAND | wxALL, 0);
+    m_home_web->Add(m_online_container, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserPH, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserML, 1, wxEXPAND | wxALL, 0);
     m_home_web->Add(m_browserWiki, 1, wxEXPAND | wxALL, 0);
@@ -250,6 +294,9 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     Bind(wxEVT_TEXT_ENTER, &WebViewPanel::OnUrl, this, m_url->GetId());
 
 #endif //BBL_RELEASE_TO_PUBLIC
+    Bind(wxEVT_BUTTON, &WebViewPanel::OnOnlineBack, this, m_online_back_btn->GetId());
+    Bind(wxEVT_BUTTON, &WebViewPanel::OnOnlineReload, this, m_online_refresh_btn->GetId());
+    Bind(wxEVT_BUTTON, &WebViewPanel::OnOpenInBrowser, this, m_online_open_browser_btn->GetId());
 
     // Connect the menu events
     Bind(wxEVT_MENU, &WebViewPanel::OnViewSourceRequest, this, viewSource->GetId());
@@ -465,6 +512,36 @@ void WebViewPanel::OnReload(wxCommandEvent& WXUNUSED(evt))
 {
     m_browser->Reload();
     UpdateState();
+}
+
+void WebViewPanel::OnOnlineBack(wxCommandEvent& WXUNUSED(evt))
+{
+    if (!m_browserMW) return;
+
+    if (m_browserMW && m_browserMW->CanGoBack()) {
+        m_isPerformingBack = true;
+        m_browserMW->GoBack();
+    }
+    UpdateOnlineToolbarState();
+}
+
+void WebViewPanel::OnOnlineReload(wxCommandEvent& WXUNUSED(evt))
+{
+    if (m_browserMW)
+        m_browserMW->Reload();
+    UpdateOnlineToolbarState();
+}
+
+void WebViewPanel::OnOpenInBrowser(wxCommandEvent& WXUNUSED(evt))
+{
+    if (!m_browserMW) return;
+
+    wxString current_url = m_browserMW->GetCurrentURL();
+    if (current_url.empty() || current_url == "about:blank")
+        return;
+
+    wxLaunchDefaultBrowser(current_url);
+    UpdateOnlineToolbarState();
 }
 
 void WebViewPanel::OnCut(wxCommandEvent& WXUNUSED(evt))
@@ -1290,7 +1367,13 @@ void WebViewPanel::ShowUserPrintTask(bool bShow, bool bForce)
 
 void WebViewPanel::update_mode()
 {
-    GetSizer()->Show(size_t(0), wxGetApp().app_config->get("internal_developer_mode") == "true");
+    const bool dev_mode = wxGetApp().app_config->get("internal_developer_mode") == "true";
+
+    if (bSizer_toolbar && GetSizer()) {
+        if (wxSizerItem *item = GetSizer()->GetItem(bSizer_toolbar))
+            item->Show(dev_mode);
+    }
+
     GetSizer()->Layout();
 }
 
@@ -1316,6 +1399,14 @@ void WebViewPanel::OnNavigationRequest(wxWebViewEvent& evt)
     }
     else {
         wxString surl = url;
+        if(m_isPerformingBack) {
+            // When navigating backward in MakeWorld, prevent going back if the next page is about:black.
+            m_isPerformingBack = false;
+            if (url.IsEmpty() || url.StartsWith("about:blank")){
+                evt.Veto();
+                return;
+            }
+        }
         if (surl.find("?") != std::string::npos) {
             surl = surl.substr(0, surl.find("?")).Lower();
         }
@@ -1388,6 +1479,8 @@ void WebViewPanel::OnNavigationComplete(wxWebViewEvent& evt)
             SwitchLeftMenu("search");
         }
         m_online_last_url = TmpNowUrl;
+
+        UpdateOnlineToolbarState();
     }
 
     if (m_browser != nullptr && evt.GetId() == m_browser->GetId())
@@ -1825,6 +1918,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 {
     m_contentname = modelname;
 
+    bool show_online_toolbar = false;
     CheckMenuNewTag();
 
     wxString strlang = GetStudioLanguage();
@@ -1866,7 +1960,6 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         wxGetApp().app_config->save();
         wxGetApp().CallAfter([this] { ShowMenuNewTag("makerlab", "0"); });
 
-        return;
     } else if (modelname.compare("online") == 0) {
 
         if (!m_onlinefirst) {
@@ -1907,6 +2000,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         wxGetApp().app_config->save();
         wxGetApp().CallAfter([this] { ShowMenuNewTag("online", "0"); });
 
+        show_online_toolbar = true;
     } else if (modelname.compare("printhistory") == 0) {
 
         if (!m_printhistoryfirst)
@@ -1980,6 +2074,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         SetWebviewShow("wiki", false);
     }
 
+    SetOnlineToolbarVisible(show_online_toolbar);
     GetSizer()->Layout();
 }
 
@@ -2071,12 +2166,66 @@ void WebViewPanel::SetWebviewShow(wxString name, bool show)
     else if (name == "wiki")
         TmpWeb = m_browserWiki;
 
-    if (TmpWeb != nullptr)
-    {
+    if (name == "online" && m_online_container) {
+        if (show)
+            m_online_container->Show();
+        else
+            m_online_container->Hide();
+    }
+
+    if (TmpWeb != nullptr) {
         if (show)
             TmpWeb->Show();
         else
             TmpWeb->Hide();
+    }
+}
+
+void WebViewPanel::SetOnlineToolbarVisible(bool visible)
+{
+    if (!m_online_toolbar_panel) return;
+
+    m_online_toolbar_panel->Show(visible);
+
+    if (!visible) {
+        if (m_online_back_btn) m_online_back_btn->Enable(false);
+        if (m_online_refresh_btn) m_online_refresh_btn->Enable(false);
+        if (m_online_open_browser_btn) m_online_open_browser_btn->Enable(false);
+    } else {
+        UpdateOnlineToolbarState();
+    }
+
+    if (m_online_container)
+        m_online_container->Layout();
+}
+
+void WebViewPanel::UpdateOnlineToolbarState()
+{
+    if (!m_online_toolbar_panel) return;
+
+    const bool on_online_tab        = m_contentname == "online";
+    const bool has_online_webview   = m_browserMW != nullptr;
+    const bool can_show_open_button = on_online_tab && has_online_webview;
+
+
+    auto update_btn_state = [this](wxBitmapButton *btn, bool enable, const std::string &icon) {
+        if (!btn) return;
+        btn->Enable(enable);
+        const int px = m_online_toolbar_icon_px;
+        btn->SetBitmap(enable ? create_scaled_bitmap(icon, this, px)
+                              : create_scaled_bitmap(icon, this, px, false, "#c0babaff"));
+    };
+
+    update_btn_state(m_online_back_btn, on_online_tab && has_online_webview && m_browserMW->CanGoBack(), "mall_control_back");
+    if (m_online_refresh_btn)
+        m_online_refresh_btn->Enable(can_show_open_button);
+    if (m_online_open_browser_btn) {
+        bool has_url = false;
+        if (can_show_open_button) {
+            wxString url = m_browserMW->GetCurrentURL();
+            has_url      = !url.empty() && url != "about:blank";
+        }
+        m_online_open_browser_btn->Enable(has_url);
     }
 }
 
