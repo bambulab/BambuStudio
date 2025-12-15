@@ -1888,6 +1888,9 @@ void GLGizmoText::on_render()
     const auto& projection_matrix = camera.get_projection_matrix();
     const auto& view_matrix = camera.get_view_matrix();
     // First check that the mouse pointer is on an object.
+    if (selection.get_instance_idx() < 0 || selection.get_instance_idx() >= mo->instances.size()) {
+        return;
+    }
     const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
