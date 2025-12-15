@@ -85,17 +85,15 @@ namespace Slic3r { namespace GUI {
      main_sizer->Add(page_pat_panel, 0, wxEXPAND, 0);
      main_sizer->Add(pat_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(30));
 
-     // Page show/hide based on helio_enable state
-     if (GUI::wxGetApp().app_config->get("helio_enable") == "true") {
-         SetTitle(_L("Third-Party Extension"));
-         show_pat_page();
-         request_pat();
-         m_button_cancel->Show();
-     }
-     else {
-         show_legal_page();
-         m_button_cancel->Hide();
-     }
+    // Page show/hide based on helio_enable state
+    if (GUI::wxGetApp().app_config->get("helio_enable") == "true") {
+        show_pat_page(); // This will set the title and hide the cancel button
+        request_pat();
+    }
+    else {
+        show_legal_page();
+        m_button_cancel->Hide();
+    }
 
 
      SetSizer(main_sizer);
@@ -234,22 +232,25 @@ void HelioStatementDialog::show_err_info(std::string type)
 void HelioStatementDialog::show_pat_option(std::string opt)
 {
     if (opt == "refresh") {
-        helio_pat_refresh->Show();
+        helio_pat_refresh->Hide(); // Keep hidden in new design
         helio_pat_eview->Hide();
         helio_pat_dview->Hide();
         helio_pat_copy->Hide();
+        if (copy_pat_button) copy_pat_button->Hide();
     }
     else if (opt == "eview") {
         helio_pat_refresh->Hide();
-        helio_pat_eview->Show();
+        helio_pat_eview->Hide();
         helio_pat_dview->Hide();
-        helio_pat_copy->Show();
+        helio_pat_copy->Hide();
+        if (copy_pat_button) copy_pat_button->Show(); // Show copy button
     }
     else if (opt == "dview") {
         helio_pat_refresh->Hide();
         helio_pat_eview->Hide();
-        helio_pat_dview->Show();
-        helio_pat_copy->Show();
+        helio_pat_dview->Hide();
+        helio_pat_copy->Hide();
+        if (copy_pat_button) copy_pat_button->Show(); // Show copy button when PAT is available
     }
     Layout();
     Fit();
@@ -474,99 +475,116 @@ void HelioStatementDialog::create_legal_page()
 void HelioStatementDialog::create_pat_page()
 {
     page_pat_panel = new wxPanel(this);
-    page_pat_panel->SetBackgroundColour(*wxWHITE);
+    // Dark background like the success screen
+    page_pat_panel->SetBackgroundColour(wxColour(45, 45, 49));
     
     wxBoxSizer* pat_sizer = new wxBoxSizer(wxVERTICAL);
     
-    auto enable_pat_title = new Label(page_pat_panel, Label::Head_14, _L("Helio Additive third - party software service feature has been successfully enabled!"));
-    wxFont bold_font = enable_pat_title->GetFont();
-    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-    enable_pat_title->SetFont(bold_font);
+    // Success icon - using create_success or helio_feature_check
+    wxStaticBitmap* success_icon = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("create_success", page_pat_panel, 80), wxDefaultPosition, wxSize(FromDIP(80), FromDIP(80)), 0);
     
-    auto split_line = new wxPanel(page_pat_panel, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    split_line->SetMaxSize(wxSize(-1, FromDIP(1)));
-    split_line->SetBackgroundColour(wxColour(236, 236, 236));
+    // "Activation Successful!" heading
+    auto success_title = new Label(page_pat_panel, Label::Head_18, _L("Activation Successful!"));
+    success_title->SetForegroundColour(wxColour("#FFFFFF"));
+    wxFont title_font = success_title->GetFont();
+    title_font.SetWeight(wxFONTWEIGHT_BOLD);
+    success_title->SetFont(title_font);
     
-    wxBoxSizer* pat_token_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto helio_pat_title = new Label(page_pat_panel, Label::Body_15, L("Helio-PAT"));
-    helio_input_pat = new ::TextInput(page_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | wxTE_RIGHT);
-    helio_input_pat->SetFont(Label::Body_15);
-    helio_input_pat->SetMinSize(wxSize(FromDIP(400), FromDIP(22)));
-    helio_input_pat->SetMaxSize(wxSize(FromDIP(400), FromDIP(22)));
-    helio_input_pat->Disable();
-    wxString pat = Slic3r::HelioQuery::get_helio_pat();
-    pat = wxString(pat.Length(), '*');
-    helio_input_pat->SetLabel(pat);
+    // Description text
+    auto success_description = new Label(page_pat_panel, Label::Body_14, _L("Helio Additive is now active. You have unlocked free optimizations!"));
+    success_description->SetForegroundColour(wxColour("#FFFFFF"));
     
-    helio_pat_refresh = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-    helio_pat_refresh->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_pat_refresh->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    helio_pat_refresh->Bind(wxEVT_LEFT_DOWN, [this](auto& e) { request_pat(); });
+    // "Run Your First Optimization" button (white background, dark text)
+    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(250, 250, 250), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
     
-    helio_pat_eview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_eview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-    helio_pat_eview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_pat_eview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    helio_pat_eview->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        wxString pat = helio_input_pat->GetLabel();
-        pat = wxString(pat.Length(), '*');
-        helio_input_pat->SetLabel(pat);
-        show_pat_option("dview");
-    });
-    
-    helio_pat_dview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_dview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-    helio_pat_dview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_pat_dview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    helio_pat_dview->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        helio_input_pat->SetLabel(Slic3r::HelioQuery::get_helio_pat());
-        show_pat_option("eview");
-    });
-    
-    helio_pat_copy = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-    helio_pat_copy->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    helio_pat_copy->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    helio_pat_copy->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-        if (wxTheClipboard->Open()) {
-            wxTheClipboard->Clear();
-            wxTextDataObject* dataObj = new wxTextDataObject(Slic3r::HelioQuery::get_helio_pat());
-            wxTheClipboard->SetData(dataObj);
-            wxTheClipboard->Close();
+    Button* run_optimization_button = new Button(page_pat_panel, _L("Run Your First Optimization"));
+    run_optimization_button->SetBackgroundColor(btn_bg_white);
+    run_optimization_button->SetBorderColor(wxColour(200, 200, 200));
+    run_optimization_button->SetTextColor(wxColour(45, 45, 49));
+    run_optimization_button->SetFont(Label::Body_14);
+    run_optimization_button->SetSize(wxSize(FromDIP(220), FromDIP(36)));
+    run_optimization_button->SetMinSize(wxSize(FromDIP(220), FromDIP(36)));
+    run_optimization_button->SetCornerRadius(FromDIP(4));
+    run_optimization_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        // Set tutorial flag for first-time users
+        wxGetApp().app_config->set("helio_first_time_tutorial", "active");
+        wxGetApp().app_config->save();
+        
+        // Close this dialog
+        EndModal(wxID_OK);
+        
+        // Show first tutorial popup (don't open Helio dialog immediately - let user follow tutorial steps)
+        if (wxGetApp().plater() && wxGetApp().plater()->get_notification_manager()) {
+            wxString tutorial_msg = _L("Add an object to the build plate, select a material and printer that Helio supports, then slice.\n\nSupported printers: https://wiki.helioadditive.com/en/supportedprinters");
+            wxGetApp().plater()->get_notification_manager()->push_notification(
+                NotificationType::CustomNotification,
+                NotificationManager::NotificationLevel::HintNotificationLevel,
+                into_u8(tutorial_msg)
+            );
         }
-        MessageDialog msg(this, _L("Copy successful!"), _L("Copy"), wxOK | wxYES_DEFAULT);
-        msg.ShowModal();
     });
     
-    helio_pat_refresh->Hide();
-    helio_pat_eview->Hide();
-    helio_pat_dview->Hide();
+    // Copy PAT button - more visible with text and icon
+    StateColor btn_bg_copy(std::pair<wxColour, int>(wxColour(70, 70, 75), StateColor::Hovered),
+                           std::pair<wxColour, int>(wxColour(55, 55, 59), StateColor::Normal));
+    
+    copy_pat_button = new Button(page_pat_panel, _L("Copy PAT"));
+    copy_pat_button->SetBackgroundColor(btn_bg_copy);
+    copy_pat_button->SetBorderColor(wxColour(70, 70, 75));
+    copy_pat_button->SetTextColor(wxColour(255, 255, 255));
+    copy_pat_button->SetFont(Label::Body_13);
+    copy_pat_button->SetSize(wxSize(FromDIP(120), FromDIP(32)));
+    copy_pat_button->SetMinSize(wxSize(FromDIP(120), FromDIP(32)));
+    copy_pat_button->SetCornerRadius(FromDIP(4));
+    copy_pat_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        std::string pat = Slic3r::HelioQuery::get_helio_pat();
+        if (!pat.empty()) {
+            if (wxTheClipboard->Open()) {
+                wxTheClipboard->Clear();
+                wxTextDataObject* dataObj = new wxTextDataObject(pat);
+                wxTheClipboard->SetData(dataObj);
+                wxTheClipboard->Close();
+            }
+            MessageDialog msg(this, _L("Copy successful!"), _L("Copy"), wxOK | wxYES_DEFAULT);
+            msg.ShowModal();
+        }
+    });
+    copy_pat_button->Hide(); // Hidden by default, will be shown when PAT is available
+    
+    // Keep the old helio_pat_copy for backward compatibility (hidden)
+    helio_pat_copy = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page_pat_panel, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
     helio_pat_copy->Hide();
     
-    pat_token_sizer->Add(helio_pat_title, 0, wxALIGN_CENTER, 0);
-    pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-    pat_token_sizer->Add(helio_input_pat, 0, wxALIGN_CENTER, 0);
-    pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-    pat_token_sizer->Add(helio_pat_eview, 0, wxALIGN_CENTER, 0);
-    pat_token_sizer->Add(helio_pat_dview, 0, wxALIGN_CENTER, 0);
-    pat_token_sizer->Add(helio_pat_refresh, 0, wxALIGN_CENTER, 0);
-    pat_token_sizer->Add(0, 0, 0, wxLEFT, FromDIP(10));
-    pat_token_sizer->Add(helio_pat_copy, 0, wxALIGN_CENTER, 0);
+    // Keep these for backward compatibility but hide them
+    helio_input_pat = new ::TextInput(page_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | wxTE_RIGHT);
+    helio_input_pat->Hide();
+    helio_pat_refresh = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_refresh->Hide();
+    helio_pat_eview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_eview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_eview->Hide();
+    helio_pat_dview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_dview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_dview->Hide();
     
     pat_err_label = new Label(page_pat_panel, Label::Body_14, wxEmptyString);
     pat_err_label->SetMinSize(wxSize(FromDIP(500), -1));
     pat_err_label->SetMaxSize(wxSize(FromDIP(500), -1));
     pat_err_label->Wrap(FromDIP(500));
     pat_err_label->SetForegroundColour(wxColour("#FC8800"));
+    pat_err_label->Hide(); // Hide error label by default
     
+    // Links at the bottom
     wxBoxSizer* helio_links_sizer = new wxBoxSizer(wxHORIZONTAL);
     LinkLabel* helio_home_link = new LinkLabel(page_pat_panel, _L("Helio Additive"), "https://www.helioadditive.com/");
     LinkLabel* helio_privacy_link = nullptr;
     LinkLabel* helio_tou_link = nullptr;
     
     if (GUI::wxGetApp().app_config->get("region") == "China") {
-        helio_privacy_link = new LinkLabel(page_pat_panel, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/privacy");
-        helio_tou_link = new LinkLabel(page_pat_panel, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/zh-cn/policies/terms");
+        helio_privacy_link = new LinkLabel(page_pat_panel, _L("Privacy Policy"), "https://www.helioadditive.com/zh-cn/policies/privacy");
+        helio_tou_link = new LinkLabel(page_pat_panel, _L("Terms of Use"), "https://www.helioadditive.com/zh-cn/policies/terms");
     } else {
-        helio_privacy_link = new LinkLabel(page_pat_panel, _L("Privacy Policy of Helio Additive"), "https://www.helioadditive.com/en-us/policies/privacy");
-        helio_tou_link = new LinkLabel(page_pat_panel, _L("Terms of Use of Helio Additive"), "https://www.helioadditive.com/en-us/policies/terms");
+        helio_privacy_link = new LinkLabel(page_pat_panel, _L("Privacy Policy"), "https://www.helioadditive.com/en-us/policies/privacy");
+        helio_tou_link = new LinkLabel(page_pat_panel, _L("Terms of Use"), "https://www.helioadditive.com/en-us/policies/terms");
     }
     
     helio_home_link->SetFont(Label::Body_13);
@@ -580,18 +598,37 @@ void HelioStatementDialog::create_pat_page()
     helio_links_sizer->Add(helio_privacy_link, 0, wxLEFT, FromDIP(40));
     helio_links_sizer->Add(helio_tou_link, 0, wxLEFT, FromDIP(40));
     
-    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    pat_sizer->Add(enable_pat_title, 0, wxLEFT, FromDIP(30));
-    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
-    pat_sizer->Add(split_line, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
-    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    pat_sizer->Add(pat_token_sizer, 0, wxLEFT, FromDIP(30));
-    pat_sizer->Add(pat_err_label, 0, wxLEFT | wxTOP, FromDIP(10));
-    pat_sizer->Add(0, 0, 0, wxTOP, FromDIP(28));
-    pat_sizer->Add(helio_links_sizer, 0, wxLEFT, FromDIP(30));
+    // Layout: centered content
+    wxBoxSizer* center_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(60));
+    content_sizer->Add(success_icon, 0, wxALIGN_CENTER, 0);
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    content_sizer->Add(success_title, 0, wxALIGN_CENTER, 0);
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+    content_sizer->Add(success_description, 0, wxALIGN_CENTER, 0);
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(32));
+    
+    // Button row with copy PAT button
+    wxBoxSizer* button_row = new wxBoxSizer(wxHORIZONTAL);
+    button_row->Add(run_optimization_button, 0, wxALIGN_CENTER, 0);
+    button_row->Add(0, 0, 0, wxLEFT, FromDIP(12));
+    button_row->Add(copy_pat_button, 0, wxALIGN_CENTER_VERTICAL, 0);
+    
+    content_sizer->Add(button_row, 0, wxALIGN_CENTER, 0);
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
+    content_sizer->Add(helio_links_sizer, 0, wxALIGN_CENTER, 0);
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    
+    center_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    center_sizer->Add(content_sizer, 0, wxALIGN_CENTER, 0);
+    center_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    pat_sizer->Add(center_sizer, 1, wxEXPAND, 0);
     
     page_pat_panel->SetSizer(pat_sizer);
-    page_pat_panel->SetMinSize(wxSize(FromDIP(550), FromDIP(200)));
+    page_pat_panel->SetMinSize(wxSize(FromDIP(600), FromDIP(500)));
     page_pat_panel->Layout();
 }
 
@@ -646,12 +683,12 @@ void HelioStatementDialog::show_legal_page()
 void HelioStatementDialog::show_pat_page()
 {
     current_page = 1;
-    SetBackgroundColour(*wxWHITE);
-    SetTitle(_L("Third-Party Extension"));
+    SetBackgroundColour(wxColour(45, 45, 49)); // Dark background like success screen
+    SetTitle(_L("Activation Successful"));
     page_legal_panel->Hide();
     page_pat_panel->Show();
     // m_button_confirm is part of page_legal_panel, hidden with the panel
-    m_button_cancel->Show();
+    m_button_cancel->Hide(); // Hide "Got it" button as it's redundant
     Layout();
     Fit();
 }
@@ -678,6 +715,10 @@ void HelioStatementDialog::request_pat()
                     wxString wpat = wxString(pat.length(), '*');
                     helio_input_pat->SetLabel(wpat);
                     show_pat_option("dview");
+                    // Show copy button when PAT is successfully obtained
+                    if (copy_pat_button) {
+                        copy_pat_button->Show();
+                    }
 
                     /*request helio data*/
                     wxGetApp().request_helio_supported_data();
@@ -688,6 +729,10 @@ void HelioStatementDialog::request_pat()
     else {
         show_err_info("");
         show_pat_option("dview");
+        // Show copy button when PAT is available
+        if (copy_pat_button) {
+            copy_pat_button->Show();
+        }
     }
 }
 
@@ -1539,6 +1584,11 @@ void HelioInputDialog::on_confirm(wxMouseEvent& e)
 
     if (ok)
     {
+        // Mark tutorial as complete when user clicks optimize/enhance button
+        if (current_action == 1 && wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
+            wxGetApp().app_config->set("helio_first_time_tutorial", "completed");
+            wxGetApp().app_config->save();
+        }
         EndModal(wxID_OK);
     }
 }
