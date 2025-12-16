@@ -79,11 +79,10 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
             throw Slic3r::RuntimeError(error_msg);
         }
 
-        int filament_id_1 = filament_id + 1;
         std::string extruder_variant = print_config->option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
-        std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id_1].begin(), filament_variants[filament_id_1].end());
+        std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id].begin(), filament_variants[filament_id].end());
         if (filament_variants_set.count(extruder_variant) == 0){
-            std::string error_msg = _L("Grouping error: filament ") + std::to_string(filament_id_1) + _L(" can not be placed in the ") + extruder_variant + _L(" nozzle");
+            std::string error_msg = _L("Grouping error: filament ") + std::to_string(filament_id + 1) + _L(" can not be placed in the ") + extruder_variant + _L(" nozzle");
             throw Slic3r::RuntimeError(error_msg);
         }
 
@@ -1401,7 +1400,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
         std::unordered_map<int, std::vector<std::string>> filaments_variants;
         for (auto fil_id : used_filaments){
-            filaments_variants[fil_id + 1] = m_print->get_full_filament_extruder_variants(fil_id + 1);
+            m_print->get_full_filament_extruder_variants(fil_id, filaments_variants[fil_id]);
         }
 
         check_filament_printable_after_group(used_filaments, filament_maps, filaments_variants, print_config);
