@@ -154,8 +154,14 @@ ObjectList::ObjectList(wxWindow* parent) :
                  ) &&
             gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
             // selection will not be single_full_instance after shift_pressed,Caused exe crashed
+            wxDataViewItemArray sels;
+            GetSelections(sels);
             UnselectAll();
+            m_last_selected_item = event.GetItem();
             Select(m_last_selected_item);
+            if (sels.Count() >= 2) {
+                selection_changed();
+            }
             return;
         }
         if (wxGetKeyState(WXK_SHIFT)) {
