@@ -480,7 +480,7 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     }
     case DeviceErrorDialog::RETRY_FILAMENT_EXTRUDED: {
         m_obj->command_ams_control("resume");
-        return;// do not hide the dialogs
+        break;
     }
     case DeviceErrorDialog::CONTINUE: {
         m_obj->command_ams_control("resume");
