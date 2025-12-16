@@ -658,6 +658,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_options_line_panel->Fit();
 
     options_sizer->Add(m_sizer_options, 0, wxEXPAND, 0);
+    options_sizer->Add(0, 0, 1, wxTOP, FromDIP(8));
+    options_sizer->Add(m_pa_value_panel);
     options_sizer->Add(0, 0, 1, wxTOP, FromDIP(12));
     options_sizer->Add(m_options_line_panel, 0, wxEXPAND, 0);
 
@@ -665,10 +667,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_checkbox_list_order.push_back(option_auto_bed_level);
     m_checkbox_list_order.push_back(option_flow_dynamics_cali);
     m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
-
-    options_sizer->Add(m_sizer_options, 0, wxEXPAND, 0);
-    options_sizer->Add(0, 0, 1, wxTOP, FromDIP(8));
-    options_sizer->Add(m_pa_value_panel);
 
     m_options_other->SetSizer(options_sizer);
     m_options_other->Layout();
