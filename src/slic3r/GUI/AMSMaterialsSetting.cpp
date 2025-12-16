@@ -1271,21 +1271,9 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
         /* make nozzle type combobox item */
         m_comboBox_nozzle_type->Clear();
         for(auto pair : nozzle_type_vec){
-            wxString item;
-            switch(pair.first) {
-                case NozzleDiameterType::NOZZLE_DIAMETER_0_2: item = "0.2 mm"; break;
-                case NozzleDiameterType::NOZZLE_DIAMETER_0_4: item = "0.4 mm"; break;
-                case NozzleDiameterType::NOZZLE_DIAMETER_0_6: item = "0.6 mm"; break;
-                case NozzleDiameterType::NOZZLE_DIAMETER_0_8: item = "0.8 mm"; break;
-                default: item = _L("Unknown"); break;
-            }
+            wxString item = DevNozzle::ToNozzleDiameterStr(pair.first);
             item += " ";
-            switch(pair.second) {
-                case NozzleFlowType::S_FLOW: item += _L("Standard Flow"); break;
-                case NozzleFlowType::H_FLOW: item += _L("High Flow"); break;
-                case NozzleFlowType::U_FLOW: item += _L("TPU High Flow"); break;
-                default: item += _L("Unknown"); break;
-            }
+            item += DevNozzle::GetNozzleFlowTypeStr(pair.second);
             m_comboBox_nozzle_type->Append(item, wxNullBitmap, new std::pair<NozzleDiameterType, NozzleFlowType>(pair));
         }
         m_title_nozzle_type->Show();
