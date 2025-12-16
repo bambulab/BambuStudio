@@ -1592,9 +1592,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
+    auto find_string = [](ComboBox *combo, const wxString& str) {
+        for (int i = 0; i < combo->GetCount(); ++i) {
+            wxString text = combo->GetString(i);
+            if (text.StartsWith(str)) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
     if (extruder_nums > 1) {
-        int left_index  = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
-        int right_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[1]));
+        int left_index  = find_string(left_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
+        int right_index = find_string(right_extruder->combo_diameter, get_diameter_string(nozzle_diameters[1]));
         assert(left_index != -1 && right_index != -1);
         left_extruder->combo_diameter->SetSelection(left_index);
         right_extruder->combo_diameter->SetSelection(right_index);
@@ -1606,7 +1616,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     } else {
-        int index = single_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
+        int index = find_string(single_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
         assert(index != -1);
         single_extruder->combo_diameter->SetSelection(index);
         is_switching_diameter = true;
