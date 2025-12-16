@@ -610,13 +610,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         // nozzle_volume_type
         {
             default_name += "_";
-            if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                default_name += "SF";
-            } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                default_name += "HF";
-            } else if (info.nozzle_volume_type == NozzleVolumeType::nvtTPUHighFlow) {
-                default_name += "UHF";
-            }
+            default_name += DevNozzle::ToNozzleVolumeShortString(info.nozzle_volume_type);
         }
 
         // filament_id

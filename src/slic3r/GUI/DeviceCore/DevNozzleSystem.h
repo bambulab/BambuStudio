@@ -27,18 +27,24 @@ namespace Slic3r
        float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
 
     public:
-        static wxString      GetNozzleFlowTypeStr(NozzleFlowType type);
-        static std::string   GetNozzleFlowTypeString(NozzleFlowType type);// no translation
-        static wxString      GetNozzleTypeStr(NozzleType type);
-        static std::string   GetNozzleTypeString(NozzleType type);
-        
-        static NozzleVolumeType ToNozzleVolumeType(const NozzleFlowType& type);
-        static NozzleFlowType   ToNozzleFlowType(const NozzleVolumeType& type);
-        static NozzleFlowType   ToNozzleFlowType(const std::string& type);
-        static std::string      ToNozzleFlowString(const NozzleFlowType& type);
-        static std::string      ToNozzleVolumeString(const NozzleVolumeType& type);
-        static float            ToNozzleDiameterFloat(const NozzleDiameterType& type);
+        static wxString             GetNozzleFlowTypeStr(NozzleFlowType type);
+        static std::string          GetNozzleFlowTypeString(NozzleFlowType type);// no translation
+        static NozzleFlowType       ToNozzleFlowType(const std::string& type);
+        static NozzleFlowType       VariantToNozzleFlowType(const std::string& variant);
+        static std::string          ToNozzleFlowString(const NozzleFlowType& type);
+
+        static wxString             GetNozzleTypeStr(NozzleType type);
+        static std::string          GetNozzleTypeString(NozzleType type);
+
+        static NozzleFlowType       ToNozzleFlowType(const NozzleVolumeType& type);
+        static wxString             GetNozzleVolumeTypeStr(const NozzleVolumeType& type);
+        static NozzleVolumeType     ToNozzleVolumeType(const NozzleFlowType& type);
+        static std::string          ToNozzleVolumeString(const NozzleVolumeType& type);
+        static std::string          ToNozzleVolumeShortString(const NozzleVolumeType& type);
+
+        static float                ToNozzleDiameterFloat(const NozzleDiameterType& type);
         static NozzleDiameterType   ToNozzleDiameterType(float diameter);
+        static wxString             ToNozzleDiameterStr(const NozzleDiameterType& type);
 
    public:
        bool     IsEmpty() const { return m_nozzle_id < 0; }

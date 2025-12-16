@@ -7199,14 +7199,7 @@ NozzleFlowType Tab::get_actual_nozzle_flow_type(int selection)
         auto variants = m_config->option<ConfigOptionStrings>("filament_extruder_variant");
         if (selection < static_cast<int>(variants->values.size())) {
             const std::string& variant = variants->values[selection];
-            if (variant.find("High Flow") != std::string::npos) {
-                return NozzleFlowType::H_FLOW;
-            } else if (variant.find("Standard") != std::string::npos) {
-                return NozzleFlowType::S_FLOW;
-            } else if (variant.find("TPU High Flow") != std::string::npos) {
-                return NozzleFlowType::U_FLOW;
-            }
-            return NozzleFlowType::S_FLOW;
+            return DevNozzle::VariantToNozzleFlowType(variant);
         }
     }
     return NozzleFlowType::S_FLOW;
