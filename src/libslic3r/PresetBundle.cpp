@@ -4481,6 +4481,11 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                     filament_id_maps.emplace(preset_name, filament_id);
                 return reason;
             }
+            else if (instantiation.empty() && (preset_name.empty() || preset_name.find("gcode") != std::string::npos)) {
+                //pure included config
+                config_maps.emplace(subfile_iter.first, std::move(config_src));
+                return reason;
+            }
             if (config.has("alias"))
                 alias_name = (dynamic_cast<const ConfigOptionString *>(config.option("alias")))->value;
             if (config.has("renamed_from")) {
