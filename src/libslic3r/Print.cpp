@@ -2752,24 +2752,26 @@ FilamentMapMode Print::get_filament_map_mode() const
 {
     return m_config.filament_map_mode;
 }
-
-std::vector<std::string> Print::get_full_filament_extruder_variants(const size_t filament_id) const
+bool Print::get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string> &variants) const
 {
-    std::vector<std::string> filament_extruder_variants;
+    variants.clear();
+    if (!m_ori_full_print_config.has("filament_extruder_variant"))
+        return false;
     auto filament_variants = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-    if (!m_ori_full_print_config.has("filament_extruder_variant")) return filament_extruder_variants;
 
-    if (!m_ori_full_print_config.has("filament_self_index"))
-        return filament_variants;
+    if (!m_ori_full_print_config.has("filament_self_index")) {
+        std::set<std::string> dup_variants(filament_variants.begin(), filament_variants.end());
+        variants.insert(variants.end(), dup_variants.begin(), dup_variants.end());
+    } else {
+        auto filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
 
-    auto filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
-
-    for (int i = 0; i < filament_self_index.size(); i++){
-        if (filament_self_index[i] == filament_id) {
-            filament_extruder_variants.emplace_back(filament_variants[i]);
+        for (int i = 0; i < filament_self_index.size(); i++){
+            if (filament_self_index[i] - 1 == filament_id)
+                variants.emplace_back(filament_variants[i]);
         }
     }
-    return filament_extruder_variants;
+
+    return true;
 }
 
 std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const
