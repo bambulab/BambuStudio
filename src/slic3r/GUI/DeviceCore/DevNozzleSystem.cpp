@@ -38,6 +38,41 @@ std::string DevNozzle::GetNozzleFlowTypeString(NozzleFlowType type)
     }
 }
 
+NozzleFlowType DevNozzle::ToNozzleFlowType(const std::string& type)
+{
+    if(type == "Standard")
+        return NozzleFlowType::S_FLOW;
+    else if(type == "High Flow")
+        return NozzleFlowType::H_FLOW;
+    else if(type == "TPU High Flow")
+        return NozzleFlowType::U_FLOW;
+    else
+        return NozzleFlowType::NONE_FLOWTYPE;
+}
+
+std::string DevNozzle::ToNozzleFlowString(const NozzleFlowType& type)
+{
+    switch (type) {
+    case NozzleFlowType::S_FLOW: return "Standard";
+    case NozzleFlowType::H_FLOW: return "High Flow";
+    case NozzleFlowType::U_FLOW: return "TPU High Flow";
+    default: return std::string();
+    }
+}
+
+NozzleFlowType DevNozzle::VariantToNozzleFlowType(const std::string& variant)
+{
+    if (variant.find("High Flow") != std::string::npos) {
+        return NozzleFlowType::H_FLOW;
+    } else if (variant.find("Standard") != std::string::npos) {
+        return NozzleFlowType::S_FLOW;
+    } else if (variant.find("TPU High Flow") != std::string::npos) {
+        return NozzleFlowType::U_FLOW;
+    } else {
+        return NozzleFlowType::S_FLOW;
+    }
+}
+
 NozzleVolumeType DevNozzle::ToNozzleVolumeType(const NozzleFlowType& type)
 {
     switch (type) {
@@ -61,31 +96,30 @@ NozzleFlowType DevNozzle::ToNozzleFlowType(const NozzleVolumeType& type)
     }
 }
 
-NozzleFlowType DevNozzle::ToNozzleFlowType(const std::string& type)
-{
-    if(type == "Standard")
-        return NozzleFlowType::S_FLOW;
-    else if(type == "High Flow")
-        return NozzleFlowType::H_FLOW;
-    else if(type == "TPU High Flow")
-        return NozzleFlowType::U_FLOW;
-    else
-        return NozzleFlowType::NONE_FLOWTYPE;
-}
-
-std::string DevNozzle::ToNozzleFlowString(const NozzleFlowType& type)
+wxString DevNozzle::GetNozzleVolumeTypeStr(const NozzleVolumeType& type)
 {
     switch (type) {
-    case NozzleFlowType::S_FLOW: return "Standard";
-    case NozzleFlowType::H_FLOW: return "High Flow";
-    case NozzleFlowType::U_FLOW: return "TPU High Flow";
-    default: return std::string();
+        case NozzleVolumeType::nvtStandard:     return _L("Standard");
+        case NozzleVolumeType::nvtHighFlow:     return _L("High Flow");
+        case NozzleVolumeType::nvtTPUHighFlow:  return _L("TPU High Flow");
+        case NozzleVolumeType::nvtHybrid:       return _L("Hybrid");
+        default: return wxEmptyString;
     }
 }
 
 std::string DevNozzle::ToNozzleVolumeString(const NozzleVolumeType& type)
 {
     return ToNozzleFlowString(ToNozzleFlowType(type));
+}
+
+std::string DevNozzle::ToNozzleVolumeShortString(const NozzleVolumeType& type)
+{
+    switch (type) {
+    case NozzleVolumeType::nvtStandard:     return "SF";
+    case NozzleVolumeType::nvtHighFlow:     return "HF";
+    case NozzleVolumeType::nvtTPUHighFlow:  return "UHF";
+    default: return std::string();
+    }
 }
 
 float DevNozzle::ToNozzleDiameterFloat(const NozzleDiameterType &type)
@@ -177,6 +211,16 @@ NozzleDiameterType DevNozzle::GetNozzleDiameterType() const
         return NozzleDiameterType::NONE_DIAMETER_TYPE;
 }
 
+wxString DevNozzle::ToNozzleDiameterStr(const NozzleDiameterType& type)
+{
+    switch (type) {
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return wxString("0.2 mm");
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return wxString("0.4 mm");
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return wxString("0.6 mm");
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return wxString("0.8 mm");
+    default: return _L("Unknown");
+    }
+}
 
 DevFirmwareVersionInfo DevNozzle::GetFirmwareInfo() const
 {

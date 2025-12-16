@@ -889,12 +889,12 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
     if (support_nozzle_volume(curr_obj)) {
         Label *nozzle_name_title = new Label(top_panel, _L("Nozzle Flow"));
         m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
-        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
-        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
-            for (auto item : nozzle_volume_type_def->enum_labels) {
-                if (item == "Hybrid") continue;
-                m_comboBox_nozzle_type->Append(_L(item), wxNullBitmap, new int{DevNozzle::ToNozzleFlowType(item)});
-            }
+        std::vector<NozzleVolumeType> volumes = { nvtStandard, nvtHighFlow, nvtTPUHighFlow};
+        auto volume_set = get_valid_nozzle_volume_type();
+
+        for(const auto & volume_type : volumes) {
+            if(volume_set.find(volume_type) != volume_set.end())
+                m_comboBox_nozzle_type->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
         m_comboBox_nozzle_type->SetSelection(-1);
         flex_sizer->Add(nozzle_name_title);
