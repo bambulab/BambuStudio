@@ -1428,7 +1428,7 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("consistent_surface");
     def->enum_labels.push_back(L("Uniform cooling"));
     def->enum_labels.push_back(L("Consistent surface"));
-    def->mode = comAdvanced;
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnumsGeneric{(int)cslUniformCooling});
 
     def = this->add("cooling_perimeter_transition_distance", coFloats);
@@ -1441,8 +1441,8 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = L("mm");
     def->min = 0;
     def->max = 50;
-    def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionFloats{5.0});
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloats{10.0});
 
     def = this->add("default_acceleration", coFloats);
     def->label = L("Normal printing");
@@ -1472,7 +1472,7 @@ void PrintConfigDef::init_fff_params()
                       "Set to 0 to disable (uses normal travel acceleration).");
     def->sidetext = "mm/s²";
     def->min      = 0;
-    def->mode     = comAdvanced;
+    def->mode     = comDevelop;
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{0});
 
