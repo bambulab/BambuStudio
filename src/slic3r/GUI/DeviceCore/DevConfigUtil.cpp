@@ -172,6 +172,36 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int 
     return std::string();
 }
 
+std::string DevPrinterConfigUtil::get_fan_mode_text(const std::string& type_str, int airduct_mode, const std::string& key)
+{
+    std::vector<std::string> filaments;
+    std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try {
+        json jj;
+        if (json_file.is_open()) {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00")) {
+                json const& printer = jj["00.00.00.00"];
+                if (!printer.contains("fan")) {
+                    return std::string();
+                }
+
+                json const& fan_item = printer["fan"];
+                const auto& airduct_mode_str = std::to_string(airduct_mode);
+                if (!fan_item.contains(airduct_mode_str)) {
+                    return std::string();
+                }
+
+                if (fan_item[airduct_mode_str].contains(key)) {
+                    return fan_item[airduct_mode_str][key].get<std::string>();
+                }
+            }
+        }
+    } catch (...) {}
+    return std::string();
+}
+
 std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_subseries(std::string type_str)
 {
     std::map<std::string, std::vector<std::string>> subseries;

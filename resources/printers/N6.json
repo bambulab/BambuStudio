@@ -61,7 +61,7 @@
 		"fan" : {
 			"0" :
 			{
-				"description": "",
+				"mode_name": "Strong Cooling",
 				"2": "Left(Aux)",
 				"10": {
 					"-1": "Right(Aux)",
@@ -71,6 +71,7 @@
 			},
 			"1" :
 			{
+				"mode_name": "Heating",
 				"2": "Left(Heating)",
 				"10": "Right(Filter)"
 			},
