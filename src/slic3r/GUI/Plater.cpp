@@ -2446,7 +2446,13 @@ Sidebar::Sidebar(Plater *parent)
     });
 }
 
-Sidebar::~Sidebar() {}
+Sidebar::~Sidebar() {
+    if (m_extruder_warning_dialog) {
+        m_extruder_warning_dialog->Hide();
+        m_extruder_warning_dialog->Destroy();
+        m_extruder_warning_dialog = nullptr;
+    }
+}
 
 void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
@@ -3975,6 +3981,9 @@ void Sidebar::pop_finsish_sync_ams_dialog()
 void Sidebar::pop_extruder_warning_dialog()
 {
     wxTheApp->CallAfter([this]() {
+        if (wxGetApp().is_closing() || !wxGetApp().mainframe || !wxGetApp().mainframe->IsShown()) {
+            return;
+        }
         ExtruderWarningDialog::InputInfo warning_info;
 
         wxPoint extruder_pos  = p->right_extruder->GetScreenPosition();
