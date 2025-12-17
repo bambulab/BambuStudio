@@ -429,7 +429,7 @@ void CalibrationCaliPage::update_basic_print_data(bool def, float weight, int pr
         m_printing_panel->show_priting_use_info(true, str_prediction, str_weight);
     }
     else {
-        m_printing_panel->show_priting_use_info(false, "0m", "0g");
+        m_printing_panel->show_priting_use_info(false, _L("0min"), "0g");
     }
 }
 
