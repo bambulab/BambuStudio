@@ -4949,7 +4949,6 @@ void GUI_App::save_privacy_policy_history(bool agree, std::string source)
             //j["user_id"] = m_agent->get_user_id();
         m_agent->track_event("privacy_policy", j.dump());
     }
-    BOOST_LOG_TRIVIAL(info) << "privacy_policy: source = " << source << ", value = " << j.dump();
 
     boost::filesystem::path dir = (boost::filesystem::path(Slic3r::data_dir()) / "track").make_preferred();
     std::string dir_str = dir.string();
