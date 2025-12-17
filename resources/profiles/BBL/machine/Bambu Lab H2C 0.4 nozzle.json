@@ -35,16 +35,16 @@
     ],
     "fan_direction": "left",
     "hotend_cooling_rate": [
-        "2",
-        "2",
-        "3",
-        "3"
+        "1.6",
+        "1.6",
+        "3.4",
+        "3.4"
     ],
     "hotend_heating_rate": [
-        "3.6",
-        "3.6",
-        "16",
-        "16"
+        "3.5",
+        "3.5",
+        "13.3",
+        "13.3"
     ],
     "include": [
         "Bambu Lab H2C 0.4 nozzle template machine_start_gcode",
