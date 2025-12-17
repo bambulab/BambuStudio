@@ -2638,12 +2638,12 @@ void TabPrint::build()
         optgroup->append_single_option_line("skin_infill_line_width", "parameter/line-width", -1, true);
         optgroup->append_single_option_line("skeleton_infill_line_width", "parameter/line-width", -1, true);
 
-        optgroup->append_single_option_line("symmetric_infill_y_axis");
-        optgroup->append_single_option_line("infill_shift_step");
+        optgroup->append_single_option_line("symmetric_infill_y_axis", "", -1, true);
+        optgroup->append_single_option_line("infill_shift_step", "", -1, true);
         optgroup->append_single_option_line("sparse_infill_lattice_angle_1", "", -1, true); // 2DLattice pattern use this
         optgroup->append_single_option_line("sparse_infill_lattice_angle_2", "", -1, true); // 2DLattice pattern use this
 
-        optgroup->append_single_option_line("infill_rotate_step");
+        optgroup->append_single_option_line("infill_rotate_step", "", -1, true);
         optgroup->append_single_option_line("sparse_infill_anchor");
         optgroup->append_single_option_line("sparse_infill_anchor_max");
         optgroup->append_single_option_line("filter_out_gap_fill");
