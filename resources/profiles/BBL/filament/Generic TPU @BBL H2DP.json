@@ -29,6 +29,9 @@
     "filament_printable": [
         "2"
     ],
+    "filament_support_printable": [
+        "2"
+    ],
     "filament_pre_cooling_temperature": [
         "210",
         "210"

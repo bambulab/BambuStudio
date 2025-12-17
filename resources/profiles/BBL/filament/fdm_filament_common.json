@@ -159,6 +159,9 @@
     "filament_retraction_speed": [
         "nil"
     ],
+    "filament_support_printable": [
+        "3"
+    ],
     "filament_settings_id": [
         ""
     ],

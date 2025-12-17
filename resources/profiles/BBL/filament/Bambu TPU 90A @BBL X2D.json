@@ -98,6 +98,9 @@
         "nil",
         "nil"
     ],
+    "filament_support_printable": [
+        "1"
+    ],
     "filament_wipe": [
         "1",
         "nil",

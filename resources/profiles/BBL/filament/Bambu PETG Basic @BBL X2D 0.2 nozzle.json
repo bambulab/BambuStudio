@@ -65,6 +65,9 @@
         "nil",
         "nil"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "filament_retraction_distances_when_cut": [
         "10",
         "10",
@@ -124,6 +127,9 @@
         "0",
         "0",
         "0"
+    ],
+    "filament_support_printable": [
+        "1"
     ],
     "filament_ramming_travel_time": [
         "0",

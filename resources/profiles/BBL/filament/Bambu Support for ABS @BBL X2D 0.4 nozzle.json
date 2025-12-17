@@ -68,6 +68,9 @@
         "nil",
         "nil"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "filament_retraction_distances_when_cut": [
         "10",
         "10",

@@ -22,6 +22,9 @@
     "filament_printable": [
         "1"
     ],
+    "filament_support_printable": [
+        "1"
+    ],
     "filament_prime_volume": [
         "30"
     ],
