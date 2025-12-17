@@ -5107,7 +5107,7 @@ void StatusPanel::update_filament_loading_panel(MachineObject *obj)
     bool ams_loading_state = false;
     auto ams_status_sub    = obj->ams_status_sub;
 
-    if (obj->is_enable_np) {
+    if (obj->is_enable_np && obj->ams_status_main != AMS_STATUS_MAIN_COLD_PULL) {
         ams_loading_state = obj->GetExtderSystem()->IsBusyLoading();
     } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         ams_loading_state = true;

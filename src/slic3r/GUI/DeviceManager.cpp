@@ -719,6 +719,8 @@ void MachineObject::_parse_ams_status(int ams_status)
         ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_SELF_CHECK;
     } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_DEBUG) {
         ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_DEBUG;
+    } else if (ams_status_main_int == (int) AmsStatusMain::AMS_STATUS_MAIN_COLD_PULL) {
+        ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_COLD_PULL;
     } else {
         ams_status_main = AmsStatusMain::AMS_STATUS_MAIN_UNKNOWN;
     }
