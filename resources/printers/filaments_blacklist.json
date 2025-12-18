@@ -209,7 +209,7 @@
     {
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
-      "nozzle_diameters": [ 0.4 ],
+      "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
       "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
       "action": "warning",
       "slot": "ext",
@@ -218,7 +218,7 @@
     {
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
-      "nozzle_diameters": [ 0.4 ],
+      "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
       "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
       "action": "warning",
       "slot": "ext",
