@@ -510,6 +510,7 @@ public:
     bool is_support_filament_backup{false};
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
+    bool is_support_update_remain_hide_display{ false};
     int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
     bool is_support_ams_humidity {false};
     bool is_support_1080dpi {false};
