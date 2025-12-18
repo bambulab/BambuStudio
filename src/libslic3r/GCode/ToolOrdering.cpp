@@ -64,15 +64,15 @@ bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
     return false;
 }
 
-bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, const PrintConfig *print_config)
+bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, std::unordered_map<int, std::vector<std::string>>& filament_variants, std::vector<FilamentUsageType>& used_type,const PrintConfig *print_config)
 {
     for (unsigned int filament_id : used_filaments) {
-        std::string filament_type = print_config->filament_type.get_at(filament_id);
-        int printable_status = print_config->filament_printable.get_at(filament_id);
         int extruder_idx = filament_maps[filament_id];
-        if (!(printable_status >> extruder_idx & 1)) {
-            std::string extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-            std::string error_msg     = _L("Grouping error: ") + filament_type + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
+
+        std::string extruder_variant = print_config->option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
+        std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id].begin(), filament_variants[filament_id].end());
+        if (filament_variants_set.count(extruder_variant) == 0){
+            std::string error_msg = _L("Grouping error: filament ") + std::to_string(filament_id + 1) + _L(" can not be placed in the ") + extruder_variant + _L(" nozzle");
             throw Slic3r::RuntimeError(error_msg);
         }
     }
@@ -1198,7 +1198,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         std::vector<std::string> filament_colours = print_config.filament_colour.values;
         std::vector<unsigned char> filament_is_support = print_config.filament_is_support.values;
         std::vector<std::string> filament_ids = print_config.filament_ids.values;
-        std::vector<FilamentUsageType> filament_usage_types = build_filament_usage_type_list(print_config, print->objects().vector());
+        std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
         // speacially handle tpu filaments
         auto tpu_filaments = get_filament_by_type(used_filaments, &print_config, "TPU");
         FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
@@ -1375,7 +1375,14 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             );
 
         }
-        check_filament_printable_after_group(used_filaments, filament_maps, print_config);
+
+        std::unordered_map<int, std::vector<std::string>> filaments_variants;
+        for (auto fil_id : used_filaments){
+            m_print->get_full_filament_extruder_variants(fil_id, filaments_variants[fil_id]);
+        }
+        auto filament_used_type = m_print->get_filament_usage_type();
+
+        check_filament_printable_after_group(used_filaments, filament_maps, filaments_variants, filament_used_type, print_config);
     }
     else {
         // we just need to change the map to 0 based

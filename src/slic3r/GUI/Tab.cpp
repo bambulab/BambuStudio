@@ -3782,6 +3782,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cost");
         optgroup->append_single_option_line("temperature_vitrification");
         optgroup->append_single_option_line("filament_printable");
+        optgroup->append_single_option_line("filament_support_printable");
 
         optgroup->append_single_option_line("filament_cooling_before_tower");
         //BBS

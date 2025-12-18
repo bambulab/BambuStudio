@@ -933,6 +933,9 @@ public:
     FilamentMapMode  get_filament_map_mode() const;
     std::vector<int> get_filament_volume_maps() const;
     std::vector<int> get_filament_nozzle_maps() const;
+    bool get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string>& variants) const;
+
+    std::vector<FilamentUsageType> get_filament_usage_type() const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
     // get the config idx for filament

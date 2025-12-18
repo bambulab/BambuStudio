@@ -1507,28 +1507,71 @@ std::vector<int> PartPlate::get_used_filaments()
 bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxString& error_message)
 {
     error_message.clear();
+
     FilamentMapMode mode = this->get_real_filament_map_mode(config);
     // only check printablity if we have explicit map result
-    if (mode != fmmManual)
+    if (mode != fmmManual && !m_slice_result_valid)
         return true;
 
-    std::vector<int> used_filaments = get_extruders(true);  // 1 base
+    std::vector<int> used_filaments;
+    std::vector<FilamentUsageType> fil_used_types;
+    auto fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+    size_t total_filament_count = fil_preset_names.size();
+
+    if (m_slice_result_valid && m_gcode_result) {
+        used_filaments = get_used_filaments();	// 1 base
+        fil_used_types.assign(total_filament_count, (FilamentUsageType)0);
+        for (const auto& info : m_gcode_result->used_filaments) {	//0 base
+            if (info.filament_id >= 0 && (size_t)info.filament_id < total_filament_count) {
+                if (info.use_for_object && info.use_for_support)
+                    fil_used_types[info.filament_id] = Hybrid;
+                else if (info.use_for_object)
+                    fil_used_types[info.filament_id] = ModelOnly;
+                else if (info.use_for_support)
+                    fil_used_types[info.filament_id] = SupportOnly;
+            }
+        }
+    } else {
+        used_filaments = get_extruders(true);  // 1 base
+        fil_used_types = m_print->get_filament_usage_type();	// 0 base
+    }
+
+    std::unordered_map<std::string, int> nozzle_fils;
+
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
             int              filament_id               = filament_idx - 1;
+            if (filament_id < 0 || (size_t)filament_id >= fil_used_types.size()) continue;
             auto             nozzle_diam               = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
             auto             extruder_type             = config.option<ConfigOptionEnumsGeneric>("extruder_type");
-            std::string      filament_type             = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
-            int              filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
-            if (!(filament_printable_status >> extruder_idx & 1)) {
+
+            auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
+            std::string fil_name = fil_preset->alias;
+            auto fil_used_type = fil_used_types[filament_id];
+
+            if (fil_used_type == Hybrid || fil_used_type == ModelOnly) {
+                int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
+                if (!(filament_printable_status >> extruder_idx & 1)) {
+                    wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+                    error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name);
+                    return false;
+                }
+            }
+
+            if (fil_used_type == Hybrid || fil_used_type == SupportOnly) {
+                int filament_support_printable_status = config.option<ConfigOptionInts>("filament_support_printable")->values.at(filament_id);
+                if (!(filament_support_printable_status >> extruder_idx & 1)) {
+                    wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+                    error_message = wxString::Format(_L("The %s nozzle can not print filament %s when it is used as support.."), extruder_name, fil_name);
+                    return false;
+                }
+            }
+
+            if (nozzle_diam && std::abs(nozzle_diam->values.at(extruder_idx) - 0.2) < EPSILON && extruder_type->values.at(extruder_idx) == 1) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
-                return false;
-            } else if (nozzle_diam && std::abs(nozzle_diam->values.at(extruder_idx) - 0.2) < EPSILON && extruder_type->values.at(extruder_idx) == 1) {
-                wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message          = wxString::Format(_L("The %s nozzle (0.2mm) can not work with Bowden extruder."), extruder_name, filament_type);
+                error_message          = wxString::Format(_L("The %s nozzle (0.2mm) can not work with Bowden extruder."), extruder_name);
                 return false;
             }
         }

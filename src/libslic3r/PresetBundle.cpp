@@ -636,6 +636,8 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
                 auto iter = std::find(compatible_printers.begin(), compatible_printers.end(), printer_name);
                 if (iter != compatible_printers.end() && config.has("filament_printable")) {
                     info.filament_printable = config.option<ConfigOptionInts>("filament_printable")->values[0];
+                    if (config.has("filament_support_printable"))
+                        info.filament_support_printable = config.option<ConfigOptionInts>("filament_support_printable")->values[0];
                     return info;
                 }
             }
