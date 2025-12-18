@@ -257,7 +257,7 @@ void AMSSetting::create()
 
     m_sizerl_body->AddSpacer(FromDIP(12));
     m_sizerl_body->Add(m_ams_type, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
-    //m_sizerl_body->Add(m_ams_arrange_order, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));    
+    //m_sizerl_body->Add(m_ams_arrange_order, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(12));
     m_sizerl_body->Add(m_panel_Insert_material, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_starting, 0, wxEXPAND | wxTOP, FromDIP(12));
     m_sizerl_body->Add(m_sizer_starting_tip, 0, wxEXPAND | wxTOP, FromDIP(12));
@@ -297,7 +297,6 @@ void AMSSetting::UpdateByObj(MachineObject* obj)
     m_ams_type->Update(obj);
     //m_ams_arrange_order->Update(obj);
     update_insert_material_read_mode(obj);
-    m_sizer_remain_block->Show(obj->is_support_update_remain);
     update_starting_read_mode(obj->GetFilaSystem()->IsDetectOnPowerupEnabled());
     update_remain_mode(obj->GetFilaSystem()->IsDetectRemainEnabled());
     update_switch_filament(obj->GetFilaSystem()->IsAutoRefillEnabled());
@@ -425,6 +424,7 @@ void AMSSetting::update_ams_img(MachineObject* obj_)
     }
 
     if (ams_icon_str != m_ams_img_name) {
+        m_ams_img_name = ams_icon_str;
         m_am_img->SetBitmap(create_scaled_bitmap(ams_icon_str, nullptr, 126));
         m_am_img->Refresh();
     }
@@ -447,18 +447,16 @@ void AMSSetting::update_starting_read_mode(bool selected)
 
 void AMSSetting::update_remain_mode(bool selected)
 {
-    if (m_obj->is_support_update_remain) {
-        m_checkbox_remain->Show();
-        m_title_remain->Show();
-        m_tip_remain_line1->Show();
+    bool show_remain_option = m_obj->is_support_update_remain && !m_obj->is_support_update_remain_hide_display;
+
+    if (show_remain_option != m_checkbox_remain->IsShown()) {
+        m_checkbox_remain->Show(show_remain_option);
+        m_title_remain->Show(show_remain_option);
+        m_tip_remain_line1->Show(show_remain_option);
+        m_sizer_remain_block->Show(show_remain_option);
         Layout();
     }
-    else {
-        m_checkbox_remain->Hide();
-        m_title_remain->Hide();
-        m_tip_remain_line1->Hide();
-        Layout();
-    }
+
     m_checkbox_remain->SetValue(selected);
 }
 
@@ -696,7 +694,7 @@ void AMSSettingTypePanel::OnAmsTypeChanged(wxCommandEvent& event)
         event.Skip();
         return;
     }
-   
+
     auto obj_ = part->GetFilaSystem()->GetOwner();
     if (obj_) {
         if (obj_->is_in_printing() || obj_->is_in_upgrading())  {
@@ -715,7 +713,7 @@ void AMSSettingTypePanel::OnAmsTypeChanged(wxCommandEvent& event)
             if (m_setting_dlg) {
                 m_setting_dlg->EndModal(wxID_OK);
             }
-            
+
             return;
         }
 

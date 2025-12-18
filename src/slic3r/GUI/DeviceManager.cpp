@@ -4120,6 +4120,7 @@ void MachineObject::parse_new_info(json print)
     if (!fun2.empty()) {
         is_support_print_with_emmc = get_flag_bits_no_border(fun2, 0) == 1;
         is_support_pa_mode = (get_flag_bits_no_border(fun2, 3) == 1);
+        is_support_update_remain_hide_display = (get_flag_bits_no_border(fun2, 6) == 1);
     }
 
     /*aux*/
