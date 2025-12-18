@@ -32,13 +32,11 @@ std::map<int, CaliFilamentInfo> get_cached_selected_filament(MachineObject* obj)
         if (!preset)
             continue;
 
-        int nozzle_pos_id = -1;
+        int nozzle_pos_id = selected_prest.nozzle_pos_id;
+        // double check nozzle_pos_id for hotend
         if (!selected_prest.nozzle_sn.empty() && selected_prest.nozzle_sn != "N/A") {
             DevNozzle nozzle = obj->get_nozzle_by_sn(selected_prest.nozzle_sn);
             nozzle_pos_id = nozzle.GetNozzlePosId();
-        }else{
-            /* left extruder doesn't have nozzle sn */
-            nozzle_pos_id = DEPUTY_EXTRUDER_ID;
         }
         selected_filament_map.emplace(std::make_pair(selected_prest.tray_id, CaliFilamentInfo(preset, nozzle_pos_id, selected_prest.nozzle_sn)));
     }
