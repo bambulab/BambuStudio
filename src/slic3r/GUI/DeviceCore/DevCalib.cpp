@@ -184,8 +184,8 @@ void DevCalib::ExtrusionCalibSetParse(const json & jj){
     int slot_id = tray_to_slot(tray_id);
 
     if(tray_id == VIRTUAL_TRAY_MAIN_ID) {
-        GetOwner()->vt_slot[0].k = jj.value("k_value", GetOwner()->vt_slot[0].k);
-        GetOwner()->vt_slot[0].n = jj.value("n_value", GetOwner()->vt_slot[0].n);
+        GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k = jj.value("k_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k);
+        GetOwner()->vt_slot[MAIN_EXTRUDER_ID].n = jj.value("n_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].n);
     }else{
         auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
         if (tray_item) {
@@ -208,9 +208,12 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
         BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: illegal ams_id = " << ams_id << "slot_id = " << slot_id;
 
         std::vector<DevAmsTray> &vt_slot = GetOwner()->vt_slot;
-        if ((ams_id == VIRTUAL_TRAY_MAIN_ID && vt_slot.size() > 0) || (ams_id == VIRTUAL_TRAY_DEPUTY_ID && vt_slot.size() > 1)) {
-            vt_slot[ams_id].cali_idx = jj.value("cali_idx", vt_slot[ams_id].cali_idx);
-            vt_slot[ams_id].set_hold_count();
+        if (ams_id == VIRTUAL_TRAY_MAIN_ID && vt_slot.size() > 0) {
+            vt_slot[MAIN_EXTRUDER_ID].cali_idx = jj.value("cali_idx", vt_slot[MAIN_EXTRUDER_ID].cali_idx);
+            vt_slot[MAIN_EXTRUDER_ID].set_hold_count();
+        } else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID && vt_slot.size() > 1) {
+            vt_slot[DEPUTY_EXTRUDER_ID].cali_idx = jj.value("cali_idx", vt_slot[DEPUTY_EXTRUDER_ID].cali_idx);
+            vt_slot[DEPUTY_EXTRUDER_ID].set_hold_count();
         } else {
             auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray_item) {
