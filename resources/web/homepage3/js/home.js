@@ -482,14 +482,22 @@ function OnDeleteRecentFile( )
 
 function OnDeleteAllRecentFiles()
 {
-	$('#FileList').html('');
-	UpdateRecentClearBtnDisplay();
-	
-	var tSend={};
-	tSend['sequence_id']=Math.round(new Date() / 1000);
-	tSend['command']="homepage_delete_all_recentfile";
-	
-	SendWXMessage( JSON.stringify(tSend) );
+	showConfirmDialog({
+		title: GetCurrentTextByKey("t39"),
+		message: GetCurrentTextByKey("t149"),
+		okText: GetCurrentTextByKey("t21"),
+		cancelText: GetCurrentTextByKey("t22"),
+		onOk: function() {
+			$('#FileList').html('');
+			UpdateRecentClearBtnDisplay();
+			
+			var tSend={};
+			tSend['sequence_id']=Math.round(new Date() / 1000);
+			tSend['command']="homepage_delete_all_recentfile";
+			
+			SendWXMessage( JSON.stringify(tSend) );
+		}
+	});
 }
 
 function UpdateRecentClearBtnDisplay()
