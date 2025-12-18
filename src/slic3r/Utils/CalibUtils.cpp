@@ -1571,7 +1571,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         }
 
         float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
-        NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
+        NozzleFlowType nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle diameter of %s extruder does not match the actual nozzle diameter.\n"
@@ -1582,7 +1582,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (nozzle_volume_type == NozzleFlowType::NONE_FLOWTYPE) {
+        if (nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
             else
@@ -1590,7 +1590,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
+        if (!(DevNozzle::ToNozzleVolumeType(nozzle_flow_type) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
@@ -1638,11 +1638,11 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
         }
 
         float diameter = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
-        NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
+        NozzleFlowType nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
         if (cali_info.nozzle_pos_id != -1) {
             auto nozzle = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
             diameter = nozzle.GetNozzleDiameter();
-            nozzle_volume_type = nozzle.GetNozzleFlowType();
+            nozzle_flow_type = nozzle.GetNozzleFlowType();
         }
 
         if (!is_approx(cali_info.nozzle_diameter, diameter)) {
@@ -1655,7 +1655,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (nozzle_volume_type == NozzleFlowType::NONE_FLOWTYPE) {
+        if (nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
             else
@@ -1663,7 +1663,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
-        if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
+        if (!(DevNozzle::ToNozzleVolumeType(nozzle_flow_type) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
             if (is_multi_extruder)
                 error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                                 "Please click the Sync button above and restart the calibration."), name);
@@ -1699,11 +1699,11 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     }
 
     float  diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
-    NozzleFlowType nozzle_volume_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
+    NozzleFlowType nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);
     if (cali_info.nozzle_pos_id != -1) {
         auto nozzle        = obj->get_nozzle_by_id_code(cali_info.nozzle_pos_id);
         diameter           = nozzle.GetNozzleDiameter();
-        nozzle_volume_type = nozzle.GetNozzleFlowType();
+        nozzle_flow_type   = nozzle.GetNozzleFlowType();
     }
 
 
@@ -1718,7 +1718,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     }
 
 
-    if (nozzle_volume_type == NozzleFlowType::NONE_FLOWTYPE) {
+    if (nozzle_flow_type == NozzleFlowType::NONE_FLOWTYPE) {
         if (is_multi_extruder)
             error_message = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
         else
@@ -1726,7 +1726,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         return false;
     }
 
-    if (!(NozzleVolumeType(nozzle_volume_type - 1) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
+    if (!(DevNozzle::ToNozzleVolumeType(nozzle_flow_type) == cali_info.nozzle_volume_type || cali_info.nozzle_volume_type == NozzleVolumeType::nvtHybrid)) {
         if (is_multi_extruder)
             error_message = wxString::Format(_L("The currently selected nozzle type of %s extruder does not match the actual printer nozzle type.\n"
                                             "Please click the Sync button above and restart the calibration."), name);
