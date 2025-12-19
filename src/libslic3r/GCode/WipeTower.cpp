@@ -4410,13 +4410,12 @@ void WipeTower::generate_new(std::vector<std::vector<WipeTower::ToolChangeResult
             if (i == 0 && (layer.tool_changes[i].old_tool == wall_idx)) {
                 finish_layer_tcr = finish_layer_new(only_generate_wall ? false : true, false, false);
             }
+            bool        solid_nozzlechange = false, solid_toolchange = false;
             const auto * block = get_block_by_category(m_filpar[layer.tool_changes[i].new_tool].category, false);
-            int         id    = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&](const WipeTowerBlock &b) { return &b == block; }) - m_wipe_tower_blocks.begin();
-            bool solid_toolchange = block->layers_type[m_cur_layer_id] == WipeTowerLayerType::Contact;
+            if (block) solid_toolchange = block->layers_type[m_cur_layer_id] == WipeTowerLayerType::Contact;
 
             const auto * block2 = get_block_by_category(m_filpar[layer.tool_changes[i].old_tool].category, false);
-            id = std::find_if(m_wipe_tower_blocks.begin(), m_wipe_tower_blocks.end(), [&](const WipeTowerBlock &b) { return &b == block2; }) - m_wipe_tower_blocks.begin();
-            bool solid_nozzlechange = block2->layers_type[m_cur_layer_id] == WipeTowerLayerType::Contact;
+            if(block2) solid_nozzlechange = block2->layers_type[m_cur_layer_id] == WipeTowerLayerType::Contact;
             layer_result.emplace_back(tool_change_new(layer.tool_changes[i].new_tool, solid_toolchange,solid_nozzlechange));
 
             if (i == 0 && (layer.tool_changes[i].old_tool == wall_idx)) {
