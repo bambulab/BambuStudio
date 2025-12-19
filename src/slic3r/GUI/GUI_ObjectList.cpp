@@ -27,6 +27,7 @@
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
 #include <libslic3r/Orient.hpp>
+#include <unordered_set>
 #include <wx/listbook.h>
 #include <wx/numformatter.h>
 #include <wx/headerctrl.h>
@@ -2537,7 +2538,10 @@ void ObjectList::load_shape_object(const std::string &type_name)
     TriangleMesh mesh = create_mesh(type_name, bb);
     const Slic3r::DynamicPrintConfig& full_config = wxGetApp().preset_bundle->full_config();
     // rotate the overhang faces to the machine cooling fan
-    if (full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
+    // Blacklist: skip cooling orientation for shapes that don't benefit from it
+    static const std::unordered_set<std::string> cooling_orientation_blacklist = {"Bambu Cube", "Bambu Cube V2", "ksr FDMTest"};
+    bool skip_cooling_orientation = cooling_orientation_blacklist.find(type_name) != cooling_orientation_blacklist.end();
+    if (!skip_cooling_orientation && full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
     {
         int fan_config_idx = full_config.option<ConfigOptionEnum<FanDirection>>("fan_direction")->value;
         FanDirection config_dir = static_cast<FanDirection>(fan_config_idx);
