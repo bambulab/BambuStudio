@@ -3746,6 +3746,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         float estimate_time = estimate_wipe_time();
         int   extruder_id   = m_filament_map[m_current_tool] - 1;
         float heat_time     = m_filpar[m_current_tool].filament_cooling_before_tower / m_hotend_heating_rate[extruder_id];
+        heat_time /= 2.f;
         speed_factor = estimate_time / (heat_time+estimate_time);
         wipe_speed *= speed_factor;
     }
