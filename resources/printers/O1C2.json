@@ -61,7 +61,10 @@
 			"support_extrusion_cali": false,
 			"support_print_check_extension_fan_f000_mounted": true,
 			"support_user_preset": false,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_print_check_firmware_for_tpu_left": true,
+			"support_user_first_setup_tpu_check": true,
+			"support_user_first_setup_tpu_check_url": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
 		},
 		"model_id": "O1C2",
 		"subseries": [ "O1C2-V2" ],

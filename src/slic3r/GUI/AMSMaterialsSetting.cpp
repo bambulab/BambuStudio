@@ -582,10 +582,36 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     ams_filament_id = "";
     ams_setting_id = "";
 
+    // the combobox item
+    auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
+
+    // check if need to set usr_has_setup_tpu
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    auto fila_item = preset_bundle ? preset_bundle->get_filament_by_filament_id(filament_item.filament_id) : std::nullopt;
+    if (fila_item.has_value() && DevPrinterConfigUtil::support_user_first_setup_tpu_check(obj->printer_type)) {
+        if ((fila_item->filament_type == "TPU" || fila_item->filament_type == "TPU-AMS") &&
+            wxGetApp().app_config->get("usr_has_setup_tpu") != "true") {
+
+            MessageDialog dlg(this, _L("TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."),
+                              SLIC3R_APP_NAME + _L("Info"), wxICON_INFORMATION);
+            dlg.AddButton(wxID_CANCEL, _L("Cancel"), false);
+            dlg.AddButton(wxID_OK, _L("Go to Check"), true);
+            int rtn = dlg.ShowModal();
+            if (rtn != wxID_OK) {
+                return;
+            } 
+
+            wxGetApp().app_config->set("usr_has_setup_tpu", "true");
+
+            auto tpu_check_url = DevPrinterConfigUtil::support_user_first_setup_tpu_check_url(obj->printer_type);
+            if (!tpu_check_url.empty()) {
+                wxLaunchDefaultBrowser(tpu_check_url);
+            }
+        };
+    }
+
     if (preset_bundle) {
         for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
             std::string filament_id = filament_item.filament_id;
             if (it->filament_id.compare(filament_id) == 0) {
                 //check is it in the filament blacklist
