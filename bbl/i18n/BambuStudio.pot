@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-01 15:41+0800\n"
+"POT-Creation-Date: 2025-12-19 16:19+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,6 +57,9 @@ msgstr ""
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr ""
 
@@ -78,13 +81,26 @@ msgstr ""
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
-msgid "The filament may require slicing parameter adjustments."
+msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
-msgid "Default settings may affect print quality. Adjust as needed for best results."
+#, possible-c-format, possible-boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -2688,6 +2704,12 @@ msgstr ""
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr ""
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr ""
@@ -2716,9 +2738,6 @@ msgid "MC Board"
 msgstr ""
 
 msgid "Heat"
-msgstr ""
-
-msgid "Fan"
 msgstr ""
 
 msgid "Idling..."
@@ -3885,7 +3904,7 @@ msgstr ""
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr ""
 
-msgid " Preparing Hotend"
+msgid "Preparing Hotend"
 msgstr ""
 
 msgid "Calibrating the detection position of nozzle clumping"
@@ -4246,7 +4265,13 @@ msgstr ""
 msgid "Why this grouping"
 msgstr ""
 
+msgid "Left nozzle(Aux)"
+msgstr ""
+
 msgid "Left nozzle"
+msgstr ""
+
+msgid "Right nozzle(Aux)"
 msgstr ""
 
 msgid "Right nozzle"
@@ -6178,6 +6203,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr ""
 
+msgid "Unavailable during the task"
+msgstr ""
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr ""
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr ""
+
 msgid "Enable detection of build plate position"
 msgstr ""
 
@@ -6239,6 +6273,12 @@ msgid "Pauses printing when build plate misalignment is detected."
 msgstr ""
 
 msgid "First Layer Inspection"
+msgstr ""
+
+msgid "Purify Air at Print End"
+msgstr ""
+
+msgid "Internal Circulation"
 msgstr ""
 
 msgid "Auto-recovery from step loss"
@@ -6351,6 +6391,10 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The %s nozzle can not print %s."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The %s nozzle (0.2mm) can not work with Bowden extruder."
 msgstr ""
 
 #, possible-boost-format
@@ -6482,6 +6526,9 @@ msgid "Set filaments to use"
 msgstr ""
 
 msgid "Search plate, object and part."
+msgstr ""
+
+msgid "(Unavailable for right extruder)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -7803,6 +7850,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr ""
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr ""
 
@@ -7856,6 +7906,18 @@ msgstr ""
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr ""
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr ""
 
@@ -7866,6 +7928,9 @@ msgid "As the print job has been successfully sent, the cancellation will not br
 msgstr ""
 
 msgid "The name length exceeds the limit."
+msgstr ""
+
+msgid "Right Nozzle(Aux)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -7933,10 +7998,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
 
@@ -7953,6 +8014,10 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
 msgstr ""
 
 msgid "Cool"
@@ -9070,6 +9135,9 @@ msgstr ""
 
 msgctxt "FinishSyncAms"
 msgid "OK"
+msgstr ""
+
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
 msgstr ""
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
@@ -13014,6 +13082,12 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr ""
 
@@ -13917,6 +13991,10 @@ msgid "The start, end or step is not valid value."
 msgstr ""
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
