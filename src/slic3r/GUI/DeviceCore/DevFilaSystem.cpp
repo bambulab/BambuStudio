@@ -9,6 +9,8 @@
 #include "DevUtil.h"
 #include "DevNozzleSystem.h"
 
+#include "DevUtilBackend.h"
+
 using namespace nlohmann;
 
 namespace Slic3r {
@@ -104,6 +106,11 @@ std::string DevAmsTray::get_filament_type()
     return m_fila_type;
 }
 
+std::optional<Slic3r::DevFilamentDryingPreset> DevAmsTray::get_ams_drying_preset() const
+{
+    return DevUtilBackend::GetFilamentDryingPreset(setting_id);
+}
+
 DevAms::DevAms(const std::string& ams_id, int extruder_id, AmsType type)
 {
     m_ams_id = ams_id;
@@ -192,6 +199,27 @@ DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
     }
 
     return nullptr;
+}
+
+bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const
+{
+    if (obj && obj->is_support_remote_dry) {
+        return SupportDrying();
+    }
+
+    return false;
+}
+
+bool DevAms::AmsIsDrying()
+{
+    if (!GetDryStatus().has_value()) {
+        return false;
+    }
+
+    return GetDryStatus().value() == DevAms::DryStatus::Checking
+        || GetDryStatus().value() == DevAms::DryStatus::Drying
+        || GetDryStatus().value() == DevAms::DryStatus::Error
+        || GetDryStatus().value() == DevAms::DryStatus::CannotStopHeatOutofControl;
 }
 
 DevFilaSystem::~DevFilaSystem()
@@ -483,6 +511,28 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
 
     // Drying
     DevJsonValParser::ParseVal(j_ams, "dry_time", curr_ams->m_left_dry_time);
+    if (obj->is_support_remote_dry) {
+        if (j_ams.contains("info")) {
+            const std::string& info = j_ams["info"].get<std::string>();
+            curr_ams->m_dry_status = (DevAms::DryStatus)DevUtil::get_flag_bits(info, 4, 4);
+            curr_ams->m_dry_fan1_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(info, 18, 2);
+            curr_ams->m_dry_fan2_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(info, 20, 2);
+            curr_ams->m_dry_sub_status = (DevAms::DrySubStatus)DevUtil::get_flag_bits(info, 22, 4);
+        }
+
+        if (j_ams.contains("dry_settings")) {
+            const auto& j_dry_settings = j_ams["dry_settings"];
+            DevAms::DrySettings dry_settings;
+            DevJsonValParser::ParseVal(j_dry_settings, "dry_filament", dry_settings.dry_filament);
+            DevJsonValParser::ParseVal(j_dry_settings, "dry_temperature", dry_settings.dry_temp);
+            DevJsonValParser::ParseVal(j_dry_settings, "dry_duration", dry_settings.dry_hour);
+            curr_ams->m_dry_settings = dry_settings;
+        }
+
+        if (j_ams.contains("dry_sf_reason")) {
+            curr_ams->m_dry_cannot_reasons = DevJsonValParser::GetVal<std::vector<DevAms::CannotDryReason>>(j_ams, "dry_sf_reason");
+        }
+    }
 
     if (j_ams.contains("tray")) {
         std::unordered_set<std::string> existing_tray_set;
