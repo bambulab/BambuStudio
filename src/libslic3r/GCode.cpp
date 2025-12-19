@@ -6886,7 +6886,9 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("wipe_tower_center_pos_x", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("wipe_tower_center_pos_y", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("wipe_tower_center_pos_valid", new ConfigOptionBool(false));
-    dyn_config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(m_config.filament_cooling_before_tower.values));
+    std::vector<double> filament_cooling_before_tower = m_config.filament_cooling_before_tower.values;
+    std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
+    dyn_config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
 
     auto flush_v_speed = m_print->config().filament_flush_volumetric_speed.values;
     auto flush_temps =m_print->config().filament_flush_temp.values;

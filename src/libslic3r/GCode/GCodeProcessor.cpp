@@ -6479,7 +6479,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
             m_extruder_free_blocks.emplace_back(block);
         }
     }
-
+    std::for_each(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](ExtruderFreeBlock &block) { block.ignore_cooling_before_tower = true;});
     sort(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](const auto& a, const auto& b) {
         return a.free_lower_gcode_id < b.free_lower_gcode_id || (a.free_lower_gcode_id == b.free_lower_gcode_id && a.free_upper_gcode_id < b.free_upper_gcode_id);
         });
