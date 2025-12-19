@@ -9,7 +9,7 @@
         "20"
     ],
     "fan_min_speed": [
-        "20"
+        "30"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -73,6 +73,9 @@
     ],
     "first_x_layer_fan_speed": [
         "40"
+    ],
+    "fan_max_speed": [
+        "60"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

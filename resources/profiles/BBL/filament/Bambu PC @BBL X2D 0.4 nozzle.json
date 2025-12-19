@@ -9,7 +9,7 @@
         "60"
     ],
     "fan_max_speed": [
-        "40"
+        "55"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -35,6 +35,33 @@
         "0",
         "0"
     ],
+    "fan_min_speed": [
+        "25"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "nil",
+        "nil"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "filament_wipe": [
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
     "include": [
         "fdm_filament_template_direct_bowden"
     ],
@@ -49,6 +76,9 @@
         "270",
         "270",
         "270"
+    ],
+    "overhang_fan_speed": [
+        "75"
     ],
     "retraction_distances_when_ec": [
         "3",

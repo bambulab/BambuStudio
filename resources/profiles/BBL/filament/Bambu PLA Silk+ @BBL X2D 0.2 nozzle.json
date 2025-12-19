@@ -116,6 +116,9 @@
     "supertack_plate_temp_initial_layer": [
         "35"
     ],
+    "slow_down_layer_time": [
+        "6"
+    ],
     "compatible_printers": [
         "Bambu Lab X2D 0.2 nozzle"
     ],

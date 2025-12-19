@@ -35,6 +35,30 @@
         "0",
         "0"
     ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "filament_retraction_length": [
+        "1",
+        "1",
+        "nil",
+        "nil"
+    ],
+    "filament_wipe": [
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
     "include": [
         "fdm_filament_template_direct_bowden"
     ],
@@ -49,6 +73,9 @@
         "275",
         "275",
         "275"
+    ],
+    "overhang_fan_speed": [
+        "55"
     ],
     "retraction_distances_when_ec": [
         "3",

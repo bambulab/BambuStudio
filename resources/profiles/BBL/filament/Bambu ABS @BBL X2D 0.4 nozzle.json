@@ -45,21 +45,27 @@
         "10"
     ],
     "filament_wipe": [
-        "nil",
-        "nil",
         "1",
-        "nil"
+        "1",
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil",
         "1",
-        "nil"
+        "1",
+        "1",
+        "1"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil",
         "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "nil",
         "nil"
     ],
     "include": [

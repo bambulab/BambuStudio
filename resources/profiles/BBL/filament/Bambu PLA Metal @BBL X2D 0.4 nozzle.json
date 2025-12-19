@@ -36,28 +36,28 @@
         "0"
     ],
     "filament_retraction_length": [
+        "0.4",
+        "0.4",
         "nil",
-        "nil",
-        "2.5",
         "nil"
     ],
     "filament_wipe": [
-        "nil",
-        "nil",
         "1",
-        "nil"
+        "1",
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil",
-        "nil",
         "1",
-        "nil"
+        "1",
+        "1",
+        "1"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil",
         "Spiral Lift",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "first_x_layer_fan_speed": [
         "40"

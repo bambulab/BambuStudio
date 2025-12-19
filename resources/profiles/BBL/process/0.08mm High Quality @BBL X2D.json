@@ -5,6 +5,13 @@
     "from": "system",
     "setting_id": "GP217",
     "instantiation": "true",
+    "bridge_speed": [
+        "25",
+        "25",
+        "25",
+        "25"
+    ],
+    "bridge_flow": "1.5",
     "default_acceleration": [
         "4000",
         "4000",
@@ -48,23 +55,17 @@
         "1000",
         "1000"
     ],
-    "overhang_1_4_speed": [
-        "60",
-        "60",
-        "0",
-        "60"
-    ],
     "overhang_2_4_speed": [
-        "30",
-        "30",
-        "50",
-        "30"
+        "40",
+        "40",
+        "40",
+        "40"
     ],
-    "overhang_3_4_speed": [
-        "10",
-        "10",
-        "30",
-        "10"
+    "overhang_4_4_speed": [
+        "20",
+        "20",
+        "20",
+        "20"
     ],
     "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",
