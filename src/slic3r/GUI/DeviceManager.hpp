@@ -731,6 +731,7 @@ public:
 
     bool m_firmware_valid { false };
     bool m_firmware_thread_started { false };
+    std::optional<bool> m_firmware_support_print_tpu_left;
     void get_firmware_info();
     bool is_firmware_info_valid();
 

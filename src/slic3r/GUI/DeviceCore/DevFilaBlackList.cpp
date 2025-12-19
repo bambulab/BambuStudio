@@ -109,6 +109,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             // blacklist items
             std::string vendor = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
             std::string type = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
+            std::vector<std::string> types = filament_item.contains("types") ? filament_item["types"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::string type_suffix = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
             std::string name_suffix = filament_item.contains("name_suffix") ? filament_item["name_suffix"].get<std::string>() : "";
             std::string name = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
@@ -150,7 +151,20 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
 
             // check type
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-            if (!type.empty() && (type != tag_type)) { continue; }
+            if (!type.empty() && (type != tag_type)) {
+                continue;
+            }
+
+            if (!types.empty()) {
+                auto it = std::find_if(types.begin(), types.end(), [&tag_type](auto ttype) {
+                    std::transform(ttype.begin(), ttype.end(), ttype.begin(), ::tolower);
+                    return ttype == tag_type;
+                });
+
+                if (it == types.end()) {
+                    continue;// the type is not in types
+                }
+            }
 
             // check type suffix
             std::transform(type_suffix.begin(), type_suffix.end(), type_suffix.begin(), ::tolower);

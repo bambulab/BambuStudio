@@ -60,7 +60,9 @@
 			"support_chamber_temp_switch_heating": 40,
 			"support_extrusion_cali": false,
 			"support_user_preset": false,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_user_first_setup_tpu_check": true,
+			"support_user_first_setup_tpu_check_url": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
 		},
 		"model_id": "O1S",
 		"subseries": [ "O1S-V2" ],

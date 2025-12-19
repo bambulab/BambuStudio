@@ -1,12 +1,17 @@
 #include "PrePrintChecker.hpp"
-#include "SelectMachine.hpp"
+
+#include "MainFrame.hpp"
+#include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
-#include <set>
+#include "SelectMachine.hpp"
 
+#include "DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
+#include <set>
 
 namespace Slic3r { namespace GUI {
 
@@ -311,9 +316,9 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
 {
     // special styles
     if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh) ||
-        info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain) || 
-        info.testStyle(prePrintInfoStyle::BtnInstallFanF000)) {
-
+        info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain) ||
+        info.testStyle(prePrintInfoStyle::BtnInstallFanF000) ||
+        info.testStyle(prePrintInfoStyle::BtnJumpToUpgrade)) {
         wxBoxSizer* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh)){
             auto btn = s_create_btn_label(this, _L("Refresh"));
@@ -336,6 +341,12 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
                 wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=l3T7caKGeNt3omA9");
             });
 
+            btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
+        }
+
+        if (info.testStyle(prePrintInfoStyle::BtnJumpToUpgrade)) {
+            auto btn = s_create_btn_label(this, _L("Upgrade"));
+            btn->Bind(wxEVT_LEFT_DOWN, &PrinterMsgPanel::OnUpgradeBtnClicked, this);
             btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
         }
 
@@ -366,6 +377,20 @@ void PrinterMsgPanel::OnNotShowAgain(const prePrintInfo& info)
     auto cp_infos = m_infos;
     m_infos.clear();
     UpdateInfos(cp_infos);
+}
+
+void PrinterMsgPanel::OnUpgradeBtnClicked(wxMouseEvent& event)
+{
+    auto obj_ = m_select_dialog ? m_select_dialog->get_current_machine() : nullptr;
+    if (!obj_) {
+        return;
+    }
+
+    m_select_dialog->Hide();
+    if (Slic3r::GUI::wxGetApp().mainframe && Slic3r::GUI::wxGetApp().mainframe->m_monitor) {
+        Slic3r::GUI::wxGetApp().mainframe->jump_to_monitor();
+        Slic3r::GUI::wxGetApp().mainframe->m_monitor->jump_to_Upgrade();
+    }
 }
 
 }
