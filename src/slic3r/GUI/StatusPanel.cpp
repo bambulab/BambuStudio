@@ -2853,9 +2853,16 @@ void StatusPanel::update_error_message()
 
     if (obj->print_error <= 0) {
         error_info_reset();
+        if (m_print_error_dlg) {
+            delete m_print_error_dlg;
+            m_print_error_dlg = nullptr;
+        }
     } else if (obj->print_error != last_error) {
         /* clear old dialog */
-        if (m_print_error_dlg) { delete m_print_error_dlg; }
+        if (m_print_error_dlg) {
+            delete m_print_error_dlg;
+            m_print_error_dlg = nullptr;
+        }
 
         /* show device error message*/
         m_print_error_dlg  = new DeviceErrorDialog(obj, this);
