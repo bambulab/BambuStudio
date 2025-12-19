@@ -5102,6 +5102,32 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     }
 
+    if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(obj_->printer_type)) {
+        bool has_tpu_left = false;
+        for (const auto& fila : m_ams_mapping_result) {
+            const auto& ams_id_str = std::to_string(fila.get_ams_id());
+            auto tray_opt = obj_->get_tray(ams_id_str, std::to_string(fila.get_slot_id()));
+            if (!tray_opt.has_value()) {
+                show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
+                return false;
+            }
+
+            if (obj_->GetFilaSystem()->GetExtruderIdByAmsId(ams_id_str) == DEPUTY_EXTRUDER_ID &&
+                (tray_opt->get_filament_type() == "TPU" || tray_opt->get_filament_type() == "TPU-AMS")) {
+                has_tpu_left = true;
+                break;
+            }
+        };
+
+        bool firmware_support_print_tpu_left = obj_->m_firmware_support_print_tpu_left.value_or(false);
+        if (has_tpu_left && !firmware_support_print_tpu_left) {
+            show_status(PrintDialogStatus::PrintStatusFirmwareNotSupportTpuAtLeft,
+                        { _L("Your current firmware version cannot start this print job. Please update to the latest version and try again.") },
+                        wxEmptyString, prePrintInfoStyle::BtnJumpToUpgrade);
+            return false;
+        }
+    }
+
     // filaments check for black list
     for (const auto& fila : m_ams_mapping_result) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
