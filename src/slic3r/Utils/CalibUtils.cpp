@@ -44,7 +44,7 @@ static std::string MachineBedTypeString[6] = {
 static wxString nozzle_not_set_text = _L("The printer nozzle information has not been set.\nPlease configure it before proceeding with the calibration.");
 static wxString nozzle_volume_type_not_match_text = _L("The nozzle type does not match the actual printer nozzle type.\nPlease click the Sync button above and restart the calibration.");
 
-std::vector<std::string> not_support_auto_pa_cali_filaments = {
+std::set<std::string> not_support_auto_pa_cali_filaments = {
     "GFU03", // TPU 90A
     "GFU04"  // TPU 85A
 };
@@ -1051,6 +1051,9 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         return false;
     }
 
+    if (!check_tpu_high_flow_before_cali(CalibMode::Calib_Auto_PA_Line, calib_infos, error_message))
+        return false;
+
     if (!check_printable_status_before_cali(obj_, calib_infos, error_message))
         return false;
 
@@ -1507,11 +1510,7 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
 
 bool CalibUtils::is_support_auto_pa_cali(std::string filament_id)
 {
-    auto iter = std::find(not_support_auto_pa_cali_filaments.begin(), not_support_auto_pa_cali_filaments.end(), filament_id);
-    if (iter != not_support_auto_pa_cali_filaments.end()) {
-        return false;
-    }
-    return true;
+    return not_support_auto_pa_cali_filaments.find(filament_id) == not_support_auto_pa_cali_filaments.end();
 }
 
 int CalibUtils::get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx) {
@@ -1735,6 +1734,20 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
         return false;
     }
 
+    return true;
+}
+
+bool CalibUtils::check_tpu_high_flow_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message)
+{
+    if (cali_mode == CalibMode::Calib_Auto_PA_Line)
+    {
+        for (auto info : cali_infos) {
+            if(info.nozzle_volume_type == NozzleVolumeType::nvtTPUHighFlow) {
+                error_message = _L("Auto dynamic flow calibration is not supported for TPU filament.");
+                return false;
+            }
+        }
+    }
     return true;
 }
 
