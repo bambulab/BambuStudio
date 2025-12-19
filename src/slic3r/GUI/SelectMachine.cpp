@@ -540,6 +540,14 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     //m_change_filament_times_sizer->Add(m_img_change_filament_times, 0, wxTOP, FromDIP(2));
     m_change_filament_times_sizer->Add(m_txt_change_filament_times, 0, wxTOP, 0);
 
+    m_warn_when_drying_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_txt_warn_when_drying = new Label(m_scroll_area, wxEmptyString);
+    m_txt_warn_when_drying->SetFont(::Label::Body_13);
+    m_txt_warn_when_drying->SetForegroundColour(wxColour("#F09A17"));
+    m_txt_warn_when_drying->SetBackgroundColour(*wxWHITE);
+    m_txt_warn_when_drying->SetLabel(_L("To ensure print quality, the drying temperature will be lowered during printing."));
+    m_warn_when_drying_sizer->Add(m_txt_warn_when_drying, 0, wxTOP, FromDIP(2));
+
     /*Advanced Options*/
     wxBoxSizer* sizer_split_options = new wxBoxSizer(wxHORIZONTAL);
     auto m_split_options_line = new wxPanel(m_scroll_area, wxID_ANY);
@@ -802,6 +810,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_scroll_sizer->Add(m_change_filament_times_sizer, 0,wxLEFT|wxRIGHT, FromDIP(15));
     // m_scroll_sizer->Add(m_link_edit_nozzle, 0, wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(suggestion_sizer, 0, wxLEFT|wxRIGHT|wxEXPAND, FromDIP(15));
+    m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    m_scroll_sizer->Add(m_warn_when_drying_sizer, 0, wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(sizer_split_options, 1, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
     m_scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     m_scroll_sizer->Add(m_options_other, 0, wxEXPAND|wxLEFT|wxRIGHT, FromDIP(15));
@@ -1464,6 +1474,18 @@ int SelectMachineDialog::convert_filament_map_nozzle_id_to_task_nozzle_id(int no
         assert(false);
         return nozzle_id;
     }
+}
+
+bool SelectMachineDialog::is_ams_drying(MachineObject* obj)
+{
+    const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+    for (auto ams = ams_list.begin(); ams != ams_list.end(); ams++) {
+        if (ams->second->AmsIsDrying()) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void SelectMachineDialog::prepare(int print_plate_idx)
@@ -3271,6 +3293,13 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         m_check_ext_change_assist->Enable(false);
     }
 
+    if (is_ams_drying(obj_)) {
+        m_warn_when_drying_sizer->Show(true);
+    } else {
+        m_warn_when_drying_sizer->Show(false);
+    }
+
+
      /*reading done*/
     auto upgrade_ptr = obj_->GetUpgrade().lock();
     if (upgrade_ptr) {
@@ -3654,6 +3683,7 @@ void SelectMachineDialog::set_default()
     m_mapping_sugs_sizer->Show(false);
     m_change_filament_times_sizer->Show(false);
     m_txt_change_filament_times->Show(false);
+    m_warn_when_drying_sizer->Show(false);
 
     // rset status bar
     m_status_bar->reset();

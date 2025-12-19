@@ -122,7 +122,7 @@ private:
     std::shared_ptr<DevExtensionTool> m_extension_tool;
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
-    DevFilaSystem*    m_fila_system;
+    std::shared_ptr<DevFilaSystem> m_fila_system;
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
@@ -343,7 +343,7 @@ public:
     DevNozzleSystem*               GetNozzleSystem() const { return m_nozzle_system;}
     std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
-    DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSystem>   GetFilaSystem() const { return m_fila_system;}
     bool             HasAms() const;
 
     std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
@@ -537,6 +537,7 @@ public:
     // fun2
     bool is_support_print_with_emmc{false};
     bool is_support_pa_mode{false};
+    bool is_support_remote_dry = false;
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;

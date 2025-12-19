@@ -1,0 +1,1504 @@
+#include "AMSDryControl.hpp"
+#include "DeviceCore/DevFilaSystem.h"
+#include "GUI_App.hpp"
+#include "I18N.hpp"
+
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+#include "slic3r/GUI/DeviceCore/DevUpgrade.h"
+
+#include "slic3r/GUI/DeviceCore/DevManager.h"
+
+#include "slic3r/GUI/MsgDialog.hpp"
+
+#include "slic3r/GUI/Widgets/AnimaController.hpp"
+#include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/GUI/Widgets/ComboBox.hpp"
+#include "slic3r/GUI/Widgets/ProgressBar.hpp"
+#include "DeviceCore/DevUtilBackend.h"
+
+namespace Slic3r { namespace GUI {
+
+const int AMS_DRY_STATUS_IMAGE_SIZE = 96;
+
+static std::string get_humidity_level_img_path(int humidity_percent)
+{
+    const int num_levels = 5;
+    int hum_level;
+
+    if (humidity_percent <= 100 / num_levels) {
+        hum_level = 5;
+    } else if (humidity_percent <= 100 / num_levels * 2) {
+        hum_level = 4;
+    } else if (humidity_percent <= 100 / num_levels * 3) {
+        hum_level = 3;
+    } else if (humidity_percent <= 100 / num_levels * 4) {
+        hum_level = 2;
+    } else {
+        hum_level = 1;
+    }
+
+    if (wxGetApp().dark_mode()) {
+        return "hum_level" + std::to_string(hum_level) + "_no_num_light";
+    } else {
+        return "hum_level" + std::to_string(hum_level) + "_no_num_light";
+    }
+
+}
+
+static std::string get_dry_status_img_path(DevAms::AmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
+{
+    std::string img_name = "dev_ams_dry_ctr_";
+    switch (type) {
+        case DevAms::AmsType::N3S:
+            img_name += "n3s";
+            break;
+        case DevAms::AmsType::N3F:
+            img_name += "n3f";
+            break;
+        default:
+            return "";
+    }
+
+    img_name += "_";
+    switch (status) {
+        case DevAms::DryStatus::Error:
+            img_name += "error";
+            return img_name;
+        case DevAms::DryStatus::Cooling:
+            img_name += "cooling";
+            return img_name;
+    }
+
+    switch (sub_status) {
+        case DevAms::DrySubStatus::Heating:
+            img_name += "heating";
+            return img_name;
+        case DevAms::DrySubStatus::Dehumidify:
+            img_name += "dehumidifying";
+            return img_name;
+    }
+
+    return "";
+}
+
+FilamentItemPanel::FilamentItemPanel(wxWindow* parent, const wxString& text, const std::string& icon_name, wxWindowID id)
+    : wxPanel(parent, id)
+    , m_icon_name(icon_name)
+{
+    SetBackgroundColour(wxColour("#F7F7F7")); // Light gray background
+    SetMinSize(wxSize(FromDIP(60), FromDIP(100))); // Width: 64, Height: 100
+    SetSize(wxSize(FromDIP(60), FromDIP(100)));    // Fixed size
+    
+    // Create sizer for vertical layout
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    
+    // Top section with text - moved to be closer to center
+    wxBoxSizer* top_sizer = new wxBoxSizer(wxVERTICAL);
+    top_sizer->AddStretchSpacer(5);
+    
+    m_text_label = new Label(this, text);
+    m_text_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour(*wxBLACK)));
+    m_text_label->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F7F7F7")));
+    m_text_label->SetFont(Label::Body_12);
+    m_text_label->Wrap(FromDIP(30));
+    top_sizer->Add(m_text_label, 0, wxALIGN_CENTER_HORIZONTAL);
+    
+    top_sizer->AddStretchSpacer(1); // Increased bottom spacer to push text down
+    sizer->Add(top_sizer, 1, wxEXPAND);
+    
+    // Bottom section with icon - vertically centered in bottom half
+    wxBoxSizer* bottom_sizer = new wxBoxSizer(wxVERTICAL);
+    bottom_sizer->AddStretchSpacer(1);
+    
+    m_icon_bitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
+    m_icon_bitmap->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F7F7F7")));
+    m_icon_bitmap->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_icon_bitmap->SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
+    bottom_sizer->Add(m_icon_bitmap, 0, wxALIGN_CENTER_HORIZONTAL);
+    
+    bottom_sizer->AddStretchSpacer(1);
+    sizer->Add(bottom_sizer, 1, wxEXPAND);
+    
+    SetSizer(sizer);
+    
+    // Bind events
+    Bind(wxEVT_PAINT, &FilamentItemPanel::OnPaint, this);
+    Bind(wxEVT_SIZE, &FilamentItemPanel::OnSize, this);
+
+    SetIcon(icon_name);
+    wxGetApp().UpdateDarkUI(this);
+}
+
+void FilamentItemPanel::SetText(const wxString& text)
+{
+    m_text_label->SetLabel(text);
+    Layout();
+}
+
+void FilamentItemPanel::SetIcon(const std::string& icon_name)
+{
+    m_icon_name = icon_name;
+    if (!icon_name.empty()) {
+        try {
+            m_icon = ScalableBitmap(this, icon_name, 20);
+            m_icon.msw_rescale();
+            m_icon_bitmap->SetBitmap(m_icon.bmp());
+        } catch (Exception& e) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << e.what();
+            m_icon_bitmap->SetBitmap(wxNullBitmap);
+        }
+    } else {
+        m_icon_bitmap->SetBitmap(wxNullBitmap);
+    }
+    m_icon_bitmap->Refresh();
+}
+
+void FilamentItemPanel::msw_rescale()
+{
+    if (m_icon_bitmap && !m_icon_name.empty()) {
+        m_icon.msw_rescale();
+        m_icon_bitmap->SetBitmap(m_icon.bmp());
+        m_icon_bitmap->Refresh();
+    }
+    Layout();
+}
+
+void FilamentItemPanel::OnPaint(wxPaintEvent& event)
+{
+    wxPaintDC dc(this);
+    wxSize size = GetSize();
+
+    // bool is_dark_mode = wxGetApp().dark_mode();
+    wxColour backgroundColor = StateColor::darkModeColorFor(wxColour("#F7F7F7"));
+    wxColour borderColor = StateColor::darkModeColorFor(wxColour("#DBDBDB"));
+    
+    // Draw white background rectangle with rounded corners inside the thick vertical lines
+    dc.SetBrush(wxBrush(backgroundColor));
+    dc.SetPen(wxPen(backgroundColor));
+    dc.DrawRectangle(FromDIP(6), FromDIP(12), size.GetWidth() - FromDIP(12), size.GetHeight() - 2 * FromDIP(12));
+    
+    // Draw much thicker vertical rounded rectangles on left and right (3 times thicker)
+    dc.SetBrush(wxBrush(wxColour(borderColor)));
+    dc.SetPen(wxPen(wxColour(borderColor)));
+    dc.DrawRoundedRectangle(FromDIP(0), FromDIP(0), FromDIP(6), size.GetHeight(), FromDIP(6)); // Left rounded rectangle
+    dc.DrawRoundedRectangle(size.GetWidth() - FromDIP(6), FromDIP(0), FromDIP(6), size.GetHeight(), FromDIP(6)); // Right rounded rectangle
+
+    // Draw thin horizontal rounded rectangles on top and bottom (moved closer to center by half the distance)
+    dc.SetBrush(wxBrush(wxColour(borderColor)));
+    dc.SetPen(wxPen(wxColour(borderColor)));
+    dc.DrawRoundedRectangle(FromDIP(6), FromDIP(12), size.GetWidth() - FromDIP(12), FromDIP(3), FromDIP(1)); // Top rounded rectangle
+    dc.DrawRoundedRectangle(FromDIP(6), size.GetHeight() - FromDIP(13), size.GetWidth() - FromDIP(12), FromDIP(3), FromDIP(1)); // Bottom rounded rectangle
+}
+
+void FilamentItemPanel::OnSize(wxSizeEvent& event)
+{
+    Refresh();
+    event.Skip();
+}
+
+// class AMSFilamentPanel
+
+AMSFilamentPanel::AMSFilamentPanel(wxWindow* parent, const wxString& ams_name, wxWindowID id)
+    : wxPanel(parent, id)
+{
+    SetBackgroundColour(wxColour("#DBDBDB"));
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // Filament items section
+    m_filament_container = new wxPanel(this);
+    m_filament_container->SetBackgroundColour(wxColour("#F7F7F7"));
+    m_filament_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_filament_container->SetSizer(m_filament_sizer);
+
+    // AMS name section
+    m_ams_name_label = new Label(this, ams_name);
+    m_ams_name_label->SetForegroundColour(wxColour("#858585"));
+    m_ams_name_label->SetFont(Label::Body_14);
+    m_ams_name_label->SetBackgroundColour(wxColour("#DBDBDB"));
+
+    main_sizer->Add(m_filament_container, 1, wxEXPAND | wxALL, 0);
+    main_sizer->Add(m_ams_name_label, 0, wxALIGN_LEFT | wxALL, FromDIP(5));
+    
+    SetSizer(main_sizer);
+    wxGetApp().UpdateDarkUI(this);
+}
+
+void AMSFilamentPanel::AddFilamentItem(FilamentItemPanel* panel)
+{
+    if (panel) {
+        panel->Reparent(m_filament_container);
+        m_filament_sizer->Add(panel, 0, wxALL, FromDIP(5));
+        m_filament_items.push_back(panel);
+        Layout();
+    }
+}
+
+void AMSFilamentPanel::AddFilamentItem(const wxString& text, const std::string& icon_name)
+{
+    FilamentItemPanel* item = new FilamentItemPanel(m_filament_container, text, icon_name);
+    m_filament_items.push_back(item);
+    m_filament_sizer->Add(item, 0, wxALL, FromDIP(5));
+    Layout();
+}
+
+void AMSFilamentPanel::SetAmsName(const wxString& ams_name)
+{
+    m_ams_name_label->SetLabel(ams_name);
+    Layout();
+}
+
+void AMSFilamentPanel::Clear()
+{
+    m_filament_sizer->Clear(true);
+    m_filament_items.clear();
+}
+
+void AMSFilamentPanel::msw_rescale()
+{
+    for (auto item : m_filament_items) {
+        item->msw_rescale();
+    }
+    Layout();
+}
+
+
+AMSDryCtrWin::AMSDryCtrWin(wxWindow *parent)
+    :DPIDialog(parent, wxID_ANY, _L("AMS Dryness Control"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    create();
+}
+
+AMSDryCtrWin::~AMSDryCtrWin()
+{
+    if (m_progress_timer) {
+        delete m_progress_timer;
+    }
+}
+
+
+wxScrolledWindow* AMSDryCtrWin::create_preview_scrolled_window(wxWindow* parent)
+{
+    wxScrolledWindow* panel = new wxScrolledWindow(parent, wxID_ANY);
+    panel->SetScrollRate(10, 0);
+    panel->SetSize(AMS_ITEMS_PANEL_SIZE);
+    panel->SetMinSize(AMS_ITEMS_PANEL_SIZE);
+    panel->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
+
+    return panel;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_top_section(wxPanel* parent)
+{
+    wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    Label* title = new Label(parent, _L("Current AMS humidity"));
+    title->SetForegroundColour(*wxBLACK);
+    title->SetBackgroundColour(*wxWHITE);
+    title->SetFont(Label::Head_18);
+
+    top_sizer->AddStretchSpacer();
+    top_sizer->Add(title, 0);
+    top_sizer->AddStretchSpacer();
+
+    return top_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_humidity_status_section(wxPanel* parent)
+{
+    wxBoxSizer* image_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_humidity_img = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
+    image_sizer->Add(m_humidity_img, 1, wxALIGN_CENTER_HORIZONTAL, 0);
+
+    m_humidity_img->SetBitmap(wxNullBitmap);
+    
+    m_image_description = new Label(parent, _L("Idle"));
+    m_image_description->SetFont(Label::Head_14);
+    m_image_description->SetForegroundColour(*wxBLACK);
+    m_image_description->SetBackgroundColour(*wxWHITE);
+    image_sizer->Add(m_image_description, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    
+    return image_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_description_item(wxPanel* parent, const wxString& title, Label*& dataLabel)
+{
+    wxBoxSizer* item_sizer = new wxBoxSizer(wxVERTICAL);
+
+    Label* titleLabel = new Label(parent, title);
+    titleLabel->SetForegroundColour(*wxBLACK);
+    titleLabel->SetFont(Label::Body_16);
+
+    dataLabel = new Label(parent, wxT("--"));
+    dataLabel->SetForegroundColour(*wxBLACK);
+    dataLabel->SetFont(Label::Body_14);
+
+    item_sizer->AddStretchSpacer();
+    item_sizer->Add(titleLabel, 0, wxALIGN_CENTER | wxALL, FromDIP(2));
+    item_sizer->Add(dataLabel, 0, wxALIGN_CENTER | wxALL, FromDIP(2));
+    item_sizer->AddStretchSpacer();
+    
+    return item_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_status_descriptions_section(wxPanel* parent)
+{
+    wxBoxSizer* desc_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxBoxSizer* hum_desc_sizer = create_description_item(parent, _L("Humidity"), m_humidity_data_label);
+    desc_sizer->Add(hum_desc_sizer, 1, wxEXPAND, FromDIP(1));
+
+    wxStaticLine* vert_separator = new wxStaticLine(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
+    desc_sizer->Add(vert_separator, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+
+    wxBoxSizer* temp_desc_sizer = create_description_item(parent, _L("Temperature"), m_temperature_data_label);
+    desc_sizer->Add(temp_desc_sizer, 1, wxEXPAND, FromDIP(1));
+
+    m_time_descrition_container = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticLine* vert_separator2 = new wxStaticLine(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
+    m_time_descrition_container->Add(vert_separator2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
+
+    wxBoxSizer* time_desc_sizer = create_description_item(parent, _L("Left Time"), m_time_data_label);
+    m_time_descrition_container->Add(time_desc_sizer, 1, wxEXPAND, FromDIP(1));
+
+    desc_sizer->Add(m_time_descrition_container, 1, wxEXPAND, 0);
+    // m_time_descrition_container->Show(false);
+    
+    return desc_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_left_panel(wxPanel* parent)
+{
+    wxBoxSizer* left_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* image_section = create_humidity_status_section(parent);
+    left_sizer->Add(image_section, 1, wxEXPAND | wxALL, FromDIP(5));
+
+    wxBoxSizer* descriptions_section = create_status_descriptions_section(parent);
+    left_sizer->Add(descriptions_section, 0, wxEXPAND | wxALL, FromDIP(20));
+    
+    return left_sizer;
+}
+
+Button* AMSDryCtrWin::create_button(wxPanel* parent, const wxString& title,
+    const wxColour& background_color, const wxColour& border_color, const wxColour& text_color)
+{
+    Button* button = new Button(parent, title);
+    
+    // Create state colors for background
+    StateColor bg_color(
+        std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
+        std::pair<wxColour, int>(background_color.ChangeLightness(80), StateColor::Pressed),
+        std::pair<wxColour, int>(background_color.ChangeLightness(120), StateColor::Hovered),
+        std::pair<wxColour, int>(background_color, StateColor::Normal)
+    );
+    
+    // Create state colors for border
+    StateColor bd_color(
+        std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled),
+        std::pair<wxColour, int>(border_color, StateColor::Enabled)
+    );
+    
+    button->SetBackgroundColor(bg_color);
+    button->SetBorderColor(bd_color);
+    button->SetTextColor(text_color);
+    button->SetFont(Label::Body_14);
+    button->SetSize(wxSize(FromDIP(128), FromDIP(26)));
+    button->SetMinSize(wxSize(-1, FromDIP(26)));
+    
+    return button;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
+{
+    wxBoxSizer* normal_state_sizer = new wxBoxSizer(wxVERTICAL);
+
+    Label* description_label = new Label(parent, _L("Filament Drying Settings"));
+    description_label->SetForegroundColour(*wxBLACK);
+    description_label->SetFont(Label::Head_14);
+    normal_state_sizer->Add(description_label, 0, wxALL, FromDIP(5));
+
+    // Part 2: ComboBox for material selection
+    wxBoxSizer* combo_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_trays_combo = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(-1, FromDIP(26)), 0, nullptr, wxCB_READONLY);
+    m_trays_combo->SetFont(Label::Body_14);
+
+    combo_sizer->Add(m_trays_combo, 1, wxEXPAND);
+    normal_state_sizer->Add(combo_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    m_trays_combo->Bind(wxEVT_COMBOBOX, &AMSDryCtrWin::OnFilamentSelectionChanged, this);
+
+    // part 3 time and temperature
+    // Temperature part
+    wxBoxSizer* temp_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_temperature_input = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(80), -1));
+    m_temperature_input->SetMaxLength(3); // Limit to 3 digits
+
+    m_temperature_input->Bind(wxEVT_CHAR, [this](wxKeyEvent& event) {
+        int keycode = event.GetKeyCode();
+        if (keycode >= '0' && keycode <= '9') {
+            event.Skip();
+        } else if (keycode == WXK_BACK || keycode == WXK_DELETE || keycode == WXK_LEFT || keycode == WXK_RIGHT) {
+            event.Skip();
+        }
+    });
+
+    Label* temp_unit_label = new Label(parent, wxString::FromUTF8("℃"));
+    temp_unit_label->SetForegroundColour(*wxBLACK);
+    temp_sizer->Add(m_temperature_input, 1, wxRIGHT, FromDIP(1));
+    temp_sizer->Add(temp_unit_label, 0, wxALIGN_CENTER_VERTICAL);
+
+    // Time part
+    wxBoxSizer* time_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_time_input = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, wxSize(FromDIP(100), -1));
+    m_time_input->SetMaxLength(3); // Limit to 3 digits
+
+    m_time_input->Bind(wxEVT_CHAR, [this](wxKeyEvent& event) {
+        int keycode = event.GetKeyCode();
+        if (keycode >= '0' && keycode <= '9') {
+            event.Skip();
+        } else if (keycode == WXK_BACK || keycode == WXK_DELETE || keycode == WXK_LEFT || keycode == WXK_RIGHT) {
+            event.Skip();
+        }
+        long time_val;
+        m_time_input->GetValue().ToLong(&time_val);
+        if (time_val > 24) {
+            m_time_input->SetValue("24");
+        }
+    });
+
+    Label* time_unit_label = new Label(parent, _L("H"));
+    time_unit_label->SetForegroundColour(*wxBLACK);
+    time_sizer->Add(m_time_input, 1, wxRIGHT, FromDIP(1));
+    time_sizer->Add(time_unit_label, 0, wxALIGN_CENTER_VERTICAL);
+
+    wxBoxSizer* input_sizer = new wxBoxSizer(wxHORIZONTAL);
+    input_sizer->Add(temp_sizer, 1, wxRIGHT, FromDIP(10));
+    input_sizer->Add(time_sizer, 1, 0);
+    normal_state_sizer->Add(input_sizer, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    // Part 4: Abnormal description/message area
+    m_normal_description = new Label(parent, "");
+    m_normal_description->SetForegroundColour(wxColour("#F09A17"));
+    m_normal_description->SetFont(Label::Body_12);
+    normal_state_sizer->Add(m_normal_description, 0, wxALL, FromDIP(5));
+
+    // Part 5: Start button
+    m_next_button = create_button(
+        parent,
+        _L("Start"),
+        AMS_CONTROL_BRAND_COLOUR,  // Background color - green
+        AMS_CONTROL_BRAND_COLOUR,  // Border color - green
+        wxColour("#FFFFFE")        // Text color - white
+    );
+
+    m_next_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& event) {
+        m_main_simplebook->SetSelection(1);
+    });
+
+    normal_state_sizer->Add(m_next_button, 0, wxALL, FromDIP(5));
+    m_next_button->Disable();
+
+    m_stop_button = create_button(
+        parent,
+        _L("Stop"),
+        wxColour(255, 0, 0),       // Background color - red
+        wxColour(255, 0, 0),       // Border color - red
+        wxColour("#FFFFFE")        // Text color - white
+    );
+
+    m_stop_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& event) {
+        auto fila_system = get_fila_system();
+        if (!fila_system) {
+            BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Invalid FilaSystem Pointer";
+            return;
+        }
+
+        fila_system->CtrlAmsStopDrying(std::stoi(m_ams_info.m_ams_id));
+    });
+
+    m_stop_button->Show(false);
+    normal_state_sizer->Add(m_stop_button, 0, wxALL, FromDIP(5));
+
+    return normal_state_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_cannot_dry_panel(wxPanel* parent)
+{
+    wxBoxSizer* abnormal_sizer = new wxBoxSizer(wxVERTICAL);
+
+    Label* description_label = new Label(parent, _L("Unable to dry temporarily due to ..."));
+    description_label->SetForegroundColour(*wxBLACK);
+    description_label->SetFont(Label::Head_16);
+    description_label->Wrap(FromDIP(300));
+    abnormal_sizer->Add(description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
+
+    // Add a description label for the abnormal state
+    m_cannot_dry_description_label = new Label(parent, (""));
+    m_cannot_dry_description_label->SetForegroundColour(*wxBLACK);
+    m_cannot_dry_description_label->SetFont(Label::Body_14);
+    m_cannot_dry_description_label->Wrap(FromDIP(250)); // Wrap text to fit within panel
+    
+    abnormal_sizer->Add(m_cannot_dry_description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
+
+    return abnormal_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_drying_error_panel(wxPanel* parent)
+{
+    wxBoxSizer* err_sizer = new wxBoxSizer(wxVERTICAL);
+    Label* description_label = new Label(parent, _L("Drying Error"));
+    description_label->SetForegroundColour(*wxRED);
+    description_label->SetFont(Label::Body_14); // Wrap text to fit within panel
+    err_sizer->Add(description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
+
+    Label* additional_description_label = new Label(parent, _L("Please check the Assistant for troubleshooting>"));
+    additional_description_label->SetForegroundColour(*wxBLACK);
+    additional_description_label->SetFont(Label::Body_14); // Wrap text to fit within panel
+    err_sizer->Add(additional_description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
+
+    return err_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_right_panel(wxPanel* parent)
+{
+    wxBoxSizer* right_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_normal_state_sizer = create_normal_state_panel(parent);
+    m_cannot_dry_sizer = create_cannot_dry_panel(parent);
+    m_dry_error_sizer = create_drying_error_panel(parent);
+
+    right_sizer->Add(m_normal_state_sizer, 1, wxEXPAND);
+    right_sizer->Add(m_cannot_dry_sizer, 1, wxEXPAND);
+
+    m_cannot_dry_sizer->Show(false);
+    m_dry_error_sizer->Show(false);
+
+    return right_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_main_content_section(wxPanel* parent)
+{
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxBoxSizer* left_panel = create_left_panel(parent);
+    content_sizer->Add(left_panel, 2, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    left_panel->SetMinSize(wxSize(FromDIP(250), -1));
+    
+    wxBoxSizer* right_panel = create_right_panel(parent);
+    content_sizer->Add(right_panel, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
+    right_panel->SetMinSize(wxSize(FromDIP(250), -1));
+    
+    return content_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_main_page_sizer(wxPanel* parent)
+{
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* top_section = create_top_section(parent);
+    main_sizer->Add(top_section, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    wxBoxSizer* content_section = create_main_content_section(parent);
+    main_sizer->Add(content_section, 1, wxEXPAND | wxALL, FromDIP(5));
+
+    return main_sizer;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_guide_info_filament(wxPanel* parent)
+{
+    wxBoxSizer* filament_section = new wxBoxSizer(wxHORIZONTAL);
+
+    m_ams_filament_panel = new AMSFilamentPanel(parent, "");
+
+    filament_section->Add(m_ams_filament_panel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
+
+    return filament_section;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
+{
+    wxBoxSizer* info_section = new wxBoxSizer(wxVERTICAL);
+    
+    // Part 1: Title
+    Label* title_label = new Label(parent, _L("Please remove and store the filament (as shown)."));
+    title_label->SetForegroundColour(*wxBLACK);
+    title_label->SetFont(Label::Head_18);
+    info_section->Add(title_label, 0, wxEXPAND | wxALL, FromDIP(5));
+    
+    // Part 2: Description
+    m_guide_description_label = new Label(parent, _L("The AMS can rotate the filament which is properly stored, providing better drying results."));
+    m_guide_description_label->SetForegroundColour(*wxBLACK);
+    m_guide_description_label->SetFont(Label::Body_14);
+    m_guide_description_label->Wrap(FromDIP(300)); // Wrap text to fit within panel
+    info_section->Add(m_guide_description_label, 0, wxEXPAND | wxALL, FromDIP(5));
+    
+    // Part 3: filament panel
+    wxBoxSizer* fila_section = create_guide_info_filament(parent);
+    info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
+    
+    // Part 4: Circular toggle with description
+    wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
+    
+    m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
+    m_rotate_spool_toggle->SetValue(false);
+
+    m_rotate_spool_toggle->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
+        bool is_checked = event.IsChecked();
+        // Add toggle behavior logic here
+    });
+
+    toggle_section->Add(m_rotate_spool_toggle, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+
+    // Toggle description
+    Label* toggle_description = new Label(parent, _L("Rotate spool when drying"));
+    toggle_description->SetForegroundColour(*wxBLACK);
+    toggle_description->SetFont(Label::Body_12);
+    toggle_section->Add(toggle_description, 0, wxALIGN_CENTER_VERTICAL, 0);
+    
+    info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    return info_section;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_guide_right_section(wxPanel* parent)
+{
+    wxBoxSizer* right_section = new wxBoxSizer(wxVERTICAL);
+
+    // Upper part: Image section
+    m_image_placeholder = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
+    m_guide_image = ScalableBitmap(parent, "dev_ams_dry_ctr_filament_in_chamber", 256);
+    m_image_placeholder->SetBitmap(m_guide_image.bmp());
+
+    wxBoxSizer* image_container = new wxBoxSizer(wxHORIZONTAL);
+    image_container->AddStretchSpacer(1);
+    image_container->Add(m_image_placeholder, 0, wxALL, FromDIP(5));
+    
+    right_section->Add(image_container, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    wxBoxSizer* buttons_container = new wxBoxSizer(wxHORIZONTAL);
+    buttons_container->AddStretchSpacer(1);
+
+    m_back_button = create_button(
+        parent,
+        _L("Back"),
+        wxColour("#F8F8F8"),       // Background color - light gray
+        wxColour("#D0D0D0"),       // Border color - gray
+        *wxBLACK                   // Text color - black
+    );
+
+    m_back_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& event) {
+        m_main_simplebook->SetSelection(0);
+    });
+
+    buttons_container->Add(m_back_button, 0, wxALL, FromDIP(5));
+
+    m_start_button = create_button(
+        parent,
+        _L("Start"),
+        AMS_CONTROL_BRAND_COLOUR,  // Background color - green
+        AMS_CONTROL_BRAND_COLOUR,  // Border color - green
+        wxColour("#FFFFFE")        // Text color - white
+    );
+
+    m_start_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& event) {
+        m_main_simplebook->SetSelection(2);
+        m_progress_gauge->SetValue(0);
+
+        m_progress_timer->Start(70);
+        m_progress_value = 0;
+        start_sending_drying_command();
+    });
+
+    buttons_container->Add(m_start_button, 0, wxALL, FromDIP(5));
+
+    right_section->Add(buttons_container, 0, wxEXPAND | wxALL, FromDIP(5));
+
+    return right_section;
+}
+
+wxBoxSizer* AMSDryCtrWin::create_guide_page_sizer(wxPanel* parent)
+{
+    wxBoxSizer* guide_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxBoxSizer* info_section = create_guide_info_section(parent);
+    guide_sizer->Add(info_section, 1, wxEXPAND | wxALL, FromDIP(10));
+
+    wxBoxSizer* right_section = create_guide_right_section(parent);
+    guide_sizer->Add(right_section, 0, wxEXPAND | wxALL, FromDIP(10));
+
+    return guide_sizer;
+}
+
+void AMSDryCtrWin::start_sending_drying_command()
+{
+    auto fila_system = get_fila_system();
+    if (!fila_system) {
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Invalid FilaSystem Pointer";
+        return;
+    }
+
+    if (m_temperature_input->GetValue().IsEmpty() || m_time_input->GetValue().IsEmpty()) {
+        // Show error message to user
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Time or temperature is empty";
+        return;
+    }
+
+    long temperature, time;
+    if (!m_temperature_input->GetValue().ToLong(&temperature) || 
+        !m_time_input->GetValue().ToLong(&time)) {
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Failed to convert temperature or time";
+        return;
+    }
+
+    int tray_index;
+    tray_index = m_trays_combo->GetSelection();
+    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), m_tray_ids[tray_index].filament_type,
+        temperature, time, m_rotate_spool_toggle->GetValue(), 20, false);
+
+    m_dry_setting.m_filament_names[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_name;
+    m_dry_setting.m_dry_temp[m_ams_info.m_ams_id] = temperature;
+    m_dry_setting.m_dry_time[m_ams_info.m_ams_id] = time;
+}
+
+void AMSDryCtrWin::OnProgressTimer(wxTimerEvent& event)
+{
+    m_progress_value += 1;
+
+    if (m_progress_value <= 100)
+        m_progress_gauge->SetValue(m_progress_value);
+
+    if (m_progress_value == 1) { // First tick, reset message index
+        m_progress_message_index = 0;
+        if (!m_progress_text.empty()) {
+            m_progress_title->SetLabel(m_progress_text[0]);
+        }
+    }
+    else if (m_progress_value % 15 == 0) { // Approximately every second
+        m_progress_message_index++;
+        if (m_progress_message_index < m_progress_text.size()) {
+            m_progress_title->SetLabel(m_progress_text[m_progress_message_index]);
+            m_progress_title->Refresh();
+        }
+    }
+
+    if (m_progress_value >= 100 && !is_dry_ctr_idle()) {
+        m_progress_value = 0;
+        m_progress_timer->Stop();
+        m_main_simplebook->SetSelection(0);
+    }
+}
+
+void AMSDryCtrWin::OnShow(wxShowEvent& event)
+{
+    if (event.IsShown()) {
+        wxGetApp().UpdateDlgDarkUI(this);
+        msw_rescale();
+    }
+    event.Skip();
+}
+
+void AMSDryCtrWin::OnClose(wxCloseEvent& event)
+{
+    if (m_progress_timer && m_progress_timer->IsRunning()) {
+        m_progress_timer->Stop();
+    }
+
+    if (m_progress_gauge) {
+        m_progress_gauge->SetValue(0);
+    }
+
+    m_progress_value = 0;
+    m_progress_message_index = 0;
+
+    if (m_main_simplebook) {
+        m_main_simplebook->SetSelection(0);
+    }
+
+    if (m_progress_title && !m_progress_text.empty()) {
+        m_progress_title->SetLabel(m_progress_text[0]);
+    }
+
+    event.Skip();
+}
+
+wxBoxSizer* AMSDryCtrWin::create_progress_page_sizer(wxPanel* parent)
+{
+    wxBoxSizer* progress_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_progress_title = new Label(parent, m_progress_text[0]);
+    m_progress_title->SetForegroundColour(*wxBLACK);
+    m_progress_title->SetFont(Label::Body_16);
+
+    progress_sizer->Add(0, 0, 1, wxEXPAND, 0); // Spacer
+    progress_sizer->Add(m_progress_title, 0, wxALIGN_CENTER | wxALL, FromDIP(30));
+
+    m_progress_gauge = new ProgressBar(parent, wxID_ANY, 100, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(8)));
+    m_progress_gauge->SetValue(0);
+    m_progress_gauge->SetHeight(FromDIP(8));
+    
+    progress_sizer->Add(m_progress_gauge, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
+    progress_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    return progress_sizer;
+}
+
+void AMSDryCtrWin::create()
+{
+    // set title icon
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    this->SetDoubleBuffered(true);
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    SetSize(wxSize(FromDIP(700), FromDIP(500)));
+    SetMinSize(wxSize(FromDIP(700), FromDIP(500)));
+    SetMaxSize(wxSize(FromDIP(700), FromDIP(500)));
+
+    m_main_simplebook = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+
+    // Create main page
+    m_original_page = new wxPanel(m_main_simplebook, wxID_ANY);
+    m_original_page->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* main_sizer = create_main_page_sizer(m_original_page);
+    m_original_page->SetSizer(main_sizer);
+
+    m_main_simplebook->AddPage(m_original_page, "Main Page");
+
+    m_guide_page = new wxPanel(m_main_simplebook, wxID_ANY);
+    m_guide_page->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* guide_sizer = create_guide_page_sizer(m_guide_page);
+    m_guide_page->SetSizer(guide_sizer);
+    m_main_simplebook->AddPage(m_guide_page, "Guide Page");
+
+    // Create progress page
+    m_progress_page = new wxPanel(m_main_simplebook, wxID_ANY);
+    m_progress_page->SetBackgroundColour(*wxWHITE);
+    wxBoxSizer* progress_sizer = create_progress_page_sizer(m_progress_page);
+    m_progress_page->SetSizer(progress_sizer);
+    m_main_simplebook->AddPage(m_progress_page, "Progress Page");
+
+    m_progress_timer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &AMSDryCtrWin::OnProgressTimer, this);
+
+    Bind(wxEVT_CLOSE_WINDOW, &AMSDryCtrWin::OnClose, this);
+
+    wxBoxSizer* top_level_sizer = new wxBoxSizer(wxVERTICAL);
+    top_level_sizer->Add(m_main_simplebook, 1, wxEXPAND | wxALL, FromDIP(10));
+
+    Bind(wxEVT_SHOW, &AMSDryCtrWin::OnShow, this);
+
+    SetSizer(top_level_sizer);
+    Layout();
+    Refresh();
+    wxGetApp().UpdateDlgDarkUI(this);
+}
+
+void AMSDryCtrWin::on_dpi_changed(const wxRect &suggested_rect)
+{
+    msw_rescale();
+}
+
+void AMSDryCtrWin::msw_rescale()
+{
+    if (!IsShown()) {
+        return;
+    }
+
+    if (m_ams_filament_panel) {m_ams_filament_panel->msw_rescale();}
+    if (m_trays_combo) {m_trays_combo->Rescale(); m_trays_combo->Layout(); m_trays_combo->SetFont(Label::Body_14), m_trays_combo->Refresh();}
+    if (m_humidity_img && m_humidity_image.bmp().IsOk()) {m_humidity_image.msw_rescale(); m_humidity_img->SetBitmap(m_humidity_image.bmp());}
+    if (m_image_placeholder && m_guide_image.bmp().IsOk()) {m_guide_image.msw_rescale();m_image_placeholder->SetBitmap(m_guide_image.bmp());}
+
+    if (m_next_button) {m_next_button->Rescale(); m_next_button->Layout(); m_next_button->Refresh();}
+    if (m_stop_button) {m_stop_button->Rescale(); m_stop_button->Layout(); m_stop_button->Refresh();}
+    if (m_start_button) {m_start_button->Rescale(); m_start_button->Layout(); m_start_button->Refresh();}
+    if (m_back_button) {m_back_button->Rescale(); m_back_button->Layout(); m_back_button->Refresh();}
+
+    if (m_guide_page) {m_guide_page->Layout();}
+    if (m_original_page) {m_original_page->Layout();}
+
+    Fit();
+    Layout();
+    Refresh();
+}
+
+void AMSDryCtrWin::set_ams_id(const std::string& ams_id)
+{
+    m_ams_info.m_ams_id = ams_id;
+    m_is_ams_changed = true;
+}
+
+void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
+{
+    if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
+        m_image_description->SetLabel("Idle");
+    }
+    else if (status == DevAms::DryStatus::Cooling) {
+        m_image_description->SetLabel("Cooling");
+    }
+    else if (sub_status == DevAms::DrySubStatus::Heating) {
+        m_image_description->SetLabel("Heating");
+    }
+    else if (sub_status == DevAms::DrySubStatus::Dehumidify) {
+        m_image_description->SetLabel("Dehumidifying");
+    }
+}
+
+int AMSDryCtrWin::update_image(DevAms::AmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent)
+{
+    if (model == m_ams_info.m_model && status == m_ams_info.m_dry_status
+        && sub_status == m_ams_info.m_dry_sub_status && humidity_percent == m_ams_info.m_humidity_percent) {
+        return 0;
+    }
+
+    std::string img_path;
+
+    if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
+        img_path = get_humidity_level_img_path(humidity_percent);
+    } else {
+        img_path = get_dry_status_img_path(model, status, sub_status);
+    }
+
+    if (img_path.empty()) {
+        return 0;
+    }
+
+    m_humidity_image = ScalableBitmap(this, img_path, AMS_DRY_STATUS_IMAGE_SIZE);
+    m_humidity_img->SetBitmap(m_humidity_image.bmp());
+
+    update_img_description(status, sub_status);
+
+    return 1;
+}
+
+bool AMSDryCtrWin::check_values_changed(DevAms* dev_ams)
+{
+    bool changed = false;
+
+    if (m_ams_info.m_model != dev_ams->GetAmsType()) {
+        m_ams_info.m_model = dev_ams->GetAmsType();
+        changed = true;
+    }
+
+    if (dev_ams->GetDryStatus().has_value() && m_ams_info.m_dry_status != dev_ams->GetDryStatus()) {
+        m_ams_info.m_dry_status = dev_ams->GetDryStatus().value();
+        changed = true;
+    }
+
+    if (dev_ams->GetDrySubStatus().has_value() && m_ams_info.m_dry_sub_status != dev_ams->GetDrySubStatus()) {
+        m_ams_info.m_dry_sub_status = dev_ams->GetDrySubStatus().value();
+        changed = true;
+    }
+
+    if (m_ams_info.m_humidity_percent != dev_ams->GetHumidityPercent()) {
+        m_ams_info.m_humidity_percent = dev_ams->GetHumidityPercent();
+        changed = true;
+    }
+
+    return changed;
+}
+
+void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
+{
+    if (m_tray_ids.empty() || m_trays_combo->GetSelection() >= m_tray_ids.size()) {
+        return;
+    }
+
+    FilamentBaseInfo info = m_tray_ids[m_trays_combo->GetSelection()];
+    bool need_warn = false;
+    wxString warning_text = "";
+    switch (dev_ams->GetAmsType()) {
+        case DevAms::AmsType::N3F:
+            if (info.filament_type.compare(0, 3, "PET")  == 0 && info.filament_type.compare(0, 4, "PETG")) {
+                warning_text = _L(wxString::FromUTF8("The maximum drying temperature for AMS2 is 65°C;\n this filament may not be completely dried.\n\n"));
+                need_warn = true;
+            }
+            break;
+        case DevAms::AmsType::N3S: 
+            if (!info.filament_type.compare(0, 3, "PPA") || !info.filament_type.compare(0, 3, "PPS")) {
+                warning_text = _L(wxString::FromUTF8("The maximum drying temperature for AMS-S is 65°C;\n this filament may not be completely dried.\n\n"));
+                need_warn = true;
+            }
+            break;
+        default: 
+            break;
+    }
+
+    long temp_val;
+    std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(info.filament_id);
+    m_temperature_input->GetValue().ToLong(&temp_val);
+    if (preset.has_value()) {
+        if (m_printer_status.m_is_printing && temp_val >= preset.value().filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()]) {
+            warning_text += _L(wxString::FromUTF8("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the temperature currently shown.\n\n"));
+            m_temperature_input->SetValue(std::to_string(static_cast<int>(preset.value().filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()])));
+        }
+    }
+
+    
+    m_normal_description->SetLabel(warning_text);
+    m_normal_description->Wrap(FromDIP(250));
+}
+
+void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
+{
+    if (is_dry_ctr_idle(dev_ams)) {
+        m_next_button->Show(true);
+        m_normal_description->Show(true);
+        m_trays_combo->Enable();
+        m_temperature_input->Enable();
+        m_time_input->Enable();
+
+        m_stop_button->Hide();
+        m_dry_error_sizer->Show(false);
+    } else if (is_dry_ctr_err(dev_ams)) {
+        m_dry_error_sizer->Show(true);
+        m_next_button->Hide();
+        m_normal_description->Hide();
+
+        m_trays_combo->Hide();
+        m_temperature_input->Hide();
+        m_time_input->Hide();
+        m_stop_button->Show(true);
+    } else {
+        m_next_button->Hide();
+        m_normal_description->Hide();
+
+        m_trays_combo->Disable();
+        m_temperature_input->Disable();
+        m_time_input->Disable();
+        m_stop_button->Show(true);
+        m_dry_error_sizer->Show(false);      
+    }
+
+    if (m_temperature_input->GetValue().IsEmpty() || m_time_input->GetValue().IsEmpty()) {
+        m_next_button->Disable();
+        m_start_button->Disable();
+    } else {
+        m_next_button->Enable();
+    }
+
+    update_normal_description(dev_ams);
+}
+
+void AMSDryCtrWin::OnFilamentSelectionChanged(wxCommandEvent& event)
+{
+    int selectionIndex = event.GetSelection();
+    wxString selectedFilament = event.GetString();
+
+    auto fila_system = get_fila_system();
+    if (!fila_system) {
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::OnFilamentSelectionChanged: Invalid FilaSystem Pointer";
+        return;
+    }
+
+    DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
+    if (!dev_ams) {
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::OnFilamentSelectionChanged: Invalid AMS id";
+        return;
+    }
+
+    std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(m_tray_ids[selectionIndex].filament_id);
+    if (preset.has_value()) {
+        DevFilamentDryingPreset info = preset.value();
+        if (m_printer_status.m_is_printing) {
+            m_temperature_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()])));
+            m_time_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_time_on_print[dev_ams->GetAmsType()])));
+        } else {
+            m_temperature_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()])));
+            m_time_input->SetValue(std::to_string(static_cast<int>(info.filament_dev_ams_drying_time_on_idle[dev_ams->GetAmsType()])));
+        }
+    }
+
+    update_filament_guide_info(dev_ams);
+}
+
+std::string get_cannot_reason_text(DevAms::CannotDryReason reason)
+{
+    std::string cannot_reason_text;
+    switch (reason)
+    {
+    case DevAms::CannotDryReason::InsufficientPower:
+        cannot_reason_text = "*Insufficient power\n";
+        cannot_reason_text += "  Due to the power limit, please connect a power adapter to this AMS before drying.\n";
+        break;
+    case DevAms::CannotDryReason::AmsBusy:
+        cannot_reason_text = "*AMS is busy\n";
+        cannot_reason_text += "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n";
+        break;
+    case DevAms::CannotDryReason::ConsumableAtAmsOutlet:
+        cannot_reason_text = "*Consumable at AMS outlet\n";
+        cannot_reason_text += "  The high drying temperature may cause AMS blockage; please unload first.";
+        break;
+    case DevAms::CannotDryReason::InitiatingAmsDrying:
+        cannot_reason_text = "*Initiating AMS drying\n";
+        break;
+    case DevAms::CannotDryReason::NotSupportedIn2dMode:
+        cannot_reason_text = "*Not supported in 2D mode\n";
+        break;
+    case DevAms::CannotDryReason::DryingInProgress:
+        cannot_reason_text = "*Task in progress\n";
+        cannot_reason_text += "  The AMS might be in use during Task.\n";
+        break;
+    case DevAms::CannotDryReason::Upgrading:
+        cannot_reason_text = "*Upgrading\n";
+        cannot_reason_text += "  The AMS is upgrading, please wait.\n";
+    case DevAms::CannotDryReason::InsufficientPowerNeedPluginPower:
+        cannot_reason_text = "*Insufficient power\n";
+        cannot_reason_text += "  Please plug in the power and then use the drying function.\n";
+        
+    default:
+        cannot_reason_text = "*System is busy\n";
+        cannot_reason_text += "  Initiating other drying processes, please wait a few seconds...\n";
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": unknown cannot dry reason";
+        break;
+    }
+    return cannot_reason_text;
+}
+
+std::string organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reasons)
+{
+    std::string cannot_reasons_text = "";
+    if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::DryingInProgress) != reasons.end()) {
+        cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::DryingInProgress);
+    } else if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::AmsBusy) != reasons.end()) {
+        cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::AmsBusy);
+    } else if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::ConsumableAtAmsOutlet) != reasons.end()) {
+        cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::ConsumableAtAmsOutlet);
+    } else {
+        cannot_reasons_text += "*System is busy\n";
+        cannot_reasons_text += "  Initiating other drying processes, please wait a few seconds...\n";
+    }
+
+    if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::InsufficientPower) != reasons.end()) {
+        cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::InsufficientPower);
+    }
+
+    for (auto reason : reasons) {
+        if (reason == DevAms::CannotDryReason::InsufficientPowerNeedPluginPower) {
+            cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::InsufficientPowerNeedPluginPower);
+        } else if (reason == DevAms::CannotDryReason::NotSupportedIn2dMode) {
+            cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::NotSupportedIn2dMode);
+        } else if (reason == DevAms::CannotDryReason::InitiatingAmsDrying) {
+            cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::InitiatingAmsDrying);
+        }
+    }
+
+    return cannot_reasons_text;
+}
+
+int AMSDryCtrWin::update_state(DevAms* dev_ams)
+{
+    std::vector<DevAms::CannotDryReason> cannot_reasons = dev_ams->GetCannotDryReason().has_value()?
+        dev_ams->GetCannotDryReason().value(): std::vector<DevAms::CannotDryReason>();
+
+    if (cannot_reasons.size() == 0 ||
+        (cannot_reasons.size() == 1 && cannot_reasons[0] == DevAms::CannotDryReason::DryingInProgress)) {
+        m_normal_state_sizer->Show(true);
+        m_cannot_dry_sizer->Show(false);
+        update_normal_state(dev_ams);
+    } else if (cannot_reasons.size() > 0) {
+        m_normal_state_sizer->Show(false);
+        m_cannot_dry_sizer->Show(true);
+
+        m_cannot_dry_description_label->SetLabel(organize_cannot_reasons_text(cannot_reasons));
+        m_cannot_dry_description_label->Wrap(FromDIP(300));
+    }
+
+    return 1;
+}
+
+int AMSDryCtrWin::update_ams_change(DevAms* dev_ams)
+{
+    if (!is_ams_changed(dev_ams)) {
+        return 0;
+    }
+
+    m_ams_info.m_ams_id = dev_ams->GetAmsId();
+    if (dev_ams->GetAmsType() == DevAms::AmsType::N3F) {
+        m_temperature_input->SetHint("45-65" + wxString::FromUTF8("°C"));
+    } else if (dev_ams->GetAmsType() == DevAms::AmsType::N3S) {
+        m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
+    }
+
+    m_time_input->SetHint("1-24 h");
+
+    return 0;
+}
+
+int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
+{
+    int updated = 0;
+
+    if (m_ams_info.m_humidity_percent != dev_ams->GetHumidityPercent()) {
+        updated += 1;
+        m_ams_info.m_humidity_percent = dev_ams->GetHumidityPercent();
+        m_humidity_data_label->SetLabel(std::to_string(m_ams_info.m_humidity_percent) + "%");
+    }
+
+    if (m_ams_info.m_temperature != dev_ams->GetCurrentTemperature()) {
+        updated += 1;
+        m_ams_info.m_temperature = dev_ams->GetCurrentTemperature();
+        m_temperature_data_label->SetLabel(std::to_string(m_ams_info.m_temperature) + wxString::FromUTF8("°C"));
+    }
+
+    if (is_dry_ctr_idle(dev_ams)) {
+        m_time_descrition_container->Show(false);
+        m_original_page->Layout();
+    } else {
+        if (is_dry_status_changed(dev_ams)) {
+            m_time_descrition_container->Show(true);
+            m_original_page->Layout();
+        }
+
+        if (m_ams_info.m_left_dry_time != dev_ams->GetLeftDryTime()) {
+            updated += 1;
+            m_ams_info.m_left_dry_time = dev_ams->GetLeftDryTime();
+            m_time_data_label->SetLabel(std::to_string(m_ams_info.m_left_dry_time / 60)
+                + " : " + std::to_string(m_ams_info.m_left_dry_time % 60));
+        }
+    }
+
+    return updated;
+}
+
+bool AMSDryCtrWin::is_tray_changed(DevAms* dev_ams)
+{
+    return false;
+}
+
+void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
+{
+    if (!IsShown()) {
+        return;
+    }
+
+    m_guide_page->Freeze();
+    m_ams_filament_panel->Clear();
+    m_ams_filament_panel->SetAmsName(dev_ams->GetDisplayName());
+
+    // Get the temperature input value
+    long input_temp = 0;
+    bool valid_temp = !m_temperature_input->GetValue().IsEmpty() && 
+                      m_temperature_input->GetValue().ToLong(&input_temp);
+    bool can_start = true;
+    
+    for (auto& tray_pair : dev_ams->GetTrays()) {
+        if (!tray_pair.second) {
+            continue;
+        }
+
+        // Check if tray has valid drying preset
+        auto preset_opt = tray_pair.second->get_ams_drying_preset();
+
+        int heat_distortion_temp;
+        DevFilamentDryingPreset preset = DevUtilBackend::GetFilamentDryingPreset("GFA00").value();
+        wxString filament_type = "PLA";
+
+        // if no tray's info, set it by default PLA
+        if (preset_opt.has_value() && tray_pair.second->is_tray_info_ready()) {
+            preset = preset_opt.value();
+            filament_type = tray_pair.second->get_display_filament_type();
+        } else {
+            BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update_filament_guide_info: ams filament info is not ready";
+        }
+
+        std::string icon_path = "";
+        icon_path = "dev_ams_dry_ctr_enable";
+
+        if (valid_temp) {
+            heat_distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature);
+            if (heat_distortion_temp < input_temp) {
+                icon_path = "dev_ams_dry_ctr_disable";
+                can_start = false;
+            }
+        }
+
+        m_ams_filament_panel->AddFilamentItem(filament_type, icon_path);
+    }
+
+    if (can_start) {
+        m_guide_description_label->SetLabel("The AMS can rotate the filament which is properly stored, providing better drying results.");
+        m_guide_description_label->Wrap(FromDIP(300));
+    } else {
+        m_guide_description_label->SetLabel("Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU.\n"
+            "*Unknown filaments will be treated as PLA.");
+        m_guide_description_label->Wrap(FromDIP(300));
+    }
+
+    m_start_button->Enable(can_start);
+    m_guide_page->Layout();
+    m_guide_page->Thaw();
+}
+
+int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
+{
+    if (!is_ams_changed(dev_ams)) {
+        return 0;
+    }
+
+    if (!is_dry_ctr_idle(dev_ams) && m_dry_setting.m_filament_names.find(dev_ams->GetAmsId()) != m_dry_setting.m_filament_names.end()) {
+        m_trays_combo->SetLabel(m_dry_setting.m_filament_names[dev_ams->GetAmsId()]);
+        m_temperature_input->SetValue(std::to_string(m_dry_setting.m_dry_temp[dev_ams->GetAmsId()]));
+        m_time_input->SetValue(std::to_string(m_dry_setting.m_dry_time[dev_ams->GetAmsId()]));
+        return 0;
+    }
+
+    m_trays_combo->Clear();
+    m_tray_ids.clear();
+
+    auto& preset_bundle = GUI::wxGetApp().preset_bundle;
+    Preset *printer_preset = GUI::get_printer_preset(obj);
+    std::set<std::string> filament_id_set;
+    if (preset_bundle && printer_preset) {
+        for (auto iter = preset_bundle->filaments.begin(); iter != preset_bundle->filaments.end(); ++iter) {
+            std::optional<FilamentBaseInfo> info;
+
+            info = preset_bundle->get_filament_by_filament_id(iter->filament_id, printer_preset->name);
+            if (info.has_value()) {
+                filament_id_set.insert(info.value().filament_id);
+            }
+        }
+    }
+
+    for (auto& filament_id : filament_id_set) {
+        FilamentBaseInfo info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name).value();
+        m_tray_ids.push_back(info);
+        m_trays_combo->Append(info.filament_name);
+    }
+
+    float min_dry_temp = std::numeric_limits<float>::max();
+    unsigned int default_index = 0;
+    std::string default_filament_id = "";
+
+    for (auto& tray_pair : dev_ams->GetTrays()) {
+        if (tray_pair.second && tray_pair.second->is_tray_info_ready()) {
+            Slic3r::DevFilamentDryingPreset preset= tray_pair.second->get_ams_drying_preset().value();
+            if (preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()] < min_dry_temp) {
+                min_dry_temp = preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
+                default_filament_id = preset.filament_id;
+            }
+        }
+    }
+
+    if (!default_filament_id.empty()) {
+        for (unsigned int i = 0; i < m_trays_combo->GetCount(); i++) {
+            if (m_tray_ids[i].filament_id == default_filament_id) {
+                default_index = i;
+                break;
+            }
+        }
+    }
+
+    if (m_trays_combo->GetCount() > default_index) {
+        m_trays_combo->SetSelection(default_index);
+        wxCommandEvent evt(wxEVT_COMBOBOX, m_trays_combo->GetId());
+        evt.SetInt(default_index);
+        OnFilamentSelectionChanged(evt);
+    }
+
+    return 1;
+}
+
+std::shared_ptr<DevFilaSystem> AMSDryCtrWin::get_fila_system() const
+{
+    std::shared_ptr<DevFilaSystem> fila_system = m_fila_system.lock();
+    if (!fila_system) {
+        const_cast<AMSDryCtrWin*>(this)->Close();
+    }
+    return fila_system;
+}
+
+void AMSDryCtrWin::update_printer_state(MachineObject* obj)
+{
+    m_printer_status.m_is_printing = obj->is_in_printing();
+}
+
+void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj)
+{
+    if (!fila_system || !obj) {
+        return;
+    }
+
+    update_printer_state(obj);
+    m_fila_system = fila_system;
+
+    DevAms* dev_ams = fila_system->GetAmsById(m_ams_info.m_ams_id);
+    if (!dev_ams) {
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update: Invalid AMS id";
+        m_ams_info.m_ams_id = "";
+        Close();
+        return;
+    }
+
+    if (!dev_ams->IsSupportRemoteDry(fila_system->GetOwner())) {
+        BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update: Selected AMS does not support remote drying";
+        Close();
+        return;
+    }
+
+
+    update_ams_change(dev_ams);
+
+    update_image(dev_ams->GetAmsType(),
+        dev_ams->GetDryStatus().has_value()? dev_ams->GetDryStatus().value(): DevAms::DryStatus::Off,
+        dev_ams->GetDrySubStatus().has_value()? dev_ams->GetDrySubStatus().value(): DevAms::DrySubStatus::Off,
+        dev_ams->GetHumidityPercent());
+
+    update_state(dev_ams);
+    update_dryness_status(dev_ams);
+
+    update_filament_list(dev_ams, obj);
+    update_filament_guide_info(dev_ams);
+
+    m_is_ams_changed = false;
+
+    check_values_changed(dev_ams);
+
+    Layout();
+    Refresh();
+}
+
+bool AMSDryCtrWin::is_ams_changed(DevAms* dev_ams)
+{
+    return m_ams_info.m_ams_id != dev_ams->GetAmsId() || m_is_ams_changed;
+}
+
+bool AMSDryCtrWin::is_dry_status_changed(DevAms* dev_ams)
+{
+    if (!dev_ams->GetDryStatus().has_value() || !dev_ams->GetDrySubStatus().has_value()) {
+        return true;
+    }
+
+    return dev_ams->GetDryStatus().value() != m_ams_info.m_dry_status
+        || dev_ams->GetDrySubStatus().value() != m_ams_info.m_dry_sub_status;
+}
+
+bool AMSDryCtrWin::is_dry_ctr_idle(DevAms* dev_ams)
+{
+    if (!dev_ams->GetDryStatus().has_value() || !dev_ams->GetDrySubStatus().has_value()) {
+        return true;
+    }
+
+    return dev_ams->GetDryStatus().value() == DevAms::DryStatus::Off
+        && dev_ams->GetDrySubStatus().value() == DevAms::DrySubStatus::Off;
+}
+
+bool AMSDryCtrWin::is_dry_ctr_idle()
+{
+    return m_ams_info.m_dry_status == DevAms::DryStatus::Off
+        && m_ams_info.m_dry_sub_status == DevAms::DrySubStatus::Off;
+}
+
+bool AMSDryCtrWin::is_dry_ctr_err(DevAms* dev_ams)
+{
+    if (!dev_ams->GetDryStatus().has_value() || !dev_ams->GetDrySubStatus().has_value()) {
+        return false;
+    }
+
+    return dev_ams->GetDryStatus().value() == DevAms::DryStatus::Error;
+}
+
+} // GUI
+} // Slic3r
