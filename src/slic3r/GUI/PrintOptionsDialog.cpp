@@ -995,10 +995,10 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     sizer->Add(text_save_remote_print_file_to_storage_explain, 0, wxLEFT, FromDIP(58));
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
-    //Allow prompt sound
+    //Enable notification sounds
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_sup_sound = new CheckBox(parent);
-    text_sup_sound = new Label(parent, _L("Allow Prompt Sound"));
+    text_sup_sound = new Label(parent, _L("Enable notification sounds"));
     text_sup_sound->SetFont(Label::Body_14);
     line_sizer->Add(FromDIP(5), 0, 0, 0);
     line_sizer->Add(m_cb_sup_sound, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
