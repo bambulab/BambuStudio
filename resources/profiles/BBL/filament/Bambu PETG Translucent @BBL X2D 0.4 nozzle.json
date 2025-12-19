@@ -45,13 +45,31 @@
         "10"
     ],
     "filament_retraction_length": [
-        "0.3",
-        "0.3",
-        "0.3",
-        "0.3"
+        "0.4",
+        "0.4",
+        "nil",
+        "nil"
     ],
     "first_x_layer_fan_speed": [
         "40"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "filament_wipe": [
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

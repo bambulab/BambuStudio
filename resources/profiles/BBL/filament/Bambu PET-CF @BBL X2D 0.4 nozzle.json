@@ -47,6 +47,12 @@
         "3",
         "3"
     ],
+    "fan_min_speed": [
+        "25"
+    ],
+    "fan_max_speed": [
+        "45"
+    ],
     "include": [
         "fdm_filament_template_direct_bowden"
     ],
@@ -61,6 +67,9 @@
         "270",
         "270",
         "270"
+    ],
+    "overhang_fan_speed": [
+        "50"
     ],
     "reduce_fan_stop_start_freq": [
         "0"

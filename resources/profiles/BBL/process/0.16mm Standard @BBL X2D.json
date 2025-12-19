@@ -6,6 +6,13 @@
     "setting_id": "GP222",
     "instantiation": "true",
     "description": "Standard profile for 0.16mm layer height, prioritizing speed.",
+    "bridge_speed": [
+        "25",
+        "25",
+        "25",
+        "25"
+    ],
+    "bridge_flow": "1.5",
     "default_acceleration": [
         "10000",
         "8000",
@@ -37,23 +44,17 @@
         "50",
         "50"
     ],
-    "overhang_1_4_speed": [
-        "60",
-        "60",
-        "0",
-        "60"
-    ],
     "overhang_2_4_speed": [
-        "30",
-        "50",
-        "50",
-        "50"
+        "40",
+        "40",
+        "40",
+        "40"
     ],
-    "overhang_3_4_speed": [
-        "10",
-        "30",
-        "30",
-        "30"
+    "overhang_4_4_speed": [
+        "20",
+        "20",
+        "20",
+        "20"
     ],
     "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",

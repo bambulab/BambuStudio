@@ -32,6 +32,12 @@
         "0",
         "0"
     ],
+    "fan_max_speed": [
+        "45"
+    ],
+    "fan_min_speed": [
+        "25"
+    ],
     "include": [
         "fdm_filament_template_direct_bowden"
     ],
@@ -46,6 +52,9 @@
         "290",
         "290",
         "290"
+    ],
+    "overhang_fan_speed": [
+        "60"
     ],
     "retraction_distances_when_ec": [
         "3",

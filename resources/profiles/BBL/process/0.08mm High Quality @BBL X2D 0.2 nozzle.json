@@ -6,6 +6,13 @@
     "setting_id": "GP216",
     "instantiation": "true",
     "description": "High quality profile for 0.2mm nozzle, prioritizing print quality.",
+    "bridge_speed": [
+        "25",
+        "25",
+        "25",
+        "25"
+    ],
+    "bridge_flow": "1.5",
     "default_acceleration": [
         "4000",
         "8000",
@@ -31,23 +38,17 @@
         "5000",
         "5000"
     ],
-    "overhang_1_4_speed": [
-        "60",
-        "60",
-        "0",
-        "0"
-    ],
     "overhang_2_4_speed": [
-        "30",
-        "50",
-        "50",
-        "50"
+        "40",
+        "40",
+        "40",
+        "40"
     ],
-    "overhang_3_4_speed": [
-        "10",
-        "30",
-        "30",
-        "30"
+    "overhang_4_4_speed": [
+        "20",
+        "20",
+        "20",
+        "20"
     ],
     "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",

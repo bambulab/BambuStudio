@@ -38,6 +38,12 @@
         "10",
         "10"
     ],
+    "filament_retraction_length": [
+        "1",
+        "1",
+        "nil",
+        "nil"
+    ],
     "include": [
         "fdm_filament_template_direct_bowden"
     ],
