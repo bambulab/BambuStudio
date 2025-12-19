@@ -9,6 +9,7 @@
 #pragma once
 #include "DevDefs.h"
 #include "DevNozzleSystem.h"
+#include "DevFilaSystem.h"
 
 #include "libslic3r/MultiNozzleUtils.hpp"
 #include <unordered_map>
@@ -38,6 +39,9 @@ public:
     // for rack
     static std::optional<MultiNozzleUtils::MultiNozzleGroupResult> GetNozzleGroupResult(Slic3r::GUI::Plater* plater);
     static std::unordered_map<NozzleDef, int> CollectNozzleInfo(MultiNozzleUtils::MultiNozzleGroupResult* nozzle_group_res, int logic_ext_id);
+
+    // for filament preset
+    static std::optional<DevFilamentDryingPreset> GetFilamentDryingPreset(const std::string& fila_id);
 };
 
 }; // namespace Slic3r

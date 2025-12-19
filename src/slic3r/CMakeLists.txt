@@ -196,6 +196,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Preferences.hpp
     GUI/AMSSetting.cpp
     GUI/AMSSetting.hpp
+    GUI/AMSDryControl.cpp
+    GUI/AMSDryControl.hpp
     GUI/AMSMaterialsSetting.cpp
     GUI/AMSMaterialsSetting.hpp
     GUI/ExtrusionCalibration.cpp
