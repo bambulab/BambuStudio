@@ -104,16 +104,6 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
 
-            // white items
-            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
-            if (!white_names.empty() && !tag_name.empty()) {
-                for (auto white_name : white_names) {
-                    if (tag_name.find(white_name) != std::string::npos) {
-                        continue;// the filament name is in white names, skip this blacklist item
-                    }
-                }
-            }
-
             // blacklist items
             std::string vendor = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
             std::string type = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
@@ -199,6 +189,18 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             // check extruder id
             if(!extruder_ids.empty() && check_info.extruder_id.has_value() && std::find(extruder_ids.begin(), extruder_ids.end(), check_info.extruder_id.value()) == extruder_ids.end()){
                 continue;
+            }
+
+            // white items
+            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
+            if (!white_names.empty() && !tag_name.empty()) {
+                auto it = std::find_if(white_names.begin(), white_names.end(), [&tag_name](auto white_name){
+                    std::transform(white_name.begin(), white_name.end(), white_name.begin(), ::tolower);
+                    return tag_name.find(white_name) != std::string::npos;
+                });
+                // the filament name is in white names, skip this blacklist item
+                if(it != white_names.end())
+                    continue;
             }
 
             // the item is matched
