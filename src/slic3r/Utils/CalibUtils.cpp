@@ -2008,11 +2008,13 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
 
-    auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
-    if (calib_info.nozzle_pos_id == 0 && nozzle_tar.has_value()) {
-        print_job->task_nozzle_mapping = "[" + std::to_string(nozzle_tar.value()) + "]";
-    } else {
-        print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
+    if (obj_->GetNozzleRack()->IsSupported()) {
+        auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
+        if (calib_info.nozzle_pos_id == 0 && nozzle_tar.has_value()) {
+            print_job->task_nozzle_mapping = "[" + std::to_string(nozzle_tar.value()) + "]";
+        } else {
+            print_job->task_nozzle_mapping = "[" + std::to_string(calib_info.nozzle_pos_id) + "]";
+        }
     }
 
     CalibMode cali_mode       = calib_info.params.mode;
@@ -2136,7 +2138,7 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     print_job->task_ams_mapping      = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_ams_mapping2     = new_select_ams;
-    print_job->task_nozzle_mapping   = nozzle_mapping;
+    print_job->task_nozzle_mapping   = obj_->GetNozzleRack()->IsSupported() ? nozzle_mapping : "";
 
     print_job->task_use_ams = false;
     for (const CalibInfo& calib_info : calib_infos) {
