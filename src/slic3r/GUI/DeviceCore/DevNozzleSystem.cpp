@@ -7,6 +7,7 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 
 #include "slic3r/GUI/I18N.hpp"
+#include "libslic3r/libslic3r.h"
 
 namespace Slic3r
 {
@@ -199,13 +200,13 @@ wxString DevNozzle::GetNozzleTypeStr(NozzleType type)
 
 NozzleDiameterType DevNozzle::GetNozzleDiameterType() const
 {
-    if(GetNozzleDiameterStr() == wxString("0.2 mm"))
+    if (is_approx(m_diameter, 0.2f))
         return NozzleDiameterType::NOZZLE_DIAMETER_0_2;
-    else if(GetNozzleDiameterStr() == wxString("0.4 mm"))
+    else if(is_approx(m_diameter, 0.4f))
         return NozzleDiameterType::NOZZLE_DIAMETER_0_4;
-    else if(GetNozzleDiameterStr() == wxString("0.6 mm"))
+    else if(is_approx(m_diameter, 0.6f))
         return NozzleDiameterType::NOZZLE_DIAMETER_0_6;
-    else if(GetNozzleDiameterStr() == wxString("0.8 mm"))
+    else if(is_approx(m_diameter, 0.8f))
         return NozzleDiameterType::NOZZLE_DIAMETER_0_8;
     else
         return NozzleDiameterType::NONE_DIAMETER_TYPE;
@@ -214,10 +215,10 @@ NozzleDiameterType DevNozzle::GetNozzleDiameterType() const
 wxString DevNozzle::ToNozzleDiameterStr(const NozzleDiameterType& type)
 {
     switch (type) {
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return wxString("0.2 mm");
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return wxString("0.4 mm");
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return wxString("0.6 mm");
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return wxString("0.8 mm");
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return std::to_string(0.2) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return std::to_string(0.4) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return std::to_string(0.6) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return std::to_string(0.8) + " mm";
     default: return _L("Unknown");
     }
 }
