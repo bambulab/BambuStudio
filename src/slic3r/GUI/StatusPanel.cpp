@@ -2088,6 +2088,8 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
                             std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
                             std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
 
+    wxBoxSizer* fila_change_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     m_button_retry = new Button(m_filament_load_box, _L("Retry"));
     m_button_retry->SetFont(Label::Body_13);
     m_button_retry->SetBorderColor(btn_bd_white);
@@ -2101,8 +2103,24 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
         if (obj) { obj->command_ams_control("resume"); }
     });
 
+    m_fila_change_abort = new Button(m_filament_load_box, _L("Abort"));
+    m_fila_change_abort->SetFont(Label::Body_13);
+    m_fila_change_abort->SetBorderColor(btn_bd_white);
+    m_fila_change_abort->SetTextColor(btn_text_white);
+    m_fila_change_abort->SetMinSize(wxSize(FromDIP(80), FromDIP(31)));
+    m_fila_change_abort->SetBackgroundColor(btn_bg_white);
+    m_fila_change_abort->Hide();
+
+    m_fila_change_abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << "on_ams_abort";
+        if (obj) { obj->command_ams_control("abort"); }
+    });
+
+    fila_change_sizer->Add(m_button_retry, 0, wxRIGHT, FromDIP(7));
+    fila_change_sizer->Add(m_fila_change_abort, 0, wxLEFT, FromDIP(7));
+
     sizer_box->Add(steps_sizer, 0, wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(5));
-    sizer_box->Add(m_button_retry, 0, wxLEFT, FromDIP(28));
+    sizer_box->Add(fila_change_sizer, 0, wxLEFT, FromDIP(28));
     sizer_box->Add(0, 0, 0, wxTOP, FromDIP(5));
     m_filament_load_box->SetBackgroundColour(*wxWHITE);
     m_filament_load_box->Layout();
@@ -2153,6 +2171,7 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
                 m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
             }
         }
+        m_fila_change_abort->Show(obj->is_support_fila_change_abort);
     }
 
     m_filament_load_box->Show(tag_show);
