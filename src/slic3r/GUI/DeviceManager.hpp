@@ -532,6 +532,7 @@ public:
     bool is_support_ext_change_assist{false};
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
+    bool is_support_fila_change_abort{false};
 
 
     // fun2
