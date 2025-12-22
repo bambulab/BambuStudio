@@ -3507,6 +3507,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool mix_pla_and_petg = cur_plate->check_mixture_of_pla_and_petg(full_config_temp);
             _set_warning_notification(EWarning::MixUsePLAAndPETG, !mix_pla_and_petg);
 
+            bool multi_filament_with_wipe_tower = cur_plate->check_multi_filament_without_prime_tower(full_config_temp);
+            _set_warning_notification(EWarning::MultiFilaNoWipeTower, !multi_filament_with_wipe_tower);
+
             bool filament_nozzle_compatible = cur_plate->check_compatible_of_nozzle_and_filament(full_config_temp, wxGetApp().preset_bundle->filament_presets, get_nozzle_filament_incompatible_text());
             _set_warning_notification(EWarning::NozzleFilamentIncompatible, !filament_nozzle_compatible);
 
@@ -3528,6 +3531,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::TPUPrintableError, false);
            _set_warning_notification(EWarning::FilamentPrintableError, false);
            _set_warning_notification(EWarning::MixUsePLAAndPETG, false);
+           _set_warning_notification(EWarning::MultiFilaNoWipeTower, false);
            _set_warning_notification(EWarning::PrimeTowerOutside, false);
            _set_warning_notification(EWarning::MultiExtruderPrintableError,false);
            _set_warning_notification(EWarning::MultiExtruderHeightOutside,false);
@@ -11353,6 +11357,9 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
     case EWarning::MixUsePLAAndPETG:
         text = _u8L("PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.");
         break;
+    case EWarning::MultiFilaNoWipeTower:
+        text = _u8L("The prime tower improves multi-color print quality and is recommended.");
+        break;
     case EWarning::PrimeTowerOutside:
         text  = _u8L("The prime tower extends beyond the plate boundary.");
         break;
@@ -11396,6 +11403,16 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLMixUsePLAAndPETG, NotificationLevel::WarningNotificationLevel);
+        } else if (warning == EWarning::MultiFilaNoWipeTower) {
+            if (state) {
+                notification_manager.push_notification(NotificationType::BBLMultiFilaNoWipeTower, NotificationLevel::HintNotificationLevel, text, _u8L("Jump to: Prime tower"),
+                                                       [](wxEvtHandler *) {
+                                                           wxGetApp().sidebar().jump_to_option("enable_prime_tower", Preset::TYPE_PRINT, L"");
+                                                           return false;
+                                                       });
+            } else {
+                notification_manager.close_notification_of_type(NotificationType::BBLMultiFilaNoWipeTower);
+            }
         }
         else if (warning == EWarning::NozzleFilamentIncompatible){
             if(state){
