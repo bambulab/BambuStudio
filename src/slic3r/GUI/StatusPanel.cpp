@@ -954,6 +954,28 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     parent->Fit();
 }
 
+static wxString get_bbl_time_dhms(float time_in_secs)
+{
+    int days = (int) (time_in_secs / 86400.0f);
+    time_in_secs -= (float) days * 86400.0f;
+    int hours = (int) (time_in_secs / 3600.0f);
+    time_in_secs -= (float) hours * 3600.0f;
+    int minutes = (int) (time_in_secs / 60.0f);
+    time_in_secs -= (float) minutes * 60.0f;
+
+    wxString s;
+    if (days > 0)
+        s = wxString::Format(_L("%dday%dh%dmin%ds"), days, hours, minutes, (int) time_in_secs);
+    else if (hours > 0)
+        s = wxString::Format(_L("%dh%dmin%ds"), hours, minutes, (int) time_in_secs);
+    else if (minutes > 0)
+        s = wxString::Format(_L("%dmin%ds"), minutes, (int) time_in_secs);
+    else
+        s = wxString::Format(_L("%ds"), (int) time_in_secs);
+
+    return s;
+}
+
 void PrintingTaskPanel::paint(wxPaintEvent &)
 {
     wxPaintDC dc(m_bitmap_thumbnail);
@@ -1181,13 +1203,13 @@ void PrintingTaskPanel::update_finish_time(wxString finish_time)
 void PrintingTaskPanel::update_left_time(int mc_left_time)
 {
     // update gcode progress
-    std::string left_time;
+    wxString left_time;
     std::string right_time;
     wxString    left_time_text = NA_STR;
 
     try {
         bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
-        left_time  = get_bbl_monitor_time_dhm(mc_left_time);
+        left_time  = get_bbl_time_dhms(mc_left_time);
         right_time = get_bbl_finish_time_dhm(mc_left_time, use_12h_format);
     } catch (...) {
         ;
@@ -3454,27 +3476,7 @@ void StatusPanel::update_market_scoring(bool show)
 }
 
 
-static wxString get_bbl_time_dhms(float time_in_secs)
-{
-    int days = (int) (time_in_secs / 86400.0f);
-    time_in_secs -= (float) days * 86400.0f;
-    int hours = (int) (time_in_secs / 3600.0f);
-    time_in_secs -= (float) hours * 3600.0f;
-    int minutes = (int) (time_in_secs / 60.0f);
-    time_in_secs -= (float) minutes * 60.0f;
 
-    wxString s;
-    if (days > 0)
-        s = wxString::Format(_L("%dday%dh%dmin%ds"), days, hours, minutes, (int) time_in_secs);
-    else if (hours > 0)
-        s = wxString::Format(_L("%dh%dmin%ds"), hours, minutes, (int) time_in_secs);
-    else if (minutes > 0)
-        s = wxString::Format(_L("%dmin%ds"), minutes, (int) time_in_secs);
-    else
-        s = wxString::Format(_L("%ds"), (int) time_in_secs);
-
-    return s;
-}
 
 void StatusPanel::update_basic_print_data(bool def)
 {
