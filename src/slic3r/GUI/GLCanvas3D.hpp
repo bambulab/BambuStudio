@@ -411,6 +411,7 @@ class GLCanvas3D
         MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer,
         MixUsePLAAndPETG,
+        MultiFilaNoWipeTower,
         PrimeTowerOutside,
         NozzleFilamentIncompatible,
         MixtureFilamentIncompatible,
