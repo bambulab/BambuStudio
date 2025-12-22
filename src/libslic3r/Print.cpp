@@ -1232,6 +1232,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
             warningtemp.opt_key    = "enable_prime_tower";
             warningtemp.is_warning = true;
+            warningtemp.hypetext   = L("Jump to: Prime tower");
             *warning               = warningtemp;
         }
     }

@@ -1563,6 +1563,14 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
 	return true;
 }
 
+bool PartPlate::check_multi_filament_without_prime_tower(const DynamicPrintConfig &config)
+{
+    int  filament_used_count = get_extruders(true).size();
+    auto prime_tower_enabled = config.option<ConfigOptionBool>("enable_prime_tower");
+    if ((filament_used_count > 1) && prime_tower_enabled && (!(prime_tower_enabled->value))) { return false; }
+    return true;
+}
+
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
 {
     bool has_pla = false;
