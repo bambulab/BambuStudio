@@ -184,6 +184,7 @@
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
+        "Spiral Lift",
         "Spiral Lift"
     ],
     "impact_strength_z": [
