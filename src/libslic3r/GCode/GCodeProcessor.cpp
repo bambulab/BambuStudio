@@ -6093,44 +6093,44 @@ void GCodeProcessor::update_slice_warnings()
         m_result.warnings.push_back(warning);
     }
 
-    //bbs:HRC checker
-    warning.params.clear();
-    warning.level=1;
+    //bbs:HRC checker // remove the checker
+    //warning.params.clear();
+    //warning.level=1;
 
-    std::vector<int> nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
-    // store the nozzle hrc of each extruder
-    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
-        nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
+    //std::vector<int> nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
+    //// store the nozzle hrc of each extruder
+    //for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
+    //    nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
 
-    for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
-        int filament_hrc = 0;
+    //for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
+    //    int filament_hrc = 0;
 
-        if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
-            filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
+    //    if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
+    //        filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
 
-        int extruder_hrc = 0;
-        int filament_extruder_id = 0;
-        if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
-            filament_extruder_id = m_filament_maps[used_filaments[idx]];
-            if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
-                extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
-            }
-        }
+    //    int extruder_hrc = 0;
+    //    int filament_extruder_id = 0;
+    //    if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
+    //        filament_extruder_id = m_filament_maps[used_filaments[idx]];
+    //        if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
+    //            extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+    //        }
+    //    }
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
+    //    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
 
-        if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
-            warning.params.push_back(std::to_string(used_filaments[idx]));
-    }
+    //    if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
+    //        warning.params.push_back(std::to_string(used_filaments[idx]));
+    //}
 
-    if (!warning.params.empty()) {
-        warning.level      = 3;
-        warning.msg = NOZZLE_HRC_CHECKER;
-        warning.error_code = "1000C002";
-        m_result.warnings.push_back(warning);
-    }
+    //if (!warning.params.empty()) {
+    //    warning.level      = 3;
+    //    warning.msg = NOZZLE_HRC_CHECKER;
+    //    warning.error_code = "1000C002";
+    //    m_result.warnings.push_back(warning);
+    //}
 
-    // bbs:HRC checker
+    // bbs:timelapse checker
     warning.params.clear();
     warning.level = 1;
     if (!m_result.support_traditional_timelapse) {
