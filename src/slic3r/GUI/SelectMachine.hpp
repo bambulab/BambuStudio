@@ -295,7 +295,6 @@ private:
     int                                 m_print_error_code{0};
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
-    bool                                m_ams_mapping_valid{ false };
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
@@ -448,7 +447,7 @@ public:
     void prepare_mode(bool refresh_button = true);
     void sending_mode();
     void finish_mode();
-	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);
+	void sync_ams_mapping_result(const std::vector<FilamentInfo>& result);
     void prepare(int print_plate_idx);
     void show_status(PrintDialogStatus status,
                      std::vector<wxString> params = std::vector<wxString>(),
@@ -515,13 +514,11 @@ public:
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
-    void show_init();
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
-    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info) const;
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(DevExtderSystem data);
     void auto_supply_with_ext(std::vector<DevAmsTray> slots);
-    int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
 
     bool is_ams_drying(MachineObject* obj);
 

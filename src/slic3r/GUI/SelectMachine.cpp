@@ -1028,7 +1028,7 @@ void SelectMachineDialog::finish_mode()
 }
 
 
-void SelectMachineDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &result)
+void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo> &result)
 {
     if (result.empty()) {
         BOOST_LOG_TRIVIAL(info) << "ams_mapping result is empty";
@@ -1243,7 +1243,22 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
     return true;
 }
 
-bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str, std::string& mapping_array_str2, std::string &ams_mapping_info)
+static int s_convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id)
+{
+    if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_LEFT) {
+        return (int)CloudTaskNozzleId::NOZZLE_LEFT;
+    } else if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_RIGHT) {
+        return (int)CloudTaskNozzleId::NOZZLE_RIGHT;
+    } else {
+        /* unsupported nozzle id */
+        assert(false);
+        return nozzle_id;
+    }
+}
+
+bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
+                                                 std::string& mapping_array_str2,
+                                                 std::string &ams_mapping_info) const
 {
     if (m_ams_mapping_result.empty())
         return false;
@@ -1299,7 +1314,7 @@ bool SelectMachineDialog::get_ams_mapping_result(std::string &mapping_array_str,
                             if (it != nullptr) { mapping_item["filamentId"] = it->filament_id; }
                         }
                         /* nozzle id */
-                        if (i >= 0 && i < filament_maps.size()) { mapping_item["nozzleId"] = convert_filament_map_nozzle_id_to_task_nozzle_id(filament_maps[i]); }
+                        if (i >= 0 && i < filament_maps.size()) { mapping_item["nozzleId"] = s_convert_filament_map_nozzle_id_to_task_nozzle_id(filament_maps[i]); }
                         // convert #RRGGBB to RRGGBBAA
                         mapping_item["sourceColor"] = m_filaments[k].color;
                         mapping_item["targetColor"] = m_ams_mapping_result[k].color;
@@ -1461,20 +1476,6 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
     }
 }
 
-int SelectMachineDialog::convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id)
-{
-    if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_LEFT) {
-        return (int)CloudTaskNozzleId::NOZZLE_LEFT;
-    }
-    else if (nozzle_id == (int)FilamentMapNozzleId::NOZZLE_RIGHT) {
-        return (int)CloudTaskNozzleId::NOZZLE_RIGHT;
-    }
-    else {
-        /* unsupported nozzle id */
-        assert(false);
-        return nozzle_id;
-    }
-}
 
 bool SelectMachineDialog::is_ams_drying(MachineObject* obj)
 {
@@ -1867,6 +1868,8 @@ void SelectMachineDialog::show_errors(wxString &info)
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_ok_btn";
+
     bool has_slice_warnings = false;
     bool is_printing_block  = false;
 
@@ -1998,43 +2001,14 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
     }
 
-
     //check for unidentified material
-    auto mapping_result = m_mapping_popup.parse_ams_mapping(obj_->GetFilaSystem()->GetAmsList());
-    auto has_unknown_filament = false;
-
-    for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
-
-        const auto& ams_id = m_ams_mapping_result[i].get_ams_id();
-        const auto& slot_id = m_ams_mapping_result[i].get_slot_id();
-
-        auto tid = m_ams_mapping_result[i].tray_id;
-
-        std::string filament_type = boost::to_upper_copy(m_ams_mapping_result[i].type);
-        std::string filament_brand;
-        std::string filament_id;
-
-        for (auto fs : m_filaments) {
-            if (fs.id == m_ams_mapping_result[i].id) {
-                filament_brand = m_filaments[i].brand;
-                filament_id = m_filaments[i].filament_id;
-            }
+    for (const auto& fila : m_ams_mapping_result) {
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+        if (tray_opt.has_value() && (!tray_opt->is_exists || !tray_opt->is_tray_info_ready())) {
+            has_slice_warnings = true; //has_unknown_filament
+            confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
+            break;
         }
-
-        for (auto miter : mapping_result) {
-            //matching
-            if (miter.id == tid) {
-                if (miter.type == TrayType::THIRD || miter.type == TrayType::EMPTY) {
-                    has_unknown_filament = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (has_unknown_filament) {
-        has_slice_warnings = true;
-        confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
     }
 
     if (has_slice_warnings)
@@ -2048,6 +2022,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         confirm_dlg.Bind(EVT_SECONDARY_CHECK_CONFIRM, [this, &confirm_dlg](wxCommandEvent& e)
             {
                 confirm_dlg.on_hide();
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": confirm_dlg to send print job after warnings.";
                 this->on_send_print();
             });
 
@@ -2105,6 +2080,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         }
 
         confirm_dlg.on_show();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": confirm_dlg on_show.";
     }
     else
     {
@@ -2287,10 +2263,6 @@ bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentI
 
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " start"
-                            << ", dev_id = " << (obj ? BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id()) : "NULL")
-                            << ", sending mode= " << m_is_in_sending_mode;
-
     if (m_is_in_sending_mode) { return;}
 
     AppConfig* config = wxGetApp().app_config;
@@ -2338,7 +2310,6 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         m_pa_value_panel->Hide();
     }
 
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " end";
 }
 
 void SelectMachineDialog::save_option_vals()
@@ -2379,8 +2350,9 @@ void SelectMachineDialog::on_send_print()
     if (m_mapping_popup.IsShown())
         m_mapping_popup.Dismiss();
 
-    if (m_print_type == PrintFromType::FROM_NORMAL && m_is_in_sending_mode)
+    if (m_print_type == PrintFromType::FROM_NORMAL && m_is_in_sending_mode){
         return;
+    }
 
     int result = 0;
     if (m_printer_last_select.empty()) {
@@ -2393,6 +2365,11 @@ void SelectMachineDialog::on_send_print()
     MachineObject* obj_ = dev->get_selected_machine();
     assert(obj_->get_dev_id() == m_printer_last_select);
     if (obj_ == nullptr) { return; }
+
+    if (!DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result)) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "print_job: invalid mapping";
+        return;
+    }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", print_job: for send task, current printer id =  " << BBLCrossTalk::Crosstalk_DevId(m_printer_last_select) << std::endl;
     show_status(PrintDialogStatus::PrintStatusSending);
@@ -2428,8 +2405,14 @@ void SelectMachineDialog::on_send_print()
     std::string ams_mapping_array;
     std::string ams_mapping_array2;
     std::string ams_mapping_info;
-
     get_ams_mapping_result(ams_mapping_array,ams_mapping_array2, ams_mapping_info);
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result begin";
+    print_ams_mapping_result(m_ams_mapping_result);
+    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array = " << ams_mapping_array;
+    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_array2 = " << ams_mapping_array2;
+    BOOST_LOG_TRIVIAL(info) << "print_job: ams_mapping_info = " << ams_mapping_info;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print_job: get_ams_mapping_result end";
 
     if (m_print_type == PrintFromType::FROM_NORMAL) {
         result = m_plater->send_gcode(m_print_plate_idx, [this](int export_stage, int current, int total, bool& cancel) {
@@ -2993,8 +2976,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     m_status_bar->reset();
     m_timeout_count      = 0;
     s_nozzle_mapping_last_request_time = 0;
-    m_ams_mapping_res  = false;
-    m_ams_mapping_valid  = false;
     m_ams_mapping_result.clear();
     m_pre_print_checker.clear();
 
@@ -3412,20 +3393,9 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
           //  return;
         }
     }
-    if (m_ams_mapping_res) {
-        if (has_timelapse_warning()) {
-            show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-          //  return;
-        }
-    } else {
-        if (DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result)) {
-            if (!check_sdcard_for_timelpase(obj_)) {
-                if (has_timelapse_warning()) {
-                    show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
-                   // return;
-                }
-            }
-        }
+
+    if (!check_sdcard_for_timelpase(obj_) && has_timelapse_warning()) {
+        show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
     }
 
     /*STUDIO-10970 check the k value and flow cali option*/
@@ -4483,7 +4453,8 @@ bool SelectMachineDialog::Show(bool show)
         m_refresh_timer->Stop();
         return DPIDialog::Show(false);
     }
-    show_init();
+
+    m_ams_mapping_result.clear();
     show_status(PrintDialogStatus::PrintStatusInit);
 
     PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
@@ -4509,10 +4480,6 @@ bool SelectMachineDialog::Show(bool show)
     Fit();
     CenterOnParent();
     return DPIDialog::Show(show);
-}
-
-void SelectMachineDialog::show_init() {
-    m_ams_mapping_result.clear();
 }
 
 SelectMachineDialog::~SelectMachineDialog()
@@ -5121,7 +5088,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         return false;
     }
 
-    if (!m_ams_mapping_res && !DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result)) {
+    if (!DevMappingUtil::is_valid_mapping_result(obj_, m_ams_mapping_result)) {
         show_status(PrintDialogStatus::PrintStatusAmsMappingInvalid);
         return false;
     }
