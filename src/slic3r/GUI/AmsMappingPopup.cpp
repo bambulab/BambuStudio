@@ -1341,47 +1341,6 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     Refresh();
 }
 
-std::vector<TrayData> AmsMapingPopup::parse_ams_mapping(const std::map<std::string, DevAms*, NumericStrCompare>& amsList)
-{
-    std::vector<TrayData> m_tray_data;
-    for (auto ams_iter = amsList.begin(); ams_iter != amsList.end(); ams_iter++) {
-
-        BOOST_LOG_TRIVIAL(trace) << "ams_mapping ams id " << ams_iter->first.c_str();
-
-        auto ams_indx = atoi(ams_iter->first.c_str());
-        DevAms* ams_group = ams_iter->second;
-        std::vector<TrayData>                      tray_datas;
-        std::map<std::string, DevAmsTray*>::const_iterator tray_iter;
-
-        for (tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
-            DevAmsTray* tray_data = tray_iter->second;
-            TrayData td;
-
-            td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
-
-            if (!tray_data->is_exists) {
-                td.type = EMPTY;
-            }
-            else {
-                if (!tray_data->is_tray_info_ready()) {
-                    td.type = THIRD;
-                }
-                else {
-                    td.type = NORMAL;
-                    td.remain  = tray_data->remain;
-                    td.colour = DevAmsTray::decode_color(tray_data->color);
-                    td.name = tray_data->get_display_filament_type();
-                    td.filament_type = tray_data->get_filament_type();
-                }
-            }
-
-            m_tray_data.push_back(td);
-        }
-    }
-
-    return m_tray_data;
-}
-
 void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow* container, wxBoxSizer* sizer)
 {
     sizer->Add(0,0,0,wxLEFT,FromDIP(6));
