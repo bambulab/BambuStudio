@@ -65,9 +65,8 @@ void BindJob::process()
     NetworkAgent* m_agent = wxGetApp().getAgent();
     if (!m_agent) { return; }
 
-    // get timezone
-    wxDateTime::TimeZone tz(wxDateTime::Local);
-    long offset = tz.GetOffset();
+    // Use UTC for profile-related network operations to avoid local timezone skew.
+    const long offset = 0;
     std::string timezone = get_timezone_utc_hm(offset);
 
     m_agent->track_update_property("ssdp_version", m_ssdp_version, "string");
