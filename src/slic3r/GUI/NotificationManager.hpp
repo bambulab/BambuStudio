@@ -159,6 +159,7 @@ enum class NotificationType
     BBLMixUsePLAAndPETG,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
+	BBLTpuNozzleHasMultiFilament,
     AssemblyWarning,
     AssemblyInfo,
     NotificationTypeCount

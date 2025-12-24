@@ -2699,7 +2699,6 @@ void TabPrint::build()
         optgroup = page->new_optgroup(L("Acceleration"), L"param_acceleration", 15);
         optgroup->append_single_option_line("default_acceleration", "", 0);
         optgroup->append_single_option_line("travel_acceleration", "", 0);
-        optgroup->append_single_option_line("travel_short_distance_acceleration", "", 0);
         optgroup->append_single_option_line("initial_layer_travel_acceleration", "", 0);
         optgroup->append_single_option_line("initial_layer_acceleration", "", 0);
         optgroup->append_single_option_line("outer_wall_acceleration", "", 0);
@@ -3999,9 +3998,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("reduce_fan_stop_start_freq", "auto-cooling");
         optgroup->append_single_option_line("slow_down_for_layer_cooling", "auto-cooling");
         optgroup->append_single_option_line("no_slow_down_for_cooling_on_outwalls", "auto-cooling");
-        optgroup->append_single_option_line("cooling_slowdown_logic", "auto-cooling");
-        optgroup->append_single_option_line("cooling_perimeter_transition_distance", "auto-cooling");
-        optgroup->append_single_option_line("slow_down_min_speed","auto-cooling");
+        optgroup->append_single_option_line("slow_down_min_speed","auto-cooling", 0);
 
         optgroup->append_single_option_line("enable_overhang_bridge_fan", "auto-cooling");
         optgroup->append_single_option_line("overhang_fan_threshold", "auto-cooling");
@@ -4147,16 +4144,6 @@ void TabFilament::toggle_options()
         bool cooling = m_config->opt_bool("slow_down_for_layer_cooling", 0);
         toggle_option("slow_down_min_speed", cooling);
         toggle_option("no_slow_down_for_cooling_on_outwalls", cooling);
-        toggle_option("cooling_slowdown_logic", cooling);
-
-        // Only show perimeter transition distance when ConsistentSurface is selected
-        bool consistent_surface = false;
-        if (cooling) {
-            auto* opt = m_config->option<ConfigOptionEnumsGeneric>("cooling_slowdown_logic");
-            if (opt && !opt->values.empty())
-                consistent_surface = opt->values[0] == (int)cslConsistentSurface;
-        }
-        toggle_option("cooling_perimeter_transition_distance", consistent_surface);
 
         bool has_enable_overhang_bridge_fan = m_config->opt_bool("enable_overhang_bridge_fan", 0);
         for (auto el : {"overhang_fan_speed", "pre_start_fan_time", "overhang_fan_threshold"})

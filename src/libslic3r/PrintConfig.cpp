@@ -6696,7 +6696,8 @@ std::set<std::string> filament_options_with_variant = {
     "override_process_overhang_speed",
     "volumetric_speed_coefficients",
     "filament_adaptive_volumetric_speed",
-    "filament_cooling_before_tower"
+    "filament_cooling_before_tower",
+    "slow_down_min_speed"
 };
 
 // Parameters that are the same as the number of extruders

@@ -170,7 +170,16 @@ std::string& get_filament_mixture_warning_text(){
     static std::string filament_mixture_warning_text;
     return filament_mixture_warning_text;
 }
-
+std::string &get_filament_flow_warning_text()
+{
+    static std::string filament_flow_warning_text;
+    return filament_flow_warning_text;
+}
+std::string& get_tpu_nozzle_multi_filaments_warning_text()
+{
+    static std::string tpu_nozzle_multi_filaments_warning_text;
+    return tpu_nozzle_multi_filaments_warning_text;
+}
 
 static std::string format_number(float value)
 {
@@ -3519,6 +3528,12 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool model_fits = contained_min_one && !m_model->objects.empty() && !partlyOut && object_results.filaments.empty() && tpu_valid && filament_printable;
             post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, model_fits));
             ppl.get_curr_plate()->update_slice_ready_status(model_fits);
+
+            bool filament_flow_compatible = cur_plate->check_flow_compatible_of_nozzle_and_filament(full_config_temp, wxGetApp().preset_bundle->filament_presets, get_filament_flow_warning_text());
+            _set_warning_notification(EWarning::FilamentNozzleFlowIncompatible, !filament_flow_compatible);
+
+            bool tpu_nozzle_has_multi_filaments = cur_plate->check_tpu_nozzle_has_multiple_filaments(full_config_temp, get_tpu_nozzle_multi_filaments_warning_text());
+            _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, tpu_nozzle_has_multi_filaments);
         }
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
@@ -3537,6 +3552,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::MultiExtruderHeightOutside,false);
            _set_warning_notification(EWarning::NozzleFilamentIncompatible,false);
            _set_warning_notification(EWarning::MixtureFilamentIncompatible,false);
+           _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, false);
 
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
@@ -11376,6 +11392,15 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text = _u8L(get_filament_mixture_warning_text());
         break;
     }
+    case EWarning::FilamentNozzleFlowIncompatible: {
+        text = _u8L(get_filament_flow_warning_text());
+        error = ErrorType::SLICING_ERROR;
+        break;
+    }
+    case EWarning::TpuNozzleMultipleFilaments: {
+        text = _u8L(get_tpu_nozzle_multi_filaments_warning_text());
+        break;
+    }
     case EWarning::FlushingVolumeZero:
         text = _u8L("Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings.");
         error = ErrorType::SLICING_ERROR;
@@ -11420,6 +11445,13 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
             }
             else{
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::WarningNotificationLevel);
+            }
+        }
+        else if (warning == EWarning::TpuNozzleMultipleFilaments) {
+            if (state) {
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLTpuNozzleHasMultiFilament, NotificationLevel::WarningNotificationLevel, text);
+            } else {
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLTpuNozzleHasMultiFilament, NotificationLevel::WarningNotificationLevel);
             }
         }
         else {
@@ -11505,6 +11537,13 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 notification_manager.push_flushing_volume_error_notification(NotificationType::BBLFlushingVolumeZero, NotificationLevel::WarningNotificationLevel, text, _u8L("Flushing Volume"), callback);
             } else
                 notification_manager.close_flushing_volume_error_notification(NotificationType::BBLFlushingVolumeZero, NotificationLevel::WarningNotificationLevel);
+        }
+        else if (warning == EWarning::FilamentNozzleFlowIncompatible) {
+            if (state) {
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::ErrorNotificationLevel, text);
+            } else {
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLNozzleFilamentIncompatible, NotificationLevel::ErrorNotificationLevel);
+            }
         }
         else {
             if (state)

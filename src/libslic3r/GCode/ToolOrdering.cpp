@@ -82,7 +82,9 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
         std::string extruder_variant = print_config->option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
         std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id].begin(), filament_variants[filament_id].end());
         if (filament_variants_set.count(extruder_variant) == 0){
-            std::string error_msg = _L("Grouping error: filament ") + std::to_string(filament_id + 1) + _L(" can not be placed in the ") + extruder_variant + _L(" nozzle");
+            std::string error_msg = _L("Filament Grouping Error: Filament ") + std::to_string(filament_id + 1) + _L(" is not supported by the ") + extruder_variant +
+                                    _L(" nozzle. ") + _L("Please change the nozzle type or reassign the filament and try again.");
+
             throw Slic3r::RuntimeError(error_msg);
         }
 
