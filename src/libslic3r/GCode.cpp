@@ -6572,12 +6572,17 @@ bool GCode::slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPa
         acc1 = NOZZLE_CONFIG(slowdown_start_acc);
         acc2 = NOZZLE_CONFIG(slowdown_end_acc);
 
-        if (height1 >= height2 || currentHeight > height2 || currentHeight < height1) do_slowdown_by_height = false;
+        if (height1 >= height2 || currentHeight < height1) do_slowdown_by_height = false;
         else {
-            // speed should be decreased linearly
-            desiredMaxSpeed = (currentHeight - height1) / (height2 - height1) * (speed2 - speed1) + speed1;
-            // acceleration should be decreased linearly
-            desiredMaxAcc = acc1 - (acc1 - acc2) / (height2 - height1) * (currentHeight - height1);
+            if (currentHeight > height2) { // above height 2, use speed2 and acc2
+                desiredMaxSpeed = speed2;
+                desiredMaxAcc   = acc2;
+            } else {
+                // speed should be decreased linearly
+                desiredMaxSpeed = (currentHeight - height1) / (height2 - height1) * (speed2 - speed1) + speed1;
+                // acceleration should be decreased linearly
+                desiredMaxAcc = acc1 - (acc1 - acc2) / (height2 - height1) * (currentHeight - height1);
+            }
 
             // modify travel speed and acceleration
             for (auto& av : m_writer.config.travel_speed.values) {
