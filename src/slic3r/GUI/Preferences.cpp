@@ -1044,11 +1044,11 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
-        
+
         // Check if time format changed
         std::string current_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
         m_use_12h_time_format_changed = (m_original_use_12h_time_format != current_use_12h_time_format);
-        
+
         event.Skip();
         });
 }

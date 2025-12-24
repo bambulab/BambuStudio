@@ -818,9 +818,9 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_form
 
     // Calculate finish time and get its local time
     time_t   finish_time    = current_time + static_cast<time_t>(time_in_secs);
-    std::tm  finish_tm_copy = *std::localtime(&finish_time);  // Copy to avoid overwrite
-    int      finish_day     = finish_tm_copy.tm_yday;
-    int      finish_year    = finish_tm_copy.tm_year + 1900;
+    std::tm  finish_tm = *std::localtime(&finish_time);  // Copy to avoid overwrite
+    int      finish_day     = finish_tm.tm_yday;
+    int      finish_year    = finish_tm.tm_year + 1900;
 
     int diff_day = 0;
     if (current_year != finish_year) {
@@ -839,7 +839,7 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_form
         diff_day = finish_day - current_day;
     }
 
-    std::string finish_time_str = format_time_hm(&finish_tm_copy, use_12h_format);
+    std::string finish_time_str = format_time_hm(&finish_tm, use_12h_format);
     if (diff_day != 0) finish_time_str += "+" + std::to_string(diff_day);
 
     return finish_time_str;
