@@ -2783,8 +2783,8 @@ std::vector<FilamentUsageType> Print::get_filament_usage_type() const
 
     for (int idx = 0; idx < m_config.filament_type.size(); ++idx) {
 
-        bool is_support = model_filaments.count(idx);
-        bool is_model   = support_filaments.count(idx);
+        bool is_model = model_filaments.count(idx);
+        bool is_support   = support_filaments.count(idx);
 
         if (is_model && is_support)
             filament_usage_types.emplace_back(FilamentUsageType::Hybrid);
