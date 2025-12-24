@@ -1545,7 +1545,10 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         check_info.slot_id = slot_id;
         check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)); // NOTE: to be fixed
         check_info.fila_name = preset->alias;
-        
+
+        if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)
+            check_info.calib_mode = "auto_pa";
+
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
             check_info.fila_vendor = vendor->values[0];

@@ -92,9 +92,11 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
     std::string  tag_type = check_info.fila_type;
     std::string  tag_name = check_info.fila_name;
     std::string  tag_vendor = check_info.fila_vendor;
+    std::string  tag_calib_mode = check_info.calib_mode;
     std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
     std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
     std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
+    std::transform(tag_calib_mode.begin(), tag_calib_mode.end(), tag_calib_mode.begin(), ::tolower);
 
     DevFilaBlacklist::load_filaments_blacklist_config();
     if (DevFilaBlacklist::filaments_blacklist.contains("blacklist"))
@@ -116,6 +118,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::vector<int> extruder_ids = filament_item.contains("extruder_id") ? filament_item["extruder_id"].get<std::vector<int>>() : std::vector<int>();
             std::vector<std::string> nozzle_flows = filament_item.contains("nozzle_flows") ? filament_item["nozzle_flows"].get<std::vector<std::string>>() : std::vector<std::string>();
+            std::string calib_mode = filament_item.contains("calib_mode") ? filament_item["calib_mode"].get<std::string>() : "";
 
             // check model id
             if (!model_ids.empty() && std::find(model_ids.begin(), model_ids.end(), check_info.model_id) == model_ids.end()) { continue; }
@@ -140,6 +143,10 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
                     continue;
                 }
             }
+
+            // check calib mode
+            std::transform(calib_mode.begin(), calib_mode.end(), calib_mode.begin(), ::tolower);
+            if (!calib_mode.empty() && calib_mode != tag_calib_mode) { continue;}
 
             // check type
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
@@ -233,6 +240,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             L("AMS does not support 'Bambu Lab PET-CF'.");
             L("The current filament doesn't support the E3D high-flow nozzle and can't be used.");
             L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
+            L("Auto dynamic flow calibration is not supported for TPU filament.");
 
             // Warning in description
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");

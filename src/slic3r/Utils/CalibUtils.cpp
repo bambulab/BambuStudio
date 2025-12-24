@@ -1051,7 +1051,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
         return false;
     }
 
-    if (!check_tpu_high_flow_before_cali(CalibMode::Calib_Auto_PA_Line, calib_infos, error_message))
+    if (!check_tpu_volume_type_before_cali(CalibMode::Calib_Auto_PA_Line, calib_infos, error_message))
         return false;
 
     if (!check_printable_status_before_cali(obj_, calib_infos, error_message))
@@ -1737,7 +1737,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     return true;
 }
 
-bool CalibUtils::check_tpu_high_flow_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message)
+bool CalibUtils::check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message)
 {
     if (cali_mode == CalibMode::Calib_Auto_PA_Line)
     {
