@@ -8,13 +8,13 @@
     "fan_max_speed": [
         "40"
     ],
-    "filament_max_volumetric_speed": [
-        "1",
-        "1"
-    ],
     "filament_flow_ratio": [
         "0.94",
         "0.94"
+    ],
+    "filament_max_volumetric_speed": [
+        "1",
+        "1"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -41,6 +41,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",

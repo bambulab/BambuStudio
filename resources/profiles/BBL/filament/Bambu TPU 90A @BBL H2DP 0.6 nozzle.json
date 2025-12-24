@@ -44,6 +44,10 @@
         "10",
         "10"
     ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
     "filament_pre_cooling_temperature": [
         "195",
         "195"
@@ -51,10 +55,6 @@
     "filament_ramming_travel_time": [
         "20",
         "20"
-    ],
-    "filament_z_hop_types": [
-        "Spiral Lift",
-        "Spiral Lift"
     ],
     "impact_strength_z": [
         "88.7"
@@ -78,6 +78,7 @@
         "0"
     ],
     "slow_down_min_speed": [
+        "25",
         "25"
     ],
     "compatible_printers": [

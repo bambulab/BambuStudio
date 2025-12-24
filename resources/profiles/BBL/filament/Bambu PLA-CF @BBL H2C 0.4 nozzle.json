@@ -80,6 +80,10 @@
         "230",
         "230"
     ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"
     ],

@@ -16,13 +16,13 @@
         "8",
         "12"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "filament_z_hop": [
         "nil",
         "0.8"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -42,6 +42,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

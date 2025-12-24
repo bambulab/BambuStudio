@@ -27,12 +27,12 @@
         "10",
         "10"
     ],
-    "first_x_layer_fan_speed": [
-        "40"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "first_x_layer_fan_speed": [
+        "40"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -55,6 +55,10 @@
     ],
     "supertack_plate_temp": [
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.2 nozzle"

@@ -5,13 +5,13 @@
     "from": "system",
     "setting_id": "GFSA06_01",
     "instantiation": "true",
-    "filament_max_volumetric_speed": [
-        "2",
-        "2"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
+    ],
+    "filament_max_volumetric_speed": [
+        "2",
+        "2"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -41,6 +41,10 @@
     ],
     "supertack_plate_temp_initial_layer": [
         "35"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",

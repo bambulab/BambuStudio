@@ -215,6 +215,11 @@
         "0",
         "0"
     ],
+    "slow_down_min_speed": [
+        "10",
+        "10",
+        "10"
+    ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",
         "0 0 0 0 0 0",

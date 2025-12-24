@@ -77,6 +77,7 @@
         "0"
     ],
     "slow_down_min_speed": [
+        "30",
         "30"
     ],
     "volumetric_speed_coefficients": [
