@@ -329,9 +329,15 @@ void SideButton::mouseDown(wxMouseEvent& event)
 void SideButton::mouseReleased(wxMouseEvent& event)
 {
     event.Skip();
+
+    if (HasCapture())
+    {
+        // Release mouse capture regardless of pressedDown state, to avoid cases where capture may be stuck permanently
+        ReleaseMouse();
+    }
+
     if (pressedDown) {
         pressedDown = false;
-        ReleaseMouse();
         if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
             sendButtonEvent();
     }
