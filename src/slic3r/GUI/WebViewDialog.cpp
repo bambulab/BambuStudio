@@ -1892,7 +1892,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
                 std::regex pattern("&keyword=[^&]*");
                 TmpNowUrl = std::regex_replace(TmpNowUrl, pattern, "");
                 if(TmpNowUrl != m_browserMW->GetCurrentURL().ToStdString()) {
-                    m_browserMW->LoadURL(TmpNowUrl); 
+                    m_browserMW->LoadURL(TmpNowUrl);
                 }
             }
         }
