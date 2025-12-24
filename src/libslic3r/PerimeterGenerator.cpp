@@ -850,7 +850,7 @@ void PerimeterGenerator::process_classic()
     coord_t ext_perimeter_spacing   = this->ext_perimeter_flow.scaled_spacing();
     coord_t ext_perimeter_spacing2;
     // Orca: ignore precise_outer_wall if wall_sequence is not InnerOuter
-    if (config->precise_outer_wall)
+    if (config->precise_outer_wall && config->wall_sequence == WallSequence::InnerOuter)
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.width() + this->perimeter_flow.width()));
     else
         ext_perimeter_spacing2 = scaled<coord_t>(0.5f * (this->ext_perimeter_flow.spacing() + this->perimeter_flow.spacing()));
@@ -1489,7 +1489,7 @@ void PerimeterGenerator::process_arachne()
     // we need to process each island separately because we might have different
     // extra perimeters for each one
 
-    bool apply_precise_outer_wall = config->precise_outer_wall;
+	bool apply_precise_outer_wall = config->precise_outer_wall && config->wall_sequence == WallSequence::InnerOuter;
     for (const Surface& surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
