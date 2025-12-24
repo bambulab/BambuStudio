@@ -3836,7 +3836,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             {
                 if (obj_ && can_hybrid_mapping(*obj_->GetExtderSystem()))
                 {
-                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+                m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
                 }
                 else if (m_filaments_map[extruder] == 1)
                 {
