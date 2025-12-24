@@ -1144,10 +1144,11 @@ std::string get_cannot_reason_text(DevAms::CannotDryReason reason)
     case DevAms::CannotDryReason::Upgrading:
         cannot_reason_text = "*Upgrading\n";
         cannot_reason_text += "  The AMS is upgrading, please wait.\n";
+        break;
     case DevAms::CannotDryReason::InsufficientPowerNeedPluginPower:
         cannot_reason_text = "*Insufficient power\n";
         cannot_reason_text += "  Please plug in the power and then use the drying function.\n";
-        
+        break;
     default:
         cannot_reason_text = "*System is busy\n";
         cannot_reason_text += "  Initiating other drying processes, please wait a few seconds...\n";
