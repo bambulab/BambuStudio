@@ -11,11 +11,11 @@
     "fan_min_speed": [
         "50"
     ],
-    "filament_max_volumetric_speed": [
+    "filament_flow_ratio": [
         "1",
         "1"
     ],
-    "filament_flow_ratio": [
+    "filament_max_volumetric_speed": [
         "1",
         "1"
     ],
@@ -47,6 +47,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "textured_plate_temp": [
         "65"

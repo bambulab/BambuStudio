@@ -36,17 +36,18 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "slow_down_layer_time": [
-        "10"
-    ],
-    "slow_down_min_speed": [
-        "20"
-    ],
     "supertack_plate_temp": [
         "60"
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.2 nozzle"
