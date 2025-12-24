@@ -61,9 +61,16 @@
     {
       "white_names": ["Bambu TPU 85A", "Bambu TPU 90A", "Bambu TPU 95A HF", "Generic TPU"],
       "nozzle_flows": ["TPU High Flow"],
-      "model_id": ["O1D"],
+      "model_id": ["O1D", "O1E"],
       "action": "prohibition",
       "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+    },
+    {
+      "type": "TPU",
+      "action": "prohibition",
+      "calib_mode": "auto_pa",
+      "model_id": ["O1D", "O1E"],
+      "description": "Auto dynamic flow calibration is not supported for TPU filament."
     },
     {
       "type": "TPU",

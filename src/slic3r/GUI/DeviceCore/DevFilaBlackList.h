@@ -18,6 +18,9 @@ public:
         std::string fila_type;
         std::string fila_name;
         std::string fila_vendor;
+
+        std::string calib_mode;
+
         std::optional<bool> used_for_print_support;// optional
         std::optional<bool> used_for_print_object;// optional
 
