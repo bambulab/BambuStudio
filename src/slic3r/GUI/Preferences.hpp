@@ -69,10 +69,13 @@ protected:
     // bool								m_settings_layout_changed {false};
     bool m_seq_top_layer_only_changed{false};
     bool m_recreate_GUI{false};
+    bool m_use_12h_time_format_changed{false};
+    std::string m_original_use_12h_time_format;
 
 public:
     bool seq_top_layer_only_changed() const { return m_seq_top_layer_only_changed; }
     bool recreate_GUI() const { return m_recreate_GUI; }
+    bool use_12h_time_format_changed() const { return m_use_12h_time_format_changed; }
     void on_dpi_changed(const wxRect &suggested_rect) override;
 
 public:

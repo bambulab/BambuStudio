@@ -1030,6 +1030,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
+    m_original_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
     create();
     wxGetApp().UpdateDlgDarkUI(this);
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
@@ -1043,6 +1044,11 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
+
+        // Check if time format changed
+        std::string current_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
+        m_use_12h_time_format_changed = (m_original_use_12h_time_format != current_use_12h_time_format);
+
         event.Skip();
         });
 }
@@ -1189,6 +1195,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units,{"0","1"});
+    auto item_12h_time_format = create_item_checkbox(_L("Use 12-hour time format"), page, _L("Display time in 12-hour format with AM/PM instead of 24-hour format"), 50, "use_12h_time_format");
     auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
 #if __APPLE__
         _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1336,6 +1343,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_language, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_12h_time_format, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
