@@ -416,7 +416,9 @@ class GLCanvas3D
         NozzleFilamentIncompatible,
         MixtureFilamentIncompatible,
         AsemblyInvalid, // for asembly view only
-        FlushingVolumeZero
+        FlushingVolumeZero,
+        FilamentNozzleFlowIncompatible,
+        TpuNozzleMultipleFilaments
     };
 
     class RenderStats
