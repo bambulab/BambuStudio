@@ -1561,7 +1561,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("For the first");
-    def->tooltip = L("Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed "
+    def->tooltip = L("Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed "
                      "to get better build plate adhesion and used for auto cooling function");
     def->sidetext = L("layers");
     def->min = 0;
@@ -1571,7 +1571,7 @@ void PrintConfigDef::init_fff_params()
 
     def           = this->add("first_x_layer_fan_speed", coFloats);
     def->label    = L("Fan speed");
-    def->tooltip  = L("Special cooling fan speed for the first certain layers");
+    def->tooltip  = L("Special auxiliary cooling fan speed, effective only for the first x layers");
     def->sidetext = "%";
     def->min      = 0;
     def->max      = 100;
