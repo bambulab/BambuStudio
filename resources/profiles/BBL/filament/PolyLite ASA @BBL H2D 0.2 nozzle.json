@@ -27,6 +27,10 @@
         "260",
         "260"
     ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"
     ],

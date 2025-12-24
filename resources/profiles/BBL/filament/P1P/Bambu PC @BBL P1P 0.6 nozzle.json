@@ -22,10 +22,6 @@
         "18",
         "18"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "filament_retraction_length": [
         "nil",
         "0.45"
@@ -37,6 +33,10 @@
     "filament_z_hop_types": [
         "nil",
         "Spiral Lift"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "hot_plate_temp": [
         "100"
@@ -68,6 +68,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "textured_plate_temp": [
         "100"

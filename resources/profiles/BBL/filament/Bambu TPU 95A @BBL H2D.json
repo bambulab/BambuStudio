@@ -54,9 +54,6 @@
         "0.9",
         "0.9"
     ],
-    "filament_printable": [
-        "3"
-    ],
     "filament_ramming_volumetric_speed_nc": [
         "-1",
         "-1",
@@ -214,6 +211,11 @@
         "0",
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "10",
+        "10",
+        "10"
     ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",

@@ -5,6 +5,14 @@
     "from": "system",
     "setting_id": "GFSA01",
     "instantiation": "true",
+    "filament_deretraction_speed": [
+        "nil",
+        "40"
+    ],
+    "filament_flow_ratio": [
+        "0.98",
+        "0.985"
+    ],
     "filament_long_retractions_when_cut": [
         "1",
         "1"
@@ -17,18 +25,6 @@
         "18",
         "18"
     ],
-    "filament_flow_ratio": [
-        "0.98",
-        "0.985"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "40"
-    ],
     "filament_retraction_length": [
         "nil",
         "0.4"
@@ -40,6 +36,10 @@
     "filament_z_hop": [
         "nil",
         "0.6"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -59,6 +59,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.4 nozzle",

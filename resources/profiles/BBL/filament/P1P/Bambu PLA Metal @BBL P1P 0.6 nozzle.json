@@ -11,6 +11,10 @@
     "fan_min_speed": [
         "50"
     ],
+    "filament_deretraction_speed": [
+        "nil",
+        "40"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -18,14 +22,6 @@
     "filament_max_volumetric_speed": [
         "21",
         "29"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "40"
     ],
     "filament_retraction_length": [
         "nil",
@@ -38,6 +34,10 @@
     "filament_z_hop": [
         "nil",
         "0.6"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "hot_plate_temp": [
         "65"
@@ -66,6 +66,10 @@
     ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "textured_plate_temp": [
         "65"

@@ -77,6 +77,10 @@
     "slow_down_layer_time": [
         "10"
     ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
     "compatible_printers": [
         "Bambu Lab H2S 0.4 nozzle",
         "Bambu Lab H2S 0.6 nozzle",

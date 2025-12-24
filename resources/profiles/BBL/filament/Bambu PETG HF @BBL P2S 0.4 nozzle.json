@@ -8,6 +8,9 @@
     "fan_cooling_layer_time": [
         "20"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "fan_min_speed": [
         "30"
     ],
@@ -39,15 +42,12 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
     ],
-    "fan_max_speed": [
-        "60"
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -71,17 +71,18 @@
         "0",
         "0"
     ],
-    "slow_down_layer_time": [
-        "10"
-    ],
-    "slow_down_min_speed": [
-        "20"
-    ],
     "supertack_plate_temp": [
         "60"
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
+    ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.4 nozzle"

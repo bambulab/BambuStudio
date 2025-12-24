@@ -11,13 +11,13 @@
     "fan_max_speed": [
         "35"
     ],
-    "filament_max_volumetric_speed": [
-        "6.5",
-        "6.5"
-    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
+    ],
+    "filament_max_volumetric_speed": [
+        "6.5",
+        "6.5"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -44,6 +44,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab X1E 0.4 nozzle",
