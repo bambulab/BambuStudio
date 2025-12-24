@@ -682,6 +682,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             if (dlg.seq_top_layer_only_changed())
 #endif // ENABLE_GCODE_LINES_ID_IN_H_SLIDER
                 plater()->refresh_print();
+
+            // Refresh recent list if time format changed
+            if (dlg.use_12h_time_format_changed() && m_webview) {
+                wxGetApp().CallAfter([this]() {
+                    if (m_webview) {
+                        m_webview->SendRecentList(-1);
+                    }
+                });
+            }
             return;
         }
 
@@ -3183,6 +3192,15 @@ void MainFrame::init_menubar_as_editor()
             if (dlg.seq_top_layer_only_changed())
 #endif
                 plater()->refresh_print();
+
+            // Refresh recent list if time format changed
+            if (dlg.use_12h_time_format_changed() && m_webview) {
+                wxGetApp().CallAfter([this]() {
+                    if (m_webview) {
+                        m_webview->SendRecentList(-1);
+                    }
+                });
+            }
         },
         "", nullptr, []() { return true; }, this, 1);
     //parent_menu->Insert(1, preference_item);
@@ -3209,6 +3227,15 @@ void MainFrame::init_menubar_as_editor()
             if (dlg.seq_top_layer_only_changed())
 #endif
                 plater()->refresh_print();
+
+            // Refresh recent list if time format changed
+            if (dlg.use_12h_time_format_changed() && m_webview) {
+                wxGetApp().CallAfter([this]() {
+                    if (m_webview) {
+                        m_webview->SendRecentList(-1);
+                    }
+                });
+            }
         },
         "", nullptr, []() { return true; }, this);
     //m_topbar->AddDropDownMenuItem(preference_item);
