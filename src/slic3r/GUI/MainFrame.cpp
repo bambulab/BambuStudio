@@ -4043,8 +4043,17 @@ void MainFrame::get_recent_projects(boost::property_tree::wptree &tree, int imag
         boost::system::error_code ec;
         std::time_t t = boost::filesystem::last_write_time(proj, ec);
         if (!ec) {
-            std::wstring time = wxDateTime(t).FormatISOCombined(' ').ToStdWstring();
-            item.put(L"time", time);
+            std::tm* local_tm = std::localtime(&t);
+            bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+
+            // Format date and time: YYYY-MM-DD HH:MM[:SS][AM/PM]
+            std::wstringstream time_stream;
+            time_stream << std::setw(4) << std::setfill(L'0') << (local_tm->tm_year + 1900) << L"-"
+                       << std::setw(2) << std::setfill(L'0') << (local_tm->tm_mon + 1) << L"-"
+                       << std::setw(2) << std::setfill(L'0') << local_tm->tm_mday << L" "
+                       << from_u8(Slic3r::format_time_hm(local_tm, use_12h_format));
+
+            item.put(L"time", time_stream.str());
             if (i <= images) {
                 auto thumbnail = m_recent_projects.GetThumbnailUrl(i);
                 if (!thumbnail.empty()) item.put(L"image", thumbnail);
