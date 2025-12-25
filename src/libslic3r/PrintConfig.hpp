@@ -1168,6 +1168,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     // Y axis max force (N) and bed mass (g)
     ((ConfigOptionFloat, machine_max_force_Y))
     ((ConfigOptionFloat, machine_bed_mass_Y))
+    ((ConfigOptionFloat, machine_max_printed_mass))
     )
 
 // This object is mapped to Perl as Slic3r::Config::GCode.

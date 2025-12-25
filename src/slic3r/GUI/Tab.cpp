@@ -5244,6 +5244,7 @@ PageShp TabPrinter::build_kinematics_page()
         }
         append_option_line(optgroup, "machine_max_force_Y");
         append_option_line(optgroup, "machine_bed_mass_Y");
+        append_option_line(optgroup, "machine_max_printed_mass");
 
     optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
@@ -5789,7 +5790,7 @@ void TabPrinter::toggle_options()
         for (const std::string& opt : { "machine_max_acceleration_extruding", "machine_max_acceleration_retracting", "machine_max_acceleration_travel",
             "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
             "machine_max_speed_x", "machine_max_speed_y", "machine_max_speed_z", "machine_max_speed_e",
-            "machine_min_extruding_rate", "machine_min_travel_rate" })
+            "machine_min_extruding_rate", "machine_min_travel_rate", "machine_max_force_Y", "machine_bed_mass_Y", "machine_max_printed_mass" })
             for (int i = 0; i < max_field; ++ i)
 	            toggle_option(opt, !is_BBL_printer, i);
     }

@@ -7095,8 +7095,13 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
-                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode unprintable! gcode_result->gcode_check_result.error_code = "
+                                        if (gcode_result->gcode_check_result.error_code == (1 < 11))
+                                            BOOST_LOG_TRIVIAL(warning)
+                                                << "plate " << index + 1 << ": found too heavy printed weight for i3. gcode_result->gcode_check_result.error_code = "
                                                 << gcode_result->gcode_check_result.error_code << std::endl;
+                                        else
+                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode unprintable! gcode_result->gcode_check_result.error_code = "
+                                                                     << gcode_result->gcode_check_result.error_code << std::endl;
                                         //found gcode error
                                         if (gcode_result->gcode_check_result.error_code & 0b1100) {
                                             record_exit_reson(outfile_dir, CLI_GCODE_PATH_OUTSIDE, index + 1, cli_errors[CLI_GCODE_PATH_OUTSIDE], sliced_info);

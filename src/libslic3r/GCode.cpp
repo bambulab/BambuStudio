@@ -1766,6 +1766,21 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);
     DoExport::update_print_estimated_stats(m_processor, m_writer.extruders(), print->m_print_statistics);
+    // check the print mass was within limit
+    if (m_print->config().machine_max_printed_mass.value > EPSILON) {
+        double mass_on_bed_total = print->m_print_statistics.total_weight;
+        for (auto volume : m_processor.get_result().print_statistics.flush_per_filament) {
+            size_t extruder_id = volume.first;
+            auto   extruder    = std::find_if(m_writer.extruders().begin(), m_writer.extruders().end(), [extruder_id](const Extruder &extr) { return extr.id() == extruder_id; });
+            if (extruder == m_writer.extruders().end()) continue;
+            mass_on_bed_total -= (volume.second * extruder->filament_density() * 0.001);
+        } // flushed weight will not be keeped on the hot bed, exclude it
+        if (mass_on_bed_total > m_print->config().machine_max_printed_mass.value) {
+            m_processor.result().gcode_check_result.error_code |= (1 << 11); // printed weight over limit
+        }
+    }
+
+
     if (result != nullptr) {
         *result = std::move(m_processor.extract_result());
         // set the filename to the correct value

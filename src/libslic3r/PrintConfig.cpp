@@ -3958,6 +3958,16 @@ void PrintConfigDef::init_fff_params()
             def->min        = 0;
             def->mode       = comDevelop;
             def->set_default_value(new ConfigOptionFloat(0));
+            // Add the machine printed mass limit, due to te motor output limit
+            def             = this->add("machine_max_printed_mass", coFloat);
+            def->full_label = L("The allowed max printed mass");
+            def->category   = L("Machine limits");
+            def->readonly   = false;
+            def->tooltip    = L("The allowed max printed mass on a plate");
+            def->sidetext   = L("g");
+            def->min        = 0;
+            def->mode       = comDevelop;
+            def->set_default_value(new ConfigOptionFloat(0));
         }
     }
 

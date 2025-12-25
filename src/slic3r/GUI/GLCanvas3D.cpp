@@ -7055,6 +7055,7 @@ void GLCanvas3D::_update_slice_error_status()
     _set_warning_notification_if_needed(EWarning::MultiExtruderPrintableError);
     _set_warning_notification_if_needed(EWarning::MultiExtruderHeightOutside);
     _set_warning_notification_if_needed(EWarning::FilamentUnPrintableOnFirstLayer);
+    _set_warning_notification_if_needed(EWarning::PrintedWeightOverLimitWarn);
 }
 
 void GLCanvas3D::_switch_toolbars_icon_filename()
@@ -10901,6 +10902,8 @@ void GLCanvas3D::_set_warning_notification_if_needed(EWarning warning)
                     show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_gcode_check_result().error_code & (1 << 1));
                 else if (warning == EWarning::FilamentUnPrintableOnFirstLayer)
                     show = t_gcode_viewer.has_data() && t_gcode_viewer.get_filament_printable_result().has_value();
+                else if (warning == EWarning::PrintedWeightOverLimitWarn)
+                    show = t_gcode_viewer.has_data() && (t_gcode_viewer.get_gcode_check_result().error_code & (1 << 11));
             }
         }
     }
@@ -12686,6 +12689,11 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         error = ErrorType::SLICING_ERROR;
         break;
     }
+    case EWarning::PrintedWeightOverLimitWarn: {
+        text  = _u8L("The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects.");
+        error = ErrorType::PLATER_WARNING;
+        break;
+    }
     case EWarning::LeftExtruderPrintableError:
     case EWarning::RightExtruderPrintableError: {
         error = ErrorType::PLATER_ERROR;
@@ -12908,6 +12916,12 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                 notification_manager.push_slicing_customize_error_notification(NotificationType::BBLTpuNozzleHasMultiFilament, NotificationLevel::WarningNotificationLevel, text);
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLTpuNozzleHasMultiFilament, NotificationLevel::WarningNotificationLevel);
+            }
+        } else if (warning == EWarning::PrintedWeightOverLimitWarn) {
+            if (state) {
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLPrintedWeightOverLimitWarn, NotificationLevel::WarningNotificationLevel, text);
+            } else {
+                notification_manager.close_slicing_customize_error_notification(NotificationType::BBLPrintedWeightOverLimitWarn, NotificationLevel::WarningNotificationLevel);
             }
         }
         else if (warning == EWarning::HighTempNeedWrappingDetection) {
