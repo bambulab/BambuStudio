@@ -419,8 +419,6 @@ public:
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
-    bool    nozzle_blob_detection_enabled{ false };
-    time_t  nozzle_blob_detection_hold_start = 0;
 
     CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
 
@@ -527,7 +525,6 @@ public:
     bool is_support_motor_noise_cali{false};
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
-    bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
@@ -660,8 +657,6 @@ public:
 
     // set print option
     int command_set_printing_option(bool auto_recovery);
-
-    int command_nozzle_blob_detect(bool nozzle_blob_detect);
 
     int command_extruder_control(int nozzle_id, double val);
     // calibration printer

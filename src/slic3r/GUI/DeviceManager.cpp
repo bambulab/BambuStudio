@@ -986,12 +986,6 @@ void MachineObject::parse_home_flag(int flag)
 
     is_support_user_preset = ((flag >> 22) & 0x1) != 0;
 
-    is_support_nozzle_blob_detection = ((flag >> 25) & 0x1) != 0;
-
-    if (time(nullptr) - nozzle_blob_detection_hold_start > HOLD_TIME_3SEC) {
-        nozzle_blob_detection_enabled = ((flag >> 24) & 0x1) != 0;
-    }
-
     is_support_air_print_detection = ((flag >> 29) & 0x1) != 0;
     if (auto ptr = m_fila_system->GetAmsFirmwareSwitch().lock();
         ptr->GetCurrentFirmwareIdxRun() == DevAmsSystemFirmwareSwitch::IDX_AMS_AMS2_AMSHT) {
@@ -1635,16 +1629,6 @@ int MachineObject::command_set_printing_option(bool auto_recovery)
     return this->publish_json(j);
 }
 
-int MachineObject::command_nozzle_blob_detect(bool nozzle_blob_detect)
-{
-    json j;
-    j["print"]["command"] = "print_option";
-    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
-    j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
-    nozzle_blob_detection_enabled = nozzle_blob_detect;
-    nozzle_blob_detection_hold_start = time(nullptr);
-    return this->publish_json(j);
-}
 
 int MachineObject::command_ams_switch_filament(bool switch_filament)
 {
@@ -4085,11 +4069,6 @@ void MachineObject::parse_new_info(json print)
 
         if (time(nullptr) - xcam_door_open_check_start_time > HOLD_TIME_3SEC){
             xcam_door_open_check = (DoorOpenCheckState) get_flag_bits(cfg, 20, 2);
-        }
-
-
-        if (time(nullptr) - nozzle_blob_detection_hold_start > HOLD_TIME_3SEC) {
-            nozzle_blob_detection_enabled = get_flag_bits(cfg, 24);
         }
 
         installed_upgrade_kit = get_flag_bits(cfg, 25);
