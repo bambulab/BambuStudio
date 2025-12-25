@@ -55,7 +55,7 @@ static const char *PLUGINS_SUBPATH = "plugins";
 
 int copy_file_fix(const fs::path &source, const fs::path &target, std::string& error_message)
 {
-	BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
+    BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", PathSanitizer::sanitize(source), PathSanitizer::sanitize(target));
 
 	//CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source.string(), target.string(), error_message, false);
 	CopyFileResult cfr = copy_file(source.string(), target.string(), error_message, false);
@@ -75,7 +75,7 @@ int copy_file_fix(const fs::path &source, const fs::path &target, std::string& e
 int copy_directory_fix(const fs::path &source, const fs::path &target, std::string& error_message)
 {
     int ret = 0;
-    BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", source, target);
+    BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", PathSanitizer::sanitize(source), PathSanitizer::sanitize(target));
 
     if (fs::exists(target)) {
         boost::system::error_code ec;
