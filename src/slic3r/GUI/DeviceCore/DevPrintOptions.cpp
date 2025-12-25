@@ -23,9 +23,14 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     opts->m_filament_tangle_detection.current_detect_value = ((flag >> 20) & 0x1) != 0;
                 }
 
-                 opts->m_allow_prompt_sound_detection.is_support_detect = ((flag >> 18) & 0x1) != 0;
+                opts->m_allow_prompt_sound_detection.is_support_detect = ((flag >> 18) & 0x1) != 0;
                 opts->m_filament_tangle_detection.is_support_detect    = ((flag >> 19) & 0x1) != 0;
+                opts->m_nozzle_blob_detection.is_support_detect =  ((flag >> 25) & 0x1) != 0;
 
+                if (time(nullptr) - opts->m_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
+                {
+                    opts->m_nozzle_blob_detection.current_detect_value = ((flag >> 24) & 0x1) != 0;
+                }
             }
         }
 
@@ -212,6 +217,9 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
             opts->m_snapshot_detection.is_support_detect =
                 opts->m_snapshot_detection.current_detect_value != 0 && opts->m_snapshot_detection.current_detect_value != 3;
         }
+         if (time(nullptr) - opts->m_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
+             opts->m_nozzle_blob_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 24);
+
 
     }
 
@@ -408,6 +416,17 @@ int DevPrintOptions::command_xcam_control_filament_tangle_detect(bool on_off)
     return command_set_filament_tangle_detect(on_off, m_obj);
 }
 
+int DevPrintOptions::command_nozzle_blob_detect(bool nozzle_blob_detect)
+{
+    json j;
+    j["print"]["command"]            = "print_option";
+    j["print"]["sequence_id"]        = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
+    m_nozzle_blob_detection.current_detect_value = nozzle_blob_detect;
+    m_nozzle_blob_detection.detect_hold_start = time(nullptr);
+    return m_obj->publish_json(j);
+}
+
 PrintOptionData *DevPrintOptions::GetDetectionOption(PrintOptionEnum print_option)
 {
     auto it = m_detection_list.find(print_option);
@@ -454,6 +473,7 @@ int DevPrintOptions::command_set_printing_option(bool auto_recovery, MachineObje
 
 int DevPrintOptions::command_set_prompt_sound(bool prompt_sound, MachineObject *obj)
 {
+
     json j;
     j["print"]["command"]      = "print_option";
     j["print"]["sequence_id"]  = std::to_string(MachineObject::m_sequence_id++);
