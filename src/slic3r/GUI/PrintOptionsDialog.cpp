@@ -129,6 +129,13 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
     });
 
+    m_cb_non_visual_airprinting_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        if (obj) {
+            obj->command_ams_air_print_detect(m_cb_non_visual_airprinting_detection->GetValue());
+        }
+        evt.Skip();
+    });
+
     m_cb_save_remote_print_file_to_storage->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt)
     {
         if (obj) { obj->command_set_save_remote_print_file_to_storage(m_cb_save_remote_print_file_to_storage->GetValue());}
@@ -168,7 +175,7 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
     });
     m_cb_nozzle_blob->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
-            obj->command_nozzle_blob_detect(m_cb_nozzle_blob->GetValue());
+           obj->GetPrintOptions()->command_nozzle_blob_detect(m_cb_nozzle_blob->GetValue());
         }
         evt.Skip();
         });
@@ -642,7 +649,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line6->Hide();
     }
 
-    if (false/*obj_->is_support_nozzle_blob_detection*/) {
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->is_support_detect) {
         text_nozzle_blob->Show();
         m_cb_nozzle_blob->Show();
         text_nozzle_blob_caption->Show();
@@ -655,6 +662,17 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line7->Hide();
     }
 
+    if (obj_->is_support_air_print_detection && (DevPrinterConfigUtil::air_print_detection_position(obj->printer_type) == "print_option"))
+    {
+        m_cb_non_visual_airprinting_detection->Show();
+        text_non_visual_airprinting_detection->Show();
+    }
+    else
+    {
+        m_cb_non_visual_airprinting_detection->Hide();
+        text_non_visual_airprinting_detection->Hide();
+    }
+
     UpdateOptionSavePrintFileToStorage(obj_);
     UpdateOptionOpenDoorCheck(obj_);
     UpdateOptionSnapshot(obj_);
@@ -665,10 +683,10 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_auto_recovery->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->current_detect_value);
     m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection)->current_detect_value);
     m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection)->current_detect_value);
-    m_cb_nozzle_blob->SetValue(obj_->nozzle_blob_detection_enabled);
+    m_cb_nozzle_blob->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->current_detect_value);
     m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->current_detect_value);
     m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->current_detect_value);
-
+    m_cb_non_visual_airprinting_detection->SetValue(obj_->ams_air_print_status);
 
     m_cb_ai_monitoring->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AI_Monitoring)->current_detect_value);
     for (auto i = AiMonitorSensitivityLevel::LOW; i < LEVELS_NUM; i = (AiMonitorSensitivityLevel) (i + 1)) {
@@ -1276,6 +1294,16 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     m_cb_nozzle_blob->Hide();
     text_nozzle_blob_caption->Hide();
     line7->Hide();
+
+    //non_visual_airprinting_detection
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_non_visual_airprinting_detection = new CheckBox(parent);
+    text_non_visual_airprinting_detection = new Label(parent, _L("Air Printing Detection"));
+    text_non_visual_airprinting_detection->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_non_visual_airprinting_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_non_visual_airprinting_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
 
     //Open Door Detection
     line_sizer = new wxBoxSizer(wxHORIZONTAL);

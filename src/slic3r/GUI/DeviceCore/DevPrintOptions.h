@@ -79,6 +79,7 @@ public:
     int command_xcam_control_build_plate_align_detector(bool on_off);
     int command_xcam_control_purify_air_at_print_end(int on_off);
     int command_snapshot_control(int on_off);
+    int command_nozzle_blob_detect(bool nozzle_blob_detect);
 
 private:
     int command_set_purify_air_at_print_end(PurifyAirAtPrintEndState state, MachineObject *obj);
