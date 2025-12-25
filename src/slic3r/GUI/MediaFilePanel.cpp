@@ -455,7 +455,8 @@ void MediaFilePanel::SetSelecting(bool selecting, bool selectall)
     m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
     auto fs = m_image_grid->GetFileSystem();
     bool download_support = fs && fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
-    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
+
+    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support && !selectall);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
     m_manage_panel->GetSizer()->Show(m_button_refresh, !selecting);
     m_manage_panel->GetSizer()->Show(m_button_select_all, !selecting);
