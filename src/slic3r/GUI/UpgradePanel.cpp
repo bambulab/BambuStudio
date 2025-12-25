@@ -31,6 +31,7 @@ static const std::unordered_map<wxString, wxString> ACCESSORY_DISPLAY_STR = {
     {"O2L_PCM", L("Cutting Module")},
     {"O2L_ACM", "Active Cutting Module"},
     {"O2L_UCM", "Ultrasonic Cutting Module"},
+    {"O2L-LFA", L("Rotary Attachment")},
     {"O2L-AFP", L("Auto Fire Extinguishing System")},
 };
 
