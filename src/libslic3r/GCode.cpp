@@ -2703,6 +2703,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     {                                                                         // hold chamber temp for flat print: Flag
         double print_area_sum_threshold = 40000.0, pring_hight_threshold = initial_layer_print_height + EPSILON;
         // thresholds in mm^2 and mm as units
+        BoundingBoxf printable_area_bbox;
+        printable_area_bbox.merge(m_config.printable_area.values);
+        if (printable_area_bbox.defined && printable_area_bbox.size().x() > 260.0 && printable_area_bbox.size().y() > 260.0) {
+            double lenght_threshold  = std::max(printable_area_bbox.size().x(), printable_area_bbox.size().y()) - 70.0;
+            print_area_sum_threshold = lenght_threshold * lenght_threshold;
+        }
 
         double   area_sum_temp  = 0.0;
         coordf_t max_hight_temp = -1.0;
