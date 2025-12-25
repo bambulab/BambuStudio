@@ -1250,8 +1250,14 @@ void PlaterPresetComboBox::update()
         selected_in_ams = add_ams_filaments(into_u8(selected_user_preset.empty() ? selected_system_preset : selected_user_preset), true);
     }
 
-    std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PETG HF",    "Bambu ABS",      "Bambu PLA Silk", "Bambu PLA-CF",
-                                                "Bambu PLA Galaxy", "Bambu PLA Metal", "Bambu PLA Marble", "Bambu PETG-CF", "Bambu PETG Translucent", "Bambu ABS-GF"};
+    std::vector<std::string> filament_orders = {"Bambu PLA Basic", "Bambu PLA Matte", "Bambu PLA Lite", "Bambu PLA Tough+", "Bambu PETG Basic", "Bambu PETG HF", "Bambu ABS",
+                                                "Bambu ASA", "Bambu PLA Silk+", "Bambu PLA Silk", "Bambu PLA-CF", "Bambu PLA Marble", "Bambu PLA Metal", "Bambu PLA Sparkle",
+                                                "Bambu PLA Galaxy", "Bambu PLA Glow", "Bambu PLA Wood", "Bambu PLA Translucent", "Bambu PETG Translucent", "Bambu PC",
+                                                "Bambu PC FR", "Bambu PETG-CF", "Bambu ABS-GF", "Bambu ASA-CF", "Bambu PA6-CF", "Bambu PA6-GF", "Bambu PAHT-CF", "Bambu PET-CF",
+                                                "Bambu PPA-CF", "Bambu PPS-CF", "Bambu PLA Aero", "Bambu ASA-Aero", "Bambu TPU for AMS", "Bambu TPU 95A HF", "Bambu TPU 90A",
+                                                "Bambu TPU 85A", "Bambu Support For PLA", "Bambu Support For PLA/PETG", "Bambu Support for ABS", "Bambu PVA", "Bambu Support For PA/PET",
+                                                "Bambu TPU 95A", "Bambu PA-CF", "Bambu PLA Tough", "Bambu PLA Dynamic", "Bambu Support W", "Bambu Support G"};
+
     std::vector<std::string> first_vendors     = {"", "Bambu", "Generic"}; // Empty vendor for non-system presets
     std::vector<std::string> first_types     = {"PLA", "PETG", "ABS", "TPU"};
     auto  add_presets       = [this, &preset_descriptions, &filament_orders, &preset_filament_vendors, &first_vendors, &preset_filament_types, &first_types, &selected_in_ams]
