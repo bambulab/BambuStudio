@@ -255,6 +255,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
 
 bool check_filaments_printable(const std::string        &dev_id,
                                const std::string        &tag_vendor,
+                               const std::string        &filament_name,
                                const std::string        &tag_type,
                                const std::string        &filament_id,
                                const std::optional<bool> is_support,
@@ -293,24 +294,40 @@ bool check_filaments_printable(const std::string        &dev_id,
 
     bool used_for_support = is_support.has_value() && is_support.value();
     bool used_for_model   = is_model.has_value() && is_model.value();
+    bool usage_unconfirm  = !is_support.has_value() && !is_model.has_value();
 
     PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
 
     if (filament_info.has_value()) {
         wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        auto printer_name = printer_preset->config.opt_string("printer_model");
+        std::string fila_name = filament_name.empty() ? tag_type : filament_name;
 
-        auto reject = [&](const wxString& usage) {
-            ac           = "prohibition";
-            info         = wxString::Format(_L("%s is not supported by %s extruder, when used for %s."), tag_type, extruder_name, usage);
+        auto reject = [&](const bool with_uasge, const wxString &usage = "") {
+            ac = "prohibition";
+            if (with_uasge)
+                info = wxString::Format(_L("%s is not supported by %s extruder of %s, when used for %s."), fila_name, extruder_name, printer_name, usage);
+            else
+                info = wxString::Format(_L("%s is not supported by %s extruder of %s."), fila_name, extruder_name, printer_name);
             in_blacklist = true;
             return false;
         };
 
-        if (used_for_model && !(filament_info->filament_printable >> extruder_idx & 1))
-            return reject(_L("model"));
-        if (used_for_support && !(filament_info->filament_support_printable >> extruder_idx & 1))
-            return reject(_L("support"));
+        bool can_used_for_support = filament_info->filament_support_printable >> extruder_idx & 1;
+        bool can_used_for_model = filament_info->filament_printable >> extruder_idx & 1;
+
+        if (usage_unconfirm) {
+            if(!can_used_for_model && !can_used_for_support)
+                return reject(false);
+        }
+        else {
+            if (used_for_model && !can_used_for_model)
+                return reject(true, _L("model"));
+            if (used_for_support && !can_used_for_support)
+                return reject(true, _L("support"));
+        }
+
     }
 
     return true;
@@ -326,7 +343,7 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
 
     bool in_blacklist = false;
     CheckResultItem blacklist_item;
-    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_type, info.fila_id, info.used_for_print_support, info.used_for_print_object, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
+    if (!check_filaments_printable(info.dev_id, info.fila_vendor,info.fila_name, info.fila_type, info.fila_id, info.used_for_print_support, info.used_for_print_object, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
         result.action_items[blacklist_item.action].push_back(blacklist_item);
         return result;
     }
