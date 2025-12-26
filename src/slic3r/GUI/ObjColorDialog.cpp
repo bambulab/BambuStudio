@@ -746,7 +746,11 @@ void ObjColorPanel::deal_approximate_match_btn()
             });
         auto new_index= color_dists[0].id;
         m_result_icon_list[i]->bitmap_combox->SetSelection(new_index);
-        m_new_add_colors[i]        = m_result_icon_list[i]->bitmap_combox->GetItemTooltip(new_index);
+        if (i < m_new_add_colors.size()) {
+            m_new_add_colors[i]        = m_result_icon_list[i]->bitmap_combox->GetItemTooltip(new_index);
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " error,Array out of bounds: " << i << "," << m_new_add_colors.size() << "," << m_cluster_map_filaments.size();
+        }
         m_cluster_map_filaments[i] = new_index;
     }
 }
