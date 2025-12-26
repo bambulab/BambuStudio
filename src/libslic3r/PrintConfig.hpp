@@ -1241,7 +1241,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             cooling_perimeter_transition_distance))
     ((ConfigOptionFloatsNullable,     default_acceleration))
     ((ConfigOptionFloatsNullable,     travel_acceleration))
-    ((ConfigOptionFloatsNullable,     short_travel_acceleration))
+    ((ConfigOptionFloatsNullable,     travel_short_distance_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_travel_acceleration))
     ((ConfigOptionFloatsNullable,     inner_wall_acceleration))
     ((ConfigOptionFloatsOrPercentsNullable,   sparse_infill_acceleration))

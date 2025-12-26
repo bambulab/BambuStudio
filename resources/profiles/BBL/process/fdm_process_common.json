@@ -159,6 +159,9 @@
     "travel_acceleration": [
         "10000"
     ],
+    "travel_short_distance_acceleration": [
+        "250"
+    ],
     "travel_speed": [
         "400"
     ],
