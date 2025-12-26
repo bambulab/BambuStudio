@@ -23,7 +23,7 @@ body:
       multiple: true
       options:
         - Bambu Lab Official website
-        - Bambu Lab github releases
+        - Bambu Lab GitHub releases
         - Built from source by yourself or others
     validations:
       required: true
