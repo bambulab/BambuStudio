@@ -57,8 +57,8 @@
         "2"
     ],
     "filament_ramming_travel_time_nc": [
-        "1",
-        "1"
+        "2",
+        "2"
     ],
     "filament_retract_length_nc": [
         "18",
@@ -95,10 +95,6 @@
     ],
     "slow_down_layer_time": [
         "6"
-    ],
-    "slow_down_min_speed": [
-        "20",
-        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"
