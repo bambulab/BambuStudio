@@ -175,9 +175,9 @@ void GCodeWriter::set_travel_acceleration(const std::vector<unsigned int>& accel
     m_travel_accelerations = accelerations;
 }
 
-void GCodeWriter::set_short_travel_acceleration(const std::vector<unsigned int>& accelerations)
+void GCodeWriter::set_travel_short_acceleration(const std::vector<unsigned int>& accelerations)
 {
-    m_short_travel_accelerations = accelerations;
+    m_travel_short_accelerations = accelerations;
 }
 
 void GCodeWriter::reset_last_acceleration()
@@ -219,9 +219,9 @@ std::string GCodeWriter::set_travel_acceleration(bool use_short_travel_accelerat
 
     // Use short travel acceleration if requested and available
     if (use_short_travel_acceleration &&
-        extruder_id < m_short_travel_accelerations.size() &&
-        m_short_travel_accelerations[extruder_id] > 0) {
-        return set_acceleration_impl(m_short_travel_accelerations[extruder_id]);
+        extruder_id < m_travel_short_accelerations.size() &&
+        m_travel_short_accelerations[extruder_id] > 0) {
+        return set_acceleration_impl(m_travel_short_accelerations[extruder_id]);
     }
 
     return set_acceleration_impl(travel_accelerations[extruder_id]);
