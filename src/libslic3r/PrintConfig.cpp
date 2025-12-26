@@ -1463,7 +1463,7 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionFloatsNullable{500.0});
 
     // Short travel acceleration - ported from PrusaSlicer 2.9.3 for VFA reduction
-    def           = this->add("short_travel_acceleration", coFloats);
+    def           = this->add("travel_short_distance_acceleration", coFloats);
     def->label    = L("Short travel");
     def->tooltip  = L("Acceleration used for short travel moves near external perimeters. "
                       "Short travels are moves shorter than the 'Retraction minimum travel' distance.\n\n"
@@ -6427,6 +6427,7 @@ std::set<std::string> print_options_with_variant = {
     "travel_speed_z",
     "default_acceleration",
     "travel_acceleration",
+    "travel_short_distance_acceleration",
     "initial_layer_travel_acceleration",
     "initial_layer_acceleration",
     "outer_wall_acceleration",

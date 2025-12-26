@@ -2718,7 +2718,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
     }
     std::vector<unsigned int> short_travel_accelerations;
-    for (auto value : m_config.short_travel_acceleration.values) {
+    for (auto value : m_config.travel_short_distance_acceleration.values) {
         short_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
     }
     std::vector<unsigned int> first_layer_travel_accelerations;
@@ -2726,7 +2726,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         first_layer_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
     }
     m_writer.set_travel_acceleration(travel_accelerations);
-    m_writer.set_short_travel_acceleration(short_travel_accelerations);
+    m_writer.set_travel_short_acceleration(short_travel_accelerations);
     m_writer.set_first_layer_travel_acceleration(first_layer_travel_accelerations);
     // OrcaSlicer: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
@@ -6364,7 +6364,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         if (!this->on_first_layer()) {
             // Check if short travel acceleration is enabled (value > 0)
             unsigned int extruder_id = m_writer.filament()->id();
-            auto& short_accel = m_writer.get_short_travel_acceleration();
+            auto& short_accel = m_writer.get_travel_short_acceleration();
             if (extruder_id < short_accel.size() && short_accel[extruder_id] > 0) {
                 // Use short travel acceleration for external perimeters with short travel distance
                 double travel_length = unscaled(travel.length());
