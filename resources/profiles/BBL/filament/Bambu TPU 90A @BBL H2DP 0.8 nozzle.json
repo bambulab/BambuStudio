@@ -37,8 +37,8 @@
         "2"
     ],
     "filament_retraction_length": [
-        "0.6",
-        "0.6"
+        "0.2",
+        "0.2"
     ],
     "filament_retraction_speed": [
         "10",
@@ -69,12 +69,12 @@
         "250"
     ],
     "nozzle_temperature": [
-        "225",
-        "225"
+        "220",
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
-        "225",
-        "225"
+        "220",
+        "220"
     ],
     "retraction_distances_when_ec": [
         "0",
