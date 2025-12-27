@@ -14,10 +14,6 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
-    "filament_bridge_speed": [
-        "25",
-        "25"
-    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
@@ -29,37 +25,13 @@
         "25",
         "25"
     ],
-    "filament_enable_overhang_speed": [
-        "1",
-        "1"
-    ],
     "filament_flow_ratio": [
-        "",
-        "1"
+        "1.05",
+        "1.05"
     ],
     "filament_max_volumetric_speed": [
         "2.8",
         "2.8"
-    ],
-    "filament_overhang_1_4_speed": [
-        "0",
-        "0"
-    ],
-    "filament_overhang_2_4_speed": [
-        "50",
-        "50"
-    ],
-    "filament_overhang_3_4_speed": [
-        "30",
-        "30"
-    ],
-    "filament_overhang_4_4_speed": [
-        "10",
-        "10"
-    ],
-    "filament_overhang_totally_speed": [
-        "10",
-        "10"
     ],
     "filament_pre_cooling_temperature": [
         "195",
@@ -73,13 +45,9 @@
         "0.7",
         "0.7"
     ],
-    "filament_retract_length_nc": [
-        "14",
-        "14"
-    ],
     "filament_retraction_length": [
-        "0.6",
-        "0.6"
+        "0.2",
+        "0.2"
     ],
     "filament_retraction_speed": [
         "10",
@@ -96,19 +64,15 @@
         "fdm_filament_template_direct_dual"
     ],
     "nozzle_temperature": [
-        "225",
-        "225"
+        "220",
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
-        "225",
-        "225"
+        "220",
+        "220"
     ],
     "nozzle_temperature_range_high": [
         "250"
-    ],
-    "override_process_overhang_speed": [
-        "0",
-        "0"
     ],
     "retraction_distances_when_ec": [
         "0",
@@ -116,10 +80,6 @@
     ],
     "slow_down_min_speed": [
         "25"
-    ],
-    "volumetric_speed_coefficients": [
-        "0 0 0 0 0 0",
-        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.8 nozzle"
