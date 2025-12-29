@@ -3982,7 +3982,7 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
 std::optional<DevAmsTray> MachineObject::get_tray(const std::string &ams_id, const std::string &tray_id) const
 {
     if (ams_id.empty() && tray_id.empty()) {
-        return DevAmsTray(tray_id);
+        return std::nullopt;
     }
 
     if (ams_id != VIRTUAL_AMS_MAIN_ID_STR && ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) {

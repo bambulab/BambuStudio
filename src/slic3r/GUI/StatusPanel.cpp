@@ -1,4 +1,4 @@
-﻿#include "StatusPanel.hpp"
+#include "StatusPanel.hpp"
 #include "I18N.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
@@ -3394,58 +3394,83 @@ void StatusPanel::update_ams(MachineObject *obj)
     update_ams_control_state(curr_ams_id, curr_can_id);
 }
 
+void sGetSwitchInfo(MachineObject* obj,
+                    const std::string& ams_id,
+                    const std::string& slot_id,
+                    wxString& load_error_info,
+                    wxString& unload_error_info)
+{
+
+    load_error_info.clear();
+    unload_error_info.clear();
+
+    if (!obj) {
+        load_error_info = "Please select a printer";
+        unload_error_info = "Please select a printer";
+        return;
+    }
+
+    if (obj->is_in_printing() && !obj->can_resume()) {
+        const auto& err_info = _L("The printer is busy on other print job");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    if (obj->can_resume() && !devPrinterUtil::IsVirtualSlot(ams_id)) {
+        const auto& err_info = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    bool in_switch_filament = false;
+    if (obj->is_enable_np && obj->GetExtderSystem()->IsBusyLoading()) {
+        in_switch_filament = true;
+    } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        in_switch_filament = true;
+    }
+
+    if (in_switch_filament) {
+        const auto& err_info = _L("Current extruder is busy changing filament");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    auto tray_item = obj->get_tray(ams_id, slot_id);
+    if (!tray_item) {
+        const auto& err_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
+        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) {
+            load_error_info = _L("Current slot has alread been loaded");
+        }
+    }
+    if (!devPrinterUtil::IsVirtualSlot(ams_id) && !tray_item->is_exists) {
+        load_error_info = _L("The selected slot is empty.");
+    }
+
+    auto extder = obj->GetExtderSystem()->GetExtderById(obj->GetFilaSystem()->GetExtruderIdByAmsId(ams_id));
+    if (!extder) {
+        unload_error_info = _L("No extruder found for the selected slot.");
+    }
+
+    if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
+        if (extder->GetSlotNow().ams_id != ams_id || extder->GetSlotNow().slot_id != slot_id) {
+            unload_error_info = _L("The selected slot is not loaded in the extruder.");
+        };
+    }
+};
+
 void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_id)
 {
     wxString load_error_info, unload_error_info;
-
-    if (obj->is_in_printing() && !obj->can_resume()) {
-        load_error_info   = _L("The printer is busy on other print job");
-        unload_error_info = _L("The printer is busy on other print job");
-    } else if (obj->can_resume() && !devPrinterUtil::IsVirtualSlot(ams_id)) {
-        load_error_info   = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
-        unload_error_info = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
-    } else {
-        /*switch now*/
-        bool in_switch_filament = false;
-
-        if (obj->is_enable_np) {
-            if (obj->GetExtderSystem()->IsBusyLoading()) { in_switch_filament = true; }
-        } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-            in_switch_filament = true;
-        }
-
-        if (in_switch_filament) {
-            load_error_info   = _L("Current extruder is busy changing filament");
-            unload_error_info = _L("Current extruder is busy changing filament");
-        }
-
-        if (ams_id.empty() || slot_id.empty()) {
-            load_error_info   = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-            unload_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-        } else if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-            for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
-                if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) { load_error_info = _L("Current slot has alread been loaded"); }
-            }
-        } else {
-            for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
-                if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) { load_error_info = _L("Current slot has alread been loaded"); }
-            }
-
-            /*empty*/
-            auto ams_item = obj->GetFilaSystem()->GetAmsById(ams_id);
-            if (!ams_item) {
-                load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-            } else {
-                auto tray_item = ams_item->GetTray(slot_id);
-                if (!tray_item) {
-                    load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-                } else if (!tray_item->is_exists) {
-                    load_error_info = _L("The selected slot is empty.");
-                }
-            }
-        }
-    }
-
+    sGetSwitchInfo(obj, ams_id, slot_id, load_error_info, unload_error_info);
     m_ams_control->EnableLoadFilamentBtn(load_error_info.empty(), ams_id, slot_id, load_error_info);
     m_ams_control->EnableUnLoadFilamentBtn(unload_error_info.empty(), ams_id, slot_id, unload_error_info);
 }
