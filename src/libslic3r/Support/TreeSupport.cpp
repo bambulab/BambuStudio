@@ -1538,6 +1538,8 @@ void TreeSupport::generate_toolpaths()
             ironing_fill->link_max_length = (coord_t) scale_(3. * ironing_fill->spacing);
 
             ExPolygons polys_to_iron = unioned_expolygons;
+            if (m_support_params.ironing_inset > EPSILON)
+                polys_to_iron = union_ex(offset(polys_to_iron, -scale_(m_support_params.ironing_inset)));
 
             Flow       support_ironing_flow(m_support_params.support_material_interface_flow.width(),
                                             m_support_params.support_material_interface_flow.height() * m_support_params.ironing_flow_percent * 0.01,

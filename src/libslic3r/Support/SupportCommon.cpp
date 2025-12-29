@@ -1931,14 +1931,14 @@ void generate_support_toolpaths(
 
                 // Find the layer above that directly overlaps current layer, clip the overlapped part
                 if (support_layer_id < support_layers.size() - 1) {
-                    if (support_params.ironing_inset > EPSILON)
-                        polys_to_iron = union_ex(offset(polys_to_iron, -scale_(support_params.ironing_inset)));
                     const auto &upper_layer = support_layers[support_layer_id + 1];
                     if (!upper_layer->support_islands.empty() && upper_layer->bottom_z() <= support_layer.print_z + EPSILON) {
 
                             polys_to_iron = diff_ex(polys_to_iron, upper_layer->support_islands);
                     }
                 }
+                if (support_params.ironing_inset > EPSILON)
+                    polys_to_iron = union_ex(offset(polys_to_iron, -scale_(support_params.ironing_inset)));
 
                 Flow support_ironing_flow(support_params.support_material_interface_flow.width(),
                                           support_params.support_material_interface_flow.height() * support_params.ironing_flow_percent * 0.01,
