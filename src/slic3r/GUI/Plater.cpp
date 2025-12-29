@@ -17552,6 +17552,7 @@ wxString Plater::get_selected_printer_name_in_combox() {
 void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title)
 {
     printer_name.Replace("Bambu Lab", "", false);
+    printer_name.Trim(true).Trim(false);
     wxString content;
     if (type == PrinterWarningType::NOT_CONNECTED) {
         content = wxString::Format(_L("Printer not connected. Please go to the device page to connect %s before syncing."), printer_name);
