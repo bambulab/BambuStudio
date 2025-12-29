@@ -83,6 +83,7 @@ protected:
     void update_contents(const wxString& title, const wxString& text, const wxString& error_code,const wxString& image_url, const std::vector<int>& btns);
 
     void on_button_click(ActionButton btn_id);
+    void on_request_timeout(wxTimerEvent& event);
     void on_webrequest_state(wxWebRequestEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect);
     wxBitmap get_default_loading_image();
@@ -96,6 +97,8 @@ private:
     std::unordered_set<Button*> m_used_button;
 
     wxWebRequest web_request;
+    wxTimer* m_request_timer { nullptr };
+
     wxString m_local_img_url;
 
     wxStaticBitmap* m_error_picture;

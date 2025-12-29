@@ -161,6 +161,10 @@ protected:
     Label* text_plate_align{nullptr};
     Label* text_plate_align_caption{nullptr};
 
+    wxBoxSizer* m_snapshot_sizer {nullptr};
+    CheckBox* m_cb_snapshot_enable{nullptr};
+
+
     bool print_halt = false;
 
     //print option toast
@@ -209,6 +213,7 @@ public:
 private:
     void UpdateOptionSavePrintFileToStorage(MachineObject *obj);
     void UpdateOptionOpenDoorCheck(MachineObject *obj);
+    void UpdateOptionSnapshot(MachineObject *obj);
 };
 
 }} // namespace Slic3r::GUI

@@ -206,6 +206,13 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
 
          if (time(nullptr) - opts->m_purify_air_at_print_end.detect_hold_start > HOLD_TIME_3SEC)
             opts->m_purify_air_at_print_end.current_detect_value = DevUtil::get_flag_bits(cfg, 36, 2);
+
+        if (time(nullptr) - opts->m_snapshot_detection.detect_hold_start > HOLD_TIME_3SEC) {
+            opts->m_snapshot_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 38, 2);
+            opts->m_snapshot_detection.is_support_detect =
+                opts->m_snapshot_detection.current_detect_value != 0 && opts->m_snapshot_detection.current_detect_value != 3;
+        }
+
     }
 
     // fun1 part
@@ -281,6 +288,7 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Idle_Heating_Protect_Detection, &m_idel_heating_protect_detection},
                         {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection},
                         {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
+                        {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection}
     };
 }
 
@@ -483,6 +491,22 @@ int DevPrintOptions::command_set_purify_air_at_print_end(PurifyAirAtPrintEndStat
         case PurifyAirAtPrintEndState::PurifyAirByOutside: j["print"]["air_purification"] = 2; break;
         default: assert(0);
     }
+    return obj->publish_json(j);
+}
+
+int DevPrintOptions::command_snapshot_control(int on_off)
+{
+    m_snapshot_detection.current_detect_value = on_off;
+    m_snapshot_detection.detect_hold_start    = time(nullptr);
+    return command_set_snapshot_control(on_off, m_obj);
+}
+
+int DevPrintOptions::command_set_snapshot_control(int on_off, MachineObject *obj)
+{
+    json j;
+    j["camera"]["command"]                = "ipcam_cap_pic_set";
+    j["camera"]["sequence_id"]            = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["control"]                = on_off? "enable": "disable";
     return obj->publish_json(j);
 }
 

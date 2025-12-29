@@ -27,6 +27,7 @@ enum class PrintOptionEnum{
     Idle_Heating_Protect_Detection,
     First_Layer_Detection,
     Purify_Air_At_Print_End,
+    Snapshot_Detection,
 };
 
 struct PrintOptionData
@@ -77,6 +78,7 @@ public:
     int command_xcam_control_build_plate_type_detector(bool on_off);
     int command_xcam_control_build_plate_align_detector(bool on_off);
     int command_xcam_control_purify_air_at_print_end(int on_off);
+    int command_snapshot_control(int on_off);
 
 private:
     int command_set_purify_air_at_print_end(PurifyAirAtPrintEndState state, MachineObject *obj);
@@ -84,6 +86,8 @@ private:
     int command_set_prompt_sound(bool prompt_sound, MachineObject *obj);
     int command_set_filament_tangle_detect(bool fliament_tangle_detect, MachineObject *obj);
     int command_set_against_continued_heating_mode(bool on_off);
+    int command_set_snapshot_control(int on_off, MachineObject *obj);
+
  private:
     MachineObject *m_obj; /*owner*/
 
@@ -104,6 +108,7 @@ private:
     PrintOptionData m_idel_heating_protect_detection;
     PrintOptionData m_first_layer_detection;
     PrintOptionData m_purify_air_at_print_end;
+    PrintOptionData m_snapshot_detection;
 
     std::map<PrintOptionEnum, PrintOptionData*> m_detection_list;
     DevPrintingSpeedLevel m_speed_level = SPEED_LEVEL_INVALID;

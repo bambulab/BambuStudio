@@ -88,10 +88,20 @@ DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWin
         if (m_obj) { m_obj->command_clean_print_error_uiop(m_obj->print_error); }
         e.Skip();
     });
+
+    m_request_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, &DeviceErrorDialog::on_request_timeout, this, m_request_timer->GetId());
 }
 
 DeviceErrorDialog::~DeviceErrorDialog()
 {
+    if (m_request_timer) {
+        m_request_timer->Stop();
+        m_request_timer->Disconnect();
+        delete m_request_timer;
+        m_request_timer = nullptr;
+    }
+
     if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active)
     {
         BOOST_LOG_TRIVIAL(info) << "web_request: cancelled";
@@ -100,9 +110,27 @@ DeviceErrorDialog::~DeviceErrorDialog()
     m_error_picture->SetBitmap(wxBitmap());
 }
 
+void DeviceErrorDialog::on_request_timeout(wxTimerEvent& event)
+{
+    if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
+        BOOST_LOG_TRIVIAL(info) << "web_request: timeout after 10 seconds, cancelling request";
+        web_request.Cancel();
+
+        m_error_picture->SetBitmap(wxBitmap());
+        m_error_picture->Hide();
+        Layout();
+        Fit();
+    }
+}
+
 void DeviceErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << "monitor: monitor_panel web request state = " << evt.GetState();
+
+    if (m_request_timer && m_request_timer->IsRunning()) {
+        m_request_timer->Stop();
+    }
+
     switch (evt.GetState())
     {
     case wxWebRequest::State_Completed:
@@ -121,6 +149,9 @@ void DeviceErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
     case wxWebRequest::State_Unauthorized:
     {
         m_error_picture->SetBitmap(wxBitmap());
+        m_error_picture->Hide();
+        Layout();
+        Fit();
         break;
     }
     case wxWebRequest::State_Active:
@@ -341,7 +372,14 @@ bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
     {
         web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
         BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
-        if (web_request.GetState() == wxWebRequest::State_Idle) web_request.Start();
+        if (web_request.GetState() == wxWebRequest::State_Idle) {
+            web_request.Start();
+
+            if (m_request_timer->IsRunning()) {
+                m_request_timer->Stop();
+            }
+            m_request_timer->StartOnce(10000);
+        }
         BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
     }
     else
