@@ -214,6 +214,39 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         }
         evt.Skip();
     });
+
+    m_cb_snapshot_enable->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent &evt) {
+        bool current_value = m_cb_snapshot_enable->GetValue();
+
+        if (!obj || !obj->GetPrintOptions()) {
+            evt.Skip();
+            return;
+        }
+
+        if (current_value) {
+            wxString message = _L("When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?");
+            wxString caption = _L("Confirm Enable Print Status Snapshot");
+
+            wxMessageDialog dialog(this, message, caption, wxYES_NO | wxICON_QUESTION);
+            dialog.SetYesNoLabels(_L("Confirm"), _L("Cancel"));
+
+            int result = dialog.ShowModal();
+
+            if (result == wxID_YES) {
+                if (obj && obj->GetPrintOptions()) {
+                    obj->GetPrintOptions()->command_snapshot_control(true);
+                    m_cb_snapshot_enable->SetValue(true);
+                }
+            } else {
+                m_cb_snapshot_enable->SetValue(false);
+            }
+        } else {
+            obj->GetPrintOptions()->command_snapshot_control(false);
+        }
+
+        evt.Skip();
+    });
+
     m_print_option_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, [this](wxTimerEvent& e){
             if (m_print_option_toast)
@@ -624,6 +657,7 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
 
     UpdateOptionSavePrintFileToStorage(obj_);
     UpdateOptionOpenDoorCheck(obj_);
+    UpdateOptionSnapshot(obj_);
 
     this->Freeze();
     m_cb_first_layer->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::First_Layer_Detection)->current_detect_value);
@@ -744,6 +778,37 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
     m_cb_open_door->Show();
     text_open_door->Show();
     open_door_switch_board->Show();
+}
+
+void PrintOptionsDialog::UpdateOptionSnapshot(MachineObject *obj)
+{
+    if (!IsShown()) {
+        return;
+    }
+
+    if (!obj || !obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Snapshot_Detection)->is_support_detect) {
+        m_cb_snapshot_enable->Show(false);
+        m_snapshot_sizer->Show(false);
+        Layout();
+        return;
+    }
+
+    int value = obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Snapshot_Detection)->current_detect_value;
+
+    if (!m_cb_snapshot_enable->IsShown()) {
+        m_cb_snapshot_enable->Show(true);
+        m_snapshot_sizer->Show(true);
+        Layout();
+    }
+
+    if (time(nullptr) - obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Snapshot_Detection)->detect_hold_start > HOLD_TIME_6SEC) {
+        if (value == 2) {
+            m_cb_snapshot_enable->SetValue(true);
+        } else {
+            m_cb_snapshot_enable->SetValue(false);
+        }
+    }
+
 }
 
 wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
@@ -1226,6 +1291,30 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    m_snapshot_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // snaptshot detection swtich
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_snapshot_enable = new CheckBox(parent);
+    Label* text_snapshot = new Label(parent, _L("Print Status Snapshot"));
+    text_snapshot->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_snapshot_enable, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(text_snapshot, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    m_snapshot_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    Label* text_snapshot_caption = new Label(parent, _L("Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."));
+    text_snapshot_caption->Wrap(FromDIP(400));
+    text_snapshot_caption->SetFont(Label::Body_12);
+    text_snapshot_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(38), 0, 0, 0);
+    line_sizer->Add(text_snapshot_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    m_snapshot_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    sizer->Add(m_snapshot_sizer, 0, wxEXPAND | wxRIGHT, FromDIP(18));
 
     ai_monitoring_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_ai_monitor_sensitivity), NULL, this);
 
