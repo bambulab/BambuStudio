@@ -2003,6 +2003,10 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     //check for unidentified material
     for (const auto& fila : m_ams_mapping_result) {
+        if (devPrinterUtil::IsVirtualSlot(fila.ams_id)) {
+            continue;//STUDIO-16294
+        }
+
         auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
         if (tray_opt.has_value() && (!tray_opt->is_exists || !tray_opt->is_tray_info_ready())) {
             has_slice_warnings = true; //has_unknown_filament
