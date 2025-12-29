@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 15:13+0800\n"
+"POT-Creation-Date: 2025-12-29 15:58+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -50,6 +50,9 @@ msgid "The current filament doesn't support the E3D high-flow nozzle and can't b
 msgstr ""
 
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
+msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -129,8 +132,14 @@ msgstr ""
 msgid "Standard"
 msgstr "Standard"
 
+msgid "TPU High Flow"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Unknown"
+
+msgid "Hybrid"
+msgstr ""
 
 msgid "Hardened Steel"
 msgstr "Hardened Steel"
@@ -1238,7 +1247,7 @@ msgstr "Modifier"
 msgid "Click to change part type into modifier."
 msgstr ""
 
-msgid "Surround projection by char"
+msgid "Surround projection by character"
 msgstr ""
 
 msgid "Not surround"
@@ -1248,9 +1257,6 @@ msgid "Surround surface"
 msgstr ""
 
 msgid "Surround"
-msgstr ""
-
-msgid "Horizonal"
 msgstr ""
 
 msgid "Reset rotation"
@@ -1276,7 +1282,7 @@ msgstr "Input text"
 msgid "Advanced"
 msgstr "Advanced"
 
-msgid "Embeded depth"
+msgid "Embedded depth"
 msgstr ""
 
 msgid "Text Gap"
@@ -2196,6 +2202,18 @@ msgstr "Auto Rotate"
 msgid "auto rotate current plate"
 msgstr "auto rotate current plate"
 
+msgid "Expand all"
+msgstr ""
+
+msgid "Expand all objects on this plate"
+msgstr ""
+
+msgid "Collapse all"
+msgstr ""
+
+msgid "Collapse all objects on this plate"
+msgstr ""
+
 msgid "Delete Plate"
 msgstr "Delete Plate"
 
@@ -2417,9 +2435,6 @@ msgstr "If the first selected item is an object, the second one should also be a
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "If the first selected item is a part, the second one should be part of the same object."
 
-msgid "The type of the last solid object part is not to be changed."
-msgstr "The type of the last solid object part is not to be changed."
-
 msgid "Negative Part"
 msgstr "Negative Part"
 
@@ -2434,6 +2449,9 @@ msgstr "Type:"
 
 msgid "Choose part type"
 msgstr "Choose part type"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "The type of the last solid object part is not to be changed."
 
 msgid "Enter new name"
 msgstr "Enter new name"
@@ -2742,6 +2760,10 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Chamber"
 msgstr ""
 
 msgid "Hotend"
@@ -3168,9 +3190,6 @@ msgstr ""
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
-msgid "Standard Flow"
-msgstr ""
-
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
 
@@ -3462,7 +3481,13 @@ msgstr ""
 msgid "Arrange AMS Order"
 msgstr ""
 
-msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr ""
+
+msgid "Are you sure to reset the ID sequence of the connected AMS?"
+msgstr ""
+
+msgid "Reset AMS Sequence"
 msgstr ""
 
 msgid "File"
@@ -3687,9 +3712,9 @@ msgstr ""
 
 msgid ""
 "Support ironing will not work with sparse support interface.\n"
-"Do you want to disable the support ironing?\n"
-"Yes: disable the support ironing.\n"
-"No: make the support interface solid."
+"Do you want to adjust the support interface config to use ironing?\n"
+"Yes: make the support interface solid.\n"
+"No: disable the support ironing."
 msgstr ""
 
 msgid ""
@@ -3992,7 +4017,7 @@ msgstr ""
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr ""
 
-msgid " Preparing Hotend"
+msgid "Preparing Hotend"
 msgstr ""
 
 msgid "Calibrating the detection position of nozzle clumping"
@@ -4035,21 +4060,6 @@ msgstr "When you set the chamber temperature below 40℃, the chamber temperatur
 
 msgid "Failed to start printing job"
 msgstr "Failed to start printing job"
-
-msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "This calibration does not support the currently selected nozzle diameter"
-
-msgid "Current flowrate cali param is invalid"
-msgstr "Current flowrate cali param is invalid"
-
-msgid "Selected diameter and machine diameter do not match"
-msgstr "Selected diameter and machine diameter do not match"
-
-msgid "Failed to generate cali gcode"
-msgstr "Failed to generate cali gcode"
-
-msgid "Calibration error"
-msgstr "Calibration error"
 
 msgid "Resume Printing"
 msgstr "Resume Printing"
@@ -4126,8 +4136,8 @@ msgstr "Resume"
 msgid "Unknown error."
 msgstr ""
 
-msgid "Loading..."
-msgstr "Loading..."
+msgid "Loading ..."
+msgstr ""
 
 msgid "default"
 msgstr "default"
@@ -4744,6 +4754,9 @@ msgstr ""
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
+msgid "The prime tower improves multi-color print quality and is recommended."
+msgstr ""
+
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
@@ -4751,6 +4764,9 @@ msgid "Partial flushing volume set to 0. Multi-color printing may cause color mi
 msgstr "Partial purging volume set to 0. Multi-color printing may cause color mixing in models. Please redjust purging settings."
 
 msgid "Click Wiki for help."
+msgstr ""
+
+msgid "Jump to: Prime tower"
 msgstr ""
 
 msgid "Click here to regroup"
@@ -5464,6 +5480,9 @@ msgstr "Playing..."
 msgid "DLL load error"
 msgstr ""
 
+msgid "Loading..."
+msgstr "Loading..."
+
 msgid "Year"
 msgstr "Year"
 
@@ -5789,6 +5808,22 @@ msgstr "(The model has already been rated. Your rating will overwrite the previo
 
 msgid "Rate"
 msgstr "Rate"
+
+#, c-format, boost-format
+msgid "%dday%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%ds"
+msgstr ""
 
 msgid "Finished"
 msgstr "Finished"
@@ -6318,6 +6353,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bottom"
 
+msgid "Unavailable during the task"
+msgstr ""
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr ""
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr ""
+
 msgid "Enable detection of build plate position"
 msgstr "Enable detection of build plate position"
 
@@ -6381,6 +6425,12 @@ msgstr ""
 msgid "First Layer Inspection"
 msgstr "First Layer Inspection"
 
+msgid "Purify Air at Print End"
+msgstr ""
+
+msgid "Internal Circulation"
+msgstr ""
+
 msgid "Auto-recovery from step loss"
 msgstr "Auto-recover from step loss"
 
@@ -6390,8 +6440,8 @@ msgstr ""
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr ""
 
-msgid "Allow Prompt Sound"
-msgstr "Allow Prompt Sound"
+msgid "Enable notification sounds"
+msgstr ""
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
@@ -6430,6 +6480,9 @@ msgid "Brass"
 msgstr "Brass"
 
 msgid "High flow"
+msgstr ""
+
+msgid "TPU High flow"
 msgstr ""
 
 msgid "No wiki link available for this printer."
@@ -6509,6 +6562,13 @@ msgstr ""
 
 #, boost-format
 msgid "%1% with %2%\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle does not support automatic filament switching.\n"
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
 #, boost-format
@@ -7942,6 +8002,9 @@ msgstr ""
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr ""
 
+msgid "To ensure print quality, the drying temperature will be lowered during printing."
+msgstr ""
+
 msgid "Auto Bed Leveling"
 msgstr ""
 
@@ -8120,7 +8183,7 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
 
 msgid "Cool"
@@ -9077,6 +9140,9 @@ msgstr ""
 msgid "Obj file Import color"
 msgstr "Obj file Import color"
 
+msgid "Standard 3mf Import color"
+msgstr ""
+
 msgid "Some faces don't have color defined."
 msgstr ""
 
@@ -9105,6 +9171,13 @@ msgid "Matching"
 msgstr ""
 
 msgid "Quick set"
+msgstr ""
+
+msgctxt "ObjImport"
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
 msgstr ""
 
 msgid "Color match"
@@ -9140,9 +9213,6 @@ msgstr ""
 
 msgctxt "Sync_AMS"
 msgid "Original"
-msgstr ""
-
-msgid "After mapping"
 msgstr ""
 
 msgid "After overwriting"
@@ -9755,6 +9825,9 @@ msgstr ""
 msgid "Cutting Module"
 msgstr ""
 
+msgid "Rotary Attachment"
+msgstr ""
+
 msgid "Auto Fire Extinguishing System"
 msgstr ""
 
@@ -9903,10 +9976,28 @@ msgstr ""
 msgid "Exporting G-code"
 msgstr "Exporting G-code"
 
-msgid "Grouping error: "
+msgid "Grouping error: filament"
 msgstr ""
 
 msgid " can not be placed in the "
+msgstr ""
+
+msgid "Filament Grouping Error: Filament "
+msgstr ""
+
+msgid " is not supported by the "
+msgstr ""
+
+msgid " nozzle. "
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr ""
+
+msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+msgstr ""
+
+msgid " filaments are assigned to the TPU High Flow nozzle"
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -10599,13 +10690,13 @@ msgstr "Speed of exhuast fan after printing completes"
 msgid "For the first"
 msgstr ""
 
-msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "Set the additional cooling fan for the first certain layers. The additional cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function. Simultaneously, the part cooling fan will be set to 0"
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "layers"
 
-msgid "Special cooling fan speed for the first certain layers"
+msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr ""
 
 msgid "Don't support bridges"
@@ -11987,9 +12078,6 @@ msgstr "Bowden"
 msgid "Nozzle Volume Type"
 msgstr ""
 
-msgid "Hybrid"
-msgstr ""
-
 msgid "Default Nozzle Volume Type"
 msgstr ""
 
@@ -13139,6 +13227,9 @@ msgstr "The name cannot exceed 40 characters."
 msgid "Nozzle ID"
 msgstr ""
 
+msgid "Standard Flow"
+msgstr ""
+
 msgid "Please find the best line on your plate"
 msgstr "Please find the best line on your plate"
 
@@ -13329,6 +13420,9 @@ msgid "To Volumetric Speed"
 msgstr "To Volumetric Speed"
 
 msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "0min"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -14823,9 +14917,6 @@ msgstr ""
 msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
-msgid "Loading ..."
-msgstr ""
-
 #, c-format, boost-format
 msgid "%d%%"
 msgstr ""
@@ -15243,6 +15334,27 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "This calibration does not support the currently selected nozzle diameter"
+#~ msgstr "This calibration does not support the currently selected nozzle diameter"
+
+#~ msgid "Current flowrate cali param is invalid"
+#~ msgstr "Current flowrate cali param is invalid"
+
+#~ msgid "Selected diameter and machine diameter do not match"
+#~ msgstr "Selected diameter and machine diameter do not match"
+
+#~ msgid "Failed to generate cali gcode"
+#~ msgstr "Failed to generate cali gcode"
+
+#~ msgid "Calibration error"
+#~ msgstr "Calibration error"
+
+#~ msgid "Allow Prompt Sound"
+#~ msgstr "Allow Prompt Sound"
+
+#~ msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+#~ msgstr "Set the additional cooling fan for the first certain layers. The additional cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function. Simultaneously, the part cooling fan will be set to 0"
 
 #~ msgid "Scale to build volume"
 #~ msgstr "Scale to build volume"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 15:13+0800\n"
+"POT-Creation-Date: 2025-12-29 15:58+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -61,6 +61,9 @@ msgid "The current filament doesn't support the E3D high-flow nozzle and can't b
 msgstr ""
 
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
+msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -142,8 +145,14 @@ msgstr "Высокопроизв."
 msgid "Standard"
 msgstr "Стандартный"
 
+msgid "TPU High Flow"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Неизвестно"
+
+msgid "Hybrid"
+msgstr ""
 
 msgid "Hardened Steel"
 msgstr "Закалённая сталь"
@@ -1273,7 +1282,7 @@ msgstr "Модификатор"
 msgid "Click to change part type into modifier."
 msgstr "Выберите, если хотите изменить тип детали на Модификатор."
 
-msgid "Surround projection by char"
+msgid "Surround projection by character"
 msgstr ""
 
 msgid "Not surround"
@@ -1283,9 +1292,6 @@ msgid "Surround surface"
 msgstr ""
 
 msgid "Surround"
-msgstr ""
-
-msgid "Horizonal"
 msgstr ""
 
 msgid "Reset rotation"
@@ -1311,7 +1317,7 @@ msgstr "Введите текст"
 msgid "Advanced"
 msgstr "Дополнительно"
 
-msgid "Embeded depth"
+msgid "Embedded depth"
 msgstr ""
 
 msgid "Text Gap"
@@ -2251,6 +2257,18 @@ msgstr "Автоповорот"
 msgid "auto rotate current plate"
 msgstr "Автоповорот моделей на текущем столе"
 
+msgid "Expand all"
+msgstr ""
+
+msgid "Expand all objects on this plate"
+msgstr ""
+
+msgid "Collapse all"
+msgstr ""
+
+msgid "Collapse all objects on this plate"
+msgstr ""
+
 msgid "Delete Plate"
 msgstr "Удалить стол"
 
@@ -2478,9 +2496,6 @@ msgstr "Если первый выбранный элемент является
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "Если первый выбранный элемент является частью модели, то второй должен быть частью той же модели."
 
-msgid "The type of the last solid object part is not to be changed."
-msgstr "Вы не можете изменить тип последнего твердотельного элемента модели."
-
 msgid "Negative Part"
 msgstr "Объём для вычитания"
 
@@ -2495,6 +2510,9 @@ msgstr "Тип:"
 
 msgid "Choose part type"
 msgstr "Выберите тип элемента"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "Вы не можете изменить тип последнего твердотельного элемента модели."
 
 msgid "Enter new name"
 msgstr "Введите новое имя"
@@ -2814,6 +2832,10 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Chamber"
 msgstr ""
 
 msgid "Hotend"
@@ -3245,9 +3267,6 @@ msgstr "Пожалуйста, введите допустимое значени
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f, N в диапазоне %.1f~%.1f)"
 
-msgid "Standard Flow"
-msgstr ""
-
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
 
@@ -3563,7 +3582,13 @@ msgstr ""
 msgid "Arrange AMS Order"
 msgstr ""
 
-msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr ""
+
+msgid "Are you sure to reset the ID sequence of the connected AMS?"
+msgstr ""
+
+msgid "Reset AMS Sequence"
 msgstr ""
 
 msgid "File"
@@ -3784,9 +3809,9 @@ msgstr ""
 
 msgid ""
 "Support ironing will not work with sparse support interface.\n"
-"Do you want to disable the support ironing?\n"
-"Yes: disable the support ironing.\n"
-"No: make the support interface solid."
+"Do you want to adjust the support interface config to use ironing?\n"
+"Yes: make the support interface solid.\n"
+"No: disable the support ironing."
 msgstr ""
 
 msgid ""
@@ -4089,7 +4114,7 @@ msgstr ""
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr ""
 
-msgid " Preparing Hotend"
+msgid "Preparing Hotend"
 msgstr ""
 
 msgid "Calibrating the detection position of nozzle clumping"
@@ -4133,21 +4158,6 @@ msgstr "Если вы установили температуру внутри �
 
 msgid "Failed to start printing job"
 msgstr "Не удалось запустить задание на печать."
-
-msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "Данная калибровка не поддерживает выбранный диаметр сопла"
-
-msgid "Current flowrate cali param is invalid"
-msgstr "Текущая величина калибровки скорости потока недопустима"
-
-msgid "Selected diameter and machine diameter do not match"
-msgstr "Выбранный диаметр и диаметр профиля принтера не совпадают"
-
-msgid "Failed to generate cali gcode"
-msgstr "Не удалось сгенерировать калибровочный G-код"
-
-msgid "Calibration error"
-msgstr "Ошибка калибровки"
 
 msgid "Resume Printing"
 msgstr "Возобновить печать"
@@ -4226,8 +4236,8 @@ msgstr "Продолжить"
 msgid "Unknown error."
 msgstr "Неизвестная ошибка."
 
-msgid "Loading..."
-msgstr "Загрузка..."
+msgid "Loading ..."
+msgstr ""
 
 # отображается в Моделях
 msgid "default"
@@ -4860,6 +4870,9 @@ msgstr "На поверхности этой пластины нельзя пе�
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "Вы собираетесь печатать PLA и PETG в одном проекте. Настройте параметры в соответствии с рекомендациями на вики-сайте, чтобы обеспечить качество печати."
 
+msgid "The prime tower improves multi-color print quality and is recommended."
+msgstr ""
+
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
@@ -4868,6 +4881,9 @@ msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "Подробнее на вики-сайте."
+
+msgid "Jump to: Prime tower"
+msgstr ""
 
 msgid "Click here to regroup"
 msgstr "Нажмите, чтобы перегруппировать"
@@ -5597,6 +5613,9 @@ msgstr "Воспроизведение..."
 msgid "DLL load error"
 msgstr ""
 
+msgid "Loading..."
+msgstr "Загрузка..."
+
 msgid "Year"
 msgstr "Год"
 
@@ -5939,6 +5958,22 @@ msgstr "(Модель уже была оценена. Ваша оценка пе
 
 msgid "Rate"
 msgstr "Оценка"
+
+#, c-format, boost-format
+msgid "%dday%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%ds"
+msgstr ""
 
 msgid "Finished"
 msgstr "Завершено"
@@ -6476,6 +6511,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Снизу"
 
+msgid "Unavailable during the task"
+msgstr ""
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr ""
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr ""
+
 msgid "Enable detection of build plate position"
 msgstr "Определение положения печатной пластины"
 
@@ -6540,6 +6584,12 @@ msgstr ""
 msgid "First Layer Inspection"
 msgstr "Проверка первого слоя"
 
+msgid "Purify Air at Print End"
+msgstr ""
+
+msgid "Internal Circulation"
+msgstr ""
+
 msgid "Auto-recovery from step loss"
 msgstr "Автовосстановление после потери шагов"
 
@@ -6549,8 +6599,8 @@ msgstr "Сохранять отправленные файлы на внешни
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Сохранение файлов печати, созданных с помощью Bambu Studio, Bambu Handy и Maker World на внешнем носителе."
 
-msgid "Allow Prompt Sound"
-msgstr "Разрешить звуковые уведомления"
+msgid "Enable notification sounds"
+msgstr ""
 
 msgid "Filament Tangle Detect"
 msgstr "Обнаружение запутывания прутка"
@@ -6592,6 +6642,9 @@ msgstr "Латунь"
 
 msgid "High flow"
 msgstr "Высокопроизв."
+
+msgid "TPU High flow"
+msgstr ""
 
 msgid "No wiki link available for this printer."
 msgstr ""
@@ -6670,6 +6723,13 @@ msgstr ""
 
 #, boost-format
 msgid "%1% with %2%\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle does not support automatic filament switching.\n"
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
 #, boost-format
@@ -8164,6 +8224,9 @@ msgstr ""
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Ваш метод группировки материалов не является оптимальным."
 
+msgid "To ensure print quality, the drying temperature will be lowered during printing."
+msgstr ""
+
 msgid "Auto Bed Leveling"
 msgstr "Автовыравнивание стола"
 
@@ -8357,7 +8420,7 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
 
 msgid "Cool"
@@ -9351,6 +9414,9 @@ msgstr "Подробнее на Вики-сайте >"
 msgid "Obj file Import color"
 msgstr "Импорт цветного obj файла"
 
+msgid "Standard 3mf Import color"
+msgstr ""
+
 msgid "Some faces don't have color defined."
 msgstr ""
 
@@ -9382,6 +9448,13 @@ msgstr "Соответствие"
 
 msgid "Quick set"
 msgstr "Быстрый выбор"
+
+msgctxt "ObjImport"
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr "После составления"
 
 # ??? Цветовая схема
 msgid "Color match"
@@ -9426,9 +9499,6 @@ msgstr ""
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr "Оригинал"
-
-msgid "After mapping"
-msgstr "После составления"
 
 msgid "After overwriting"
 msgstr "После перезаписи"
@@ -10061,6 +10131,9 @@ msgstr "40Вт лазер"
 msgid "Cutting Module"
 msgstr "Режущий модуль"
 
+msgid "Rotary Attachment"
+msgstr ""
+
 msgid "Auto Fire Extinguishing System"
 msgstr ""
 
@@ -10207,12 +10280,30 @@ msgstr "Сглаживание скорости по оси Z"
 msgid "Exporting G-code"
 msgstr "Экспорт в G-код"
 
-msgid "Grouping error: "
-msgstr "Ошибка компоновки:"
+msgid "Grouping error: filament"
+msgstr ""
 
 # ????
 msgid " can not be placed in the "
 msgstr "нельзя разместить в "
+
+msgid "Filament Grouping Error: Filament "
+msgstr ""
+
+msgid " is not supported by the "
+msgstr ""
+
+msgid " nozzle. "
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr ""
+
+msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+msgstr ""
+
+msgid " filaments are assigned to the TPU High Flow nozzle"
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr ""
@@ -10909,13 +11000,13 @@ msgstr "Скорость вытяжного вентилятора после з
 msgid "For the first"
 msgstr ""
 
-msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr ""
 
 msgid "layers"
 msgstr "слой(-я)"
 
-msgid "Special cooling fan speed for the first certain layers"
+msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr ""
 
 msgid "Don't support bridges"
@@ -12340,9 +12431,6 @@ msgstr "Боуден"
 msgid "Nozzle Volume Type"
 msgstr ""
 
-msgid "Hybrid"
-msgstr ""
-
 msgid "Default Nozzle Volume Type"
 msgstr ""
 
@@ -13543,6 +13631,9 @@ msgstr "Максимальная длина имени 40 символов."
 msgid "Nozzle ID"
 msgstr ""
 
+msgid "Standard Flow"
+msgstr ""
+
 msgid "Please find the best line on your plate"
 msgstr "Пожалуйста, найдите лучшую линию на столе"
 
@@ -13748,6 +13839,9 @@ msgstr "К объёмному расходу"
 
 msgid "Are you sure to stop printing?"
 msgstr "Вы уверены, что хотите остановить печать?"
+
+msgid "0min"
+msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Результаты калибровки динамики потока"
@@ -15276,9 +15370,6 @@ msgstr ""
 msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
-msgid "Loading ..."
-msgstr ""
-
 #, c-format, boost-format
 msgid "%d%%"
 msgstr ""
@@ -15696,6 +15787,27 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "This calibration does not support the currently selected nozzle diameter"
+#~ msgstr "Данная калибровка не поддерживает выбранный диаметр сопла"
+
+#~ msgid "Current flowrate cali param is invalid"
+#~ msgstr "Текущая величина калибровки скорости потока недопустима"
+
+#~ msgid "Selected diameter and machine diameter do not match"
+#~ msgstr "Выбранный диаметр и диаметр профиля принтера не совпадают"
+
+#~ msgid "Failed to generate cali gcode"
+#~ msgstr "Не удалось сгенерировать калибровочный G-код"
+
+#~ msgid "Calibration error"
+#~ msgstr "Ошибка калибровки"
+
+#~ msgid "Allow Prompt Sound"
+#~ msgstr "Разрешить звуковые уведомления"
+
+#~ msgid "Grouping error: "
+#~ msgstr "Ошибка компоновки:"
 
 #~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
 #~ msgstr "Шероховатая поверхность PLA Glow может ускорить износ внутренних компонентов АСПП, особенно это касается АСПП Lite."

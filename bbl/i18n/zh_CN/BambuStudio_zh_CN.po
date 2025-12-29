@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 15:13+0800\n"
+"POT-Creation-Date: 2025-12-29 15:58+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -57,6 +57,9 @@ msgid "The current filament doesn't support the E3D high-flow nozzle and can't b
 msgstr "当前耗材不支持 E3D 大流量喷嘴，无法使用。"
 
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "ABS/ASA/PETG HF在右挤出机打印时，仅能作为支撑材料使用。"
+
+msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -84,23 +87,23 @@ msgid "Default settings may affect print quality. Adjust as needed for best resu
 msgstr "使用默认参数打印可能影响打印质量，请根据实际效果调整参数以获得最佳结果。"
 
 msgid "Using non-bambu filament may have printing quality issues."
-msgstr ""
+msgstr "使用非拓竹耗材可能会存在打印质量问题。"
 
 #, c-format, boost-format
 msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr ""
+msgstr "%s在右挤出机打印时，只能作为支撑耗材。"
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
-msgstr ""
+msgstr "%s在使用0.4mm高流量喷嘴时会有堵头风险，请谨慎使用。"
 
 #, c-format, boost-format
 msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
-msgstr ""
+msgstr "%s较脆，容易断在AMS里。同时使用 0.4mm高流量喷嘴也会带来堵头风险，请谨慎使用。"
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
-msgstr ""
+msgstr "%s在使用 0.4，0.6，0.8mm 高流量喷嘴时会有堵头风险，请谨慎使用。"
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -136,8 +139,14 @@ msgstr "高流量"
 msgid "Standard"
 msgstr "标准"
 
+msgid "TPU High Flow"
+msgstr ""
+
 msgid "Unknown"
 msgstr "未知"
+
+msgid "Hybrid"
+msgstr "混合"
 
 msgid "Hardened Steel"
 msgstr "硬化钢"
@@ -1244,7 +1253,7 @@ msgstr "修改器"
 msgid "Click to change part type into modifier."
 msgstr "单击以将零件类型更改为修改器"
 
-msgid "Surround projection by char"
+msgid "Surround projection by character"
 msgstr "按字符环绕投影"
 
 msgid "Not surround"
@@ -1255,9 +1264,6 @@ msgstr "环绕表面"
 
 msgid "Surround"
 msgstr "环绕"
-
-msgid "Horizonal"
-msgstr "水平"
 
 msgid "Reset rotation"
 msgstr "重置旋转"
@@ -1282,7 +1288,7 @@ msgstr "输入文本"
 msgid "Advanced"
 msgstr "高级"
 
-msgid "Embeded depth"
+msgid "Embedded depth"
 msgstr "内嵌深度"
 
 msgid "Text Gap"
@@ -2205,6 +2211,18 @@ msgstr "自动朝向"
 msgid "auto rotate current plate"
 msgstr "在当前盘执行自动朝向"
 
+msgid "Expand all"
+msgstr "展开所有"
+
+msgid "Expand all objects on this plate"
+msgstr ""
+
+msgid "Collapse all"
+msgstr "折叠所有"
+
+msgid "Collapse all objects on this plate"
+msgstr ""
+
 msgid "Delete Plate"
 msgstr "删除盘"
 
@@ -2422,9 +2440,6 @@ msgstr "如果第一个选择的是对象，那么第二个选择的也必须是
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "如果第一个选择的是零件，那么第二个选择的也必须是同一个对象中的零件。"
 
-msgid "The type of the last solid object part is not to be changed."
-msgstr "不允许修改对象中最后一个实体零件的类型。"
-
 msgid "Negative Part"
 msgstr "负零件"
 
@@ -2439,6 +2454,9 @@ msgstr "类型："
 
 msgid "Choose part type"
 msgstr "选择零件类型"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "不允许修改对象中最后一个实体零件的类型。"
 
 msgid "Enter new name"
 msgstr "输入新名称"
@@ -2459,14 +2477,14 @@ msgstr "修复被取消"
 
 #, c-format, boost-format
 msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
-msgstr ""
+msgstr "细分后，“%s”将超过100万个面片，这可能会增加切片时间。是否继续？"
 
 msgid "BambuStudio warning"
 msgstr "BambuStudio警告"
 
 #, c-format, boost-format
 msgid "\"%s\" part's mesh contains errors. Please repair it first."
-msgstr ""
+msgstr "“%s”零件的网格存在错误。请先进行修复。"
 
 msgid "Additional process preset"
 msgstr "附加工艺预设"
@@ -2729,11 +2747,11 @@ msgstr "强冷却模式适合打印PLA/TPU材质。该模式下打印件会得�
 
 #, c-format, boost-format
 msgid "Cooling mode is suitable for printing %s materials."
-msgstr ""
+msgstr "冷却模式适合打印%s材质，同时能够过滤腔内空气"
 
 #, c-format, boost-format
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
-msgstr ""
+msgstr "腔温保持模式适合打印%s材质，在机箱内部循环过滤腔内空气。"
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -2746,6 +2764,10 @@ msgstr "右（过滤）"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "左（辅助）"
+
+msgctxt "air_duct"
+msgid "Chamber"
+msgstr "机箱"
 
 msgid "Hotend"
 msgstr ""
@@ -3167,9 +3189,6 @@ msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
-msgid "Standard Flow"
-msgstr "标准流量"
-
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr "注意：右挤出机上的热端编号与刀架绑定。当热端移动至新刀架时，其编号会自动更新。"
 
@@ -3474,8 +3493,14 @@ msgstr "AMS 类型切换需要更新固件，耗时约 30秒。现在切换吗�
 msgid "Arrange AMS Order"
 msgstr "重新排序 AMS"
 
-msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
-msgstr "已连接AMS的ID将被重置。如果你想要一个特定的ID顺序，在重置后断开所有AMS的连接，重置后按所需顺序连接。"
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr ""
+
+msgid "Are you sure to reset the ID sequence of the connected AMS?"
+msgstr ""
+
+msgid "Reset AMS Sequence"
+msgstr ""
 
 msgid "File"
 msgstr "文件"
@@ -3689,14 +3714,14 @@ msgstr "支撑熨烫线距过小。将重置为0.1"
 
 msgid ""
 "Support ironing will not work with sparse support interface.\n"
-"Do you want to disable the support ironing?\n"
-"Yes: disable the support ironing.\n"
-"No: make the support interface solid."
+"Do you want to adjust the support interface config to use ironing?\n"
+"Yes: make the support interface solid.\n"
+"No: disable the support ironing."
 msgstr ""
-"支撑熨烫无法在稀疏的支撑界面上使用。\n"
-"是否需要关闭支撑熨烫选项？\n"
-"是：关闭支撑熨烫。\n"
-"否：调整支撑界面设置使其实心。"
+"支持熨烫功能不适用于稀疏的支撑界面。\n"
+"您要调整支撑界面配置以使用熨烫功能吗？\n"
+"是：使支撑界面变为实心。\n"
+"否：禁用支撑熨烫。"
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -3995,8 +4020,8 @@ msgstr "热端取放测试"
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr "等待腔温匀热"
 
-msgid " Preparing Hotend"
-msgstr " 热端准备中"
+msgid "Preparing Hotend"
+msgstr "热端准备中"
 
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "裹头检测位置校准"
@@ -4038,21 +4063,6 @@ msgstr "当您设置的腔温低于40℃时，腔温控制将不会启动。并�
 
 msgid "Failed to start printing job"
 msgstr "发起打印任务失败"
-
-msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "该标定不支持当前选中喷嘴直径"
-
-msgid "Current flowrate cali param is invalid"
-msgstr "当前流量标定参数非法"
-
-msgid "Selected diameter and machine diameter do not match"
-msgstr "选择的直径和机器直径不匹配"
-
-msgid "Failed to generate cali gcode"
-msgstr "生成标定GCode失败"
-
-msgid "Calibration error"
-msgstr "校准错误"
 
 msgid "Resume Printing"
 msgstr "继续打印"
@@ -4129,8 +4139,8 @@ msgstr "继续"
 msgid "Unknown error."
 msgstr "未知错误。"
 
-msgid "Loading..."
-msgstr "正在加载视频……"
+msgid "Loading ..."
+msgstr "加载中..."
 
 msgid "default"
 msgstr "默认"
@@ -4748,6 +4758,9 @@ msgstr "材料 %s 不能在直接在当前打印板上打印。"
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。"
 
+msgid "The prime tower improves multi-color print quality and is recommended."
+msgstr "擦料塔可提升多色打印质量，建议启用。"
+
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "料塔超出了打印版边界。"
 
@@ -4756,6 +4769,9 @@ msgstr "部分冲刷体积设置为0，多色打印可能导致模型混色，�
 
 msgid "Click Wiki for help."
 msgstr "点击Wiki寻求帮助。"
+
+msgid "Jump to: Prime tower"
+msgstr "转跳到：擦料塔"
 
 msgid "Click here to regroup"
 msgstr "点击此处重新分组"
@@ -5471,6 +5487,9 @@ msgstr "正在播放中……"
 msgid "DLL load error"
 msgstr "DLL加载错误"
 
+msgid "Loading..."
+msgstr "正在加载视频……"
+
 msgid "Year"
 msgstr "年"
 
@@ -5797,6 +5816,22 @@ msgstr "（该模型已经被评分。您的评分将覆盖先前的评分。）
 
 msgid "Rate"
 msgstr "评分"
+
+#, c-format, boost-format
+msgid "%dday%dh%dmin%ds"
+msgstr "%d天%d小时%d分%d秒"
+
+#, c-format, boost-format
+msgid "%dh%dmin%ds"
+msgstr "%d小时%d分%d秒"
+
+#, c-format, boost-format
+msgid "%dmin%ds"
+msgstr "%d分%d秒"
+
+#, c-format, boost-format
+msgid "%ds"
+msgstr "%d秒"
 
 msgid "Finished"
 msgstr "完成"
@@ -6318,6 +6353,15 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底部"
 
+msgid "Unavailable during the task"
+msgstr ""
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr "每次打印结束时，根据所选方式净化打印机的腔体空气。"
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr "每次打印结束时，通过内循环净化打印机的腔体空气。"
+
 msgid "Enable detection of build plate position"
 msgstr "启用打印板位置检测"
 
@@ -6381,6 +6425,12 @@ msgstr "检测到打印板未对齐时，暂停打印。"
 msgid "First Layer Inspection"
 msgstr "首层扫描"
 
+msgid "Purify Air at Print End"
+msgstr "打印结束时净化空气"
+
+msgid "Internal Circulation"
+msgstr "内循环"
+
 msgid "Auto-recovery from step loss"
 msgstr "自动从丢步中恢复"
 
@@ -6390,8 +6440,8 @@ msgstr "将发送的文件存储到外部存储"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "将从 Bambu Studio、Bambu Handy 和 MakerWorld 启动的打印文件保存在外部存储中"
 
-msgid "Allow Prompt Sound"
-msgstr "支持提示音"
+msgid "Enable notification sounds"
+msgstr ""
 
 msgid "Filament Tangle Detect"
 msgstr "缠料检测"
@@ -6431,6 +6481,9 @@ msgstr "黄铜"
 
 msgid "High flow"
 msgstr "高流量"
+
+msgid "TPU High flow"
+msgstr ""
 
 msgid "No wiki link available for this printer."
 msgstr ""
@@ -6510,6 +6563,13 @@ msgstr "不推荐喷嘴和材料这样搭配使用：\n"
 #, boost-format
 msgid "%1% with %2%\n"
 msgstr "%1%打印：%2%\n"
+
+#, c-format, boost-format
+msgid "The %s nozzle does not support automatic filament switching.\n"
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filaments and try again."
+msgstr ""
 
 #, boost-format
 msgid " plate %1%: "
@@ -7961,6 +8021,9 @@ msgstr "外挂料多色打印"
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "切片文件中的材料分组不是最优结果。"
 
+msgid "To ensure print quality, the drying temperature will be lowered during printing."
+msgstr ""
+
 msgid "Auto Bed Leveling"
 msgstr "自动热床调平"
 
@@ -8071,7 +8134,7 @@ msgstr "两侧挤出机"
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
-msgstr ""
+msgstr "[ %s ] 需要在高温环境下打印。若门尚未关闭，请关上门。"
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8147,8 +8210,8 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "当前的喷嘴映射可能会产生额外 %0.2f 克的废料。"
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "当前材料(%s) 所需喷嘴的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -8346,6 +8409,9 @@ msgid ""
 "1. Ensure the Pin code is entered correctly.\n"
 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."
 msgstr ""
+"登录失败。请检查以下项目：\n"
+"1. 请确保 Pin 码输入正确。\n"
+"2. 确认打印机和 Bambu Studio 的区域设置一致。"
 
 msgid "Log in printer"
 msgstr "登录打印机"
@@ -9111,6 +9177,9 @@ msgstr "打开Wiki了解更多信息 >"
 msgid "Obj file Import color"
 msgstr "Obj文件导入颜色"
 
+msgid "Standard 3mf Import color"
+msgstr ""
+
 msgid "Some faces don't have color defined."
 msgstr "有些面片未定义颜色。"
 
@@ -9140,6 +9209,13 @@ msgstr "匹配"
 
 msgid "Quick set"
 msgstr "快捷设置"
+
+msgctxt "ObjImport"
+msgid "Original"
+msgstr "原项目"
+
+msgid "After mapping"
+msgstr "匹配后"
 
 msgid "Color match"
 msgstr "颜色匹配"
@@ -9177,9 +9253,6 @@ msgstr "同步AMS耗材将丢弃已修改但未保存的耗材预设。您确定
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr "原项目"
-
-msgid "After mapping"
-msgstr "匹配后"
 
 msgid "After overwriting"
 msgstr "覆盖后"
@@ -9795,6 +9868,9 @@ msgstr "激光 40W"
 msgid "Cutting Module"
 msgstr "刀切模组"
 
+msgid "Rotary Attachment"
+msgstr "旋转轴"
+
 msgid "Auto Fire Extinguishing System"
 msgstr "自动灭火装置"
 
@@ -9943,11 +10019,29 @@ msgstr "z方向速度平滑"
 msgid "Exporting G-code"
 msgstr "正在导出G-code"
 
-msgid "Grouping error: "
-msgstr "分组错误："
+msgid "Grouping error: filament"
+msgstr ""
 
 msgid " can not be placed in the "
 msgstr "不能放置在"
+
+msgid "Filament Grouping Error: Filament "
+msgstr ""
+
+msgid " is not supported by the "
+msgstr ""
+
+msgid " nozzle. "
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr ""
+
+msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+msgstr ""
+
+msgid " filaments are assigned to the TPU High Flow nozzle"
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "自定义模式分组错误。请检查喷嘴数量或重新分组。"
@@ -10643,14 +10737,14 @@ msgstr "打印完成后排风扇的速度。"
 msgid "For the first"
 msgstr "在最初的"
 
-msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "为前几层设置辅助风扇的数值。首层的辅助风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能。同时，会关闭部件风扇"
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "层"
 
-msgid "Special cooling fan speed for the first certain layers"
-msgstr "在前几层使用特殊的冷却风扇速度"
+msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
+msgstr ""
 
 msgid "Don't support bridges"
 msgstr "不支撑桥接"
@@ -11233,7 +11327,7 @@ msgid "Locked Zag"
 msgstr ""
 
 msgid "2D Lattice"
-msgstr ""
+msgstr "二维晶格"
 
 msgid "Skin infill pattern"
 msgstr "表皮填充图案"
@@ -11545,16 +11639,16 @@ msgid "If the model has two parts that are symmetric about the y-axis, and you w
 msgstr "如果一个模型中有两个关于y轴对称的部件，并且您希望使得这两个部分的填充纹理关于y轴对称。请在其中一个部件上勾选上这个功能。"
 
 msgid "Lattice angle 1"
-msgstr ""
+msgstr "晶格角度 1"
 
 msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
-msgstr ""
+msgstr "2D晶格的第一组在Z方向的排列角度。零度为垂直排列。"
 
 msgid "Lattice angle 2"
-msgstr ""
+msgstr "晶格角度 2"
 
 msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
-msgstr ""
+msgstr "2D晶格的第二组在Z方向的排列角度。零度为垂直排列。"
 
 msgid "Length of sparse infill anchor"
 msgstr "稀疏填充铆线长度"
@@ -12035,9 +12129,6 @@ msgstr "远程"
 
 msgid "Nozzle Volume Type"
 msgstr "喷嘴体积类型"
-
-msgid "Hybrid"
-msgstr "混合"
 
 msgid "Default Nozzle Volume Type"
 msgstr "默认喷嘴体积类型"
@@ -13199,6 +13290,9 @@ msgstr "名称不能超过40个字符。"
 msgid "Nozzle ID"
 msgstr "喷嘴 ID"
 
+msgid "Standard Flow"
+msgstr "标准流量"
+
 msgid "Please find the best line on your plate"
 msgstr "请在您的打印板上找到最佳线条"
 
@@ -13397,6 +13491,9 @@ msgstr "至体积速度"
 
 msgid "Are you sure to stop printing?"
 msgstr "您确定要停止打印吗？"
+
+msgid "0min"
+msgstr "0分"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "动态流量校准结果"
@@ -14897,9 +14994,6 @@ msgstr "放大"
 msgid "Load skipping objects information failed. Please try again."
 msgstr "加载跳过零件信息失败。请重试。"
 
-msgid "Loading ..."
-msgstr "加载中..."
-
 #, c-format, boost-format
 msgid "%d%%"
 msgstr ""
@@ -15349,6 +15443,63 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "Surround projection by char"
+#~ msgstr "按字符环绕投影"
+
+#~ msgid "Horizonal"
+#~ msgstr "水平"
+
+#~ msgid "Embeded depth"
+#~ msgstr "内嵌深度"
+
+#~ msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+#~ msgstr "已连接AMS的ID将被重置。如果你想要一个特定的ID顺序，在重置后断开所有AMS的连接，重置后按所需顺序连接。"
+
+#~ msgid ""
+#~ "Support ironing will not work with sparse support interface.\n"
+#~ "Do you want to disable the support ironing?\n"
+#~ "Yes: disable the support ironing.\n"
+#~ "No: make the support interface solid."
+#~ msgstr ""
+#~ "支撑熨烫无法在稀疏的支撑界面上使用。\n"
+#~ "是否需要关闭支撑熨烫选项？\n"
+#~ "是：关闭支撑熨烫。\n"
+#~ "否：调整支撑界面设置使其实心。"
+
+#~ msgid " Preparing Hotend"
+#~ msgstr " 热端准备中"
+
+#~ msgid "This calibration does not support the currently selected nozzle diameter"
+#~ msgstr "该标定不支持当前选中喷嘴直径"
+
+#~ msgid "Current flowrate cali param is invalid"
+#~ msgstr "当前流量标定参数非法"
+
+#~ msgid "Selected diameter and machine diameter do not match"
+#~ msgstr "选择的直径和机器直径不匹配"
+
+#~ msgid "Failed to generate cali gcode"
+#~ msgstr "生成标定GCode失败"
+
+#~ msgid "Calibration error"
+#~ msgstr "校准错误"
+
+#~ msgid "Allow Prompt Sound"
+#~ msgstr "支持提示音"
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+#~ msgstr "当前材料(%s) 所需喷嘴的硬度 高于 %s(%s)的硬度，请确认喷嘴或材料属性后重试。"
+
+#~ msgid "Grouping error: "
+#~ msgstr "分组错误："
+
+#~ msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+#~ msgstr "为前几层设置辅助风扇的数值。首层的辅助风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能。同时，会关闭部件风扇"
+
+#~ msgid "Special cooling fan speed for the first certain layers"
+#~ msgstr "在前几层使用特殊的冷却风扇速度"
 
 #~ msgid "The filament may require slicing parameter adjustments."
 #~ msgstr "该材料可能需要调整切片参数。"
