@@ -948,7 +948,6 @@ private:
                     final_infl   = infl;
                     can_pack = true;
                     global_score = best_score;
-                    break;
                 }
             }
         }
