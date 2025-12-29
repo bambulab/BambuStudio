@@ -274,19 +274,13 @@ void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 {
     auto it = amsList.find(ams_id);
-    if (it != amsList.end())
-    {
+    if (it != amsList.end()) {
         return it->second->GetExtruderId();
-    }
-    else if (stoi(ams_id) == VIRTUAL_TRAY_MAIN_ID)
-    {
+    } else if (ams_id == VIRTUAL_AMS_MAIN_ID_STR) {
         return MAIN_EXTRUDER_ID;
-    }
-    else if (stoi(ams_id) == VIRTUAL_TRAY_DEPUTY_ID)
-    {
+    } else if (ams_id == VIRTUAL_AMS_DEPUTY_ID_STR) {
         return DEPUTY_EXTRUDER_ID;
     }
-
 
     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_id " << ams_id << " not found";
     return 0; // not found
