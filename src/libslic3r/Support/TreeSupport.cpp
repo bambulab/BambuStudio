@@ -1524,6 +1524,39 @@ void TreeSupport::generate_toolpaths()
     if (m_object->support_layers().empty())
         return;
 
+    auto generate_support_ironing_entity = [this](const ExPolygons &unioned_expolygons, const BoundingBox &bbox_object, const SupportLayer *ts_layer,
+                                                  ExtrusionEntityCollection *temp_entity_collection, bool use_support_material = false) {
+        // support interface ironing related generation, tree support logic
+        if (!unioned_expolygons.empty()) {
+            auto ironing_fill = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.ironing_pattern));
+            ironing_fill->set_bounding_box(bbox_object);
+            ironing_fill->layer_id        = ts_layer->id();
+            ironing_fill->z               = ts_layer->print_z;
+            ironing_fill->overlap         = 0;
+            ironing_fill->angle           = m_support_params.ironing_angle;
+            ironing_fill->spacing         = m_support_params.ironing_line_spacing;
+            ironing_fill->link_max_length = (coord_t) scale_(3. * ironing_fill->spacing);
+
+            ExPolygons polys_to_iron = unioned_expolygons;
+
+            Flow       support_ironing_flow(m_support_params.support_material_interface_flow.width(),
+                                            m_support_params.support_material_interface_flow.height() * m_support_params.ironing_flow_percent * 0.01,
+                                            m_support_params.support_material_interface_flow.nozzle_diameter());
+            FillParams ironing_fill_params;
+            ironing_fill_params.density     = 1.0f;
+            ironing_fill_params.dont_adjust = true;
+            fill_expolygons_generate_paths(
+                // Destination
+                temp_entity_collection->entities,
+                // Regions to fill
+                polys_to_iron,
+                // Filler and its parameters
+                ironing_fill.get(), ironing_fill_params,
+                // Extrusion parameters
+                use_support_material ? ExtrusionRole::erSupportMaterialInterface : ExtrusionRole::erSupportIroning, support_ironing_flow);
+        }
+    };
+
     // calculate fill areas for raft layers
     ExPolygons raft_areas;
     if (m_object->layer_count() > 0) {
@@ -1695,6 +1728,19 @@ void TreeSupport::generate_toolpaths()
                                     }
                                     if (bridge_found) break;
                                 }
+                            }
+                        }
+
+                        if (m_support_params.soluble_interface) {
+                            SupportLayer *upper_layer = m_object->get_support_layer(layer_id + 1);
+                            if (upper_layer && overlaps(shrink_ex({poly}, 10), upper_layer->roof_areas)) {
+                                ExtrusionEntityCollection *temp_support_ironings = new ExtrusionEntityCollection();
+                                generate_support_ironing_entity({poly}, bbox_object, ts_layer, temp_support_ironings, true);
+                                temp_support_ironings->no_sort = true; // make sure loops are first
+                                if (!temp_support_ironings->entities.empty())
+                                    ts_layer->support_fills.entities.push_back(temp_support_ironings);
+                                else
+                                    delete temp_support_ironings;
                             }
                         }
 
@@ -2499,8 +2545,16 @@ void TreeSupport::draw_circles()
                     area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
                     area_groups.back().need_cooling = overlaps({ expoly }, cooldown_area);
                 }
-                for (auto& expoly : ts_layer->roof_areas) {
-                    //if (area(expoly) < SQ(scale_(1))) continue;
+                ExPolygons new_roofs;
+                for (auto &expoly : ts_layer->roof_areas) {
+                    if (area(expoly) < SQ(scale_(2))) {
+                        if (max_layers_above_roof > 0.2) { ts_layer->roof_1st_layer.push_back(expoly); }
+                        continue;
+                    }
+                    new_roofs.push_back(expoly);
+                }
+                roof_areas = std::move(new_roofs);
+                for (auto &expoly : ts_layer->roof_areas) {
                     area_groups.emplace_back(&expoly, SupportLayer::RoofType, max_layers_above_roof);
                     area_groups.back().interface_id = interface_id;
                 }
@@ -3938,7 +3992,7 @@ void TreeSupport::generate_contact_points()
                 const auto &overhang_part = overhang_with_type.first;
                 const auto &overhang_type = overhang_with_type.second;
                 is_sharp_tail = overhang_type & OverhangType::SharpTail;
-                bool       add_interface  = (/*force_tip_to_roof ||*/ area(overhang_part) > minimum_roof_area);
+                bool       add_interface  = (force_tip_to_roof || area(overhang_part) > minimum_roof_area);
                 const auto &relevant_forbidden = get_collision(0, layer_nr - 1);
                 ExPolygons overhangs{overhang_part};
                 ExPolygons overhangs_regular;
@@ -3984,7 +4038,7 @@ void TreeSupport::generate_contact_points()
                 if (!is_sharp_tail && layer->lower_layer) 
                     overhangs_regular = diff_ex(overhangs_regular, extrudable_collision);
                 for (auto &overhang : overhangs_regular) {
-                    if (is_sharp_tail && overhang.area() < SQ(scale_(2.))) add_interface = false;
+                    if (is_sharp_tail && !m_support_params.soluble_interface && overhang.area() < SQ(scale_(2.))) add_interface = false;
                     BoundingBox overhang_bounds = get_extents(overhang);
                     double      radius          = std::clamp(unscale_(overhang_bounds.radius()), MIN_BRANCH_RADIUS, base_radius);
                     // add supports at corners for both auto and manual overhangs, github #2008
