@@ -1597,7 +1597,7 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Send_Button(false);
     } else if (status == PrintStatusNozzleHRCMismatch) {
         Enable_Refresh_Button(true);
-        Enable_Send_Button(false);
+        Enable_Send_Button(true);
     } else if (status == PrintStatusColorQuantityExceed) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
