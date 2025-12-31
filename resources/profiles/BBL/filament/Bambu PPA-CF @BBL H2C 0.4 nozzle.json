@@ -26,6 +26,9 @@
     "filament_prime_volume_nc": [
         "30"
     ],
+    "filament_printable": [
+        "1"
+    ],
     "filament_pre_cooling_temperature_nc": [
         "250",
         "250"
