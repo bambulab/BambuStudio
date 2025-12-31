@@ -1381,22 +1381,16 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
                 print_config = &(m_print_object_ptr->print()->config());
             }
 
-            if(m_print->get_nozzle_group_result().has_value()){
-                filament_maps =m_print->get_nozzle_group_result()->get_extruder_map();
-            }
-            else{
-                auto group_result = ToolOrdering::get_recommended_filament_maps(m_print, layer_filaments, map_mode, physical_unprintables, geometric_unprintables, filament_unprintable_volumes);
-                m_print->set_nozzle_group_result(group_result);
-                filament_maps = group_result.get_extruder_map();
-            }
+            auto group_result = ToolOrdering::get_recommended_filament_maps(m_print, layer_filaments, map_mode, physical_unprintables, geometric_unprintables, filament_unprintable_volumes);
+            filament_maps = group_result.get_extruder_map();
             if (filament_maps.empty())
-                    return;
+                return;
 
-            auto group_result = m_print->get_nozzle_group_result();
+            m_print->set_nozzle_group_result(group_result);
             m_print->update_filament_maps_to_config(
-                FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values,group_result->get_extruder_map(false),used_filaments),
-                FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values,group_result->get_volume_map(),used_filaments),
-                group_result->get_nozzle_map()
+                FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values,group_result.get_extruder_map(false),used_filaments),
+                FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values,group_result.get_volume_map(),used_filaments),
+                group_result.get_nozzle_map()
             );
 
         }

@@ -2056,14 +2056,16 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
         this->set_filament_print_time(filament_print_time);
 
-        m_nozzle_group_result.reset();
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
+
         if (this->has_wipe_tower()) {
+            m_nozzle_group_result.reset();
             this->_make_wipe_tower();
         } else if (this->config().print_sequence != PrintSequence::ByObject
             || (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() == 1)) {
             // Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
+            m_nozzle_group_result.reset();
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
@@ -2129,17 +2131,16 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             auto filament_unprintable_volumes = this->get_filament_unprintable_flow(used_filaments);
             // get recommended filament map
             {
-                if (!get_nozzle_group_result().has_value()) {
-                    auto map_mode = get_filament_map_mode();
-                    auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables, filament_unprintable_volumes);
-                    set_nozzle_group_result(group_result);
-                }
-                auto group_result = get_nozzle_group_result();
-                update_filament_maps_to_config(
-                    FilamentGroupUtils::update_used_filament_values(this->config().filament_map.values, group_result->get_extruder_map(false), used_filaments),
-                    FilamentGroupUtils::update_used_filament_values(this->config().filament_volume_map.values, group_result->get_volume_map(), used_filaments),
-                    group_result->get_nozzle_map()
-                );
+                this->m_nozzle_group_result.reset();
+                auto map_mode     = get_filament_map_mode();
+                auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables,
+                                                                                filament_unprintable_volumes);
+                set_nozzle_group_result(group_result);
+                update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(this->config().filament_map.values, group_result.get_extruder_map(false),
+                                                                                               used_filaments),
+                                               FilamentGroupUtils::update_used_filament_values(this->config().filament_volume_map.values, group_result.get_volume_map(),
+                                                                                               used_filaments),
+                                               group_result.get_nozzle_map());
             }
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
