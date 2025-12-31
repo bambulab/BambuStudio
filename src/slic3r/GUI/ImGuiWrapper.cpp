@@ -460,9 +460,15 @@ bool ImGuiWrapper::update_mouse_data(wxMouseEvent& evt)
     io.MouseDown[0] = evt.LeftIsDown();
     io.MouseDown[1] = evt.RightIsDown();
     io.MouseDown[2] = evt.MiddleIsDown();
-    float wheel_delta = static_cast<float>(evt.GetWheelDelta());
-    if (wheel_delta != 0.0f) {
-        io.MouseWheel = evt.GetWheelRotation() > 0 ? 1.f : -1.f;
+    int wheel_delta = evt.GetWheelDelta();
+    if (wheel_delta != 0) {
+        int wheel_rotation = evt.GetWheelRotation();
+        if (wheel_rotation > 0)
+            io.MouseWheel = 1.f;
+        else if (wheel_rotation < 0)
+            io.MouseWheel = -1.f;
+        else
+            io.MouseWheel = 0.0f;
     }
     unsigned buttons = (evt.LeftIsDown() ? 1 : 0) | (evt.RightIsDown() ? 2 : 0) | (evt.MiddleIsDown() ? 4 : 0);
     m_mouse_buttons = buttons;
