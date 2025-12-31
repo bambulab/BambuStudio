@@ -3909,19 +3909,6 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
             vt_tray.bed_temp = vtray["bed_temp"].get<std::string>();
         else
             vt_tray.bed_temp = "";
-        if (vtray.contains("tray_color")) {
-            auto color = vtray["tray_color"].get<std::string>();
-            vt_tray.UpdateColorFromStr(color);
-        }
-        else {
-            vt_tray.color = "";
-        }
-        if (vtray.contains("ctype")) {
-            vt_tray.ctype = vtray["ctype"].get<int>();
-        }
-        else {
-            vt_tray.ctype = 1;
-        }
         if (vtray.contains("nozzle_temp_max"))
             vt_tray.nozzle_temp_max = vtray["nozzle_temp_max"].get<std::string>();
         else
@@ -3943,15 +3930,34 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
             vt_tray.cali_idx = vtray["cali_idx"].get<int>();
         else
             vt_tray.cali_idx = -1;
-        vt_tray.cols.clear();
-        if (vtray.contains("cols")) {
-            if (vtray["cols"].is_array()) {
-                for (auto it = vtray["cols"].begin(); it != vtray["cols"].end(); it++) {
-                    vt_tray.cols.push_back(it.value().get<std::string>());
+
+        {
+            if (vtray.contains("tray_color")) {
+                vt_tray.UpdateColorFromStr(vtray["tray_color"].get<std::string>());
+            } else {
+                vt_tray.color = "";
+            }
+
+            vt_tray.cols.clear();
+            if (vtray.contains("cols")) {
+                if (vtray["cols"].is_array()) {
+                    for (auto it = vtray["cols"].begin(); it != vtray["cols"].end(); it++) {
+                        vt_tray.cols.push_back(it.value().get<std::string>());
+                    }
+                }
+            } else {
+                vt_tray.cols.push_back(vt_tray.color);
+            }
+
+            if (vtray.contains("ctype")) {
+                vt_tray.ctype = (DevFilaColorType)vtray["ctype"].get<int>();
+            } else {
+                if (vt_tray.cols.size() > 1) {
+                    vt_tray.ctype = DevFilaColorType::CTYPE_MULTI;
+                } else {
+                    vt_tray.ctype = DevFilaColorType::CTYPE_SINGLE;
                 }
             }
-        } else {
-            vt_tray.cols.push_back(vt_tray.color);
         }
 
         if (vtray.contains("remain")) {
