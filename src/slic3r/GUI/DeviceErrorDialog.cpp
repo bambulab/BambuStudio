@@ -112,24 +112,18 @@ DeviceErrorDialog::~DeviceErrorDialog()
 
 void DeviceErrorDialog::on_request_timeout(wxTimerEvent& event)
 {
-    if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active) {
-        BOOST_LOG_TRIVIAL(info) << "web_request: timeout after 10 seconds, cancelling request";
-        web_request.Cancel();
-
-        m_error_picture->SetBitmap(wxBitmap());
-        m_error_picture->Hide();
-        Layout();
-        Fit();
-    }
+    if (m_request_cancelled.load()) { return; }
+    m_error_picture->SetBitmap(get_default_error_image());
+    Layout();
+    Fit();
 }
 
 void DeviceErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << "monitor: monitor_panel web request state = " << evt.GetState();
 
-    if (m_request_timer && m_request_timer->IsRunning()) {
-        m_request_timer->Stop();
-    }
+    m_request_cancelled.store(true);
+    clear_request_timer();
 
     switch (evt.GetState())
     {
@@ -294,6 +288,13 @@ std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_
     return pseudo_button;
 }
 
+void DeviceErrorDialog::clear_request_timer()
+{
+    if (m_request_timer && m_request_timer->IsRunning()) {
+        m_request_timer->Stop();
+    }
+}
+
 wxBitmap DeviceErrorDialog::get_default_loading_image()
 {
     const int w = FromDIP(320);
@@ -324,6 +325,36 @@ wxBitmap DeviceErrorDialog::get_default_loading_image()
     return bmp;
 }
 
+wxBitmap DeviceErrorDialog::get_default_error_image()
+{
+    const int w = FromDIP(320);
+    const int h = FromDIP(180);
+
+    wxBitmap bmp(wxSize(w, h));
+    wxMemoryDC dc(bmp);
+    dc.SetBackground(wxBrush(wxColour(238, 238, 238))); // gray300
+    dc.Clear();
+
+    ScalableBitmap icon = ScalableBitmap(this, "dev_hms_diag_loading", 80);
+    wxBitmap icon_bmp = icon.bmp();
+    if (icon_bmp.IsOk()) {
+        int ix = (w - icon_bmp.GetWidth()) / 2;
+        int iy = (h - icon_bmp.GetHeight()) / 3;
+        dc.DrawBitmap(icon_bmp, ix, iy, true);
+    }
+
+    dc.SetTextForeground(wxColour(158, 158, 158)); // gray500
+    dc.SetFont(::Label::Body_14);
+    const wxString txt = _L("Network unavailable");
+    wxSize txtSize = dc.GetTextExtent(txt);
+    int tx = (w - txtSize.GetWidth()) / 2;
+    int ty = h - txtSize.GetHeight() - FromDIP(45);
+    dc.DrawText(txt, tx, ty);
+
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
 bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
 {
     if (!m_obj || m_obj->m_print_error_img_id.empty()) { return false; }
@@ -338,6 +369,8 @@ bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
             wxImage             success_image;
             if (success_image.LoadFile(stream, wxBITMAP_TYPE_ANY)) {
                 CallAfter([this, success_image]() {
+                    this->m_request_cancelled.store(true);
+                    clear_request_timer();
                     wxImage resize_img = success_image.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
                     wxBitmap error_prompt_pic = resize_img;
                     m_error_picture->SetBitmap(error_prompt_pic);
@@ -347,13 +380,19 @@ bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
             } else {
                 BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: failed to resolve stream";
                 CallAfter([this]() {
-                    this->get_fail_snapshot_from_local(this->m_local_img_url);
+                    if (!this->get_fail_snapshot_from_local(this->m_local_img_url)) {
+                        m_error_picture->SetBitmap(this->get_default_error_image());
+                        Layout();
+                    }
                 });
             }
         } else {
             BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: status = " << status;
             CallAfter([this]() {
-                this->get_fail_snapshot_from_local(this->m_local_img_url);
+                if (!this->get_fail_snapshot_from_local(this->m_local_img_url)) {
+                    m_error_picture->SetBitmap(this->get_default_error_image());
+                    Layout();
+                }
             });
         }
     });
@@ -374,16 +413,13 @@ bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
         BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
         if (web_request.GetState() == wxWebRequest::State_Idle) {
             web_request.Start();
-
-            if (m_request_timer->IsRunning()) {
-                m_request_timer->Stop();
-            }
-            m_request_timer->StartOnce(10000);
         }
         BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
     }
     else
     {
+        m_request_cancelled.store(true);
+        clear_request_timer();
         const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
         m_error_picture->SetBitmap(wxBitmap(resize_img));
     }
@@ -436,6 +472,10 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
     /* image */
     m_local_img_url = image_url;
     m_error_picture->SetBitmap(get_default_loading_image());
+    if (m_request_timer->IsRunning()) {
+        m_request_timer->Stop();
+    }
+    m_request_timer->StartOnce(10000);
     if (get_fail_snapshot_from_cloud())
     {
         m_error_picture->Show();
