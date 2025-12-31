@@ -611,22 +611,35 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
 
     DevJsonValParser::ParseVal(j_tray, "bed_temp_type", curr_tray->bed_temp_type);
     DevJsonValParser::ParseVal(j_tray, "bed_temp", curr_tray->bed_temp);
-
-    curr_tray->UpdateColorFromStr(DevJsonValParser::GetVal<std::string>(j_tray, "tray_color"));
-   
     DevJsonValParser::ParseVal(j_tray, "nozzle_temp_max", curr_tray->nozzle_temp_max);
     DevJsonValParser::ParseVal(j_tray, "nozzle_temp_min", curr_tray->nozzle_temp_min);
     DevJsonValParser::ParseVal(j_tray, "xcam_info", curr_tray->xcam_info);
     DevJsonValParser::ParseVal(j_tray, "tray_uuid", curr_tray->uuid, std::string("0"));
-    DevJsonValParser::ParseVal(j_tray, "ctype", curr_tray->ctype, 0);
     DevJsonValParser::ParseVal(j_tray, "remain", curr_tray->remain, -1);
     DevJsonValParser::ParseVal(j_tray, "setting_id", curr_tray->filament_setting_id);
 
-    if (j_tray.contains("cols")) {
-        curr_tray->cols.clear();
-        if (j_tray["cols"].is_array()) {
-            for (auto it = j_tray["cols"].begin(); it != j_tray["cols"].end(); it++) {
-                curr_tray->cols.push_back(it.value().get<std::string>());
+    {
+        curr_tray->UpdateColorFromStr(DevJsonValParser::GetVal<std::string>(j_tray, "tray_color"));
+        if (j_tray.contains("cols")) {
+            curr_tray->cols.clear();
+            if (j_tray["cols"].is_array()) {
+                for (auto it = j_tray["cols"].begin(); it != j_tray["cols"].end(); it++) {
+                    curr_tray->cols.push_back(it.value().get<std::string>());
+                }
+            }
+        }
+
+        if (curr_tray->cols.empty()) {
+            curr_tray->cols.push_back(curr_tray->color);
+        }
+
+        if (j_tray.contains("ctype")) {
+            curr_tray->ctype = (DevFilaColorType)DevJsonValParser::GetVal<int>(j_tray, "ctype");
+        } else {
+            if (curr_tray->cols.size() < 2) {
+                curr_tray->ctype = DevFilaColorType::CTYPE_SINGLE;
+            } else {
+                curr_tray->ctype = DevFilaColorType::CTYPE_MULTI;
             }
         }
     }
