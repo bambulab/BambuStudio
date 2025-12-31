@@ -21,6 +21,13 @@ namespace Slic3r
 class MachineObject;
 struct DevFilamentDryingPreset;
 
+enum DevFilaColorType : int
+{
+    CTYPE_MULTI = 0,
+    CTYPE_GRADIANT = 1,
+    CTYPE_SINGLE = 2,
+};
+
 class DevAmsTray
 {
 public:
@@ -48,7 +55,7 @@ public:
     std::string              nozzle_temp_min;
     std::string              xcam_info;
     std::string              uuid;
-    int                      ctype    = 0;
+    DevFilaColorType         ctype = DevFilaColorType::CTYPE_SINGLE;
     float                    k        = 0.0f; // k range: 0 ~ 0.5
     float                    n        = 0.0f; // k range: 0.6 ~ 2.0
     int                      cali_idx = -1;   // - 1 means default
