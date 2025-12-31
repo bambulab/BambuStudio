@@ -62,6 +62,7 @@ struct FilamentBaseInfo
     bool is_system{ true };
     int  filament_printable = 3;
     int filament_support_printable = 3;
+    std::string setting_id = "";
 };
 
 class PresetBundle;

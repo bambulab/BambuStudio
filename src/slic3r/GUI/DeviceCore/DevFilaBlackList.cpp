@@ -296,10 +296,19 @@ bool check_filaments_printable(const std::string        &dev_id,
     bool used_for_model   = is_model.has_value() && is_model.value();
     bool usage_unconfirm  = !is_support.has_value() && !is_model.has_value();
 
-    PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
+    PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
 
     if (filament_info.has_value()) {
+        int filament_printable = filament_info->filament_printable;
+        int filament_support_printable = filament_info->filament_support_printable;
+
+        auto edited_preset = preset_bundle->filaments.get_edited_preset();
+        if (edited_preset.setting_id == filament_info->setting_id) {
+            filament_printable = edited_preset.config.option<ConfigOptionInts>("filament_printable")->values[0];
+            filament_support_printable = edited_preset.config.option<ConfigOptionInts>("filament_support_printable")->values[0];
+        }
+
         wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
         auto printer_name = printer_preset->config.opt_string("printer_model");
         std::string fila_name = filament_name.empty() ? tag_type : filament_name;
@@ -314,8 +323,8 @@ bool check_filaments_printable(const std::string        &dev_id,
             return false;
         };
 
-        bool can_used_for_support = filament_info->filament_support_printable >> extruder_idx & 1;
-        bool can_used_for_model = filament_info->filament_printable >> extruder_idx & 1;
+        bool can_used_for_support = filament_support_printable >> extruder_idx & 1;
+        bool can_used_for_model = filament_printable >> extruder_idx & 1;
 
         if (usage_unconfirm) {
             if(!can_used_for_model && !can_used_for_support)
