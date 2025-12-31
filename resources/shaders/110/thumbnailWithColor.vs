@@ -26,7 +26,7 @@ uniform mat4 volume_world_matrix;
 // x = tainted, y = specular;
 varying vec2 intensity;
 varying vec4 world_pos;
-out vec4 pos_color;
+varying vec4 pos_color;
 void main()
 {
     // First transform the normal into camera space and normalize the result.
