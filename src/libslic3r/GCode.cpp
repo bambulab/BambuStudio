@@ -2773,9 +2773,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             size_t             finished_objects = 0;
             print_object_instance_sequential_active = first_has_extrude_print_object;
             const PrintObject *prev_object      = (*print_object_instance_sequential_active)->print_object;
+            tool_ordering.clear();
             for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
                 const PrintObject &object = *(*print_object_instance_sequential_active)->print_object;
-                if (&object != prev_object || tool_ordering.first_extruder() != final_extruder_id) {
+                if (&object != prev_object || tool_ordering.empty()) {
                     tool_ordering                = ToolOrdering(object, final_extruder_id);
                     tool_ordering.sort_and_build_data(object, final_extruder_id);
                     unsigned int new_extruder_id = tool_ordering.first_extruder();
