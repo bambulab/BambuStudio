@@ -381,7 +381,8 @@ void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int 
 {
     // if first extruder is -1, we can decide the first layer tool order before doing reorder function
     // so we shouldn't reorder first layer in reorder function
-    bool reorder_first_layer = (first_extruder != (unsigned int)(-1));
+    //bool reorder_first_layer = (first_extruder != (unsigned int)(-1));
+    bool reorder_first_layer = false; // when by object , the first layer of each object should use the best order, regard less of the filament change for better bed contect
     reorder_extruders_for_minimum_flush_volume(reorder_first_layer);
     m_sorted = true;
 
