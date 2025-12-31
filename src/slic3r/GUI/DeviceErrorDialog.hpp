@@ -87,6 +87,8 @@ protected:
     void on_webrequest_state(wxWebRequestEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect);
     wxBitmap get_default_loading_image();
+    wxBitmap get_default_error_image();
+    void clear_request_timer();
     bool get_fail_snapshot_from_cloud();
     bool get_fail_snapshot_from_local(const wxString& image_url);
 
@@ -98,6 +100,7 @@ private:
 
     wxWebRequest web_request;
     wxTimer* m_request_timer { nullptr };
+    std::atomic<bool> m_request_cancelled{false};
 
     wxString m_local_img_url;
 
