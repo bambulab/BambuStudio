@@ -1506,9 +1506,11 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                                                                    notification_manager, rating_data);
                             
                             // Show simulation results dialog on main thread (non-blocking for preview)
-                            GUI::wxGetApp().plater()->CallAfter([sim_result, original_time_seconds]() {
+                            // Capture roles_times for calculating optimizable sections
+                            auto roles_times = m_gcode_result->print_statistics.modes[0].roles_times;
+                            GUI::wxGetApp().plater()->CallAfter([sim_result, original_time_seconds, roles_times]() {
                                 // This runs on the main thread
-                                GUI::HelioSimulationResultsDialog results_dlg(nullptr, sim_result, original_time_seconds);
+                                GUI::HelioSimulationResultsDialog results_dlg(nullptr, sim_result, original_time_seconds, roles_times);
                                 results_dlg.ShowModal();
                             });
                             break;

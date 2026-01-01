@@ -30,6 +30,7 @@
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "HelioDragon.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -230,7 +231,8 @@ class HelioSimulationResultsDialog : public DPIDialog
 public:
     HelioSimulationResultsDialog(wxWindow *parent = nullptr, 
                                   HelioQuery::SimulationResult simulation = HelioQuery::SimulationResult(),
-                                  int original_print_time_seconds = 0);
+                                  int original_print_time_seconds = 0,
+                                  const std::vector<std::pair<ExtrusionRole, float>>& roles_times = {});
     ~HelioSimulationResultsDialog() {};
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
@@ -240,6 +242,7 @@ public:
 private:
     HelioQuery::SimulationResult m_simulation;
     int m_original_print_time_seconds;
+    std::vector<std::pair<ExtrusionRole, float>> m_roles_times;
     Button* m_button_enhance{nullptr};
     Button* m_button_view_details{nullptr};
     Button* m_button_close{nullptr};

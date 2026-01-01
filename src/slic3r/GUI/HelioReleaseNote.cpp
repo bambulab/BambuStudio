@@ -3,6 +3,7 @@
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
+#include "libslic3r/ExtrusionEntity.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_Preview.hpp"
@@ -2098,11 +2099,13 @@ void HelioRatingDialog::on_dpi_changed(const wxRect &suggested_rect)
 
 HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent, 
                                                              HelioQuery::SimulationResult simulation,
-                                                             int original_print_time_seconds)
+                                                             int original_print_time_seconds,
+                                                             const std::vector<std::pair<ExtrusionRole, float>>& roles_times)
     : DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, wxString("Helio Additive"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     m_simulation = simulation;
     m_original_print_time_seconds = original_print_time_seconds;
+    m_roles_times = roles_times;
 
     SetBackgroundColour(*wxWHITE);
 
@@ -2159,13 +2162,41 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     title_speed_impro->SetMinSize(wxSize(FromDIP(225), -1));
 
     wxString speed_impro_text;
-    if (m_simulation.speedFactor && *m_simulation.speedFactor > 1.0 && m_original_print_time_seconds > 0) {
-        int optimized_seconds = static_cast<int>(m_original_print_time_seconds / *m_simulation.speedFactor);
-        int improvement_seconds = m_original_print_time_seconds - optimized_seconds;
-        auto label_improvement = wxString::Format("%s", short_time(get_time_dhms(improvement_seconds)));
-        auto label_original = wxString::Format("%s", short_time(get_time_dhms(m_original_print_time_seconds)));
-        auto label_optimized = wxString::Format("%s", short_time(get_time_dhms(optimized_seconds)));
-        speed_impro_text = label_improvement + " (" + label_original + " -> " + label_optimized + ")";
+    if (m_simulation.speedFactor && *m_simulation.speedFactor < 1.0 && m_original_print_time_seconds > 0) {
+        // Calculate time for potentially optimizable sections (A)
+        // Sum times for: inner wall (erPerimeter), outer wall (erExternalPerimeter), 
+        // sparse infill (erInternalInfill), and internal solid infill (erSolidInfill)
+        float optimizable_time = 0.0f;
+        for (const auto& role_time : m_roles_times) {
+            ExtrusionRole role = role_time.first;
+            if (role == erPerimeter ||           // Inner wall
+                role == erExternalPerimeter ||    // Outer wall
+                role == erInternalInfill ||       // Sparse infill
+                role == erSolidInfill) {          // Internal solid infill
+                optimizable_time += role_time.second;
+            }
+        }
+        
+        // Calculate time for optimizable sections after optimization (B)
+        // speedFactor < 1 means faster, so multiply to get reduced time
+        float optimized_optimizable_time = optimizable_time * static_cast<float>(*m_simulation.speedFactor);
+        
+        // Calculate final potential speed improved time (C) = original_time - A + B
+        float final_optimized_time = m_original_print_time_seconds - optimizable_time + optimized_optimizable_time;
+        
+        // Calculate improvement = original_time - C = A - B
+        float improvement_seconds = optimizable_time - optimized_optimizable_time;
+        
+        if (improvement_seconds > 0) {
+            int improvement_sec = static_cast<int>(improvement_seconds);
+            int final_opt_sec = static_cast<int>(final_optimized_time);
+            auto label_improvement = wxString::Format("%s", short_time(get_time_dhms(improvement_sec)));
+            auto label_original = wxString::Format("%s", short_time(get_time_dhms(m_original_print_time_seconds)));
+            auto label_optimized = wxString::Format("%s", short_time(get_time_dhms(final_opt_sec)));
+            speed_impro_text = label_improvement + " (" + label_original + " -> " + label_optimized + ")";
+        } else {
+            speed_impro_text = _L("No speed improvement detected for this print.");
+        }
     } else {
         speed_impro_text = _L("No speed improvement detected for this print.");
     }
