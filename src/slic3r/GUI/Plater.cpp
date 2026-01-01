@@ -177,6 +177,13 @@ static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 512, 5
 namespace Slic3r {
 namespace GUI {
 
+// Flag to pre-select optimization mode when opening HelioInputDialog from simulation results
+static bool g_helio_pre_select_optimization = false;
+
+bool& get_helio_pre_select_optimization_flag() {
+    return g_helio_pre_select_optimization;
+}
+
 wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED,               wxCommandEvent);
@@ -9841,6 +9848,9 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
      }
 
     /*invalid printer preset*/
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": preset_name = '" << preset_name << "', preset_pure_name = '" << preset_pure_name << "'";
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": global_supported_printers.size() = " << HelioQuery::global_supported_printers.size();
+    
      if (preset_pure_name.empty()) {
         GUI::MessageDialog msgdialog(nullptr, _L("Invalid printer preset. Unable to slice with Helio."), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
@@ -9853,9 +9863,11 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
              std::string native_name = pdata.native_name;
              boost::algorithm::to_lower(native_name);
              boost::algorithm::to_lower(preset_pure_name);
+             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": Comparing native_name='" << native_name << "' with preset_pure_name='" << preset_pure_name << "'";
              if (native_name.find(preset_pure_name) != std::string::npos) {
                  helio_support = true;
                  printer_id = pdata.id;
+                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Found match! printer_id = " << printer_id;
                  break;
              }
          }
@@ -9863,6 +9875,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
 
     /*unsupported helio printers*/
      if (!helio_support) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": No matching printer found for '" << preset_pure_name << "'";
         GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
         return -1;
@@ -9881,13 +9894,8 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
     }
 
 
-    if (extruders.size() > 1) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": The number of consumables used is > 1";
-        GUI::MessageDialog msgdialog(nullptr, _L("Helio does not support using a number of materials greater than 1."), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
-    }
-
+    // Note: When multiple materials are used, we use the first extruder's material for Helio simulation
+    // TODO: Future enhancement could support passing multiple materials to Helio API
     std::string used_filament = preset_filaments[extruders.front() - 1];
 
     bool is_supported_by_helio = false;
@@ -10552,6 +10560,12 @@ void Plater::priv::on_helio_process()
 
     if (update_helio_background_process(printer_id, material_id) > -1) {
         HelioInputDialog dlg;
+        
+        // Check if we should pre-select optimization mode (set from simulation results dialog)
+        if (g_helio_pre_select_optimization) {
+            dlg.set_initial_action(1); // Set to optimization mode
+            g_helio_pre_select_optimization = false; // Reset flag
+        }
         
         // Show tutorial popup when HelioInputDialog is shown (if tutorial is active)
         if (wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {

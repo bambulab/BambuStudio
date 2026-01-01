@@ -17,6 +17,7 @@
 #include "../GUI/Event.hpp"
 #include "../GUI/Plater.hpp"
 #include "../GUI/NotificationManager.hpp"
+#include "../GUI/HelioReleaseNote.hpp"
 #include "wx/app.h"
 #include "cstdio"
 
@@ -986,7 +987,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 {
     HelioQuery::CheckSimulationProgressResult res;
     std::string                               query_body_template = R"( {
-							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl } }",
+							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl printInfo { printOutcome temperatureDirection caveats { caveatType description } } speedFactor } }",
 							"variables": {
 								"id": "%1%"
 							}
@@ -1035,6 +1036,31 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
                 res.is_finished = parsed_obj["data"]["simulation"]["status"] == "FINISHED";
                 if (res.is_finished) {
                     res.url = parsed_obj["data"]["simulation"]["thermalIndexGcodeUrl"];
+                    
+                    // Parse printInfo if present
+                    if (parsed_obj["data"]["simulation"].contains("printInfo") && 
+                        !parsed_obj["data"]["simulation"]["printInfo"].is_null()) {
+                        auto printInfo = parsed_obj["data"]["simulation"]["printInfo"];
+                        PrintInfo info;
+                        info.printOutcome = printInfo["printOutcome"];
+                        info.temperatureDirection = printInfo["temperatureDirection"];
+                        
+                        if (printInfo.contains("caveats") && printInfo["caveats"].is_array()) {
+                            for (const auto& caveat : printInfo["caveats"]) {
+                                Caveat c;
+                                c.caveatType = caveat["caveatType"];
+                                c.description = caveat["description"];
+                                info.caveats.push_back(c);
+                            }
+                        }
+                        res.simulationResult.printInfo = info;
+                    }
+                    
+                    // Parse speedFactor if present
+                    if (parsed_obj["data"]["simulation"].contains("speedFactor") && 
+                        !parsed_obj["data"]["simulation"]["speedFactor"].is_null()) {
+                        res.simulationResult.speedFactor = parsed_obj["data"]["simulation"]["speedFactor"];
+                    }
                 }
             }
         })
@@ -1466,14 +1492,25 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                         evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         if (check_simulation_progress_res.is_finished) {
-                            // notification_manager->push_notification((boost::format("Helio: Simulation finished.")).str());
-                            std::string simulated_gcode_path = HelioBackgroundProcess::create_path_for_simulated_gcode(
-                                m_gcode_result->filename);
-
+                            // Start loading preview in background immediately (don't wait for dialog)
+                            int original_time_seconds = static_cast<int>(m_gcode_result->print_statistics.modes[0].time);
+                            std::string url = check_simulation_progress_res.url;
+                            std::string filename = m_gcode_result->filename;
+                            HelioQuery::SimulationResult sim_result = check_simulation_progress_res.simulationResult;
+                            
+                            // Start preview loading in background thread immediately
+                            std::string simulated_gcode_path = create_path_for_simulated_gcode(filename);
                             HelioQuery::RatingData rating_data;
-                            HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(check_simulation_progress_res.url,
-                                                                                           simulated_gcode_path, m_gcode_result->filename,
-                                                                                           notification_manager, rating_data);
+                            save_downloaded_gcode_and_load_preview(url,
+                                                                   simulated_gcode_path, filename,
+                                                                   notification_manager, rating_data);
+                            
+                            // Show simulation results dialog on main thread (non-blocking for preview)
+                            GUI::wxGetApp().plater()->CallAfter([sim_result, original_time_seconds]() {
+                                // This runs on the main thread
+                                GUI::HelioSimulationResultsDialog results_dlg(nullptr, sim_result, original_time_seconds);
+                                results_dlg.ShowModal();
+                            });
                             break;
                         }
                     } else {

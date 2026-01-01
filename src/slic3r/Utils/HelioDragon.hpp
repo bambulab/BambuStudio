@@ -141,6 +141,25 @@ public:
         };
     };
 
+    struct Caveat
+    {
+        std::string caveatType;
+        std::string description;
+    };
+
+    struct PrintInfo
+    {
+        std::string printOutcome;  // "WILL_PRINT", "MAY_PRINT", "LIKELY_FAIL"
+        std::string temperatureDirection;  // "NONE", "OVERCOOLING", "OVERHEATING"
+        std::vector<Caveat> caveats;
+    };
+
+    struct SimulationResult
+    {
+        boost::optional<PrintInfo> printInfo;
+        boost::optional<double> speedFactor;
+    };
+
     struct CheckSimulationProgressResult
     {
         unsigned    status;
@@ -151,6 +170,7 @@ public:
         std::string url;
         std::string error;
         std::string trace_id;
+        SimulationResult simulationResult;
     };
 
     struct CheckOptimizationResult

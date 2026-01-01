@@ -243,21 +243,29 @@ else ()
     if (XCODE)
         # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
-        set(BIN_CONF_DIR "Debug")
     else ()
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
     endif ()
     if (CMAKE_MACOSX_BUNDLE)
-        set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/${BIN_CONF_DIR}/BambuStudio.app/Contents/Resources")
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
         set(MACOSX_BUNDLE_BUNDLE_NAME "Bambu Studio")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SLIC3R_VERSION})
         set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2021-2025 Lunkuo All Rights Reserved")
     endif()
-    add_custom_command(TARGET BambuStudio POST_BUILD
-        COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
-        COMMENT "Symlinking the resources directory into the build tree"
-        VERBATIM)
+    # Use generator expression to get the current build configuration (Debug/Release/etc.) for macOS bundles
+    if (CMAKE_MACOSX_BUNDLE)
+        add_custom_command(TARGET BambuStudio POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/BambuStudio.app/Contents"
+            COMMAND rm -f "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/BambuStudio.app/Contents/Resources"
+            COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/BambuStudio.app/Contents/Resources"
+            COMMENT "Symlinking the resources directory into the build tree"
+            VERBATIM)
+    else()
+        add_custom_command(TARGET BambuStudio POST_BUILD
+            COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"
+            COMMENT "Symlinking the resources directory into the build tree"
+            VERBATIM)
+    endif()
     #if (UNIX AND NOT APPLE)
     #    add_custom_command(TARGET BambuStudio POST_BUILD
     #        COMMAND ln -sfn "zh_cn" "${BIN_RESOURCES_DIR}/i18n/zh_CN"

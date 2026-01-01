@@ -154,6 +154,7 @@ private:
 
     wxPanel* advanced_settings_link{nullptr};
     LinkLabel* buy_now_link{nullptr};
+    Button* buy_now_button{nullptr};
     LinkLabel* helio_wiki_link{nullptr};
 
     int current_action{-1}; //0-simulation 1-optimization
@@ -192,6 +193,9 @@ private:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_action(int action);
     void show_advanced_mode();
+    
+public:
+    void set_initial_action(int action) { update_action(action); }
 };
 
 class HelioPatNotEnoughDialog : public DPIDialog
@@ -219,6 +223,30 @@ public:
     bool finish_rating = false;
     wxString quality_mean_improvement;
     wxString quality_std_improvement;   
+};
+
+class HelioSimulationResultsDialog : public DPIDialog
+{
+public:
+    HelioSimulationResultsDialog(wxWindow *parent = nullptr, 
+                                  HelioQuery::SimulationResult simulation = HelioQuery::SimulationResult(),
+                                  int original_print_time_seconds = 0);
+    ~HelioSimulationResultsDialog() {};
+
+    void on_dpi_changed(const wxRect &suggested_rect) override;
+    void on_enhance_speed_quality(wxMouseEvent& event);
+    void on_view_details(wxMouseEvent& event);
+
+private:
+    HelioQuery::SimulationResult m_simulation;
+    int m_original_print_time_seconds;
+    Button* m_button_enhance{nullptr};
+    Button* m_button_view_details{nullptr};
+    Button* m_button_close{nullptr};
+    
+    wxString get_outcome_text(const std::string& outcome);
+    wxString get_analysis_text(const std::string& temperature_direction);
+    wxString format_time_improvement(int original_seconds, double speed_factor);
 };
 
 }} // namespace Slic3r::GUI
