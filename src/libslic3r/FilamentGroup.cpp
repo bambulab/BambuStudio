@@ -902,6 +902,7 @@ namespace Slic3r
                 return calc_filament_group_for_match(cost);
         }
         catch (const FilamentGroupException& e) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": FilamentGroupException in match mode: " << e.what();
         }
 
         auto merged_map = try_merge_filaments();

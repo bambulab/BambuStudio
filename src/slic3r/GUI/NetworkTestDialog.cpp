@@ -583,7 +583,7 @@ void NetworkTestDialog::start_test_bing()
 
 	int result = -1;
 	http.timeout_max(10)
-		.on_complete([this, &result](std::string body, unsigned status) {
+		.on_complete([&result](std::string body, unsigned status) {
 			try {
 				if (status == 200) {
 					result = 0;
@@ -636,7 +636,7 @@ void NetworkTestDialog::start_test_bambulab()
 	int result = -1;
 	http.header("accept", "application/json")
 		.timeout_max(10)
-		.on_complete([this, &result](std::string body, unsigned status) {
+		.on_complete([&result](std::string body, unsigned status) {
 			try {
 				if (status == 200) {
 					result = 0;
@@ -705,7 +705,7 @@ void NetworkTestDialog::start_test_oss()
 
 	int result = -1;
 	http.timeout_max(15)
-		.on_complete([this, &result](std::string body, unsigned status) {
+		.on_complete([&result](std::string body, unsigned status) {
 		try {
 			if (status == 200) {
 				result = 0;
@@ -752,7 +752,7 @@ void NetworkTestDialog::start_test_oss_upgrade()
 
 	int result = -1;
 	http.timeout_max(15)
-		.on_complete([this, &result](std::string body, unsigned status) {
+		.on_complete([&result](std::string body, unsigned status) {
 		try {
 			if (status == 200) {
 				result = 0;
@@ -901,7 +901,7 @@ void NetworkTestDialog::start_test_oss_download()
 			if (cancel)
 				result = -1;
 		})
-		.on_complete([this, tmp_path, target_file_path](std::string body, unsigned status) {
+		.on_complete([tmp_path, target_file_path](std::string body, unsigned status) {
 			BOOST_LOG_TRIVIAL(info) << "[test_storage_download] completed";
 			bool cancel = false;
 			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -1041,7 +1041,7 @@ void NetworkTestDialog:: start_test_plugin_download(){
 
             if (cancel) result = -1;
         })
-        .on_complete([this, tmp_path, target_file_path](std::string body, unsigned status) {
+        .on_complete([tmp_path, target_file_path](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "[test_plugin_download] completed";
             bool        cancel = false;
             fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);

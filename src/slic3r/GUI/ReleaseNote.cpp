@@ -234,7 +234,7 @@ void UpdatePluginDialog::update_info(std::string json_path)
         description_str = j["description"];
     }
     catch (nlohmann::detail::parse_error& err) {
-        //BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << json_path << " got a nlohmann::detail::parse_error, reason = " << err.what();
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse " << json_path << " got a nlohmann::detail::parse_error, reason = " << err.what();
         return;
     }
 
@@ -1331,7 +1331,7 @@ void ConfirmBeforeSendDialog::update_text(std::vector<ConfirmBeforeSendInfo> tex
         else
         {
             label_item = new Label(m_vebview_release_note, text.text + " " + _L("Please refer to Wiki before use->"), LB_AUTO_WRAP);
-            label_item->Bind(wxEVT_LEFT_DOWN, [this, text](wxMouseEvent& e) { wxLaunchDefaultBrowser(text.wiki_url);});
+            label_item->Bind(wxEVT_LEFT_DOWN, [text](wxMouseEvent& e) { wxLaunchDefaultBrowser(text.wiki_url);});
             label_item->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
             label_item->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
         }
@@ -1495,7 +1495,7 @@ InputIpAddressDialog::InputIpAddressDialog(wxWindow *parent)
     wiki->SetForegroundColour(wxColour(0, 174, 66));
     wiki->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_HAND);});
     wiki->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) {SetCursor(wxCURSOR_ARROW);});
-    wiki->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+    wiki->Bind(wxEVT_LEFT_DOWN, [](auto &e) {
         wxString url;
         if (wxGetApp().app_config->get("region") =="China") {
             url = "https://wiki.bambulab.com/zh/software/bambu-studio/failed-to-send-print-files";
@@ -2160,7 +2160,7 @@ void InputIpAddressDialog::on_text(wxCommandEvent &evt)
     bool invalid_access_code = true;
 
     for (char c : str_access_code) {
-        if (!('0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z')) {
+        if (!(('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z'))) {
             invalid_access_code = false;
             return;
         }

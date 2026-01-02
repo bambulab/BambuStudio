@@ -78,7 +78,7 @@ private:
     // If initialized with &&neighbor_index, take the ownership of the data.
     const NeighborIndex          m_neighbor_index_data;
 
-    std::vector<char>            m_visited;
+    std::vector<bool>            m_visited;
 
     using                        stack_el = size_t;
     std::vector<stack_el>        m_facestack;

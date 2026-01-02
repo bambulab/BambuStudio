@@ -14,15 +14,13 @@ class DevHMSItem;
 class DevHMS
 {
 public:
-    DevHMS(MachineObject* obj) : m_object(obj) {}
+    DevHMS(MachineObject* obj) {}
 
 public:
     void                           ParseHMSItems(const json& hms_json);
     const std::vector<DevHMSItem>& GetHMSItems() const { return m_hms_list; };
 
 private:
-    MachineObject* m_object = nullptr;
-
     // all hms for this machine
     std::vector<DevHMSItem>  m_hms_list;
 };

@@ -190,7 +190,7 @@ bool ComboBox::SetFont(wxFont const& font)
 
 int ComboBox::Append(const wxString &item, const wxBitmap &bitmap, int style)
 {
-    if (&bitmap && bitmap.IsOk()) {
+    if (bitmap.IsOk()) {
         return Append(item, bitmap, nullptr, style);
     }
     return Append(item, wxNullBitmap, nullptr, style);
@@ -201,7 +201,7 @@ int ComboBox::Append(const wxString &text,
                      void *          clientData,
                      int style)
 {
-    if (&bitmap && bitmap.IsOk()) {
+    if (bitmap.IsOk()) {
         return Append(text, bitmap, wxString{}, clientData, style);
     }
     return Append(text, wxNullBitmap, wxString{}, clientData, style);
@@ -209,7 +209,7 @@ int ComboBox::Append(const wxString &text,
 
 int ComboBox::Append(const wxString &text, const wxBitmap &bitmap, const wxString &group, void *clientData, int style)
 {
-    auto valid_bit_map = (&bitmap && bitmap.IsOk()) ? bitmap : wxNullBitmap;
+    auto valid_bit_map = bitmap.IsOk() ? bitmap : wxNullBitmap;
     Item item{text, wxEmptyString, valid_bit_map, valid_bit_map, clientData, group};
     item.style = style;
     items.push_back(item);
@@ -276,7 +276,7 @@ wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return items[n].icon; }
 void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
 {
     if (n >= items.size()) return;
-    items[n].icon = (&bitmap && bitmap.IsOk()) ? bitmap : wxNullBitmap;
+    items[n].icon = bitmap.IsOk() ? bitmap : wxNullBitmap;
     drop.Invalidate();
 }
 

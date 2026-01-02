@@ -176,7 +176,7 @@ void FillBedJob::prepare()
         ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
         ap.height = 1;
         ap.itemid = -1;
-        ap.setter = [this, mi](const ArrangePolygon &p) {
+        ap.setter = [this](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
             ModelObject* newObj = m_plater->model().add_object(*mo);
             newObj->name = mo->name +" "+ std::to_string(p.itemid);

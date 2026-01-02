@@ -35,7 +35,6 @@ public:
     TabButton*                      pageButton;
 
 private:
-    wxWindow*                       m_parent;
     wxFlexGridSizer*                m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
     ScalableBitmap                  m_arrow_img;
@@ -48,6 +47,8 @@ private:
 class Tabbook: public wxBookCtrlBase
 {
 public:
+    using wxBookCtrlBase::AddPage;
+
     Tabbook(wxWindow *     parent,
                  wxWindowID winid = wxID_ANY,
                  const wxPoint & pos = wxDefaultPosition,
@@ -106,7 +107,7 @@ public:
     // by this control) and show it immediately.
     bool ShowNewPage(wxWindow * page)
     {
-        return AddPage(page, wxString(), ""/*true *//* select it */);
+        return AddPage(page, wxString(), std::string("")/*true *//* select it */);
     }
 
     // Set effect to use for showing/hiding pages.
@@ -182,7 +183,7 @@ public:
         return true;
     }
 
-    bool RemovePage(size_t n)
+    bool RemovePage(size_t n) override
     {
         if (!wxBookCtrlBase::RemovePage(n))
             return false;
@@ -410,8 +411,6 @@ private:
 
     unsigned m_showTimeout,
              m_hideTimeout;
-
-    TabButtonsListCtrl *m_ctrl{nullptr};
 
 };
 //#endif // _WIN32

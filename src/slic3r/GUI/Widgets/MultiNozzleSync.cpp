@@ -13,7 +13,7 @@ static const int LeftExtruderIdx = 0;
 static const int RightExtruderIdx = 1;
 
 ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeType volume_type, int standard_count, int highflow_count, int max_nozzle_count, bool force_no_zero)
-    : GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX), m_volume_type(volume_type)
+    : GUI::DPIDialog(parent, wxID_ANY, "Set nozzle count", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
@@ -75,7 +75,7 @@ ManualNozzleCountDialog::ManualNozzleCountDialog(wxWindow *parent, NozzleVolumeT
             this->Layout();
             this->Fit();
             content->Thaw();
-        } else if (total_count == 0 && force_no_zero || total_count > max_nozzle_count) {
+        } else if ((total_count == 0 && force_no_zero) || total_count > max_nozzle_count) {
             wxString error_tip;
             if (total_count == 0)
                 error_tip = _L("Error: Can not set both nozzle count to zero.");
@@ -499,7 +499,7 @@ NozzleListTable::NozzleListTable(wxWindow* parent) : wxPanel(parent,wxID_ANY,wxD
     SetSizer(sizer);
     Layout();
 
-    m_web_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this,sizer](wxWebViewEvent& evt) {
+    m_web_view->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, [this](wxWebViewEvent& evt) {
         std::string message = evt.GetString().ToStdString();
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << "Received message: " << message;
         try {
@@ -1039,8 +1039,8 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
         m_cancel_btn->SetLabel(_L("Ignore"));
         m_confirm_btn->SetLabel(_L("Refresh"));
 
-        m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this, rack, ignore_opt](auto& e) {ignore_opt(); });
-        m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this, rack, refresh_cmd](auto& e) {refresh_cmd(); });
+        m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [ignore_opt](auto& e) {ignore_opt(); });
+        m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [refresh_cmd](auto& e) {refresh_cmd(); });
     }
     else if (has_unknown) {
         m_cancel_btn->Show();
@@ -1049,8 +1049,8 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
         m_cancel_btn->SetLabel(_L("Ignore"));
         m_confirm_btn->SetLabel(_L("Refresh"));
 
-        m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this, rack, ignore_opt](auto& e) {ignore_opt(); });
-        m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this, rack, refresh_cmd](auto& e) {refresh_cmd(); });
+        m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [ignore_opt](auto& e) {ignore_opt(); });
+        m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [refresh_cmd](auto& e) {refresh_cmd(); });
     }
     else if (has_unreliable) {
         m_cancel_btn->Show();
@@ -1059,8 +1059,8 @@ void MultiNozzleSyncDialog::UpdateButton(std::weak_ptr<DevNozzleRack> rack, bool
         m_cancel_btn->SetLabel(_L("Refresh"));
         m_confirm_btn->SetLabel(_L("Confirm"));
 
-        m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [this, rack, refresh_cmd](auto& e) {refresh_cmd(); });
-        m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [this, rack, trust_cmd](auto& e) {trust_cmd(); });
+        m_cancel_btn->Bind(wxEVT_LEFT_DOWN, [refresh_cmd](auto& e) {refresh_cmd(); });
+        m_confirm_btn->Bind(wxEVT_LEFT_DOWN, [trust_cmd](auto& e) {trust_cmd(); });
 
     }
     else {

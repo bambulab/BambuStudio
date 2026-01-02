@@ -590,7 +590,7 @@ double getadhesionCoeff(const PrintObject* printObject)
     for (const ModelVolume* modelVolume : objectVolumes) {
         for (auto iter = extrudersFirstLayer.begin(); iter != extrudersFirstLayer.end(); iter++)
             if (modelVolume->extruder_id() == *iter) {
-                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
+                if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
                     if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
                         Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                         adhesionCoeff = 2;
@@ -598,6 +598,7 @@ double getadhesionCoeff(const PrintObject* printObject)
                                Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU-AMS") {
                         adhesionCoeff = 0.5;
                     }
+                }
             }
     }
 
@@ -1656,7 +1657,7 @@ ExtrusionEntityCollection makeBrimInfill(const ExPolygons& singleBrimArea, const
         Polylines              loops_pl = to_polylines(loops);
         loops_pl_by_levels.assign(loops_pl.size(), Polylines());
         tbb::parallel_for(tbb::blocked_range<size_t>(0, loops_pl.size()),
-            [&loops_pl_by_levels, &loops_pl, &islands_area](const tbb::blocked_range<size_t>& range) {
+            [&loops_pl_by_levels, &loops_pl](const tbb::blocked_range<size_t>& range) {
                 for (size_t i = range.begin(); i < range.end(); ++i) {
                     loops_pl_by_levels[i] = chain_polylines({ std::move(loops_pl[i]) });
                     //loops_pl_by_levels[i] = chain_polylines(intersection_pl({ std::move(loops_pl[i]) }, islands_area));
@@ -1821,7 +1822,7 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
     }
 #endif // BRIM_DEBUG_TO_SVG
 
-    const bool could_brim_intersects_skirt = std::any_of(print.objects().begin(), print.objects().end(), [&print, &brim_width_map, brim_width_max](PrintObject *object) {
+    const bool could_brim_intersects_skirt = std::any_of(print.objects().begin(), print.objects().end(), [&print, &brim_width_map](PrintObject *object) {
         const BrimType &bt = object->config().brim_type;
         return (bt == btOuterOnly || bt == btOuterAndInner || bt == btAutoBrim) && print.config().skirt_distance.value < brim_width_map[object->id()];
     });

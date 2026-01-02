@@ -696,7 +696,7 @@ public:
                     }
                 });
 
-        m_pck.unfitIndicator([this](std::string name) {
+        m_pck.unfitIndicator([](std::string name) {
             BOOST_LOG_TRIVIAL(debug) << "arrange progress: " + name;
             });
 

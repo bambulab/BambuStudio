@@ -3055,19 +3055,25 @@ void Selection::synchronize_unselected_instances(SyncRotationType sync_rotation_
 
             assert(is_rotation_xy_synchronized(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation()));
             switch (sync_rotation_type) {
-            case SyncRotationType::NONE: {
-                // z only rotation -> synch instance z
-                // The X,Y rotations should be synchronized from start to end of the rotation.
-                assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
-                if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
-                    v->set_instance_offset(Z, volume->get_instance_offset().z());
-                break;
-            }
-            case SyncRotationType::GENERAL:
-                // generic rotation -> update instance z with the delta of the rotation.
-                const double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
-                v->set_instance_rotation({ rotation.x(), rotation.y(), rotation.z() + z_diff });
-                break;
+              case SyncRotationType::NONE: {
+                  // z only rotation -> synch instance z
+                  // The X,Y rotations should be synchronized from start to end of the rotation.
+                  assert(is_rotation_xy_synchronized(rotation, v->get_instance_rotation()));
+                  if (wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+                      v->set_instance_offset(Z, volume->get_instance_offset().z());
+                  break;
+              }
+              case SyncRotationType::GENERAL: {
+                  // generic rotation -> update instance z with the delta of the rotation.
+                  const double z_diff = Geometry::rotation_diff_z(m_cache.volumes_data[i].get_instance_rotation(), m_cache.volumes_data[j].get_instance_rotation());
+                  v->set_instance_rotation({ rotation.x(), rotation.y(), rotation.z() + z_diff });
+                  break;
+              }
+              case SyncRotationType::RESET: {
+                  // rotation reset -> copy rotation directly without delta
+                  v->set_instance_rotation(rotation);
+                  break;
+              }
             }
 
             v->set_instance_scaling_factor(scaling_factor);

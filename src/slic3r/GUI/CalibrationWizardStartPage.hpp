@@ -48,8 +48,8 @@ public:
 
     void create_page(wxWindow* parent);
 
-    void on_reset_page();
-    void on_device_connected(MachineObject* obj);
+    void on_reset_page() override;
+    void on_device_connected(MachineObject* obj) override;
     void msw_rescale() override;
 
     virtual void update(MachineObject *obj) override;
@@ -65,8 +65,8 @@ public:
         long style = wxTAB_TRAVERSAL);
 
     void create_page(wxWindow* parent);
-    void on_reset_page();
-    void on_device_connected(MachineObject* obj);
+    void on_reset_page() override;
+    void on_device_connected(MachineObject* obj) override;
     void msw_rescale() override;
 
     virtual void update(MachineObject *obj) override;

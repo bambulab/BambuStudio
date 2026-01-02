@@ -785,7 +785,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     // add lines M73 to exported gcode
     auto process_line_move = [
         // Lambdas, mostly for string formatting, all with an empty capture block.
-        time_in_minutes, format_time_float, format_line_M73_main, format_line_M73_stop_int, format_line_M73_stop_float, time_in_last_minute, format_line_exhaust_fan_control,
+        time_in_minutes, format_time_float, format_line_M73_main, format_line_M73_stop_int, format_line_M73_stop_float, time_in_last_minute,
             &self = std::as_const(*this),
             // Caches, to be modified
             &g1_times_cache_it, &last_exported_main, &last_exported_stop
@@ -948,8 +948,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     auto handle_filament_change = [&filament_blocks,&machine_start_gcode_end_line_id,&machine_end_gcode_start_line_id](int filament_id,int line_id){
         // skip the filaments change in machine start/end gcode
-        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && (unsigned int)(line_id)<machine_start_gcode_end_line_id ||
-            machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id)>machine_end_gcode_start_line_id)
+        if ((machine_start_gcode_end_line_id == (unsigned int)(-1) && (unsigned int)(line_id)<machine_start_gcode_end_line_id) ||
+            (machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id)>machine_end_gcode_start_line_id))
             return;
 
         if (!filament_blocks.empty())
@@ -957,7 +957,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         filament_blocks.emplace_back(filament_id, line_id, -1);
         };
 
-    auto gcode_time_handler = [&temp_construct_block,&filament_blocks, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, & machine_start_gcode_end_line_id, & machine_end_gcode_start_line_id,handle_filament_change](std::string& gcode_line, std::string& gcode_buffer, int line_id) {
+    auto gcode_time_handler = [&temp_construct_block, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, handle_filament_change](std::string& gcode_line, std::string& gcode_buffer, int line_id) {
         auto [processed, lines_added_count] = process_placeholders(gcode_line,line_id);
         if (processed && lines_added_count > 0)
             offsets.push_back({ line_id, lines_added_count });
@@ -1103,7 +1103,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
         auto pre_cooling_injector = std::make_unique<PreCoolingInjector>(
             moves,
-            context.filament_types,
             context.filament_maps,
             context.filament_nozzle_temp,
             context.filament_nozzle_temp,
@@ -1684,7 +1683,7 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
     std::map<int, std::map<int, GCodePosInfo>> gcode_path_pos; // object_id, filament_id, pos
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
         // sometimes, the start line extrude was outside the edge of plate a little, this is allowed, so do not include into the gcode_path_pos
-        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/)
+        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/) {
             if (move.extrusion_role == ExtrusionRole::erCustom) {
                 if (move.is_arc_move_with_interpolation_points()) {
                     for (int i = 0; i < move.interpolation_points.size(); i++) {
@@ -1706,6 +1705,7 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
                 gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z,
                                                                                                    move.print_z);
             }
+        }
     }
 
     bool valid = true;
@@ -3801,7 +3801,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
     float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
-    auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
+    auto absolute_position = [this](Axis axis, const GCodeReader::GCodeLine& lineG1) {
         bool is_relative = (m_global_positioning_type == EPositioningType::Relative);
         if (axis == E)
             is_relative |= (m_e_local_positioning_type == EPositioningType::Relative);
@@ -4203,7 +4203,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
 
-    auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG1) {
+    auto absolute_position = [this](Axis axis, const GCodeReader::GCodeLine& lineG1) {
         bool is_relative = (m_global_positioning_type == EPositioningType::Relative);
         if (axis == E)
             is_relative |= (m_e_local_positioning_type == EPositioningType::Relative);
@@ -4587,7 +4587,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
     float filament_diameter = (static_cast<size_t>(filament_id) < m_result.filament_diameters.size()) ? m_result.filament_diameters[filament_id] : m_result.filament_diameters.back();
     float filament_radius = 0.5f * filament_diameter;
     float area_filament_cross_section = static_cast<float>(M_PI) * sqr(filament_radius);
-    auto absolute_position = [this, area_filament_cross_section](Axis axis, const GCodeReader::GCodeLine& lineG2_3) {
+    auto absolute_position = [this](Axis axis, const GCodeReader::GCodeLine& lineG2_3) {
         bool is_relative = (m_global_positioning_type == EPositioningType::Relative);
         if (axis == E)
             is_relative |= (m_e_local_positioning_type == EPositioningType::Relative);
@@ -4612,7 +4612,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
         }
     };
 
-    auto move_type = [this](const float& delta_E) {
+    auto move_type = [](const float& delta_E) {
         if (delta_E == 0.0f)
             return EMoveType::Travel;
         else
@@ -6195,7 +6195,7 @@ int GCodeProcessor::get_config_idx_for_filament(int filament_idx) const
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
 {
     bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
-    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to, bool consider_cooling_before_tower) {
+    auto get_nozzle_temp = [this](int filament_id, bool is_first_layer, bool from_or_to, bool consider_cooling_before_tower) {
         if (filament_id == -1)
             return from_or_to ? 140 : 0; // default temp
         double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);

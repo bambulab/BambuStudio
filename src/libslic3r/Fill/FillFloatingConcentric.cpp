@@ -75,7 +75,7 @@ static ExtrusionPaths floating_thick_polyline_to_extrusion_paths(const FloatingT
         path.height = new_flow.height();
         };
 
-    auto append_path_and_reset = [set_flow_for_path, role, &paths](double& length, double& sum, ExtrusionPath& path){
+    auto append_path_and_reset = [role, &paths](double& length, double& sum, ExtrusionPath& path){
             length = sum = 0;
             paths.emplace_back(std::move(path));
             path = ExtrusionPath(role);

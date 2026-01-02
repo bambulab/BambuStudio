@@ -14,6 +14,9 @@ public:
     RadioBox(wxWindow *parent);
 
 public:
+    using wxBitmapToggleButton::GetValue;
+    using wxBitmapToggleButton::Enable;
+
     void SetValue(bool value) override;
 	bool GetValue();
     void Rescale();

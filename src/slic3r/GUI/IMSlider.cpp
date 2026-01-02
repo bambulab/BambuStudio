@@ -238,9 +238,10 @@ void IMSlider::SetTicksValues(const Info &custom_gcode_per_print_z)
         if (tick >= 0) m_ticks.ticks.emplace(TickCode{tick, h.type, h.extruder, h.color, h.extra});
     }
 
-    if (!was_empty && m_ticks.empty())
+    if (!was_empty && m_ticks.empty()) {
         // Switch to the "Feature type"/"Tool" from the very beginning of a new object slicing after deleting of the old one
-        ;// post_ticks_changed_event();
+        // post_ticks_changed_event();
+    }
 
     if (m_ticks.has_tick_with_code(ToolChange) && !m_can_change_color) {
         if (!wxGetApp().plater()->only_gcode_mode() && !wxGetApp().plater()->using_exported_file())
@@ -781,7 +782,7 @@ void IMSlider::draw_tick_on_mouse_position(const ImRect& slideable_region) {
 
 void IMSlider::show_tooltip(const std::string tooltip) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 6 * m_scale, 3 * m_scale });
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, { 3 * m_scale });
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 3 * m_scale);
     ImGui::PushStyleColor(ImGuiCol_PopupBg, ImGuiWrapper::COL_WINDOW_BACKGROUND);
     ImGui::PushStyleColor(ImGuiCol_Border, { 0,0,0,0 });
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 1.00f, 1.00f, 1.00f));
@@ -1196,7 +1197,8 @@ void IMSlider::render_input_custom_gcode(std::string custom_gcode)
 }
 
 void IMSlider::do_go_to_layer(size_t layer_number) {
-    clamp((int)layer_number, m_min_value, m_max_value);
+    // clamp((int)layer_number, m_min_value, m_max_value);  // OLD: ignored return value - had no effect!
+    layer_number = clamp((int)layer_number, m_min_value, m_max_value);  // Actually use the clamped value
     GetSelection() == ssLower ? SetLowerValue(layer_number) : SetHigherValue(layer_number);
 }
 
@@ -1517,9 +1519,6 @@ std::string IMSlider::get_label(int tick, LabelType label_type)
 {
     const size_t value = tick;
 
-    if (m_label_koef == 1.0 && m_values.empty()) {
-        std::to_string(value);
-    }
     if (value >= m_values.size()) return "error";
 
     auto get_layer_number = [this](int value, LabelType label_type) {

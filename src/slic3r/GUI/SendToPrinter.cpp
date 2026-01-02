@@ -461,7 +461,7 @@ SendToPrinterDialog::SendToPrinterDialog(Plater *plater)
 
     m_link_network_state = new wxHyperlinkCtrl(m_sw_print_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
     m_link_network_state->SetFont(::Label::Body_12);
-    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [](auto& e) {wxGetApp().link_to_network_check(); });
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
     m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
 
@@ -650,7 +650,7 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string> &st
         }
         else
         {
-            radiobox->Enable();
+            radiobox->Enable(true);
         }
         radiobox->Bind(wxEVT_LEFT_DOWN, [this, radiobox, selectd_storage = storages[i]](auto& e) {
             for (const auto& radio : m_storage_radioBox) {
@@ -1002,18 +1002,16 @@ void SendToPrinterDialog::on_ok(wxCommandEvent &event)
         m_send_job->on_check_ip_address_fail([this, token = std::weak_ptr(m_token)](int result) {
              CallAfter([token, this] {
                 if (token.expired()) { return; }
-                if (this) {
-                    SendFailedConfirm sfcDlg;
-                    auto res = sfcDlg.ShowModal();
-                    m_status_bar->cancel();
+                SendFailedConfirm sfcDlg;
+                auto res = sfcDlg.ShowModal();
+                m_status_bar->cancel();
 
-                    if (res == wxYES) {
-                        wxQueueEvent(m_button_ensure, new wxCommandEvent(wxEVT_BUTTON));
-                    } else if (res == wxAPPLY) {
-                        wxCommandEvent *evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
-                        wxQueueEvent(this, evt);
-                        wxGetApp().show_ip_address_enter_dialog();
-                    }
+                if (res == wxYES) {
+                    wxQueueEvent(m_button_ensure, new wxCommandEvent(wxEVT_BUTTON));
+                } else if (res == wxAPPLY) {
+                    wxCommandEvent *evt = new wxCommandEvent(EVT_CLEAR_IPADDRESS);
+                    wxQueueEvent(this, evt);
+                    wxGetApp().show_ip_address_enter_dialog();
                 }
             });
         });
@@ -1417,7 +1415,7 @@ void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxSt
             update_print_status_msg(wxEmptyString, true, true);
             m_connecting_panel->Show();
             m_animaicon->Stop();
-            m_animaicon->Enable();
+            m_animaicon->ShowEnableIcon();
 
             Layout();
             Enable_Send_Button(false);

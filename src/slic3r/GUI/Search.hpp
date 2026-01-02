@@ -234,6 +234,8 @@ public:
     void update_list();
 
 public:
+    using PopupWindow::Popup;
+
     SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindow *parent, TextInput *input, wxWindow *search_btn);
     ~SearchDialog();
 
@@ -282,6 +284,8 @@ public:
 class SearchObjectDialog : public PopupWindow
 {
 public:
+    using PopupWindow::Popup;
+
     SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* parent);
     ~SearchObjectDialog();
 

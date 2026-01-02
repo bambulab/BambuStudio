@@ -371,7 +371,7 @@ static void adjust_sort_for_segment_intersections(std::vector<SegmentIntersectio
     using IntersectionType = SegmentIntersection::SegmentIntersectionType;
     std::stack<IntersectionType> stack;
     bool                         has_out_low   = false;
-    auto                         is_valid_type = [&stack, &has_out_low](IntersectionType type) {
+    auto                         is_valid_type = [&stack](IntersectionType type) {
         if (stack.empty()) {
             return type == IntersectionType::OUTER_LOW;
         } else {

@@ -35,7 +35,6 @@ private:
 
     wxStaticBitmap* m_error_picture;
     Label* m_error_msg_label{ nullptr };
-    Label* m_error_code_label{ nullptr };
     wxBoxSizer* m_sizer_main;
     wxBoxSizer* m_sizer_button;
     wxPanel* m_scroll_area{ nullptr };

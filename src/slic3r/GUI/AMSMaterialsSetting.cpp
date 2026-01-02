@@ -1160,7 +1160,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
             case NozzleDiameterType::NOZZLE_DIAMETER_0_4: nozzle_diameter = 0.4f; break;
             case NozzleDiameterType::NOZZLE_DIAMETER_0_6: nozzle_diameter = 0.6f; break;
             case NozzleDiameterType::NOZZLE_DIAMETER_0_8: nozzle_diameter = 0.8f; break;
-            default: nozzle_diameter = nozzle_diameter; break;
+            default: break;
         }
         nozzle_flow_type = sel_pair->second;
     }
@@ -2002,11 +2002,6 @@ void ColorPickerPopup::paintEvent(wxPaintEvent& evt)
 }
 
 void ColorPickerPopup::OnDismiss() {}
-
-void ColorPickerPopup::Popup()
-{
-    PopupWindow::Popup();
-}
 
 bool ColorPickerPopup::ProcessLeftDown(wxMouseEvent& event) {
     return PopupWindow::ProcessLeftDown(event);

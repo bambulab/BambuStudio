@@ -850,7 +850,6 @@ namespace Slic3r {
 
             PreCoolingInjector(
                 const std::vector<GCodeProcessorResult::MoveVertex>& moves_,
-                const std::vector<std::string>& filament_types_,
                 const std::vector<int>& filament_maps_,
                 const std::vector<int>& filament_nozzle_temps_,
                 const std::vector<int>& filament_nozzle_temps_initial_layer_,
@@ -867,7 +866,6 @@ namespace Slic3r {
                 unsigned int machine_end_gcode_start_id_
             ) :
                 moves(moves_),
-                filament_types(filament_types_),
                 filament_maps(filament_maps_),
                 filament_nozzle_temps(filament_nozzle_temps_),
                 filament_nozzle_temps_initial_layer(filament_nozzle_temps_initial_layer_),
@@ -888,7 +886,6 @@ namespace Slic3r {
         private:
             std::vector<ExtruderFreeBlock> m_extruder_free_blocks;
             const std::vector<GCodeProcessorResult::MoveVertex>& moves;
-            const std::vector<std::string>& filament_types;
             const std::vector<int>& filament_maps;
             const std::vector<int>& filament_nozzle_temps;
             const std::vector<int>& filament_nozzle_temps_initial_layer;

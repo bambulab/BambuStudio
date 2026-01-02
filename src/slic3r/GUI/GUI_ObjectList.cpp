@@ -3355,7 +3355,7 @@ void ObjectList::boolean()
     Plater::TakeSnapshot snapshot(wxGetApp().plater(), "boolean");
 
     ModelObject* object = (*m_objects)[obj_idxs.front()];
-    TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [this](const std::string &msg) { return wxGetApp().notification_manager()->push_plater_warning_notification(msg); });
+    TriangleMesh mesh = Plater::combine_mesh_fff(*object, -1, [](const std::string &msg) { return wxGetApp().notification_manager()->push_plater_warning_notification(msg); });
 
     // add mesh to model as a new object, keep the original object's name and config
     Model* model = object->get_model();

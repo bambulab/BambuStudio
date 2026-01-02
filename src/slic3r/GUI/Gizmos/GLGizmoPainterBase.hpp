@@ -368,7 +368,6 @@ protected:
 
     GLIndexedVertexArray m_vbo_sphere;
 
-    bool m_internal_stack_active = false;
     bool m_schedule_update = false;
     Vec2d m_last_mouse_click = Vec2d::Zero();
 

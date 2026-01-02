@@ -28,7 +28,7 @@ wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, 
 
     checkbox->SetValue(true);
 
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [parent, checkbox, value](wxCommandEvent& e) {
+    checkbox->Bind(wxEVT_TOGGLEBUTTON, [value](wxCommandEvent& e) {
         (*value) = (*value) ? false : true;
         e.Skip();
         });
@@ -337,7 +337,7 @@ Temp_Calibration_Dlg::Temp_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plat
     Layout();
     Fit();
 
-    auto validate_text = [this](TextInput* ti){
+    auto validate_text = [](TextInput* ti){
         unsigned long t = 0;
         if(!ti->GetTextCtrl()->GetValue().ToULong(&t))
             return;

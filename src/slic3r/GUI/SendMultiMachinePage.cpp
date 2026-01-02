@@ -479,12 +479,10 @@ BBL::PrintParams SendMultiMachinePage::request_params(MachineObject* obj)
     PrintPrepareData job_data;
     m_plater->get_print_job_data(&job_data);
 
-    if (&job_data) {
-        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-        auto check_access_code_path = temp_file.c_str();
-        //BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
-        job_data._temp_path = fs::path(check_access_code_path);
-    }
+    std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+    auto check_access_code_path = temp_file.c_str();
+    //BOOST_LOG_TRIVIAL(trace) << "sned_job: check_access_code_path = " << check_access_code_path;
+    job_data._temp_path = fs::path(check_access_code_path);
 
     int curr_plate_idx;
     if (job_data.plate_idx >= 0)
@@ -810,7 +808,11 @@ bool SendMultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(4000);
-        wxPostEvent(this, wxTimerEvent());
+        // Immediate update instead of posting deprecated wxTimerEvent
+        for (auto it = m_device_items.begin(); it != m_device_items.end(); it++) {
+            it->second->sync_state();
+            it->second->Refresh();
+        }
     }
     else {
         m_refresh_timer->Stop();
@@ -1503,7 +1505,7 @@ void SendMultiMachinePage::sync_ams_list()
         item->set_ams_info(wxColour("#CECECE"), "Ext", 0, std::vector<wxColour>());
         m_ams_list_sizer->Add(item, 0, wxALL, FromDIP(4));
 
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent& e) {});
+        item->Bind(wxEVT_LEFT_UP, [](wxMouseEvent& e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent& e) {
             MaterialHash::iterator iter = m_material_list.begin();
             while (iter != m_material_list.end()) {

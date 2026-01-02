@@ -14,7 +14,6 @@ public:
     
 private:
     // Input
-    const ExPolygon     &m_expolygon;
     Lines                m_lines;
     // for filtering of the skeleton edges
     double               m_min_width;

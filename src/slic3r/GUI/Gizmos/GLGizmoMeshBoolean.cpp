@@ -862,6 +862,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
                         b_union = execute_boolean_operation(b_union, bm, MeshBooleanConfig::OP_UNION);
                         if (b_union.empty()) { result.error_message = MeshBooleanWarnings::MIN_VOLUMES_DIFFERENCE; return result; }
                     } catch (const std::exception &e) {
+                        BOOST_LOG_TRIVIAL(error) << "Boolean union operation failed: " << e.what();
                         result.error_message = MeshBooleanWarnings::GROUPING;
                         return result;
                     }
@@ -885,6 +886,7 @@ BooleanOperationResult BooleanOperationEngine::perform_difference(const VolumeLi
                 try {
                     accumulated_result = execute_boolean_operation(accumulated_result, b_union, MeshBooleanConfig::OP_DIFFERENCE);
                 } catch (const std::exception& e) {
+                    BOOST_LOG_TRIVIAL(error) << "Boolean difference operation failed: " << e.what();
                     result.error_message = MeshBooleanWarnings::JOB_FAILED;
                     return result;
                 }
@@ -1575,6 +1577,7 @@ BooleanOperationResult BooleanOperationEngine::part_level_sub(
                     return result;
                 }
             } catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "Boolean operation failed: " << e.what();
                 result.error_message = MeshBooleanWarnings::JOB_FAILED;
                 return result;
             }
@@ -1661,7 +1664,7 @@ GLGizmoMeshBoolean::GLGizmoMeshBoolean(GLCanvas3D& parent, unsigned int sprite_i
     };
 
     // Setup async callbacks
-    m_ui->is_async_enabled = [this]() -> bool {
+    m_ui->is_async_enabled = []() -> bool {
         return true; // Async is always enabled
     };
 

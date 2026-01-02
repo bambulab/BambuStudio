@@ -83,7 +83,7 @@ bool AnimaIcon::IsPlaying()
     return m_timer->IsRunning();
 }
 
-void AnimaIcon::Enable()
+void AnimaIcon::ShowEnableIcon()
 {
     if (m_bitmap) { m_bitmap->SetBitmap(m_image_enable); }
 }

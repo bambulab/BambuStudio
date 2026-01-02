@@ -1,9 +1,9 @@
-//**********************************************************/
-/* File: wgtDeviceNozzleRackUpdate.h
-*  Description: The panel for updating hotends
-*
-*  \n class wgtDeviceNozzleRackUpdate
-//**********************************************************/
+/**********************************************************
+ * File: wgtDeviceNozzleRackUpdate.h
+ *  Description: The panel for updating hotends
+ *
+ *  \n class wgtDeviceNozzleRackUpdate
+ **********************************************************/
 
 #pragma once
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
@@ -130,7 +130,6 @@ private:
     Label* m_diameter_label;
     Label* m_flowtype_label;
     Label* m_type_label;
-    ScalableButton* m_error_button{ nullptr };
 
     Label* m_sn_label;
     Label* m_version_label;

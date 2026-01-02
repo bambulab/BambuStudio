@@ -178,7 +178,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     , m_printhost_queue_dlg(new PrintHostQueueDialog(this))
     // BBS
     , m_recent_projects(18)
-    , m_settings_dialog(this)
+    , m_settings_dialog()
     , diff_dialog(this)
 {
 #ifdef __WXOSX__
@@ -693,7 +693,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         evt.Skip();
     });
 
-    Bind(wxEVT_SHOW, [this](wxShowEvent &evt) {
+    Bind(wxEVT_SHOW, [](wxShowEvent &evt) {
         DeviceManager *manger = wxGetApp().getDeviceManager();
         if (manger) {
             evt.IsShown() ? manger->start_refresher() : manger->stop_refresher();
@@ -1075,7 +1075,6 @@ void MainFrame::update_title_colour_after_set_title()
 
 void MainFrame::show_option(bool show)
 {
-    if (!this) { return; }
     if (!show) {
         if (m_slice_btn->IsShown()) {
             m_slice_btn->Hide();
@@ -1253,7 +1252,7 @@ void MainFrame::init_tabpanel()
             select_tab(MainFrame::tpHome);
             m_webview->load_url(url);
         });
-        m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
+        m_tabpanel->AddPage(m_webview, wxString(""), "tab_home_active", "tab_home_active", false);
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
@@ -2678,7 +2677,7 @@ void MainFrame::init_menubar_as_editor()
             [this](){return can_add_models(); }, this);
         append_menu_item(import_menu, wxID_ANY, _L("Import Configs") + dots /*+ "\tCtrl+I"*/, _L("Load configs"),
             [this](wxCommandEvent&) { load_config_file(); }, "menu_import", nullptr,
-            [this](){return true; }, this);
+            [](){return true; }, this);
 
         append_submenu(fileMenu, import_menu, wxID_ANY, _L("Import"), "");
 
@@ -2723,7 +2722,7 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(
             fileMenu, wxID_ANY, _L("Publish to MakerWorld"), _L("Publish to MakerWorld"),
             [this](wxCommandEvent &) {
-                CallAfter([this] {
+                CallAfter([] {
                     wxGetApp().open_publish_page_dialog();
 
                     if (!wxGetApp().getAgent()) {
@@ -2738,7 +2737,7 @@ void MainFrame::init_menubar_as_editor()
                 });
             },
             "", nullptr,
-            [this](){ return wxGetApp().has_model_mall(); }, this);
+            [](){ return wxGetApp().has_model_mall(); }, this);
 
         append_menu_item(
             fileMenu, wxID_ANY, _L("Batch Preset Management"), wxString::Format(_L("Batch Preset Management")),
@@ -2975,13 +2974,13 @@ void MainFrame::init_menubar_as_editor()
         //BBS perspective view
         wxWindowID camera_id_base = wxWindow::NewControlId(int(wxID_CAMERA_COUNT));
         auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
-            [this](wxCommandEvent&) {
+            [](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", true);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
         //BBS orthogonal view
         auto orthogonal_item = append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use Orthogonal View"),
-            [this](wxCommandEvent&) {
+            [](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", false);
                 wxGetApp().update_ui_from_settings();
             }, nullptr);
@@ -2997,7 +2996,7 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
             this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview; },
-            [this]() { return wxGetApp().show_3d_navigator(); }, this);
+            []() { return wxGetApp().show_3d_navigator(); }, this);
         append_menu_item(
             viewMenu, wxID_ANY, _L("Reset Window Layout") + "\t" + ctrl + "W", _L("Reset to default window layout"),
             [this](wxCommandEvent &) { m_plater->reset_window_layout(); }, "", this,
@@ -3017,7 +3016,7 @@ void MainFrame::init_menubar_as_editor()
         viewMenu->AppendSeparator();
         append_menu_item(
             viewMenu, wxID_ANY, _L("Set 3DConnexion"), _L("Set 3DConnexion mouse"),
-            [this](wxCommandEvent &) {
+            [](wxCommandEvent &) {
 #ifdef _WIN32
                 if (wxGetApp().app_config->get("use_legacy_3DConnexion") == "true") {
 #endif //_WIN32
@@ -3026,7 +3025,7 @@ void MainFrame::init_menubar_as_editor()
 #ifdef _WIN32
                 }
 #endif //_WIN32
-            },  "", nullptr, [this]() {
+            },  "", nullptr, []() {
                 Mouse3DController &controller = wxGetApp().plater()->get_mouse3d_controller();
                 auto               tab_index  = (MainFrame::TabPosition) dynamic_cast<Notebook *>(wxGetApp().tab_panel())->GetSelection();
                 auto is_3d_view = tab_index == MainFrame::TabPosition::tp3DEditor || tab_index == MainFrame::TabPosition::tpPreview;
@@ -3165,7 +3164,7 @@ void MainFrame::init_menubar_as_editor()
     //parent_menu->Insert(0, about_item);
     append_menu_item(
         parent_menu, wxID_ANY, _L(about_title), "",
-        [this](wxCommandEvent &) { Slic3r::GUI::about();},
+        [](wxCommandEvent &) { Slic3r::GUI::about();},
         "", nullptr, []() { return true; }, this, 0);
     append_menu_item(
         parent_menu, wxID_ANY, _L("Preferences") + "\t" + ctrl + ",", "",
@@ -3408,7 +3407,7 @@ void MainFrame::init_menubar_as_editor()
     // help
     append_menu_item(
         m_calib_menu, wxID_ANY, _L("Tutorial"), _L("Calibration help"),
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             try {
                 json js;
                 js["cali_type"] = "third_cali_tutorial";
@@ -4283,11 +4282,10 @@ std::string MainFrame::get_dir_name(const wxString &full_name) const
 // SettingsDialog
 // ----------------------------------------------------------------------------
 
-SettingsDialog::SettingsDialog(MainFrame* mainframe)
-:DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "settings_dialog"),
+SettingsDialog::SettingsDialog()
+:DPIDialog(NULL, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, "settings_dialog")
 //: DPIDialog(mainframe, wxID_ANY, wxString(SLIC3R_APP_NAME) + " - " + _L("Settings"), wxDefaultPosition, wxDefaultSize,
-//        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog"),
-    m_main_frame(mainframe)
+//        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMINIMIZE_BOX | wxMAXIMIZE_BOX, "settings_dialog")
 {
     if (wxGetApp().is_gcode_viewer())
         return;

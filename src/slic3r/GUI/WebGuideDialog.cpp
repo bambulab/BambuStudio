@@ -487,10 +487,10 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             this->EndModal(wxID_OK);
 
             if (InstallNetplugin)
-                GUI::wxGetApp().CallAfter([this] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
+                GUI::wxGetApp().CallAfter([] { GUI::wxGetApp().ShowDownNetPluginDlg(); });
 
             if (bLogin)
-                GUI::wxGetApp().CallAfter([this] { login(); });
+                GUI::wxGetApp().CallAfter([] { login(); });
         }
         else if (strCmd == "user_guide_cancel") {
             this->EndModal(wxID_CANCEL);
@@ -871,7 +871,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
     std::string preferred_model;
     std::string preferred_variant;
     PrinterTechnology preferred_pt = ptFFF;
-    auto get_preferred_printer_model = [preset_bundle, enabled_vendors, old_enabled_vendors, preferred_pt](const std::string& bundle_name, std::string& variant) {
+    auto get_preferred_printer_model = [preset_bundle, enabled_vendors, old_enabled_vendors](const std::string& bundle_name, std::string& variant) {
         const auto config = enabled_vendors.find(bundle_name);
         if (config == enabled_vendors.end())
             return std::string();
@@ -879,7 +879,7 @@ bool GuideFrame::apply_config(AppConfig *app_config, PresetBundle *preset_bundle
         const VendorProfile & printer_profile = preset_bundle->vendors[bundle_name];
         const std::map<std::string, std::set<std::string>>& model_maps = config->second;
         //for (const auto& vendor_profile : preset_bundle->vendors) {
-        for (const auto model_it: model_maps) {
+        for (const auto& model_it: model_maps) {
             if (model_it.second.size() > 0) {
                 variant = *model_it.second.begin();
                 if (model_it.second.size() > 1) {

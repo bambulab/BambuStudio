@@ -13,9 +13,9 @@ Slic3r::Polylines Paths64_to_polylines(const Clipper2Lib::Paths64& in)
         Slic3r::Points points;
         points.reserve(path64.size());
         for (const Clipper2Lib::Point64& point64 : path64)
-            points.emplace_back(std::move(Slic3r::Point(point64.x, point64.y)));
-        out.emplace_back(std::move(Slic3r::Polyline(points)));
-    } 
+            points.emplace_back(Slic3r::Point(point64.x, point64.y));
+        out.emplace_back(Slic3r::Polyline(points));
+    }
     return out;
 }
 
@@ -29,8 +29,8 @@ Clipper2Lib::Paths64 Slic3rPoints_to_Paths64(const std::vector<T>& in)
         Clipper2Lib::Path64 path;
         path.reserve(item.size());
         for (const Slic3r::Point& point : item.points)
-            path.emplace_back(std::move(Clipper2Lib::Point64(point.x(), point.y())));
-        out.emplace_back(std::move(path));
+            path.emplace_back(Clipper2Lib::Point64(point.x(), point.y()));
+        out.emplace_back(path);
     }
     return out;
 }
@@ -39,7 +39,7 @@ Points Path64ToPoints(const Clipper2Lib::Path64& path64)
 {
     Points points;
     points.reserve(path64.size());
-    for (const Clipper2Lib::Point64 &point64 : path64) points.emplace_back(std::move(Slic3r::Point(point64.x, point64.y)));
+    for (const Clipper2Lib::Point64 &point64 : path64) points.emplace_back(Slic3r::Point(point64.x, point64.y));
     return points;
 }
 
@@ -94,8 +94,8 @@ Clipper2Lib::Paths64 Slic3rPolygons_to_Paths64(const Polygons &in)
     for (const Polygon &poly : in) {
         Clipper2Lib::Path64 path;
         path.reserve(poly.points.size());
-        for (const Slic3r::Point &point : poly.points) path.emplace_back(std::move(Clipper2Lib::Point64(point.x(), point.y())));
-        out.emplace_back(std::move(path));
+        for (const Slic3r::Point &point : poly.points) path.emplace_back(Clipper2Lib::Point64(point.x(), point.y()));
+        out.emplace_back(path);
     }
     return out;
 }
@@ -109,8 +109,8 @@ Clipper2Lib::Paths64 Slic3rExPolygons_to_Paths64(const ExPolygons& in)
             const auto         &poly = expolygon.contour_or_hole(i);
             Clipper2Lib::Path64 path;
             path.reserve(poly.points.size());
-            for (const Slic3r::Point &point : poly.points) path.emplace_back(std::move(Clipper2Lib::Point64(point.x(), point.y())));
-            out.emplace_back(std::move(path));
+            for (const Slic3r::Point &point : poly.points) path.emplace_back(Clipper2Lib::Point64(point.x(), point.y()));
+            out.emplace_back(path);
         }
     }
     return out;
@@ -129,8 +129,8 @@ Polylines _clipper2_pl_open(Clipper2Lib::ClipType clipType, const Slic3r::Polyli
 
     Slic3r::Polylines out;
     out.reserve(solution.size() + solution_open.size());
-    polylines_append(out, std::move(Paths64_to_polylines(solution)));
-    polylines_append(out, std::move(Paths64_to_polylines(solution_open)));
+    polylines_append(out, Paths64_to_polylines(solution));
+    polylines_append(out, Paths64_to_polylines(solution_open));
 
     return out;
 }

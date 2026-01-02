@@ -1,9 +1,9 @@
-//**********************************************************/
-/* File: wgtDeviceNozzleSelect.h
-*  Description: The panel to select nozzle
-*
-*  \n class wgtDeviceNozzleSelect;
-//**********************************************************/
+/**********************************************************
+ * File: wgtDeviceNozzleSelect.h
+ *  Description: The panel to select nozzle
+ *
+ *  \n class wgtDeviceNozzleSelect;
+ **********************************************************/
 
 #pragma once
 

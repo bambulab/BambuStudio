@@ -13,7 +13,7 @@ public:
 
     void Play();
     void Stop();
-    void Enable();
+    void ShowEnableIcon();
     bool IsPlaying();
     bool IsRunning() const;
 

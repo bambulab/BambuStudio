@@ -448,7 +448,7 @@ void HistoryWindow::sync_history_data() {
         edit_button->SetTextColor(wxColour("#FFFFFE"));
         edit_button->SetMinSize(wxSize(-1, FromDIP(24)));
         edit_button->SetCornerRadius(FromDIP(12));
-        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value, edit_button](auto& e) {
+        edit_button->Bind(wxEVT_BUTTON, [this, result, k_value, name_value](auto& e) {
             if (m_ui_op_lock) return;
 
             PACalibResult result_buffer = result;

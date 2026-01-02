@@ -905,10 +905,10 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
 
     float nozzle_diameter = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
-    for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().floats_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
     }
 
@@ -917,11 +917,11 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
     wall_speed_speed_opt->values[index]              = wall_speed;
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second));
     }
 
@@ -955,8 +955,8 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
     int extruder_count = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
-    for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second)); }
+    for (const auto& opt : SuggestedConfigCalibPAPattern().float_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
+    for (const auto& opt : SuggestedConfigCalibPAPattern().floats_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second)); }
 
     std::vector<CalibInfo> sorted_calib_infos = calib_infos;
     std::sort(sorted_calib_infos.begin(), sorted_calib_infos.end(), [](const CalibInfo &left_item, const CalibInfo &right_item) {
@@ -975,11 +975,11 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
         object->config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable(new_speeds));
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
+    for (const auto& opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) { print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second)); }
+    for (const auto& opt : SuggestedConfigCalibPAPattern().int_pairs) { print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second)); }
 
     print_config.set_key_value(SuggestedConfigCalibPAPattern().brim_pair.first, new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second));
 
@@ -1180,7 +1180,7 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
 
         js["nozzle_diameter"] = nozzle_diameter;
         std::string filament_ids;
-        for (const auto calib_info : calib_infos) {
+        for (const auto& calib_info : calib_infos) {
             filament_ids += calib_info.filament_prest->filament_id;
             filament_ids += " ";
         }

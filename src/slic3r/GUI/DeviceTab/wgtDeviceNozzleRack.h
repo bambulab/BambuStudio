@@ -1,12 +1,12 @@
-//**********************************************************/
-/* File: wgtDeviceNozzleRack.h
-*  Description: The panel with rack and nozzles
-*
-*  \n class wgtDeviceNozzleRackArea;
-*  \n class wgtDeviceNozzleRackNozzleItem;
-*  \n class wgtDeviceNozzleRackToolHead;
-*  \n class wgtDeviceNozzleRackPos;
-//**********************************************************/
+/**********************************************************
+ * File: wgtDeviceNozzleRack.h
+ *  Description: The panel with rack and nozzles
+ *
+ *  \n class wgtDeviceNozzleRackArea;
+ *  \n class wgtDeviceNozzleRackNozzleItem;
+ *  \n class wgtDeviceNozzleRackToolHead;
+ *  \n class wgtDeviceNozzleRackPos;
+ **********************************************************/
 
 #pragma once
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
@@ -197,6 +197,8 @@ public:
     };
 
 public:
+    using wxWindow::Update;
+
     wgtDeviceNozzleRackNozzleItem(wxWindow* parent, int nozzle_id);
 
 public:

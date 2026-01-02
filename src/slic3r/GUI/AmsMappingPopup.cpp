@@ -1012,7 +1012,8 @@ void AmsMapingPopup::update_ams_data_multi_machines()
             int ams_type  = 1;
             int nozzle_id = 0;
 
-            if (ams_type >= 1 || ams_type <= 3) { // 1:ams 2:ams-lite 3:n3f
+            // if (ams_type >= 1 || ams_type <= 3) {  // OLD: used OR - always true! Should be AND for range check
+            if (ams_type >= 1 && ams_type <= 3) { // 1:ams 2:ams-lite 3:n3f
 
                 auto sizer_mapping_list         = new wxBoxSizer(wxHORIZONTAL);
                 auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel, "AMS-1", 4);
@@ -1279,9 +1280,9 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
             {
                 DevAmsTray *tray_data = tray_iter->second;
                 TrayData td;
-                if (ams_type == AMSModel::GENERIC_AMS || ams_type == AMSModel::AMS_LITE || ams_type == AMSModel::N3F_AMS) {
+                if (static_cast<AMSModel>(ams_type) == AMSModel::GENERIC_AMS || static_cast<AMSModel>(ams_type) == AMSModel::AMS_LITE || static_cast<AMSModel>(ams_type) == AMSModel::N3F_AMS) {
                     td.id = ams_indx * AMS_TOTAL_COUNT + atoi(tray_data->id.c_str());
-                } else if (ams_type == AMSModel::N3S_AMS) {
+                } else if (static_cast<AMSModel>(ams_type) == AMSModel::N3S_AMS) {
                     td.id = ams_indx + atoi(tray_data->id.c_str());
                 }
                 td.ams_id  = std::stoi(ams_iter->second->GetAmsId());
@@ -1420,7 +1421,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
         // temp
         if (tray_data[i].type == EMPTY) {
             m_mapping_item->set_data(m_tag_material, wxColour(0xEE, 0xEE, 0xEE), "-", remain_detect_flag, tray_data[i]);
-            m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_mapping_item](wxMouseEvent &e) {
+            m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, m_mapping_item](wxMouseEvent &e) {
 
                 if (!m_mapping_from_multi_machines) {
                     return;
@@ -1435,7 +1436,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data, bool remai
         // third party
         if (tray_data[i].type == THIRD) {
             m_mapping_item->set_data(m_tag_material, wxColour(0xCE, 0xCE, 0xCE), "?", remain_detect_flag, tray_data[i]);
-            m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, i, m_mapping_item](wxMouseEvent &e) {
+            m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, m_mapping_item](wxMouseEvent &e) {
                 m_mapping_item->send_event(m_current_filament_id);
                 Dismiss();
             });

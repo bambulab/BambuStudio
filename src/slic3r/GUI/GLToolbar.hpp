@@ -501,7 +501,6 @@ private:
     EToolbarRenderingMode m_rendering_mode{ EToolbarRenderingMode::Auto };
 
     mutable GLTexture m_images_texture;
-    mutable bool m_images_texture_dirty;
     struct MouseCapture
     {
         bool left;
@@ -537,7 +536,7 @@ class ToolbarAutoSizeRenderer : public ToolbarRenderer
 {
 public:
     explicit ToolbarAutoSizeRenderer();
-    ~ToolbarAutoSizeRenderer();
+    virtual ~ToolbarAutoSizeRenderer();
 
     void render(const GLToolbar& t_toolbar, const Camera& t_camera) override;
 
@@ -556,7 +555,7 @@ class ToolbarKeepSizeRenderer : public ToolbarRenderer
 {
 public:
     explicit ToolbarKeepSizeRenderer();
-    ~ToolbarKeepSizeRenderer();
+    virtual ~ToolbarKeepSizeRenderer();
 
     void render(const GLToolbar& t_toolbar, const Camera& t_camera) override;
 

@@ -471,7 +471,7 @@ namespace Slic3r
                     return;
                 }
                 if ((int)m_last_result_id != -1) {
-                    auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [this, &p_sequential_view](auto move) {
+                    auto it = std::find_if(m_gcode_result->moves.begin(), m_gcode_result->moves.end(), [&p_sequential_view](auto move) {
                         if (p_sequential_view->current.last < p_sequential_view->gcode_ids.size() && p_sequential_view->current.last >= 0) {
                             return move.gcode_id == static_cast<uint64_t>(p_sequential_view->gcode_ids[p_sequential_view->current.last]);
                         }
@@ -596,7 +596,7 @@ namespace Slic3r
                             { min.x(), max.y() } };
                     }*/
                 }
-                else if (&wxGetApp() && wxGetApp().app_config->get_bool("show_shells_in_preview")) { // BBS: load shell at helio_gcode
+                else if (wxGetApp().app_config->get_bool("show_shells_in_preview")) { // BBS: load shell at helio_gcode
                     load_shells(print, initialized,true);
                     update_shells_color_by_extruder(m_config);
                 }
@@ -607,7 +607,7 @@ namespace Slic3r
                         short_time(get_time_dhms(time)) == short_time(get_time_dhms(m_print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time)))
                         m_time_estimate_mode = PrintEstimatedStatistics::ETimeMode::Normal;
                 }
-                if (&wxGetApp() && !wxGetApp().app_config->get_bool("use_last_fold_state_gcodeview_option_panel")) {
+                if (!wxGetApp().app_config->get_bool("use_last_fold_state_gcodeview_option_panel")) {
                     m_fold = false;
                 }
 
@@ -754,7 +754,7 @@ namespace Slic3r
                     }
                     return ret;
                     };
-                auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, this](bool draw_icon, const Color& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
+                auto append_item = [icon_size, &imgui, &window_padding, &draw_list, this](bool draw_icon, const Color& color, const std::vector<std::pair<std::string, float>>& columns_offsets)
                     {
                         // render icon
                         ImVec2 pos = ImVec2(ImGui::GetCursorScreenPos().x + window_padding * 3, ImGui::GetCursorScreenPos().y);
@@ -784,7 +784,7 @@ namespace Slic3r
                     }
                     ImGui::Separator();
                     };
-                auto get_used_filament_from_volume = [this, imperial_units, &filament_diameters, &filament_densities](double volume, int extruder_id) {
+                auto get_used_filament_from_volume = [imperial_units, &filament_diameters, &filament_densities](double volume, int extruder_id) {
                     double koef = imperial_units ? 1.0 / GizmoObjectManipulation::in_to_mm : 0.001;
                     std::pair<double, double> ret = { koef * volume / (PI * sqr(0.5 * filament_diameters[extruder_id])),
                                                         volume * filament_densities[extruder_id] * 0.001 };
@@ -1368,7 +1368,7 @@ namespace Slic3r
                 draw_list->AddRectFilled(ImVec2(pos_rect.x, pos_rect.y - ImGui::GetStyle().WindowPadding.y),
                     ImVec2(pos_rect.x + ImGui::GetWindowWidth() + ImGui::GetFrameHeight(), pos_rect.y + ImGui::GetFrameHeight() + window_padding * 2.5),
                     ImGui::GetColorU32(ImVec4(0, 0, 0, 0.3)));
-                auto append_item = [icon_size, &imgui, imperial_units, &window_padding, &draw_list, &checkbox_offset, this](
+                auto append_item = [icon_size, &imgui, &window_padding, &draw_list, &checkbox_offset, this](
                     EItemType type,
                     const Color& color,
                     const std::vector<std::pair<std::string, float>>& columns_offsets,
@@ -1877,7 +1877,7 @@ namespace Slic3r
                 }
                 auto append_option_item = [this, append_item](EMoveType type, std::vector<float> offsets) {
                     auto append_option_item_with_type = [this, offsets, append_item](EMoveType type, const Color& color, const std::string& label, bool visible) {
-                        append_item(EItemType::Rect, color, { { label , offsets[0] } }, true, visible, [this, type, visible]() {
+                        append_item(EItemType::Rect, color, { { label , offsets[0] } }, true, visible, [this, type]() {
                             set_move_type_visible(type, !is_move_type_visible(type));
                             on_visibility_changed();
                             });

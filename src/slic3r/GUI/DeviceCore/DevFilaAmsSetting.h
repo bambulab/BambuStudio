@@ -10,7 +10,7 @@ class DevFilaSystem;
 class DevAmsSystemSetting
 {
 public:
-    DevAmsSystemSetting(DevFilaSystem* owner) : m_owner(owner) {};
+    DevAmsSystemSetting(DevFilaSystem* owner) {};
 
 public:
     // getters
@@ -27,8 +27,6 @@ public:
     void SetAutoRefillEnabled(bool enable) { m_enable_auto_refill = enable; }
 
 private:
-    DevFilaSystem* m_owner = nullptr;
-
     std::optional<bool> m_enable_detect_on_insert = false;
     bool m_enable_detect_on_powerup = false;
     bool m_enable_detect_remain = false;

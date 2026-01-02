@@ -562,7 +562,7 @@ void SelectMachinePopup::update_other_devices()
             }
         }
 
-        op->Bind(EVT_CONNECT_LAN_PRINT, [this, mobj](wxCommandEvent &e) {
+        op->Bind(EVT_CONNECT_LAN_PRINT, [mobj](wxCommandEvent &e) {
             if (mobj) {
                 if (mobj->is_lan_mode_printer()) {
                     ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
@@ -574,7 +574,7 @@ void SelectMachinePopup::update_other_devices()
             }
         });
 
-        op->Bind(EVT_BIND_MACHINE, [this, mobj](wxCommandEvent &e) {
+        op->Bind(EVT_BIND_MACHINE, [mobj](wxCommandEvent &e) {
             BindMachineDialog dlg;
             dlg.update_machine_info(mobj);
             int dlg_result = wxID_CANCEL;
@@ -693,7 +693,7 @@ void SelectMachinePopup::update_user_devices()
                     op->set_printer_state(PrinterState::LOCK);
                 }
             }
-            op->Bind(EVT_UNBIND_MACHINE, [this, dev, mobj](wxCommandEvent& e) {
+            op->Bind(EVT_UNBIND_MACHINE, [dev, mobj](wxCommandEvent& e) {
                 dev->set_selected_machine("");
                 if (mobj) {
                     mobj->set_access_code("");
@@ -709,7 +709,7 @@ void SelectMachinePopup::update_user_devices()
         }
         else {
             op->show_printer_bind(true, PrinterBindState::ALLOW_UNBIND);
-            op->Bind(EVT_UNBIND_MACHINE, [this, mobj, dev](wxCommandEvent& e) {
+            op->Bind(EVT_UNBIND_MACHINE, [mobj, dev](wxCommandEvent& e) {
                 // show_unbind_dialog
                 UnBindMachineDialog dlg;
                 dlg.update_machine_info(mobj);
@@ -736,7 +736,7 @@ void SelectMachinePopup::update_user_devices()
             }
         }
 
-        op->Bind(EVT_CONNECT_LAN_PRINT, [this, mobj](wxCommandEvent &e) {
+        op->Bind(EVT_CONNECT_LAN_PRINT, [mobj](wxCommandEvent &e) {
             if (mobj) {
                 if (mobj->is_lan_mode_printer()) {
                     ConnectPrinterDialog dlg(wxGetApp().mainframe, wxID_ANY, _L("Input access code"));
@@ -748,7 +748,7 @@ void SelectMachinePopup::update_user_devices()
             }
         });
 
-         op->Bind(EVT_EDIT_PRINT_NAME, [this, mobj](wxCommandEvent &e) {
+         op->Bind(EVT_EDIT_PRINT_NAME, [mobj](wxCommandEvent &e) {
             EditDevNameDialog dlg;
             dlg.set_machine_obj(mobj);
             dlg.ShowModal();
@@ -1076,7 +1076,7 @@ PinCodePanel::PinCodePanel(wxWindow* parent, int type, wxWindowID winid /*= wxID
              m_confirm_login_dlg->SetSize(wxSize(FromDIP(270), FromDIP(158)));
              m_confirm_login_dlg->update_text(_L("Please log in before binding your device with a PIN code.\nAlternatively, you can use LAN mode to bind your device. Learn about LAN mode."));
              m_confirm_login_dlg->update_btn_label(_L("Go to Login"), _L(""));
-             m_confirm_login_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [this](wxCommandEvent& e) {
+             m_confirm_login_dlg->Bind(EVT_SECONDARY_CHECK_CONFIRM, [](wxCommandEvent& e) {
                  //m_confirm_login_dlg->on_hide();
                  wxGetApp().request_login();
                  return;

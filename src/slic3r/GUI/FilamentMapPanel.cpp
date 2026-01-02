@@ -34,8 +34,8 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     std::vector<int>nozzle_count(nozzle_volume_values.size());
     for (size_t eid = 0; eid < nozzle_volume_values.size(); ++eid) {
         NozzleVolumeType extruder_volume_type = NozzleVolumeType(nozzle_volume_values[eid]);
-        bool extruder_used = std::find_if(m_filament_list.begin(), m_filament_list.end(), 
-            [this, eid, filament_map](int fid) { 
+        bool extruder_used = std::find_if(m_filament_list.begin(), m_filament_list.end(),
+            [eid, filament_map](int fid) {
                 return (filament_map[fid - 1] - 1) == eid;
             }) != m_filament_list.end();
 
@@ -49,9 +49,9 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
 
             auto has_material_of_type = [this, eid, &filament_map, &filament_volume_map](NozzleVolumeType volume_type) {
                 return std::find_if(m_filament_list.begin(), m_filament_list.end(),
-                    [this, eid, &filament_map, &filament_volume_map, volume_type](int fid) {
-                        return (filament_map[fid - 1] - 1) == eid && 
-                               fid - 1 < filament_volume_map.size() && 
+                    [eid, &filament_map, &filament_volume_map, volume_type](int fid) {
+                        return (filament_map[fid - 1] - 1) == eid &&
+                               fid - 1 < filament_volume_map.size() &&
                                filament_volume_map[fid - 1] == static_cast<int>(volume_type);
                     }) != m_filament_list.end();
             };
@@ -338,7 +338,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
 void FilamentMapManualPanel::UpdateNozzleVolumeType()
 {
-    auto check_separation = [this]() {
+    auto check_separation = []() {
         auto preset_bundle = wxGetApp().preset_bundle;
         auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
         if (nozzle_volume_values.size() <= 1)
@@ -410,7 +410,7 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     }
 }
 
-void FilamentMapManualPanel::Hide()
+void FilamentMapManualPanel::HidePanel()
 {
     m_left_panel->Hide();
     m_right_panel->Hide();
@@ -419,7 +419,7 @@ void FilamentMapManualPanel::Hide()
     m_timer->Stop();
 }
 
-void FilamentMapManualPanel::Show()
+void FilamentMapManualPanel::ShowPanel()
 {
     m_left_panel->Show();
     m_right_panel->Show();
@@ -589,14 +589,14 @@ void FilamentMapBtnPanel::Select(bool selected)
     Refresh();
 }
 
-void GUI::FilamentMapBtnPanel::Hide()
+void GUI::FilamentMapBtnPanel::HidePanel()
 {
     m_btn->Hide();
     m_label->Hide();
     m_detail->Hide();
     wxPanel::Hide();
 }
-void GUI::FilamentMapBtnPanel::Show()
+void GUI::FilamentMapBtnPanel::ShowPanel()
 {
     m_btn->Show();
     m_label->Show();
@@ -641,17 +641,17 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
     Layout();
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
-void FilamentMapAutoPanel::Hide()
+void FilamentMapAutoPanel::HidePanel()
 {
-    m_flush_panel->Hide();
-    m_match_panel->Hide();
+    m_flush_panel->HidePanel();
+    m_match_panel->HidePanel();
     wxPanel::Hide();
 }
 
-void FilamentMapAutoPanel::Show()
+void FilamentMapAutoPanel::ShowPanel()
 {
-    m_flush_panel->Show();
-    m_match_panel->Show();
+    m_flush_panel->ShowPanel();
+    m_match_panel->ShowPanel();
     wxPanel::Show();
 }
 
@@ -690,13 +690,13 @@ FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(par
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
-void FilamentMapDefaultPanel::Hide()
+void FilamentMapDefaultPanel::HidePanel()
 {
     m_label->Hide();
     wxPanel::Hide();
 }
 
-void FilamentMapDefaultPanel::Show()
+void FilamentMapDefaultPanel::ShowPanel()
 {
     m_label->Show();
     wxPanel::Show();

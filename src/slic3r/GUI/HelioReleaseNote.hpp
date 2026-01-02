@@ -55,7 +55,6 @@ wxDECLARE_EVENT(EVT_ERROR_DIALOG_BTN_CLICKED, wxCommandEvent);
 class HelioStatementDialog : public DPIDialog
 {
 private:
-    Label *m_title{nullptr};
     Button *m_button_confirm{nullptr};
     Button *m_button_cancel{nullptr};
 
@@ -139,15 +138,12 @@ private:
     wxPanel* panel_optimization{nullptr};
     wxPanel* panel_velocity_volumetric{nullptr};
 
-    wxPanel* advanced_settings_link{nullptr};
     LinkLabel* buy_now_link{nullptr};
     LinkLabel* helio_wiki_link{nullptr};
 
     int current_action{-1}; //0-simulation 1-optimization
     int support_optimization{0}; //-1-no 0-yes
-    int remaining_optimization_times{0};
 
-    wxStaticBitmap* advanced_options_icon{nullptr};
     wxPanel* panel_advanced_option{nullptr};
 
     std::shared_ptr<int> shared_ptr{nullptr};

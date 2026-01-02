@@ -10,7 +10,7 @@ class MachineObject;
 class DevStorage
 {
 public:
-    DevStorage(MachineObject *obj) : m_owner(obj){}
+    DevStorage(MachineObject *obj) {}
 
 public:
 
@@ -29,7 +29,6 @@ public:
       static void ParseV1_0(const json &print_json, DevStorage *system);
 
 private:
-    MachineObject *m_owner;
     SdcardState    m_sdcard_state  { NO_SDCARD };
 };
 

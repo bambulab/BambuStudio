@@ -724,7 +724,6 @@ protected:
     PresetCollection() = default;
     // Copy constructor and copy operators are not to be used from outside PresetBundle,
     // as the Profile::vendor points to an instance of VendorProfile stored at parent PresetBundle!
-    PresetCollection(const PresetCollection &other) = default;
     //BBS: add operator= logic insteadof default
     PresetCollection& operator=(const PresetCollection &other);
     // After copying a collection with the default operators above, call this function
@@ -830,7 +829,6 @@ public:
     bool            only_default_printers() const;
 private:
     PrinterPresetCollection() = default;
-    PrinterPresetCollection(const PrinterPresetCollection &other) = default;
     PrinterPresetCollection& operator=(const PrinterPresetCollection &other) = default;
 
     friend class PresetBundle;

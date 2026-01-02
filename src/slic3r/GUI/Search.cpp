@@ -408,7 +408,7 @@ void OptionsSearcher::show_dialog(Preset::Type type, wxWindow *parent, TextInput
     input->GetParent()->Hide();
 #endif
     search_dialog->SetPosition(pos);
-    search_dialog->Popup();
+    search_dialog->Popup(wxDefaultPosition);
 }
 
 void OptionsSearcher::dlg_sys_color_changed()
@@ -628,7 +628,7 @@ SearchDialog::SearchDialog(OptionsSearcher *searcher, Preset::Type type, wxWindo
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width - (em + em / 2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(m_bg_colour);
     m_scrolledWindow->SetScrollbarColor(m_thumb_color);
-    m_scrolledWindow->SetBackgroundColour(m_bg_colour);
+    m_scrolledWindow->wxScrolled<wxWindow>::SetBackgroundColour(m_bg_colour);
 
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);
@@ -797,7 +797,7 @@ void SearchDialog::update_list()
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(m_pop_width - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(StateColor::darkModeColorFor(m_bg_colour));
     m_scrolledWindow->SetScrollbarColor(StateColor::darkModeColorFor(m_thumb_color));
-    m_scrolledWindow->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_colour));
+    m_scrolledWindow->wxScrolled<wxWindow>::SetBackgroundColour(StateColor::darkModeColorFor(m_bg_colour));
 
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);
@@ -974,7 +974,7 @@ SearchObjectDialog::SearchObjectDialog(GUI::ObjectList* object_list, wxWindow* p
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(m_bg_color);
     m_scrolledWindow->SetScrollbarColor(m_thumb_color);
-    m_scrolledWindow->SetBackgroundColour(m_bg_color);
+    m_scrolledWindow->wxScrolled<wxWindow>::SetBackgroundColour(m_bg_color);
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);
     m_listPanel->SetBackgroundColour(m_bg_color);
@@ -1028,7 +1028,7 @@ void SearchObjectDialog::update_list()
     m_scrolledWindow = new ScrolledWindow(m_client_panel, wxID_ANY, wxDefaultPosition, wxSize(POPUP_WIDTH * em - (em + em / 2), POPUP_HEIGHT * em - em), wxVSCROLL, 6, 6);
     m_scrolledWindow->SetMarginColor(StateColor::darkModeColorFor(m_bg_color));
     m_scrolledWindow->SetScrollbarColor(StateColor::darkModeColorFor(m_thumb_color));
-    m_scrolledWindow->SetBackgroundColour(StateColor::darkModeColorFor(m_bg_color));
+    m_scrolledWindow->wxScrolled<wxWindow>::SetBackgroundColour(StateColor::darkModeColorFor(m_bg_color));
 
     auto m_listsizer = new wxBoxSizer(wxVERTICAL);
     auto m_listPanel = new wxWindow(m_scrolledWindow->GetPanel(), -1);

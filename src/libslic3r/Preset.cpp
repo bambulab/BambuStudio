@@ -2623,7 +2623,7 @@ bool PresetCollection::delete_preset(const std::string& name)
     lock();
     set_printer_hold_alias(it->alias, *it, true);
     it = m_presets.erase(it);
-    if (std::distance(m_presets.begin(), it) < m_idx_selected)
+    if (static_cast<size_t>(std::distance(m_presets.begin(), it)) < m_idx_selected)
         --m_idx_selected;
     unlock();
 

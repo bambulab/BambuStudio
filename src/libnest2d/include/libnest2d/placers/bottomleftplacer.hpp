@@ -378,21 +378,14 @@ protected:
         // the additional vertices for maintaning min object distance
         sl::reserve(rsh, finish-start+4);
 
-        auto addOthers_ = [&rsh, finish, start, &item](){
-            for(size_t i = start+1; i < finish; i++)
-                sl::addVertex(rsh, item.vertex(i));
-        };
-
-        auto reverseAddOthers_ = [&rsh, finish, start, &item](){
-            for(auto i = finish-1; i > start; i--)
-                sl::addVertex(rsh, item.vertex(static_cast<unsigned long>(i)));
-        };
-
-        auto addOthers = [&addOthers_, &reverseAddOthers_]() {
-            if constexpr (!is_clockwise<RawShape>())
-                addOthers_();
-            else
-                reverseAddOthers_();
+        auto addOthers = [&rsh, finish, start, &item]() {
+            if constexpr (!is_clockwise<RawShape>()) {
+                for(size_t i = start+1; i < finish; i++)
+                    sl::addVertex(rsh, item.vertex(i));
+            } else {
+                for(auto i = finish-1; i > start; i--)
+                    sl::addVertex(rsh, item.vertex(static_cast<unsigned long>(i)));
+            }
         };
 
         // Final polygon construction...

@@ -604,7 +604,6 @@ void SyncAmsInfoDialog::updata_ui_when_priner_not_same() {
 SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
     DPIDialog(static_cast<wxWindow *>(wxGetApp().mainframe), wxID_ANY, _L("Synchronize AMS Filament Information"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
     , m_input_info(info)
-    , m_export_3mf_cancel(false)
     , m_mapping_popup(AmsMapingPopup(this,true))
     , m_mapping_tip_popup(AmsMapingTipPopup(this))
     , m_mapping_tutorial_popup(AmsTutorialPopup(this))
@@ -656,8 +655,9 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
         wxBoxSizer *loading_Sizer = new wxBoxSizer(wxHORIZONTAL);
         m_gif_ctrl = new wxAnimationCtrl(m_loading_page, wxID_ANY, wxNullAnimation, wxDefaultPosition, wxDefaultSize, wxAC_DEFAULT_STYLE);
-        auto gif_path = Slic3r::var("loading.gif").c_str();
-        if (m_gif_ctrl->LoadFile(gif_path)){
+        // auto gif_path = Slic3r::var("loading.gif").c_str();  // OLD: dangling pointer! Temporary destroyed after statement
+        auto gif_path = Slic3r::var("loading.gif");  // Keep string alive
+        if (m_gif_ctrl->LoadFile(gif_path.c_str())){
             m_gif_ctrl->SetSize(m_gif_ctrl->GetAnimation().GetSize());
             m_gif_ctrl->Play();
 
@@ -1107,7 +1107,7 @@ void SyncAmsInfoDialog::init_bind()
         e.Skip();
     });
 
-    Bind(EVT_CONNECT_LAN_MODE_PRINT, [this](wxCommandEvent &e) {
+    Bind(EVT_CONNECT_LAN_MODE_PRINT, [](wxCommandEvent &e) {
         if (e.GetInt() == 0) {
             DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
             if (!dev) return;
@@ -1552,7 +1552,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
                     wxString pos;
                     if (target_machine_nozzle_id == DEPUTY_EXTRUDER_ID) {
                         pos = _L("left nozzle");
-                    } else if ((target_machine_nozzle_id == MAIN_EXTRUDER_ID)) {
+                    } else if (target_machine_nozzle_id == MAIN_EXTRUDER_ID) {
                         pos = _L("right nozzle");
                     }
 
@@ -1924,6 +1924,7 @@ bool SyncAmsInfoDialog::is_same_nozzle_diameters(NozzleType &tag_nozzle_type, fl
 
         // TODO [tao wang] : add idx mapping
         tag_nozzle_type = obj_->GetExtderSystem()->GetNozzleType(0);
+        preset_nozzle_diameters = 0.0f;
 
         if (opt_nozzle_diameters != nullptr) {
             for (auto i = 0; i < used_extruders.size(); i++) {
@@ -2678,7 +2679,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
         item_index++;
 
         contronal_index++;
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
+        item->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder, item_index_str](wxMouseEvent &e) {
             MaterialHash::iterator iter = m_materialList.begin();
             while (iter != m_materialList.end()) {

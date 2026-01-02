@@ -204,17 +204,17 @@ void MonitorPanel::init_tabpanel()
 
     //m_status_add_machine_panel = new AddMachinePanel(m_tabpanel);
     m_status_info_panel        = new StatusPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_status_info_panel, _L("Status"), "", true);
+    m_tabpanel->AddPage(m_status_info_panel, _L("Status"), std::string(""), true);
 
     m_media_file_panel = new MediaFilePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), "", false);
+    m_tabpanel->AddPage(m_media_file_panel, _L("Storage"), std::string(""), false);
     //m_tabpanel->AddPage(m_media_file_panel, _L("Internal Storage"), "", false);
 
     m_upgrade_panel = new UpgradePanel(m_tabpanel);
-    m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), "", false);
+    m_tabpanel->AddPage(m_upgrade_panel, _CTX(L_CONTEXT("Update", "Firmware"), "Firmware"), std::string(""), false);
 
     m_hms_panel = new HMSPanel(m_tabpanel);
-    m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    "", false);
+    m_tabpanel->AddPage(m_hms_panel, _L("Assistant(HMS)"),    std::string(""), false);
 
     m_initialized = true;
     show_status((int)MonitorStatus::MONITOR_NO_PRINTER);

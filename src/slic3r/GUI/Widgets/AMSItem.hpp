@@ -291,6 +291,8 @@ Description:AMSrefresh
 class AMSrefresh : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AMSrefresh();
     AMSrefresh(wxWindow *parent, std::string ams_id, wxString can_id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     AMSrefresh(wxWindow *parent, std::string ams_id, int can_id, Caninfo info, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
@@ -441,6 +443,8 @@ Description:AMSLib
 class AMSLib : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AMSLib(wxWindow *parent, std::string ams_idx, Caninfo info, AMSModelOriginType ext_type = AMSModelOriginType::GENERIC_EXT);
     ~AMSLib();
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
@@ -527,6 +531,8 @@ Description:AMSRoad
 class AMSRoad : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AMSRoad();
     AMSRoad(wxWindow *parent, wxWindowID id, Caninfo info, int canindex, int maxcan, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     void create(wxWindow *parent, wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
@@ -570,6 +576,8 @@ Description:AMSRoadUpPart
 class AMSRoadUpPart : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AMSRoadUpPart();
     AMSRoadUpPart(wxWindow* parent, wxWindowID id, AMSinfo info, AMSModel mode, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
@@ -602,17 +610,11 @@ private:
     AMSRoadShowMode              m_road_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSPassRoadSTEP              m_load_step      = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
 
-    bool     m_selected       = {false};
-    int      m_passroad_width = {6};
-    double   m_radius         = {4};
     wxColour m_road_def_color;
     wxColour m_road_color;
 
     std::vector<ScalableBitmap> ams_humidity_img;
 
-    int      m_humidity      = {0};
-    bool     m_show_humidity = {false};
-    bool     m_vams_loading{false};
     AMSModel m_ams_model;
 };
 
@@ -645,22 +647,16 @@ public:
 
 private:
     int             m_nozzle_num           = {1};
-    AMSRoadShowMode m_single_ext_rode_mode = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSRoadShowMode m_left_rode_mode       = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     AMSRoadShowMode m_right_rode_mode      = {AMSRoadShowMode::AMS_ROAD_MODE_FOUR};
     bool            m_selected             = {false};
 
     int             m_left_road_length     = {-1};
     int             m_right_road_length    = {-1};
-    int             m_passroad_width       = {6};
-    double          m_radius               = {4};
-    AMSPassRoadType m_pass_road_type       = {AMSPassRoadType::AMS_ROAD_TYPE_NONE};
     AMSPassRoadSTEP m_pass_road_left_step  = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
     AMSPassRoadSTEP m_pass_road_right_step = {AMSPassRoadSTEP::AMS_ROAD_STEP_NONE};
 
     std::map<int, wxColour> m_road_color;
-    bool m_vams_loading{false};
-    AMSModel m_ams_model;
 };
 
 /*************************************************
@@ -669,6 +665,8 @@ Description:AMSPreview
 class AMSPreview : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AMSPreview();
     AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, AMSModel itemType = AMSModel::GENERIC_AMS, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
@@ -720,6 +718,8 @@ Description:AMSHumidity
 class AMSHumidity : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AMSHumidity();
     AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
@@ -759,6 +759,8 @@ Description:AmsItem
 class AmsItem : public wxWindow
 {
 public:
+    using wxWindow::Update;
+
     AmsItem(wxWindow *parent, AMSinfo info, AMSModel model, AMSPanelPos pos);
     ~AmsItem();
 
@@ -822,11 +824,7 @@ private:
     AMSinfo         m_info;
     wxBoxSizer *    sizer_can = {nullptr};
     wxGridSizer*    sizer_can_extra = { nullptr };
-    wxBoxSizer *    sizer_humidity = { nullptr };
     wxBoxSizer *    sizer_item = { nullptr };
-    wxBoxSizer *    sizer_can_middle = {nullptr};
-    wxBoxSizer *    sizer_can_left = {nullptr};
-    wxBoxSizer *    sizer_can_right = {nullptr};
     AMSExtImage*    m_ext_image = { nullptr };      //the ext image upon the ext ams
     AMSExtText* m_ext_text = { nullptr };       //the ext text upon the ext ams
 };

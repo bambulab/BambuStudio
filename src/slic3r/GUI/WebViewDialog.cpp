@@ -757,7 +757,7 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
                 return;
             }
         });
-    }).on_error([this](std::string body, std::string error, unsigned int status) {
+    }).on_error([](std::string body, std::string error, unsigned int status) {
             BOOST_LOG_TRIVIAL(error) << "get wiki search result error" << body;
     }).perform();
 }
@@ -884,8 +884,8 @@ void WebViewPanel::get_design_staffpick(int offset, int limit, std::function<voi
     Http http = Http::get(url);
     http.header("accept", "application/json")
         .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) {
+        .on_complete([callback](std::string body, unsigned status) { callback(body); })
+        .on_error([callback](std::string body, std::string error, unsigned status) {
             callback(body + error);
         })
         .perform();
@@ -898,8 +898,8 @@ void WebViewPanel::get_makerlab_list(std::function<void(std::string)> callback)
     Http http = Http::get(url);
     http.header("accept", "application/json")
         .header("Content-Type", "application/json")
-        .on_complete([this, callback](std::string body, unsigned status) { callback(body); })
-        .on_error([this, callback](std::string body, std::string error, unsigned status) { callback(body + error); })
+        .on_complete([callback](std::string body, unsigned status) { callback(body); })
+        .on_error([callback](std::string body, std::string error, unsigned status) { callback(body + error); })
         .perform();
 }
 
@@ -975,18 +975,18 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
 
     std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
     if (!outFile) {
-        delete DstBuf;
+        delete[] DstBuf;
         std::cerr << "Error opening file for writing." << std::endl;
         return false;
     }
     outFile.write(DstBuf, nWrite);
     if (!outFile) {
-        delete DstBuf;
+        delete[] DstBuf;
         std::cerr << "Error writing to file." << std::endl;
         return false;
     }
 
-    delete DstBuf;
+    delete[] DstBuf;
     outFile.close();
     std::cout << "Data written to file successfully." << std::endl;
     wxLogMessage("Makerlab Binary Write to %s", download_file.ToStdString());
@@ -1059,7 +1059,7 @@ void WebViewPanel::UpdateMakerlabStatus(  )
         int         ret = agent->request_bind_ticket(&newticket);
         if (ret == 0)
         {
-            GetJumpUrl(login, newticket, ml_currenturl, ml_currenturl);
+            GetJumpUrl(true, newticket, ml_currenturl, ml_currenturl);
             m_browserML->LoadURL(ml_currenturl);
             m_MakerLab_LastUrl = "";
         }
@@ -1080,7 +1080,7 @@ unsigned char ToHex(unsigned char x) { return x > 9 ? x + 55 : x + 48; }
 
 unsigned char FromHex(unsigned char x)
 {
-    unsigned char y;
+    unsigned char y = 0;
     if (x >= 'A' && x <= 'Z')
         y = x - 'A' + 10;
     else if (x >= 'a' && x <= 'z')
@@ -1892,7 +1892,7 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
                 std::regex pattern("&keyword=[^&]*");
                 TmpNowUrl = std::regex_replace(TmpNowUrl, pattern, "");
                 if(TmpNowUrl != m_browserMW->GetCurrentURL().ToStdString()) {
-                    m_browserMW->LoadURL(TmpNowUrl); 
+                    m_browserMW->LoadURL(TmpNowUrl);
                 }
             }
         }

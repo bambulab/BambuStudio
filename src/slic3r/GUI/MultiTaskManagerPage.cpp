@@ -784,7 +784,7 @@ void LocalTaskManagerPage::refresh_user_device(bool clear)
             mtitem->m_send_time = task_state_info->get_sent_time();
             mtitem->state_local_task = task_state_info->state();
 
-            task_state_info->set_state_changed_fn([this, mtitem](TaskState state, int percent) {
+            task_state_info->set_state_changed_fn([mtitem](TaskState state, int percent) {
                 mtitem->state_local_task = state;
                 if (state == TaskState::TS_SEND_COMPLETED) {
 
@@ -1403,7 +1403,10 @@ void CloudTaskManagerPage::start_timer()
 
     m_flipping_timer->SetOwner(this);
     m_flipping_timer->Start(1000);
-    wxPostEvent(this, wxTimerEvent());
+    // Immediate update instead of posting deprecated wxTimerEvent
+    m_flipping_timer->Stop();
+    enable_buttons(true);
+    update_page_number();
 }
 
 void CloudTaskManagerPage::on_timer(wxTimerEvent& event)

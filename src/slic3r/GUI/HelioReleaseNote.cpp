@@ -1628,7 +1628,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
 
     save_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     save_icon->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-    save_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+    save_icon->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
         wxPostEvent(wxGetApp().plater(), SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
 

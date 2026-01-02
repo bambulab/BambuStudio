@@ -3097,7 +3097,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
             obj->targ_nozzle_id_from_pc != INVALID_EXTRUDER_ID) {
             m_nozzle_btn_panel->Disable();
         } else {
-            m_nozzle_btn_panel->Enable();
+            m_nozzle_btn_panel->Enable(true);
         }
     } else {
         m_nozzle_btn_panel->Hide();
@@ -3141,7 +3141,7 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
 
     /*other*/
     bool light_on = obj->GetLamp()->IsChamberLightOn();
-    BOOST_LOG_TRIVIAL(trace) << "light: " << light_on ? "on" : "off";
+    BOOST_LOG_TRIVIAL(trace) << "light: " << (light_on ? "on" : "off");
     if (m_switch_lamp_timeout > 0)
         m_switch_lamp_timeout--;
     else {
@@ -4735,7 +4735,7 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
         if (obj->GetCtrl()->command_select_extruder(nozzle_id) == 0) { return; }
     }
 
-    m_nozzle_btn_panel->Enable();
+    m_nozzle_btn_panel->Enable(true);
 }
 
 void StatusPanel::on_show_print_options(wxCommandEvent &event)
@@ -5534,7 +5534,7 @@ wxBoxSizer *ScoreDialog::get_photo_btn_sizer()
             it = m_selected_image_list.erase(it);
         }
         m_image_url_paths.clear();
-        for (const std::pair<wxStaticBitmap *, ImageMsg> &bitmap : m_image) {
+        for (const std::pair<wxStaticBitmap *const, ImageMsg> &bitmap : m_image) {
             if (bitmap.second.is_uploaded) {
                 if (!bitmap.second.img_url_paths.empty()) { m_image_url_paths.push_back(bitmap.second.img_url_paths); }
             }

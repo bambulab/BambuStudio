@@ -1014,8 +1014,8 @@ void FanControlPopupNew::init_names(MachineObject* obj) {
     if (obj) {
         const std::string& special_cooling_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "special_cooling_text");
         if (!special_cooling_text.empty()) {
-            L("Cooling mode is suitable for printing PLA/PETG/TPU materials."); //some potential text, add i18n flags
-            L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
+            (void)L("Cooling mode is suitable for printing PLA/PETG/TPU materials."); //some potential text, add i18n flags
+            (void)L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
             label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L(special_cooling_text);
         }
     }
@@ -1028,9 +1028,9 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
         const std::string& func_text = DevPrinterConfigUtil::get_fan_text(m_obj->printer_type, mode, (int)func, submode);
         if (!func_text.empty())
         {
-            L_CONTEXT("Right(Aux)", "air_duct");
-            L_CONTEXT("Right(Filter)", "air_duct");
-            L_CONTEXT("Left(Aux)", "air_duct");
+            (void)L_CONTEXT("Right(Aux)", "air_duct");
+            (void)L_CONTEXT("Right(Filter)", "air_duct");
+            (void)L_CONTEXT("Left(Aux)", "air_duct");
             return _CTX(func_text, "air_duct");
         }
     }

@@ -352,7 +352,7 @@ void segment(CGALMesh& src, std::vector<CGALMesh>& dst, double smoothing_alpha =
         //}
         //else
         {
-            dst.emplace_back(std::move(CGALMesh(out)));
+            dst.emplace_back(CGALMesh(out));
         }
     }
     //if (mesh_merged.is_empty() == false) {
@@ -371,7 +371,7 @@ std::vector<TriangleMesh> segment(const TriangleMesh& src, double smoothing_alph
     std::vector<TriangleMesh> out_meshes;
     for (auto& outf_cgal_mesh: out_cgal_meshes)
     {
-        out_meshes.emplace_back(std::move(cgal_to_triangle_mesh(outf_cgal_mesh.m)));
+        out_meshes.emplace_back(cgal_to_triangle_mesh(outf_cgal_mesh.m));
     }
 
     return out_meshes;
@@ -589,6 +589,9 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
         case MC_DEBUG_SOURCE_KERNEL:
             BOOST_LOG_TRIVIAL(debug)<<("Source: Kernel");
             break;
+        default:
+            BOOST_LOG_TRIVIAL(debug) << "Source: Other/Unknown (" << static_cast<int>(source) << ")";
+            break;
         }
 
     switch (type) {
@@ -600,6 +603,9 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
             break;
         case MC_DEBUG_TYPE_OTHER:
             BOOST_LOG_TRIVIAL(debug)<<("Type: Other");
+            break;
+        default:
+            BOOST_LOG_TRIVIAL(debug) << "Type: Unknown (" << static_cast<int>(type) << ")";
             break;
         }
 
@@ -615,6 +621,9 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
             break;
         case MC_DEBUG_SEVERITY_NOTIFICATION:
             BOOST_LOG_TRIVIAL(debug)<<("Severity: notification");
+            break;
+        default:
+            BOOST_LOG_TRIVIAL(debug) << "Severity: Unknown (" << static_cast<int>(severity) << ")";
             break;
         }
 }
@@ -710,7 +719,7 @@ bool do_boolean_single(McutMesh &srcMesh, const McutMesh &cutMesh, const std::st
     McutMesh outMesh;
     int N_vertices = 0;
     // traversal of all connected components
-    for (int n = 0; n < numConnComps; ++n) {
+    for (uint32_t n = 0; n < numConnComps; ++n) {
         if (cancel_cb && cancel_cb()) {
             return false;
         }

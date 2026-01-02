@@ -61,7 +61,10 @@ bool MultiMachinePage::Show(bool show)
         m_refresh_timer->Stop();
         m_refresh_timer->SetOwner(this);
         m_refresh_timer->Start(2000);
-        wxPostEvent(this, wxTimerEvent());
+        // Immediate update instead of posting deprecated wxTimerEvent
+        m_local_task_manager->update_page();
+        m_cloud_task_manager->update_page();
+        m_machine_manager->update_page();
     }
     else {
         m_refresh_timer->Stop();
@@ -80,15 +83,15 @@ void MultiMachinePage::init_tabpanel()
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
-    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent& e) {; });
+    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [](wxBookCtrlEvent& e) {; });
 
     m_local_task_manager = new LocalTaskManagerPage(m_tabpanel);
     m_cloud_task_manager = new CloudTaskManagerPage(m_tabpanel);
     m_machine_manager = new MultiMachineManagerPage(m_tabpanel);
 
-    m_tabpanel->AddPage(m_machine_manager, _L("Device"), "", true);
-    m_tabpanel->AddPage(m_local_task_manager, _L("Task Sending"), "", false);
-    m_tabpanel->AddPage(m_cloud_task_manager, _L("Task Sent"), "", false);
+    m_tabpanel->AddPage(m_machine_manager, _L("Device"), std::string(""), true);
+    m_tabpanel->AddPage(m_local_task_manager, _L("Task Sending"), std::string(""), false);
+    m_tabpanel->AddPage(m_cloud_task_manager, _L("Task Sent"), std::string(""), false);
 }
 
 void MultiMachinePage::init_timer()

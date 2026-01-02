@@ -9,7 +9,11 @@
 #include <boost/log/trivial.hpp>
 #include "PerimeterGenerator.hpp"
 static const int Continuitious_length = scale_(0.01);
-static const int dist_scale_threshold = 1.2;
+// TODO: INVESTIGATE POTENTIAL BUG - Original value was 1.2, but declared as int (truncates to 1)
+// Used at line 326: width = prev_width * dist_scale_threshold
+// Should this be double with value 1.2, or int with value 1?
+// static const int dist_scale_threshold = 1.2;  // OLD - implicit conversion warning
+static const int dist_scale_threshold = 1;
 
 namespace Slic3r {
 

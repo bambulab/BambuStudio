@@ -52,7 +52,7 @@ ImageMessageDialog::ImageMessageDialog(wxWindow *parent, wxWindowID id, const wx
     msg_button->SetMaxSize(wxSize(-1, FromDIP(30)));
     msg_button->SetCornerRadius(FromDIP(5));
 
-    msg_button->Bind(wxEVT_LEFT_DOWN, [this, style](wxMouseEvent &e) {
+    msg_button->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &e) {
         std::string language = wxGetApp().app_config->get("language");
         wxString    region   = L"en";
         if (language.find("zh") == 0)

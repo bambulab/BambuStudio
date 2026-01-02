@@ -1185,7 +1185,7 @@ void MenuFactory::create_default_menu()
 
     append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels"), "",
         [](wxCommandEvent&) { plater()->show_view3D_labels(!plater()->are_view3D_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
-        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_labels_shown(); }, m_parent);
+        []() { return plater()->is_view3D_shown(); }, []() { return plater()->are_view3D_labels_shown(); }, m_parent);
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
@@ -1555,7 +1555,7 @@ void MenuFactory::create_plate_menu()
             }
             if (result >= 0) { plater()->get_current_canvas3D()->post_event(SimpleEvent(EVT_GLCANVAS_MOVE_PLATE)); }
         },
-        "", nullptr, [this]() { return plater()->get_partplate_list().get_plate_count() >= 2; }, m_parent);
+        "", nullptr, []() { return plater()->get_partplate_list().get_plate_count() >= 2; }, m_parent);
 
     // add shapes
     menu->AppendSeparator();
@@ -1861,7 +1861,7 @@ void MenuFactory::append_menu_item_clone(wxMenu* menu)
     static const wxString ctrl = _L("Ctrl+");
 #endif
     append_menu_item(menu, wxID_ANY, _L("Clone") + "\t" + ctrl + "K", "",
-        [this](wxCommandEvent&) {
+        [](wxCommandEvent&) {
             plater()->clone_selection();
         }, "", nullptr,
         []() {
@@ -1879,7 +1879,7 @@ void MenuFactory::append_menu_item_simplify(wxMenu* menu)
 void MenuFactory::append_menu_item_center(wxMenu* menu)
 {
      append_menu_item(menu, wxID_ANY, _L("Center") , "",
-        [this](wxCommandEvent&) {
+        [](wxCommandEvent&) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->center_selection();
@@ -1909,7 +1909,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
         return;
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Distribute left-right") + " (X)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->distribute_selection_x();
@@ -1928,7 +1928,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Distribute front-back") + " (Y)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->distribute_selection_y();
@@ -1945,7 +1945,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
      append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Distribute top-bottom") + " (Z)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->distribute_selection_z();
@@ -1966,7 +1966,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align left") + " (-X)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_x_min();
@@ -1985,7 +1985,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align left-right center") + " (X)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_x_center();
@@ -2004,7 +2004,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
         append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align right") + " (+X)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_x_max();
@@ -2025,7 +2025,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align front") + " (-Y)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_y_min();
@@ -2043,7 +2043,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align front-back center") + " (Y)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_y_center();
@@ -2061,7 +2061,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align back") + " (+Y)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_y_max();
@@ -2082,7 +2082,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
         append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align bottom") + " (-Z)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_z_min();
@@ -2101,7 +2101,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
          append_menu_item(
             align_distribute_menu, wxID_ANY, _L("Align top-bottom center") + " (Z)", "",
-            [this](wxCommandEvent &) {
+            [](wxCommandEvent &) {
                 auto canvas3d = plater()->get_view3D_canvas3D();
                 canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
                 plater()->align_selection_z_center();
@@ -2120,7 +2120,7 @@ void MenuFactory::append_menu_item_align_distribute(wxMenu *menu)
 
     append_menu_item(
         align_distribute_menu, wxID_ANY, _L("Align top") + " (+Z)", "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             auto canvas3d = plater()->get_view3D_canvas3D();
             canvas3d->get_gizmos_manager().check_object_located_outside_plate(true);
             plater()->align_selection_z_max();
@@ -2167,7 +2167,7 @@ void MenuFactory::append_menu_item_sub_merge(wxMenu *menu)
 {
     append_menu_item(
         menu, wxID_ANY, _L("Sub merge"), "",
-        [this](wxCommandEvent &) {
+        [](wxCommandEvent &) {
             obj_list()->add_new_model_object_from_old_object();
         },
         "", nullptr,
@@ -2347,7 +2347,7 @@ void MenuFactory::append_menu_item_set_printable(wxMenu* menu)
     }
 
     wxString menu_text = _L("Printable");
-    wxMenuItem* menu_item_set_printable = append_menu_check_item(menu, wxID_ANY, menu_text, "", [this, all_printable](wxCommandEvent&) {
+    wxMenuItem* menu_item_set_printable = append_menu_check_item(menu, wxID_ANY, menu_text, "", [all_printable](wxCommandEvent&) {
         Selection& selection = plater()->canvas3D()->get_selection();
         selection.set_printable(!all_printable);
         }, menu);
@@ -2406,7 +2406,7 @@ void MenuFactory::append_menu_item_plate_name(wxMenu *menu)
 
     auto item = append_menu_item(
         menu, wxID_ANY, name, "",
-        [plate](wxCommandEvent &e) {
+        [](wxCommandEvent &e) {
             int hover_idx =plater()->canvas3D()->GetHoverId();
             if (hover_idx == -1) {
                 int plate_idx=plater()->GetPlateIndexByRightMenuInLeftUI();

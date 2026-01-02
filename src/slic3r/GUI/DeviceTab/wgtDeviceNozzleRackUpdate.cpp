@@ -1,9 +1,9 @@
-//**********************************************************/
-/* File: wgtDeviceNozzleRackUpdate.cpp
-*  Description: The panel with rack updating
-*
-* \n class wgtDeviceNozzleRackUpdate
-//**********************************************************/
+/**********************************************************
+ * File: wgtDeviceNozzleRackUpdate.cpp
+ *  Description: The panel with rack updating
+ *
+ * \n class wgtDeviceNozzleRackUpdate
+ **********************************************************/
 
 #include "wgtDeviceNozzleRackUpdate.h"
 

@@ -257,15 +257,15 @@ private:
         }
 
         if (raw.length() < full.length() || raw.empty()) {
-            return std::move(file_name(raw));
+            return file_name(raw);
         }
 
         if (raw[0] != full[0] || raw[full.length() - 1] != full[full.length() - 1]) {
             if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
                 raw.replace(start_pos, 12, std::string(12, '*'));
-                return std::move(file_name(raw));
+                return file_name(raw);
             }
-            return std::move(file_name(raw));
+            return file_name(raw);
         }
 
         if (raw[start_pos + name_size] == '\\' || raw[start_pos + name_size] == '/') {
@@ -273,7 +273,7 @@ private:
         } else if (std::isupper(raw[start_pos]) && std::tolower(raw[start_pos]) == full[start_pos]) {
             raw.replace(start_pos, 12, std::string(12, '*'));
         } else {
-            return std::move(file_name(raw));
+            return file_name(raw);
         }
 
         if (id_start_pos != std::string::npos && id_start_pos < raw.length() && (raw[id_start_pos - 1] == '\\' || raw[id_start_pos - 1] == '/') &&
@@ -286,7 +286,7 @@ private:
             raw.replace(id_start_pos, id_end_pos - id_start_pos, std::string(id_end_pos - id_start_pos, '*'));
         }
 
-        return std::move(file_name(raw));
+        return file_name(raw);
     }
 };
 

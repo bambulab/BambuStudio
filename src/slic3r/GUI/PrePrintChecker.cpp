@@ -108,8 +108,9 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
     case PrintStatusFilamentWarningHighChamberTempCloseDoor: return _L("High chamber temperature is required. Please close the door.");
     case PrintStatusHasUnreliableNozzleWarning: return _L("Please check if the required nozzle diameter and flow rate match the current display.");
+    default:
+        return wxEmptyString;
     }
-    return wxEmptyString;
 }
 
 void PrePrintChecker::clear()
@@ -333,7 +334,7 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
 
         if (info.testStyle(prePrintInfoStyle::BtnInstallFanF000)) {
             auto btn = s_create_btn_label(this, _L("How to install"));
-            btn->Bind(wxEVT_LEFT_DOWN, [this, info](auto& e) {
+            btn->Bind(wxEVT_LEFT_DOWN, [](auto& e) {
                 wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=l3T7caKGeNt3omA9");
             });
 

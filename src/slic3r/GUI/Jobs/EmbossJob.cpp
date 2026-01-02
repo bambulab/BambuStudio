@@ -1420,7 +1420,6 @@ void GenerateTextJob::finalize(bool canceled, std::exception_ptr &eptr)
     if (m_input.first_generate) {
         create_text_volume(m_input.mo,  m_input.m_final_text_mesh, m_input.m_final_text_tran_in_object, m_input.text_info);
         auto                model_object = m_input.mo;
-        m_input.m_volume_idx;
         auto                volume_idx       = model_object->volumes.size() - 1;
         ModelVolume *       model_volume     = model_object->volumes[volume_idx];
         auto                add_to_selection = [model_volume](const ModelVolume *vol) { return vol == model_volume; };
@@ -1544,7 +1543,7 @@ bool GenerateTextJob::generate_text_points(InputInfo &input_info)
     int     index        = 0;
     double  min_distance = 1e12;
     Polygon hit_ploy;
-    for (const Polygon poly : polys) {
+    for (const Polygon& poly : polys) {
         if (poly.points.size() == 0)
             continue;
         Lines lines = poly.lines();

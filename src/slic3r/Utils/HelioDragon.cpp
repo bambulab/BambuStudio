@@ -525,7 +525,7 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
                 //tudo
             }
         })
-        .on_error([&result](std::string /*poll_body*/, std::string /*poll_error*/, unsigned /*poll_status*/) {
+        .on_error([](std::string /*poll_body*/, std::string /*poll_error*/, unsigned /*poll_status*/) {
         // Optionally handle polling error
         })
         .perform_sync();
@@ -795,10 +795,10 @@ std::string HelioQuery::create_optimization_default_get(const std::string helio_
         .on_header_callback([&response_headers](std::string headers) {
             response_headers += headers;
         })
-        .on_complete([&res](std::string body, unsigned status) {
+        .on_complete([](std::string body, unsigned status) {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
         })
-        .on_error([&res, &response_headers](std::string body, std::string error, unsigned status) {
+        .on_error([&response_headers](std::string body, std::string error, unsigned status) {
             auto err = error;
             auto c =response_headers;
         })
@@ -1276,7 +1276,7 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
     set_state(STATE_RUNNING);
 
     std::unique_lock<std::mutex> slicing_lck(slicing_mutex);
-    slicing_condition.wait(slicing_lck, [this, &slicing_state]() {
+    slicing_condition.wait(slicing_lck, [&slicing_state]() {
         return slicing_state == BackgroundSlicingProcess::STATE_FINISHED || slicing_state == BackgroundSlicingProcess::STATE_CANCELED ||
                slicing_state == BackgroundSlicingProcess::STATE_IDLE;
     });

@@ -160,6 +160,7 @@ bool TCPConsole::run_queue()
     }
     catch (std::exception& e)
     {
+        BOOST_LOG_TRIVIAL(error) << "TCPConsole: exception during exchange: " << e.what();
         return false;
     }
 

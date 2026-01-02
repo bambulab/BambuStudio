@@ -399,7 +399,7 @@ std::vector<int> MultiNozzleGroupResult::get_extruder_map(bool zero_based) const
         return filament_map;
 
     auto new_filament_map = filament_map;
-    std::transform(new_filament_map.begin(), new_filament_map.end(), new_filament_map.begin(), [this](int val) { return val + 1;  });
+    std::transform(new_filament_map.begin(), new_filament_map.end(), new_filament_map.begin(), [](int val) { return val + 1;  });
     return new_filament_map;
 }
 

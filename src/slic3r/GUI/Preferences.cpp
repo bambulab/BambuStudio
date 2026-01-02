@@ -249,7 +249,7 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
                 }
             }
 
-            auto check = [this](bool yes_or_no) {
+            auto check = [](bool yes_or_no) {
                 // if (yes_or_no)
                 //    return true;
                 int act_btns = UnsavedChangesDialog::ActionButtons::SAVE;
@@ -532,13 +532,13 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
         }
         input->GetTextCtrl()->SetValue(str);
     };
-    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, set_value_to_app, input](wxCommandEvent &e) {
+    input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [set_value_to_app, input](wxCommandEvent &e) {
         auto value = std::atof(input->GetTextCtrl()->GetValue().c_str());
         set_value_to_app(value,true);
         e.Skip();
     });
 
-    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [this, set_value_to_app, input](wxFocusEvent &e) {
+    input->GetTextCtrl()->Bind(wxEVT_KILL_FOCUS, [set_value_to_app, input](wxFocusEvent &e) {
         auto value = std::atof(input->GetTextCtrl()->GetValue().c_str());
         set_value_to_app(value, true);
         e.Skip();
@@ -634,7 +634,7 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     m_sizer_switch->Add( 0, 0, 0, wxEXPAND|wxLEFT, 40 );
 
     //// save config
-    switchbox->Bind(wxEVT_TOGGLEBUTTON, [this, param](wxCommandEvent &e) {
+    switchbox->Bind(wxEVT_TOGGLEBUTTON, [](wxCommandEvent &e) {
         /* app_config->set(param, std::to_string(e.GetSelection()));
          app_config->save();*/
          e.Skip();
@@ -942,7 +942,7 @@ wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title
     temp_button->SetToolTip(tooltip);
 
 
-    temp_button->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
+    temp_button->Bind(wxEVT_BUTTON, [onclick](auto &e) { onclick(); });
 
     m_sizer_checkbox->Add(m_staticTextPath, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     m_sizer_checkbox->Add(temp_button, 0, wxALL, FromDIP(5));
@@ -1032,7 +1032,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     SetBackgroundColour(*wxWHITE);
     create();
     wxGetApp().UpdateDlgDarkUI(this);
-    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
+    Bind(wxEVT_CLOSE_WINDOW, [](wxCloseEvent& event) {
         try {
             NetworkAgent* agent = GUI::wxGetApp().getAgent();
             if (agent) {

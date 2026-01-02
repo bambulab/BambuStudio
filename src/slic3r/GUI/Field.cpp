@@ -1063,6 +1063,9 @@ void SpinCtrl::BUILD() {
 // 		# As a workaround, we get the new value from $event->GetString and store
 // 		# here temporarily so that we can return it from get_value()
 
+#ifdef __WXOSX__
+        (void)temp;  // Suppress unused warning on macOS (used on other platforms)
+#endif
 		long value;
 		const bool parsed = e.GetString().ToLong(&value);
         if (!parsed || value < INT_MIN || value > INT_MAX)

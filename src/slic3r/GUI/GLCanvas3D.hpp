@@ -520,7 +520,6 @@ class GLCanvas3D
         RenderPipelineStageModifier& operator=(RenderPipelineStageModifier&&) = delete;
     private:
         GLCanvas3D& m_canvas;
-        ERenderPipelineStage m_stage;
     };
 
 public:

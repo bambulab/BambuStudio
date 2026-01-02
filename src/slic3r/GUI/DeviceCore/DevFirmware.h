@@ -48,10 +48,9 @@ public:
 class DevFirmware
 {
 public:
-    DevFirmware(MachineObject* obj) : m_owner(obj) {}
+    DevFirmware(MachineObject* obj) {}
 
 private:
-    MachineObject* m_owner = nullptr;
 };
 
 } // namespace Slic3r

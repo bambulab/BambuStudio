@@ -12,6 +12,9 @@ class MyScrollbar;
 class ScrolledWindow : public wxScrolled<wxWindow>
 {
 public:
+    using wxScrolled<wxWindow>::Refresh;
+    using wxScrolled<wxWindow>::SetBackgroundColour;
+
     ScrolledWindow(wxWindow *parent, wxWindowID id, wxPoint position, wxSize size, long style, int marginWidth = 0, int scrollbarWidth = 4, int tipLength = 0);
     void OnMouseWheel(wxMouseEvent &event);
     void SetTipColor(wxColour color);

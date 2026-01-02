@@ -18,6 +18,7 @@
 #endif
 
 #include <wx/panel.h>
+#include <ostream>
 
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -34,6 +35,27 @@ namespace Slic3r {
 class MachineObject;
 
 namespace GUI {
+
+// Extended media state enum that includes wxMediaState values plus streaming-specific states
+enum class MediaStreamState {
+    STOPPED = 0,        // Maps to wxMEDIASTATE_STOPPED
+    PAUSED = 1,         // Maps to wxMEDIASTATE_PAUSED
+    PLAYING = 2,        // Maps to wxMEDIASTATE_PLAYING
+    IDLE = 3,           // Ready to play, not streaming
+    INITIALIZING = 4,   // Starting up the stream
+    LOADING = 5,        // Loading video data
+    BUFFERING = 6       // Waiting for buffered data
+};
+
+// Helper function to convert wxMediaState to MediaStreamState
+inline MediaStreamState from_wxMediaState(wxMediaState state) {
+    return static_cast<MediaStreamState>(static_cast<int>(state));
+}
+
+// Output stream operator for logging
+inline std::ostream& operator<<(std::ostream& os, MediaStreamState state) {
+    return os << static_cast<int>(state);
+}
 
 class MediaPlayCtrl : public wxPanel
 {
@@ -75,16 +97,11 @@ private:
     static bool get_stream_url(std::string *url = nullptr);
 
 private:
-    static constexpr wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
-    static constexpr wxMediaState MEDIASTATE_INITIALIZING = (wxMediaState) 4;
-    static constexpr wxMediaState MEDIASTATE_LOADING = (wxMediaState) 5;
-    static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
-
     // token
     std::shared_ptr<int> m_token = std::make_shared<int>(0);
 
     wxMediaCtrl3 * m_media_ctrl;
-    wxMediaState m_last_state = MEDIASTATE_IDLE;
+    MediaStreamState m_last_state = MediaStreamState::IDLE;
     std::string m_machine;
     int m_lan_proto = 0;
     std::string m_lan_ip;

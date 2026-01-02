@@ -104,7 +104,7 @@ public:
     void SetMakerworldModelID(std::string ModelID);
     void OpenMakerworldSearchPage(std::string KeyWord);
     void SetPrintHistoryTaskID(int TaskID);
-    
+
     //DisconnectPage
     wxString MakeDisconnectUrl(std::string MenuName);
 

@@ -102,7 +102,7 @@ void GizmoObjectManipulation::update_ui_from_settings()
     }
 }
 void delete_negative_sign(Vec3d& value) {
-    for (size_t i = 0; i < value.size(); i++) {
+    for (int i = 0; i < value.size(); i++) {
         if (abs(value[i]) < 0.001)
             value[i] = 0.f;
     }
@@ -241,7 +241,7 @@ void GizmoObjectManipulation::update_if_dirty()
     };
 
     for (int i = 0; i < 3; ++ i) {
-        auto update = [this, i](Vec3d &cached, Vec3d &cached_rounded,  const Vec3d &new_value) {
+        auto update = [i](Vec3d &cached, Vec3d &cached_rounded,  const Vec3d &new_value) {
 			//wxString new_text = double_to_string(new_value(i), 2);
 			double new_rounded = round(new_value(i)*100)/100.0;
 			//new_text.ToDouble(&new_rounded);
@@ -692,7 +692,7 @@ bool GizmoObjectManipulation::reset_zero_button(ImGuiWrapper *imgui_wrapper, flo
 
      for (int i = 0; i < number; i++)
      {
-         char buf[3][64] = {0};
+         char buf[3][64] = {};
          float buf_size[3] = {0};
          for (int j = 0; j < 3; j++) {
              ImGui::DataTypeFormatString(buf[j], IM_ARRAYSIZE(buf[j]), ImGuiDataType_Double, (void *) &vec[i][j], "%.2f");
@@ -737,7 +737,7 @@ void GizmoObjectManipulation::show_move_tooltip_information(ImGuiWrapper *imgui_
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &imgui_wrapper,& caption_max](const wxString &caption, const wxString &text) {
+        auto draw_text_with_caption = [&imgui_wrapper, &caption_max](const wxString &caption, const wxString &text) {
             imgui_wrapper->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui_wrapper->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
@@ -776,7 +776,7 @@ void GizmoObjectManipulation::show_rotate_tooltip_information(ImGuiWrapper *imgu
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &imgui_wrapper, &caption_max](const wxString &caption, const wxString &text) {
+        auto draw_text_with_caption = [&imgui_wrapper, &caption_max](const wxString &caption, const wxString &text) {
             imgui_wrapper->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui_wrapper->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
@@ -804,7 +804,7 @@ void GizmoObjectManipulation::show_scale_tooltip_information(ImGuiWrapper *imgui
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &imgui_wrapper, &caption_max](const wxString &caption, const wxString &text) {
+        auto draw_text_with_caption = [&imgui_wrapper, &caption_max](const wxString &caption, const wxString &text) {
             imgui_wrapper->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui_wrapper->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);

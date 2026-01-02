@@ -106,6 +106,8 @@ protected:
 class AMSSettingTypePanel : public wxPanel
 {
 public:
+    using wxPanel::Update;
+
     AMSSettingTypePanel(wxWindow* parent, AMSSetting* setting_dlg);
     ~AMSSettingTypePanel();
 

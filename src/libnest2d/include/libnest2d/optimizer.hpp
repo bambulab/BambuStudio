@@ -156,7 +156,7 @@ public:
     {
         dir_ = OptDir::MIN;
         return static_cast<Subclass*>(this)->template optimize<Func, Args...>(
-                    forward<Func>(objectfunction), initvals, bounds... );
+                    std::forward<Func>(objectfunction), initvals, bounds... );
     }
 
     template<class Func, class...Args>
@@ -165,7 +165,7 @@ public:
     {
         dir_ = OptDir::MIN;
         return static_cast<Subclass*>(this)->template optimize<Func, Args...>(
-                    forward<Func>(objectfunction), initvals, Bound<Args>()... );
+                    std::forward<Func>(objectfunction), initvals, Bound<Args>()... );
     }
 
     template<class...Args, class Func>
@@ -173,7 +173,7 @@ public:
     {
         dir_ = OptDir::MIN;
         return static_cast<Subclass*>(this)->template optimize<Func, Args...>(
-                    forward<Func>(objectfunction),
+                    std::forward<Func>(objectfunction),
                     Input<Args...>(),
                     Bound<Args>()... );
     }
@@ -186,7 +186,7 @@ public:
     {
         dir_ = OptDir::MAX;
         return static_cast<Subclass*>(this)->template optimize<Func, Args...>(
-                    forward<Func>(objectfunction), initvals, bounds... );
+                    std::forward<Func>(objectfunction), initvals, bounds... );
     }
 
     template<class Func, class...Args>
@@ -195,7 +195,7 @@ public:
     {
         dir_ = OptDir::MAX;
         return static_cast<Subclass*>(this)->template optimize<Func, Args...>(
-                    forward<Func>(objectfunction), initvals, Bound<Args>()... );
+                    std::forward<Func>(objectfunction), initvals, Bound<Args>()... );
     }
 
     template<class...Args, class Func>
@@ -203,7 +203,7 @@ public:
     {
         dir_ = OptDir::MAX;
         return static_cast<Subclass*>(this)->template optimize<Func, Args...>(
-                    forward<Func>(objectfunction),
+                    std::forward<Func>(objectfunction),
                     Input<Args...>(),
                     Bound<Args>()... );
     }

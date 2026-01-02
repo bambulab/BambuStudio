@@ -146,7 +146,6 @@ private:
     double          m_last_jerk;
     double          m_max_jerk;
     //BBS
-    unsigned int    m_last_additional_fan_speed;
     int             m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;

@@ -40,11 +40,11 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_lit.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
+#include <boost/phoenix/core.hpp>
+#include <boost/phoenix/operator.hpp>
+#include <boost/phoenix/fusion.hpp>
+#include <boost/phoenix/stl.hpp>
+#include <boost/phoenix/object.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 #include <boost/spirit/repository/include/qi_distinct.hpp>
 #include <boost/spirit/repository/include/qi_iter_pos.hpp>

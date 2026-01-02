@@ -699,7 +699,7 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
                         multi_path->paths.back().polyline = std::move(connect_line);
                     }
                     else{
-                        multi_path->paths.back().polyline = std::move(Polyline(last_end_point, polyline.first_point()));
+                        multi_path->paths.back().polyline = Polyline(last_end_point, polyline.first_point());
                     }
 
                 } else {

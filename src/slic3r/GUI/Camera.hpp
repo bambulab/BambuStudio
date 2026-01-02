@@ -72,7 +72,6 @@ private:
     BoundingBoxf3 m_scene_box;
     Frustum       m_frustum;
     Vec3f         m_last_eye, m_last_center, m_last_up;
-    float         m_last_near, m_last_far, m_last_aspect, m_last_fov,m_last_zoom;
 
 public:
     Camera() { set_default_orientation(); }

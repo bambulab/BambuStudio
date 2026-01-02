@@ -362,7 +362,7 @@ void GLGizmoSimplify::on_render_input_window(float x, float y, float bottom_limi
         ImGui::BBLProgressBar2(progress / 100., progress_size);
         ImGui::SameLine();
         ImGui::AlignTextToFramePadding();
-        ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), progress_text.c_str());
+        ImGui::TextColored(ImVec4(0.42f, 0.42f, 0.42f, 1.00f), "%s", progress_text.c_str());
         ImGui::SameLine(bottom_left_width + slider_width +  m_imgui->scaled(1.0f));
     } else {
         ImGui::Dummy(ImVec2(bottom_left_width - space_size, -1));

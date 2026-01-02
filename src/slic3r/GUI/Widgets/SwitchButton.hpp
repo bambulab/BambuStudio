@@ -62,6 +62,8 @@ public:
     void* client_data = nullptr;/*MachineObject* in StatusPanel*/
 
 public:
+    using wxWindow::Enable;
+
     void Enable();
     void Disable();
     bool IsEnabled(){return is_enable;};

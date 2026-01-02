@@ -1,12 +1,12 @@
-//**********************************************************/
-/* File: wgtDeviceNozzleRack.cpp
-*  Description: The panel with rack info
-*
-*  \n class wgtDeviceNozzleRackArea;
-*  \n class wgtDeviceNozzleRackNozzleItem;
-*  \n class wgtDeviceNozzleRackToolHead;
-*  \n class wgtDeviceNozzleRackPos;
-//**********************************************************/
+/**********************************************************
+ * File: wgtDeviceNozzleRack.cpp
+ *  Description: The panel with rack info
+ *
+ *  \n class wgtDeviceNozzleRackArea;
+ *  \n class wgtDeviceNozzleRackNozzleItem;
+ *  \n class wgtDeviceNozzleRackToolHead;
+ *  \n class wgtDeviceNozzleRackPos;
+ **********************************************************/
 
 #include "wgtDeviceNozzleRack.h"
 #include "wgtDeviceNozzleRackUpdate.h"

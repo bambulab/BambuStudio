@@ -1810,7 +1810,9 @@ const double& DynamicConfig::opt_float(const t_config_option_key &opt_key, unsig
         return opt_floats_nullable->get_at(idx);
     } else {
         assert(false);
-        return 0;
+        // return 0;  // OLD: returned reference to temporary - crash!
+        static const double zero = 0.0;  // Static lives forever
+        return zero;
     }
 }
 

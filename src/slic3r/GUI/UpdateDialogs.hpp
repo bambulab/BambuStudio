@@ -32,8 +32,6 @@ public:
 	bool disable_version_check() const;
 
 	void on_hyperlink(wxHyperlinkEvent& evt);
-private:
-	wxCheckBox *cbox;
 };
 
 

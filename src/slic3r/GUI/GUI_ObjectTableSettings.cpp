@@ -284,13 +284,13 @@ bool ObjectTableSettings::update_settings_list(bool is_object, bool is_multiple_
         m_settings_list_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
         m_og_settings.push_back(optgroup);
 
-        auto toggle_field = [this, optgroup](const t_config_option_key & opt_key, bool toggle, int opt_index)
+        auto toggle_field = [optgroup](const t_config_option_key & opt_key, bool toggle, int opt_index)
         {
             Field* field = optgroup->get_fieldc(opt_key, opt_index);;
             if (field)
                 field->toggle(toggle);
         };
-        auto toggle_line = [this, optgroup](const t_config_option_key &opt_key, bool toggle, int opt_index)
+        auto toggle_line = [optgroup](const t_config_option_key &opt_key, bool toggle, int opt_index)
         {
             Line* line = optgroup->get_line(opt_key);
             if (line) line->toggle_visible = toggle;

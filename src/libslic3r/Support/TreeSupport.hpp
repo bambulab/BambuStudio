@@ -210,8 +210,10 @@ public:
         clear_nodes();
     }
 
-    TreeSupportData(TreeSupportData&&) = default;
-    TreeSupportData& operator=(TreeSupportData&&) = default;
+    // TreeSupportData(TreeSupportData&&) = default;  // OLD: can't default - contains non-movable tbb::spin_mutex
+    // TreeSupportData& operator=(TreeSupportData&&) = default;
+    TreeSupportData(TreeSupportData&&) = delete;  // Not movable due to mutex member
+    TreeSupportData& operator=(TreeSupportData&&) = delete;
 
     TreeSupportData(const TreeSupportData&) = delete;
     TreeSupportData& operator=(const TreeSupportData&) = delete;

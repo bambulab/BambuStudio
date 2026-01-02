@@ -81,7 +81,7 @@ void TextInput::Create(wxWindow *     parent,
         e.SetId(GetId());
         ProcessEventLocally(e);
     });
-    text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
+    text_ctrl->Bind(wxEVT_RIGHT_DOWN, [](auto &e) {}); // disable context menu
 
     text_ctrl->Bind(wxEVT_TEXT, [this](auto &e)
         {

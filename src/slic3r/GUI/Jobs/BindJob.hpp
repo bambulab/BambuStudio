@@ -19,7 +19,6 @@ class BindJob : public PlaterJob
     std::string         m_sec_link;
     std::string         m_ssdp_version;
     bool                m_job_finished{ false };
-    int                 m_print_job_completed_id = 0;
     bool                m_improved{false};
 
 protected:

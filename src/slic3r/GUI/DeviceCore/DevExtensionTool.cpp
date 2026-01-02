@@ -8,7 +8,7 @@ using namespace nlohmann;
 namespace Slic3r
 {
 
-DevExtensionTool::DevExtensionTool(MachineObject* obj) : m_owner(obj)
+DevExtensionTool::DevExtensionTool(MachineObject* obj)
 {
     m_mount_3dp = MOUNT_NOT_MOUNTED;
     m_calib = CALIB_NONE;

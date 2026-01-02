@@ -1818,7 +1818,7 @@ namespace Slic3r {
                     return in_layers_range(path.sub_paths.front().first.s_id) && in_layers_range(path.sub_paths.back().last.s_id);
                     };
                 //BBS
-                auto is_extruder_in_layer_range = [this](const Path& path, size_t extruder_id) {
+                auto is_extruder_in_layer_range = [](const Path& path, size_t extruder_id) {
                     return path.extruder_id == extruder_id;
                     };
                 auto is_travel_in_layers_range = [this](size_t path_id, size_t min_id, size_t max_id) {

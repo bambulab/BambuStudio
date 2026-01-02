@@ -59,7 +59,7 @@ wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags,bool exist_error)
         font.SetUnderlined(true);
         tips->SetFont(font);
         tips->SetForegroundColour(wxColour(0, 174, 100));
-        tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        tips->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent &e) {
             bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
             if (is_zh) {
                 wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/software/bambu-studio/import_obj");
@@ -167,8 +167,6 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxDEFAULT_DIALOG_STYLE /* | wxRESIZE_BORDER*/)
-    , m_filament_ids(in_out.filament_ids)
-    , m_first_extruder_id(in_out.first_extruder_id)
 {
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -337,7 +335,7 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
             m_color_cluster_num_by_user_ebox->Bind(wxEVT_TEXT_ENTER, on_apply_color_cluster_text_modify);
             m_color_cluster_num_by_user_ebox->Bind(wxEVT_SPINCTRL, on_apply_color_cluster_text_modify);
 
-            m_color_cluster_num_by_user_ebox->Bind(wxEVT_CHAR, [this](wxKeyEvent &e) {
+            m_color_cluster_num_by_user_ebox->Bind(wxEVT_CHAR, [](wxKeyEvent &e) {
                 int keycode = e.GetKeyCode();
                 wxString input_char = wxString::Format("%c", keycode);
                 long     value;

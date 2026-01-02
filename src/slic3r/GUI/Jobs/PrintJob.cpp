@@ -52,11 +52,9 @@ void PrintJob::prepare()
 {
     if (job_data.is_from_plater)
         m_plater->get_print_job_data(&job_data);
-    if (&job_data) {
-        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-        auto check_access_code_path = temp_file.c_str();
-        job_data._temp_path = fs::path(check_access_code_path);
-    }
+    std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+    auto check_access_code_path = temp_file.c_str();
+    job_data._temp_path = fs::path(check_access_code_path);
 
     m_print_stage = BBL::SendingPrintJobStage::PrintingStageLimit;
 }
@@ -405,9 +403,7 @@ void PrintJob::process()
         &is_try_lan_mode,
         &is_try_lan_mode_failed,
         &msg,
-        &error_str,
         &curr_percent,
-        &error_text,
         StagePercentPoint
     ](int stage, int code, std::string info) {
                         m_print_stage = stage;
@@ -493,7 +489,7 @@ void PrintJob::process()
     DeviceManager* dev = wxGetApp().getDeviceManager();
     MachineObject* obj = dev->get_selected_machine();
 
-    auto wait_fn = [this, curr_percent, &obj](int state, std::string job_info) {
+    auto wait_fn = [this, &obj](int state, std::string job_info) {
             BOOST_LOG_TRIVIAL(info) << "print_job: get_job_info = " << job_info;
 
             if (!obj->is_support_wait_sending_finish) {
@@ -503,7 +499,7 @@ void PrintJob::process()
             std::string curr_job_id;
             json job_info_j;
             try {
-                job_info_j.parse(job_info);
+                [[maybe_unused]] bool parse_ok = job_info_j.parse(job_info);
                 if (job_info_j.contains("job_id")) {
                     curr_job_id = DevJsonValParser::get_longlong_val(job_info_j["job_id"]);
                 }

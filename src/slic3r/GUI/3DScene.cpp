@@ -685,7 +685,7 @@ bool GLVolume::simplify_mesh(const indexed_triangle_set &_its, std::shared_ptr<G
 
     //std::mutex  m_state_mutex;
     std::thread m_worker = std::thread(
-        [va,this](std::unique_ptr<indexed_triangle_set> its, std::unique_ptr<State> state) {
+        [va](std::unique_ptr<indexed_triangle_set> its, std::unique_ptr<State> state) {
             // Checks that the UI thread did not request cancellation, throws if so.
             std::function<void(void)> throw_on_cancel = []() {
             };

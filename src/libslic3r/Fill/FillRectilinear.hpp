@@ -179,7 +179,7 @@ public:
     Polylines generate_skeleton_pattern(FillParams params, Surface surface, const ExPolygons &skeleton);
     Polylines generate_skin_pattern(FillParams params, Surface surface, const ExPolygons &skin);
 
-    void set_skin_and_skeleton_pattern(const InfillPattern &skin_pattern, const InfillPattern &skeleton_pattern){
+    void set_skin_and_skeleton_pattern(const InfillPattern &skin_pattern, const InfillPattern &skeleton_pattern) override {
         this->skin_pattern = skin_pattern;
         this->skeleton_pattern = skeleton_pattern;
     };

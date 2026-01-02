@@ -53,6 +53,11 @@ static uint8_t get_msaa_samples(Slic3r::GUI::EMSAAType msaa_type) {
 static GLenum get_pixel_format(Slic3r::GUI::EPixelFormat type) {
     switch (type)
     {
+    case Slic3r::GUI::EPixelFormat::Unknow:
+    case Slic3r::GUI::EPixelFormat::R:
+    case Slic3r::GUI::EPixelFormat::RG:
+    case Slic3r::GUI::EPixelFormat::RGB:
+        return GL_INVALID_ENUM;
     case Slic3r::GUI::EPixelFormat::RGBA:
         return GL_RGBA;
     case Slic3r::GUI::EPixelFormat::DepthComponent:
@@ -69,6 +74,8 @@ static GLenum get_pixel_format(Slic3r::GUI::EPixelFormat type) {
 static GLenum get_pixel_data_type(Slic3r::GUI::EPixelDataType type) {
     switch (type)
     {
+    case Slic3r::GUI::EPixelDataType::Unknow:
+        return GL_INVALID_ENUM;
     case Slic3r::GUI::EPixelDataType::UByte:
         return GL_UNSIGNED_BYTE;
     case Slic3r::GUI::EPixelDataType::Byte:
@@ -904,6 +911,8 @@ uint32_t OpenGLManager::get_pixel_format(EPixelFormat format)
 {
     switch (format)
     {
+    case EPixelFormat::Unknow:
+        return GL_INVALID_ENUM;
     case EPixelFormat::R:
         return GL_RED;
     case EPixelFormat::RG:
@@ -927,6 +936,8 @@ uint32_t OpenGLManager::get_pixel_data_type(EPixelDataType type)
 {
     switch (type)
     {
+    case EPixelDataType::Unknow:
+        return GL_INVALID_ENUM;
     case EPixelDataType::UByte:
         return GL_UNSIGNED_BYTE;
     case EPixelDataType::Byte:

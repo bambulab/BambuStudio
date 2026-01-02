@@ -41,8 +41,6 @@ private:
     std::string m_font_version = CUR_FONT_VERSION;
     std::string m_style_name;
     float m_font_size = 10.f;
-    const float m_font_size_min = 3.f;
-    const float m_font_size_max     = 1000.f;
     bool m_warning_font      = false;
     bool m_bold = true;
     float m_custom_boldness  = 0.f;
@@ -109,8 +107,6 @@ private:
     // Keep information about stored styles and loaded actual style to compare with
     Emboss::StyleManager     m_style_manager;
     std::shared_ptr<std::atomic<bool>> m_job_cancel                 = nullptr;
-    // When open text loaded from .3mf it could be written with unknown font
-    bool m_is_unknown_font = false;
     // Is open tree with advanced options
     bool m_is_advanced_edit_style = false;
     // True when m_text contain character unknown by selected font
@@ -178,8 +174,8 @@ public:
     void                close();
 
     std::string get_icon_filename(bool b_dark_mode) const override;
-    virtual std::string get_gizmo_entering_text() const{return "Enter Text gizmo";}
-    virtual std::string get_gizmo_leaving_text() const{return "Leave Text gizmo";}
+    virtual std::string get_gizmo_entering_text() const override {return "Enter Text gizmo";}
+    virtual std::string get_gizmo_leaving_text() const override {return "Leave Text gizmo";}
     bool    wants_enter_leave_snapshots() const override { return true; }
 
 protected:
@@ -204,7 +200,7 @@ protected:
     bool     on_mouse(const wxMouseEvent &mouse_event) override;
     bool     on_mouse_for_rotation(const wxMouseEvent &mouse_event);
     virtual CommonGizmosDataID on_get_requirements() const override;
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
+    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
     void show_tooltip_information(float x, float y);
 

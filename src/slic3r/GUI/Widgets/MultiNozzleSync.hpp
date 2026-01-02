@@ -44,7 +44,6 @@ private:
     wxChoice* m_highflow_choice { nullptr };
     Button* m_confirm_btn{ nullptr };
     Label* m_error_label{ nullptr };
-    NozzleVolumeType m_volume_type;
 };
 
 
@@ -61,8 +60,6 @@ private:
 
     bool m_right_on{ true };
     wxStaticBitmap* badget;
-    Label* left;
-    Label* right;
     Label* left_diameter_desp;
     Label* right_diameter_desp;
     Label* left_flow_desp;
@@ -139,7 +136,7 @@ class MultiNozzleSyncDialog : public DPIDialog
 {
 public:
     MultiNozzleSyncDialog(wxWindow* parent, std::weak_ptr<DevNozzleRack> rack);
-    virtual void on_dpi_changed(const wxRect& suggested_rect) {};
+    virtual void on_dpi_changed(const wxRect& suggested_rect) override {};
     std::vector<NozzleOption> GetNozzleOptions(const std::vector<MultiNozzleUtils::NozzleGroupInfo>& group_infos);
 
     std::optional<NozzleOption> GetSelectedOption() {
@@ -176,7 +173,6 @@ private:
     Label* m_caution;
 
     wxTimer* m_refresh_timer {nullptr};
-    size_t m_rack_event_token;
     Button* m_cancel_btn;
     Button* m_confirm_btn;
 };

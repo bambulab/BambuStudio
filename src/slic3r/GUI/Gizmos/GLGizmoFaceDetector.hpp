@@ -31,7 +31,6 @@ private:
     void display_exterior_face();
 
     GUI::GLModel m_model;
-    double m_sample_interval = {0.5};
 };
 
 } // namespace GUI

@@ -762,6 +762,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipSupportCubic:
         case ipRectilinear:
         case ipMonotonic:
+        case ipMonotonicLine:
         case ipAlignedRectilinear:
         case ipGrid:
         case ipTriangles:
@@ -769,14 +770,17 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
         case ipCubic:
         case ipLine:
         case ipConcentric:
+        case ipConcentricInternal:
         case ipHoneycomb:
         case ip3DHoneycomb:
         case ipGyroid:
         case ipHilbertCurve:
         case ipArchimedeanChords:
         case ipOctagramSpiral:
+        case ipCrossHatch:
         case ipZigZag:
         case ipCrossZag:
+        case ipFloatingConcentric:
 		case ipLockedZag: break;
         }
 

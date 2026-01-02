@@ -487,9 +487,9 @@ void GLTexture::reset()
     m_original_width = m_original_height = 0;
 
     // for buffer texture
-    if (m_buffer_id != -1u) {
+    if (m_buffer_id != UINT32_MAX) {
         glsafe(::glDeleteBuffers(1, &m_buffer_id));
-        m_buffer_id = -1u;
+        m_buffer_id = UINT32_MAX;
     }
     // end for buffer texture
 }
@@ -851,7 +851,7 @@ bool GLTexture::set_buffer(const std::vector<float>& t_buffer)
         glsafe(::glBindBuffer(target, 0));
     }
 
-    return m_buffer_id != -1u;
+    return m_buffer_id != UINT32_MAX;
 }
 
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)

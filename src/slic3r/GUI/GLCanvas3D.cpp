@@ -278,7 +278,7 @@ void GLCanvas3D::LayersEditing::show_tooltip_information(const GLCanvas3D& canva
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &caption_max, &imgui](const wxString& caption, const wxString& text) {
+        auto draw_text_with_caption = [&caption_max, &imgui](const wxString& caption, const wxString& text) {
             imgui.text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui.text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
@@ -4257,7 +4257,7 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
                     m_dirty = true;
 #endif
                 } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == WXK_RETURN) ||
-                    evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN) {
+                    (evt.ShiftDown() && evt.AltDown() && keyCode == WXK_RETURN)) {
                     wxGetApp().plater()->toggle_show_wireframe();
                     m_dirty = true;
                 } else if ((evt.ShiftDown() && evt.ControlDown() && keyCode == 'T')) {
@@ -6088,11 +6088,11 @@ bool GLCanvas3D::can_sequential_clearance_show_in_gizmo() {
     switch (m_gizmos.get_current_type()) {
     case GLGizmosManager::EType::Move:
     case GLGizmosManager::EType::Scale:
-    case GLGizmosManager::EType::Rotate: {
+    case GLGizmosManager::EType::Rotate:
         return true;
+    default:
+        return false;
     }
-    }
-    return false;
 }
 
 void GLCanvas3D::update_sequential_clearance()
@@ -6989,7 +6989,7 @@ bool GLCanvas3D::_init_main_toolbar()
                 return "seperator.svg";
                 };
             sperate_item.sprite_id = sprite_id++;
-            sperate_item.left.action_callback = [this]() {};
+            sperate_item.left.action_callback = []() {};
             sperate_item.visibility_callback = []()->bool { return true; };
             sperate_item.enabling_callback = []()->bool { return true; };
             if (!p_main_toolbar->add_item(sperate_item, GLToolbarItem::EType::SeparatorLine))
@@ -7074,7 +7074,7 @@ bool GLCanvas3D::_init_main_toolbar()
         };
         more_item.sprite_id = sprite_id++;
         more_item.visible = false;
-        more_item.left.action_callback = [this]()->void{};
+        more_item.left.action_callback = []()->void{};
         more_item.visibility_callback = [this]()->bool {
             if (m_main_toolbar) {
                 return m_main_toolbar->needs_collapsed();
@@ -7095,7 +7095,7 @@ bool GLCanvas3D::_init_main_toolbar()
                 return "seperator.svg";
                 };
             sperate_item.sprite_id = sprite_id++;
-            sperate_item.left.action_callback = [this]() {};
+            sperate_item.left.action_callback = []() {};
             sperate_item.visibility_callback = []()->bool { return true; };
             sperate_item.enabling_callback = []()->bool { return true; };
             sperate_item.b_collapsible = false;
@@ -7121,8 +7121,8 @@ bool GLCanvas3D::_init_main_toolbar()
                 };
             item.left.render_callback = GLToolbarItem::Default_Render_Callback;
             item.visible = true;
-            item.visibility_callback = [this]()->bool { return true; };
-            item.enabling_callback = [this]()->bool {
+            item.visibility_callback = []()->bool { return true; };
+            item.enabling_callback = []()->bool {
                 return wxGetApp().plater()->has_assmeble_view();
                 };
             item.b_collapsible = false;
@@ -7480,10 +7480,8 @@ void GLCanvas3D::_rectangular_selection_picking_pass()
         const int viewport_y = static_cast<int>(get_canvas_size().get_height() - m_rectangle_selection.get_top());
         viewport_width = static_cast<int>(m_rectangle_selection.get_width());
         viewport_width = viewport_width > 1 ? viewport_width : 1;
-        viewport_width = viewport_width;
         viewport_height = static_cast<int>(m_rectangle_selection.get_height());
         viewport_height = viewport_height > 1 ? viewport_height : 1;
-        viewport_height = viewport_height;
 
         const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
         {
@@ -7716,8 +7714,8 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
         case BuildVolume::Type::Convex:
         case BuildVolume::Type::Custom: {
             cur_volumes.set_print_volume({static_cast<int>(type),
-                { -FLT_MAX, -FLT_MAX, FLT_MAX, FLT_MAX },
-                { -FLT_MAX, FLT_MAX } }
+                { std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest(), FLT_MAX, FLT_MAX },
+                { std::numeric_limits<float>::lowest(), FLT_MAX } }
             );
         }
         }
@@ -7730,7 +7728,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
     if (m_use_clipping_planes)
         cur_volumes.set_z_range(-m_clipping_planes[0].get_data()[3], m_clipping_planes[1].get_data()[3]);
     else
-        cur_volumes.set_z_range(-FLT_MAX, FLT_MAX);
+        cur_volumes.set_z_range(std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max());
 
     GLGizmosManager& gm = get_gizmos_manager();
     GLGizmoBase* current_gizmo = gm.get_current();
@@ -7772,7 +7770,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
             if (in_paint_gizmo) {
                 cur_volumes.render(
                     render_pipeline_stage, type, m_picking_enabled, camera, colors, *m_model,
-                    [this](const GLVolume &volume) {
+                    [](const GLVolume &volume) {
                         return true;
                     },
                     with_outline, body_color, partly_inside_enable,  nullptr);
@@ -7836,14 +7834,14 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
             if (in_paint_gizmo) {
                 cur_volumes.render(
                     render_pipeline_stage, type, false, camera, colors, *m_model,
-                    [this, canvas_type](const GLVolume &volume) {
+                    [](const GLVolume &volume) {
                         return true;
                     },
                     with_outline, body_color, partly_inside_enable, nullptr);
             } else {
                 cur_volumes.render(
                     render_pipeline_stage, type, false, camera, colors, *m_model,
-                    [this, canvas_type](const GLVolume &volume) {
+                    [canvas_type](const GLVolume &volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
                             return !volume.is_modifier;
                         } else {
@@ -7861,7 +7859,7 @@ void GLCanvas3D::_render_objects(GLVolumeCollection &cur_volumes, GLVolumeCollec
             if (m_canvas_type == CanvasView3D && m_gizmos.is_paint_gizmo()) {
                 cur_volumes.only_render_sinking(
                     render_pipeline_stage, type, false, camera, colors, *m_model,
-                    [this, canvas_type](const GLVolume &volume) {
+                    [canvas_type](const GLVolume &volume) {
                         if (canvas_type == ECanvasType::CanvasAssembleView) {
                             return !volume.is_modifier;
                         } else {
@@ -8907,18 +8905,18 @@ void GLCanvas3D::_render_paint_toolbar() const
         ImVec2 number_label_size = ImGui::CalcTextSize(std::to_string(i + 1).c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y);
         ImGui::SetCursorPosX(spacing + i * (spacing + button_size.x) + (button_size.x - number_label_size.x) / 2);
-        ImGui::TextColored(text_color, std::to_string(i + 1).c_str());
+        ImGui::TextColored(text_color, "%s", std::to_string(i + 1).c_str());
         imgui.pop_bold_font();
 
         ImVec2 filament_first_line_label_size = ImGui::CalcTextSize(filament_text_first_line[i].c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y + number_label_size.y);
         ImGui::SetCursorPosX(spacing + i * (spacing + button_size.x) + (button_size.x - filament_first_line_label_size.x) / 2);
-        ImGui::TextColored(text_color, filament_text_first_line[i].c_str());
+        ImGui::TextColored(text_color, "%s", filament_text_first_line[i].c_str());
 
         ImVec2 filament_second_line_label_size = ImGui::CalcTextSize(filament_text_second_line[i].c_str());
         ImGui::SetCursorPosY(cursor_y + text_offset_y + number_label_size.y + filament_first_line_label_size.y);
         ImGui::SetCursorPosX(spacing + i * (spacing + button_size.x) + (button_size.x - filament_second_line_label_size.x) / 2);
-        ImGui::TextColored(text_color, filament_text_second_line[i].c_str());
+        ImGui::TextColored(text_color, "%s", filament_text_second_line[i].c_str());
     }
 
     if (ImGui::GetWindowWidth() == constraint_window_width) {
@@ -8966,7 +8964,7 @@ float GLCanvas3D::_show_assembly_tooltip_information(float caption_max, float x,
 
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip2(ImVec2(x, y));
-        auto draw_text_with_caption = [this, &imgui, & caption_max](const wxString &caption, const wxString &text) {
+        auto draw_text_with_caption = [&imgui, & caption_max](const wxString &caption, const wxString &text) {
             imgui->text_colored(ImGuiWrapper::COL_ACTIVE, caption);
             ImGui::SameLine(caption_max);
             imgui->text_colored(ImGuiWrapper::COL_WINDOW_BG, text);
@@ -9160,9 +9158,9 @@ void GLCanvas3D::_render_assemble_info() const
     double size1 = m_selection.get_bounding_box().size()(1);
     double size2 = m_selection.get_bounding_box().size()(2);
     if (!m_selection.is_empty()) {
-        ImGui::Text(_L("Volume:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%s", _L("Volume:").ToUTF8().data()); ImGui::SameLine(caption_max);
         ImGui::Text("%.2f", size0 * size1 * size2);
-        ImGui::Text(_L("Size:").ToUTF8()); ImGui::SameLine(caption_max);
+        ImGui::Text("%s", _L("Size:").ToUTF8().data()); ImGui::SameLine(caption_max);
         ImGui::Text("%.2f x %.2f x %.2f", size0, size1, size2);
     }
     imgui->end();

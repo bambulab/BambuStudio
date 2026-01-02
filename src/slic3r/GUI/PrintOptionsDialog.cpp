@@ -596,7 +596,7 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
 
     if (obj->get_door_open_check_state() != MachineObject::DOOR_OPEN_CHECK_DISABLE) {
         m_cb_open_door->SetValue(true);
-        open_door_switch_board->Enable();
+        open_door_switch_board->Enable(true);
 
         if (obj->get_door_open_check_state() == MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING) {
             open_door_switch_board->updateState("left");

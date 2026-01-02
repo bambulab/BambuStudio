@@ -60,19 +60,12 @@ private:
     void on_shutdown() override;
     PainterGizmoType get_painter_type() const override;
 
-    bool m_volume_valid = false;
-
-    bool m_is_tree_support = false;
-    bool m_cancel = false;
-    size_t m_object_id;
     std::vector<ObjectBase::Timestamp> m_volume_timestamps;
     PrintInstance m_print_instance;
-    mutable EditState m_edit_state;
     //thread
     boost::thread   m_thread;
     // Mutex and condition variable to synchronize m_thread with the UI thread.
     std::mutex      m_mutex;
-    int m_generate_count;
 
     // This map holds all translated description texts, so they can be easily referenced during layout calculations
     // etc. When language changes, GUI is recreated and this class constructed again, so the change takes effect.

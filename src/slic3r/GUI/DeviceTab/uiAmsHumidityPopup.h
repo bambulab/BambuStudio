@@ -1,9 +1,9 @@
-//**********************************************************/
-/* File: uiAmsHumidityPopup.h
-*  Description: The popup with DevAms Humidity
-*
-*  \n class uiAmsHumidityPopup
-//**********************************************************/
+/**********************************************************
+ * File: uiAmsHumidityPopup.h
+ *  Description: The popup with DevAms Humidity
+ *
+ *  \n class uiAmsHumidityPopup
+ **********************************************************/
 
 #pragma once
 #include "slic3r/GUI/Widgets/AMSItem.hpp"
@@ -34,6 +34,8 @@ struct uiAmsHumidityInfo
 class uiAmsPercentHumidityDryPopup : public wxDialog
 {
 public:
+    using wxDialog::Update;
+
     uiAmsPercentHumidityDryPopup(wxWindow *parent);
     ~uiAmsPercentHumidityDryPopup() = default;
 

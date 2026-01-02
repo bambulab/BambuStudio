@@ -4839,7 +4839,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 its.vertices.assign(sub_object->geometry.vertices.begin(), sub_object->geometry.vertices.end());
 
                 // BBS
-                for (const std::string prop_str : sub_object->geometry.face_properties) {
+                for (const std::string& prop_str : sub_object->geometry.face_properties) {
                     FaceProperty face_prop;
                     face_prop.from_string(prop_str);
                     its.properties.push_back(face_prop);
@@ -5021,7 +5021,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 its.vertices.assign(geometry.vertices.begin() + min_id, geometry.vertices.begin() + max_id + 1);
 
                 // BBS
-                for (const std::string prop_str : geometry.face_properties) {
+                for (const std::string& prop_str : geometry.face_properties) {
                     FaceProperty face_prop;
                     face_prop.from_string(prop_str);
                     its.properties.push_back(face_prop);
@@ -8455,7 +8455,7 @@ public:
         auto model = object.get_model();
         auto o = m_temp_model.add_object(object);
         int backup_id = model->get_object_backup_id(object);
-        push_task({ AddObject, (size_t) backup_id, object.get_model()->get_backup_path(), o, 1 });
+        push_task({ AddObject, (size_t) backup_id, object.get_model()->get_backup_path(), o, {1} });
     }
 
     void remove_object_mesh(ModelObject& object) {
@@ -8465,7 +8465,7 @@ public:
     void backup_soon() {
         boost::lock_guard lock(m_mutex);
         m_other_changes_backup = true;
-        m_tasks.push_back({ Backup, 0, std::string(), nullptr, ++m_task_seq });
+        m_tasks.push_back({ Backup, 0, std::string(), nullptr, {++m_task_seq} });
         m_cond.notify_all();
     }
 
@@ -8482,7 +8482,7 @@ public:
             m_ui_tasks.clear();
             m_tasks.clear();
         }
-        m_tasks.push_back({ RemoveBackup, model.id().id, model.get_backup_path(), nullptr, removeAll });
+        m_tasks.push_back({ RemoveBackup, model.id().id, model.get_backup_path(), nullptr, {removeAll} });
         ++m_task_seq;
         if (model.is_need_backup()) {
             m_other_changes = false;
@@ -8583,7 +8583,7 @@ private:
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " inital and interval = " << m_interval;
         m_next_backup = boost::get_system_time() + boost::posix_time::seconds(m_interval);
         boost::unique_lock lock(m_mutex);
-        m_thread = std::move(boost::thread(boost::ref(*this)));
+        m_thread = boost::thread(boost::ref(*this));
     }
 
     ~_BBS_Backup_Manager() {
@@ -8648,6 +8648,13 @@ private:
                     }
                 }
                 break;
+            case None:
+            case RemoveObject:
+            case Exit:
+            default:
+                // None/Exit should be filtered before reaching here, RemoveObject handled in worker thread
+                BOOST_LOG_TRIVIAL(warning) << "process_ui_task: Unexpected task type " << t.to_string();
+                break;
         }
     }
 
@@ -8684,6 +8691,12 @@ private:
                 }
                 catch (...) {}
             }
+            case None:
+            case Exit:
+            default:
+                // None is no-op, Exit handled before reaching here
+                BOOST_LOG_TRIVIAL(warning) << "process_task: Unexpected task type " << t.to_string();
+                break;
         }
     }
 
@@ -8698,7 +8711,7 @@ public:
                 else
                     m_cond.wait(lock);
                 if (m_interval > 0 && boost::get_system_time() > m_next_backup) {
-                    m_tasks.push_back({ Backup, 0, std::string(), nullptr, ++m_task_seq });
+                    m_tasks.push_back({ Backup, 0, std::string(), nullptr, {++m_task_seq} });
                     m_next_backup += boost::posix_time::seconds(m_interval);
                     // Maybe wakeup from power sleep
                     if (m_next_backup < boost::get_system_time())

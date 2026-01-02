@@ -440,11 +440,6 @@ public:
 
 
 private:
-    wxStaticText* m_staticText_slicer_name;
-    wxStaticText* m_staticText_slicer_version;
-    wxStaticBitmap* m_bitmap;
-    wxStaticText* m_staticText_loading;
-
     wxBitmap    m_main_bitmap;
     wxFont      m_action_font;
     int         m_action_line_y_position;
@@ -2059,7 +2054,7 @@ void GUI_App::init_networking_callbacks()
                 return;
             }
             if (return_code < 0) { //#define MQTTASYNC_SUCCESS 0
-                GUI::wxGetApp().CallAfter([this] {
+                GUI::wxGetApp().CallAfter([] {
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
                     MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxAPPLY | wxOK);
                     if (msg_dlg.ShowModal() == wxOK) { return; }
@@ -2555,7 +2550,7 @@ void GUI_App::update_http_extra_header()
 void GUI_App::on_start_subscribe_again(std::string dev_id)
 {
     auto start_subscribe_timer = new wxTimer(this, wxID_ANY);
-    Bind(wxEVT_TIMER, [this, start_subscribe_timer, dev_id](auto& e) {
+    Bind(wxEVT_TIMER, [start_subscribe_timer, dev_id](auto& e) {
         start_subscribe_timer->Stop();
         Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
         if (!dev) return;
@@ -3068,7 +3063,7 @@ bool GUI_App::on_init_inner()
                 }
             });
 
-        Bind(EVT_SHOW_NO_NEW_VERSION, [this](const wxCommandEvent& evt) {
+        Bind(EVT_SHOW_NO_NEW_VERSION, [](const wxCommandEvent& evt) {
             wxString msg = _L("This is the newest version.");
             InfoDialog dlg(nullptr, _L("Info"), msg);
             dlg.ShowModal();
@@ -4096,7 +4091,7 @@ void GUI_App::request_helio_pat(std::function<void(std::string)> func)
 
 void GUI_App::request_helio_supported_data()
 {
-    std:;string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+    std::string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
     if (HelioQuery::global_supported_printers.size() <= 0 || HelioQuery::global_supported_materials.size() <= 0) {
@@ -4444,12 +4439,12 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 });
             }
             else if (command_str.compare("homepage_logout") == 0) {
-                CallAfter([this] {
+                CallAfter([] {
                     wxGetApp().request_user_logout();
                 });
             }
             else if (command_str.compare("homepage_modeldepot") == 0) {
-                CallAfter([this] {
+                CallAfter([] {
                     wxGetApp().open_mall_page_dialog();
                 });
             }
@@ -4526,7 +4521,7 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 }
             }
             else if (command_str.compare("begin_network_plugin_download") == 0) {
-                CallAfter([this] { wxGetApp().ShowDownNetPluginDlg(); });
+                CallAfter([] { wxGetApp().ShowDownNetPluginDlg(); });
             }
             else if (command_str.compare("get_web_shortcut") == 0) {
                 if (root.get_child_optional("key_event") != boost::none) {
@@ -5508,12 +5503,12 @@ void GUI_App::report_consent(std::string expand)
         .header("Content-Type", "application/json")
         .set_post_body(post_body_str)
         .on_complete(
-            [this](std::string body, unsigned status) {
+            [](std::string body, unsigned status) {
                 //todo
             }
         )
         .on_error(
-            [this](std::string body, std::string error, unsigned status) {
+            [](std::string body, std::string error, unsigned status) {
             }
         )
         .perform();
@@ -6785,7 +6780,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
         UnsavedChangesDialog dlg(caption, header, "", action_buttons);
 
 
-        auto reset_modifications = [this, is_called_from_configwizard]() {
+        auto reset_modifications = [this]() {
             //if (is_called_from_configwizard)
             //    return; // no need to discared changes. It will be done fromConfigWizard closing
 
@@ -6797,7 +6792,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             load_current_presets(false);
             };
 
-        auto handle_discard_option = [ this, reset_modifications](){
+        auto handle_discard_option = [reset_modifications](){
             reset_modifications();
             };
 
@@ -6819,7 +6814,7 @@ bool GUI_App::check_and_keep_current_preset_changes(const wxString& caption, con
             reset_modifications();
             };
 
-        auto handle_transfer_option = [this, &dlg, is_called_from_configwizard, postponed_apply_of_keeped_changes, reset_modifications]() {
+        auto handle_transfer_option = [this, &dlg, is_called_from_configwizard, postponed_apply_of_keeped_changes]() {
             const auto& preset_names_and_types = dlg.get_names_and_types();
             // execute this part of code only if not all modifications are keeping to the new project
             // OR this function is called when ConfigWizard is closed and "Keep modifications" is selected
@@ -7570,7 +7565,9 @@ const std::shared_ptr<GLShaderProgram>& GUI_App::get_shader(const std::string &s
         return p_ogl_manager->get_shader(shader_name);
     }
 
-    return nullptr;
+    // return nullptr;  // OLD: returned reference to temporary - crash!
+    static std::shared_ptr<GLShaderProgram> s_empty{nullptr};  // Static lives forever
+    return s_empty;
 }
 
 const std::shared_ptr<GLShaderProgram> GUI_App::get_current_shader() const

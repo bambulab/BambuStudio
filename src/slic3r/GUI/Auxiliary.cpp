@@ -346,7 +346,7 @@ void AuFile::on_input_enter(wxCommandEvent &evt)
     }
 
     auto     existing  = false;
-    auto     dir       = m_file_path.branch_path();
+    auto     dir       = m_file_path.parent_path();
     auto     new_fullname = new_file_name + m_file_path.extension().string();
 
     
@@ -462,8 +462,8 @@ void AuFile::on_set_cover()
     wxGetApp().plater()->model().model_info->cover_file = path.string();
     //wxGetApp().plater()->model().model_info->cover_file = m_file_name.ToStdString();
 
-    auto full_path          = m_file_path.branch_path();
-    auto full_root_path         = full_path.branch_path();
+    auto full_path          = m_file_path.parent_path();
+    auto full_root_path         = full_path.parent_path();
     auto full_root_path_str = encode_path(full_root_path.string().c_str());
     auto dir       = wxString::Format("%s/.thumbnails", full_root_path_str);
 
@@ -507,8 +507,8 @@ void AuFile::on_set_delete()
     auto     is_fine = fs::remove(bfs_path);
 
     if (m_cover) {
-        auto full_path          = m_file_path.branch_path();
-        auto full_root_path     = full_path.branch_path();
+        auto full_path          = m_file_path.parent_path();
+        auto full_root_path     = full_path.parent_path();
         auto full_root_path_str = encode_path(full_root_path.string().c_str());
         auto dir                = wxString::Format("%s/.thumbnails", full_root_path_str);
         fs::path dir_path(dir.c_str());
@@ -827,7 +827,7 @@ void AuxiliaryPanel::init_tabpanel()
     sizer_side_tools->Add(m_side_tools, 1, wxEXPAND, 0);
     m_tabpanel = new Tabbook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizer_side_tools, wxNB_LEFT | wxTAB_TRAVERSAL | wxNB_NOPAGETHEME);
     m_tabpanel->SetBackgroundColour(wxColour("#FEFFFF"));
-    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [this](wxBookCtrlEvent &e) { ; });
+    m_tabpanel->Bind(wxEVT_BOOKCTRL_PAGE_CHANGED, [](wxBookCtrlEvent &e) { ; });
 
     m_designer_panel = new DesignerPanel(m_tabpanel, AuxiliaryFolderType::DESIGNER);
     m_pictures_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::MODEL_PICTURE);
@@ -835,11 +835,11 @@ void AuxiliaryPanel::init_tabpanel()
     m_assembly_panel          = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::ASSEMBLY_GUIDE);
     m_others_panel            = new AuFolderPanel(m_tabpanel, AuxiliaryFolderType::OTHERS);
 
-    m_tabpanel->AddPage(m_designer_panel, _L("Basic Info"), "", true);
-    m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), "", false);
-    m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), "", false);
-    m_tabpanel->AddPage(m_assembly_panel, _L("Assembly Guide"), "", false);
-    m_tabpanel->AddPage(m_others_panel, _L("Others"), "", false);
+    m_tabpanel->AddPage(m_designer_panel, _L("Basic Info"), std::string(""), true);
+    m_tabpanel->AddPage(m_pictures_panel, _L("Pictures"), std::string(""), false);
+    m_tabpanel->AddPage(m_bill_of_materials_panel, _L("Bill of Materials"), std::string(""), false);
+    m_tabpanel->AddPage(m_assembly_panel, _L("Assembly Guide"), std::string(""), false);
+    m_tabpanel->AddPage(m_others_panel, _L("Others"), std::string(""), false);
 }
 
 wxWindow *AuxiliaryPanel::create_side_tools()
@@ -949,7 +949,7 @@ void AuxiliaryPanel::on_import_file(wxCommandEvent &event)
            
 
             boost::system::error_code ec;
-            if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_option::overwrite_if_exists, ec)) continue;
+            if (!fs::copy_file(src_bfs_path, fs::path(dir_path.ToStdWstring()), fs::copy_options::overwrite_existing, ec)) continue;
             Slic3r::put_other_changes();
 
             // add in file list

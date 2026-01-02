@@ -255,8 +255,8 @@ void SavePresetDialog::Item::update()
         m_radio_project->Disable();
     } else {
         if (m_valid_type != NoValid) {
-            m_radio_user->Enable();
-            m_radio_project->Enable();
+            m_radio_user->Enable(true);
+            m_radio_project->Enable(true);
         } else {
             m_radio_user->Disable();
             m_radio_project->Disable();

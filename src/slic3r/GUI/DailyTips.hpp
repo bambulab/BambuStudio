@@ -53,7 +53,6 @@ private:
     bool m_is_helio{ false };
     bool m_first_enter{ false };
     bool m_is_dark{ false };
-    DailyTipsLayout m_layout{ DailyTipsLayout::Vertical };
     float m_fade_opacity{ 1.0f };
 };
 

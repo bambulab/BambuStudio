@@ -25,7 +25,7 @@ namespace Slic3r {
             {
             public:
                 explicit ColorEffect();
-                ~ColorEffect();
+                virtual ~ColorEffect();
 
                 void set_color(float r, float g, float b, float a);
 
@@ -64,18 +64,18 @@ namespace Slic3r {
                 ~AdvancedRenderer();
 
                 void init(ConfigOptionMode mode, Slic3r::PresetBundle* preset_bundle) override;
-                void update_sequential_view_current(unsigned int first, unsigned int last);
-                void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager);
-                std::vector<double> get_layers_zs() const;
-                unsigned int get_options_visibility_flags() const;
-                void set_options_visibility_from_flags(unsigned int flags);
+                void update_sequential_view_current(unsigned int first, unsigned int last) override;
+                void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, OpenGLManager& opengl_manager) override;
+                std::vector<double> get_layers_zs() const override;
+                unsigned int get_options_visibility_flags() const override;
+                void set_options_visibility_from_flags(unsigned int flags) override;
                 unsigned int get_toolpath_role_visibility_flags() const;
                 void refresh(const GCodeProcessorResult& gcode_result, const std::vector<std::string>& str_tool_colors) override;
-                void refresh_render_paths();
-                bool can_export_toolpaths() const;
-                void export_toolpaths_to_obj(const char* filename) const;
-                void set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range);
-                void render(int canvas_width, int canvas_height, int right_margin);
+                void refresh_render_paths() override;
+                bool can_export_toolpaths() const override;
+                void export_toolpaths_to_obj(const char* filename) const override;
+                void set_layers_z_range(const std::array<unsigned int, 2>& layers_z_range) override;
+                void render(int canvas_width, int canvas_height, int right_margin) override;
                 void reset() override;
                 bool is_move_type_visible(EMoveType type) const override;
                 void set_move_type_visible(EMoveType type, bool visible) override;
@@ -134,14 +134,14 @@ namespace Slic3r {
 
             struct SegmentVertex
             {
-                uint32_t m_move_id{ -1u };
+                uint32_t m_move_id{ UINT32_MAX };
                 std::vector<uint32_t> m_indices;
             };
 
             struct Segment
             {
-                uint32_t m_first_mid{ -1u };
-                uint32_t m_second_mid{ -1u };
+                uint32_t m_first_mid{ UINT32_MAX };
+                uint32_t m_second_mid{ UINT32_MAX };
                 EMoveType m_type{ EMoveType::Count };
                 ExtrusionRole m_role{ ExtrusionRole::erCount };
                 uint16_t m_extruder_id{ UINT16_MAX };
@@ -209,8 +209,8 @@ namespace Slic3r {
 
             private:
                 bool m_b_valid{ true };
-                uint32_t m_start_sid{ -1u };
-                uint32_t m_end_sid{ -1u };
+                uint32_t m_start_sid{ UINT32_MAX };
+                uint32_t m_end_sid{ UINT32_MAX };
                 float m_zs{ 0.0f };
                 std::vector<Segment> m_segments;
                 std::vector<uint32_t> m_visible_segment_list;

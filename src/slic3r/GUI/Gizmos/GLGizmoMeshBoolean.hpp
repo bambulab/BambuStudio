@@ -393,7 +393,7 @@ protected:
     virtual void on_render_for_picking() override {}
     virtual void on_set_state() override;
     virtual CommonGizmosDataID on_get_requirements() const override;
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
+    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
     virtual void on_change_color_mode(bool is_dark) override;
     void on_load(cereal::BinaryInputArchive &ar) override;
     void on_save(cereal::BinaryOutputArchive &ar) const override;

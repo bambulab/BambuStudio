@@ -355,7 +355,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
             std::string decimal_point;
             std::string expression = "^[-+]?[0-9]+([,.][0-9]+)?$";
             std::regex decimalRegex(expression);
-            int decimal_number;
+            int decimal_number = 0;
             if (std::regex_match(number, decimalRegex)) {
                 std::smatch match;
                 if (std::regex_search(number, match, decimalRegex)) {
@@ -365,7 +365,7 @@ void CaliPresetCustomRangePanel::create_panel(wxWindow* parent)
                     else
                         decimal_number = 0;
                 }
-                int max_decimal_length;
+                int max_decimal_length = 0;
                 if (i <= 1)
                     max_decimal_length = 3;
                 else if (i >= 2)
@@ -2202,7 +2202,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     bool nozzle_is_set = false;
     for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
         if (abs(obj->GetExtderSystem()->GetNozzleDiameter(0) - nozzle_diameter_list[i]) < 1e-3) {
-            if (m_comboBox_nozzle_dia->GetCount() > i) {
+            if (m_comboBox_nozzle_dia->GetCount() > static_cast<unsigned int>(i)) {
                 m_comboBox_nozzle_dia->SetSelection(i);
                 nozzle_is_set = true;
             }
@@ -2225,7 +2225,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         for (size_t i = 0; i < obj->GetExtderSystem()->GetTotalExtderCount(); ++i) {
             if (i == LEFT_EXTRUDER_ID) {
                 int index = get_nozzle_diameter_list_index(LEFT_EXTRUDER_ID);
-                if ((index != -1) && m_left_comboBox_nozzle_dia->GetCount() > index) {
+                if ((index != -1) && m_left_comboBox_nozzle_dia->GetCount() > static_cast<unsigned int>(index)) {
                     m_left_comboBox_nozzle_dia->SetSelection(index);
                     wxCommandEvent event(wxEVT_COMBOBOX);
                     event.SetEventObject(this);
@@ -2246,7 +2246,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             }
             else if (i == RIGHT_EXTRUDER_ID) {
                 int index = get_nozzle_diameter_list_index(RIGHT_EXTRUDER_ID);
-                if ((index != -1) && m_right_comboBox_nozzle_dia->GetCount() > index) {
+                if ((index != -1) && m_right_comboBox_nozzle_dia->GetCount() > static_cast<unsigned int>(index)) {
                     m_right_comboBox_nozzle_dia->SetSelection(index);
                     wxCommandEvent event(wxEVT_COMBOBOX);
                     event.SetEventObject(this);

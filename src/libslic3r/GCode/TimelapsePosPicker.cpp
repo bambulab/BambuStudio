@@ -381,7 +381,8 @@ namespace Slic3r {
         std::priority_queue<CandidatePoint> max_heap;
 
         constexpr double candidate_point_segment = scale_(5), weight_of_camera=1./3.;
-        auto penaltyFunc = [&weight_of_camera](const Point &curr_post, const Point &CameraPos, const Point &candidatet) -> double {
+        auto penaltyFunc = [](const Point &curr_post, const Point &CameraPos, const Point &candidatet) -> double {
+            constexpr double weight_of_camera = 1./3.;
             // move distance + Camera occlusion penalty function
             double ret_pen = (curr_post - candidatet).cwiseAbs().sum() - weight_of_camera * (CameraPos - candidatet).cwiseAbs().sum();
             return ret_pen;

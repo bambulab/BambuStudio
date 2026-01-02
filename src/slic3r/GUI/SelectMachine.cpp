@@ -484,7 +484,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_link_edit_nozzle->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
 
-        if (this && this->m_is_in_sending_mode) {
+        if (m_is_in_sending_mode) {
             return;
         }
 
@@ -590,7 +590,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_pa_value_tips = new ScalableButton(m_pa_value_panel, wxID_ANY, "icon_qusetion", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
     m_pa_value_tips->SetBackgroundColour(*wxWHITE);
-    m_pa_value_tips->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e){
+    m_pa_value_tips->Bind(wxEVT_BUTTON, [](wxCommandEvent &e){
         std::string language = wxGetApp().app_config->get("language");
         wxString    region   = "en";
         if (language.find("zh") == 0) {
@@ -773,7 +773,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_link_network_state = new wxHyperlinkCtrl(m_sw_print_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
     m_link_network_state->SetFont(::Label::Body_12);
-    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check();});
+    m_link_network_state->Bind(wxEVT_LEFT_DOWN, [](auto& e) {wxGetApp().link_to_network_check();});
     m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND);});
     m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW);});
 
@@ -2021,7 +2021,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             });
 
         // STUDIO-9580
-        /* use warning color if there are warning and normal messages* /
+        /* use warning color if there are warning and normal messages*/
         /* use indexes if there are several messages*/
         /* add header and ending if there are several messages or has none block warnings*/
         if (confirm_text.size() > 1 || !is_printing_block)
@@ -2224,7 +2224,7 @@ static bool _HasExt(const std::vector<FilamentInfo> &ams_mapping_result) {
     };
 
     for (const auto &info : ams_mapping_result) {
-        if (info.ams_id == VIRTUAL_AMS_MAIN_ID_STR || info.ams_id == VIRTUAL_AMS_DEPUTY_ID_STR && !info.ams_id.empty()) {
+        if (info.ams_id == VIRTUAL_AMS_MAIN_ID_STR || (info.ams_id == VIRTUAL_AMS_DEPUTY_ID_STR && !info.ams_id.empty())) {
             return true;
         }
     }
@@ -3841,7 +3841,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         item->SetToolTip(m_ams_tooltip);
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
+        item->Bind(wxEVT_LEFT_UP, [](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             if (!item->m_enable) {return;}
             if (!m_check_flag || m_print_status == PrintDialogStatus::PrintStatusUnsupportedPrinter) { return; } /*STUDIO-11301*/
@@ -4354,7 +4354,7 @@ void SelectMachineDialog::set_default_from_sdcard()
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
 
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
+        item->Bind(wxEVT_LEFT_UP, [](wxMouseEvent& e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, obj_, item, materials, diameters_count, fo](wxMouseEvent& e) {
             if (!item->m_enable) {return;}
             if (!m_check_flag || m_print_status == PrintDialogStatus::PrintStatusUnsupportedPrinter) { return; } /*STUDIO-11301*/

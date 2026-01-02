@@ -42,7 +42,7 @@ void ObjectLayers::select_editor(LayerRangeEditor* editor, const bool is_last_ed
      * And as a result we couldn't edit this control.
      * */
 #ifdef __WXOSX__
-        wxTheApp->CallAfter([editor]() {
+        wxTheApp->CallAfter([]() {
 #endif
         //editor->SetFocus();
         //editor->SelectAll();
@@ -219,7 +219,7 @@ void ObjectLayers::update_layers_list()
 
     // only call sizer->Clear(true) via CallAfter, otherwise crash happens in Linux when press enter in Height Range
     // because an element cannot be destroyed while there are pending events for this element.(https://github.com/wxWidgets/Phoenix/issues/1854)
-    wxGetApp().CallAfter([this, type, objects_ctrl, range]() {
+    wxGetApp().CallAfter([this, type, range]() {
         // Delete all controls from options group
         m_grid_sizer->Clear(true);
 

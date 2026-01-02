@@ -502,7 +502,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_privacy_title->SetMaxSize(wxSize(FromDIP(450), -1));
      m_link_privacy_title->Wrap(FromDIP(450));
      m_link_privacy_title->SetForegroundColour(wxColour("#00AE42"));
-     m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+     m_link_privacy_title->Bind(wxEVT_LEFT_DOWN, [](auto& e) {
          std::string url;
          std::string country_code = Slic3r::GUI::wxGetApp().app_config->get_country_code();
 
@@ -597,7 +597,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      m_link_network_state = new wxHyperlinkCtrl(m_sw_bind_failed_info, wxID_ANY,_L("Check the status of current system services"),"");
      m_link_network_state->SetFont(::Label::Body_12);
-     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {wxGetApp().link_to_network_check(); });
+     m_link_network_state->Bind(wxEVT_LEFT_DOWN, [](auto& e) {wxGetApp().link_to_network_check(); });
      m_link_network_state->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_HAND); });
      m_link_network_state->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) {m_link_network_state->SetCursor(wxCURSOR_ARROW); });
 
@@ -949,7 +949,7 @@ void BindMachineDialog::on_show(wxShowEvent &event)
                     }
                 }
                     })
-                .on_error([this](std::string body, std::string error, unsigned status) {
+                .on_error([](std::string body, std::string error, unsigned status) {
                         //BOOST_LOG_TRIVIAL(info) << "load oss picture failed, oss path: " << oss_path << " status:" << status << " error:" << error;
             }).perform();
         }
@@ -1173,7 +1173,7 @@ void UnBindMachineDialog::on_show(wxShowEvent &event)
                     }
                 }
                     })
-                .on_error([this](std::string body, std::string error, unsigned status) {
+                .on_error([](std::string body, std::string error, unsigned status) {
                         //BOOST_LOG_TRIVIAL(info) << "load oss picture failed, oss path: " << oss_path << " status:" << status << " error:" << error;
                 }).perform();
 

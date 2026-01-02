@@ -58,13 +58,13 @@ public:
             }
             });
 
-        std::for_each(pconfig.m_excluded_regions.begin(), pconfig.m_excluded_regions.end(), [this, &pconfig](Item& itm) {
+        std::for_each(pconfig.m_excluded_regions.begin(), pconfig.m_excluded_regions.end(), [&pconfig](Item& itm) {
             pconfig.m_excluded_items.emplace_back(itm);
             });
 
 #ifdef SVGTOOLS_HPP
         svg::SVGWriter<RawShape> svgwriter;
-        std::for_each(first, last, [this,&svgwriter](Item &itm) { svgwriter.writeShape(itm, "none", "blue"); });
+        std::for_each(first, last, [&svgwriter](Item &itm) { svgwriter.writeShape(itm, "none", "blue"); });
         svgwriter.save(boost::filesystem::path("SVG") / "all_items.svg");
 #endif
 

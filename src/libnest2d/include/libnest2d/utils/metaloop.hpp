@@ -89,12 +89,12 @@ public:
     // with C++14 because the second parameter's type will depend on the
     // type of the parameter pack element that is processed. In C++14 we can
     // specify this second parameter type as auto in the lambda parameter list.
-    inline MapFn(Fn&& fn): fn_(forward<Fn>(fn)) {}
+    inline MapFn(Fn&& fn): fn_(std::forward<Fn>(fn)) {}
 
     template<class T> void operator ()(T&& pack_element) {
         // We provide the index as the first parameter and the pack (or tuple)
         // element as the second parameter to the functor.
-        fn_(N, forward<T>(pack_element));
+        fn_(N, std::forward<T>(pack_element));
     }
 };
 
@@ -118,7 +118,7 @@ public:
 
     template<class Tup, class Fn>
     void run( Tup&& valtup, Fn&& fn) {
-        MapFn<ARGNUM-N, Fn> {forward<Fn>(fn)} (get<ARGNUM-N>(valtup));
+        MapFn<ARGNUM-N, Fn> {std::forward<Fn>(fn)} (get<ARGNUM-N>(valtup));
     }
 };
 
@@ -131,11 +131,11 @@ public:
 
     template<class Tup, class Fn>
     void run(Tup&& valtup, Fn&& fn) {
-        MapFn<ARGNUM-N, Fn> {forward<Fn>(fn)} (std::get<ARGNUM-N>(valtup));
+        MapFn<ARGNUM-N, Fn> {std::forward<Fn>(fn)} (std::get<ARGNUM-N>(valtup));
 
         // Recursive call to process the next element of Args
-        _MetaLoop<Int<N-1>, Args...> ().run(forward<Tup>(valtup),
-                                            forward<Fn>(fn));
+        _MetaLoop<Int<N-1>, Args...> ().run(std::forward<Tup>(valtup),
+                                            std::forward<Fn>(fn));
     }
 };
 
@@ -187,26 +187,26 @@ public:
  */
 template<class...Args, class Fn>
 inline static void apply(Fn&& fn, Args&&...args) {
-    MetaLoop<Args...>().run(tuple<Args&&...>(forward<Args>(args)...),
-                            forward<Fn>(fn));
+    MetaLoop<Args...>().run(tuple<Args&&...>(std::forward<Args>(args)...),
+                            std::forward<Fn>(fn));
 }
 
 /// The version of apply with a tuple rvalue reference.
 template<class...Args, class Fn>
 inline static void apply(Fn&& fn, tuple<Args...>&& tup) {
-    MetaLoop<Args...>().run(std::move(tup), forward<Fn>(fn));
+    MetaLoop<Args...>().run(std::move(tup), std::forward<Fn>(fn));
 }
 
 /// The version of apply with a tuple lvalue reference.
 template<class...Args, class Fn>
 inline static void apply(Fn&& fn, tuple<Args...>& tup) {
-    MetaLoop<Args...>().run(tup, forward<Fn>(fn));
+    MetaLoop<Args...>().run(tup, std::forward<Fn>(fn));
 }
 
 /// The version of apply with a tuple const reference.
 template<class...Args, class Fn>
 inline static void apply(Fn&& fn, const tuple<Args...>& tup) {
-    MetaLoop<Args...>().run(tup, forward<Fn>(fn));
+    MetaLoop<Args...>().run(tup, std::forward<Fn>(fn));
 }
 
 /**

@@ -37,11 +37,9 @@ SendJob::SendJob(std::shared_ptr<ProgressIndicator> pri, Plater* plater, std::st
 void SendJob::prepare()
 {
     m_plater->get_print_job_data(&job_data);
-    if (&job_data) {
-        std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
-        auto check_access_code_path = temp_file.c_str();
-        job_data._temp_path = fs::path(check_access_code_path);
-    }
+    std::string temp_file = Slic3r::resources_dir() + "/check_access_code.txt";
+    auto check_access_code_path = temp_file.c_str();
+    job_data._temp_path = fs::path(check_access_code_path);
 }
 
 void SendJob::on_exception(const std::exception_ptr &eptr)
@@ -238,7 +236,7 @@ void SendJob::process()
         100  // PrintingStageFinished
     };
 
-    auto update_fn = [this, &msg, &curr_percent, &error_text, StagePercentPoint](int stage, int code, std::string info) {
+    auto update_fn = [this, &msg, &curr_percent, StagePercentPoint](int stage, int code, std::string info) {
                         if (stage == SendingPrintJobStage::PrintingStageCreate) {
                             if (this->connection_type == "lan") {
                                 msg = _L("Sending gcode file over LAN");

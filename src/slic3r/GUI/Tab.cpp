@@ -451,7 +451,7 @@ void Tab::create_preset_tab()
     // tree
     m_tabctrl = new TabCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(20 * m_em_unit, -1),
         wxTR_NO_BUTTONS | wxTR_HIDE_ROOT | wxTR_SINGLE | wxTR_NO_LINES | wxBORDER_NONE | wxWANTS_CHARS | wxTR_FULL_ROW_HIGHLIGHT);
-    m_tabctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable right select
+    m_tabctrl->Bind(wxEVT_RIGHT_DOWN, [](auto &e) {}); // disable right select
     m_tabctrl->SetFont(Label::Body_14);
     //m_left_sizer->Add(m_tabctrl, 1, wxEXPAND);
     const int img_sz = int(32 * scale_factor + 0.5f);
@@ -4764,7 +4764,7 @@ void TabPrinter::build_unregular_pages(bool from_initial_build/* = false*/)
             option.opt.full_width = true;
             optgroup->append_single_option_line(option);
 
-            optgroup->m_on_change = [this, extruder_idx](const t_config_option_key& opt_key, boost::any value)
+            optgroup->m_on_change = [this](const t_config_option_key& opt_key, boost::any value)
             {
                 //if (m_config->opt_bool("single_extruder_multi_material") && m_extruders_count > 1 && opt_key.find("nozzle_diameter") != std::string::npos)
                 //{
@@ -5039,7 +5039,7 @@ void TabPrinter::toggle_options()
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = m_config->option<ConfigOptionEnumsGeneric>("extruder_type");
         auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes](int extruder_id, int stride = 1) {
+            [this, &extruders](int extruder_id, int stride = 1) {
         return m_config->get_index_for_extruder(extruder_id + 1, "printer_extruder_id",
             ExtruderType(extruders->values[extruder_id]), get_actual_nozzle_volume_type(extruder_id), "printer_extruder_variant", stride);
     };
@@ -5435,7 +5435,8 @@ void Tab::rebuild_page_tree()
     if (sel_item == m_last_select_item)
         m_last_select_item = item;
     else
-        m_last_select_item = NULL;
+        // m_last_select_item = NULL;  // OLD - implicit conversion warning (NULL to int)
+        m_last_select_item = -1;  // No selection
 
     // allow activate page before selection of a page_tree item
     m_disable_tree_sel_changed_event = false;
@@ -6421,7 +6422,7 @@ void Tab::delete_preset()
         //wxID_YES != wxMessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal())
         wxID_YES == MessageDialog(parent(), msg, title, wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION).ShowModal()))
         return;
-    auto delete_cur_bed_type_to_config = [this]() {
+    auto delete_cur_bed_type_to_config = []() {
         PresetBundle &preset_bundle   = *wxGetApp().preset_bundle;
         auto          cur_preset_name = preset_bundle.printers.get_edited_preset().name;
         if (cur_preset_name.size() > 0 && wxGetApp().app_config->has_section("user_bed_type_list")) {
@@ -6807,7 +6808,7 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         int  n        = m_variant_combo->GetSelection();
         auto options  = generate_extruder_options();
         m_variant_combo->SetOptions(options);
-        for (int i = 0; i < m_variant_combo->GetCount(); ++i) {
+        for (unsigned int i = 0; i < m_variant_combo->GetCount(); ++i) {
             auto flow_type = get_actual_nozzle_flow_type(i);
             auto ext_type  = get_actual_extruder_type(i);
             bool connected = false;
@@ -6991,7 +6992,7 @@ void Tab::switch_excluder(int extruder_id, bool reload)
             return;
     }
     auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, int stride = 1) {
+            [this, &extruders, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, int stride = 1) {
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), get_actual_nozzle_volume_type(extruder_id), variant_keys.second, stride);
     };
@@ -7048,7 +7049,7 @@ void Tab::sync_excluder()
     auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
     auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, NozzleVolumeType nozzle_type) {
+            [this, &extruders, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, NozzleVolumeType nozzle_type) {
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), nozzle_type, variant_keys.second);
     };
@@ -7216,7 +7217,7 @@ void Tab::update_nozzle_status_display()
         m_nozzle_status_sizer->Add(line, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
     }
     if (!r_nozzles.empty()) {
-        for (const auto nozzle : r_nozzles) {
+        for (const auto& nozzle : r_nozzles) {
             wxString name = nozzle.IsOnRack() ? "R" + std::to_string(nozzle.GetNozzleId() + 1) : "R";
             create_nozzle_button(name);
         }

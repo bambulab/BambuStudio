@@ -19,6 +19,15 @@ wxDEFINE_EVENT(EVT_CANVAS_PART, wxCommandEvent);
 namespace Slic3r {
 namespace GUI {
 
+// File-scope constant for border width used in rendering
+// Defined here instead of function-scope to avoid lambda capture issues:
+// - MSVC requires explicit capture of constexpr variables in lambdas (C3493 error)
+// - Clang warns about unnecessary capture of constexpr variables (unused-lambda-capture)
+// File-scope constant resolves both issues without platform-specific code
+namespace {
+    constexpr float BORDER_WIDTH = 3.f;
+}
+
 SkipPartCanvas::SkipPartCanvas(wxWindow *parent, const wxGLAttributes& dispAttrs)
     : wxGLCanvas(parent, dispAttrs) {
     context_ = new wxGLContext(this);
@@ -245,7 +254,6 @@ void DrawRoundedRect(float x, float y, float width, float height, float radius, 
 
 void SkipPartCanvas::Render()
 {
-    constexpr float border_w = 3.f;
     constexpr int  uncheckd_stencil =1;
     constexpr int  checkd_stencil = 2;
     constexpr int  skipped_stencil = 3;
@@ -287,7 +295,7 @@ void SkipPartCanvas::Render()
     glDisable(GL_CULL_FACE);
     glEnable(GL_STENCIL_TEST);
 
-    auto draw_shape = [this, border_w](const int stencil, const PartState part_type, const ColorRGB& rgb) {
+    auto draw_shape = [this](const int stencil, const PartState part_type, const ColorRGB& rgb) {
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glStencilFunc(GL_ALWAYS, stencil, 0xFF);
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
@@ -315,7 +323,7 @@ void SkipPartCanvas::Render()
                 continue;
 
             glColor3f(rgb.r(), rgb.g(), rgb.b());
-            glLineWidth(border_w);
+            glLineWidth(BORDER_WIDTH);
             for (const auto &contour_item : contour.second) {
                 glBegin(GL_LINE_LOOP);
                 for (const auto &pt : contour_item) { glVertex2f(pt.x, pt.y); }
@@ -335,7 +343,7 @@ void SkipPartCanvas::Render()
     // stencil3 => skipped
     draw_shape(skipped_stencil, psSkipped, ColorRGB{95 / 255.f, 95 / 255.f, 95 / 255.f});
 
-    auto draw_mask = [this, view_rect, border_w, w, h](const int stencil, const PartState part_type,
+    auto draw_mask = [this, view_rect](const int stencil, const PartState part_type,
         const ColorRGB& background, const ColorRGB& line, const ColorRGB& bound) {
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glStencilFunc(GL_EQUAL, stencil, 0xFF);
@@ -355,7 +363,7 @@ void SkipPartCanvas::Render()
             if (part_info == parts_state_.end() || part_info->second != part_type)
                 continue;
             glColor3f(bound.r(), bound.g(), bound.b());
-            glLineWidth(border_w);
+            glLineWidth(BORDER_WIDTH);
             for (const auto &contour_item : contour.second) {
                 glBegin(GL_LINE_LOOP);
                 for (const auto &pt : contour_item) { glVertex2f(pt.x, pt.y); }

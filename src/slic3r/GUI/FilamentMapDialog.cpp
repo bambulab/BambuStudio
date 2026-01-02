@@ -350,16 +350,16 @@ void FilamentMapDialog::update_panel_status(PageType page)
     if (page == PageType::ptDefault) {
         if (m_default_btn && m_default_map_panel) {
             m_default_btn->Select(true);
-            m_default_map_panel->Show();
+            m_default_map_panel->ShowPanel();
         }
     }
     if (page == PageType::ptManual) {
         m_manual_btn->Select(true);
-        m_manual_map_panel->Show();
+        m_manual_map_panel->ShowPanel();
     }
     if (page == PageType::ptAuto) {
         m_auto_btn->Select(true);
-        m_auto_map_panel->Show();
+        m_auto_map_panel->ShowPanel();
         if (!m_ok_btn->IsEnabled()) {
             m_ok_btn->Enable();
         }

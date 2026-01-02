@@ -17,7 +17,7 @@ public:
 
     void paintEvent(wxPaintEvent &evt);
 
-    void SetLabel(wxString msg){m_msg = msg;};
+    void SetLabel(const wxString& label) override { m_msg = label; }
 
 };
 #endif

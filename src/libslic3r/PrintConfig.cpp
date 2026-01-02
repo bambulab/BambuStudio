@@ -1844,7 +1844,10 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The flow ratio set by object, the meaning is the same as flow ratio.");
     def->mode    = comDevelop;
     def->max     = 2;
-    def->min     = 0.01;
+    // TODO: INVESTIGATE POTENTIAL BUG - Original value was 0.01, but min is int (truncates to 0)
+    // For ConfigOptionFloat, should min support decimal values? (Config.hpp:2386 defines min as int)
+    // def->min     = 0.01;  // OLD - implicit conversion warning
+    def->min     = 0;
     def->set_default_value(new ConfigOptionFloat(1));
 
     def = this->add("enable_pressure_advance", coBools);
@@ -3252,7 +3255,10 @@ void PrintConfigDef::init_fff_params()
     def->label    = L("Interlocking beam width");
     def->tooltip  = L("The width of the interlocking structure beams.");
     def->sidetext = L("mm");
-    def->min      = 0.01;
+    // TODO: INVESTIGATE POTENTIAL BUG - Original value was 0.01, but min is int (truncates to 0)
+    // For ConfigOptionFloat, should min support decimal values? (Config.hpp:2386 defines min as int)
+    // def->min      = 0.01;  // OLD - implicit conversion warning
+    def->min      = 0;
     def->category = L("Advanced");
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(0.8));
@@ -3683,7 +3689,7 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->readonly = true;
     def->nullable = true;
-    def->set_default_value(new ConfigOptionFloatsNullable { {0.0} });
+    def->set_default_value(new ConfigOptionFloatsNullable { 0.0 });
 
     def = this->add("start_end_points", coPoints);
     def->label = L("Start end points");
@@ -4309,7 +4315,10 @@ void PrintConfigDef::init_fff_params()
     def->category = L("Quality");
     def->tooltip = L("The wipe speed is determined by the speed setting specified in this configuration." "If the value is expressed as a percentage (e.g. 80%), it will be calculated based on the travel speed setting above." "The default value for this parameter is 80%");
     def->sidetext = "%";
-    def->min = 0.01;
+    // TODO: INVESTIGATE POTENTIAL BUG - Original value was 0.01, but min is int (truncates to 0)
+    // For ConfigOptionPercent, should min support decimal values? (Config.hpp:2386 defines min as int)
+    // def->min = 0.01;  // OLD - implicit conversion warning
+    def->min = 0;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionPercent(80));
 

@@ -76,7 +76,8 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
                 auto ip = str.find(' ', ik);
                 if (ip == wxString::npos) ip = str.Length();
                 auto v = str.Mid(ik, ip - ik);
-                if (k == "T:" && v.Length() == 8) {
+                // if (k == "T:" && v.Length() == 8) {  // OLD: pointer comparison, not string comparison!
+                if (strcmp(k, "T:") == 0 && v.Length() == 8) {
                     long h = 0,m = 0,s = 0;
                     v.Left(2).ToLong(&h);
                     v.Mid(3, 2).ToLong(&m);
@@ -94,7 +95,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
-    m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
+    m_label_status->Bind(wxEVT_LEFT_UP, [](auto &e) {
         auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
         wxLaunchDefaultBrowser(url);
     });
@@ -179,9 +180,9 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     }
     Enable(obj && obj->is_info_ready() && obj->m_push_count > 0);
     if (machine == m_machine) {
-        if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
+        if (m_last_state == MediaStreamState::IDLE && IsEnabled())
             Play();
-        if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING) {
+        if (m_last_state == MediaStreamState::PLAYING) {
             auto now = std::chrono::system_clock::now();
             if (m_play_timer <= now) {
                 m_play_timer = now + 1min;
@@ -218,7 +219,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     } else {
         m_streaming = false;
     }
-    if (m_last_state != MEDIASTATE_IDLE)
+    if (m_last_state != MediaStreamState::IDLE)
         Stop(" ");
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid state conflict
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
@@ -278,7 +279,7 @@ void MediaPlayCtrl::Play()
         return;
     if (!IsShownOnScreen())
         return;
-    if (m_last_state != MEDIASTATE_IDLE) {
+    if (m_last_state != MediaStreamState::IDLE) {
         return;
     }
     m_failed_code = 0;
@@ -347,7 +348,7 @@ void MediaPlayCtrl::Play()
 
     m_disable_lan = false;
     m_failed_code = 0;
-    m_last_state  = MEDIASTATE_INITIALIZING;
+    m_last_state  = MediaStreamState::INITIALIZING;
     m_button_play->SetIcon("media_stop");
 
     if (!m_remote_proto) { // not support tutk
@@ -387,7 +388,7 @@ void MediaPlayCtrl::Play()
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << BBLCrossTalk::Crosstalk_DevId(m);
                     return;
                 }
-                if (m_last_state == MEDIASTATE_INITIALIZING) {
+                if (m_last_state == MediaStreamState::INITIALIZING) {
                     if (url.empty() || !boost::algorithm::starts_with(url, "bambu:///")) {
                         m_failed_code = 3;
                         if (boost::ends_with(url, "]")) {
@@ -412,9 +413,9 @@ void start_ping_test();
 
 void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 {
-    int last_state = m_last_state;
+    MediaStreamState last_state = m_last_state;
 
-    if (m_last_state != MEDIASTATE_IDLE) {
+    if (m_last_state != MediaStreamState::IDLE) {
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
         boost::unique_lock lock(m_mutex);
@@ -428,7 +429,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
                 ? _L("Please check the network and try again, You can restart or update the printer if the issue persists.")
                 : _L(iter->second.c_str());
             if (m_failed_code == 1) {
-                if (m_last_state == wxMEDIASTATE_PLAYING)
+                if (m_last_state == MediaStreamState::PLAYING)
                     msg2 = _L("Multi-device/client simultaneous liveview is not supported. Please close the liveview on other devices/clients and try again.");
             }
 #if !BBL_RELEASE_TO_PUBLIC && defined(__WINDOWS__)
@@ -440,7 +441,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
             SetStatus(msg2);
         } else
             SetStatus(_L("Video Stopped."), false);
-        m_last_state = MEDIASTATE_IDLE;
+        m_last_state = MediaStreamState::IDLE;
         bool auto_retry = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
         if (!auto_retry || m_failed_code >= 100 || m_failed_code == 1 || m_failed_code == -2) // not keep retry on local error or EOS
             m_next_retry = wxDateTime();
@@ -455,11 +456,11 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     auto tunnel = m_url.empty() ? "" : into_u8(wxURI(m_url).GetPath()).substr(1);
     if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
         tunnel = tunnel.substr(0, n);
-    if (last_state != wxMEDIASTATE_PLAYING && m_failed_code != 0
+    if (last_state != MediaStreamState::PLAYING && m_failed_code != 0
             && m_last_failed_codes.find(m_failed_code) == m_last_failed_codes.end()
             && (m_user_triggered || m_failed_retry > 3)) {
         json j;
-        j["stage"]          = last_state;
+        j["stage"]          = static_cast<int>(last_state);
         //j["dev_id"]         = m_machine;
         j["dev_id"]         = "";
         j["dev_ip"]         = "";
@@ -482,7 +483,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         m_last_failed_codes.insert(m_failed_code);
     }
 
-    if (last_state == wxMEDIASTATE_PLAYING && m_stat.size() == 4) {
+    if (last_state == MediaStreamState::PLAYING && m_stat.size() == 4) {
         json j;
         //j["dev_id"]         = m_machine;
         j["dev_id"]         = "";
@@ -503,7 +504,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     ++m_failed_retry;
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
-    if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
+    if (m_failed_code < 0 && last_state != MediaStreamState::PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
         m_next_retry = wxDateTime(); // stop retry
         if (wxGetApp().show_modal_ip_address_enter_dialog(false, _L("LAN Connection Failed (Failed to start liveview)"))) {
             m_failed_retry = 0;
@@ -524,7 +525,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 void MediaPlayCtrl::TogglePlay()
 {
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::TogglePlay";
-    if (m_last_state != MEDIASTATE_IDLE) {
+    if (m_last_state != MediaStreamState::IDLE) {
         m_next_retry = wxDateTime();
         Stop();
     } else {
@@ -676,7 +677,7 @@ void MediaPlayCtrl::msw_rescale() {
 
 void MediaPlayCtrl::jump_to_play()
 {
-    if (m_last_state != MEDIASTATE_IDLE)
+    if (m_last_state != MediaStreamState::IDLE)
         return;
     TogglePlay();
 }
@@ -685,7 +686,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
     auto state      = m_media_ctrl->GetState();
-    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << last_state;
+    BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: " << state << ", last_state: " << static_cast<int>(last_state);
     if ((int) state < 0) return;
     {
         boost::unique_lock lock(m_mutex);
@@ -694,18 +695,18 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             return;
         }
     }
-    if ((last_state == MEDIASTATE_IDLE || last_state == MEDIASTATE_INITIALIZING) && state == wxMEDIASTATE_STOPPED) { return; }
-    if ((last_state == wxMEDIASTATE_PAUSED || last_state == wxMEDIASTATE_PLAYING) && state == wxMEDIASTATE_STOPPED) {
+    if ((last_state == MediaStreamState::IDLE || last_state == MediaStreamState::INITIALIZING) && state == wxMEDIASTATE_STOPPED) { return; }
+    if ((last_state == MediaStreamState::PAUSED || last_state == MediaStreamState::PLAYING) && state == wxMEDIASTATE_STOPPED) {
         m_failed_code = m_media_ctrl->GetLastError();
         Stop();
         return;
     }
-    if (last_state == MEDIASTATE_LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED)) {
+    if (last_state == MediaStreamState::LOADING && (state == wxMEDIASTATE_STOPPED || state == wxMEDIASTATE_PAUSED)) {
         wxSize size = m_media_ctrl->GetVideoSize();
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::onStateChanged: size: " << size.x << "x" << size.y;
         m_failed_code = m_media_ctrl->GetLastError();
         if (size.GetWidth() >= 320) {
-            m_last_state = state;
+            m_last_state = from_wxMediaState(state);
             m_failed_code = 0;
             SetStatus(_L("Playing..."), false);
             m_print_idle = 0;
@@ -715,7 +716,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 
             // track event
             json j;
-            j["stage"] =  std::to_string(m_last_state);
+            j["stage"] =  std::to_string(static_cast<int>(m_last_state));
             //j["dev_id"] = m_machine;
             j["dev_id"] = "";
             j["dev_ip"] = "";
@@ -747,7 +748,7 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             Stop();
         }
     } else {
-        m_last_state = state;
+        m_last_state = from_wxMediaState(state);
     }
 }
 
@@ -755,8 +756,11 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
 {
     auto msg = msg2;
     if (m_failed_code != 0) {
-        int state2 = m_last_state >= MEDIASTATE_IDLE ? m_last_state - MEDIASTATE_IDLE :
-                                                       m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
+        int state_value = static_cast<int>(m_last_state);
+        constexpr int IDLE_VALUE = static_cast<int>(MediaStreamState::IDLE);
+        constexpr int BUFFERING_VALUE = static_cast<int>(MediaStreamState::BUFFERING);
+        int state2 = state_value >= IDLE_VALUE ? state_value - IDLE_VALUE :
+                                                  state_value + BUFFERING_VALUE - IDLE_VALUE;
         msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
         msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
     }
@@ -795,7 +799,7 @@ bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }
 
 void MediaPlayCtrl::load()
 {
-    m_last_state = MEDIASTATE_LOADING;
+    m_last_state = MediaStreamState::LOADING;
     SetStatus(_L("Loading..."));
     if (wxGetApp().app_config->get("internal_developer_mode") == "true") {
         std::string file_h264 = data_dir() + "/video.h264";
@@ -905,7 +909,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
             auto file_dll  = tools_dir + dll;
             auto file_dll2 = plugins_dir + dll;
             if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
-                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_options::overwrite_existing);
         }
         boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir),
                                              boost::process::windows::create_no_window,

@@ -509,13 +509,13 @@ public:
 	bool has_key(std::string const &key);
 
 protected:
-	virtual void    activate_selected_page(std::function<void()> throw_if_canceled);
+	virtual void    activate_selected_page(std::function<void()> throw_if_canceled) override;
 
 	virtual void    on_value_change(const std::string& opt_key, const boost::any& value) override;
 
 	virtual void    notify_changed(ObjectBase * object) = 0;
 
-	virtual void	reload_config();
+	virtual void	reload_config() override;
 
 	virtual void	update_custom_dirty(std::vector<std::string> &dirty_options, std::vector<std::string> &nonsys_options) override;
 
@@ -608,13 +608,9 @@ public:
 class TabPrinter : public Tab
 {
 private:
-	bool		m_has_single_extruder_MM_page = false;
 	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
 	bool		m_rebuild_kinematics_page = false;
-
-	ogStaticText*	m_fff_print_host_upload_description_line {nullptr};
-	ogStaticText*	m_sla_print_host_upload_description_line {nullptr};
 
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;

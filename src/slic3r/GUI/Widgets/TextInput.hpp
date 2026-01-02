@@ -50,7 +50,7 @@ public:
 
     void SetCornerRadius(double radius);
 
-    void SetLabel(const wxString& label);
+    void SetLabel(const wxString& label) override;
 
     void SetStaticTips(const wxString& tips, const wxBitmap& bitmap);
 
@@ -80,7 +80,7 @@ protected:
     virtual void OnEdit() {}
 
     virtual void DoSetSize(
-        int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO);
+        int x, int y, int width, int height, int sizeFlags = wxSIZE_AUTO) override;
 
     void DoSetToolTipText(wxString const &tip) override;
 

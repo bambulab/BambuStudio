@@ -1,9 +1,9 @@
-//**********************************************************/
-/* File: wgtDeviceNozzleSelect.cpp
-*  Description: The panel to select nozzle
-*
-*  \n class wgtDeviceNozzleSelect;
-//**********************************************************/
+/**********************************************************
+ * File: wgtDeviceNozzleSelect.cpp
+ *  Description: The panel to select nozzle
+ *
+ *  \n class wgtDeviceNozzleSelect;
+ **********************************************************/
 
 #include "wgtDeviceNozzleSelect.h"
 #include "wgtDeviceNozzleRack.h"
@@ -147,7 +147,7 @@ void wgtDeviceNozzleRackSelect::SetSelectedNozzle(const DevNozzle &nozzle)
 void wgtDeviceNozzleRackSelect::OnNozzleItemSelected(wxCommandEvent &evt)
 {
     auto *item = dynamic_cast<wgtDeviceNozzleRackNozzleItem *>(evt.GetEventObject());
-    if (item; auto ptr = m_nozzle_rack.lock()) {
+    if (auto ptr = m_nozzle_rack.lock()) {
         if (item == m_toolhead_nozzle) {
             SetSelectedNozzle(ptr->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID));
         } else {

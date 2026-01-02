@@ -102,7 +102,7 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
     }
 
     // Never produce just a single point output polygon.
-    if (!out.empty())
+    if (!out.empty()) {
         if(get_entire_polygons){
             out=src;
         }else{
@@ -114,6 +114,7 @@ template<typename PointType> inline void clip_clipper_polygon_with_subject_bbox_
             (sides_prev & sides_this & sides_next) == 0)
             out.emplace_back(src.back());
         }
+    }
 
 }
 

@@ -44,6 +44,8 @@ private:
 class Notebook: public wxBookCtrlBase
 {
 public:
+    using wxBookCtrlBase::AddPage;
+
     Notebook(wxWindow * parent,
                  wxWindowID winid = wxID_ANY,
                  const wxPoint & pos = wxDefaultPosition,
@@ -102,7 +104,7 @@ public:
     // by this control) and show it immediately.
     bool ShowNewPage(wxWindow * page)
     {
-        return AddPage(page, wxString(), "", "");
+        return AddPage(page, wxString(), std::string(""), std::string(""));
     }
 
 

@@ -72,7 +72,6 @@ class GLGizmoAdvancedCut : public GLGizmoRotate3D
 {
 private:
     unsigned int m_last_active_item_imgui{0};
-    double m_snap_step{1.0};
     // archived values
     Vec3d m_ar_plane_center{Vec3d::Zero()};
 
@@ -115,17 +114,12 @@ private:
     bool m_rotate_upper{false};
     bool m_rotate_lower{false};
 
-    bool m_do_segment;
-    double m_segment_smoothing_alpha;
-    int m_segment_number;
-
     mutable Grabber m_move_z_grabber;
     mutable Grabber m_move_x_grabber;
 
     bool m_connectors_editing{false};
     bool m_add_connector_ok{false};
     std::vector<size_t> m_invalid_connectors_idxs;
-    bool m_show_shortcuts{false};
 
     std::vector<std::pair<wxString, wxString>> m_connector_shortcuts;
     std::vector<std::pair<wxString, wxString>> m_cut_plane_shortcuts;
@@ -144,7 +138,6 @@ private:
     bool               m_groove_editing{false};
     float              m_contour_width{0.4f};
     float              m_cut_plane_radius_koef{1.5f};
-    float              m_shortcut_label_width{-1.f};
     bool               m_is_slider_editing_done{false};
     bool               m_hide_cut_plane{false};
     double             m_radius{0.0};
@@ -153,8 +146,6 @@ private:
     Vec3d              m_cut_plane_start_move_pos{Vec3d::Zero()};
     bool               m_cut_plane_as_circle{false};
     std::vector<Vec3d> m_groove_vertices;
-    bool               m_was_cut_plane_dragged{false};
-    bool               m_was_contour_selected{false};
     bool               m_is_dragging{false};
     std::shared_ptr<PartSelection>    m_part_selection{nullptr};
     // dragging angel in hovered axes
@@ -224,7 +215,7 @@ public:
 
     bool unproject_on_cut_plane(const Vec2d &mouse_pos, Vec3d &pos, Vec3d &pos_world, bool respect_contours = true);
 
-    virtual bool apply_clipping_plane() { return m_connectors_editing; }
+    virtual bool apply_clipping_plane() override { return m_connectors_editing; }
 
     BoundingBoxf3 get_bounding_box() const override;
 
@@ -232,29 +223,29 @@ public:
     bool        wants_enter_leave_snapshots() const override { return true; }
 
 protected:
-    virtual bool on_init();
+    virtual bool on_init() override;
     virtual void on_load(cereal::BinaryInputArchive &ar) override;
     virtual void on_save(cereal::BinaryOutputArchive &ar) const override;
     virtual void data_changed(bool is_serializing) override;
-    virtual std::string on_get_name() const;
+    virtual std::string on_get_name() const override;
     virtual std::string on_get_name_str() override { return "Cut"; }
     void    apply_color_clip_plane_colors();
-    virtual void on_set_state();
+    virtual void on_set_state() override;
     void         close();
-    virtual bool on_is_activable() const;
+    virtual bool on_is_activable() const override;
     virtual CommonGizmosDataID on_get_requirements() const override;
     virtual void on_start_dragging() override;
     virtual void on_stop_dragging() override;
     virtual void update_plate_center(Axis axis_type, double projection, bool is_abs_move); // old name:dragging_grabber_move
     virtual void update_plate_normal_boundingbox_clipper(const Transform3d &rotation_tmp); // old name:dragging_grabber_rotation
-    virtual void on_update(const UpdateData& data);
-    virtual void on_render();
-    virtual void on_render_for_picking();
-    virtual void on_render_input_window(float x, float y, float bottom_limit);
+    virtual void on_update(const UpdateData& data) override;
+    virtual void on_render() override;
+    virtual void on_render_for_picking() override;
+    virtual void on_render_input_window(float x, float y, float bottom_limit) override;
 
     void show_tooltip_information(float x, float y);
 
-    virtual void on_enable_grabber(unsigned int id)
+    virtual void on_enable_grabber(unsigned int id) override
     {
         if (id < 3)
             m_gizmos[id].enable_grabber(0);
@@ -262,7 +253,7 @@ protected:
             this->enable_grabber(0);
     }
 
-    virtual void on_disable_grabber(unsigned int id)
+    virtual void on_disable_grabber(unsigned int id) override
     {
         if (id < 3)
             m_gizmos[id].disable_grabber(0);
@@ -270,7 +261,7 @@ protected:
             this->disable_grabber(0);
     }
 
-    virtual void on_set_hover_id()
+    virtual void on_set_hover_id() override
     {
         for (int i = 0; i < 3; ++i)
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);

@@ -34,6 +34,11 @@
 namespace Slic3r {
 using boost::polygon::voronoi_diagram;
 
+namespace {
+    // File-scope constant to avoid lambda capture issues across compilers (MSVC vs Clang)
+    constexpr size_t FUZZY_SKIN_NUM_EXTRUDERS = 1;
+}
+
 static inline Point mk_point(const Voronoi::VD::vertex_type *point) { return {coord_t(point->x()), coord_t(point->y())}; }
 
 static inline Point mk_point(const Voronoi::Internal::point_type &point) { return {coord_t(point.x()), coord_t(point.y())}; }
@@ -2337,10 +2342,9 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
 
 std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const PrintObject &print_object, const std::function<void()> &throw_on_cancel_callback)
 {
-    const size_t                         num_extruders = 1;
     const size_t                         num_layers    = print_object.layers().size();
     std::vector<std::vector<ExPolygons>> segmented_regions(num_layers);
-    segmented_regions.assign(num_layers, std::vector<ExPolygons>(num_extruders + 1));
+    segmented_regions.assign(num_layers, std::vector<ExPolygons>(FUZZY_SKIN_NUM_EXTRUDERS + 1));
     std::vector<std::vector<PaintedLine>> painted_lines(num_layers);
     std::array<std::mutex, 64>            painted_lines_mutex;
     std::vector<EdgeGrid::Grid>           edge_grids(num_layers);
@@ -2407,11 +2411,11 @@ std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const P
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
 #ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
-        tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders + 1), [&mv, &print_object, &layers, &edge_grids, &painted_lines, &painted_lines_mutex, &input_expolygons,
+        tbb::parallel_for(tbb::blocked_range<size_t>(1, FUZZY_SKIN_NUM_EXTRUDERS + 1), [&mv, &print_object, &layers, &edge_grids, &painted_lines, &painted_lines_mutex, &input_expolygons,
                                                                              &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
             for (size_t extruder_idx = range.begin(); extruder_idx < range.end(); ++extruder_idx) {
 #else
-        for (size_t extruder_idx = 1; extruder_idx < num_extruders + 1; ++extruder_idx) {
+        for (size_t extruder_idx = 1; extruder_idx < FUZZY_SKIN_NUM_EXTRUDERS + 1; ++extruder_idx) {
 #endif
                 throw_on_cancel_callback();
                 const indexed_triangle_set custom_facets = mv->fuzzy_skin_facets.get_facets(*mv, EnforcerBlockerType(extruder_idx));
@@ -2505,7 +2509,8 @@ std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const P
                              << std::count_if(painted_lines.begin(), painted_lines.end(), [](const std::vector<PaintedLine> &pl) { return !pl.empty(); });
 
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - layers segmentation in parallel - begin";
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&edge_grids, &input_expolygons, &painted_lines, &segmented_regions, &num_extruders,
+    // Note: FUZZY_SKIN_NUM_EXTRUDERS moved to file scope to avoid lambda capture issues across compilers
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&edge_grids, &input_expolygons, &painted_lines, &segmented_regions,
                                                                   &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
@@ -2537,7 +2542,7 @@ std::vector<std::vector<ExPolygons>> fuzzy_skin_segmentation_by_painting(const P
                     MMU_Graph graph = build_graph(layer_idx, color_poly);
                     remove_multiple_edges_in_vertices(graph, color_poly);
                     graph.remove_nodes_with_one_arc();
-                    segmented_regions[layer_idx] = extract_colored_segments(graph, num_extruders);
+                    segmented_regions[layer_idx] = extract_colored_segments(graph, FUZZY_SKIN_NUM_EXTRUDERS);
                     // segmented_regions[layer_idx] = extract_colored_segments(color_poly, num_extruders, layer_idx);
                 }
 

@@ -270,7 +270,7 @@ static wxArrayString get_exist_vendor_choices(VendorMap& vendors)
         vendors[users_models.name] = users_models;
     }
 
-    for (const pair<std::string, VendorProfile> &vendor : vendors) {
+    for (const pair<const std::string, VendorProfile> &vendor : vendors) {
         if (vendor.second.models.empty() || vendor.second.id.empty()) continue;
         choices.Add(vendor.first);
     }
@@ -668,11 +668,11 @@ void CreateFilamentPresetDialog::on_dpi_changed(const wxRect &suggested_rect) {
 
 bool CreateFilamentPresetDialog::is_check_box_selected()
 {
-    for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+    for (const std::pair<::CheckBox *const, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
         if (checkbox_preset.first->GetValue()) { return true; }
     }
 
-    for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+    for (const std::pair<::CheckBox *const, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
         if (checkbox_preset.first->GetValue()) { return true; }
     }
 
@@ -703,7 +703,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString choices;
-    for (const wxString &vendor : filament_vendors) {
+    for (const std::string &vendor : filament_vendors) {
         choices.push_back(vendor);
     }
 
@@ -723,7 +723,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_custom_vendor_input->SetSize(NAME_OPTION_COMBOBOX_SIZE);
     textInputSizer->Add(m_filament_custom_vendor_input, 0, wxEXPAND | wxALL, 0);
     m_filament_custom_vendor_input->GetTextCtrl()->SetHint(_L("Input Custom Vendor"));
-    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_custom_vendor_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key_for_filament.find(key) != cannot_input_key_for_filament.end()) {
             event.Skip(false);
@@ -786,7 +786,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     wxArrayString filament_type;
-    for (const wxString &filament : m_system_filament_types_set) {
+    for (const std::string &filament : m_system_filament_types_set) {
         filament_type.Add(filament);
     }
 
@@ -834,7 +834,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     m_filament_serial_input   = new TextInput(this, "", "", "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE, wxTE_PROCESS_ENTER);
     m_filament_serial_input->GetTextCtrl()->SetMaxLength(50);
     comboBoxSizer->Add(m_filament_serial_input, 0, wxEXPAND | wxALL, 0);
-    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_filament_serial_input->GetTextCtrl()->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key_for_filament.find(key) != cannot_input_key_for_filament.end()) {
             event.Skip(false);
@@ -1060,7 +1060,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
 
         if (curr_create_type == m_create_type.base_filament) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament  create type  filament ";
-            for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
+            for (const std::pair<::CheckBox *const, std::pair<std::string, Preset *>> &checkbox_preset : m_filament_preset) {
                 if (checkbox_preset.first->GetValue()) {
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
@@ -1087,7 +1087,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             }
         } else if (curr_create_type == m_create_type.base_filament_preset) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":clone filament presets  create type  filament preset";
-            for (const std::pair<::CheckBox *, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
+            for (const std::pair<::CheckBox *const, std::pair<std::string, Preset *>> &checkbox_preset : m_machint_filament_preset) {
                 if (checkbox_preset.first->GetValue()) {
                     std::string compatible_printer_name = checkbox_preset.second.first;
                     std::vector<std::string> failures;
@@ -1165,7 +1165,7 @@ wxArrayString CreateFilamentPresetDialog::get_filament_preset_choices()
     }
 
     int suffix = 0;
-    for (const pair<std::string, std::vector<Preset *>> &preset : m_filament_choice_map) {
+    for (const pair<const std::string, std::vector<Preset *>> &preset : m_filament_choice_map) {
         if (preset.second.empty()) continue;
         std::set<wxString> preset_name_set;
         for (Preset* filament_preset : preset.second) {
@@ -1698,7 +1698,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
 
     m_custom_vendor_text_ctrl                      = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_vendor_text_ctrl->SetHint(_L("Input Custom Vendor"));
-    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_vendor_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -1710,7 +1710,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_custom_vendor_text_ctrl->Hide();
     m_custom_model_text_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_model_text_ctrl->SetHint(_L("Input Custom Model"));
-    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_model_text_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -1783,7 +1783,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_nozzle_diameter_item(wxWindow *par
     m_nozzle_diameter         = new ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, OPTION_SIZE, 0, nullptr, wxCB_READONLY);
     wxArrayString nozzle_diameters;
     const char    dec_sep = is_decimal_separator_point() ? '.' : ',';
-    for (const std::string nozzle : nozzle_diameter_vec) {
+    for (const std::string& nozzle : nozzle_diameter_vec) {
         std::string display_nozzle = nozzle;
         size_t pos = display_nozzle.find('.');
         if (pos != std::string::npos) { display_nozzle.replace(pos, 1, 1, dec_sep); }
@@ -1795,7 +1795,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_nozzle_diameter_item(wxWindow *par
 
     m_custom_nozzle_diameter_ctrl = new wxTextCtrl(parent, wxID_ANY, "", wxDefaultPosition, NAME_OPTION_COMBOBOX_SIZE);
     m_custom_nozzle_diameter_ctrl->SetHint(_L("Input Custom Nozzle Diameter"));
-    m_custom_nozzle_diameter_ctrl->Bind(wxEVT_CHAR, [this](wxKeyEvent &event) {
+    m_custom_nozzle_diameter_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent &event) {
         int key = event.GetKeyCode();
         if (key != 44 && key != 46 && cannot_input_key.find(key) != cannot_input_key.end()) { // "@" can not be inputed
             event.Skip(false);
@@ -3008,7 +3008,7 @@ bool CreatePrinterPresetDialog::data_init()
                 item.first->SetValue(false);
             }
             else {
-                item.first->Enable();
+                item.first->Enable(true);
                 if (!has_set_value) {
                     select_curr_radiobox(m_create_presets_btns, i);
                     has_set_value = true;
@@ -3655,6 +3655,10 @@ void ExportConfigsDialog::show_export_result(const ExportCase &export_case)
     case ExportCase::EXPORT_SUCCESS:
         msg_dlg = new MessageDialog(this, _L("Export successful"), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
         break;
+    case ExportCase::EXPORT_CANCEL:
+    case ExportCase::CASE_COUNT:
+        // No dialog for cancel or sentinel value
+        break;
     }
 
     if (msg_dlg) {
@@ -4212,7 +4216,7 @@ ExportConfigsDialog::ExportCase ExportConfigsDialog::archive_filament_bundle_to_
                 BOOST_LOG_TRIVIAL(info) << "Filament preset json add successful: " << filament_preset->name;
             }
 
-            for (const std::pair<std::string, json>& vendor_name_to_json : vendor_structure) {
+            for (const std::pair<const std::string, json>& vendor_name_to_json : vendor_structure) {
                 json j;
                 std::string filament_vendor = vendor_name_to_json.first;
                 j["vendor"]                 = filament_vendor;

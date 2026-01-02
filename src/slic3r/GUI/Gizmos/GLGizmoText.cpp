@@ -408,7 +408,6 @@ private:
     TextInput *m_name{nullptr};
     Label *    m_tip{nullptr};
     bool                  m_add_tip{false};
-    wxPanel *             m_row_panel{nullptr};
     Emboss::StyleManager &m_style_manager;
     wxFlexGridSizer *     m_top_sizer{nullptr};
 };

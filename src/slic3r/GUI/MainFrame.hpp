@@ -76,10 +76,9 @@ class SettingsDialog : public DPIDialog//DPIDialog
 {
     //wxNotebook* m_tabpanel { nullptr };
     Notebook* m_tabpanel{ nullptr };
-    MainFrame*      m_main_frame { nullptr };
     wxMenuBar*      m_menubar{ nullptr };
 public:
-    SettingsDialog(MainFrame* mainframe);
+    SettingsDialog();
     ~SettingsDialog() = default;
     //void set_tabpanel(wxNotebook* tabpanel) { m_tabpanel = tabpanel; }
     void set_tabpanel(Notebook* tabpanel) { m_tabpanel = tabpanel; }
