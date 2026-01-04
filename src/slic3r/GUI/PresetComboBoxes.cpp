@@ -1792,7 +1792,11 @@ void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
         SetValue(_L("Empty"));
         m_selected_preset = nullptr;
         m_is_compatible = false;
-        clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
+        if (clr_picker->IsEnabled()) {
+            clr_picker->SetBitmap(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
+        } else{
+            clr_picker->SetBitmapDisabled(*get_extruder_color_icon("#F0F0F0FF", m_tray_name, FromDIP(20), FromDIP(20)));
+        }
     } else {
         auto &filaments = m_collection->get_presets();
         auto  iter      = std::find_if(filaments.begin(), filaments.end(), [this](auto &f) {
