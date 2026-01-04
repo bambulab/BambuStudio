@@ -1110,6 +1110,9 @@ bool IMSlider::render(int canvas_width, int canvas_height)
         if (ImGui::ImageButton3(normal_id, hover_id, ONE_LAYER_BUTTON_SIZE * m_scale)) {
             switch_one_layer_mode();
         }
+        if (ImGui::IsItemHovered()) {
+            show_tooltip(_u8L("Toggle path view to current layer/all layers"));
+        }
         imgui.end();
     }
 
