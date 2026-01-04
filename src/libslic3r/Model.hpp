@@ -1117,6 +1117,7 @@ private:
     // Is it an object to be printed, or a modifier volume?
     ModelVolumeType                 	m_type;
     t_model_material_id             	m_material_id;
+    mutable bool                        m_mmuseg_extruders_has_0_extruder{true};
     // The convex hull of this model's mesh.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     //BBS: add convex hull 2d related logic
