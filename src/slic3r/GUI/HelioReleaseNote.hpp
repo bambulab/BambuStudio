@@ -130,6 +130,18 @@ private:
     Label* m_label_remain_usage_time;
 };
 
+// Theme colors for HelioInputDialog
+struct HelioInputDialogTheme {
+    wxColour bg;           // Main background
+    wxColour card;         // Card background
+    wxColour card2;        // Slightly darker card (for inputs)
+    wxColour border;       // Card border
+    wxColour text;         // Primary text
+    wxColour muted;        // Secondary/muted text
+    wxColour purple;       // Purple accent (simulation)
+    wxColour blue;         // Blue accent (optimization)
+};
+
 class HelioInputDialog : public DPIDialog
 {
 private:
@@ -137,6 +149,15 @@ private:
     bool only_advanced_settings{false};
     bool is_no_chamber{false};
 
+    // Mode card panels (replacing toggle buttons)
+    wxPanel* simulation_card_panel{nullptr};
+    wxPanel* optimization_card_panel{nullptr};
+    Label* simulation_card_title{nullptr};
+    Label* simulation_card_subtitle{nullptr};
+    Label* optimization_card_title{nullptr};
+    Label* optimization_card_subtitle{nullptr};
+
+    // Keep toggle button pointers for compatibility
     CustomToggleButton* togglebutton_simulate{nullptr};
     CustomToggleButton* togglebutton_optimize{nullptr};
 
@@ -152,6 +173,12 @@ private:
     wxPanel* panel_pay_optimization{nullptr};
     wxPanel* panel_optimization{nullptr};
     wxPanel* panel_velocity_volumetric{nullptr};
+
+    // Card wrapper panels
+    wxPanel* card_simulation{nullptr};
+    wxPanel* card_account_status{nullptr};
+    wxPanel* card_environment{nullptr};
+    wxPanel* card_optimization_settings{nullptr};
 
     wxPanel* advanced_settings_link{nullptr};
     LinkLabel* buy_now_link{nullptr};
@@ -169,6 +196,9 @@ private:
 
     HelioRemainUsageTime* m_remain_usage_time{nullptr};
     HelioRemainUsageTime* m_remain_purchased_time{nullptr};
+    
+    // Theme helper
+    HelioInputDialogTheme get_theme() const;
 public:
     HelioInputDialog(wxWindow *parent = nullptr);
     ~HelioInputDialog() {};
@@ -187,6 +217,10 @@ private:
                                   const std::vector<std::shared_ptr<TextInputValChecker>>& checkers);
     wxBoxSizer* create_combo_item(wxWindow* parent, std::string key,  wxString name, std::map<int, wxString> combolist, int def, int width = 120);
     wxBoxSizer* create_input_optimize_layers(wxWindow* parent, int layer_count);
+    
+    // Card creation helper
+    wxPanel* create_card_panel(wxWindow* parent, const wxString& title = wxEmptyString);
+    void update_mode_card_styling(int selected_action);
 
     void on_selected_simulation(wxMouseEvent& e) { update_action(0); }
     void on_selected_optimaztion(wxMouseEvent& e){ update_action(1); }
