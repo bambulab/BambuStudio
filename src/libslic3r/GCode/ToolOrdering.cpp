@@ -420,7 +420,8 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 
     // BBS
     // Reorder the extruders to minimize tool switches.
-    if(first_extruder == (unsigned int)-1)
+    const ConfigOptionInts *first_layer_print_sequence_op = object.print()->full_print_config().option<ConfigOptionInts>("first_layer_print_sequence");
+    if (first_extruder == (unsigned int) -1 || (first_layer_print_sequence_op && first_layer_print_sequence_op->size()>1))
         this->handle_dontcare_extruder(generate_first_layer_tool_order(object));
     else
         this->handle_dontcare_extruder(first_extruder);
