@@ -6982,6 +6982,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                         //always load config
                         {
+                            // 避免在导入gcode的过程中触发各类流量切换的逻辑
+                            preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
+                            auto old_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // BBS: save the wipe tower pos in file here, will be used later
                             ConfigOptionFloats* wipe_tower_x_opt = config.opt<ConfigOptionFloats>("wipe_tower_x");
                             ConfigOptionFloats* wipe_tower_y_opt = config.opt<ConfigOptionFloats>("wipe_tower_y");
@@ -6994,7 +6997,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             // BBS: do not change extruder nozzle stat when loading 3mf
-                            preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
                             if (bed_type_opt != nullptr) {
@@ -7074,9 +7076,26 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             is_project_file = true;
 
                             DynamicConfig& proj_cfg = preset_bundle->project_config;
+                            auto new_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // do some post process after loading config
                             {
+                                // 导入结束后，允许流量切换的逻辑生效
                                 preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
+
+                                // 导入的配置中存在有效nozzle_stats，则复用
+                                if (auto nozzle_stats_ptr = proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats");
+                                    nozzle_stats_ptr && !(nozzle_stats_ptr->values.empty() || std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(),
+                                                                                                          [](const std::string &elem) { return elem.empty(); }))) {
+                                    preset_bundle->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
+                                } else {
+                                    // 打印机型切换或数据无效，则读取默认值
+                                    auto nozzle_volume_opt = proj_cfg.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+                                    if (old_printer_model!=new_printer_model)
+                                        preset_bundle->extruder_nozzle_stat.on_printer_model_change(preset_bundle);
+                                    for (size_t idx = 0; idx < nozzle_volume_opt->size(); ++idx) {
+                                        preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_opt->values[idx]));
+                                    }
+                                }
                                 //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
                                  ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                                 ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");

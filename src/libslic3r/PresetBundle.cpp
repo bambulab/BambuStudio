@@ -3420,18 +3420,6 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
-    if (auto nozzle_stats_ptr = config.option<ConfigOptionStrings>("extruder_nozzle_stats");
-        nozzle_stats_ptr && !(nozzle_stats_ptr->values.empty() ||
-                              std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(), [](const std::string &elem) { return elem.empty(); }))) {
-        this->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
-    } else {
-        auto nozzle_volume_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-        if (this->extruder_nozzle_stat.get_raw_stat().size() != nozzle_volume_opt->size())
-            this->extruder_nozzle_stat.on_printer_model_change(this);
-        for (size_t idx = 0; idx < nozzle_volume_opt->size(); ++idx) {
-            this->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_opt->values[idx]));
-        }
-    }
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
