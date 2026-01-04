@@ -180,6 +180,8 @@ private:
 
     int         m_loginstatus;
     bool m_isPerformingBack = false;
+    bool m_online_history_cleared { false };
+    bool m_makerlab_history_cleared { false };
     wxBoxSizer* m_home_web { nullptr };
     wxWebView* m_browser { nullptr };
     wxWebView* m_browserLeft { nullptr };
