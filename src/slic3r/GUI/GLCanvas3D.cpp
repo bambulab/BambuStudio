@@ -7492,7 +7492,7 @@ void GLCanvas3D::_picking_pass()
 
         float pick_target_z = 1.0f;
         Vec3d pick_target = _mouse_to_3d(camera, { m_mouse.position(0), m_mouse.position(1) }, &pick_target_z);
-        picking_camera.look_at(pick_eye, pick_target, Vec3d::UnitY());
+        picking_camera.look_at(pick_eye, pick_target, camera.get_dir_up());
         picking_camera.apply_projection(_max_bounding_box(true, true, true,false));//need full volumes boundingbox,not limit_to_expand_plate
 
         picking_camera.update_frustum();
