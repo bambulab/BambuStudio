@@ -2312,78 +2312,86 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     content_panel->SetBackgroundColour(wxColour(45, 45, 49));
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
 
-    // Info icon row with "Welcome to Helio Additive"
-    wxBoxSizer* info_row_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto info_icon = new wxStaticBitmap(content_panel, wxID_ANY, create_scaled_bitmap("helio_welcome_info", content_panel, 32), wxDefaultPosition, wxSize(FromDIP(32), FromDIP(32)), 0);
-    auto welcome_title = new Label(content_panel, Label::Head_16, _L("Welcome to Helio Additive"));
-    wxFont title_font = welcome_title->GetFont();
-    title_font.SetWeight(wxFONTWEIGHT_BOLD);
-    welcome_title->SetFont(title_font);
-    welcome_title->SetForegroundColour(wxColour("#FFFFFF"));
-    info_row_sizer->Add(info_icon, 0, wxALIGN_CENTER_VERTICAL, 0);
-    info_row_sizer->Add(welcome_title, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
-
+    // Main heading
+    auto main_heading = new Label(content_panel, Label::Head_20, _L("Improve Print Reliability Before You Hit Print"));
+    wxFont heading_font = main_heading->GetFont();
+    heading_font.SetWeight(wxFONTWEIGHT_BOLD);
+    main_heading->SetFont(heading_font);
+    main_heading->SetForegroundColour(wxColour("#FFFFFF"));
+    
+    // Subheading
+    auto subheading = new Label(content_panel, Label::Body_14, _L("Automatic analysis and optimization for faster, more reliable prints."));
+    subheading->SetForegroundColour(wxColour(200, 200, 200));
+    
     // Two feature cards side by side
     wxBoxSizer* cards_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // Feature Card 1 - Greater reliability
+    // Tooltip text for cards
+    wxString tooltip_text = _L("Helio Additive analyzes models and settings to reduce failures and improve quality before you print.");
+
+    // Feature Card 1 - Fewer Failed Prints
     wxPanel* card1 = new wxPanel(content_panel);
     card1->SetBackgroundColour(wxColour(55, 55, 59));
-    card1->SetMinSize(wxSize(FromDIP(160), FromDIP(180)));
+    card1->SetMinSize(wxSize(FromDIP(220), FromDIP(190)));
+    card1->SetToolTip(tooltip_text);
     wxBoxSizer* card1_sizer = new wxBoxSizer(wxVERTICAL);
-    auto number1_icon = new wxStaticBitmap(card1, wxID_ANY, create_scaled_bitmap("helio_number_1", card1, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
-    auto check_icon = new wxStaticBitmap(card1, wxID_ANY, create_scaled_bitmap("helio_feature_check", card1, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
-    auto card1_title = new Label(card1, Label::Body_14, _L("Greater reliability,\nfirst time right:"));
+    auto check_icon = new wxStaticBitmap(card1, wxID_ANY, create_scaled_bitmap("helio_feature_shield_check", card1, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
+    check_icon->SetToolTip(tooltip_text);
+    auto card1_title = new Label(card1, Label::Body_16, _L("Fewer Failed Prints"));
     card1_title->SetForegroundColour(wxColour("#FFFFFF"));
     wxFont card_title_font = card1_title->GetFont();
     card_title_font.SetWeight(wxFONTWEIGHT_BOLD);
     card1_title->SetFont(card_title_font);
-    auto card1_desc = new Label(card1, Label::Body_12, _L("Prints succeed consistently without random failures you start."));
+    card1_title->SetToolTip(tooltip_text);
+    auto card1_desc = new Label(card1, Label::Body_12, _L("Catch issues before printing and improve first-try success."));
     card1_desc->SetForegroundColour(wxColour(180, 180, 180));
-    card1_desc->SetMinSize(wxSize(FromDIP(140), -1));
-    card1_desc->Wrap(FromDIP(140));
-    card1_sizer->Add(number1_icon, 0, wxTOP | wxLEFT, FromDIP(10));
-    card1_sizer->Add(check_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(8));
-    card1_sizer->Add(card1_title, 0, wxLEFT | wxTOP, FromDIP(10));
-    card1_sizer->Add(card1_desc, 0, wxLEFT | wxTOP | wxBOTTOM, FromDIP(10));
+    card1_desc->Wrap(FromDIP(190));
+    card1_desc->SetToolTip(tooltip_text);
+    card1_sizer->Add(check_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(20));
+    card1_sizer->Add(card1_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(12));
+    card1_sizer->Add(card1_desc, 0, wxALIGN_CENTER | wxALL, FromDIP(15));
     card1->SetSizer(card1_sizer);
 
-    // Feature Card 2 - Enhance Speed & Quality
+    // Feature Card 2 - Faster Prints, Better Quality
     wxPanel* card2 = new wxPanel(content_panel);
     card2->SetBackgroundColour(wxColour(55, 55, 59));
-    card2->SetMinSize(wxSize(FromDIP(160), FromDIP(180)));
+    card2->SetMinSize(wxSize(FromDIP(220), FromDIP(190)));
+    card2->SetToolTip(tooltip_text);
     wxBoxSizer* card2_sizer = new wxBoxSizer(wxVERTICAL);
-    auto number2_icon = new wxStaticBitmap(card2, wxID_ANY, create_scaled_bitmap("helio_number_2", card2, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
     auto speed_icon = new wxStaticBitmap(card2, wxID_ANY, create_scaled_bitmap("helio_feature_speed", card2, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
-    auto card2_title = new Label(card2, Label::Body_14, _L("Enhance Speed &\nQuality"));
+    speed_icon->SetToolTip(tooltip_text);
+    auto card2_title = new Label(card2, Label::Body_16, _L("Faster Prints, Better Quality"));
     card2_title->SetForegroundColour(wxColour("#FFFFFF"));
     card2_title->SetFont(card_title_font);
-    auto card2_desc = new Label(card2, Label::Body_12, _L("Optimize print settings. Reduce time while maintaining part strength."));
+    card2_title->SetToolTip(tooltip_text);
+    auto card2_desc = new Label(card2, Label::Body_12, _L("Automatically tune speed and extrusion without manual tweaking."));
     card2_desc->SetForegroundColour(wxColour(180, 180, 180));
-    card2_desc->SetMinSize(wxSize(FromDIP(140), -1));
-    card2_desc->Wrap(FromDIP(140));
-    card2_sizer->Add(number2_icon, 0, wxTOP | wxLEFT, FromDIP(10));
-    card2_sizer->Add(speed_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(8));
-    card2_sizer->Add(card2_title, 0, wxLEFT | wxTOP, FromDIP(10));
-    card2_sizer->Add(card2_desc, 0, wxLEFT | wxTOP | wxBOTTOM, FromDIP(10));
+    card2_desc->Wrap(FromDIP(190));
+    card2_desc->SetToolTip(tooltip_text);
+    card2_sizer->Add(speed_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(20));
+    card2_sizer->Add(card2_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(12));
+    card2_sizer->Add(card2_desc, 0, wxALIGN_CENTER | wxALL, FromDIP(15));
     card2->SetSizer(card2_sizer);
 
-    cards_sizer->Add(card1, 1, wxEXPAND | wxRIGHT, FromDIP(10));
+    cards_sizer->Add(card1, 1, wxEXPAND | wxRIGHT, FromDIP(12));
     cards_sizer->Add(card2, 1, wxEXPAND, 0);
 
-    content_sizer->Add(info_row_sizer, 0, wxALIGN_LEFT | wxTOP, FromDIP(16));
-    content_sizer->Add(cards_sizer, 0, wxEXPAND | wxTOP, FromDIP(20));
+    content_sizer->Add(main_heading, 0, wxALIGN_LEFT | wxTOP, FromDIP(20));
+    content_sizer->Add(subheading, 0, wxALIGN_LEFT | wxTOP, FromDIP(8));
+    content_sizer->Add(cards_sizer, 0, wxEXPAND | wxTOP, FromDIP(24));
     content_panel->SetSizer(content_sizer);
     content_panel->Layout();
 
-    // Activate Now button
-    StateColor btn_bg_white = StateColor(std::pair<wxColour, int>(wxColour(220, 220, 220), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    // Enable Helio Additive button (green)
+    StateColor btn_bg_green = StateColor(
+        std::pair<wxColour, int>(wxColour(0, 150, 50), StateColor::Hovered), 
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Button* m_button_activate = new Button(this, _L("Activate Now"));
-    m_button_activate->SetBackgroundColor(btn_bg_white);
-    m_button_activate->SetBorderColor(wxColour(200, 200, 200));
-    m_button_activate->SetTextColor(wxColour(50, 50, 50));
+    Button* m_button_activate = new Button(this, _L("Enable Helio Additive"));
+    m_button_activate->SetBackgroundColor(btn_bg_green);
+    m_button_activate->SetBorderColor(wxColour(0, 174, 66));
+    m_button_activate->SetTextColor(wxColour(255, 255, 255));
     m_button_activate->SetFont(Label::Body_14);
     m_button_activate->SetSize(wxSize(FromDIP(300), FromDIP(36)));
     m_button_activate->SetMinSize(wxSize(FromDIP(300), FromDIP(36)));
@@ -2392,12 +2400,39 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     button_sizer->Add(m_button_activate, 0, wxALIGN_CENTER, 0);
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    // Microcopy under button with info tooltip
+    wxBoxSizer* microcopy_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto microcopy_text = new Label(this, Label::Body_12, _L("After slicing, click the Helio button to analyze your print."));
+    microcopy_text->SetForegroundColour(wxColour(160, 160, 160));
+    
+    // Info icon with tooltip
+    auto info_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("more_info", this, 14), wxDefaultPosition, wxSize(FromDIP(14), FromDIP(14)), 0);
+    info_icon->SetToolTip(_L("Helio Additive does not change your printer's firmware."));
+    microcopy_text->SetToolTip(_L("Helio Additive does not change your printer's firmware."));
+    
+    microcopy_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    microcopy_sizer->Add(microcopy_text, 0, wxALIGN_CENTER_VERTICAL, 0);
+    microcopy_sizer->Add(info_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+    microcopy_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    // Footer text
+    auto footer_text = new Label(this, Label::Body_12, _L("Designed to help prints succeed — even if you're new to 3D printing."));
+    footer_text->SetForegroundColour(wxColour(180, 180, 180));
+    wxBoxSizer* footer_sizer = new wxBoxSizer(wxHORIZONTAL);
+    footer_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    footer_sizer->Add(footer_text, 0, wxALIGN_CENTER, 0);
+    footer_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
     main_sizer->Add(line, 0, wxEXPAND, 0);
     main_sizer->Add(expand_image, 0, wxALIGN_CENTER | wxTOP, FromDIP(10));
     main_sizer->Add(content_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
     main_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(microcopy_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+    main_sizer->Add(footer_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
 
     SetSizer(main_sizer);
