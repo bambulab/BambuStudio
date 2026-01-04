@@ -1371,19 +1371,6 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     last_tid_panel->Layout();
     last_tid_panel->Fit();
 
-    /*set buy url*/
-    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
-    if (helio_api_key.empty()) return;
-
-    wxString url;
-    if (wxGetApp().app_config->get("region") == "China") {
-        url = "store.helioam.cn?patToken=" + helio_api_key;
-    }
-    else {
-        url = "store.helioadditive.com?patToken=" + helio_api_key;
-    }
-    buy_now_link->setLinkUrl(url);
-
     /*helio wiki - placed inside simulation card for simulation mode*/
     helio_wiki_link = new LinkLabel(card_simulation, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
     helio_wiki_link->SeLinkLabelFColour(theme.purple);
@@ -1438,6 +1425,19 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
 
     CentreOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
+
+    /*set buy url - this is safe after main setup since it just updates an existing link*/
+    std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
+    if (helio_api_key.empty()) return;
+
+    wxString url;
+    if (wxGetApp().app_config->get("region") == "China") {
+        url = "store.helioam.cn?patToken=" + helio_api_key;
+    }
+    else {
+        url = "store.helioadditive.com?patToken=" + helio_api_key;
+    }
+    buy_now_link->setLinkUrl(url);
 }
 
 void HelioInputDialog::update_action(int action)
