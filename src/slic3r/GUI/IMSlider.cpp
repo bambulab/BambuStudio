@@ -201,6 +201,7 @@ void IMSlider::SetMaxValue(const int max_value)
 void IMSlider::SetSliderValues(const std::vector<double> &values)
 {
     m_values = values;
+    m_layers_values.clear();
 }
 
 Info IMSlider::GetTicksValues() const
@@ -289,7 +290,7 @@ void IMSlider::SetLayersTimes(const std::vector<float> &layers_times, float tota
 
     // Erase duplicates values from m_values and save it to the m_layers_values
     // They will be used for show the correct estimated time for MM print, when "No sparce layer" is enabled
-    if (m_is_wipe_tower && m_values.size() != m_layers_times.size()) {
+    if (m_is_wipe_tower && m_values.size() != m_layers_times.size() || m_layers_values.empty()) {
         m_layers_values = m_values;
         sort(m_layers_values.begin(), m_layers_values.end());
         m_layers_values.erase(unique(m_layers_values.begin(), m_layers_values.end()), m_layers_values.end());
