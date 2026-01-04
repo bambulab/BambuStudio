@@ -3799,6 +3799,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return true;
     }
 
+    void modify_import_color(int *color_arr, int size)
+    {
+        int first_bigger_than_0 = -1;
+        for (int i = 0; i < size; i++) {
+            if (color_arr[i] >= 0) {
+                first_bigger_than_0 = color_arr[i];
+                break;
+            }
+        }
+        if (first_bigger_than_0 >= 0) {
+            for (int i = 0; i < size; i++) {
+                if (color_arr[i] < 0) {
+                    color_arr[i] = first_bigger_than_0;
+                }
+            }
+        }
+    }
+
     bool _BBS_3MF_Importer::_handle_start_triangle(const char** attributes, unsigned int num_attributes)
     {
         // we are ignoring the following attributes:
@@ -3845,6 +3863,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             }
                         }
                     }
+                    modify_import_color(color_info.indices, 3);
                     m_curr_object->geometry.triangle_colors.push_back(color_info);
                 }
             }
@@ -5548,6 +5567,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                             }
                         }
                     }
+                    modify_import_color(color_info.indices,3);
                     current_object->geometry.triangle_colors.push_back(color_info);
                 }
             }
