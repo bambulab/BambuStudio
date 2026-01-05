@@ -2698,6 +2698,29 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
         wxPostEvent(wxGetApp().plater(), SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
 
+    // Print Plate button - primary action with green styling
+    StateColor btn_bg_green = StateColor(
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    auto m_button_print_plate = new Button(this, _L("Print Plate"));
+    m_button_print_plate->SetBackgroundColor(btn_bg_green);
+    m_button_print_plate->SetBorderColor(wxColour(0, 174, 66));
+    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    m_button_print_plate->SetTextColor(white_text);
+    m_button_print_plate->SetFont(Label::Body_12);
+    m_button_print_plate->SetSize(wxSize(FromDIP(100), FromDIP(24)));
+    m_button_print_plate->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
+    m_button_print_plate->SetCornerRadius(FromDIP(12));
+    m_button_print_plate->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+        EndModal(wxID_OK);
+        wxGetApp().plater()->CallAfter([]() {
+            wxPostEvent(wxGetApp().plater(), SimpleEvent(EVT_GLTOOLBAR_PRINT_PLATE));
+        });
+    });
+    m_button_print_plate->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    m_button_print_plate->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+
     auto m_button_view_details = new Button(this, _L("View Details"));
     // Use theme-aware colors for secondary button (matches simulation dialog)
     if (is_dark) {
@@ -2727,6 +2750,8 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     sizer_bottom->Add( 0, 0, 1, wxEXPAND, 0 );
     sizer_bottom->Add(save_icon, 0, wxLEFT|wxALIGN_CENTER, 0);
     sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(14));
+    sizer_bottom->Add(m_button_print_plate, 0, wxLEFT|wxALIGN_CENTER, 0);
+    sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(10));
     sizer_bottom->Add(m_button_view_details, 0, wxLEFT|wxALIGN_CENTER, 0);
     
     main_sizer->Add(helio_top_background, 0, wxEXPAND, 0);
