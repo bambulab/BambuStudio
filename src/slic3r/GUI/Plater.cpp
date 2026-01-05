@@ -1897,6 +1897,23 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         r_extruder_panel->SetDefined(true);
         printer_tab->set_extruder_volume_type(idx, target_types[idx]);
         is_switching_volume = false;
+        auto plater         = GUI::wxGetApp().plater();
+        auto panel          = extruder_nums == 1 ? s_extruder_panel : idx == 0 ? l_extruder_panel : r_extruder_panel;
+        auto selection      = diameter_btns->GetSelectedDiameter();
+        auto volume_type    = panel->GetVolumeType(selection);
+        auto stats          = panel->GetNozzleFlowCounts(selection);
+        if (volume_type == nvtHybrid) {
+            wxGetApp().preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(idx, nvtStandard, stats[nvtStandard], true);
+            wxGetApp().preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(idx, nvtHighFlow, stats[nvtHighFlow], false);
+        } else {
+            wxGetApp().preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(idx, volume_type, stats[volume_type], true);
+        }
+        if (plater) {
+            plater->update_filament_volume_map(idx, static_cast<int>(volume_type));
+            plater->update_machine_sync_status();
+        }
+
+        plater->update();
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
@@ -2502,6 +2519,13 @@ Sidebar::Sidebar(Plater *parent)
                     printer_tab->set_extruder_volume_type(index, volume_type);
                     p->is_switching_volume = false;
                     auto plater = GUI::wxGetApp().plater();
+                    auto stats = panel->GetNozzleFlowCounts(selection);
+                    if (volume_type == nvtHybrid) {
+                        wxGetApp().preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtStandard, stats[nvtStandard], true);
+                        wxGetApp().preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtHighFlow, stats[nvtHighFlow], false);
+                    } else {
+                        wxGetApp().preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, volume_type, stats[volume_type], true);
+                    }
                     if (plater) {
                         plater->update_filament_volume_map(index, static_cast<int>(volume_type));
                         plater->update_machine_sync_status();
@@ -3210,7 +3234,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
             auto panels = extruder.GetNozzlePanels();
             if (p->is_syncing && /*target_volume_type == NozzleVolumeType::nvtHybrid && */ obj && obj->GetNozzleSystem()) {
-                auto nozzle_configs = p->collect_nozzle_configs_from_machine(obj, index, extruder_nozzle_count);
+                auto nozzle_configs = p->collect_nozzle_configs_from_machine(obj, index == 1 ? MAIN_EXTRUDER_ID : DEPUTY_EXTRUDER_ID, extruder_nozzle_count);
 
                 for (int i = 0; i < extruder_nozzle_count && i < panels.size(); i++) {
                     auto panel = panels[i];
@@ -3931,12 +3955,11 @@ std::vector<Sidebar::priv::NozzleConfigInfo> Sidebar::priv::collect_nozzle_confi
 
     auto nozzle_system = obj->GetNozzleSystem();
 
-    // 收集挤出头上的喷嘴
     for (const auto &ext_nozzle : nozzle_system->GetExtNozzles()) {
         if (ext_nozzle.first == extruder_idx) {
             auto             nozzle       = ext_nozzle.second;
             std::string      diameter_str = get_diameter_string(nozzle.GetNozzleDiameter());
-            NozzleVolumeType flow         = nozzle.GetNozzleFlowType() == S_FLOW ? nvtStandard : nvtHighFlow;
+            NozzleVolumeType flow         = DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType());
 
             ExtruderNozzlePanel::Status status;
             if (extruder_nozzle_count <= 1) {
@@ -3955,11 +3978,10 @@ std::vector<Sidebar::priv::NozzleConfigInfo> Sidebar::priv::collect_nozzle_confi
         }
     }
 
-    // 收集料架上的喷嘴
     for (const auto &rack_nozzle : nozzle_system->GetRackNozzles()) {
         auto             nozzle       = rack_nozzle.second;
         std::string      diameter_str = get_diameter_string(nozzle.GetNozzleDiameter());
-        NozzleVolumeType flow         = nozzle.GetNozzleFlowType() == S_FLOW ? nvtStandard : nvtHighFlow;
+        NozzleVolumeType flow         = DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType());
 
         ExtruderNozzlePanel::Status status;
         if (nozzle.IsAbnormal()) {
@@ -3973,7 +3995,6 @@ std::vector<Sidebar::priv::NozzleConfigInfo> Sidebar::priv::collect_nozzle_confi
         nozzle_configs.emplace_back(diameter_str, flow, status);
     }
 
-    // 补齐到总数量
     while (nozzle_configs.size() < extruder_nozzle_count) {
         nozzle_configs.emplace_back("", nvtStandard, ExtruderNozzlePanel::Status::Empty);
     }
@@ -4002,6 +4023,11 @@ bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObj
 void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
+}
+
+DiameterButtonPanel *Sidebar::get_diameter_btn_panel()
+{
+    return p->diameter_btns;
 }
 
 int Sidebar::get_sidebar_pos_right_x()
@@ -9868,7 +9894,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
                         }
 
                         if (cur_preset.is_system || (!cur_preset.is_system && same_nozzle_diameter)) {
-                            GUI::wxGetApp().sidebar().sync_extruder_list();
+                            GUI::wxGetApp().sidebar().sync_extruder_list(true);
                         }
                     }
                 }

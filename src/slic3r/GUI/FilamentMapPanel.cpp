@@ -1,6 +1,7 @@
 #include "FilamentMapPanel.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
+#include "ExtruderPanel.hpp"
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
 
@@ -85,12 +86,18 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     if (update_ui) {
         if (valid) {
             m_errors->Hide();
-            m_suggestion_panel->Hide();
+            m_suggestion->Hide();
         } else {
-            m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available %s nozzle, current group result is invalid."),
-                                                invalid_eid == 0 ? _L("Left") : _L("Right"), invalid_nozzle == NozzleVolumeType::nvtStandard ? _L("Standard") : _L("High Flow")));
+            m_errors->SetLabel(wxString::Format(_L("Error: %s extruder has no available %s nozzle, current grouping is invalid."),
+                                                invalid_eid == 0 ? _L("Left") : _L("Right"), DevNozzle::GetNozzleVolumeTypeStr(invalid_nozzle)));
             m_errors->Show();
-            m_suggestion_panel->Show();
+
+            auto selected_diameter = wxGetApp().sidebar().get_diameter_btn_panel()->GetSelectedDiameter();
+            m_suggestion->SetLabel(wxString::Format(_L("Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"), 
+                                                    invalid_eid == 0 ? _L("Left") : _L("Right"),
+                                                    selected_diameter));
+            m_suggestion->Wrap(FromDIP(520));
+            m_suggestion->Show();
         }
         m_left_panel->Freeze();
         m_right_panel->Freeze();
@@ -303,26 +310,12 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     m_errors->Hide();
 
-    m_suggestion_panel = new wxPanel(this, wxID_ANY);
-    m_suggestion_panel->SetBackgroundColour(*wxWHITE);
-    auto suggestion_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto suggestion_text  = new Label(m_suggestion_panel, _L("Please adjust your grouping or click "));
-    suggestion_text->SetFont(Label::Body_13);
-    suggestion_text->SetForegroundColour(TextErrorColor);
-    suggestion_text->SetBackgroundColour(*wxWHITE);
-    auto suggestion_btn   = new ScalableButton(m_suggestion_panel, wxID_ANY, "edit", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 14);
-    suggestion_btn->SetBackgroundColour(*wxWHITE);
-    auto suggestion_text2 = new Label(m_suggestion_panel, _L(" to set nozzle count"));
-    suggestion_text2->SetFont(Label::Body_13);
-    suggestion_text2->SetForegroundColour(TextErrorColor);
-    suggestion_text2->SetBackgroundColour(*wxWHITE);
-    suggestion_sizer->Add(suggestion_text, 0, wxALIGN_CENTER_VERTICAL);
-    suggestion_sizer->Add(suggestion_btn, 0, wxALIGN_CENTER_VERTICAL);
-    suggestion_sizer->Add(suggestion_text2, 0, wxALIGN_CENTER_VERTICAL);
-    m_suggestion_panel->SetSizer(suggestion_sizer);
-    top_sizer->Add(m_suggestion_panel, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
-    m_suggestion_panel->Hide();
-    suggestion_btn->Bind(wxEVT_BUTTON, &FilamentMapManualPanel::OnSuggestionClicked, this);
+    m_suggestion = new Label(this, "");
+    m_suggestion->SetFont(Label::Body_13);
+    m_suggestion->SetForegroundColour(TextErrorColor);
+    m_suggestion->Wrap(FromDIP(520));
+    top_sizer->Add(m_suggestion, 0, wxALIGN_LEFT | wxLEFT | wxRIGHT, FromDIP(15));
+    m_suggestion->Hide();
 
     m_timer = new wxTimer(this);
     Bind(wxEVT_TIMER, &FilamentMapManualPanel::OnTimer, this);
