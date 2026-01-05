@@ -583,13 +583,13 @@ void HelioStatementDialog::create_pat_page()
     run_optimization_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     run_optimization_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     
-    // Copy PAT button - more visible with text and icon
-    StateColor btn_bg_copy(std::pair<wxColour, int>(wxColour(70, 70, 75), StateColor::Hovered),
-                           std::pair<wxColour, int>(wxColour(55, 55, 59), StateColor::Normal));
+    // Copy PAT button - styled to match the dark theme with visible contrast
+    StateColor btn_bg_copy(std::pair<wxColour, int>(wxColour(80, 85, 95), StateColor::Hovered),
+                           std::pair<wxColour, int>(wxColour(60, 65, 75), StateColor::Normal));
     
     copy_pat_button = new Button(page_pat_panel, _L("Copy PAT"));
     copy_pat_button->SetBackgroundColor(btn_bg_copy);
-    copy_pat_button->SetBorderColor(wxColour(70, 70, 75));
+    copy_pat_button->SetBorderColor(wxColour(120, 125, 135));  // Lighter border for visibility
     // White text for all states
     StateColor copy_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
@@ -617,18 +617,28 @@ void HelioStatementDialog::create_pat_page()
     
     // Legacy controls kept for backward compatibility with show_pat_option() method
     // These are always hidden in the new design but still referenced in show_pat_option()
-    // TODO: Remove these once show_pat_option() is refactored to not reference them
-    helio_pat_copy = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page_pat_panel, 20), wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
+    // Create them with zero size and hidden to prevent any visual artifacts
+    helio_pat_copy = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_copy", page_pat_panel, 20), wxDefaultPosition, wxSize(0, 0), 0);
     helio_pat_copy->Hide();
+    helio_pat_copy->SetSize(0, 0);
     
-    helio_input_pat = new ::TextInput(page_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | wxTE_RIGHT);
+    helio_input_pat = new ::TextInput(page_pat_panel, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(0, 0), wxTE_PROCESS_ENTER | wxTE_RIGHT);
     helio_input_pat->Hide();
-    helio_pat_refresh = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_input_pat->SetSize(0, 0);
+    helio_input_pat->SetMinSize(wxSize(0, 0));
+    helio_input_pat->SetMaxSize(wxSize(0, 0));
+    
+    helio_pat_refresh = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_refesh", page_pat_panel, 24), wxDefaultPosition, wxSize(0, 0), 0);
     helio_pat_refresh->Hide();
-    helio_pat_eview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_eview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_refresh->SetSize(0, 0);
+    
+    helio_pat_eview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_eview", page_pat_panel, 24), wxDefaultPosition, wxSize(0, 0), 0);
     helio_pat_eview->Hide();
-    helio_pat_dview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_dview", page_pat_panel, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
+    helio_pat_eview->SetSize(0, 0);
+    
+    helio_pat_dview = new wxStaticBitmap(page_pat_panel, wxID_ANY, create_scaled_bitmap("helio_dview", page_pat_panel, 24), wxDefaultPosition, wxSize(0, 0), 0);
     helio_pat_dview->Hide();
+    helio_pat_dview->SetSize(0, 0);
     
     pat_err_label = new Label(page_pat_panel, Label::Body_14, wxEmptyString);
     pat_err_label->SetMinSize(wxSize(FromDIP(500), -1));
@@ -657,6 +667,10 @@ void HelioStatementDialog::create_pat_page()
     helio_home_link->SeLinkLabelFColour(wxColour(0, 119, 250));
     helio_tou_link->SeLinkLabelFColour(wxColour(0, 119, 250));
     helio_privacy_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+    // Set transparent/dark background to match the dark theme
+    helio_home_link->SeLinkLabelBColour(HELIO_BG_BASE);
+    helio_tou_link->SeLinkLabelBColour(HELIO_BG_BASE);
+    helio_privacy_link->SeLinkLabelBColour(HELIO_BG_BASE);
     
     // Add hover cursor for links
     helio_home_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
