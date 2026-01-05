@@ -950,8 +950,15 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     // ========== MODE CARD: SIMULATION ==========
     simulation_card_panel = new wxPanel(toggle_container);
     simulation_card_panel->SetBackgroundColour(theme.card);
-    wxBoxSizer* sim_card_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* sim_card_sizer = new wxBoxSizer(wxHORIZONTAL);
     
+    // Shield/check icon for simulation
+    wxStaticBitmap* sim_icon = new wxStaticBitmap(simulation_card_panel, wxID_ANY, 
+        create_scaled_bitmap("helio_feature_shield_check", simulation_card_panel, 28), 
+        wxDefaultPosition, wxSize(FromDIP(28), FromDIP(28)), 0);
+    sim_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
+    
+    wxBoxSizer* sim_text_sizer = new wxBoxSizer(wxVERTICAL);
     simulation_card_title = new Label(simulation_card_panel, Label::Head_14, _L("Simulation"));
     simulation_card_title->SetForegroundColour(theme.text);
     wxFont sim_title_font = simulation_card_title->GetFont();
@@ -960,10 +967,13 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     simulation_card_subtitle = new Label(simulation_card_panel, Label::Body_12, _L("See where it will fail"));
     simulation_card_subtitle->SetForegroundColour(theme.muted);
-    simulation_card_subtitle->Wrap(FromDIP(180));
+    simulation_card_subtitle->Wrap(FromDIP(140));
     
-    sim_card_sizer->Add(simulation_card_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(16));
-    sim_card_sizer->Add(simulation_card_subtitle, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(8));
+    sim_text_sizer->Add(simulation_card_title, 0, wxALIGN_LEFT, 0);
+    sim_text_sizer->Add(simulation_card_subtitle, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+    
+    sim_card_sizer->Add(sim_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
+    sim_card_sizer->Add(sim_text_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
     simulation_card_panel->SetSizer(sim_card_sizer);
     simulation_card_panel->SetMinSize(wxSize(FromDIP(210), FromDIP(80)));
     
@@ -977,8 +987,15 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     // ========== MODE CARD: OPTIMIZATION ==========
     optimization_card_panel = new wxPanel(toggle_container);
     optimization_card_panel->SetBackgroundColour(theme.card);
-    wxBoxSizer* opt_card_sizer = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* opt_card_sizer = new wxBoxSizer(wxHORIZONTAL);
     
+    // Speed icon for optimization
+    wxStaticBitmap* opt_icon = new wxStaticBitmap(optimization_card_panel, wxID_ANY, 
+        create_scaled_bitmap("helio_feature_speed", optimization_card_panel, 28), 
+        wxDefaultPosition, wxSize(FromDIP(28), FromDIP(28)), 0);
+    opt_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
+    
+    wxBoxSizer* opt_text_sizer = new wxBoxSizer(wxVERTICAL);
     optimization_card_title = new Label(optimization_card_panel, Label::Head_14, _L("Optimization"));
     optimization_card_title->SetForegroundColour(theme.text);
     wxFont opt_title_font = optimization_card_title->GetFont();
@@ -987,10 +1004,13 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     optimization_card_subtitle = new Label(optimization_card_panel, Label::Body_12, _L("Auto-fix with new speeds"));
     optimization_card_subtitle->SetForegroundColour(theme.muted);
-    optimization_card_subtitle->Wrap(FromDIP(180));
+    optimization_card_subtitle->Wrap(FromDIP(140));
     
-    opt_card_sizer->Add(optimization_card_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(16));
-    opt_card_sizer->Add(optimization_card_subtitle, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(8));
+    opt_text_sizer->Add(optimization_card_title, 0, wxALIGN_LEFT, 0);
+    opt_text_sizer->Add(optimization_card_subtitle, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+    
+    opt_card_sizer->Add(opt_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
+    opt_card_sizer->Add(opt_text_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
     optimization_card_panel->SetSizer(opt_card_sizer);
     optimization_card_panel->SetMinSize(wxSize(FromDIP(210), FromDIP(80)));
     
