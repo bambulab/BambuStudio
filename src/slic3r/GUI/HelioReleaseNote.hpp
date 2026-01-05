@@ -144,6 +144,8 @@ struct HelioInputDialogTheme {
     wxColour blue;         // Blue accent (optimization)
 };
 
+class HelioCheckBadgePanel;
+
 class HelioInputDialog : public DPIDialog
 {
 private:
@@ -158,8 +160,12 @@ private:
     Label* simulation_card_subtitle{nullptr};
     Label* optimization_card_title{nullptr};
     Label* optimization_card_subtitle{nullptr};
-    wxStaticBitmap* simulation_check_icon{nullptr};
-    wxStaticBitmap* optimization_check_icon{nullptr};
+    wxStaticBitmap* simulation_mode_icon{nullptr};
+    wxStaticBitmap* optimization_mode_icon{nullptr};
+    wxBitmap simulation_icon_color;
+    wxBitmap simulation_icon_gray;
+    wxBitmap optimization_icon_color;
+    wxBitmap optimization_icon_gray;
 
     // Keep toggle button pointers for compatibility
     CustomToggleButton* togglebutton_simulate{nullptr};
@@ -198,8 +204,10 @@ private:
 
     std::shared_ptr<int> shared_ptr{nullptr};
 
-    HelioRemainUsageTime* m_remain_usage_time{nullptr};
-    HelioRemainUsageTime* m_remain_purchased_time{nullptr};
+    Label* m_label_subscription{nullptr};
+    Label* m_label_monthly_quota{nullptr};
+    Label* m_label_addons{nullptr};
+    bool m_free_trial_eligible{false};
     
     // Theme helper
     HelioInputDialogTheme get_theme() const;

@@ -832,21 +832,29 @@ void HelioRemainUsageTime::Create(wxString label)
     wxColour bg = GetParent() ? GetParent()->GetBackgroundColour() : *wxWHITE;
     SetBackgroundColour(bg);
     
-    // Determine text color based on dark mode
-    wxColour text_color = HELIO_TEXT;
+    // Determine text color based on theme (not hardcoded dark mode)
+    wxColour text_color;
+    if (wxGetApp().dark_mode()) {
+        text_color = HELIO_TEXT;  // Use Helio light text in dark mode
+    } else {
+        text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);  // System text in light mode
+    }
 
     Label* label_prefix = new Label(this, label);
-    label_prefix->SetMaxSize(wxSize(FromDIP(400), -1));
+    label_prefix->SetMinSize(wxSize(FromDIP(120), -1));  // Fixed width for alignment
+    label_prefix->SetMaxSize(wxSize(FromDIP(120), -1));  // Fixed width for alignment
     label_prefix->SetToolTip(label);
     label_prefix->SetForegroundColour(text_color);
+    label_prefix->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 
     m_label_remain_usage_time = new Label(this, "0");
     wxFont bold_font = m_label_remain_usage_time->GetFont();
     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-    m_label_remain_usage_time->SetMinSize(wxSize(FromDIP(40), -1));
-    m_label_remain_usage_time->SetMaxSize(wxSize(FromDIP(40), -1));
+    m_label_remain_usage_time->SetMinSize(wxSize(FromDIP(80), -1));  // Increased from 40 to 80 for larger numbers
+    m_label_remain_usage_time->SetMaxSize(wxSize(FromDIP(120), -1));  // Allow up to 120 for very large numbers
     m_label_remain_usage_time->SetFont(bold_font);
     m_label_remain_usage_time->SetForegroundColour(text_color);
+    m_label_remain_usage_time->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 
     wxBoxSizer* remain_sizer = new wxBoxSizer(wxHORIZONTAL);
     remain_sizer->Add(label_prefix, 0, wxALIGN_CENTER_VERTICAL);
@@ -912,16 +920,30 @@ static constexpr int PRINT_PRIORITY_DROPDOWN_WIDTH = 200;
 
 HelioInputDialogTheme HelioInputDialog::get_theme() const
 {
-    // Always use Helio dark palette (light mode support can be added later)
     HelioInputDialogTheme theme;
-    theme.bg = HELIO_BG_BASE;              // #07090C
-    theme.card = HELIO_CARD_BG;           // #0E1320
-    theme.card2 = HELIO_CARD_BG;           // #0E1320
-    theme.border = HELIO_BORDER;           // rgba(255,255,255,0.10)
-    theme.text = HELIO_TEXT;               // #EEF2FF
-    theme.muted = HELIO_MUTED;              // #A8B0C0
-    theme.purple = HELIO_PURPLE;           // #AF7CFF
-    theme.blue = HELIO_BLUE;                // #4F86FF
+    bool is_dark = wxGetApp().dark_mode();
+    
+    if (is_dark) {
+        // Helio dark palette
+        theme.bg = HELIO_BG_BASE;              // #07090C
+        theme.card = HELIO_CARD_BG;           // #0E1320
+        theme.card2 = HELIO_CARD_BG;           // #0E1320
+        theme.border = HELIO_BORDER;           // rgba(255,255,255,0.10)
+        theme.text = HELIO_TEXT;               // #EEF2FF
+        theme.muted = HELIO_MUTED;              // #A8B0C0
+        theme.purple = HELIO_PURPLE;           // #AF7CFF
+        theme.blue = HELIO_BLUE;                // #4F86FF
+    } else {
+        // Light mode palette
+        theme.bg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+        theme.card = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
+        theme.card2 = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
+        theme.border = wxColour(0, 0, 0, 25);   // Subtle dark border
+        theme.text = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+        theme.muted = wxColour(100, 100, 100);  // Gray for muted text
+        theme.purple = HELIO_PURPLE;           // Keep accent colors
+        theme.blue = HELIO_BLUE;
+    }
     return theme;
 }
 
@@ -933,8 +955,9 @@ public:
         : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
         , m_selected(false)
         , m_accent(HELIO_PURPLE)
+        , m_border_colour(wxColour(255, 255, 255, 25))
     {
-        SetBackgroundColour(HELIO_CARD_BG);
+        // Background will be set by parent dialog using theme
         Bind(wxEVT_PAINT, &HelioModeCardPanel::OnPaint, this);
     }
     
@@ -948,6 +971,11 @@ public:
         Refresh(); 
     }
     
+    void SetBorderColour(const wxColour& border) {
+        m_border_colour = border;
+        Refresh();
+    }
+    
 private:
     void OnPaint(wxPaintEvent& event)
     {
@@ -957,39 +985,111 @@ private:
         if (gc) {
             wxRect rect = GetClientRect();
             
-            // Clear background
+            auto clamp_channel = [](int value) {
+                return std::max(0, std::min(255, value));
+            };
+
             dc.SetBackground(wxBrush(GetBackgroundColour()));
             dc.Clear();
             
-            // Draw background with subtle tint when selected
-            wxColour bg_color = m_selected ? 
-                (m_accent == HELIO_PURPLE ? 
-                    wxColour(HELIO_CARD_BG.Red() + 8, HELIO_CARD_BG.Green() + 4, HELIO_CARD_BG.Blue() + 8) :  // Subtle purple tint
-                    wxColour(HELIO_CARD_BG.Red() + 4, HELIO_CARD_BG.Green() + 6, HELIO_CARD_BG.Blue() + 12)) : // Subtle blue tint
-                HELIO_CARD_BG;
+            wxColour base_bg = GetBackgroundColour();
+            wxColour bg_color = base_bg;
+            if (m_selected) {
+                if (m_accent == HELIO_PURPLE) {
+                    bg_color = wxColour(
+                        clamp_channel(base_bg.Red() + 18),
+                        clamp_channel(base_bg.Green() + 8),
+                        clamp_channel(base_bg.Blue() + 18));
+                } else {
+                    bg_color = wxColour(
+                        clamp_channel(base_bg.Red() + 8),
+                        clamp_channel(base_bg.Green() + 12),
+                        clamp_channel(base_bg.Blue() + 22));
+                }
+            }
             
+            const wxDouble radius = FromDIP(10);
             gc->SetBrush(wxBrush(bg_color));
             gc->SetPen(*wxTRANSPARENT_PEN);
-            gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, FromDIP(8));
+            gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, radius);
             
-            // Draw border when selected
             if (m_selected) {
+                wxColour glow_colour(m_accent.Red(), m_accent.Green(), m_accent.Blue(), 60);
                 gc->SetBrush(*wxTRANSPARENT_BRUSH);
+                gc->SetPen(wxPen(glow_colour, FromDIP(4)));
+                gc->DrawRoundedRectangle(FromDIP(1), FromDIP(1), rect.width - FromDIP(2), rect.height - FromDIP(2), radius + FromDIP(2));
+
                 gc->SetPen(wxPen(m_accent, FromDIP(2)));
-                gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, FromDIP(8));
+                gc->DrawRoundedRectangle(FromDIP(2), FromDIP(2), rect.width - FromDIP(4), rect.height - FromDIP(4), radius);
             } else {
-                // Subtle border when not selected
                 gc->SetBrush(*wxTRANSPARENT_BRUSH);
-                gc->SetPen(wxPen(HELIO_BORDER, 1));
-                gc->DrawRoundedRectangle(0, 0, rect.width, rect.height, FromDIP(8));
+                gc->SetPen(wxPen(m_border_colour, 1));
+                gc->DrawRoundedRectangle(0.5, 0.5, rect.width - 1, rect.height - 1, radius);
             }
             
             delete gc;
         }
-        event.Skip();
     }
     
     bool m_selected;
+    wxColour m_accent;
+    wxColour m_border_colour;
+};
+
+class HelioCheckBadgePanel : public wxPanel
+{
+public:
+    explicit HelioCheckBadgePanel(wxWindow* parent)
+        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)))
+        , m_accent(HELIO_PURPLE)
+    {
+        SetBackgroundColour(parent ? parent->GetBackgroundColour() : HELIO_CARD_BG);
+        SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+        SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+        Bind(wxEVT_PAINT, &HelioCheckBadgePanel::OnPaint, this);
+    }
+
+    void SetAccent(const wxColour& accent) {
+        m_accent = accent;
+        Refresh();
+    }
+
+    void SetVisible(bool visible) {
+        Show(visible);
+        if (visible) {
+            Refresh();
+        }
+    }
+
+private:
+    void OnPaint(wxPaintEvent& event)
+    {
+        wxPaintDC dc(this);
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if (!gc) return;
+
+        wxRect rect = GetClientRect();
+        dc.SetBackground(wxBrush(GetBackgroundColour()));
+        dc.Clear();
+
+        const double cx = rect.GetWidth() / 2.0;
+        const double cy = rect.GetHeight() / 2.0;
+        const double radius = std::min(rect.GetWidth(), rect.GetHeight()) / 2.0 - FromDIP(1);
+
+        gc->SetBrush(wxBrush(m_accent));
+        gc->SetPen(wxPen(m_accent, 1));
+        gc->DrawEllipse(cx - radius, cy - radius, radius * 2, radius * 2);
+
+        gc->SetPen(wxPen(*wxWHITE, FromDIP(2), wxPENSTYLE_SOLID));
+        wxPoint2DDouble p1(cx - radius * 0.45, cy);
+        wxPoint2DDouble p2(cx - radius * 0.15, cy + radius * 0.45);
+        wxPoint2DDouble p3(cx + radius * 0.5, cy - radius * 0.35);
+        gc->StrokeLine(p1.m_x, p1.m_y, p2.m_x, p2.m_y);
+        gc->StrokeLine(p2.m_x, p2.m_y, p3.m_x, p3.m_y);
+
+        delete gc;
+    }
+
     wxColour m_accent;
 };
 
@@ -1014,16 +1114,52 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
         if (sim_card) {
             sim_card->SetSelected(selected_action == 0);
             sim_card->SetAccent(theme.purple);
+            sim_card->SetBorderColour(theme.border);
+            sim_card->SetBackgroundColour(theme.card);
+        }
+        // Get the ACTUAL background color after card updates (may be tinted if selected)
+        auto sim_bg = simulation_card_panel->GetBackgroundColour();
+        if (simulation_card_title) {
+            simulation_card_title->SetBackgroundColour(sim_bg);
+            simulation_card_title->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+        }
+        if (simulation_card_subtitle) {
+            simulation_card_subtitle->SetBackgroundColour(sim_bg);
+            simulation_card_subtitle->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
         }
     }
     
+    if (simulation_mode_icon) {
+        simulation_mode_icon->SetBitmap(selected_action == 0 ? simulation_icon_color : simulation_icon_gray);
+        simulation_mode_icon->SetSize(wxSize(FromDIP(28), FromDIP(28)));  // Force size to prevent resizing
+        simulation_mode_icon->Refresh();
+    }
+
     // Update optimization card
     if (optimization_card_panel) {
         HelioModeCardPanel* opt_card = dynamic_cast<HelioModeCardPanel*>(optimization_card_panel);
         if (opt_card) {
             opt_card->SetSelected(selected_action == 1);
             opt_card->SetAccent(theme.blue);
+            opt_card->SetBorderColour(theme.border);
+            opt_card->SetBackgroundColour(theme.card);
         }
+        // Get the ACTUAL background color after card updates (may be tinted if selected)
+        auto opt_bg = optimization_card_panel->GetBackgroundColour();
+        if (optimization_card_title) {
+            optimization_card_title->SetBackgroundColour(opt_bg);
+            optimization_card_title->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+        }
+        if (optimization_card_subtitle) {
+            optimization_card_subtitle->SetBackgroundColour(opt_bg);
+            optimization_card_subtitle->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+        }
+    }
+    
+    if (optimization_mode_icon) {
+        optimization_mode_icon->SetBitmap(selected_action == 1 ? optimization_icon_color : optimization_icon_gray);
+        optimization_mode_icon->SetSize(wxSize(FromDIP(28), FromDIP(28)));  // Force size to prevent resizing
+        optimization_mode_icon->Refresh();
     }
     
     // Update title colors - selected = accent color, unselected = theme text
@@ -1046,23 +1182,11 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
         optimization_card_subtitle->Refresh();
     }
     
-    // Show/hide check icons based on selection
-    if (simulation_check_icon) {
-        if (selected_action == 0) {
-            simulation_check_icon->Show();
-        } else {
-            simulation_check_icon->Hide();
-        }
-        simulation_check_icon->Refresh();
-    }
-    if (optimization_check_icon) {
-        if (selected_action == 1) {
-            optimization_check_icon->Show();
-        } else {
-            optimization_check_icon->Hide();
-        }
-        optimization_check_icon->Refresh();
-    }
+    // Refresh panels to ensure label backgrounds update
+    if (simulation_card_panel) simulation_card_panel->Refresh();
+    if (optimization_card_panel) optimization_card_panel->Refresh();
+    
+    // Check badges removed - using colored/greyscale icons instead
 }
 
  HelioInputDialog::HelioInputDialog(wxWindow *parent /*= nullptr*/)
@@ -1094,12 +1218,40 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     header_panel->SetBackgroundColour(theme.bg);
     wxBoxSizer* header_sizer = new wxBoxSizer(wxHORIZONTAL);
     
+    // Create header icon - invert colors for light mode so it's visible
+    wxBitmap header_icon_bmp = create_scaled_bitmap("helio_icon", header_panel, 24);
+    if (!wxGetApp().dark_mode()) {
+        // In light mode, convert to greyscale and invert to make it dark
+        wxImage icon_img = header_icon_bmp.ConvertToImage();
+        if (icon_img.IsOk()) {
+            int target_size = FromDIP(24);
+            // Ensure image stays at the correct size
+            if (icon_img.GetWidth() != target_size || icon_img.GetHeight() != target_size) {
+                icon_img.Rescale(target_size, target_size, wxIMAGE_QUALITY_HIGH);
+            }
+            unsigned char* data = icon_img.GetData();
+            if (data) {
+                const size_t len = static_cast<size_t>(icon_img.GetWidth()) * static_cast<size_t>(icon_img.GetHeight()) * 3;
+                for (size_t i = 0; i < len; i += 3) {
+                    // Convert to greyscale, then invert
+                    unsigned char grey = static_cast<unsigned char>((data[i] + data[i+1] + data[i+2]) / 3);
+                    unsigned char inverted = 255 - grey;
+                    data[i] = inverted;     // R
+                    data[i+1] = inverted;   // G
+                    data[i+2] = inverted;    // B
+                }
+                header_icon_bmp = wxBitmap(icon_img);
+            }
+        }
+    }
     wxStaticBitmap* header_icon = new wxStaticBitmap(header_panel, wxID_ANY, 
-        create_scaled_bitmap("helio_icon", header_panel, 24), 
+        header_icon_bmp, 
         wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
     
     wxStaticText* header_title = new wxStaticText(header_panel, wxID_ANY, "HELIO ADDITIVE");
-    header_title->SetForegroundColour(*wxWHITE);
+    // Ensure text is visible in both light and dark modes
+    wxColour header_text_color = wxGetApp().dark_mode() ? theme.text : wxColour(0, 0, 0);  // Black in light mode, theme text in dark mode
+    header_title->SetForegroundColour(header_text_color);
     wxFont header_font = header_title->GetFont();
     header_font.SetPointSize(12);
     header_font.SetWeight(wxFONTWEIGHT_SEMIBOLD);
@@ -1113,7 +1265,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     main_sizer->Add(header_panel, 0, wxEXPAND, 0);
     
     wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    line->SetBackgroundColour(HELIO_BORDER);
+    line->SetBackgroundColour(theme.border);
 
     wxBoxSizer* control_sizer = new wxBoxSizer(wxHORIZONTAL);
     
@@ -1124,13 +1276,37 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     // ========== MODE CARD: SIMULATION ==========
     simulation_card_panel = new HelioModeCardPanel(toggle_container);
+    simulation_card_panel->SetBackgroundColour(theme.card);
+    
+    // Use vertical sizer as outer wrapper to add top/bottom padding for inset from border
+    wxBoxSizer* sim_outer_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* sim_card_sizer = new wxBoxSizer(wxHORIZONTAL);
     
     // Shield/check icon for simulation
-    wxStaticBitmap* sim_icon = new wxStaticBitmap(simulation_card_panel, wxID_ANY, 
-        create_scaled_bitmap("helio_feature_shield_check", simulation_card_panel, 28), 
+    simulation_icon_color = create_scaled_bitmap("helio_feature_shield_check", simulation_card_panel, 28);
+    wxImage sim_grey_image = simulation_icon_color.ConvertToImage().ConvertToGreyscale();
+    if (sim_grey_image.IsOk()) {
+        // Ensure greyscale image is exactly the same size as the color version
+        int target_size = FromDIP(28);
+        if (sim_grey_image.GetWidth() != target_size || sim_grey_image.GetHeight() != target_size) {
+            sim_grey_image.Rescale(target_size, target_size, wxIMAGE_QUALITY_HIGH);
+        }
+        unsigned char* data = sim_grey_image.GetData();
+        if (data) {
+            const size_t len = static_cast<size_t>(sim_grey_image.GetWidth()) * static_cast<size_t>(sim_grey_image.GetHeight()) * 3;
+            for (size_t i = 0; i < len; ++i) {
+                int scaled = static_cast<int>(data[i] * 0.9);
+                data[i] = static_cast<unsigned char>(std::max(0, std::min(255, scaled)));
+            }
+        }
+    }
+    simulation_icon_gray = wxBitmap(sim_grey_image);
+    simulation_mode_icon = new wxStaticBitmap(simulation_card_panel, wxID_ANY, 
+        simulation_icon_color, 
         wxDefaultPosition, wxSize(FromDIP(28), FromDIP(28)), 0);
-    sim_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
+    simulation_mode_icon->SetMinSize(wxSize(FromDIP(28), FromDIP(28)));
+    simulation_mode_icon->SetMaxSize(wxSize(FromDIP(28), FromDIP(28)));
+    simulation_mode_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
     
     wxBoxSizer* sim_text_sizer = new wxBoxSizer(wxVERTICAL);
     simulation_card_title = new Label(simulation_card_panel, Label::Head_14, _L("Simulation"));
@@ -1141,22 +1317,24 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     simulation_card_subtitle = new Label(simulation_card_panel, Label::Body_12, _L("See where it will fail"));
     simulation_card_subtitle->SetForegroundColour(theme.muted);
-    simulation_card_subtitle->Wrap(FromDIP(160));
+    simulation_card_subtitle->SetMinSize(wxSize(FromDIP(130), -1));
+    simulation_card_subtitle->Wrap(FromDIP(130));
+    
+    // Make labels transparent to avoid black rectangles (selection highlight artifact)
+    // Only use transparent style - do NOT also set background colour which conflicts
+    simulation_card_title->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    simulation_card_subtitle->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     
     sim_text_sizer->Add(simulation_card_title, 0, wxALIGN_LEFT, 0);
-    sim_text_sizer->Add(simulation_card_subtitle, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+    sim_text_sizer->Add(simulation_card_subtitle, 0, wxEXPAND | wxTOP, FromDIP(4));
     
-    // Check icon (shown when selected)
-    simulation_check_icon = new wxStaticBitmap(simulation_card_panel, wxID_ANY, 
-        create_scaled_bitmap("helio_switch_send_mode_tag_on", simulation_card_panel, 20), 
-        wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
-    simulation_check_icon->Hide(); // Hidden by default
-    simulation_check_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
+    sim_card_sizer->Add(simulation_mode_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
+    sim_card_sizer->Add(sim_text_sizer, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
+    sim_card_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(16));  // Spacer instead of check badge
     
-    sim_card_sizer->Add(sim_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
-    sim_card_sizer->Add(sim_text_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
-    sim_card_sizer->Add(simulation_check_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(16));
-    simulation_card_panel->SetSizer(sim_card_sizer);
+    // Add the horizontal content sizer to outer vertical sizer with top/bottom inset padding
+    sim_outer_sizer->Add(sim_card_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(14));
+    simulation_card_panel->SetSizer(sim_outer_sizer);
     // Larger mode cards: 220-260 x 90-110
     simulation_card_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(100)));
     simulation_card_panel->SetMaxSize(wxSize(FromDIP(260), FromDIP(110)));
@@ -1165,18 +1343,48 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     simulation_card_panel->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
     simulation_card_title->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
     simulation_card_subtitle->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
-    simulation_card_panel->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    simulation_card_panel->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    simulation_mode_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
+    
+    // Show hand cursor on the entire card and all children
+    auto sim_set_cursor = [](wxSetCursorEvent& e) { e.SetCursor(wxCURSOR_HAND); };
+    simulation_card_panel->Bind(wxEVT_SET_CURSOR, sim_set_cursor);
+    simulation_card_title->Bind(wxEVT_SET_CURSOR, sim_set_cursor);
+    simulation_card_subtitle->Bind(wxEVT_SET_CURSOR, sim_set_cursor);
+    simulation_mode_icon->Bind(wxEVT_SET_CURSOR, sim_set_cursor);
     
     // ========== MODE CARD: OPTIMIZATION ==========
     optimization_card_panel = new HelioModeCardPanel(toggle_container);
+    optimization_card_panel->SetBackgroundColour(theme.card);
+    
+    // Use vertical sizer as outer wrapper to add top/bottom padding for inset from border
+    wxBoxSizer* opt_outer_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer* opt_card_sizer = new wxBoxSizer(wxHORIZONTAL);
     
     // Speed icon for optimization
-    wxStaticBitmap* opt_icon = new wxStaticBitmap(optimization_card_panel, wxID_ANY, 
-        create_scaled_bitmap("helio_feature_speed", optimization_card_panel, 28), 
+    optimization_icon_color = create_scaled_bitmap("helio_feature_speed", optimization_card_panel, 28);
+    wxImage opt_grey_image = optimization_icon_color.ConvertToImage().ConvertToGreyscale();
+    if (opt_grey_image.IsOk()) {
+        // Ensure greyscale image is exactly the same size as the color version
+        int target_size = FromDIP(28);
+        if (opt_grey_image.GetWidth() != target_size || opt_grey_image.GetHeight() != target_size) {
+            opt_grey_image.Rescale(target_size, target_size, wxIMAGE_QUALITY_HIGH);
+        }
+        unsigned char* data = opt_grey_image.GetData();
+        if (data) {
+            const size_t len = static_cast<size_t>(opt_grey_image.GetWidth()) * static_cast<size_t>(opt_grey_image.GetHeight()) * 3;
+            for (size_t i = 0; i < len; ++i) {
+                int scaled = static_cast<int>(data[i] * 0.9);
+                data[i] = static_cast<unsigned char>(std::max(0, std::min(255, scaled)));
+            }
+        }
+    }
+    optimization_icon_gray = wxBitmap(opt_grey_image);
+    optimization_mode_icon = new wxStaticBitmap(optimization_card_panel, wxID_ANY, 
+        optimization_icon_color, 
         wxDefaultPosition, wxSize(FromDIP(28), FromDIP(28)), 0);
-    opt_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
+    optimization_mode_icon->SetMinSize(wxSize(FromDIP(28), FromDIP(28)));
+    optimization_mode_icon->SetMaxSize(wxSize(FromDIP(28), FromDIP(28)));
+    optimization_mode_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
     
     wxBoxSizer* opt_text_sizer = new wxBoxSizer(wxVERTICAL);
     optimization_card_title = new Label(optimization_card_panel, Label::Head_14, _L("Optimization"));
@@ -1187,22 +1395,24 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     optimization_card_subtitle = new Label(optimization_card_panel, Label::Body_12, _L("Auto-fix with new speeds"));
     optimization_card_subtitle->SetForegroundColour(theme.muted);
-    optimization_card_subtitle->Wrap(FromDIP(160));
+    optimization_card_subtitle->SetMinSize(wxSize(FromDIP(130), -1));
+    optimization_card_subtitle->Wrap(FromDIP(130));
+    
+    // Make labels transparent to avoid black rectangles (selection highlight artifact)
+    // Only use transparent style - do NOT also set background colour which conflicts
+    optimization_card_title->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    optimization_card_subtitle->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     
     opt_text_sizer->Add(optimization_card_title, 0, wxALIGN_LEFT, 0);
-    opt_text_sizer->Add(optimization_card_subtitle, 0, wxALIGN_LEFT | wxTOP, FromDIP(4));
+    opt_text_sizer->Add(optimization_card_subtitle, 0, wxEXPAND | wxTOP, FromDIP(4));
     
-    // Check icon (shown when selected)
-    optimization_check_icon = new wxStaticBitmap(optimization_card_panel, wxID_ANY, 
-        create_scaled_bitmap("helio_switch_send_mode_tag_on", optimization_card_panel, 20), 
-        wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), 0);
-    optimization_check_icon->Hide(); // Hidden by default
-    optimization_check_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
+    opt_card_sizer->Add(optimization_mode_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
+    opt_card_sizer->Add(opt_text_sizer, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
+    opt_card_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(16));  // Spacer instead of check badge
     
-    opt_card_sizer->Add(opt_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
-    opt_card_sizer->Add(opt_text_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
-    opt_card_sizer->Add(optimization_check_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(16));
-    optimization_card_panel->SetSizer(opt_card_sizer);
+    // Add the horizontal content sizer to outer vertical sizer with top/bottom inset padding
+    opt_outer_sizer->Add(opt_card_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(14));
+    optimization_card_panel->SetSizer(opt_outer_sizer);
     // Larger mode cards: 220-260 x 90-110
     optimization_card_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(100)));
     optimization_card_panel->SetMaxSize(wxSize(FromDIP(260), FromDIP(110)));
@@ -1211,8 +1421,14 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     optimization_card_panel->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
     optimization_card_title->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
     optimization_card_subtitle->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
-    optimization_card_panel->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    optimization_card_panel->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    optimization_mode_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
+    
+    // Show hand cursor on the entire card and all children
+    auto opt_set_cursor = [](wxSetCursorEvent& e) { e.SetCursor(wxCURSOR_HAND); };
+    optimization_card_panel->Bind(wxEVT_SET_CURSOR, opt_set_cursor);
+    optimization_card_title->Bind(wxEVT_SET_CURSOR, opt_set_cursor);
+    optimization_card_subtitle->Bind(wxEVT_SET_CURSOR, opt_set_cursor);
+    optimization_mode_icon->Bind(wxEVT_SET_CURSOR, opt_set_cursor);
 
     // Create hidden toggle buttons for backward compatibility with update_action
     togglebutton_simulate = new CustomToggleButton(this, _L("Simulation"));
@@ -1312,13 +1528,42 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     acct_font.SetWeight(wxFONTWEIGHT_BOLD);
     account_header->SetFont(acct_font);
     
-    m_remain_usage_time = new HelioRemainUsageTime(card_account_status, _L("Monthly quota: "));
-    m_remain_usage_time->SetBackgroundColour(theme.card);
-    m_remain_usage_time->UpdateRemainTime(0);
-
-    m_remain_purchased_time = new HelioRemainUsageTime(card_account_status, _L("Add-ons: "));
-    m_remain_purchased_time->SetBackgroundColour(theme.card);
-    m_remain_purchased_time->UpdateRemainTime(0);
+    // Use a 2-column grid sizer for proper column alignment
+    wxFlexGridSizer* quota_grid = new wxFlexGridSizer(2, FromDIP(4), FromDIP(12)); // 2 cols, vgap=4, hgap=12
+    quota_grid->AddGrowableCol(0, 1); // label column can expand
+    
+    wxFont bold_font = Label::Body_13;
+    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+    
+    // Subscription row
+    Label* label_subscription = new Label(card_account_status, _L("Subscription:"));
+    label_subscription->SetForegroundColour(theme.text);
+    m_label_subscription = new Label(card_account_status, "-");
+    m_label_subscription->SetFont(bold_font);
+    m_label_subscription->SetForegroundColour(theme.text);
+    
+    quota_grid->Add(label_subscription, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    quota_grid->Add(m_label_subscription, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
+    
+    // Monthly quota row
+    Label* label_monthly_quota = new Label(card_account_status, _L("Monthly quota:"));
+    label_monthly_quota->SetForegroundColour(theme.text);
+    m_label_monthly_quota = new Label(card_account_status, "0");
+    m_label_monthly_quota->SetFont(bold_font);
+    m_label_monthly_quota->SetForegroundColour(theme.text);
+    
+    quota_grid->Add(label_monthly_quota, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    quota_grid->Add(m_label_monthly_quota, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
+    
+    // Add-ons row
+    Label* label_addons = new Label(card_account_status, _L("Add-ons:"));
+    label_addons->SetForegroundColour(theme.text);
+    m_label_addons = new Label(card_account_status, "0");
+    m_label_addons->SetFont(bold_font);
+    m_label_addons->SetForegroundColour(theme.text);
+    
+    quota_grid->Add(label_addons, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
+    quota_grid->Add(m_label_addons, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
 
     // Create Buy More Optimizations button
     StateColor btn_buy_bg_outlined;
@@ -1359,6 +1604,8 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
 
     buy_now_link = new LinkLabel(card_account_status, _L("Manage Account"), "https://wiki.helioadditive.com/");
     buy_now_link->SeLinkLabelFColour(wxColour(175, 124, 255));
+    buy_now_link->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    buy_now_link->SetBackgroundColour(card_account_status->GetBackgroundColour());
     buy_now_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     buy_now_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     buy_now_link->Hide();
@@ -1371,8 +1618,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     secondary_actions_sizer->Add(buy_now_button, 0, 0, 0);
     
     card_account_sizer->Add(account_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
-    card_account_sizer->Add(m_remain_usage_time, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
-    card_account_sizer->Add(m_remain_purchased_time, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(4));
+    card_account_sizer->Add(quota_grid, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
     card_account_sizer->Add(secondary_actions_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(16));
     card_account_status->SetSizer(card_account_sizer);
 
@@ -1578,6 +1824,8 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     /*helio wiki - placed inside simulation card for simulation mode*/
     helio_wiki_link = new LinkLabel(card_simulation, _L("Click for more details"), wxGetApp().app_config->get("language") =="zh_CN"? "https://wiki.helioadditive.com/zh/home" : "https://wiki.helioadditive.com/en/home");
     helio_wiki_link->SeLinkLabelFColour(theme.purple);
+    helio_wiki_link->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
+    helio_wiki_link->SetBackgroundColour(card_simulation->GetBackgroundColour());
     helio_wiki_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     helio_wiki_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     // Add wiki link to simulation card
@@ -1595,8 +1843,10 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     m_button_confirm = new Button(this, _L("Start Optimization"));
     m_button_confirm->SetBackgroundColor(btn_primary_bg);
     m_button_confirm->SetBorderColor(theme.purple);
-    // White text for all states including Disabled
-    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+    // White text for all states
+    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
     m_button_confirm->SetTextColor(white_text);
     m_button_confirm->SetFont(Label::Head_14);
@@ -1667,8 +1917,10 @@ void HelioInputDialog::update_action(int action)
                               std::pair<wxColour, int>(theme.purple, StateColor::Normal));
         m_button_confirm->SetBackgroundColor(btn_sim_bg);
         m_button_confirm->SetBorderColor(theme.purple);
-        // White text for all states including Disabled
-        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+        // White text for all states
+        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
                               std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
         m_button_confirm->SetTextColor(white_text);
         m_button_confirm->SetLabel(_L("Start Simulation"));
@@ -1704,8 +1956,10 @@ void HelioInputDialog::update_action(int action)
                               std::pair<wxColour, int>(theme.blue, StateColor::Normal));
         m_button_confirm->SetBackgroundColor(btn_opt_bg);
         m_button_confirm->SetBorderColor(theme.blue);
-        // White text for all states including Disabled
-        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+        // White text for all states
+        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
                               std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
         m_button_confirm->SetTextColor(white_text);
         m_button_confirm->SetLabel(_L("Start Optimization"));
@@ -1718,27 +1972,39 @@ void HelioInputDialog::update_action(int action)
         std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
         std::weak_ptr<int> weak_ptr = shared_ptr;
-        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times, int addons) {
+        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times, int addons, const std::string& subscription_name, bool free_trial_eligible) {
             if (auto temp_ptr = weak_ptr.lock()) {
                 CallAfter([=]() {
                     if (times > 0 || addons > 0) {
                         m_button_confirm->Enable();
                     }
-                    else {
-                        if (times <= 0) {
-                            if (buy_now_button) { buy_now_button->SetLabel(_L("Buy More Optimizations")); }
-                            if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(0); }
-                        }
-                        else {
-                            if (buy_now_button) { buy_now_button->SetLabel(_L("Buy More Optimizations")); }
-                            if (m_remain_usage_time) { m_remain_usage_time->UpdateHelpTips(1); }
+                    
+                    // Store free trial eligibility for later use
+                    m_free_trial_eligible = free_trial_eligible;
+                    
+                    // Update button text based on free trial eligibility (always update)
+                    if (buy_now_button) {
+                        if (free_trial_eligible) {
+                            buy_now_button->SetLabel(_L("Start Free Trial"));
+                        } else {
+                            buy_now_button->SetLabel(_L("Buy More Optimizations"));
                         }
                     }
+                    
+                    // Update subscription label
+                    if (m_label_subscription) {
+                        if (subscription_name.empty()) {
+                            m_label_subscription->SetLabelText("-");
+                        } else {
+                            m_label_subscription->SetLabelText(wxString::FromUTF8(subscription_name));
+                        }
+                    }
+                    
+                    if (m_label_monthly_quota) { m_label_monthly_quota->SetLabelText(wxString::Format("%d", times)); }
+                    if (m_label_addons) { m_label_addons->SetLabelText(wxString::Format("%d", addons)); }
+                    
                     Layout();
                     Fit();
-
-                    if (m_remain_usage_time) { m_remain_usage_time->UpdateRemainTime(times); }
-                    if (m_remain_purchased_time) { m_remain_purchased_time->UpdateRemainTime(addons); }
                 });
             }
             else {
@@ -1902,9 +2168,22 @@ wxBoxSizer* HelioInputDialog::create_combo_item(wxWindow* parent, std::string ke
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
     
-    // Apply theme colors to combobox (dark mode only for now)
+    // Apply theme colors (respects OS dark/light mode)
     combobox->SetBackgroundColour(theme.card2);
     combobox->SetForegroundColour(theme.text);
+    
+    // Style dropdown list
+    auto& dd = combobox->GetDropDown();
+    dd.SetBackgroundColour(theme.card2);
+    dd.SetForegroundColour(theme.text);
+    
+    // Style text control if available
+    if (auto* tc = combobox->GetTextCtrl()) {
+        tc->SetBackgroundColour(theme.card2);
+        tc->SetForegroundColour(theme.text);
+    }
+    
+    combobox->Refresh();
 
     std::vector<wxString>::iterator iter;
     for (auto label : combolist)

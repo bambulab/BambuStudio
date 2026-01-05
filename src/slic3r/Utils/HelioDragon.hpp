@@ -297,7 +297,8 @@ public:
     static double convert_volume_speed(float mm3_per_second);
 
     /*user*/
-    static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, std::function<void(int, int)> func);
+    static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, 
+        std::function<void(int times, int addons, const std::string& subscription_name, bool free_trial_eligible)> func);
 };
 
 class HelioBackgroundProcess

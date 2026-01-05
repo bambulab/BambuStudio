@@ -97,9 +97,10 @@ double HelioQuery::convert_volume_speed(float mm3_per_second) {
     return std::round(value * 1e20) / 1e20;
 }
 
-void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, std::function<void(int, int)> func) {
+void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, 
+    std::function<void(int, int, const std::string&, bool)> func) {
     std::string query_body = R"( {
-        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations} }",
+        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations subscription { name } } freeTrialEligibility }",
         "variables": {}
     } )";
 
@@ -126,6 +127,8 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 
                 int global_remaining_opt_count = 0;
                 int global_remaining_addon_opt_count = 0;
+                std::string subscription_name = "";
+                bool free_trial_eligible = false;
 
                 if (parsed_obj["data"]["user"]["remainingOptsThisMonth"].is_number()) {
                     global_remaining_opt_count = parsed_obj["data"]["user"]["remainingOptsThisMonth"].get<int>();
@@ -135,18 +138,31 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
                     global_remaining_addon_opt_count = parsed_obj["data"]["user"]["addOnOptimizations"].get<int>();
                 }
 
-                func(global_remaining_opt_count, global_remaining_addon_opt_count);
+                // Parse subscription name
+                if (parsed_obj["data"]["user"].contains("subscription") 
+                    && parsed_obj["data"]["user"]["subscription"].contains("name")
+                    && parsed_obj["data"]["user"]["subscription"]["name"].is_string()) {
+                    subscription_name = parsed_obj["data"]["user"]["subscription"]["name"].get<std::string>();
+                }
+
+                // Parse free trial eligibility
+                if (parsed_obj["data"].contains("freeTrialEligibility") 
+                    && parsed_obj["data"]["freeTrialEligibility"].is_boolean()) {
+                    free_trial_eligible = parsed_obj["data"]["freeTrialEligibility"].get<bool>();
+                }
+
+                func(global_remaining_opt_count, global_remaining_addon_opt_count, subscription_name, free_trial_eligible);
             }
             else {
-                func(0, 0);
+                func(0, 0, "", false);
             }
         }
         catch (...) {
-            func(0, 0);
+            func(0, 0, "", false);
         }
             })
         .on_error([func](std::string body, std::string error, unsigned status) {
-            func(0, 0);
+            func(0, 0, "", false);
             BOOST_LOG_TRIVIAL(error) << "Failed to obtain remaining optimization attempts: " << error << ", status: " << status;
         })
         .perform();
@@ -210,7 +226,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
             } catch (...) {}
         })
         .on_error([](std::string body, std::string error, unsigned status) {
-            // BOOST_LOG_TRIVIAL(info) << (boost::format("error: %1%, message: %2%") % error % body).str()
+            BOOST_LOG_TRIVIAL(error) << "request_support_machine error: " << error << ", status: " << status << ", body: " << body;
         })
         .perform();
 }
@@ -276,7 +292,7 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
             } catch (...) {}
         })
         .on_error([](std::string body, std::string error, unsigned status) {
-            // BOOST_LOG_TRIVIAL(info) << (boost::format("error: %1%, message: %2%") % error % body).str()
+            BOOST_LOG_TRIVIAL(error) << "request_support_material error: " << error << ", status: " << status << ", body: " << body;
         })
         .perform();
 }
