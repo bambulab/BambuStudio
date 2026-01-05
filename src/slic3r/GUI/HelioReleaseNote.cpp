@@ -94,13 +94,13 @@ namespace {
      m_button_cancel->SetBackgroundColor(btn_bg_green);
      m_button_cancel->SetBorderColor(wxColour(0, 174, 66));
      // White text for all states
-     StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                           std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+     StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                           std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                           std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                           std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                           std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
      m_button_cancel->SetTextColor(white_text);
-     m_button_cancel->SetTextColorNormal(wxColour(255, 255, 255));
+     m_button_cancel->SetTextColorNormal(wxColour(255, 255, 254));
      m_button_cancel->SetFont(Label::Body_14);
      m_button_cancel->SetSize(wxSize(FromDIP(100), FromDIP(36)));
      m_button_cancel->SetMinSize(wxSize(FromDIP(100), FromDIP(36)));
@@ -503,13 +503,13 @@ void HelioStatementDialog::create_legal_page()
     m_button_confirm->SetBackgroundColor(btn_bg_disabled);
     m_button_confirm->SetBorderColor(wxColour(0, 174, 66));
     // White text for all states including Disabled
-    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     m_button_confirm->SetTextColor(white_text);
-    m_button_confirm->SetTextColorNormal(wxColour(255, 255, 255));
+    m_button_confirm->SetTextColorNormal(wxColour(255, 255, 254));
     m_button_confirm->SetFont(Label::Body_14);
     m_button_confirm->SetSize(wxSize(FromDIP(160), FromDIP(36)));
     m_button_confirm->SetMinSize(wxSize(FromDIP(160), FromDIP(36)));
@@ -567,13 +567,13 @@ void HelioStatementDialog::create_pat_page()
     run_optimization_button->SetBackgroundColor(btn_bg_green);
     run_optimization_button->SetBorderColor(wxColour(0, 174, 66));
     // Bright white text for maximum contrast on green background
-    StateColor run_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor run_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                            std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     run_optimization_button->SetTextColor(run_btn_text);
-    run_optimization_button->SetTextColorNormal(wxColour(255, 255, 255));  // Bright white text
+    run_optimization_button->SetTextColorNormal(wxColour(255, 255, 254));  // Bright white text
     run_optimization_button->SetFont(Label::Body_14);
     run_optimization_button->SetSize(wxSize(FromDIP(220), FromDIP(36)));
     run_optimization_button->SetMinSize(wxSize(FromDIP(220), FromDIP(36)));
@@ -608,14 +608,14 @@ void HelioStatementDialog::create_pat_page()
     copy_pat_button->SetBackgroundColor(btn_bg_copy);
     copy_pat_button->SetBorderColor(wxColour(150, 155, 165));  // Lighter border for visibility
     // Bright white text for maximum contrast - ensure all states use white
-    StateColor copy_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor copy_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                             std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                             std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                             std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                             std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     copy_pat_button->SetTextColor(copy_btn_text);
     // Also set normal text color directly as fallback
-    copy_pat_button->SetTextColorNormal(wxColour(255, 255, 255));
+    copy_pat_button->SetTextColorNormal(wxColour(255, 255, 254));
     copy_pat_button->SetFont(Label::Body_13);
     copy_pat_button->SetSize(wxSize(FromDIP(120), FromDIP(32)));
     copy_pat_button->SetMinSize(wxSize(FromDIP(120), FromDIP(32)));
@@ -2526,8 +2526,8 @@ HelioPatNotEnoughDialog::HelioPatNotEnoughDialog(wxWindow* parent /*= nullptr*/)
     m_button_ok->SetBackgroundColor(btn_bg_green);
     m_button_ok->SetBorderColor(*wxWHITE);
     // White text for all states
-    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     m_button_ok->SetTextColor(white_text);
     m_button_ok->SetFont(Label::Body_12);
     m_button_ok->SetSize(wxSize(FromDIP(58), FromDIP(24)));
@@ -2579,7 +2579,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
 
     // Theme colors based on light/dark mode
     bool is_dark = wxGetApp().dark_mode();
-    wxColour bg_color = is_dark ? HELIO_BG_BASE : wxColour(255, 255, 255);
+    wxColour bg_color = is_dark ? HELIO_BG_BASE : wxColour(255, 255, 254);
     // Header banner always stays dark for Helio branding
     wxColour header_bg = wxColour(16, 16, 16);
     wxColour header_text = wxColour("#FEFEFF");
@@ -2741,13 +2741,13 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     auto m_button_print_plate = new Button(this, _L("Print Plate"));
     m_button_print_plate->SetBackgroundColor(btn_bg_green);
     m_button_print_plate->SetBorderColor(wxColour(0, 174, 66));
-    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     m_button_print_plate->SetTextColor(white_text);
-    m_button_print_plate->SetTextColorNormal(wxColour(255, 255, 255));
+    m_button_print_plate->SetTextColorNormal(wxColour(255, 255, 254));
     m_button_print_plate->SetFont(Label::Body_12);
     m_button_print_plate->SetSize(wxSize(FromDIP(100), FromDIP(24)));
     m_button_print_plate->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
