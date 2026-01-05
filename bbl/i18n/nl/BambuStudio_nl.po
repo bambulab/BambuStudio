@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3193,6 +3193,12 @@ msgstr "Het instellen van informatie over de virtuele sleuf tijdens het afdrukke
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Weet je zeker dat je de filament informatie wilt wissen?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Je dient eerst het materiaaltype en de kleur te selecteren."
 
@@ -3336,11 +3342,23 @@ msgstr "Huidige toewijzing van gloeidraden resetten"
 msgid "Right AMS"
 msgstr "Rechts AMS"
 
-msgid "Left Nozzle"
-msgstr "Linker nozzle"
+msgid "Tips:"
+msgstr "Tips:"
 
-msgid "Right Nozzle"
-msgstr "Rechter nozzle"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "Nozzle"
@@ -3359,15 +3377,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "Printen met de huidige nozzle kan een extra %0.2f g afval opleveren."
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Opmerking: het filamenttype (%s) komt niet overeen met het filamenttype (%s) in het slicing-bestand. Als u deze sleuf wilt gebruiken, kunt u %s installeren in plaats van %s en de sleufinformatie wijzigen op de pagina 'Apparaat'."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Let op: de sleuf is leeg of ongedefinieerd. Als u deze sleuf wilt gebruiken, kunt u %s installeren en de sleufinformatie wijzigen op de pagina 'Apparaat'."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Opmerking: Alleen sleuven met geladen gloeidraad kunnen worden geselecteerd."
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS inschakelen"
@@ -4172,6 +4190,9 @@ msgstr "Onbekende fout."
 msgid "Loading ..."
 msgstr "Bezig met laden..."
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "Standaard"
 
@@ -4410,9 +4431,6 @@ msgstr "Rechter nozzle"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Plaats filamenten op de printer op basis van het groepsresultaat."
-
-msgid "Tips:"
-msgstr "Tips:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "De huidige groepering van slice-resultaten is niet optimaal."
@@ -5817,6 +5835,12 @@ msgstr "Schakelen mislukt"
 msgid "Printing Progress"
 msgstr "Print voortgang"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "Onderdelen overslaan"
 
@@ -5939,6 +5963,12 @@ msgstr "Huidige sleuf is al geladen"
 
 msgid "The selected slot is empty."
 msgstr "De geselecteerde sleuf is leeg."
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Printer 2D-modus ondersteunt geen 3D-calibratie"
@@ -6402,6 +6432,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Onderste"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr "Niet beschikbaar tijdens de taak"
 
@@ -6507,6 +6543,12 @@ msgstr "Melding"
 msgid "Pause printing"
 msgstr "Afdrukken onderbreken"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr ""
@@ -6524,6 +6566,12 @@ msgstr "Wijzig de instellingen van de nozzle op de printer."
 
 msgid "View wiki"
 msgstr "Wiki bekijken"
+
+msgid "Left Nozzle"
+msgstr "Linker nozzle"
+
+msgid "Right Nozzle"
+msgstr "Rechter nozzle"
 
 msgid "Brass"
 msgstr "Messing"
@@ -6663,25 +6711,14 @@ msgstr "AMS (1 sleuf)"
 msgid "Not installed"
 msgstr "Niet geïnstalleerd"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"De software ondersteunt het gebruik van verschillende nozzle diameters voor één print niet.\n"
-"Als de linker- en rechter nozzle niet overeenkomen, kunnen we alleen printen met één kop.\n"
-"Bevestig alstublieft welke nozzle u wilt gebruiken voor dit project."
 
-msgid "Switch diameter"
-msgstr "Wissel van diameter"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Linker nozzle: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Rechter nozzle: %smm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Printergegevens synchroniseren"
@@ -6714,6 +6751,12 @@ msgstr "Synchronisatie-info"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchroniseer nozzle-informatie en het aantal AMS"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "Projectfilamenten"
 
@@ -6737,6 +6780,9 @@ msgstr "Stel filamenten in om te gebruiken"
 
 msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6820,6 +6866,9 @@ msgstr "Vanwege de oudere versie van Bambu Studio kan dit 3mf-bestand niet volle
 
 msgid "Found following keys unrecognized:\n"
 msgstr "De volgende niet-erkende sleutels zijn gevonden:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "De 3mf wordt gegenereerd door de oude Bambu Studio, alleen geometriegegevens laden."
@@ -8265,6 +8314,9 @@ msgstr "De printer is mislukt bij het opbouwen van de nozzle-automatische toewij
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "De huidige nozzle-mapping kan een extra %0.2f g afval opleveren."
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8358,6 +8410,9 @@ msgstr "Raadpleeg de Wiki voor gebruik->"
 
 msgid "How to install"
 msgstr "Hoe te installeren"
+
+msgid "Upgrade"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "De huidige firmware ondersteunt geen bestandsoverdracht naar interne opslag."
@@ -10758,6 +10813,33 @@ msgstr ""
 "2. Om veranderingen in de snelheid van de buitenwand te voorkomen, wat lichte wandartefacten kan veroorzaken die lijken op Z-bandvorming\n"
 "3. Om te voorkomen dat er geprint wordt met snelheden die VFAs (fijne artefacten) op de buitenwanden veroorzaken"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Normaal printen"
 
@@ -10766,6 +10848,17 @@ msgstr "De standaardversnelling van zowel normaal printen als reizen, behalve de
 
 msgid "The acceleration of travel except initial layer"
 msgstr "De reisversnelling behalve de beginlaag"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "Eerste laagbeweging"
@@ -13470,7 +13563,6 @@ msgstr ""
 "Tips voor kalibratiemateriaal: \n"
 "- Materialen die dezelfde warmbedtemperatuur kunnen delen\n"
 "- Verschillende filamentmerken en -families (Merk = Bambu, Familie = Basis, Mat)\n"
-""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Opmerking: Het nummer van de hot-end is gekoppeld aan de houder. Wanneer de hot-end naar een nieuwe houder wordt verplaatst, wordt het nummer automatisch bijgewerkt.\n"
@@ -15526,6 +15618,37 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "Opmerking: het filamenttype (%s) komt niet overeen met het filamenttype (%s) in het slicing-bestand. Als u deze sleuf wilt gebruiken, kunt u %s installeren in plaats van %s en de sleufinformatie wijzigen op de pagina 'Apparaat'."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "Let op: de sleuf is leeg of ongedefinieerd. Als u deze sleuf wilt gebruiken, kunt u %s installeren en de sleufinformatie wijzigen op de pagina 'Apparaat'."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Opmerking: Alleen sleuven met geladen gloeidraad kunnen worden geselecteerd."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "De software ondersteunt het gebruik van verschillende nozzle diameters voor één print niet.\n"
+#~ "Als de linker- en rechter nozzle niet overeenkomen, kunnen we alleen printen met één kop.\n"
+#~ "Bevestig alstublieft welke nozzle u wilt gebruiken voor dit project."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Wissel van diameter"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Linker nozzle: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Rechter nozzle: %smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "Surround projectie door char"

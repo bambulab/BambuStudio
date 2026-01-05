@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3195,6 +3195,12 @@ msgstr "Yazdırma desteklenmediğinde Sanal yuva bilgilerinin ayarlanması"
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Filament bilgisini temizlemek istediğinizden emin misiniz?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Önce malzeme türünü ve rengini seçmeniz gerekir."
 
@@ -3338,11 +3344,23 @@ msgstr "Geçerli filament eşlemesini sıfırla"
 msgid "Right AMS"
 msgstr "Sağ AMS"
 
-msgid "Left Nozzle"
-msgstr "Sol nozul"
+msgid "Tips:"
+msgstr "İpuçları:"
 
-msgid "Right Nozzle"
-msgstr "Sağ nozul"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "Nozul"
@@ -3361,15 +3379,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Not: filament tipi (%s) dilimleme dosyasındaki filament tipi (%s) ile eşleşmiyor. Bu yuvayı kullanmak istiyorsanız, %s yerine %s yükleyebilir ve 'Cihaz' sayfasındaki yuva bilgilerini değiştirebilirsiniz."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Not: yuva boş veya tanımlanmamış. Bu yuvayı kullanmak istiyorsanız, %s'yi yükleyebilir ve 'Cihaz' sayfasında yuva bilgilerini değiştirebilirsiniz."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Not: Yalnızca filament yüklü yuvalar seçilebilir."
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS'yi etkinleştir"
@@ -4168,6 +4186,9 @@ msgstr "Bilinmeyen hata."
 msgid "Loading ..."
 msgstr "Yükleniyor..."
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "varsayılan"
 
@@ -4406,9 +4427,6 @@ msgstr "Sağ nozul"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Lütfen filamentleri gruplama sonucuna göre yazıcıya yerleştirin."
-
-msgid "Tips:"
-msgstr "İpuçları:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "Dilimleme sonuçlarının mevcut gruplaması ideal değildir."
@@ -5809,6 +5827,12 @@ msgstr "Değiştirme başarısız"
 msgid "Printing Progress"
 msgstr "Yazdırma İlerlemesi"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "Parça Atla"
 
@@ -5931,6 +5955,12 @@ msgstr "Mevcut yuva zaten dolu"
 
 msgid "The selected slot is empty."
 msgstr "Seçilen yuva boş."
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Yazıcı 2D modu 3D kalibrasyonu desteklemiyor"
@@ -6392,6 +6422,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alt"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr ""
 
@@ -6497,6 +6533,12 @@ msgstr "Bildirim"
 msgid "Pause printing"
 msgstr "Yazdırmayı duraklat"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr "Tip"
@@ -6514,6 +6556,12 @@ msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 
 msgid "View wiki"
 msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
+
+msgid "Left Nozzle"
+msgstr "Sol nozul"
+
+msgid "Right Nozzle"
+msgstr "Sağ nozul"
 
 msgid "Brass"
 msgstr "Pirinç"
@@ -6653,25 +6701,14 @@ msgstr "AMS(1 slot)"
 msgid "Not installed"
 msgstr "Yüklü Değil"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"Yazılım, tek bir baskı için farklı çapta nozulların kullanılmasını desteklemez.\n"
-"Sol ve sağ nozullar tutarsızsa, yalnızca tek kafalı baskı ile devam edebiliriz.\n"
-"Lütfen bu proje için hangi nozulu kullanmak istediğinizi onaylayın."
 
-msgid "Switch diameter"
-msgstr "Anahtar çapı"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Sol nozul: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Sağ nozul: %smm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Yazıcı bilgilerini senkronize et"
@@ -6704,6 +6741,12 @@ msgstr "Senkronizasyon bilgileri"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Nozul bilgilerini ve AMS sayısını senkronize edin"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "Proje Filamentleri"
 
@@ -6727,6 +6770,9 @@ msgstr "Kullanılacak filamentleri ayarla"
 
 msgid "Search plate, object and part."
 msgstr "Arama plakası, nesne ve parça."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6812,6 +6858,9 @@ msgstr "Bambu Studio'nin düşük sürümü nedeniyle bu 3mf dosyası tam olarak
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Tanınmayan aşağıdaki anahtarlar bulundu:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "Bu 3mf eski Bambu Studio tarafından oluşturulmuştur, sadece geometri verilerini yükleyebilirsiniz."
@@ -8247,6 +8296,9 @@ msgstr ""
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8339,6 +8391,9 @@ msgid "Please refer to Wiki before use->"
 msgstr "Lütfen kullanmadan önce Wiki'ye bakın->"
 
 msgid "How to install"
+msgstr ""
+
+msgid "Upgrade"
 msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
@@ -10737,6 +10792,33 @@ msgstr ""
 "2. Z bandı gibi görünen hafif duvar artefaktlarına neden olabilecek dış duvar hızındaki değişiklikleri önlemek için\n"
 "3. Dış duvarlarda VFA'lara (ince artefaktlar) neden olan hızlarda yazdırmayı önlemek için"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Normal baskı"
 
@@ -10745,6 +10827,17 @@ msgstr "İlk katman dışında hem normal yazdırmanın hem de ilerlemenin varsa
 
 msgid "The acceleration of travel except initial layer"
 msgstr "İlk katman hariç seyahat ivmesi"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "İlk katman seyahat hızı"
@@ -15499,6 +15592,37 @@ msgid ""
 msgstr ""
 "Büzülme, Çarpılma ve Gerilim\n"
 "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "Not: filament tipi (%s) dilimleme dosyasındaki filament tipi (%s) ile eşleşmiyor. Bu yuvayı kullanmak istiyorsanız, %s yerine %s yükleyebilir ve 'Cihaz' sayfasındaki yuva bilgilerini değiştirebilirsiniz."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "Not: yuva boş veya tanımlanmamış. Bu yuvayı kullanmak istiyorsanız, %s'yi yükleyebilir ve 'Cihaz' sayfasında yuva bilgilerini değiştirebilirsiniz."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Not: Yalnızca filament yüklü yuvalar seçilebilir."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "Yazılım, tek bir baskı için farklı çapta nozulların kullanılmasını desteklemez.\n"
+#~ "Sol ve sağ nozullar tutarsızsa, yalnızca tek kafalı baskı ile devam edebiliriz.\n"
+#~ "Lütfen bu proje için hangi nozulu kullanmak istediğinizi onaylayın."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Anahtar çapı"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Sol nozul: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Sağ nozul: %smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "By char(Terim) çevreleme projeksiyonu"
