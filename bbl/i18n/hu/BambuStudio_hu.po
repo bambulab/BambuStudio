@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3193,6 +3193,12 @@ msgstr "Nem módosíthatod a virtuális férőhelyek beállításait nyomtatás 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Biztos, hogy törölni akarod a filament adatait?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Először ki kell választanod az anyag típusát és színét."
 
@@ -3336,11 +3342,23 @@ msgstr "Jelenlegi filamentkiosztás törlése"
 msgid "Right AMS"
 msgstr "Jobb AMS"
 
-msgid "Left Nozzle"
-msgstr "Bal fúvóka"
+msgid "Tips:"
+msgstr "Tippek:"
 
-msgid "Right Nozzle"
-msgstr "Jobb fúvóka"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "Fúvóka"
@@ -3359,15 +3377,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "A jelenlegi fúvókával történő nyomtatás %0.2f g többlethulladékot eredményezhet."
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Megjegyzés: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Megjegyzés: a férőhely üres vagy nem definiált. Ha használni szeretnéd ezt a helyet, tölts be %s filamentet és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Megjegyzés: Csak olyan helyek választhatók ki, amelyekbe filament van betöltve."
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS engedélyezése"
@@ -4172,6 +4190,9 @@ msgstr "Ismeretlen hiba."
 msgid "Loading ..."
 msgstr "Betöltés…"
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "alapértelmezett"
 
@@ -4410,9 +4431,6 @@ msgstr "Jobb fúvóka"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Kérjük, a csoportosítási eredmény alapján helyezd a filamenteket a nyomtatóba."
-
-msgid "Tips:"
-msgstr "Tippek:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "A szeletelés jelenlegi csoportosítása nem optimális."
@@ -5817,6 +5835,12 @@ msgstr "Átváltás sikertelen"
 msgid "Printing Progress"
 msgstr "Nyomtatás folyamata"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "Alkatrészek kihagyása"
 
@@ -5939,6 +5963,12 @@ msgstr "A jelenlegi slot már töltve van"
 
 msgid "The selected slot is empty."
 msgstr "A kiválasztott hely üres."
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "A nyomtató 2D-módja nem támogatja a 3D-kalibrációt"
@@ -6402,6 +6432,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alsó"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr "Nem elérhető a feladat során"
 
@@ -6507,6 +6543,12 @@ msgstr "Értesítés"
 msgid "Pause printing"
 msgstr "Nyomtatás szüneteltetése"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr "Típus"
@@ -6524,6 +6566,12 @@ msgstr "Kérjük, módosítsd a fúvóka beállításait a nyomtatón."
 
 msgid "View wiki"
 msgstr "Wiki megtekintése"
+
+msgid "Left Nozzle"
+msgstr "Bal fúvóka"
+
+msgid "Right Nozzle"
+msgstr "Jobb fúvóka"
 
 msgid "Brass"
 msgstr "Sárgaréz"
@@ -6663,25 +6711,14 @@ msgstr "AMS (1 férőhely)"
 msgid "Not installed"
 msgstr "Nincs telepítve"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
-"Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
-"Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
 
-msgid "Switch diameter"
-msgstr "Átmérő váltása"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Bal oldali fúvóka: %s mm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Jobb oldali fúvóka: %s mm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Nyomtatóadatok szinkronizálása"
@@ -6714,6 +6751,12 @@ msgstr "Szinkronizálási információ"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Fúvókainformációk és az AMS-ek számának szinkronizálása"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "Projekt filamentek"
 
@@ -6737,6 +6780,9 @@ msgstr "Használni kívánt filament beállítása"
 
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6820,6 +6866,9 @@ msgstr "A Bambu Studio alacsonyabb verziója miatt ez a 3mf fájl nem tölthető
 
 msgid "Found following keys unrecognized:\n"
 msgstr "A következő ismeretlen kulcsokat találtuk:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "A 3mf a Bambu Studio egy régebbi verziójával lett létrehozva, csak a geometriai adatok kerülnek betöltésre."
@@ -8262,6 +8311,9 @@ msgstr "A nyomtató nem tudta elvégezni a fúvóka automatikus kiosztását { k
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "A jelenlegi fúvókakiosztás további %0.2f g hulladékot eredményezhet."
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8355,6 +8407,9 @@ msgstr "Kérjük, használat előtt olvasd el a Wikit ->"
 
 msgid "How to install"
 msgstr "Hogyan kell beállítani"
+
+msgid "Upgrade"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "A jelenlegi firmware nem támogatja a fájlátvitelt a belső tárhelyre."
@@ -10753,6 +10808,33 @@ msgstr ""
 "2. A külső fal sebességváltozásának elkerülése érdekében, amely kisebb hibákat okozhat, melyek Z-sávosodásra emlékeztetnek\n"
 "3. Annak elkerülése érdekében, hogy olyan sebességgel nyomtass, amely VFA-kat (finom hibák) eredményez a külső falakon"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Normál nyomtatás"
 
@@ -10761,6 +10843,17 @@ msgstr "Ez az alapértelmezett gyorsulás mind a normál nyomtatáshoz, mind az 
 
 msgid "The acceleration of travel except initial layer"
 msgstr "A mozgás gyorsulása a kezdőréteg kivételével"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "Kezdőréteg mozgás"
@@ -15519,6 +15612,37 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "Megjegyzés: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "Megjegyzés: a férőhely üres vagy nem definiált. Ha használni szeretnéd ezt a helyet, tölts be %s filamentet és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Megjegyzés: Csak olyan helyek választhatók ki, amelyekbe filament van betöltve."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
+#~ "Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
+#~ "Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Átmérő váltása"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Bal oldali fúvóka: %s mm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Jobb oldali fúvóka: %s mm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "A kivetítés körbevétele szöveggel"

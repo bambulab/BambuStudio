@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3191,6 +3191,12 @@ msgstr "Das Festlegen von Informationen zum virtuellen Steckplatz während des D
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Möchten Sie die Filamentinformationen wirklich löschen?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Sie müssen zuerst den Materialtyp und die Farbe auswählen."
 
@@ -3334,11 +3340,23 @@ msgstr "Aktuelle Zuordnung der Filamente zurücksetzen"
 msgid "Right AMS"
 msgstr "Rechtes AMS"
 
-msgid "Left Nozzle"
-msgstr "Linke Düse"
+msgid "Tips:"
+msgstr "Tipps:"
 
-msgid "Right Nozzle"
-msgstr "Rechte Düse"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "Düse"
@@ -3357,15 +3375,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "Drucken mit der aktuellen Düse kann zu %0.2f g zusätzlichem Abfall führen."
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Hinweis: Der Filamenttyp (%s) stimmt nicht mit dem Filamenttyp (%s) in der Slicing-Datei überein. Wenn Sie diesen Slot verwenden möchten, können Sie %s anstelle von %s verwenden und die Slot-Informationen auf der Seite „Gerät“ ändern."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Hinweis: Der Slot ist leer oder nicht definiert. Wenn Sie diesen Slot verwenden möchten, können Sie %s verwenden und die Slot-Informationen auf der Seite „Geräte“ ändern."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Hinweis: Es können nur Slots mit geladenem Filament ausgewählt werden."
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS aktivieren"
@@ -4170,6 +4188,9 @@ msgstr "Unbekannter Fehler."
 msgid "Loading ..."
 msgstr "Laden ..."
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "Standard"
 
@@ -4408,9 +4429,6 @@ msgstr "Rechte Düse"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Bitte legen Sie die Filamente entsprechend der Gruppierung in den Drucker ein."
-
-msgid "Tips:"
-msgstr "Tipps:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "Die aktuelle Gruppierung des Slicing-Ergebnisses ist nicht optimal."
@@ -5813,6 +5831,12 @@ msgstr "Wechsel fehlgeschlagen"
 msgid "Printing Progress"
 msgstr "Druckprozess"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "Teile überspringen"
 
@@ -5935,6 +5959,12 @@ msgstr "Der aktuelle Slot wurde bereits geladen."
 
 msgid "The selected slot is empty."
 msgstr "Der ausgewählte Slot ist leer."
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Der 2D-Modus des Druckers unterstützt keine 3D-Kalibrierung"
@@ -6398,6 +6428,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Untere"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr "Während der Aufgabe nicht verfügbar"
 
@@ -6503,6 +6539,12 @@ msgstr "Benachrichtigung"
 msgid "Pause printing"
 msgstr "Druckvorgang pausieren"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr "Typ"
@@ -6520,6 +6562,12 @@ msgstr "Bitte ändern Sie die Düseneinstellungen am Drucker."
 
 msgid "View wiki"
 msgstr "Wiki ansehen"
+
+msgid "Left Nozzle"
+msgstr "Linke Düse"
+
+msgid "Right Nozzle"
+msgstr "Rechte Düse"
 
 msgid "Brass"
 msgstr "Messing"
@@ -6659,25 +6707,14 @@ msgstr "AMS (1 Slot)"
 msgid "Not installed"
 msgstr "Nicht installiert"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"Die Software unterstützt nicht die Verwendung unterschiedlicher Düsendurchmesser für einen Druck.\n"
-"Wenn die linke und rechte Düse nicht übereinstimmen, kann nur mit einem Druckkopf gedruckt werden.\n"
-"Bitte geben Sie an, welche Düse Sie für dieses Projekt verwenden möchten."
 
-msgid "Switch diameter"
-msgstr "Durchmesser wechseln"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Linke Düse: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Rechte Düse: %smm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Druckerinformationen synchronisieren"
@@ -6710,6 +6747,12 @@ msgstr "Sync Infos"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronisierung von Düseninformationen und der Anzahl der AMS"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "Projekt Filamente"
 
@@ -6733,6 +6776,9 @@ msgstr "Zu verwendende Filamente einstellen"
 
 msgid "Search plate, object and part."
 msgstr "Suche Platte, Objekt und Teil."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6816,6 +6862,9 @@ msgstr "Aufgrund der älteren Version von Bambu Studio kann diese 3mf-Datei nich
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Die folgenden unbekannten Schlüssel wurden gefunden:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "Die 3mf wurde mit einer alten Version von Bambu Studio erzeugt, nur Geometriedaten werden geladen."
@@ -8260,6 +8309,9 @@ msgstr "Der Drucker konnte die Tabelle zur automatischen Zuordnung der Düsen { 
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "Die aktuelle Zuordnung der Düsen kann zu einem zusätzlichen Abfall von %0.2f g führen."
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8353,6 +8405,9 @@ msgstr "Bitte lesen Sie vor der Verwendung die Wiki-Informationen ->"
 
 msgid "How to install"
 msgstr "Installationsanleitung"
+
+msgid "Upgrade"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "Die aktuelle Firmware unterstützt keine Dateiübertragung zum internen Speicher."
@@ -10757,6 +10812,33 @@ msgstr ""
 "2. Um Veränderungen in der Geschwindigkeit der Außenwände zu vermeiden, die zu leichten Artefakten führen können, die wie Z- Streifen aussehen\n"
 "3. Um zu vermeiden, dass mit Geschwindigkeiten gedruckt wird, die zu VFAs (feinen Artefakten) an den Außenwänden führen"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Normales Drucken"
 
@@ -10765,6 +10847,17 @@ msgstr "Die Standardbeschleunigung für den normalen Druck und den Eilgang nach 
 
 msgid "The acceleration of travel except initial layer"
 msgstr "Die Beschleunigung des Eilgangs mit Ausnahme der ersten Schicht"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "Bewegungsgeschwindigkeit erste Schicht"
@@ -15520,6 +15613,37 @@ msgid ""
 msgstr ""
 "Schrumpfung, Verzug und Spannung\n"
 "Durch die Kontrolle des Wärmeindexes können Sie die durch Hitze verursachten Faktoren für Verzug und Spannung beseitigen."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "Hinweis: Der Filamenttyp (%s) stimmt nicht mit dem Filamenttyp (%s) in der Slicing-Datei überein. Wenn Sie diesen Slot verwenden möchten, können Sie %s anstelle von %s verwenden und die Slot-Informationen auf der Seite „Gerät“ ändern."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "Hinweis: Der Slot ist leer oder nicht definiert. Wenn Sie diesen Slot verwenden möchten, können Sie %s verwenden und die Slot-Informationen auf der Seite „Geräte“ ändern."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Hinweis: Es können nur Slots mit geladenem Filament ausgewählt werden."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "Die Software unterstützt nicht die Verwendung unterschiedlicher Düsendurchmesser für einen Druck.\n"
+#~ "Wenn die linke und rechte Düse nicht übereinstimmen, kann nur mit einem Druckkopf gedruckt werden.\n"
+#~ "Bitte geben Sie an, welche Düse Sie für dieses Projekt verwenden möchten."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Durchmesser wechseln"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Linke Düse: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Rechte Düse: %smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "Umgebungs-Projektion von char"
