@@ -1843,11 +1843,13 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     m_button_confirm = new Button(this, _L("Start Optimization"));
     m_button_confirm->SetBackgroundColor(btn_primary_bg);
     m_button_confirm->SetBorderColor(theme.purple);
-    // White text for all states
-    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    // White text for all states - use 255,255,254 to avoid dark mode color mapping
+    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Focused),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                          std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     m_button_confirm->SetTextColor(white_text);
     m_button_confirm->SetFont(Label::Head_14);
     m_button_confirm->SetSize(wxSize(-1, FromDIP(56))); // Large CTA button
@@ -1917,11 +1919,13 @@ void HelioInputDialog::update_action(int action)
                               std::pair<wxColour, int>(theme.purple, StateColor::Normal));
         m_button_confirm->SetBackgroundColor(btn_sim_bg);
         m_button_confirm->SetBorderColor(theme.purple);
-        // White text for all states
-        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+        // White text for all states - use 255,255,254 to avoid dark mode color mapping
+        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Focused),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
         m_button_confirm->SetTextColor(white_text);
         m_button_confirm->SetLabel(_L("Start Simulation"));
         m_button_confirm->Layout();
@@ -1956,11 +1960,13 @@ void HelioInputDialog::update_action(int action)
                               std::pair<wxColour, int>(theme.blue, StateColor::Normal));
         m_button_confirm->SetBackgroundColor(btn_opt_bg);
         m_button_confirm->SetBorderColor(theme.blue);
-        // White text for all states
-        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+        // White text for all states - use 255,255,254 to avoid dark mode color mapping
+        StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Focused),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
         m_button_confirm->SetTextColor(white_text);
         m_button_confirm->SetLabel(_L("Start Optimization"));
         m_button_confirm->Layout();
