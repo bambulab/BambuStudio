@@ -32,6 +32,15 @@
 
 namespace Slic3r { namespace GUI {
 
+// Helio dark palette constants (for ExpandCenterDialog - Welcome to Helio Additive)
+namespace {
+    const wxColour HELIO_BG_BASE(7, 9, 12);       // #07090C
+    const wxColour HELIO_CARD_BG(14, 19, 32);     // #0E1320
+    const wxColour HELIO_BORDER(255, 255, 255, 25); // rgba(255,255,255,0.10)
+    const wxColour HELIO_TEXT(238, 242, 255);     // #EEF2FF
+    const wxColour HELIO_MUTED(168, 176, 192);    // #A8B0C0
+}
+
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
@@ -2291,15 +2300,19 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
         wxDefaultSize,
         wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    // Set Helio icon (not BambuStudio icon)
+    wxBitmap bmp = create_scaled_bitmap("helio_icon", this, 32);
+    wxIcon icon;
+    icon.CopyFromBitmap(bmp);
+    SetIcon(icon);
 
-    SetBackgroundColour(wxColour(45, 45, 49)); // Dark background
+    // Use Helio dark palette
+    SetBackgroundColour(HELIO_BG_BASE);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
     wxPanel* line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    line->SetBackgroundColour(wxColour(166, 169, 170));
+    line->SetBackgroundColour(HELIO_BORDER);
 
     // Banner image (restored from original)
     auto sm = create_scaled_bitmap("expand_helio", nullptr, 144);
@@ -2309,7 +2322,7 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
 
     // Content panel with dark background
     wxPanel* content_panel = new wxPanel(this);
-    content_panel->SetBackgroundColour(wxColour(45, 45, 49));
+    content_panel->SetBackgroundColour(HELIO_BG_BASE);
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
 
     // Main heading
@@ -2317,11 +2330,11 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     wxFont heading_font = main_heading->GetFont();
     heading_font.SetWeight(wxFONTWEIGHT_BOLD);
     main_heading->SetFont(heading_font);
-    main_heading->SetForegroundColour(wxColour("#FFFFFF"));
+    main_heading->SetForegroundColour(HELIO_TEXT);
     
     // Subheading
     auto subheading = new Label(content_panel, Label::Body_14, _L("Automatic analysis and optimization for faster, more reliable prints."));
-    subheading->SetForegroundColour(wxColour(200, 200, 200));
+    subheading->SetForegroundColour(HELIO_MUTED);
     
     // Two feature cards side by side
     wxBoxSizer* cards_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2331,20 +2344,20 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
 
     // Feature Card 1 - Fewer Failed Prints
     wxPanel* card1 = new wxPanel(content_panel);
-    card1->SetBackgroundColour(wxColour(55, 55, 59));
+    card1->SetBackgroundColour(HELIO_CARD_BG);
     card1->SetMinSize(wxSize(FromDIP(220), FromDIP(190)));
     card1->SetToolTip(tooltip_text);
     wxBoxSizer* card1_sizer = new wxBoxSizer(wxVERTICAL);
     auto check_icon = new wxStaticBitmap(card1, wxID_ANY, create_scaled_bitmap("helio_feature_shield_check", card1, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
     check_icon->SetToolTip(tooltip_text);
     auto card1_title = new Label(card1, Label::Body_16, _L("Fewer Failed Prints"));
-    card1_title->SetForegroundColour(wxColour("#FFFFFF"));
+    card1_title->SetForegroundColour(HELIO_TEXT);
     wxFont card_title_font = card1_title->GetFont();
     card_title_font.SetWeight(wxFONTWEIGHT_BOLD);
     card1_title->SetFont(card_title_font);
     card1_title->SetToolTip(tooltip_text);
     auto card1_desc = new Label(card1, Label::Body_12, _L("Catch issues before printing and improve first-try success."));
-    card1_desc->SetForegroundColour(wxColour(180, 180, 180));
+    card1_desc->SetForegroundColour(HELIO_MUTED);
     card1_desc->Wrap(FromDIP(190));
     card1_desc->SetToolTip(tooltip_text);
     card1_sizer->Add(check_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(20));
@@ -2354,18 +2367,18 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
 
     // Feature Card 2 - Faster Prints, Better Quality
     wxPanel* card2 = new wxPanel(content_panel);
-    card2->SetBackgroundColour(wxColour(55, 55, 59));
+    card2->SetBackgroundColour(HELIO_CARD_BG);
     card2->SetMinSize(wxSize(FromDIP(220), FromDIP(190)));
     card2->SetToolTip(tooltip_text);
     wxBoxSizer* card2_sizer = new wxBoxSizer(wxVERTICAL);
     auto speed_icon = new wxStaticBitmap(card2, wxID_ANY, create_scaled_bitmap("helio_feature_speed", card2, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
     speed_icon->SetToolTip(tooltip_text);
     auto card2_title = new Label(card2, Label::Body_16, _L("Faster Prints, Better Quality"));
-    card2_title->SetForegroundColour(wxColour("#FFFFFF"));
+    card2_title->SetForegroundColour(HELIO_TEXT);
     card2_title->SetFont(card_title_font);
     card2_title->SetToolTip(tooltip_text);
     auto card2_desc = new Label(card2, Label::Body_12, _L("Automatically tune speed and extrusion without manual tweaking."));
-    card2_desc->SetForegroundColour(wxColour(180, 180, 180));
+    card2_desc->SetForegroundColour(HELIO_MUTED);
     card2_desc->Wrap(FromDIP(190));
     card2_desc->SetToolTip(tooltip_text);
     card2_sizer->Add(speed_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(20));

@@ -85,10 +85,12 @@ private:
     wxStaticBitmap* helio_pat_dview{ nullptr };
     wxStaticBitmap* helio_pat_copy{ nullptr };
     Button* copy_pat_button{ nullptr };
+    
+    int m_original_tooltip_delay{500};
 
 public:
     HelioStatementDialog(wxWindow *parent = nullptr);
-    ~HelioStatementDialog() {};
+    ~HelioStatementDialog();
 
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void show_err_info(std::string type);
@@ -156,6 +158,8 @@ private:
     Label* simulation_card_subtitle{nullptr};
     Label* optimization_card_title{nullptr};
     Label* optimization_card_subtitle{nullptr};
+    wxStaticBitmap* simulation_check_icon{nullptr};
+    wxStaticBitmap* optimization_check_icon{nullptr};
 
     // Keep toggle button pointers for compatibility
     CustomToggleButton* togglebutton_simulate{nullptr};
@@ -199,9 +203,11 @@ private:
     
     // Theme helper
     HelioInputDialogTheme get_theme() const;
+    
+    int m_original_tooltip_delay{500};
 public:
     HelioInputDialog(wxWindow *parent = nullptr);
-    ~HelioInputDialog() {};
+    ~HelioInputDialog();
 
 public:
     int get_action() const { return current_action; }
