@@ -43,8 +43,11 @@ namespace Slic3r { namespace GUI {
 {
      shared_ptr = std::make_shared<int>(0);
 
-     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
-     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+     // Set Helio icon for dialog title bar
+     wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
+     wxIcon helio_icon;
+     helio_icon.CopyFromBitmap(helio_bitmap);
+     SetIcon(helio_icon);
 
      SetBackgroundColour(wxColour(45, 45, 49)); // Dark background
 
@@ -536,6 +539,8 @@ void HelioStatementDialog::create_pat_page()
             );
         }
     });
+    run_optimization_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    run_optimization_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     
     // Copy PAT button - more visible with text and icon
     StateColor btn_bg_copy(std::pair<wxColour, int>(wxColour(70, 70, 75), StateColor::Hovered),
@@ -562,6 +567,8 @@ void HelioStatementDialog::create_pat_page()
             msg.ShowModal();
         }
     });
+    copy_pat_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    copy_pat_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     copy_pat_button->Hide(); // Hidden by default, will be shown when PAT is available
     
     // Legacy controls kept for backward compatibility with show_pat_option() method
@@ -606,6 +613,14 @@ void HelioStatementDialog::create_pat_page()
     helio_home_link->SeLinkLabelFColour(wxColour(0, 119, 250));
     helio_tou_link->SeLinkLabelFColour(wxColour(0, 119, 250));
     helio_privacy_link->SeLinkLabelFColour(wxColour(0, 119, 250));
+    
+    // Add hover cursor for links
+    helio_home_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_home_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_tou_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_tou_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    helio_privacy_link->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    helio_privacy_link->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     
     helio_links_sizer->Add(helio_home_link, 0, wxLEFT, 0);
     helio_links_sizer->Add(helio_privacy_link, 0, wxLEFT, FromDIP(40));
@@ -931,6 +946,12 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
 {
     shared_ptr = std::make_shared<int>(0);
     auto theme = get_theme();
+
+    // Set Helio icon for dialog title bar
+    wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
+    wxIcon helio_icon;
+    helio_icon.CopyFromBitmap(helio_bitmap);
+    SetIcon(helio_icon);
 
     SetBackgroundColour(theme.bg);
     SetMinSize(wxSize(FromDIP(520), -1));
@@ -2024,8 +2045,11 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     SetBackgroundColour(*wxWHITE);
     shared_ptr = std::make_shared<int>(0);
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    // Set Helio icon for dialog title bar
+    wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
+    wxIcon helio_icon;
+    helio_icon.CopyFromBitmap(helio_bitmap);
+    SetIcon(helio_icon);
 
     SetBackgroundColour(*wxWHITE);
 
@@ -2254,8 +2278,11 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     SetBackgroundColour(*wxWHITE);
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    // Set Helio icon for dialog title bar
+    wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
+    wxIcon helio_icon;
+    helio_icon.CopyFromBitmap(helio_bitmap);
+    SetIcon(helio_icon);
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
