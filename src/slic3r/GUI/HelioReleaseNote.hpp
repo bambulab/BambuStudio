@@ -242,6 +242,7 @@ private:
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void update_action(int action);
     void show_advanced_mode();
+    void on_unlimited_click(wxMouseEvent& e);
     
 public:
     void set_initial_action(int action) { update_action(action); }
@@ -295,6 +296,7 @@ private:
     Button* m_button_view_details{nullptr};
     Button* m_button_close{nullptr};
     
+    HelioInputDialogTheme get_theme() const;
     wxString get_outcome_text(const std::string& outcome);
     wxString get_analysis_text(const std::string& temperature_direction);
     wxString format_time_improvement(int original_seconds, double speed_factor);

@@ -2006,7 +2006,23 @@ void HelioInputDialog::update_action(int action)
                         }
                     }
                     
-                    if (m_label_monthly_quota) { m_label_monthly_quota->SetLabelText(wxString::Format("%d", times)); }
+                    if (m_label_monthly_quota) {
+                        if (times > 1000) {
+                            m_label_monthly_quota->SetLabelText(_L("Unlimited*"));
+                            m_label_monthly_quota->SetToolTip(_L("*Fair usage terms apply - click to learn more"));
+                            m_label_monthly_quota->SetForegroundColour(wxColour(175, 124, 255));  // Purple to indicate clickable
+                            m_label_monthly_quota->SetCursor(wxCURSOR_HAND);
+                            // Bind click to open fair use policy (unbind first to avoid duplicate bindings)
+                            m_label_monthly_quota->Unbind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_unlimited_click, this);
+                            m_label_monthly_quota->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_unlimited_click, this);
+                        } else {
+                            m_label_monthly_quota->SetLabelText(wxString::Format("%d", times));
+                            m_label_monthly_quota->SetToolTip("");  // Clear tooltip for numbered quota
+                            m_label_monthly_quota->SetForegroundColour(get_theme().text);
+                            m_label_monthly_quota->SetCursor(wxCURSOR_ARROW);
+                            m_label_monthly_quota->Unbind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_unlimited_click, this);
+                        }
+                    }
                     if (m_label_addons) { m_label_addons->SetLabelText(wxString::Format("%d", addons)); }
                     
                     Layout();
@@ -2093,6 +2109,13 @@ void HelioInputDialog::show_advanced_mode()
     // Deprecated: Advanced settings visibility is now controlled by the Limits dropdown event handler. This function does nothing.
     Layout();
     Fit();
+}
+
+void HelioInputDialog::on_unlimited_click(wxMouseEvent& e)
+{
+    wxString url = "https://wiki.helioadditive.com/en/policies/fair";
+    wxLaunchDefaultBrowser(url);
+    e.Skip();
 }
 
 void HelioInputDialog::set_force_slicer_default(bool force)
@@ -2518,8 +2541,17 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     icon.CopyFromBitmap(bmp);
     SetIcon(icon);
 
-    // Use Helio dark palette (not neutral charcoal)
-    SetBackgroundColour(HELIO_BG_BASE);
+    // Theme colors based on light/dark mode
+    bool is_dark = wxGetApp().dark_mode();
+    wxColour bg_color = is_dark ? HELIO_BG_BASE : wxColour(255, 255, 255);
+    // Header banner always stays dark for Helio branding
+    wxColour header_bg = wxColour(16, 16, 16);
+    wxColour header_text = wxColour("#FEFEFF");
+    wxColour label_color = is_dark ? wxColour(144, 144, 144) : wxColour(107, 107, 107);
+    wxColour value_color = wxColour(106, 174, 89);  // Green accent works in both modes
+    wxColour line_color = is_dark ? wxColour(166, 169, 170) : wxColour(220, 220, 220);
+    
+    SetBackgroundColour(bg_color);
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -2529,7 +2561,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     wxBoxSizer *helio_top_content_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto helio_top_background = new wxPanel(this);
-    helio_top_background->SetBackgroundColour(wxColour(16, 16, 16));
+    helio_top_background->SetBackgroundColour(header_bg);
     helio_top_background->SetMinSize(wxSize(-1, FromDIP(70)));
     helio_top_background->SetMaxSize(wxSize(-1, FromDIP(70)));
     auto   helio_top_icon  = new wxStaticBitmap(helio_top_background, wxID_ANY, create_scaled_bitmap("helio_icon", helio_top_background, 32), wxDefaultPosition,
@@ -2538,7 +2570,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     wxFont bold_font       = helio_top_label->GetFont();
     bold_font.SetWeight(wxFONTWEIGHT_BOLD);
     helio_top_label->SetFont(bold_font);
-    helio_top_label->SetForegroundColour(wxColour("#FEFEFF"));
+    helio_top_label->SetForegroundColour(header_text);
     // helio_top_hsizer->Add(0, 0, wxLEFT, FromDIP(40));
     helio_top_content_sizer->Add(helio_top_icon, 0, wxLEFT | wxALIGN_CENTER, FromDIP(45));
     helio_top_content_sizer->Add(helio_top_label, 0, wxLEFT | wxALIGN_CENTER, FromDIP(8));
@@ -2557,9 +2589,10 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     auto title_consistency_impro = new Label(this, Label::Body_14, _L("Consistency Improvement"));
 
 
-    title_time_impro->SetForegroundColour(wxColour("#262E30"));
-    title_average_impro->SetForegroundColour(wxColour("#262E30"));
-    title_consistency_impro->SetForegroundColour(wxColour("#262E30"));
+    // Use theme-aware text colors
+    title_time_impro->SetForegroundColour(label_color);
+    title_average_impro->SetForegroundColour(label_color);
+    title_consistency_impro->SetForegroundColour(label_color);
 
     title_time_impro->SetMinSize(wxSize(FromDIP(225), -1));
     title_average_impro->SetMinSize(wxSize(FromDIP(225), -1));
@@ -2579,9 +2612,10 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     auto label_average_impro     = new Label(this, Label::Body_14, format_improvement(quality_mean_improvement));
     auto label_consistency_impro = new Label(this, Label::Body_14, format_improvement(quality_std_improvement));
 
-    label_time_impro->SetForegroundColour(wxColour("#262E30"));
-    label_average_impro->SetForegroundColour(wxColour("#262E30"));
-    label_consistency_impro->SetForegroundColour(wxColour("#262E30"));
+    // Use Helio green accent for improvement values (works in both modes)
+    label_time_impro->SetForegroundColour(value_color);
+    label_average_impro->SetForegroundColour(value_color);
+    label_consistency_impro->SetForegroundColour(value_color);
 
     auto lab_bold_font = label_time_impro->GetFont();
     lab_bold_font.SetWeight(wxFONTWEIGHT_BOLD);
@@ -2600,10 +2634,10 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
 
 
     wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    line->SetBackgroundColour(wxColour(166, 169, 170));
+    line->SetBackgroundColour(line_color);
 
     auto tips = new Label(this, Label::Body_14, L("Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."));
-    tips->SetForegroundColour(wxColour(144, 144, 144));
+    tips->SetForegroundColour(label_color);
     tips->SetSize(wxSize(FromDIP(410), -1));
     tips->SetMinSize(wxSize(FromDIP(410), -1));
     tips->SetMaxSize(wxSize(FromDIP(410), -1));
@@ -2621,6 +2655,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     /*rating*/
     wxBoxSizer *sizer_rating = new wxBoxSizer(wxHORIZONTAL);
     std::vector<wxStaticBitmap *> stars;
+    // score_star_dark = grey/unselected, score_star_light = yellow/selected
     auto rating_star1 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
     auto rating_star2 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
     auto rating_star3 = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("score_star_dark", this, 24), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)), 0);
@@ -2663,31 +2698,36 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
         wxPostEvent(wxGetApp().plater(), SimpleEvent(EVT_GLTOOLBAR_EXPORT_SLICED_FILE));
     });
 
-    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Enabled), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Disabled), std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Pressed), std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Hovered),
-        std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
-
-    auto m_button_confirm = new Button(this, _L("OK"));
-    m_button_confirm->SetBackgroundColor(btn_bg_green);
-    m_button_confirm->SetBorderColor(*wxWHITE);
-    // White text for all states
-    StateColor white_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                          std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
-    m_button_confirm->SetTextColor(white_text);
-    m_button_confirm->SetFont(Label::Body_12);
-    m_button_confirm->SetSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_confirm->SetMinSize(wxSize(FromDIP(48), FromDIP(24)));
-    m_button_confirm->SetCornerRadius(FromDIP(12));
-    m_button_confirm->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+    auto m_button_view_details = new Button(this, _L("View Details"));
+    // Use theme-aware colors for secondary button (matches simulation dialog)
+    if (is_dark) {
+        m_button_view_details->SetBackgroundColor(StateColor(std::pair<wxColour, int>(HELIO_CARD_BG, StateColor::Normal)));
+        m_button_view_details->SetBorderColor(HELIO_TEXT);
+        m_button_view_details->SetTextColor(HELIO_TEXT);
+    } else {
+        m_button_view_details->SetBackgroundColor(StateColor(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal)));
+        m_button_view_details->SetBorderColor(wxColour(208, 208, 208));
+        m_button_view_details->SetTextColor(wxColour(50, 50, 50));
+    }
+    m_button_view_details->SetFont(Label::Body_12);
+    m_button_view_details->SetSize(wxSize(FromDIP(100), FromDIP(24)));
+    m_button_view_details->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
+    m_button_view_details->SetCornerRadius(FromDIP(12));
+    m_button_view_details->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
         EndModal(wxID_CLOSE);
+        // Switch to the Preview panel to show details
+        wxGetApp().plater()->CallAfter([]() {
+            wxGetApp().mainframe->select_tab(size_t(MainFrame::tpPreview));
+        });
     });
-    m_button_confirm->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-    m_button_confirm->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    m_button_view_details->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    m_button_view_details->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
     sizer_bottom->Add(sizer_rating, 0, wxLEFT|wxALIGN_CENTER, 0);
     sizer_bottom->Add( 0, 0, 1, wxEXPAND, 0 );
     sizer_bottom->Add(save_icon, 0, wxLEFT|wxALIGN_CENTER, 0);
     sizer_bottom->Add(0, 0, 0, wxLEFT, FromDIP(14));
-    sizer_bottom->Add(m_button_confirm, 0, wxLEFT|wxALIGN_CENTER, 0);
+    sizer_bottom->Add(m_button_view_details, 0, wxLEFT|wxALIGN_CENTER, 0);
     
     main_sizer->Add(helio_top_background, 0, wxEXPAND, 0);
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(26));
@@ -2737,6 +2777,35 @@ void HelioRatingDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
 }
 
+HelioInputDialogTheme HelioSimulationResultsDialog::get_theme() const
+{
+    HelioInputDialogTheme theme;
+    bool is_dark = wxGetApp().dark_mode();
+    
+    if (is_dark) {
+        // Helio dark palette
+        theme.bg = HELIO_BG_BASE;
+        theme.card = HELIO_CARD_BG;
+        theme.card2 = HELIO_CARD_BG;
+        theme.border = HELIO_BORDER;
+        theme.text = HELIO_TEXT;
+        theme.muted = HELIO_MUTED;
+        theme.purple = HELIO_PURPLE;
+        theme.blue = HELIO_BLUE;
+    } else {
+        // Light mode palette
+        theme.bg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+        theme.card = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
+        theme.card2 = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT);
+        theme.border = wxColour(0, 0, 0, 25);
+        theme.text = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+        theme.muted = wxColour(100, 100, 100);
+        theme.purple = HELIO_PURPLE;
+        theme.blue = HELIO_BLUE;
+    }
+    return theme;
+}
+
 HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent, 
                                                              HelioQuery::SimulationResult simulation,
                                                              int original_print_time_seconds,
@@ -2747,18 +2816,21 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     m_original_print_time_seconds = original_print_time_seconds;
     m_roles_times = roles_times;
 
+    // Get theme colors for current mode
+    auto theme = get_theme();
+
     // Set Helio icon (not BambuStudio icon)
     wxBitmap bmp = create_scaled_bitmap("helio_icon", this, 32);
     wxIcon icon;
     icon.CopyFromBitmap(bmp);
     SetIcon(icon);
 
-    // Use Helio dark palette (not neutral charcoal)
-    SetBackgroundColour(HELIO_BG_BASE);
+    // Use theme background
+    SetBackgroundColour(theme.bg);
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    // Dark header with Helio logo
+    // Header with Helio logo (always dark for branding)
     wxBoxSizer *helio_top_hsizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *helio_top_vsizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *helio_top_content_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2783,13 +2855,13 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     // Title section
     auto title = new Label(this, Label::Head_20, _L("Verify Print Success Results"));
-    title->SetForegroundColour(wxColour("#262E30"));
+    title->SetForegroundColour(theme.purple);
     wxFont title_font = title->GetFont();
     title_font.SetWeight(wxFONTWEIGHT_BOLD);
     title->SetFont(title_font);
 
     auto subtitle = new Label(this, Label::Body_14, _L("Simulates the thermal process to confirm your part will print without failure."));
-    subtitle->SetForegroundColour(wxColour(144, 144, 144));
+    subtitle->SetForegroundColour(theme.muted);
     subtitle->SetSize(wxSize(FromDIP(410), -1));
     subtitle->SetMinSize(wxSize(FromDIP(410), -1));
     subtitle->SetMaxSize(wxSize(FromDIP(410), -1));
@@ -2797,12 +2869,12 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     // Divider
     wxPanel *line1 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    line1->SetBackgroundColour(wxColour(166, 169, 170));
+    line1->SetBackgroundColour(theme.muted);
 
     // Section 1: Potential Speed Improvement
     wxBoxSizer *speed_impro_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto title_speed_impro = new Label(this, Label::Body_14, _L("Potential Speed Improvement:"));
-    title_speed_impro->SetForegroundColour(wxColour("#262E30"));
+    title_speed_impro->SetForegroundColour(theme.muted);
     title_speed_impro->SetMinSize(wxSize(FromDIP(225), -1));
 
     wxString speed_impro_text;
@@ -2846,7 +2918,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     }
 
     auto label_speed_impro = new Label(this, Label::Body_14, speed_impro_text);
-    label_speed_impro->SetForegroundColour(wxColour("#262E30"));
+    label_speed_impro->SetForegroundColour(theme.purple);
     auto lab_bold_font = label_speed_impro->GetFont();
     lab_bold_font.SetWeight(wxFONTWEIGHT_BOLD);
     label_speed_impro->SetFont(lab_bold_font);
@@ -2857,7 +2929,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     // Section 2: Expected Outcome
     wxBoxSizer *outcome_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto title_outcome = new Label(this, Label::Body_14, _L("Expected Outcome:"));
-    title_outcome->SetForegroundColour(wxColour("#262E30"));
+    title_outcome->SetForegroundColour(theme.muted);
     title_outcome->SetMinSize(wxSize(FromDIP(225), -1));
 
     wxString outcome_text;
@@ -2868,7 +2940,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     }
 
     auto label_outcome = new Label(this, Label::Body_14, outcome_text);
-    label_outcome->SetForegroundColour(wxColour("#262E30"));
+    label_outcome->SetForegroundColour(theme.text);
     label_outcome->SetFont(lab_bold_font);
 
     outcome_sizer->Add(title_outcome, 0, wxLEFT, 0);
@@ -2877,7 +2949,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     // Section 3: Analysis
     wxBoxSizer *analysis_sizer = new wxBoxSizer(wxVERTICAL);
     auto title_analysis = new Label(this, Label::Body_14, _L("Analysis:"));
-    title_analysis->SetForegroundColour(wxColour("#262E30"));
+    title_analysis->SetForegroundColour(theme.muted);
     title_analysis->SetMinSize(wxSize(FromDIP(225), -1));
 
     wxString analysis_text;
@@ -2886,7 +2958,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     }
 
     auto label_analysis = new Label(this, Label::Body_14, analysis_text);
-    label_analysis->SetForegroundColour(wxColour("#262E30"));
+    label_analysis->SetForegroundColour(theme.text);
     label_analysis->SetSize(wxSize(FromDIP(410), -1));
     label_analysis->SetMinSize(wxSize(FromDIP(410), -1));
     label_analysis->SetMaxSize(wxSize(FromDIP(410), -1));
@@ -2897,7 +2969,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     if (m_simulation.printInfo && !m_simulation.printInfo->caveats.empty()) {
         caveats_sizer = new wxBoxSizer(wxVERTICAL);
         auto title_caveats = new Label(this, Label::Body_14, _L("Additional observations"));
-        title_caveats->SetForegroundColour(wxColour("#262E30"));
+        title_caveats->SetForegroundColour(theme.purple);
         wxFont caveat_title_font = title_caveats->GetFont();
         caveat_title_font.SetWeight(wxFONTWEIGHT_BOLD);
         title_caveats->SetFont(caveat_title_font);
@@ -2908,7 +2980,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
         size_t caveat_count = std::min(m_simulation.printInfo->caveats.size(), size_t(2));
         for (size_t i = 0; i < caveat_count; ++i) {
             auto caveat_label = new Label(this, Label::Body_14, wxString("• ") + wxString::FromUTF8(m_simulation.printInfo->caveats[i].description.c_str()));
-            caveat_label->SetForegroundColour(wxColour("#262E30"));
+            caveat_label->SetForegroundColour(theme.text);
             caveat_label->SetSize(wxSize(FromDIP(410), -1));
             caveat_label->SetMinSize(wxSize(FromDIP(410), -1));
             caveat_label->SetMaxSize(wxSize(FromDIP(410), -1));
@@ -2925,7 +2997,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     // Divider
     wxPanel *line2 = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    line2->SetBackgroundColour(wxColour(166, 169, 170));
+    line2->SetBackgroundColour(theme.muted);
 
     // Action buttons
     wxBoxSizer *sizer_actions = new wxBoxSizer(wxHORIZONTAL);
@@ -2939,9 +3011,12 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     m_button_enhance = new Button(this, _L("Enhance Speed & Quality"));
     m_button_enhance->SetBackgroundColor(btn_bg_purple);
     m_button_enhance->SetBorderColor(*wxWHITE);
-    // White text for all states
-    StateColor enhance_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
-                                std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    // White text for all states (use 254 to avoid dark mode remapping)
+    StateColor enhance_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                                std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                                std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                                std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                                std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
     m_button_enhance->SetTextColor(enhance_btn_text);
     m_button_enhance->SetFont(Label::Body_12);
     m_button_enhance->SetSize(wxSize(FromDIP(200), FromDIP(40)));
@@ -2952,9 +3027,16 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     m_button_enhance->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
 
     m_button_view_details = new Button(this, _L("View Details"));
-    m_button_view_details->SetBackgroundColor(StateColor(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal)));
-    m_button_view_details->SetBorderColor(wxColour(208, 208, 208));
-    m_button_view_details->SetTextColor(wxColour("#262E30"));
+    // Use theme-aware colors for secondary button
+    if (wxGetApp().dark_mode()) {
+        m_button_view_details->SetBackgroundColor(StateColor(std::pair<wxColour, int>(theme.card, StateColor::Normal)));
+        m_button_view_details->SetBorderColor(theme.text);
+        m_button_view_details->SetTextColor(theme.text);
+    } else {
+        m_button_view_details->SetBackgroundColor(StateColor(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal)));
+        m_button_view_details->SetBorderColor(wxColour(208, 208, 208));
+        m_button_view_details->SetTextColor(theme.text);
+    }
     m_button_view_details->SetFont(Label::Body_12);
     m_button_view_details->SetSize(wxSize(FromDIP(100), FromDIP(24)));
     m_button_view_details->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
@@ -3037,8 +3119,13 @@ void HelioSimulationResultsDialog::on_enhance_speed_quality(wxMouseEvent& event)
 
 void HelioSimulationResultsDialog::on_view_details(wxMouseEvent& event)
 {
-    // TODO: Show detailed view
+    // Close the dialog
     EndModal(wxID_CANCEL);
+    
+    // Switch to the Preview panel to show details
+    wxGetApp().plater()->CallAfter([]() {
+        wxGetApp().mainframe->select_tab(size_t(MainFrame::tpPreview));
+    });
 }
 
 void HelioSimulationResultsDialog::on_dpi_changed(const wxRect &suggested_rect)
