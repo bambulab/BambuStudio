@@ -583,17 +583,23 @@ void HelioStatementDialog::create_pat_page()
     run_optimization_button->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     run_optimization_button->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     
-    // Copy PAT button - styled to match the dark theme with visible contrast
-    StateColor btn_bg_copy(std::pair<wxColour, int>(wxColour(80, 85, 95), StateColor::Hovered),
-                           std::pair<wxColour, int>(wxColour(60, 65, 75), StateColor::Normal));
+    // Copy PAT button - styled with high contrast for legibility
+    // Use lighter background for better contrast with white text
+    StateColor btn_bg_copy(std::pair<wxColour, int>(wxColour(120, 125, 135), StateColor::Hovered),
+                           std::pair<wxColour, int>(wxColour(100, 105, 115), StateColor::Normal));
     
     copy_pat_button = new Button(page_pat_panel, _L("Copy PAT"));
     copy_pat_button->SetBackgroundColor(btn_bg_copy);
-    copy_pat_button->SetBorderColor(wxColour(120, 125, 135));  // Lighter border for visibility
-    // White text for all states
+    copy_pat_button->SetBorderColor(wxColour(150, 155, 165));  // Lighter border for visibility
+    // Bright white text for maximum contrast - ensure all states use white
     StateColor copy_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
+                             std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                              std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
     copy_pat_button->SetTextColor(copy_btn_text);
+    // Also set normal text color directly as fallback
+    copy_pat_button->SetTextColorNormal(wxColour(255, 255, 255));
     copy_pat_button->SetFont(Label::Body_13);
     copy_pat_button->SetSize(wxSize(FromDIP(120), FromDIP(32)));
     copy_pat_button->SetMinSize(wxSize(FromDIP(120), FromDIP(32)));

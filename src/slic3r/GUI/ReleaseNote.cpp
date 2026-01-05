@@ -2416,12 +2416,19 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     
     // Uninstall button - only shown when Helio is already enabled
     wxBoxSizer* uninstall_sizer = new wxBoxSizer(wxHORIZONTAL);
-    StateColor btn_bg_uninstall(std::pair<wxColour, int>(wxColour(80, 80, 85), StateColor::Hovered),
-                                std::pair<wxColour, int>(wxColour(60, 60, 65), StateColor::Normal));
+    StateColor btn_bg_uninstall(std::pair<wxColour, int>(wxColour(100, 100, 105), StateColor::Hovered),
+                                std::pair<wxColour, int>(wxColour(80, 80, 85), StateColor::Normal));
     Button* m_button_uninstall = new Button(this, _L("Uninstall"));
     m_button_uninstall->SetBackgroundColor(btn_bg_uninstall);
-    m_button_uninstall->SetBorderColor(wxColour(100, 100, 105));
-    m_button_uninstall->SetTextColor(wxColour(200, 200, 200));
+    m_button_uninstall->SetBorderColor(wxColour(130, 130, 135));
+    // Use StateColor for text with bright white for all states
+    StateColor uninstall_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    m_button_uninstall->SetTextColor(uninstall_btn_text);
+    m_button_uninstall->SetTextColorNormal(wxColour(255, 255, 255));
     m_button_uninstall->SetFont(Label::Body_13);
     m_button_uninstall->SetSize(wxSize(FromDIP(120), FromDIP(28)));
     m_button_uninstall->SetMinSize(wxSize(FromDIP(120), FromDIP(28)));
