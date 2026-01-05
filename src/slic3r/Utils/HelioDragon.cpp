@@ -1629,9 +1629,12 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
                     }
                     else {
                         set_state(STATE_CANCELED);
-
+                        
+                        BOOST_LOG_TRIVIAL(error) << "Helio optimization progress check returned error: " << check_optimzaion_progress_res.error;
+                        
+                        std::string error_msg = _u8L("Helio: optimization failed") + "\n" + check_optimzaion_progress_res.error;
                         Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "",
-                            false, "Helio: optimization failed");
+                            false, error_msg);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         break;
                     }
