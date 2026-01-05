@@ -2414,6 +2414,29 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     button_sizer->Add(m_button_activate, 0, wxALIGN_CENTER, 0);
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     
+    // Uninstall button - only shown when Helio is already enabled
+    wxBoxSizer* uninstall_sizer = new wxBoxSizer(wxHORIZONTAL);
+    StateColor btn_bg_uninstall(std::pair<wxColour, int>(wxColour(80, 80, 85), StateColor::Hovered),
+                                std::pair<wxColour, int>(wxColour(60, 60, 65), StateColor::Normal));
+    Button* m_button_uninstall = new Button(this, _L("Uninstall"));
+    m_button_uninstall->SetBackgroundColor(btn_bg_uninstall);
+    m_button_uninstall->SetBorderColor(wxColour(100, 100, 105));
+    m_button_uninstall->SetTextColor(wxColour(200, 200, 200));
+    m_button_uninstall->SetFont(Label::Body_13);
+    m_button_uninstall->SetSize(wxSize(FromDIP(120), FromDIP(28)));
+    m_button_uninstall->SetMinSize(wxSize(FromDIP(120), FromDIP(28)));
+    m_button_uninstall->SetCornerRadius(FromDIP(4));
+    m_button_uninstall->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_uninstall, this);
+    uninstall_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    uninstall_sizer->Add(m_button_uninstall, 0, wxALIGN_CENTER, 0);
+    uninstall_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    // Only show uninstall button if Helio is already enabled
+    bool helio_enabled = wxGetApp().app_config->get("helio_enable") == "true";
+    if (!helio_enabled) {
+        m_button_uninstall->Hide();
+    }
+    
     // Microcopy under button with info tooltip
     wxBoxSizer* microcopy_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto microcopy_text = new Label(this, Label::Body_12, _L("After slicing, click the Helio button to analyze your print."));
@@ -2442,6 +2465,10 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     main_sizer->Add(content_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
     main_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    if (helio_enabled) {
+        main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+        main_sizer->Add(uninstall_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    }
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     main_sizer->Add(microcopy_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
@@ -2497,6 +2524,41 @@ void ExpandCenterDialog::on_open_expand(const wxMouseEvent& evt)
     EndModal(wxID_CLOSE);
     HelioStatementDialog dlg;
     auto res = dlg.ShowModal();
+}
+
+void ExpandCenterDialog::on_uninstall(const wxMouseEvent& evt)
+{
+    // Confirm uninstall
+    MessageDialog confirm_dlg(this, 
+        _L("Are you sure you want to uninstall Helio Additive? This will disable all Helio features."),
+        _L("Uninstall Helio Additive"),
+        wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+    
+    if (confirm_dlg.ShowModal() != wxID_YES) {
+        return;
+    }
+    
+    // Disable Helio
+    wxGetApp().app_config->set_bool("helio_enable", false);
+    
+    // Report consent withdrawal
+    report_consent_unstall();
+    
+    // Track the event
+    if (wxGetApp().getAgent()) {
+        json j;
+        j["operate"] = "switch";
+        j["content"] = "disable";
+        wxGetApp().getAgent()->track_event("helio_state", j.dump());
+    }
+    
+    // Hide the Helio button in main window
+    if (wxGetApp().mainframe->expand_program_holder) {
+        wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, false);
+        wxGetApp().mainframe->Layout();
+    }
+    
+    EndModal(wxID_OK);
 }
 
 }} // namespace Slic3r::GUI
