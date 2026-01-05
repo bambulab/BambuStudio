@@ -550,14 +550,22 @@ void HelioStatementDialog::create_pat_page()
     auto success_description = new Label(page_pat_panel, Label::Body_14, _L("Helio Additive is now active. You have unlocked free optimizations!"));
     success_description->SetForegroundColour(wxColour("#FFFFFF"));
     
-    // "Run Your First Optimization" button (white background, dark text)
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(250, 250, 250), StateColor::Hovered),
-                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    // "Run Your First Optimization" button - use green primary style for visibility
+    StateColor btn_bg_green = StateColor(
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
     
     Button* run_optimization_button = new Button(page_pat_panel, _L("Run Your First Optimization"));
-    run_optimization_button->SetBackgroundColor(btn_bg_white);
-    run_optimization_button->SetBorderColor(wxColour(200, 200, 200));
-    run_optimization_button->SetTextColor(wxColour(45, 45, 49));
+    run_optimization_button->SetBackgroundColor(btn_bg_green);
+    run_optimization_button->SetBorderColor(wxColour(0, 174, 66));
+    // Bright white text for maximum contrast on green background
+    StateColor run_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
+                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    run_optimization_button->SetTextColor(run_btn_text);
+    run_optimization_button->SetTextColorNormal(wxColour(255, 255, 255));  // Bright white text
     run_optimization_button->SetFont(Label::Body_14);
     run_optimization_button->SetSize(wxSize(FromDIP(220), FromDIP(36)));
     run_optimization_button->SetMinSize(wxSize(FromDIP(220), FromDIP(36)));
