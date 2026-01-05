@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3195,6 +3195,12 @@ msgstr "Встановлення інформації про віртуальн�
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Ви впевнені, що хочете видалити інформацію про нитки?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Спочатку потрібно вибрати тип матеріалу та колір."
 
@@ -3330,10 +3336,22 @@ msgstr ""
 msgid "Right AMS"
 msgstr ""
 
-msgid "Left Nozzle"
+msgid "Tips:"
+msgstr "Поради:"
+
+msgid "1. Filaments of different types cannot be matched."
 msgstr ""
 
-msgid "Right Nozzle"
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
 msgstr ""
 
 msgid "Nozzle"
@@ -3353,14 +3371,14 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
+msgid "Cannot select: No filament loaded in current slot."
 msgstr ""
 
 msgid "Enable AMS"
@@ -4160,6 +4178,9 @@ msgstr ""
 msgid "Loading ..."
 msgstr ""
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "за замовчуванням"
 
@@ -4398,9 +4419,6 @@ msgstr "Праве сопло"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr ""
-
-msgid "Tips:"
-msgstr "Поради:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr ""
@@ -5794,6 +5812,12 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Хід друку"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr ""
 
@@ -5915,6 +5939,12 @@ msgid "Current slot has alread been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
+msgstr ""
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
 msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
@@ -6379,6 +6409,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Ніз"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr ""
 
@@ -6486,6 +6522,12 @@ msgstr ""
 msgid "Pause printing"
 msgstr ""
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr ""
@@ -6502,6 +6544,12 @@ msgid "Please change the nozzle settings on the printer."
 msgstr ""
 
 msgid "View wiki"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
 msgstr ""
 
 msgid "Brass"
@@ -6642,22 +6690,14 @@ msgstr ""
 msgid "Not installed"
 msgstr ""
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
 
-msgid "Switch diameter"
-msgstr "Змінити діаметр"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Ліве сопло: %sмм"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Праве сопло: %sмм"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Синхронізувати інформацію принтера"
@@ -6688,6 +6728,12 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Синхронізувати інформацію про сопла та кількість AMS"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "Філаменти проєкта"
 
@@ -6711,6 +6757,9 @@ msgstr "Встановіть нитки для використання"
 
 msgid "Search plate, object and part."
 msgstr "Пошук плити, об’єкта і деталі."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6797,6 +6846,9 @@ msgstr "Через застарілу версію Bambu Studio цей файл 
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Знайдені наступні невпізнані ключі:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "3mf генерується старим слайсером Orca, завантажувати лише дані геометрії."
@@ -8213,6 +8265,9 @@ msgstr ""
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr ""
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8305,6 +8360,9 @@ msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "How to install"
+msgstr ""
+
+msgid "Upgrade"
 msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
@@ -10694,6 +10752,33 @@ msgid ""
 "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls"
 msgstr ""
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Звичайний друк"
 
@@ -10701,6 +10786,17 @@ msgid "The default acceleration of both normal printing and travel except initia
 msgstr "Прискорення за умовчанням як для звичайного друку, так і для переміщення за виключенням початкового шару"
 
 msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
 
 msgid "Initial layer travel"
@@ -15398,6 +15494,17 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Switch diameter"
+#~ msgstr "Змінити діаметр"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Ліве сопло: %sмм"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Праве сопло: %sмм"
 
 #~ msgid "This calibration does not support the currently selected nozzle diameter"
 #~ msgstr "Калібрування не підтримує обраний діаметр сопла"

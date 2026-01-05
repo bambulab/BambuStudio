@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3178,6 +3178,12 @@ msgstr "印刷中の仮想スロット情報の設定には対応していませ
 msgid "Are you sure you want to clear the filament information?"
 msgstr "フィラメント情報をクリアしてもよろしいですか?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "最初に素材の種類と色を選択する必要があります。"
 
@@ -3321,11 +3327,23 @@ msgstr "現在のフィラメントマッピングをリセット"
 msgid "Right AMS"
 msgstr "右 AMS"
 
-msgid "Left Nozzle"
-msgstr "左ノズル"
+msgid "Tips:"
+msgstr "ヒント"
 
-msgid "Right Nozzle"
-msgstr "右ノズル"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "ノズル"
@@ -3344,15 +3362,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "現在のノズルで造形すると、約%0.2fgのフィラメントが無駄になる可能性があります。"
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "注意：現在のフィラメントタイプ（%s）は、スライスファイル内のフィラメントタイプ（%s）と一致しません。このスロットを使用する場合は、%sを%sに交換し、「デバイス」ページでスロット情報を変更してください。"
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "注意：このスロットは空、または未設定です。このスロットを使用する場合は、%sをセットし、「デバイス」ページでスロット情報を変更してください。"
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "注: フィラメントがロードされているスロットのみ選択できます。"
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMSを有効"
@@ -4155,6 +4173,9 @@ msgstr "不明なエラーです。"
 msgid "Loading ..."
 msgstr "読み込み中..."
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "デフォルト"
 
@@ -4392,9 +4413,6 @@ msgstr "右ノズル"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "グループ化結果に基づいてプリンタにフィラメントを配置してください。"
-
-msgid "Tips:"
-msgstr "ヒント"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "現在のスライス結果のグルーピングは最適ではありません。"
@@ -5785,6 +5803,12 @@ msgstr "切り替えに失敗"
 msgid "Printing Progress"
 msgstr "造形進捗"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "部品スキップ"
 
@@ -5905,6 +5929,12 @@ msgstr "現在のスロットにはすでにフィラメントがロードされ
 
 msgid "The selected slot is empty."
 msgstr "選択されたスロットは空です。"
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "プリンターの2Dモードは3Dキャリブレーションに対応していません"
@@ -6362,6 +6392,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "底面"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr "作業中は利用できません"
 
@@ -6467,6 +6503,12 @@ msgstr "通知"
 msgid "Pause printing"
 msgstr "印刷を一時停止"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr "タイプ"
@@ -6484,6 +6526,12 @@ msgstr "プリンタのノズル設定を変更してください。"
 
 msgid "View wiki"
 msgstr "Wikiを見る"
+
+msgid "Left Nozzle"
+msgstr "左ノズル"
+
+msgid "Right Nozzle"
+msgstr "右ノズル"
 
 msgid "Brass"
 msgstr "真鍮"
@@ -6623,25 +6671,14 @@ msgstr "AMS(1スロット)"
 msgid "Not installed"
 msgstr "未装着"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"ソフトウェアでは、1回の印刷で異なる直径のノズルを使用することはできません。\n"
-"左右のノズルが不一致の場合、単一ヘッドでしか印刷を進めることができません。\n"
-"ご希望のノズルをご確認ください。"
 
-msgid "Switch diameter"
-msgstr "直径を切り替え"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "左ノズル：%s mm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "右ノズル:%smm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "プリンタ同期"
@@ -6674,6 +6711,12 @@ msgstr "同期情報"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "ノズル情報とAMSの数を同期させる"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "プロジェクトフィラメント"
 
@@ -6697,6 +6740,9 @@ msgstr "フィラメントを選択"
 
 msgid "Search plate, object and part."
 msgstr "プレート、オブジェクト、パーツを検索"
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6780,6 +6826,9 @@ msgstr "古いバージョンのBambu Studioを使用しているため、この
 
 msgid "Found following keys unrecognized:\n"
 msgstr "以下の認識できないキーが見つかりました:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "この3mfファイルは古いバージョンのBambu Studioで作成されたため、ジオメトリデータのみを読み込みます。"
@@ -8217,6 +8266,9 @@ msgstr "プリンターがノズルの自動マッピングテーブルの作成
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "現在のノズルマッピングでは、追加で%0.2f gの廃材が発生する可能性があります。"
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8310,6 +8362,9 @@ msgstr "ご利用の前に、Wikiの説明をご確認ください。"
 
 msgid "How to install"
 msgstr "インストール方法"
+
+msgid "Upgrade"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "現在のファームウェアは、内部ストレージへのファイル転送に対応していません。"
@@ -10709,6 +10764,33 @@ msgstr ""
 "2. 外周壁の速度変化によって発生する、Zバンディングのような微細なアーティファクトを防ぐため\n"
 "3. 外周壁にVFAs（微細なアーティファクト）が出る原因となる低速印刷を避けるため"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "通常造形"
 
@@ -10717,6 +10799,17 @@ msgstr "1層目を除く通常の印刷および移動時のデフォルト加�
 
 msgid "The acceleration of travel except initial layer"
 msgstr "1層目を除く移動動作の加速度"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "1層目の移動動作"
@@ -13615,9 +13708,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始温度：350度以下\n"
-"	•	終了温度：180度 以上\n"
-"	•	開始温度は終了温度より5 度以上高くしてください"
+"\t•\t開始温度：350度以下\n"
+"\t•\t終了温度：180度 以上\n"
+"\t•\t開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -13637,9 +13730,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 0\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 0\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -13656,9 +13749,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 10\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 10\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -15477,6 +15570,37 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "注意：現在のフィラメントタイプ（%s）は、スライスファイル内のフィラメントタイプ（%s）と一致しません。このスロットを使用する場合は、%sを%sに交換し、「デバイス」ページでスロット情報を変更してください。"
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "注意：このスロットは空、または未設定です。このスロットを使用する場合は、%sをセットし、「デバイス」ページでスロット情報を変更してください。"
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "注: フィラメントがロードされているスロットのみ選択できます。"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "ソフトウェアでは、1回の印刷で異なる直径のノズルを使用することはできません。\n"
+#~ "左右のノズルが不一致の場合、単一ヘッドでしか印刷を進めることができません。\n"
+#~ "ご希望のノズルをご確認ください。"
+
+#~ msgid "Switch diameter"
+#~ msgstr "直径を切り替え"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "左ノズル：%s mm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "右ノズル:%smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "文字ごとに囲み投影を適用"

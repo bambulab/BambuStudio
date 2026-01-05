@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3193,6 +3193,12 @@ msgstr "No se admite la configuración virtual de la información de la ranura d
 msgid "Are you sure you want to clear the filament information?"
 msgstr "¿Está seguro de borrar la información del filamento?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Primero debe seleccionar el tipo de material y el color."
 
@@ -3336,11 +3342,23 @@ msgstr "Restablecer el mapeo actual de filamentos"
 msgid "Right AMS"
 msgstr "AMS derecho"
 
-msgid "Left Nozzle"
-msgstr "Boquilla izquierda"
+msgid "Tips:"
+msgstr "Consejos"
 
-msgid "Right Nozzle"
-msgstr "Boquilla derecha"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "Boquilla"
@@ -3359,15 +3377,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "La impresión con la boquilla actual puede producir un extra de %0.2f g de desperdicio."
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Nota: el tipo de filamento (%s) no coincide con el tipo de filamento (%s) en el archivo de corte. Si quieres usar esta ranura, puedes instalarla %s en lugar de %s cambiarla en la página «Dispositivo»."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Nota: la ranura está vacía o no está definida. Si quieres usar esta ranura, puedes instalar %s y cambiar la información de la ranura en la página «Dispositivo»."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Nota: Solo se pueden seleccionar ranuras con filamento cargado."
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Habilitar AMS"
@@ -4172,6 +4190,9 @@ msgstr "Error desconocido."
 msgid "Loading ..."
 msgstr "Cargando..."
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "por defecto"
 
@@ -4410,9 +4431,6 @@ msgstr "Boquilla derecha"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Por favor, coloque los filamentos en la impresora según el resultado de la agrupación."
-
-msgid "Tips:"
-msgstr "Consejos"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "La agrupación actual del resultado de los cortes no es óptima."
@@ -5817,6 +5835,12 @@ msgstr "Fallo en la conmutación"
 msgid "Printing Progress"
 msgstr "Progreso de la impresión"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "Omitir piezas"
 
@@ -5939,6 +5963,12 @@ msgstr "La ranura actual ya se ha cargado"
 
 msgid "The selected slot is empty."
 msgstr "La ranura seleccionada está vacía."
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "El modo 2D de la impresora no admite la calibración 3D"
@@ -6402,6 +6432,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Inferior"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr "No disponible durante la tarea"
 
@@ -6507,6 +6543,12 @@ msgstr "Notificación"
 msgid "Pause printing"
 msgstr "Pausar la impresión"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr "Tipo"
@@ -6524,6 +6566,12 @@ msgstr "Cambie la configuración de la boquilla en la impresora."
 
 msgid "View wiki"
 msgstr "Ver wiki"
+
+msgid "Left Nozzle"
+msgstr "Boquilla izquierda"
+
+msgid "Right Nozzle"
+msgstr "Boquilla derecha"
 
 msgid "Brass"
 msgstr "Latón"
@@ -6663,25 +6711,14 @@ msgstr "AMS (1 ranura)"
 msgid "Not installed"
 msgstr "No está instalado"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"El software no admite el uso de boquillas de diferentes diámetros para una impresión.\n"
-"Si las boquillas izquierda y derecha son inconsistentes, solo podemos proceder con la impresión de un solo cabezal.\n"
-"Confirme qué boquilla desea utilizar para este proyecto."
 
-msgid "Switch diameter"
-msgstr "Diámetro del interruptor"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Boquilla izquierda: %s mm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Boquilla derecha: %s mm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Sincronizar información de la impresora"
@@ -6714,6 +6751,12 @@ msgstr "Sincronizar información"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar la información de la boquilla y el número de AMS"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "Filamentos del proyecto"
 
@@ -6737,6 +6780,9 @@ msgstr "Establecer filamentos a utilizar"
 
 msgid "Search plate, object and part."
 msgstr "Buscar placa, objeto y pieza."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6820,6 +6866,9 @@ msgstr "Debido a la versión anterior de Bambu Studio, este archivo 3mf no se pu
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Se han encontrado las siguientes claves no reconocidas:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "3mf generado con versión antigua de Bambu Studio, se cargan datos de geometría unicamente."
@@ -8267,6 +8316,9 @@ msgstr "La impresora no pudo construir la tabla de mapeo automático de boquilla
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "El mapeo actual de boquillas puede producir %0.2f g adicionales de residuos."
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8360,6 +8412,9 @@ msgstr "Consulte la Wiki antes de usar->"
 
 msgid "How to install"
 msgstr "Cómo instalar"
+
+msgid "Upgrade"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "El firmware actual no admite la transferencia de archivos al almacenamiento interno."
@@ -10762,6 +10817,33 @@ msgstr ""
 "2. Para evitar cambios en la velocidad de la pared externa, que puedan crear ligeros artefactos en la pared que parecen bandas en Z\n"
 "3. Para evitar imprimir a velocidades que causen VFA (artefactos finos) en las paredes externas"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Impresión normal"
 
@@ -10770,6 +10852,17 @@ msgstr "La aceleración por defecto tanto de la impresión normal como del despl
 
 msgid "The acceleration of travel except initial layer"
 msgstr "La aceleración del viaje, excepto la capa inicial"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "Recorrido de capa inicial"
@@ -15531,6 +15624,37 @@ msgid ""
 msgstr ""
 "Disminución, deformación y estrés\n"
 "Al controlar el índice térmico puedes remover las causas de calor de la deformación y el estrés."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "Nota: el tipo de filamento (%s) no coincide con el tipo de filamento (%s) en el archivo de corte. Si quieres usar esta ranura, puedes instalarla %s en lugar de %s cambiarla en la página «Dispositivo»."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "Nota: la ranura está vacía o no está definida. Si quieres usar esta ranura, puedes instalar %s y cambiar la información de la ranura en la página «Dispositivo»."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Nota: Solo se pueden seleccionar ranuras con filamento cargado."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "El software no admite el uso de boquillas de diferentes diámetros para una impresión.\n"
+#~ "Si las boquillas izquierda y derecha son inconsistentes, solo podemos proceder con la impresión de un solo cabezal.\n"
+#~ "Confirme qué boquilla desea utilizar para este proyecto."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Diámetro del interruptor"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Boquilla izquierda: %s mm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Boquilla derecha: %s mm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "Proyección envolvente por char"

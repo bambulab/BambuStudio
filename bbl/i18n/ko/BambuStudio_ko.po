@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 15:58+0800\n"
+"POT-Creation-Date: 2026-01-05 10:09+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3188,6 +3188,12 @@ msgstr "출력 중 가상 슬롯 정보 설정은 지원되지 않습니다."
 msgid "Are you sure you want to clear the filament information?"
 msgstr "필라멘트 정보를 지우시겠습니까?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "재료 유형과 색상을 먼저 선택해야 합니다."
 
@@ -3331,11 +3337,23 @@ msgstr "현재 필라멘트 매핑 재설정"
 msgid "Right AMS"
 msgstr "오른쪽 AMS"
 
-msgid "Left Nozzle"
-msgstr "왼쪽 노즐"
+msgid "Tips:"
+msgstr "팁:"
 
-msgid "Right Nozzle"
-msgstr "오른쪽 노즐"
+msgid "1. Filaments of different types cannot be matched."
+msgstr ""
+
+msgid "2. Left nozzle filaments do not match the right nozzle."
+msgstr ""
+
+msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
 
 msgid "Nozzle"
 msgstr "노즐"
@@ -3354,15 +3372,15 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "현재 노즐로 출력하면 약 %0.2fg의 낭비물이 발생할 수 있습니다."
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "참고: 필라멘트 유형(%s)이 슬라이싱 파일에 있는 필라멘트 유형(%s)과 일치하지 않습니다. 이 슬롯을 사용하려면 %s 대신 %s 을 설치하고 '장치' 페이지에서 슬롯 정보를 변경하면 됩니다."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "참고: 슬롯이 비어 있거나 정의되지 않았습니다. 이 슬롯을 사용하려면 %s 을 설치하고 '장치' 페이지에서 슬롯 정보를 변경할 수 있습니다."
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "참고: 필라멘트가 로드된 슬롯만 선택할 수 있습니다."
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "AMS 활성화"
@@ -4167,6 +4185,9 @@ msgstr "알 수 없는 오류."
 msgid "Loading ..."
 msgstr "로드 중..."
 
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "기본값"
 
@@ -4405,9 +4426,6 @@ msgstr "오른쪽 노즐"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "그룹화 결과에 따라 프린터에 필라멘트를 배치하세요."
-
-msgid "Tips:"
-msgstr "팁:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "현재 슬라이스 결과의 그룹화가 최적이 아닙니다."
@@ -5809,6 +5827,12 @@ msgstr "전환 실패"
 msgid "Printing Progress"
 msgstr "출력 진행상황"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr "물체 건너뛰기"
 
@@ -5931,6 +5955,12 @@ msgstr "현재 슬롯이 이미 로드되었습니다."
 
 msgid "The selected slot is empty."
 msgstr "선택한 슬롯이 비어 있습니다."
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "프린터 2D 모드는 3D 교정을 지원하지 않습니다"
@@ -6390,6 +6420,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "하단"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
 msgid "Unavailable during the task"
 msgstr "작업 중 사용 불가"
 
@@ -6495,6 +6531,12 @@ msgstr "알림"
 msgid "Pause printing"
 msgstr "출력 일시 중지"
 
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
 msgctxt "Nozzle Type"
 msgid "Type"
 msgstr "유형"
@@ -6512,6 +6554,12 @@ msgstr "프린터의 노즐 설정을 변경하세요."
 
 msgid "View wiki"
 msgstr "위키 보기"
+
+msgid "Left Nozzle"
+msgstr "왼쪽 노즐"
+
+msgid "Right Nozzle"
+msgstr "오른쪽 노즐"
 
 msgid "Brass"
 msgstr "황동"
@@ -6651,25 +6699,14 @@ msgstr "AMS(1 슬롯)"
 msgid "Not installed"
 msgstr "설치되지 않음"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"소프트웨어는 한 번의 출력에 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
-"왼쪽 노즐과 오른쪽 노즐이 일치하지 않는 경우 단일 헤드 출력만 진행할 수 있습니다.\n"
-"이 프로젝트에 사용할 노즐을 확인해 주세요."
 
-msgid "Switch diameter"
-msgstr "스위치 직경"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "왼쪽 노즐: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "오른쪽 노즐: %smm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "프린터 정보 동기화"
@@ -6702,6 +6739,12 @@ msgstr "동기화 정보"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "노즐 정보 및 AMS 개수 동기화"
 
+msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+msgstr ""
+
+msgid "Confirm Diameter Switch"
+msgstr ""
+
 msgid "Project Filaments"
 msgstr "프로젝트 필라멘트"
 
@@ -6725,6 +6768,9 @@ msgstr "사용할 필라멘트 설정"
 
 msgid "Search plate, object and part."
 msgstr "플레이트, 개체 및 부품을 검색합니다."
+
+msgid "(Unavailable for right extruder)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6808,6 +6854,9 @@ msgstr "Bambu Studio의 하위 버전으로 인해 이 3mf 파일을 완전히 �
 
 msgid "Found following keys unrecognized:\n"
 msgstr "다음과 같은 인식할 수 없는 키가 발견되었습니다:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "3mf는 이전 버전의 Bambu Studio에서 생성되었습니다. 형상 데이터만 불러옵니다."
@@ -8253,6 +8302,9 @@ msgstr "프린터가 노즐 자동 매핑 테이블을 작성하지 못했습니
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "현재 노즐 매핑으로 출력하면 약 %0.2f g의 낭비물이 추가로 발생할 수 있습니다."
 
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
@@ -8346,6 +8398,9 @@ msgstr "사용하기 전에 Wiki를 참조하십시오->"
 
 msgid "How to install"
 msgstr "설치 방법"
+
+msgid "Upgrade"
+msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "현재 펌웨어는 내부 스토리지로의 파일 전송을 지원하지 않습니다."
@@ -10741,6 +10796,33 @@ msgstr ""
 "2. 외벽 속도 변화를 방지하여 Z 밴딩처럼 보이는 미세한 벽면 결함 방지\n"
 "3. 외부 벽에서 미세 결함(VFA)이 발생하는 속도로 출력하는 것을 방지함"
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "일반 출력"
 
@@ -10749,6 +10831,17 @@ msgstr "이는 첫 레이어 이후 일반 출력과 이동의 기본 가속도�
 
 msgid "The acceleration of travel except initial layer"
 msgstr "초기 레이어를 제외한 이동 가속도"
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
 
 msgid "Initial layer travel"
 msgstr "초기 레이어 이동"
@@ -15509,6 +15602,37 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "참고: 필라멘트 유형(%s)이 슬라이싱 파일에 있는 필라멘트 유형(%s)과 일치하지 않습니다. 이 슬롯을 사용하려면 %s 대신 %s 을 설치하고 '장치' 페이지에서 슬롯 정보를 변경하면 됩니다."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "참고: 슬롯이 비어 있거나 정의되지 않았습니다. 이 슬롯을 사용하려면 %s 을 설치하고 '장치' 페이지에서 슬롯 정보를 변경할 수 있습니다."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "참고: 필라멘트가 로드된 슬롯만 선택할 수 있습니다."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "소프트웨어는 한 번의 출력에 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
+#~ "왼쪽 노즐과 오른쪽 노즐이 일치하지 않는 경우 단일 헤드 출력만 진행할 수 있습니다.\n"
+#~ "이 프로젝트에 사용할 노즐을 확인해 주세요."
+
+#~ msgid "Switch diameter"
+#~ msgstr "스위치 직경"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "왼쪽 노즐: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "오른쪽 노즐: %smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "char로 서라운드 프로젝션"
