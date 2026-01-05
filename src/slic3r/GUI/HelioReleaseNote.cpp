@@ -43,11 +43,8 @@ namespace Slic3r { namespace GUI {
 {
      shared_ptr = std::make_shared<int>(0);
 
-     // Set Helio icon for dialog title bar
-     wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
-     wxIcon helio_icon;
-     helio_icon.CopyFromBitmap(helio_bitmap);
-     SetIcon(helio_icon);
+     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
      SetBackgroundColour(wxColour(45, 45, 49)); // Dark background
 
@@ -947,11 +944,8 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     shared_ptr = std::make_shared<int>(0);
     auto theme = get_theme();
 
-    // Set Helio icon for dialog title bar
-    wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
-    wxIcon helio_icon;
-    helio_icon.CopyFromBitmap(helio_bitmap);
-    SetIcon(helio_icon);
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(theme.bg);
     SetMinSize(wxSize(FromDIP(520), -1));
@@ -2045,11 +2039,8 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     SetBackgroundColour(*wxWHITE);
     shared_ptr = std::make_shared<int>(0);
 
-    // Set Helio icon for dialog title bar
-    wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
-    wxIcon helio_icon;
-    helio_icon.CopyFromBitmap(helio_bitmap);
-    SetIcon(helio_icon);
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);
 
@@ -2278,11 +2269,8 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     SetBackgroundColour(*wxWHITE);
 
-    // Set Helio icon for dialog title bar
-    wxBitmap helio_bitmap = create_scaled_bitmap("helio_icon", this, 32);
-    wxIcon helio_icon;
-    helio_icon.CopyFromBitmap(helio_bitmap);
-    SetIcon(helio_icon);
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
