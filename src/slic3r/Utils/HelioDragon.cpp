@@ -1518,8 +1518,11 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                     } else {
                         set_state(STATE_CANCELED);
 
+                        BOOST_LOG_TRIVIAL(error) << "Helio simulation progress check returned error: " << check_simulation_progress_res.error;
+                        
+                        std::string error_msg = _u8L("Helio: simulation failed") + "\n" + check_simulation_progress_res.error;
                         Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "",
-                                                                                             false, _u8L("Helio: simulation failed"));
+                                                                                             false, error_msg);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         break;
                     }
