@@ -82,7 +82,7 @@
     ],
     "filament_retraction_length": [
         "0.4",
-        "nil",
+        "0.4",
         "nil",
         "nil"
     ],
@@ -103,15 +103,15 @@
     ],
     "filament_wipe": [
         "1",
-        "nil",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1"
     ],
     "filament_wipe_distance": [
         "1",
-        "nil",
-        "nil",
-        "nil"
+        "1",
+        "1",
+        "1"
     ],
     "filament_z_hop": [
         "nil",
@@ -121,9 +121,9 @@
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
-        "nil",
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",

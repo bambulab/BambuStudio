@@ -81,10 +81,10 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "0.4",
-        "0.4"
+        "0.8",
+        "0.8",
+        "nil",
+        "nil"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -117,10 +117,10 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
-        "nil",
-        "nil",
-        "nil"
+        "Spiral Lift",
+        "Spiral Lift",
+        "Auto Lift",
+        "Auto Lift"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
