@@ -2404,7 +2404,14 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     Button* m_button_activate = new Button(this, _L("Enable Helio Additive"));
     m_button_activate->SetBackgroundColor(btn_bg_green);
     m_button_activate->SetBorderColor(wxColour(0, 174, 66));
-    m_button_activate->SetTextColor(wxColour(255, 255, 255));
+    // White text for all states
+    StateColor activate_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Disabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+    m_button_activate->SetTextColor(activate_btn_text);
+    m_button_activate->SetTextColorNormal(wxColour(255, 255, 255));
     m_button_activate->SetFont(Label::Body_14);
     m_button_activate->SetSize(wxSize(FromDIP(300), FromDIP(36)));
     m_button_activate->SetMinSize(wxSize(FromDIP(300), FromDIP(36)));
