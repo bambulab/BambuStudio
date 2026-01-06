@@ -353,16 +353,26 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
 
         m_sizer_simple->Add(specify_cluster_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
         {//image dela
-            {
-                auto plater = wxGetApp().plater();
-                auto mo     = m_obj_in_out.model->objects[0];
-                mo->add_instance();
-                auto mv            = mo->volumes[0];
-                m_thumbnail_offset = Slic3r::Vec3d::Zero();
-                auto box           = mo->bounding_box();
-                if (box.min.x() < 0 || box.min.y() < 0 || box.min.z() < 0) {
-                    m_thumbnail_offset = Slic3r::Vec3d(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
-                    mv->translate(m_thumbnail_offset);
+            auto plater = wxGetApp().plater();
+            m_thumbnail_offset = Slic3r::Vec3d::Zero();
+            BoundingBoxf3 box;
+            for (int i = 0; i < m_obj_in_out.model->objects.size(); i++) {
+                auto mo = m_obj_in_out.model->objects[i];
+                if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Obj) {
+                    if (mo->instances.size() == 0) {
+                        mo->add_instance();
+                    }
+                }
+                box.merge(mo->bounding_box());
+            }
+            if (box.min.x() < 0 || box.min.y() < 0 || box.min.z() < 0) {
+                m_thumbnail_offset = Slic3r::Vec3d(box.min.x() < 0 ? -box.min.x() : 0, box.min.y() < 0 ? -box.min.y() : 0, box.min.z() < 0 ? -box.min.z() : 0);
+                for (int i = 0; i < m_obj_in_out.model->objects.size(); i++) {
+                    auto &mo = m_obj_in_out.model->objects[i];
+                    for (int j = 0; j < mo->volumes.size(); j++) {
+                        auto &mv = mo->volumes[j];
+                        mv->translate(m_thumbnail_offset);
+                    }
                 }
             }
             { // add ui
@@ -1138,12 +1148,17 @@ void ObjColorPanel::set_view_angle_type(int value)
 
 void ObjColorPanel::clear_instance_and_revert_offset()
 {
-    auto mo = m_obj_in_out.model->objects[0];
-    mo->clear_instances();
-    auto mv  = mo->volumes[0];
-    auto box = mo->bounding_box();
-    if (!m_thumbnail_offset.isApprox(Slic3r::Vec3d::Zero())) {
-        mv->translate(-m_thumbnail_offset);
+    for (int i = 0; i < m_obj_in_out.model->objects.size(); i++) {
+        auto &mo = m_obj_in_out.model->objects[i];
+        if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Obj) {
+            mo->clear_instances();
+        }
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            auto &mv = mo->volumes[j];
+            if (!m_thumbnail_offset.isApprox(Slic3r::Vec3d::Zero())) {
+                mv->translate(-m_thumbnail_offset);
+            }
+        }
     }
 }
 
