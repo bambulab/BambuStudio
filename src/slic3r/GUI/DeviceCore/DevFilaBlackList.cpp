@@ -281,7 +281,15 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
 }
 
 
-bool check_filaments_printable(const std::string& dev_id, const std::string &tag_vendor, const std::string &tag_type, const std::string& filament_id, int ams_id, bool &in_blacklist, std::string &ac, wxString &info)
+bool check_filaments_printable(const std::string &dev_id,
+                               const std::string &tag_vendor,
+                               const std::string &filament_name,
+                               const std::string &tag_type,
+                               const std::string &filament_id,
+                               int                ams_id,
+                               bool              &in_blacklist,
+                               std::string       &ac,
+                               wxString          &info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) {
@@ -314,8 +322,9 @@ bool check_filaments_printable(const std::string& dev_id, const std::string &tag
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
     if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
         wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        std::string fila_name     = filament_name.empty() ? tag_type : filament_name;
         ac                     = "prohibition";
-        info                   = wxString::Format(_L("%s is not supported by %s extruder."), tag_type, extruder_name);
+        info                   = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
         in_blacklist           = true;
         return false;
     }
@@ -333,7 +342,7 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
 
     bool in_blacklist = false;
     CheckResultItem blacklist_item;
-    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_type, info.fila_id, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
+    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_name, info.fila_type,info.fila_id, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
         result.action_items[blacklist_item.action].push_back(blacklist_item);
         return result;
     }
