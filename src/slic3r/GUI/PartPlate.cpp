@@ -1534,11 +1534,10 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             }
 
             std::vector<std::string> filament_variants;
-            if (!m_print->get_full_filament_extruder_variants(filament_id, filament_variants)) {
-                if (fil_preset->config.has("filament_extruder_variant"))
-                    filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-            }
-            if (filament_variants.empty()) continue;
+            if (fil_preset->config.has("filament_extruder_variant"))
+                filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+            else
+                filament_variants = {"Direct Drive Standard"};
 
             std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
             std::string extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
@@ -1732,11 +1731,10 @@ bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintC
         std::string fil_name = fil_preset->alias;
 
         std::vector<std::string> filament_variants;
-        if (!m_print->get_full_filament_extruder_variants(fil_id, filament_variants)) {
-            if (fil_preset->config.has("filament_extruder_variant"))
-                filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-        }
-        if (filament_variants.empty()) continue;
+        if (fil_preset->config.has("filament_extruder_variant"))
+            filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+        else
+            filament_variants = {"Direct Drive Standard"};
 
         std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
         if (filament_variants_set.find(extruder_variant) == filament_variants_set.end()){
