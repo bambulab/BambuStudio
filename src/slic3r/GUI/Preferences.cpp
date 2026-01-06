@@ -1193,7 +1193,15 @@ void PreferencesDialog::create()
     SetSizer(main_sizer);
     Layout();
     Fit();
-    m_screen_height = wxGetDisplaySize().GetY();
+    int m_screen_height = std::numeric_limits<int>::max();
+    int count = wxDisplay::GetCount();
+    for (int i = 0; i < count; ++i) {
+        wxDisplay display(i);
+        wxRect rect = display.GetGeometry();
+        m_screen_height = std::min(m_screen_height, rect.GetHeight());
+    }
+    if (m_screen_height == std::numeric_limits<int>::max())
+        m_screen_height = wxGetDisplaySize().GetY();
     this->SetSize(this->GetSize().GetX() + FromDIP(40), m_screen_height * 0.7);
 
     CenterOnParent();
