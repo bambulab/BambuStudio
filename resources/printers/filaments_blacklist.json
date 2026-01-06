@@ -108,16 +108,9 @@
       "description": "Auto dynamic flow calibration is not supported for TPU filament."
     },
     {
-      "type": "TPU",
+      "types": ["TPU", "TPU-AMS"],
       "action": "warning",
-      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.",
-      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
-    },
-    {
-      "type": "TPU-AMS",
-      "action": "warning",
-      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.",
-      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
+      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
     },
     {
       "type": "PVA",
@@ -144,18 +137,6 @@
       "action": "warning",
       "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
       "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
-    },
-    {
-      "type_suffix": "CF",
-      "action": "warning",
-      "slot": "ams",
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-    },
-    {
-      "type_suffix": "GF",
-      "action": "warning",
-      "slot": "ams",
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
     },
     {
       "vendor": "Bambu Lab",
