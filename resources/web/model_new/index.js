@@ -197,16 +197,25 @@ function ShowFileInfo( pFile ){
   if (BTotal>0){
     $("#bom-accessories").text("Bill of Materials (" + BTotal + ")");
     ConstructFileHtml( "bom-list", pBOM );
+  }else {
+    $("#bom-accessories").text("");
+    $("#bom-list").html("");
   }
 
   if (ATotal>0){
     $("#assembly-accessories").text("Assembly Guide (" + ATotal + ")");
     ConstructFileHtml( "assembly-list", pAssembly );
+  }else {
+    $("#assembly-accessories").text("");
+    $("#assembly-list").html("");
   }
 
   if (OTotal>0){
     $("#other-accessories").text("Other (" + OTotal + ")");
     ConstructFileHtml( "other-list", pOther );
+  }else {
+    $("#other-accessories").text("");
+    $("#other-list").html("");
   }
 }
 
