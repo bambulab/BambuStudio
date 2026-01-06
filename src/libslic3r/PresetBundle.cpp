@@ -292,6 +292,21 @@ void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
     }
 }
 
+void ExtruderNozzleStat::on_printer_model_change_cli(const std::vector<int>& nozzle_volume_type, const std::vector<int>& max_nozzle_count)
+{
+    if (force_keep_stat) return;
+    extruder_nozzle_counts.resize(max_nozzle_count.size());
+    for (size_t eid = 0; eid < extruder_nozzle_counts.size(); ++eid) {
+        NozzleVolumeType type = nvtStandard;
+        if (eid >= nozzle_volume_type.size())
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": eid out of bounds, use standard flow");
+        else
+            type = NozzleVolumeType(nozzle_volume_type[eid]);
+        set_extruder_nozzle_count(eid, type, max_nozzle_count[eid], true);
+    }
+}
+
+
 void ExtruderNozzleStat::on_volume_type_switch(int extruder_id, NozzleVolumeType type)
 {
 
