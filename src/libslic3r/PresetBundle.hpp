@@ -76,6 +76,7 @@ public:
     ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts, const NozzleDataFlag flag = ndfNone) : extruder_nozzle_counts(nozzle_counts), data_flag(flag) {}
     void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
     void on_printer_model_change(PresetBundle* preset_bundle);
+    void on_printer_model_change_cli(const std::vector<int> &nozzle_volume_type, const std::vector<int> &max_nozzle_count);
     void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
     int get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type = std::nullopt) const;
 
