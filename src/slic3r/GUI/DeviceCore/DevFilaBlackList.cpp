@@ -105,6 +105,10 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
         {
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
+            if (action.empty() || description.empty()) {
+                assert(false);
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ERROR: filaments_blacklist item missing action or description";
+            }
 
             // blacklist items
             std::string vendor = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
