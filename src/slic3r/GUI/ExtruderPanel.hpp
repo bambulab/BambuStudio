@@ -55,6 +55,7 @@ public:
     void SetStatus(Status status);
     Status GetStatus() const { return m_status; }
     void UpdateStatus(Status status = Normal);
+    void Rescale();
 
 protected:
     void OnPaint(wxPaintEvent &event);
@@ -88,7 +89,7 @@ public:
                              const wxSize& size = wxDefaultSize);
 
     void Clear();
-    void UpdateScrollbars();
+    bool UpdateScrollbars();
 
 private:
     wxBoxSizer *m_content_sizer{nullptr};
@@ -277,6 +278,7 @@ public:
     void     UpdateButtonStates();
     ButtonState GetButtonState(const wxString &diameter) const;
     void     RefreshLayout(const std::vector<wxString> &choices);
+    void     Rescale();
 
 private:
     void OnButtonClicked(wxCommandEvent &event);
