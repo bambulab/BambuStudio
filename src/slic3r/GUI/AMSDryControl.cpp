@@ -1205,7 +1205,7 @@ std::string get_cannot_reason_text(DevAms::CannotDryReason reason)
         break;
     case DevAms::CannotDryReason::Upgrading:
         cannot_reason_text = "*Upgrading\n";
-        cannot_reason_text += "  The AMS is upgrading, please wait.\n";
+        cannot_reason_text += "  Firmware update in progress, please wait...\n";
         break;
     case DevAms::CannotDryReason::InsufficientPowerNeedPluginPower:
         cannot_reason_text = "*Insufficient power\n";
@@ -1229,9 +1229,6 @@ std::string organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& r
         cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::AmsBusy);
     } else if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::ConsumableAtAmsOutlet) != reasons.end()) {
         cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::ConsumableAtAmsOutlet);
-    } else {
-        cannot_reasons_text += "*System is busy\n";
-        cannot_reasons_text += "  Initiating other drying processes, please wait a few seconds...\n";
     }
 
     if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::InsufficientPower) != reasons.end()) {
@@ -1245,7 +1242,14 @@ std::string organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& r
             cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::NotSupportedIn2dMode);
         } else if (reason == DevAms::CannotDryReason::InitiatingAmsDrying) {
             cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::InitiatingAmsDrying);
+        } else if (reason == DevAms::CannotDryReason::Upgrading) {
+            cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::Upgrading);
         }
+    }
+
+    if (cannot_reasons_text.empty()) {
+        cannot_reasons_text += "*System is busy\n";
+        cannot_reasons_text += "  Initiating other drying processes, please wait a few seconds...\n";
     }
 
     return cannot_reasons_text;
