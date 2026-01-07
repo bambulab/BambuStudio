@@ -78,6 +78,7 @@ public:
         std::string id;
         std::string name;
         std::string native_name;
+        std::string feedstock;
     };
 
     struct PollResult {

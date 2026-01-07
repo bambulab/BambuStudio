@@ -234,7 +234,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
 void HelioQuery::request_support_material(const std::string helio_api_url, const std::string helio_api_key, int page)
 {
     std::string query_body = R"( {
-			"query": "query GetMaterias($page: Int) { materials(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Material  { id name alternativeNames { bambustudio } } } } }",
+			"query": "query GetMaterias($page: Int) { materials(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Material  { id name feedstock alternativeNames { bambustudio } } } } }",
             "variables": {"page": %1%}
 		} )";
 
@@ -267,6 +267,7 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
                             HelioQuery::SupportedData sp;
                             if (pobj.contains("id") && !pobj["id"].is_null()) { sp.id = pobj["id"].get<std::string>(); }
                             if (pobj.contains("name") && !pobj["id"].is_null()) { sp.name = pobj["name"].get<std::string>(); }
+                            if (pobj.contains("feedstock") && !pobj["feedstock"].is_null()) { sp.feedstock = pobj["feedstock"].get<std::string>(); }
                             if (pobj.contains("alternativeNames") && pobj["alternativeNames"].is_object()) {
                                 auto alternativeNames = pobj["alternativeNames"];
 
@@ -279,7 +280,10 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
                                     if (pobj.contains("name") && !pobj["id"].is_null()) { sp.native_name = pobj["name"].get<std::string>(); }
                                 }
                             }
-                            supported_materials.push_back(sp);
+                            // Only include materials with feedstock type FILAMENT
+                            if (sp.feedstock == "FILAMENT") {
+                                supported_materials.push_back(sp);
+                            }
                         }
                     }
 
