@@ -1115,6 +1115,7 @@ void PrintingTaskPanel::update_pausing_state(bool enter)
         } else {
             m_pausing_icon->Stop();
             m_pausing_icon->Hide();
+            m_button_pause_resume->Show();
         }
 
         Layout();
@@ -1131,6 +1132,7 @@ void PrintingTaskPanel::update_stopping_state(bool enter)
         } else {
             m_stopping_icon->Stop();
             m_stopping_icon->Hide();
+            m_button_abort->Show();
         }
 
         Layout();
