@@ -2061,9 +2061,13 @@ void GUI_App::init_networking_callbacks()
             }
             if (return_code < 0) { //#define MQTTASYNC_SUCCESS 0
                 GUI::wxGetApp().CallAfter([this] {
+                    static bool is_showing = false;
+                    if (is_showing) return;
+                    is_showing = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
-                    MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxAPPLY | wxOK);
-                    if (msg_dlg.ShowModal() == wxOK) { return; }
+                    MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    msg_dlg.ShowModal();
+                    is_showing = false;
                 });
                 return;
             }
