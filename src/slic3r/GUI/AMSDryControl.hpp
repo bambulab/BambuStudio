@@ -108,6 +108,8 @@ private:
     ScalableBitmap m_humidity_image;
     wxStaticBitmap* m_humidity_img{nullptr};
     Label* m_image_description{nullptr};
+    wxStaticBitmap* m_image_description_icon{nullptr};
+    ScalableBitmap m_description_icon_bitmap;
 
     Label* m_humidity_data_label = nullptr;
     Label* m_temperature_data_label = nullptr;

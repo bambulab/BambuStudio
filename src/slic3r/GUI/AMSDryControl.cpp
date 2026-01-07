@@ -64,9 +64,6 @@ static std::string get_dry_status_img_path(DevAms::AmsType type, DevAms::DryStat
         case DevAms::DryStatus::Error:
             img_name += "error";
             return img_name;
-        case DevAms::DryStatus::Cooling:
-            img_name += "cooling";
-            return img_name;
     }
 
     switch (sub_status) {
@@ -144,7 +141,7 @@ void FilamentItemPanel::SetIcon(const std::string& icon_name)
             m_icon.msw_rescale();
             m_icon_bitmap->SetBitmap(m_icon.bmp());
         } catch (Exception& e) {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << e.what();
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": failed to load filament icon";
             m_icon_bitmap->SetBitmap(wxNullBitmap);
         }
     } else {
@@ -296,13 +293,25 @@ wxBoxSizer* AMSDryCtrWin::create_humidity_status_section(wxPanel* parent)
     image_sizer->Add(m_humidity_img, 1, wxALIGN_CENTER_HORIZONTAL, 0);
 
     m_humidity_img->SetBitmap(wxNullBitmap);
-    
+
+    // Create a horizontal sizer for description and icon
+    wxBoxSizer* desc_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_image_description_icon = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
+    m_image_description_icon->SetBackgroundColour(*wxWHITE);
+    m_image_description_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_image_description_icon->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_image_description_icon->Show(false);
+    desc_sizer->Add(m_image_description_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
+
     m_image_description = new Label(parent, _L("Idle"));
     m_image_description->SetFont(Label::Head_14);
     m_image_description->SetForegroundColour(*wxBLACK);
     m_image_description->SetBackgroundColour(*wxWHITE);
-    image_sizer->Add(m_image_description, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    
+    desc_sizer->Add(m_image_description, 0, wxALIGN_CENTER_VERTICAL);
+
+    image_sizer->Add(desc_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
     return image_sizer;
 }
 
@@ -951,6 +960,7 @@ void AMSDryCtrWin::msw_rescale()
     if (m_trays_combo) {m_trays_combo->Rescale(); m_trays_combo->Layout(); m_trays_combo->SetFont(Label::Body_14), m_trays_combo->Refresh();}
     if (m_humidity_img && m_humidity_image.bmp().IsOk()) {m_humidity_image.msw_rescale(); m_humidity_img->SetBitmap(m_humidity_image.bmp());}
     if (m_image_placeholder && m_guide_image.bmp().IsOk()) {m_guide_image.msw_rescale();m_image_placeholder->SetBitmap(m_guide_image.bmp());}
+    if (m_image_description_icon && m_description_icon_bitmap.bmp().IsOk()) {m_description_icon_bitmap.msw_rescale(); m_image_description_icon->SetBitmap(m_description_icon_bitmap.bmp());}
 
     // Rescale and update button sizes based on text content
     if (m_next_button) {
@@ -994,17 +1004,35 @@ void AMSDryCtrWin::set_ams_id(const std::string& ams_id)
 
 void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
 {
-    if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
+    if (status == DevAms::DryStatus::Off || status == DevAms::DryStatus::Cooling) {
         m_image_description->SetLabel("Idle");
+        m_image_description_icon->Show(false);
+        return;
     }
-    else if (status == DevAms::DryStatus::Cooling) {
-        m_image_description->SetLabel("Cooling");
+
+    // Determine label text for non-idle states
+    wxString label_text;
+    if (status == DevAms::DryStatus::Error) {
+        label_text = "Drying";
+    } else if (sub_status == DevAms::DrySubStatus::Heating) {
+        label_text = "Drying-Heating";
+    } else if (sub_status == DevAms::DrySubStatus::Dehumidify) {
+        label_text = "Drying-Dehumidifying";
+    } else {
+        m_image_description_icon->Show(false);
+        return;
     }
-    else if (sub_status == DevAms::DrySubStatus::Heating) {
-        m_image_description->SetLabel("Heating");
-    }
-    else if (sub_status == DevAms::DrySubStatus::Dehumidify) {
-        m_image_description->SetLabel("Dehumidifying");
+
+    m_image_description->SetLabel(label_text);
+
+    try {
+        m_description_icon_bitmap = ScalableBitmap(this, "dev_ams_dry_ctr_heating_icon", 20);
+        m_description_icon_bitmap.msw_rescale();
+        m_image_description_icon->SetBitmap(m_description_icon_bitmap.bmp());
+        m_image_description_icon->Show(true);
+    } catch (Exception& e) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Error loading drying icon";
+        m_image_description_icon->Show(false);
     }
 }
 
@@ -1183,7 +1211,7 @@ std::string get_cannot_reason_text(DevAms::CannotDryReason reason)
     {
     case DevAms::CannotDryReason::InsufficientPower:
         cannot_reason_text = "*Insufficient power\n";
-        cannot_reason_text += "  Due to the power limit, please connect a power adapter to this AMS before drying.\n";
+        cannot_reason_text += "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n";
         break;
     case DevAms::CannotDryReason::AmsBusy:
         cannot_reason_text = "*AMS is busy\n";
@@ -1557,13 +1585,12 @@ bool AMSDryCtrWin::is_dry_ctr_idle(DevAms* dev_ams)
     }
 
     return dev_ams->GetDryStatus().value() == DevAms::DryStatus::Off
-        && dev_ams->GetDrySubStatus().value() == DevAms::DrySubStatus::Off;
+        || dev_ams->GetDryStatus().value() == DevAms::DryStatus::Cooling;
 }
 
 bool AMSDryCtrWin::is_dry_ctr_idle()
 {
-    return m_ams_info.m_dry_status == DevAms::DryStatus::Off
-        && m_ams_info.m_dry_sub_status == DevAms::DrySubStatus::Off;
+    return m_ams_info.m_dry_status == DevAms::DryStatus::Off || m_ams_info.m_dry_status == DevAms::DryStatus::Cooling;
 }
 
 bool AMSDryCtrWin::is_dry_ctr_err(DevAms* dev_ams)
