@@ -181,7 +181,6 @@ private:
 private:
     void create();
     wxBoxSizer* create_guide_page_sizer(wxPanel* parent);
-    wxBoxSizer* create_top_section(wxPanel* parent);
     wxBoxSizer* create_main_content_section(wxPanel* parent);
     wxBoxSizer* create_guide_info_filament(wxPanel* parent);
     wxBoxSizer* create_guide_info_section(wxPanel* parent);

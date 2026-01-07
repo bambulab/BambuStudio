@@ -288,22 +288,6 @@ wxScrolledWindow* AMSDryCtrWin::create_preview_scrolled_window(wxWindow* parent)
     return panel;
 }
 
-wxBoxSizer* AMSDryCtrWin::create_top_section(wxPanel* parent)
-{
-    wxBoxSizer* top_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-    Label* title = new Label(parent, _L("Current AMS humidity"));
-    title->SetForegroundColour(*wxBLACK);
-    title->SetBackgroundColour(*wxWHITE);
-    title->SetFont(Label::Head_18);
-
-    top_sizer->AddStretchSpacer();
-    top_sizer->Add(title, 0);
-    top_sizer->AddStretchSpacer();
-
-    return top_sizer;
-}
-
 wxBoxSizer* AMSDryCtrWin::create_humidity_status_section(wxPanel* parent)
 {
     wxBoxSizer* image_sizer = new wxBoxSizer(wxVERTICAL);
@@ -596,9 +580,6 @@ wxBoxSizer* AMSDryCtrWin::create_main_content_section(wxPanel* parent)
 wxBoxSizer* AMSDryCtrWin::create_main_page_sizer(wxPanel* parent)
 {
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer* top_section = create_top_section(parent);
-    main_sizer->Add(top_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
     wxBoxSizer* content_section = create_main_content_section(parent);
     main_sizer->Add(content_section, 1, wxEXPAND | wxALL, FromDIP(5));
