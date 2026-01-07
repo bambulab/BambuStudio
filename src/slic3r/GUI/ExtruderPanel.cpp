@@ -345,6 +345,15 @@ void ExtruderNozzlePanel::UpdateVisualState()
     Refresh();
 }
 
+void ExtruderNozzlePanel::Rescale()
+{
+    SetMinSize(wxSize(FromDIP(90), FromDIP(50)));
+    SetMaxSize(wxSize(FromDIP(90), FromDIP(50)));
+
+    Layout();
+    Refresh();
+}
+
 HorizontalScrollablePanel::HorizontalScrollablePanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size) : wxScrolledWindow(parent, id, pos, size, wxHSCROLL)
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -360,16 +369,25 @@ void HorizontalScrollablePanel::Clear()
     UpdateScrollbars();
 }
 
-void HorizontalScrollablePanel::UpdateScrollbars()
+bool HorizontalScrollablePanel::UpdateScrollbars()
 {
     Layout();
 
     wxSize content_size = GetSizer()->GetMinSize();
     wxSize client_size  = GetClientSize();
 
-    SetVirtualSize(content_size.GetWidth(), client_size.GetHeight());
+    const int tolerance = FromDIP(5);
+    bool needs_scrollbar = content_size.GetWidth() > client_size.GetWidth() + tolerance;
+
+    if (needs_scrollbar) {
+        SetVirtualSize(content_size.GetWidth(), client_size.GetHeight());
+    } else {
+        SetVirtualSize(client_size.GetWidth(), client_size.GetHeight());
+        Scroll(0, 0);
+    }
 
     Refresh();
+    return needs_scrollbar;
 }
 
 ExtruderPanel::ExtruderPanel(wxWindow *parent, GroupType type, bool wide)
@@ -407,9 +425,6 @@ void ExtruderPanel::CreateLayout()
         m_add_btn = new ScalableButton(this, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
         m_add_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &evt) {
             ShowAMSCountPopup();
-            if (m_ams_popup) {
-                m_ams_popup->Popup();
-            }
             evt.Skip();
         });
 
@@ -448,7 +463,14 @@ void ExtruderPanel::CreateLayout()
     m_scroll = new HorizontalScrollablePanel(this);
     m_scroll->SetBackgroundColour(wxColour("#F7F7F7"));
 
-    m_main_sizer->Add(m_scroll, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(2));
+    if (m_type == SingleExtruder) {
+        wxBoxSizer *scroll_container = new wxBoxSizer(wxHORIZONTAL);
+        scroll_container->Add(m_scroll, 1, wxEXPAND);
+        scroll_container->AddSpacer(FromDIP(28));
+        m_main_sizer->Add(scroll_container, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(2));
+    } else {
+        m_main_sizer->Add(m_scroll, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(2));
+    }
 
     SetSizer(m_main_sizer);
 
@@ -537,7 +559,38 @@ void ExtruderPanel::SetNozzlePanelCount(int count)
             m_add_btn = new ScalableButton(m_scroll, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
             m_add_btn->SetToolTip(_L("Add AMS"));
             m_add_btn->SetBackgroundColour(wxColour("#F7F7F7"));
-            m_add_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { ShowAMSCountPopup(); });
+            m_add_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &evt) {
+                ShowAMSCountPopup();
+                evt.Skip();
+            });
+
+            m_add_btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent &evt) {
+                wxTimer *timer = new wxTimer();
+
+                timer->Bind(wxEVT_TIMER, [this, timer](wxTimerEvent &) {
+                    if (m_ams_popup) {
+                        wxPoint mouse_pos  = wxGetMousePosition();
+                        wxRect  popup_rect = m_ams_popup->GetScreenRect();
+                        wxRect  btn_rect   = m_add_btn->GetScreenRect();
+
+                        wxRect safe_zone = btn_rect;
+                        safe_zone.Union(popup_rect);
+                        safe_zone.Inflate(FromDIP(10));
+
+                        if (!safe_zone.Contains(mouse_pos)) {
+                            m_ams_popup->Dismiss();
+                            m_ams_popup = nullptr;
+                        }
+                    }
+
+                    timer->Stop();
+                    delete timer;
+                });
+
+                timer->StartOnce(300);
+
+                evt.Skip();
+            });
         }
         new_sizer->Add(m_add_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
         new_sizer->AddStretchSpacer(1);
@@ -815,27 +868,78 @@ void ExtruderPanel::SetWideLayout(bool wide)
 
 void ExtruderPanel::UpdateLayout()
 {
+    bool needs_scrollbar = false;
     if (m_scroll) {
-        m_scroll->UpdateScrollbars();
+        needs_scrollbar = m_scroll->UpdateScrollbars();
         m_scroll->Layout();
     }
 
     wxWindow* parent = GetParent();
-    if (parent && m_wide_layout && m_type == RightExtruder) {
+
+    SetMinSize(wxSize(-1, -1));
+    SetMaxSize(wxSize(-1, -1));
+
+    if (parent && m_wide_layout) {
         wxSize parent_size = parent->GetSize();
-        int target_width = parent_size.GetWidth() * 0.7;
-        SetMinSize(wxSize(target_width, -1));
+        int parent_width = parent_size.GetWidth();
+        
+        if (m_type == RightExtruder) {
+            int target_width = parent_width * 0.8;
+            int min_grid_width = FromDIP(90) * 3 + FromDIP(4) * 2 + FromDIP(16);
+            if (target_width < min_grid_width) {
+                target_width = min_grid_width;
+            }
+            SetMinSize(wxSize(target_width, -1));
+            SetSize(wxSize(target_width, -1));
+        } else if (m_type == LeftExtruder) {
+            int separator_width = FromDIP(1) + FromDIP(4) * 2;
+            int target_width = parent_width * 0.2 - separator_width;
+            
+            int min_width = FromDIP(90) + FromDIP(4) * 2 + FromDIP(20);
+            if (target_width < min_width) {
+                target_width = min_width;
+            }
+            
+            SetMinSize(wxSize(target_width, -1));
+            SetMaxSize(wxSize(target_width, -1));
+            SetSize(wxSize(target_width, -1));
+        }
     } else {
         SetMinSize(wxSize(-1, -1));
+        SetMaxSize(wxSize(-1, -1));
     }
 
     if (m_type != SingleExtruder && m_scroll) {
         int ams_height    = FromDIP(40);
         int nozzle_height = m_wide_layout ? FromDIP(50) * 2 : FromDIP(54);
-        int total_height  = ams_height + nozzle_height + FromDIP(4);
+        int base_height  = ams_height + nozzle_height + FromDIP(4);
+
+        int scrollbar_height = 0;
+        if (needs_scrollbar) {
+            scrollbar_height = wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y, m_scroll);
+            if (scrollbar_height <= 0) {
+                scrollbar_height = FromDIP(15);
+            }
+        }
+
+        int total_height = base_height + scrollbar_height;
 
         m_scroll->SetMinSize(wxSize(-1, total_height));
         m_scroll->SetSize(wxSize(-1, total_height));
+
+        if (m_scroll->GetSizer()) {
+            wxSize content_size = m_scroll->GetSizer()->GetMinSize();
+            wxSize client_size  = m_scroll->GetClientSize();
+
+            const int tolerance = FromDIP(5);
+
+            if (content_size.GetWidth() > client_size.GetWidth() + tolerance) {
+                m_scroll->SetVirtualSize(content_size.GetWidth(), client_size.GetHeight());
+            } else {
+                m_scroll->SetVirtualSize(client_size.GetWidth(), client_size.GetHeight());
+                m_scroll->Scroll(0, 0);
+            }
+        }
     }
 
     CallAfter([this]() {
@@ -931,14 +1035,15 @@ NozzleVolumeType ExtruderPanel::GetVolumeType(const wxString& diameter) const
 
 void ExtruderPanel::Rescale()
 {
+    SetMinSize(wxSize(-1, -1));
+    SetMaxSize(wxSize(-1, -1));
     if (m_add_btn) {
         m_add_btn->msw_rescale();
     }
 
     for (auto* panel : m_nozzle_panels) {
         if (panel) {
-            panel->SetMinSize(wxSize(FromDIP(60), FromDIP(60)));
-            panel->Refresh();
+            panel->Rescale();
         }
     }
 
@@ -955,8 +1060,16 @@ void ExtruderPanel::Rescale()
     }
 
     if (m_scroll) {
-        m_scroll->SetScrollRate(FromDIP(5), FromDIP(5));
+        m_scroll->SetScrollRate(FromDIP(10), 0);
+        m_scroll->SetVirtualSize(wxDefaultSize);
+
+        m_scroll->SetMinSize(wxSize(-1, -1));
+
         m_scroll->FitInside();
+    }
+
+    if (GetSizer()) {
+        GetSizer()->Layout();
     }
 
     UpdateLayout();
@@ -1243,6 +1356,7 @@ void DiameterButtonPanel::CreateLayout()
         btn->SetMaxSize(wxSize(FromDIP(36), FromDIP(24)));
         btn->SetFont(Label::Body_12);
         btn->SetCornerRadius(FromDIP(6));
+        btn->SetCenter(true);
 
         UpdateSingleButtonState(btn, diameter);
         btn->Bind(wxEVT_BUTTON, &DiameterButtonPanel::OnButtonClicked, this);
@@ -1303,6 +1417,29 @@ void DiameterButtonPanel::UpdateButtonStates()
     for (size_t i = 0; i < m_buttons.size() && i < m_choices.size(); ++i) {
         UpdateSingleButtonState(m_buttons[i], m_choices[i]);
     }
+}
+
+void DiameterButtonPanel::Rescale()
+{
+    for (auto* btn : m_buttons) {
+        if (btn) {
+            btn->SetMinSize(wxSize(FromDIP(36), FromDIP(24)));
+            btn->SetMaxSize(wxSize(FromDIP(36), FromDIP(24)));
+            btn->SetFont(Label::Body_12);
+            btn->SetCornerRadius(FromDIP(6));
+            btn->Rescale();
+            btn->SetCenter(true);
+            btn->InvalidateBestSize();
+            btn->SetSize(btn->GetMinSize());
+            btn->Layout();
+            btn->Refresh();
+        }
+    }
+    if (GetSizer()) {
+        GetSizer()->Layout();
+    }
+    Layout();
+    Refresh();
 }
 
 void DiameterButtonPanel::UpdateSingleButtonState(Button *btn, const wxString &diameter)
