@@ -628,13 +628,17 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
                         }
 
                         if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
-                            wxString info_msg;
+                            std::vector<FilamentWarningInfo> infos;
+
                             for (auto item : warning_items) {
-                                info_msg += item.info_msg + "\n";
+                            FilamentWarningInfo info;
+                            info.info_msg = item.info_msg;
+                            info.wiki_url = item.wiki_url;
+                            infos.emplace_back(info);
                             }
 
-                            MessageDialog msg_wingow(nullptr, info_msg, _L("Warning"), wxICON_WARNING | wxOK);
-                            msg_wingow.ShowModal();
+                            FilamentWarningDialog msg_window(nullptr, _("Warning"), infos);
+                            msg_window.ShowModal();
                         }
                     }
                 }
