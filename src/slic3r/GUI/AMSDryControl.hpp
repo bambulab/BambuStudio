@@ -7,6 +7,9 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 
+#include <chrono>
+#include <optional>
+
 
 //Previous defintions
 class wxGrid;
@@ -136,6 +139,9 @@ private:
     wxPanel* m_progress_page;
     ProgressBar* m_progress_gauge;
     wxTimer* m_progress_timer;
+
+    std::optional<std::chrono::steady_clock::time_point> m_stop_button_restore_deadline;
+
     Label* m_progress_title;
     int m_progress_value;
     int m_progress_message_index;
@@ -222,6 +228,8 @@ private:
 
     std::shared_ptr<DevFilaSystem> get_fila_system() const;
     void start_sending_drying_command();
+    void restore_stop_button_if_deadline_passed();
+    void update_button_size(Button* button);
 
     bool is_dry_status_changed(DevAms* dev_ams);
     bool is_dry_ctr_idle(DevAms* dev_ams);
