@@ -1419,31 +1419,40 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 
     auto& preset_bundle = GUI::wxGetApp().preset_bundle;
     Preset *printer_preset = GUI::get_printer_preset(obj);
-    std::set<std::string> filament_id_set;
+    
     if (preset_bundle && printer_preset) {
+        std::set<std::string> filament_id_set;
+        // collect unique valid filament IDs
         for (auto iter = preset_bundle->filaments.begin(); iter != preset_bundle->filaments.end(); ++iter) {
-            std::optional<FilamentBaseInfo> info;
+            auto opt_info = preset_bundle->get_filament_by_filament_id(iter->filament_id, printer_preset->name);
+            if (opt_info.has_value() && !opt_info.value().filament_name.empty()) {
+                filament_id_set.insert(iter->filament_id);
+            }
+        }
 
-            info = preset_bundle->get_filament_by_filament_id(iter->filament_id, printer_preset->name);
-            if (info.has_value()) {
-                filament_id_set.insert(info.value().filament_id);
+        // add non-empty filaments to combo
+        for (const auto& filament_id : filament_id_set) {
+            auto opt_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
+            if (opt_info.has_value()) {
+                m_tray_ids.push_back(opt_info.value());
+                m_trays_combo->Append(opt_info.value().filament_name);
             }
         }
     }
 
-    for (auto& filament_id : filament_id_set) {
-        FilamentBaseInfo info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name).value();
-        m_tray_ids.push_back(info);
-        m_trays_combo->Append(info.filament_name);
+    // Check if we have any valid filaments
+    if (m_tray_ids.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "AMSDryCtrWin::update_filament_list: No valid filaments found";
+        return 0;
     }
 
     float min_dry_temp = std::numeric_limits<float>::max();
     unsigned int default_index = 0;
-    std::string default_filament_id = "";
+    std::string default_filament_id = "GFA00";
 
     for (auto& tray_pair : dev_ams->GetTrays()) {
         if (tray_pair.second && tray_pair.second->is_tray_info_ready()) {
-            Slic3r::DevFilamentDryingPreset preset= tray_pair.second->get_ams_drying_preset().value();
+            Slic3r::DevFilamentDryingPreset preset = tray_pair.second->get_ams_drying_preset().value();
             if (preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()] < min_dry_temp) {
                 min_dry_temp = preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
                 default_filament_id = preset.filament_id;
@@ -1451,21 +1460,18 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         }
     }
 
-    if (!default_filament_id.empty()) {
-        for (unsigned int i = 0; i < m_trays_combo->GetCount(); i++) {
-            if (m_tray_ids[i].filament_id == default_filament_id) {
-                default_index = i;
-                break;
-            }
+    // Try to find matching filament index
+    for (unsigned int i = 0; i < m_tray_ids.size(); i++) {
+        if (m_tray_ids[i].filament_id == default_filament_id) {
+            default_index = i;
+            break;
         }
     }
 
-    if (m_trays_combo->GetCount() > default_index) {
-        m_trays_combo->SetSelection(default_index);
-        wxCommandEvent evt(wxEVT_COMBOBOX, m_trays_combo->GetId());
-        evt.SetInt(default_index);
-        OnFilamentSelectionChanged(evt);
-    }
+    m_trays_combo->SetSelection(default_index);
+    wxCommandEvent evt(wxEVT_COMBOBOX, m_trays_combo->GetId());
+    evt.SetInt(default_index);
+    OnFilamentSelectionChanged(evt);
 
     return 1;
 }
