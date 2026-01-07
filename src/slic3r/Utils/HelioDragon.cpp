@@ -1029,7 +1029,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 {
     HelioQuery::CheckSimulationProgressResult res;
     std::string                               query_body_template = R"( {
-							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl printInfo { printOutcome temperatureDirection caveats { caveatType description } } speedFactor } }",
+							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl printInfo { printOutcome printOutcomeDescription temperatureDirection temperatureDirectionDescription caveats { caveatType description } } speedFactor } }",
 							"variables": {
 								"id": "%1%"
 							}
@@ -1085,7 +1085,13 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
                         auto printInfo = parsed_obj["data"]["simulation"]["printInfo"];
                         PrintInfo info;
                         info.printOutcome = printInfo["printOutcome"];
+                        if (printInfo.contains("printOutcomeDescription") && printInfo["printOutcomeDescription"].is_string()) {
+                            info.printOutcomeDescription = printInfo["printOutcomeDescription"];
+                        }
                         info.temperatureDirection = printInfo["temperatureDirection"];
+                        if (printInfo.contains("temperatureDirectionDescription") && printInfo["temperatureDirectionDescription"].is_string()) {
+                            info.temperatureDirectionDescription = printInfo["temperatureDirectionDescription"];
+                        }
                         
                         if (printInfo.contains("caveats") && printInfo["caveats"].is_array()) {
                             for (const auto& caveat : printInfo["caveats"]) {

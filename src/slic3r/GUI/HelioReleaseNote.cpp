@@ -2999,7 +2999,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     wxString outcome_text;
     if (m_simulation.printInfo) {
-        outcome_text = get_outcome_text(m_simulation.printInfo->printOutcome);
+        outcome_text = get_outcome_text(*m_simulation.printInfo);
     } else {
         outcome_text = _L("Unknown");
     }
@@ -3018,8 +3018,10 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     title_analysis->SetMinSize(wxSize(FromDIP(225), -1));
 
     wxString analysis_text;
+    wxString fix_suggestions_preview;
     if (m_simulation.printInfo) {
-        analysis_text = get_analysis_text(m_simulation.printInfo->temperatureDirection);
+        analysis_text = get_analysis_text(*m_simulation.printInfo);
+        fix_suggestions_preview = get_fix_suggestions_preview(*m_simulation.printInfo);
     }
 
     auto label_analysis = new Label(this, Label::Body_14, analysis_text);
@@ -3058,6 +3060,66 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     analysis_sizer->Add(label_analysis, 0, wxLEFT | wxTOP, FromDIP(8));
     if (caveats_sizer) {
         analysis_sizer->Add(caveats_sizer, 0, wxLEFT | wxTOP, FromDIP(14));
+    }
+
+    // Fix suggestions expandable section
+    wxBoxSizer *fix_suggestions_sizer = nullptr;
+    if (!fix_suggestions_preview.IsEmpty() && m_simulation.printInfo) {
+        fix_suggestions_sizer = new wxBoxSizer(wxVERTICAL);
+        
+        // Header row with arrow, title, and preview
+        wxBoxSizer *fix_header_sizer = new wxBoxSizer(wxHORIZONTAL);
+        
+        m_fix_suggestions_arrow = new Label(this, Label::Body_14, L"▶");
+        m_fix_suggestions_arrow->SetForegroundColour(theme.purple);
+        
+        auto fix_title = new Label(this, Label::Body_14, _L("Fix suggestions"));
+        fix_title->SetForegroundColour(theme.purple);
+        wxFont fix_title_font = fix_title->GetFont();
+        fix_title_font.SetWeight(wxFONTWEIGHT_BOLD);
+        fix_title->SetFont(fix_title_font);
+        
+        // Preview text shown when collapsed
+        m_fix_suggestions_preview = new Label(this, Label::Body_13, wxString(" — ") + fix_suggestions_preview);
+        m_fix_suggestions_preview->SetForegroundColour(theme.muted);
+        
+        fix_header_sizer->Add(m_fix_suggestions_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+        fix_header_sizer->Add(fix_title, 0, wxALIGN_CENTER_VERTICAL, 0);
+        fix_header_sizer->Add(m_fix_suggestions_preview, 0, wxALIGN_CENTER_VERTICAL, 0);
+        
+        // Make header clickable
+        m_fix_suggestions_arrow->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_fix_suggestions(); });
+        fix_title->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_fix_suggestions(); });
+        m_fix_suggestions_preview->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_fix_suggestions(); });
+        m_fix_suggestions_arrow->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        m_fix_suggestions_arrow->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        fix_title->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        fix_title->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        m_fix_suggestions_preview->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        m_fix_suggestions_preview->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        
+        // Scrolled window to contain the fix suggestions content
+        m_fix_suggestions_scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+        m_fix_suggestions_scroll->SetBackgroundColour(theme.bg);
+        m_fix_suggestions_scroll->SetScrollRate(0, FromDIP(10));
+        m_fix_suggestions_scroll->SetMinSize(wxSize(-1, FromDIP(200)));
+        m_fix_suggestions_scroll->SetMaxSize(wxSize(-1, FromDIP(200)));
+        
+        // Content panel inside the scrolled window
+        m_fix_suggestions_content = new wxPanel(m_fix_suggestions_scroll);
+        m_fix_suggestions_content->SetBackgroundColour(theme.bg);
+        
+        create_fix_suggestions_section(fix_suggestions_sizer, theme);
+        
+        // Add content to scrolled window
+        wxBoxSizer* scroll_sizer = new wxBoxSizer(wxVERTICAL);
+        scroll_sizer->Add(m_fix_suggestions_content, 0, wxEXPAND, 0);
+        m_fix_suggestions_scroll->SetSizer(scroll_sizer);
+        m_fix_suggestions_scroll->FitInside();
+        m_fix_suggestions_scroll->Hide(); // Start collapsed
+        
+        fix_suggestions_sizer->Add(fix_header_sizer, 0, wxLEFT, 0);
+        fix_suggestions_sizer->Add(m_fix_suggestions_scroll, 0, wxLEFT | wxEXPAND, FromDIP(20));
     }
 
     // Divider
@@ -3128,6 +3190,10 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     main_sizer->Add(outcome_sizer, 0, wxLEFT | wxRIGHT, FromDIP(40));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
     main_sizer->Add(analysis_sizer, 0, wxLEFT | wxRIGHT, FromDIP(40));
+    if (fix_suggestions_sizer) {
+        main_sizer->Add(0, 0, 0, wxTOP, FromDIP(14));
+        main_sizer->Add(fix_suggestions_sizer, 0, wxLEFT | wxRIGHT, FromDIP(40));
+    }
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
     main_sizer->Add(line2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(40));
     main_sizer->Add(0, 0, 0, wxTOP, FromDIP(18));
@@ -3139,28 +3205,337 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     Fit();
 }
 
-wxString HelioSimulationResultsDialog::get_outcome_text(const std::string& outcome)
+wxString HelioSimulationResultsDialog::get_outcome_text(const HelioQuery::PrintInfo& print_info)
 {
-    if (outcome == "WILL_PRINT") {
+    // Get emoji prefix based on outcome
+    wxString emoji_prefix;
+    if (print_info.printOutcome == "WILL_PRINT") {
+        emoji_prefix = L"✅ ";
+    } else if (print_info.printOutcome == "MAY_PRINT") {
+        emoji_prefix = L"⚠️ ";
+    } else if (print_info.printOutcome == "LIKELY_FAIL") {
+        emoji_prefix = L"❌ ";
+    }
+    
+    // Use API description if available, otherwise fall back to hardcoded text
+    if (!print_info.printOutcomeDescription.empty()) {
+        return emoji_prefix + wxString::FromUTF8(print_info.printOutcomeDescription);
+    }
+    
+    // Fallback for older API versions
+    if (print_info.printOutcome == "WILL_PRINT") {
         return _L("✅ Will Print");
-    } else if (outcome == "MAY_PRINT") {
+    } else if (print_info.printOutcome == "MAY_PRINT") {
         return _L("⚠️ May Print with Issues");
-    } else if (outcome == "LIKELY_FAIL") {
+    } else if (print_info.printOutcome == "LIKELY_FAIL") {
         return _L("❌ Likely to Fail");
     }
     return _L("Unknown");
 }
 
-wxString HelioSimulationResultsDialog::get_analysis_text(const std::string& temperature_direction)
+wxString HelioSimulationResultsDialog::get_analysis_text(const HelioQuery::PrintInfo& print_info)
 {
-    if (temperature_direction == "NONE") {
+    // Use API description if available
+    if (!print_info.temperatureDirectionDescription.empty()) {
+        return wxString::FromUTF8(print_info.temperatureDirectionDescription);
+    }
+    
+    // Fallback for older API versions
+    if (print_info.temperatureDirection == "NONE") {
         return _L("Thermal conditions are balanced. The part is printing within safe temperature limits.");
-    } else if (temperature_direction == "OVERCOOLING") {
+    } else if (print_info.temperatureDirection == "OVERCOOLING") {
         return _L("Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking.");
-    } else if (temperature_direction == "OVERHEATING") {
+    } else if (print_info.temperatureDirection == "OVERHEATING") {
         return _L("Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features.");
     }
     return wxString();
+}
+
+wxString HelioSimulationResultsDialog::get_fix_suggestions_preview(const HelioQuery::PrintInfo& print_info)
+{
+    const std::string& direction = print_info.temperatureDirection;
+    
+    if (direction == "NONE" && print_info.caveats.empty()) {
+        return _L("Ready to print");
+    }
+    
+    if (direction == "OVERCOOLING") {
+        return _L("Too cold overall — see suggestions");
+    }
+    
+    if (direction == "OVERHEATING") {
+        return _L("Too hot overall — see suggestions");
+    }
+    
+    return wxString();
+}
+
+void HelioSimulationResultsDialog::toggle_fix_suggestions()
+{
+    m_fix_suggestions_expanded = !m_fix_suggestions_expanded;
+    if (m_fix_suggestions_expanded) {
+        if (m_fix_suggestions_scroll) {
+            m_fix_suggestions_scroll->Show();
+            m_fix_suggestions_scroll->FitInside();
+        }
+        m_fix_suggestions_arrow->SetLabel(L"▼");
+        if (m_fix_suggestions_preview) m_fix_suggestions_preview->Hide();
+    } else {
+        if (m_fix_suggestions_scroll) m_fix_suggestions_scroll->Hide();
+        m_fix_suggestions_arrow->SetLabel(L"▶");
+        if (m_fix_suggestions_preview) m_fix_suggestions_preview->Show();
+    }
+    Layout();
+    Fit();
+}
+
+void HelioSimulationResultsDialog::toggle_advanced()
+{
+    m_advanced_expanded = !m_advanced_expanded;
+    if (m_advanced_expanded) {
+        if (m_advanced_content) m_advanced_content->Show();
+        if (m_advanced_arrow) m_advanced_arrow->SetLabel(L"▼");
+    } else {
+        if (m_advanced_content) m_advanced_content->Hide();
+        if (m_advanced_arrow) m_advanced_arrow->SetLabel(L"▶");
+    }
+    if (m_fix_suggestions_scroll) {
+        m_fix_suggestions_content->Layout();
+        m_fix_suggestions_scroll->FitInside();
+    }
+}
+
+void HelioSimulationResultsDialog::toggle_expert()
+{
+    m_expert_expanded = !m_expert_expanded;
+    if (m_expert_expanded) {
+        if (m_expert_content) m_expert_content->Show();
+        if (m_expert_arrow) m_expert_arrow->SetLabel(L"▼");
+    } else {
+        if (m_expert_content) m_expert_content->Hide();
+        if (m_expert_arrow) m_expert_arrow->SetLabel(L"▶");
+    }
+    if (m_fix_suggestions_scroll) {
+        m_fix_suggestions_content->Layout();
+        m_fix_suggestions_scroll->FitInside();
+    }
+}
+
+void HelioSimulationResultsDialog::toggle_learn_more()
+{
+    m_learn_more_expanded = !m_learn_more_expanded;
+    if (m_learn_more_expanded) {
+        if (m_learn_more_content) m_learn_more_content->Show();
+        if (m_learn_more_arrow) m_learn_more_arrow->SetLabel(L"▼");
+    } else {
+        if (m_learn_more_content) m_learn_more_content->Hide();
+        if (m_learn_more_arrow) m_learn_more_arrow->SetLabel(L"▶");
+    }
+    if (m_fix_suggestions_scroll) {
+        m_fix_suggestions_content->Layout();
+        m_fix_suggestions_scroll->FitInside();
+    }
+}
+
+void HelioSimulationResultsDialog::create_fix_suggestions_section(wxBoxSizer* parent_sizer, const HelioInputDialogTheme& theme)
+{
+    if (!m_simulation.printInfo) return;
+    
+    const std::string& direction = m_simulation.printInfo->temperatureDirection;
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
+    
+    // Helper lambda to create a nested expander
+    auto create_nested_expander = [this, &theme](wxPanel* parent, const wxString& title, 
+                                                  Label*& arrow_ref, wxPanel*& content_ref,
+                                                  std::function<void()> toggle_func) -> wxBoxSizer* {
+        wxBoxSizer* expander_sizer = new wxBoxSizer(wxVERTICAL);
+        wxBoxSizer* header_sizer = new wxBoxSizer(wxHORIZONTAL);
+        
+        arrow_ref = new Label(parent, Label::Body_13, L"▶");
+        arrow_ref->SetForegroundColour(theme.muted);
+        
+        auto title_label = new Label(parent, Label::Body_13, title);
+        title_label->SetForegroundColour(theme.muted);
+        
+        header_sizer->Add(arrow_ref, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
+        header_sizer->Add(title_label, 0, wxALIGN_CENTER_VERTICAL, 0);
+        
+        arrow_ref->Bind(wxEVT_LEFT_DOWN, [toggle_func](wxMouseEvent& e) { toggle_func(); });
+        title_label->Bind(wxEVT_LEFT_DOWN, [toggle_func](wxMouseEvent& e) { toggle_func(); });
+        arrow_ref->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        arrow_ref->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        title_label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        title_label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        
+        content_ref = new wxPanel(parent);
+        content_ref->SetBackgroundColour(theme.bg);
+        content_ref->Hide();
+        
+        expander_sizer->Add(header_sizer, 0, wxTOP, FromDIP(8));
+        expander_sizer->Add(content_ref, 0, wxLEFT, FromDIP(16));
+        
+        return expander_sizer;
+    };
+    
+    // Helper lambda to add wrapped text label
+    auto add_wrapped_label = [&theme, this](wxPanel* parent, wxBoxSizer* sizer, const wxString& text) {
+        auto label = new Label(parent, Label::Body_13, text);
+        label->SetForegroundColour(theme.text);
+        label->SetSize(wxSize(FromDIP(360), -1));
+        label->SetMinSize(wxSize(FromDIP(360), -1));
+        label->SetMaxSize(wxSize(FromDIP(360), -1));
+        label->Wrap(FromDIP(360));
+        sizer->Add(label, 0, wxTOP, FromDIP(4));
+    };
+    
+    if (direction == "NONE" && m_simulation.printInfo->caveats.empty()) {
+        // Ready to print - simple message
+        auto ready_label = new Label(m_fix_suggestions_content, Label::Body_13, 
+            _L("Your part is ready to print! Thermal conditions are within safe limits."));
+        ready_label->SetForegroundColour(theme.text);
+        content_sizer->Add(ready_label, 0, wxTOP, FromDIP(8));
+    }
+    else if (direction == "OVERCOOLING") {
+        // Title
+        auto title_label = new Label(m_fix_suggestions_content, Label::Body_14, _L("Too cold (overall)"));
+        title_label->SetForegroundColour(theme.text);
+        wxFont bold_font = title_label->GetFont();
+        bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+        title_label->SetFont(bold_font);
+        content_sizer->Add(title_label, 0, wxTOP, FromDIP(8));
+        
+        // Body
+        auto body_label = new Label(m_fix_suggestions_content, Label::Body_13, 
+            _L("The part cools too fast between layers on average. Some layers may behave differently—see observations."));
+        body_label->SetForegroundColour(theme.text);
+        body_label->SetSize(wxSize(FromDIP(370), -1));
+        body_label->SetMinSize(wxSize(FromDIP(370), -1));
+        body_label->SetMaxSize(wxSize(FromDIP(370), -1));
+        body_label->Wrap(FromDIP(370));
+        content_sizer->Add(body_label, 0, wxTOP, FromDIP(4));
+        
+        // Quick fixes
+        auto quick_fixes_title = new Label(m_fix_suggestions_content, Label::Body_13, _L("Quick fixes (beginner):"));
+        quick_fixes_title->SetForegroundColour(theme.text);
+        wxFont qf_bold = quick_fixes_title->GetFont();
+        qf_bold.SetWeight(wxFONTWEIGHT_BOLD);
+        quick_fixes_title->SetFont(qf_bold);
+        content_sizer->Add(quick_fixes_title, 0, wxTOP, FromDIP(12));
+        
+        auto quick_fixes = new Label(m_fix_suggestions_content, Label::Body_13,
+            _L("1. Lower fan speed (except bridges/overhangs)\n"
+               "2. Print faster and/or reduce minimum layer time\n"
+               "3. Increase chamber temperature"));
+        quick_fixes->SetForegroundColour(theme.text);
+        content_sizer->Add(quick_fixes, 0, wxTOP | wxLEFT, FromDIP(4));
+        
+        // Advanced expander
+        auto advanced_sizer = create_nested_expander(m_fix_suggestions_content, _L("Advanced"),
+            m_advanced_arrow, m_advanced_content, [this]() { toggle_advanced(); });
+        wxBoxSizer* adv_content_sizer = new wxBoxSizer(wxVERTICAL);
+        add_wrapped_label(m_advanced_content, adv_content_sizer,
+            _L("If you've calibrated flow Max volumetric speed, increase flow to that limit"));
+        m_advanced_content->SetSizer(adv_content_sizer);
+        content_sizer->Add(advanced_sizer, 0, wxLEFT, 0);
+        
+        // Expert expander (includes infill/walls guide)
+        auto expert_sizer = create_nested_expander(m_fix_suggestions_content, _L("Expert"),
+            m_expert_arrow, m_expert_content, [this]() { toggle_expert(); });
+        wxBoxSizer* exp_content_sizer = new wxBoxSizer(wxVERTICAL);
+        add_wrapped_label(m_expert_content, exp_content_sizer,
+            _L("Reduce infill / adjust walls to shorten time-per-layer"));
+        // Rule of thumb for infill - VERBATIM
+        add_wrapped_label(m_expert_content, exp_content_sizer,
+            _L("Rule of thumb for infill:\n"
+               "• Start here: Infill 5%, Walls 3–4\n"
+               "• Infill pattern: Lightning (for decorative parts, fastest) → or Grid (usually faster) → Gyroid (slower but has more even strength)"));
+        // Top surface scale guidance - VERBATIM
+        add_wrapped_label(m_expert_content, exp_content_sizer,
+            _L("Top surface scale guidance:\n"
+               "• Small top (≤ 3 cm across): keep 5% (or 0–3% for decor)\n"
+               "• Large top (≥ 6 cm across): raise infill to 8–12%, increase Top Shell thickness from 1.0 mm → 1.2–1.6 mm (+2 top layers)\n"
+               "• For advanced users: add a Modifier on stressed zones (screw holes, clips, hinges, mounts) → set that region to higher infill and/or +1–2 walls"));
+        m_expert_content->SetSizer(exp_content_sizer);
+        content_sizer->Add(expert_sizer, 0, wxLEFT, 0);
+        
+        // Learn more expander
+        auto learn_more_sizer = create_nested_expander(m_fix_suggestions_content, _L("Learn more"),
+            m_learn_more_arrow, m_learn_more_content, [this]() { toggle_learn_more(); });
+        wxBoxSizer* learn_content_sizer = new wxBoxSizer(wxVERTICAL);
+        
+        auto link1 = new Label(m_learn_more_content, Label::Body_13, _L("Helio Flowchart"));
+        link1->SetForegroundColour(theme.purple);
+        link1->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
+            wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/flowchart");
+        });
+        link1->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        link1->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        learn_content_sizer->Add(link1, 0, wxTOP, FromDIP(4));
+        
+        auto link2 = new Label(m_learn_more_content, Label::Body_13, _L("Fixing cold prints"));
+        link2->SetForegroundColour(theme.purple);
+        link2->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
+            wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/simulation/how-tos/fixing-cold-prints");
+        });
+        link2->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        link2->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        learn_content_sizer->Add(link2, 0, wxTOP, FromDIP(4));
+        
+        m_learn_more_content->SetSizer(learn_content_sizer);
+        content_sizer->Add(learn_more_sizer, 0, wxLEFT, 0);
+    }
+    else if (direction == "OVERHEATING") {
+        // Title
+        auto title_label = new Label(m_fix_suggestions_content, Label::Body_14, _L("Too hot (overall)"));
+        title_label->SetForegroundColour(theme.text);
+        wxFont bold_font = title_label->GetFont();
+        bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+        title_label->SetFont(bold_font);
+        content_sizer->Add(title_label, 0, wxTOP, FromDIP(8));
+        
+        // Body
+        auto body_label = new Label(m_fix_suggestions_content, Label::Body_13, 
+            _L("The part stays too warm between layers on average. Some layers may behave differently—see observations."));
+        body_label->SetForegroundColour(theme.text);
+        body_label->SetSize(wxSize(FromDIP(370), -1));
+        body_label->SetMinSize(wxSize(FromDIP(370), -1));
+        body_label->SetMaxSize(wxSize(FromDIP(370), -1));
+        body_label->Wrap(FromDIP(370));
+        content_sizer->Add(body_label, 0, wxTOP, FromDIP(4));
+        
+        // Quick fixes
+        auto quick_fixes_title = new Label(m_fix_suggestions_content, Label::Body_13, _L("Quick fixes (beginner):"));
+        quick_fixes_title->SetForegroundColour(theme.text);
+        wxFont qf_bold = quick_fixes_title->GetFont();
+        qf_bold.SetWeight(wxFONTWEIGHT_BOLD);
+        quick_fixes_title->SetFont(qf_bold);
+        content_sizer->Add(quick_fixes_title, 0, wxTOP, FromDIP(12));
+        
+        auto quick_fixes = new Label(m_fix_suggestions_content, Label::Body_13,
+            _L("1. Increase fan speed (especially bridges/overhangs)\n"
+               "2. Print slower and/or increase minimum layer time"));
+        quick_fixes->SetForegroundColour(theme.text);
+        content_sizer->Add(quick_fixes, 0, wxTOP | wxLEFT, FromDIP(4));
+        
+        // Learn more expander for overheating
+        auto learn_more_sizer = create_nested_expander(m_fix_suggestions_content, _L("Learn more"),
+            m_learn_more_arrow, m_learn_more_content, [this]() { toggle_learn_more(); });
+        wxBoxSizer* learn_content_sizer = new wxBoxSizer(wxVERTICAL);
+        
+        auto link1 = new Label(m_learn_more_content, Label::Body_13, _L("Helio Flowchart"));
+        link1->SetForegroundColour(theme.purple);
+        link1->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
+            wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/flowchart");
+        });
+        link1->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+        link1->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+        learn_content_sizer->Add(link1, 0, wxTOP, FromDIP(4));
+        
+        m_learn_more_content->SetSizer(learn_content_sizer);
+        content_sizer->Add(learn_more_sizer, 0, wxLEFT, 0);
+    }
+    
+    m_fix_suggestions_content->SetSizer(content_sizer);
 }
 
 void HelioSimulationResultsDialog::on_enhance_speed_quality(wxMouseEvent& event)

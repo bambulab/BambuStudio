@@ -150,7 +150,9 @@ public:
     struct PrintInfo
     {
         std::string printOutcome;  // "WILL_PRINT", "MAY_PRINT", "LIKELY_FAIL"
+        std::string printOutcomeDescription;
         std::string temperatureDirection;  // "NONE", "OVERCOOLING", "OVERHEATING"
+        std::string temperatureDirectionDescription;
         std::vector<Caveat> caveats;
     };
 

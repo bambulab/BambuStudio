@@ -296,10 +296,37 @@ private:
     Button* m_button_view_details{nullptr};
     Button* m_button_close{nullptr};
     
+    // Fix suggestions expandable section
+    wxPanel* m_fix_suggestions_content{nullptr};
+    Label* m_fix_suggestions_arrow{nullptr};
+    Label* m_fix_suggestions_preview{nullptr};
+    bool m_fix_suggestions_expanded{false};
+    
+    // Nested expanders within fix suggestions
+    wxPanel* m_advanced_content{nullptr};
+    Label* m_advanced_arrow{nullptr};
+    bool m_advanced_expanded{false};
+    
+    wxPanel* m_expert_content{nullptr};
+    Label* m_expert_arrow{nullptr};
+    bool m_expert_expanded{false};
+    
+    wxPanel* m_learn_more_content{nullptr};
+    Label* m_learn_more_arrow{nullptr};
+    bool m_learn_more_expanded{false};
+    
+    wxScrolledWindow* m_fix_suggestions_scroll{nullptr};
+    
     HelioInputDialogTheme get_theme() const;
-    wxString get_outcome_text(const std::string& outcome);
-    wxString get_analysis_text(const std::string& temperature_direction);
+    wxString get_outcome_text(const HelioQuery::PrintInfo& print_info);
+    wxString get_analysis_text(const HelioQuery::PrintInfo& print_info);
+    wxString get_fix_suggestions_preview(const HelioQuery::PrintInfo& print_info);
     wxString format_time_improvement(int original_seconds, double speed_factor);
+    void toggle_fix_suggestions();
+    void toggle_advanced();
+    void toggle_expert();
+    void toggle_learn_more();
+    void create_fix_suggestions_section(wxBoxSizer* parent_sizer, const HelioInputDialogTheme& theme);
 };
 
 }} // namespace Slic3r::GUI
