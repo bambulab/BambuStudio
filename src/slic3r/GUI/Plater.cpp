@@ -4,6 +4,7 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <set>
 #include <regex>
 #include <future>
 #include <boost/algorithm/string.hpp>
@@ -9832,6 +9833,540 @@ static std::vector<HelioQuery::SupportedData> find_similar_materials(
     return similar_materials;
 }
 
+// Structure to hold filament support information for multi-filament checking
+struct FilamentSupportInfo {
+    std::string preset_name;        // Original preset name
+    std::string filament_type;      // Extracted filament type (e.g., "PLA", "PC")
+    std::string material_id;        // Helio material ID if supported
+    bool is_supported;              // Whether Helio supports this filament
+    int extruder_index;             // Which extruder (0-based)
+};
+
+// Helper function to check if a single filament is supported by Helio and get its material ID
+static FilamentSupportInfo check_filament_helio_support(const std::string& filament_preset_name, int extruder_index)
+{
+    FilamentSupportInfo info;
+    info.preset_name = filament_preset_name;
+    info.extruder_index = extruder_index;
+    info.is_supported = false;
+    info.material_id = "";
+    info.filament_type = "";
+    
+    // Extract filament type from preset
+    Slic3r::Preset* preset = wxGetApp().preset_bundle->filaments.find_preset(filament_preset_name);
+    if (preset) {
+        std::string display_type;
+        info.filament_type = preset->config.get_filament_type(display_type);
+    }
+    
+    // Clean up the filament name for matching
+    size_t atPos = filament_preset_name.find('@');
+    std::string target_name = (atPos != std::string::npos) ? filament_preset_name.substr(0, atPos) : filament_preset_name;
+    boost::trim(target_name);
+    
+    // Find best (longest) match to prefer specific materials over generic ones
+    size_t best_match_length = 0;
+    
+    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+        if (pdata.native_name.empty()) continue;
+        
+        std::string native_name = pdata.native_name;
+        std::string target_lower = target_name;
+        
+        boost::algorithm::to_lower(native_name);
+        boost::algorithm::to_lower(target_lower);
+        
+        bool is_match = false;
+        if (target_lower == native_name) {
+            is_match = true;
+        } else if (target_lower.length() > native_name.length()) {
+            // Check if target_name starts with native_name followed by space
+            if (target_lower.substr(0, native_name.length()) == native_name &&
+                target_lower[native_name.length()] == ' ') {
+                is_match = true;
+            } else {
+                // Check for word boundary match
+                size_t pos = target_lower.find(native_name);
+                if (pos != std::string::npos) {
+                    bool valid_start = (pos == 0 || target_lower[pos - 1] == ' ');
+                    size_t after_pos = pos + native_name.length();
+                    bool valid_end = (after_pos >= target_lower.length() || target_lower[after_pos] == ' ');
+                    if (valid_start && valid_end) {
+                        is_match = true;
+                    }
+                }
+            }
+        }
+        
+        if (is_match && native_name.length() > best_match_length) {
+            best_match_length = native_name.length();
+            info.material_id = pdata.id;
+            info.is_supported = true;
+        }
+    }
+    
+    return info;
+}
+
+// Dialog for handling mixed filament types in multicolour simulation
+class HelioMixedFilamentDialog : public DPIDialog {
+public:
+    HelioMixedFilamentDialog(wxWindow* parent, 
+                             const std::vector<FilamentSupportInfo>& filaments,
+                             const std::set<std::string>& unique_types)
+        : DPIDialog(parent, wxID_ANY, _L("Multiple Filament Materials Detected"), 
+                   wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+        , m_filaments(filaments)
+        , m_selected_material_id("")
+        , m_user_choice(0) // 0 = cancelled, 1 = proceed with selection, 2 = go back
+    {
+        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+        wxWindow* mainframe = static_cast<wxWindow*>(wxGetApp().mainframe);
+        
+        wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+        main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+        
+        bool is_dark_mode = wxGetApp().dark_mode();
+        wxColour text_color = wxGetApp().get_label_clr_default();
+        
+        // Warning header with orange styling
+        wxColour warning_color = wxColour("#FF6F00");
+        wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
+        
+        StaticBox* warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+        warning_box->SetBackgroundColour(warning_bg);
+        warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+        warning_box->SetBorderWidth(2);
+        warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+        
+        wxBoxSizer* warning_sizer = new wxBoxSizer(wxVERTICAL);
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+        
+        Label* warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Multiple Filament Materials Detected"));
+        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+        warning_title->SetForegroundColour(warning_title_color);
+        warning_sizer->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Build the filament names string - show ALL filaments (mark unsupported ones)
+        wxString filaments_str;
+        std::set<std::string> shown_names; // Avoid duplicates
+        bool has_unsupported = false;
+        for (const auto& info : filaments) {
+            if (shown_names.find(info.preset_name) == shown_names.end()) {
+                if (!filaments_str.IsEmpty()) filaments_str += ", ";
+                filaments_str += wxString::FromUTF8(info.preset_name);
+                if (!info.is_supported) {
+                    filaments_str += _L(" (unsupported)");
+                    has_unsupported = true;
+                }
+                shown_names.insert(info.preset_name);
+            }
+        }
+        
+        wxString warning_msg = _L("Multicolour simulation currently supports only a single filament material.\n");
+        warning_msg += wxString::Format(_L("You have selected multiple materials: %s"), filaments_str);
+        if (has_unsupported) {
+            warning_msg += _L("\n\nNote: Unsupported materials will use the selected reference material for simulation.");
+        }
+        
+        Label* warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+        wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+        warning_text->SetForegroundColour(warning_text_color);
+        warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+        warning_sizer->Add(warning_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+        
+        warning_box->SetSizer(warning_sizer);
+        main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+        
+        // Future support message
+        Label* future_msg = new Label(this, Label::Body_13, 
+            _L("True multi-material support will be added in a future update."), LB_AUTO_WRAP);
+        future_msg->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
+        future_msg->Wrap(wxWindowBase::FromDIP(470, this));
+        main_sizer->Add(future_msg, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        // Option 1: Proceed with single filament
+        StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option1_box->SetBackgroundColor(StateColor(std::make_pair(wxColour("#F8F8F8"), (int)StateColor::Normal)));
+        option1_box->SetBorderColor(StateColor(std::make_pair(wxColour("#E8E8E8"), (int)StateColor::Normal)));
+        option1_box->SetBorderWidth(1);
+        option1_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* option1_sizer = new wxBoxSizer(wxVERTICAL);
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        Label* option1_title = new Label(option1_box, Label::Head_14, _L("Option 1: Proceed using a single filament type"));
+        option1_title->SetForegroundColour(text_color);
+        option1_sizer->Add(option1_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* option1_desc = new Label(option1_box, Label::Body_13, 
+            _L("Select which filament to use for simulation:"), LB_AUTO_WRAP);
+        option1_desc->SetForegroundColour(text_color);
+        option1_sizer->Add(option1_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Dropdown for filament selection
+        wxArrayString filament_choices;
+        for (const auto& info : filaments) {
+            if (info.is_supported) {
+                wxString choice = wxString::Format("%s (%s)", 
+                    wxString::FromUTF8(info.preset_name), 
+                    wxString::FromUTF8(info.filament_type));
+                filament_choices.Add(choice);
+            }
+        }
+        
+        m_filament_combo = new ComboBox(option1_box, wxID_ANY, filament_choices[0],
+                                        wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1),
+                                        0, NULL, wxCB_READONLY);
+        for (const wxString& choice : filament_choices) {
+            m_filament_combo->Append(choice);
+        }
+        m_filament_combo->SetSelection(0);
+        option1_sizer->Add(m_filament_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Critical warning for Option 1
+        wxColour critical_color = wxColour("#D32F2F");
+        wxColour critical_bg = is_dark_mode ? wxColour(60, 35, 35) : wxColour(255, 235, 235);
+        
+        StaticBox* critical_box = new StaticBox(option1_box, wxID_ANY, wxDefaultPosition,
+                                                wxSize(wxWindowBase::FromDIP(420, this), -1));
+        critical_box->SetBackgroundColor(StateColor(std::make_pair(critical_bg, (int)StateColor::Normal)));
+        critical_box->SetBackgroundColour(critical_bg);
+        critical_box->SetBorderColor(StateColor(std::make_pair(critical_color, (int)StateColor::Normal)));
+        critical_box->SetBorderWidth(1);
+        critical_box->SetCornerRadius(wxWindowBase::FromDIP(4, this));
+        
+        wxBoxSizer* critical_sizer = new wxBoxSizer(wxVERTICAL);
+        critical_sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        Label* critical_text = new Label(critical_box, Label::Body_12, 
+            _L("⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."), 
+            LB_AUTO_WRAP);
+        wxColour critical_text_color = is_dark_mode ? wxColour(255, 200, 200) : wxColour(139, 0, 0);
+        critical_text->SetForegroundColour(critical_text_color);
+        critical_text->Wrap(wxWindowBase::FromDIP(400, this));
+        critical_sizer->Add(critical_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(10, this));
+        critical_sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        critical_box->SetSizer(critical_sizer);
+        option1_sizer->Add(critical_box, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Proceed button for Option 1
+        StateColor btn_bg_orange(std::pair<wxColour, int>(wxColour(200, 100, 50), StateColor::Pressed),
+                                 std::pair<wxColour, int>(wxColour(255, 140, 80), StateColor::Hovered),
+                                 std::pair<wxColour, int>(wxColour(230, 120, 60), StateColor::Normal));
+        
+        Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
+        proceed_button->SetBackgroundColor(btn_bg_orange);
+        proceed_button->SetBorderColor(*wxWHITE);
+        proceed_button->SetTextColor(wxColour(0xFFFFFE));
+        proceed_button->SetFont(Label::Body_12);
+        proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 1;
+            // Get the selected filament's material ID
+            int selection = m_filament_combo->GetSelection();
+            int supported_index = 0;
+            for (const auto& info : m_filaments) {
+                if (info.is_supported) {
+                    if (supported_index == selection) {
+                        m_selected_material_id = info.material_id;
+                        break;
+                    }
+                    supported_index++;
+                }
+            }
+            EndModal(wxID_OK);
+        });
+        option1_sizer->Add(proceed_button, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        option1_box->SetSizer(option1_sizer);
+        main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        // Option 2: Go back (recommended)
+        // Use colors that work in both light and dark mode
+        wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
+        wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
+        wxColour recommended_color = is_dark_mode ? wxColour(129, 199, 132) : wxColour("#2E7D32");
+        
+        StaticBox* option2_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option2_box->SetBackgroundColor(StateColor(std::make_pair(option2_bg, (int)StateColor::Normal)));
+        option2_box->SetBackgroundColour(option2_bg);
+        option2_box->SetBorderColor(StateColor(std::make_pair(option2_border, (int)StateColor::Normal)));
+        option2_box->SetBorderWidth(2);
+        option2_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* option2_sizer = new wxBoxSizer(wxVERTICAL);
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        wxBoxSizer* option2_header = new wxBoxSizer(wxHORIZONTAL);
+        Label* option2_title = new Label(option2_box, Label::Head_14, _L("Option 2: Go back and change filament selection"));
+        wxColour option2_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+        option2_title->SetForegroundColour(option2_text_color);
+        option2_header->Add(option2_title, 0, wxALIGN_CENTER_VERTICAL);
+        option2_header->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        Label* recommended_badge = new Label(option2_box, Label::Body_12, _L("✓ Recommended"));
+        recommended_badge->SetForegroundColour(recommended_color);
+        option2_header->Add(recommended_badge, 0, wxALIGN_CENTER_VERTICAL);
+        
+        option2_sizer->Add(option2_header, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* option2_desc = new Label(option2_box, Label::Body_13, 
+            _L("Change your filament selection to use the same type for all colours, then try again."), LB_AUTO_WRAP);
+        option2_desc->SetForegroundColour(option2_text_color);
+        option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
+        option2_sizer->Add(option2_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Go back button (recommended)
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                               std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        
+        Button* goback_button = new Button(option2_box, _L("Go Back"));
+        goback_button->SetBackgroundColor(btn_bg_green);
+        goback_button->SetBorderColor(*wxWHITE);
+        goback_button->SetTextColor(wxColour(0xFFFFFE));
+        goback_button->SetFont(Label::Body_12);
+        goback_button->SetSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+        goback_button->SetMinSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+        goback_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        goback_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 2;
+            EndModal(wxID_CANCEL);
+        });
+        option2_sizer->Add(goback_button, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        option2_box->SetSizer(option2_sizer);
+        main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        SetSizer(main_sizer);
+        Layout();
+        main_sizer->Fit(this);
+        wxGetApp().UpdateDlgDarkUI(this);
+    }
+    
+    void on_dpi_changed(const wxRect& suggested_rect) override {}
+    
+    int get_user_choice() const { return m_user_choice; }
+    std::string get_selected_material_id() const { return m_selected_material_id; }
+    
+private:
+    std::vector<FilamentSupportInfo> m_filaments;
+    ComboBox* m_filament_combo;
+    std::string m_selected_material_id;
+    int m_user_choice;
+};
+
+// Dialog for handling unsupported filaments in multicolour simulation with similar type selection
+class HelioUnsupportedFilamentsDialog : public DPIDialog {
+public:
+    HelioUnsupportedFilamentsDialog(wxWindow* parent, 
+                                    const std::vector<FilamentSupportInfo>& unsupported_filaments,
+                                    const std::vector<HelioQuery::SupportedData>& similar_materials,
+                                    const std::string& default_material_id)
+        : DPIDialog(parent, wxID_ANY, _L("Unsupported Materials Detected"), 
+                   wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+        , m_similar_materials(similar_materials)
+        , m_selected_material_id(default_material_id)
+        , m_user_choice(0) // 0 = cancelled, 1 = proceed with selection, 2 = go back
+    {
+        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+        wxWindow* mainframe = static_cast<wxWindow*>(wxGetApp().mainframe);
+        
+        wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+        main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+        
+        bool is_dark_mode = wxGetApp().dark_mode();
+        wxColour text_color = wxGetApp().get_label_clr_default();
+        
+        // Warning header with orange styling
+        wxColour warning_color = wxColour("#FF6F00");
+        wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
+        
+        StaticBox* warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+        warning_box->SetBackgroundColour(warning_bg);
+        warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+        warning_box->SetBorderWidth(2);
+        warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+        
+        wxBoxSizer* warning_sizer = new wxBoxSizer(wxVERTICAL);
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+        
+        Label* warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Unsupported Materials Detected"));
+        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+        warning_title->SetForegroundColour(warning_title_color);
+        warning_sizer->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Build the unsupported filament names string
+        wxString unsupported_str;
+        for (const auto& info : unsupported_filaments) {
+            if (!unsupported_str.IsEmpty()) unsupported_str += ", ";
+            unsupported_str += wxString::FromUTF8(info.preset_name);
+        }
+        
+        wxString warning_msg = _L("Some of your selected materials are not directly supported by Helio:\n");
+        warning_msg += unsupported_str;
+        warning_msg += _L("\n\nYou can proceed by selecting a similar reference material for simulation.");
+        
+        Label* warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+        wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+        warning_text->SetForegroundColour(warning_text_color);
+        warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+        warning_sizer->Add(warning_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+        
+        warning_box->SetSizer(warning_sizer);
+        main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+        
+        // Reference material selection section
+        wxColour section_bg = is_dark_mode ? wxColour(50, 50, 55) : wxColour("#F8F8F8");
+        wxColour section_border = is_dark_mode ? wxColour(70, 70, 75) : wxColour("#E8E8E8");
+        
+        StaticBox* selection_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                 wxSize(wxWindowBase::FromDIP(470, this), -1));
+        selection_box->SetBackgroundColor(StateColor(std::make_pair(section_bg, (int)StateColor::Normal)));
+        selection_box->SetBackgroundColour(section_bg);
+        selection_box->SetBorderColor(StateColor(std::make_pair(section_border, (int)StateColor::Normal)));
+        selection_box->SetBorderWidth(1);
+        selection_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* selection_sizer = new wxBoxSizer(wxVERTICAL);
+        selection_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        Label* selection_title = new Label(selection_box, Label::Head_14, _L("Select Reference Material"));
+        selection_title->SetForegroundColour(text_color);
+        selection_sizer->Add(selection_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        selection_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* selection_desc = new Label(selection_box, Label::Body_13, 
+            _L("Choose a similar material type to use for simulation:"), LB_AUTO_WRAP);
+        selection_desc->SetForegroundColour(text_color);
+        selection_sizer->Add(selection_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        selection_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Dropdown for similar material selection
+        wxArrayString material_choices;
+        int default_selection = 0;
+        for (size_t i = 0; i < similar_materials.size(); ++i) {
+            material_choices.Add(wxString::FromUTF8(similar_materials[i].native_name));
+            if (similar_materials[i].id == default_material_id) {
+                default_selection = (int)i;
+            }
+        }
+        
+        m_material_combo = new ComboBox(selection_box, wxID_ANY, 
+                                        material_choices.IsEmpty() ? "" : material_choices[0],
+                                        wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1),
+                                        0, NULL, wxCB_READONLY);
+        for (const wxString& choice : material_choices) {
+            m_material_combo->Append(choice);
+        }
+        if (!material_choices.IsEmpty()) {
+            m_material_combo->SetSelection(default_selection);
+            m_selected_material_id = similar_materials[default_selection].id;
+        }
+        selection_sizer->Add(m_material_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        selection_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Note about approximation
+        wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
+        Label* note_text = new Label(selection_box, Label::Body_12, 
+            _L("Note: Using a reference material may result in approximate simulation results."), LB_AUTO_WRAP);
+        note_text->SetForegroundColour(note_color);
+        note_text->Wrap(wxWindowBase::FromDIP(420, this));
+        selection_sizer->Add(note_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        selection_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Buttons
+        wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
+        
+        // Proceed button
+        StateColor btn_bg_blue(std::pair<wxColour, int>(wxColour(38, 166, 154), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour(77, 182, 172), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour(0, 150, 136), StateColor::Normal));
+        
+        Button* proceed_button = new Button(selection_box, _L("Proceed with Reference"));
+        proceed_button->SetBackgroundColor(btn_bg_blue);
+        proceed_button->SetBorderColor(*wxWHITE);
+        proceed_button->SetTextColor(wxColour(0xFFFFFE));
+        proceed_button->SetFont(Label::Body_12);
+        proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(150, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(150, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 1;
+            int selection = m_material_combo->GetSelection();
+            if (selection >= 0 && selection < (int)m_similar_materials.size()) {
+                m_selected_material_id = m_similar_materials[selection].id;
+            }
+            EndModal(wxID_OK);
+        });
+        button_sizer->Add(proceed_button, 0);
+        button_sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        // Cancel button
+        StateColor btn_bg_grey(std::pair<wxColour, int>(wxColour(150, 150, 150), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour(180, 180, 180), StateColor::Hovered),
+                               std::pair<wxColour, int>(wxColour(200, 200, 200), StateColor::Normal));
+        
+        Button* cancel_button = new Button(selection_box, _L("Cancel"));
+        cancel_button->SetBackgroundColor(btn_bg_grey);
+        cancel_button->SetBorderColor(*wxWHITE);
+        cancel_button->SetTextColor(wxColour(60, 60, 60));
+        cancel_button->SetFont(Label::Body_12);
+        cancel_button->SetSize(wxSize(wxWindowBase::FromDIP(80, this), wxWindowBase::FromDIP(28, this)));
+        cancel_button->SetMinSize(wxSize(wxWindowBase::FromDIP(80, this), wxWindowBase::FromDIP(28, this)));
+        cancel_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        cancel_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 2;
+            EndModal(wxID_CANCEL);
+        });
+        button_sizer->Add(cancel_button, 0);
+        
+        selection_sizer->Add(button_sizer, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        selection_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        selection_box->SetSizer(selection_sizer);
+        main_sizer->Add(selection_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        SetSizer(main_sizer);
+        Layout();
+        main_sizer->Fit(this);
+        wxGetApp().UpdateDlgDarkUI(this);
+    }
+    
+    void on_dpi_changed(const wxRect& suggested_rect) override {}
+    
+    int get_user_choice() const { return m_user_choice; }
+    std::string get_selected_material_id() const { return m_selected_material_id; }
+    
+private:
+    std::vector<HelioQuery::SupportedData> m_similar_materials;
+    ComboBox* m_material_combo;
+    std::string m_selected_material_id;
+    int m_user_choice;
+};
+
 int Plater::priv::update_helio_background_process(std::string& printer_id, std::string& material_id)
 {
     notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
@@ -9893,14 +10428,150 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
         return -1;
     }
 
+    // ===========================================================================
+    // MULTI-FILAMENT COMPATIBILITY DETECTION
+    // ===========================================================================
+    // Collect information about all filaments used in the current plate
+    std::vector<FilamentSupportInfo> all_filament_infos;
+    std::set<std::string> unique_supported_material_ids;  // Track unique Helio material IDs, not generic types
+    int supported_count = 0;
+    
+    for (size_t i = 0; i < extruders.size(); ++i) {
+        int extruder_idx = extruders[i] - 1; // Extruders are 1-indexed
+        if (extruder_idx >= 0 && extruder_idx < (int)preset_filaments.size()) {
+            FilamentSupportInfo info = check_filament_helio_support(preset_filaments[extruder_idx], extruder_idx);
+            all_filament_infos.push_back(info);
+            
+            if (info.is_supported) {
+                supported_count++;
+                // Track unique Helio material IDs - different formulations (e.g., PLA Basic vs PLA Matte) 
+                // have different material IDs even if they share the same generic type
+                if (!info.material_id.empty()) {
+                    unique_supported_material_ids.insert(info.material_id);
+                }
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Filament " << i << " (extruder " << extruder_idx 
+                                   << "): " << info.preset_name 
+                                   << ", type=" << info.filament_type
+                                   << ", material_id=" << info.material_id
+                                   << ", supported=" << info.is_supported;
+        }
+    }
+    
+    // Flag to skip single-filament matching when user has already selected a material
+    bool material_already_selected = false;
+    
+    // Multi-material check: Only show dialog when we have MULTIPLE DIFFERENT supported materials
+    // If no materials are supported, fall through to original logic which handles fallbacks
+    if (extruders.size() > 1 && unique_supported_material_ids.size() > 1) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Multiple different Helio materials detected: " << unique_supported_material_ids.size() << " materials";
+        
+        // Collect the filament types for display in the dialog
+        std::set<std::string> unique_display_types;
+        for (const auto& info : all_filament_infos) {
+            if (info.is_supported && !info.filament_type.empty()) {
+                unique_display_types.insert(info.filament_type);
+            }
+        }
+        
+        // Show the mixed filament dialog
+        HelioMixedFilamentDialog mixed_dialog(static_cast<wxWindow*>(wxGetApp().mainframe), 
+                                              all_filament_infos, unique_display_types);
+        mixed_dialog.ShowModal();
+        
+        int choice = mixed_dialog.get_user_choice();
+        if (choice == 1) {
+            // User chose to proceed with a single selected filament
+            material_id = mixed_dialog.get_selected_material_id();
+            helio_using_reference_material = true; // Mark as using reference since not all filaments match
+            material_already_selected = true;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": User chose to proceed with mixed filaments using material_id=" << material_id;
+        } else {
+            // User chose to go back and change filament selection
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": User chose to go back and change filament selection";
+            return -1;
+        }
+    }
+    
+    // Case 2b: Some filaments are supported (all same type), some are unsupported
+    // Show warning with similar type selection like in single-colour mode
+    int unsupported_count = (int)all_filament_infos.size() - supported_count;
+    if (!material_already_selected && extruders.size() > 1 && 
+        supported_count > 0 && unsupported_count > 0 && unique_supported_material_ids.size() <= 1) {
+        
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Mixed supported/unsupported materials detected: "
+                               << supported_count << " supported, " << unsupported_count << " unsupported";
+        
+        // Collect unsupported filaments
+        std::vector<FilamentSupportInfo> unsupported_filaments;
+        for (const auto& info : all_filament_infos) {
+            if (!info.is_supported) {
+                unsupported_filaments.push_back(info);
+            }
+        }
+        
+        // Get the first unsupported filament to find similar materials
+        std::string first_unsupported_name = unsupported_filaments[0].preset_name;
+        size_t atPos = first_unsupported_name.find('@');
+        std::string target_name = (atPos != std::string::npos) ? first_unsupported_name.substr(0, atPos) : first_unsupported_name;
+        boost::trim(target_name);
+        
+        // Extract keywords and find similar materials (same logic as single-colour mode)
+        std::vector<std::string> keywords = extract_material_keywords(target_name);
+        std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name, keywords);
+        
+        // Get the default material ID from the first supported filament
+        std::string default_material_id;
+        for (const auto& info : all_filament_infos) {
+            if (info.is_supported && !info.material_id.empty()) {
+                default_material_id = info.material_id;
+                break;
+            }
+        }
+        
+        if (!similar_materials.empty()) {
+            // Show the unsupported filaments dialog with similar type options
+            HelioUnsupportedFilamentsDialog unsupported_dialog(
+                static_cast<wxWindow*>(wxGetApp().mainframe),
+                unsupported_filaments, similar_materials, default_material_id);
+            unsupported_dialog.ShowModal();
+            
+            int choice = unsupported_dialog.get_user_choice();
+            if (choice == 1) {
+                // User chose to proceed with a selected reference material
+                material_id = unsupported_dialog.get_selected_material_id();
+                helio_using_reference_material = true;
+                material_already_selected = true;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": User chose to proceed with unsupported materials using reference material_id=" << material_id;
+            } else {
+                // User cancelled
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": User cancelled unsupported materials dialog";
+                return -1;
+            }
+        } else {
+            // No similar materials found - use the first supported material as default
+            // The user will still see an implicit choice through the single-filament flow
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": No similar materials found for unsupported filaments, using first supported material";
+            if (!default_material_id.empty()) {
+                material_id = default_material_id;
+                helio_using_reference_material = true;
+                material_already_selected = true;
+            }
+            // If no supported material at all, fall through to original logic
+        }
+    }
+    
+    // Case 3: All supported filaments are the same type OR only one filament is used
+    // Continue with normal single-filament logic using the first extruder's material
+    // Note: When multiple materials of the same type are used, we use the first extruder's material for Helio simulation
+    
+    // Only perform single-filament matching if user hasn't already selected a material via the mixed filament dialog
+    if (!material_already_selected) {
+        std::string used_filament = preset_filaments[extruders.front() - 1];
+        bool is_supported_by_helio = false;
 
-    // Note: When multiple materials are used, we use the first extruder's material for Helio simulation
-    // TODO: Future enhancement could support passing multiple materials to Helio API
-    std::string used_filament = preset_filaments[extruders.front() - 1];
-
-    bool is_supported_by_helio = false;
-
-    // Find best (longest) match to prefer specific materials over generic ones
+        // Find best (longest) match to prefer specific materials over generic ones
     // e.g., "Bambu PC FR" should match "Bambu PC FR" not "Bambu PC"
     size_t best_match_length = 0;
     std::string best_material_id;
@@ -10449,6 +11120,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
         material_id = best_material_id;
         helio_using_reference_material = false; // Material is directly supported
     }
+    } // End of if (!material_already_selected)
 
     /*has warning*/
     //PartPlate* plate = q->get_partplate_list().get_curr_plate();
