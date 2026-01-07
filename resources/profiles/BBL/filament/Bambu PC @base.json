@@ -14,6 +14,9 @@
     "filament_flow_ratio": [
         "0.94"
     ],
+    "filament_density": [
+        "1.185"
+    ],
     "impact_strength_z": [
         "9.0"
     ]
