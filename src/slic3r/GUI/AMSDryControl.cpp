@@ -388,8 +388,13 @@ Button* AMSDryCtrWin::create_button(wxPanel* parent, const wxString& title,
     button->SetBorderColor(bd_color);
     button->SetTextColor(text_color);
     button->SetFont(Label::Body_14);
-    button->SetSize(wxSize(FromDIP(128), FromDIP(26)));
-    button->SetMinSize(wxSize(-1, FromDIP(26)));
+
+    // Auto-size button based on text content with padding
+    wxSize best_size = button->GetBestSize();
+    int padding_width = FromDIP(4);
+    int padding_height = FromDIP(2);
+    wxSize final_size(best_size.GetWidth() + padding_width, best_size.GetHeight() + padding_height);
+    button->SetMinSize(final_size);
     
     return button;
 }
@@ -500,6 +505,18 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         }
 
         fila_system->CtrlAmsStopDrying(std::stoi(m_ams_info.m_ams_id));
+        // Temporarily show stopping state, then restore after 2 seconds
+        if (m_stop_button) {
+            m_stop_button->SetLabel(_L("Stopping"));
+            update_button_size(m_stop_button);  // Adjust button size for longer text
+            m_stop_button->Disable();
+            m_stop_button->Layout();
+            m_stop_button->GetParent()->Layout();  // Relayout parent container
+            m_stop_button->Refresh();
+
+            m_stop_button_restore_deadline.reset();
+            m_stop_button_restore_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+        }
     });
 
     m_stop_button->Show(false);
@@ -771,6 +788,38 @@ void AMSDryCtrWin::OnProgressTimer(wxTimerEvent& event)
     }
 }
 
+void AMSDryCtrWin::restore_stop_button_if_deadline_passed()
+{
+    if (m_stop_button_restore_deadline.has_value()) {
+        if (std::chrono::steady_clock::now() >= m_stop_button_restore_deadline.value()) {
+            if (m_stop_button) {
+                m_stop_button->SetLabel(_L("Stop"));
+                update_button_size(m_stop_button);  // Adjust button size back to original
+                m_stop_button->Enable();
+                m_stop_button->Layout();
+                m_stop_button->GetParent()->Layout();
+                m_stop_button->Refresh();
+            }
+            m_stop_button_restore_deadline.reset();
+        }
+    }
+}
+
+void AMSDryCtrWin::update_button_size(Button* button)
+{
+    if (!button) return;
+
+    // Reset MinSize first to avoid accumulation of size
+    button->SetMinSize(wxSize(-1, -1));
+
+    // Recalculate button size based on current text and DPI settings
+    wxSize best_size = button->GetBestSize();
+    int padding_width = FromDIP(4);
+    int padding_height = FromDIP(2);
+    wxSize final_size(best_size.GetWidth() + padding_width, best_size.GetHeight() + padding_height);
+    button->SetMinSize(final_size);
+}
+
 void AMSDryCtrWin::OnShow(wxShowEvent& event)
 {
     if (event.IsShown()) {
@@ -800,6 +849,17 @@ void AMSDryCtrWin::OnClose(wxCloseEvent& event)
     if (m_progress_title && !m_progress_text.empty()) {
         m_progress_title->SetLabel(m_progress_text[0]);
     }
+
+    // Clean up and restore stop button state
+    if (m_stop_button) {
+        m_stop_button->SetLabel(_L("Stop"));
+        update_button_size(m_stop_button);  // Adjust button size back to original
+        m_stop_button->Enable();
+        m_stop_button->Layout();
+        m_stop_button->GetParent()->Layout();
+        m_stop_button->Refresh();
+    }
+    m_stop_button_restore_deadline.reset();
 
     event.Skip();
 }
@@ -861,7 +921,7 @@ void AMSDryCtrWin::create()
     m_main_simplebook->AddPage(m_progress_page, "Progress Page");
 
     m_progress_timer = new wxTimer(this, wxID_ANY);
-    Bind(wxEVT_TIMER, &AMSDryCtrWin::OnProgressTimer, this);
+    Bind(wxEVT_TIMER, &AMSDryCtrWin::OnProgressTimer, this, m_progress_timer->GetId());
 
     Bind(wxEVT_CLOSE_WINDOW, &AMSDryCtrWin::OnClose, this);
 
@@ -892,10 +952,31 @@ void AMSDryCtrWin::msw_rescale()
     if (m_humidity_img && m_humidity_image.bmp().IsOk()) {m_humidity_image.msw_rescale(); m_humidity_img->SetBitmap(m_humidity_image.bmp());}
     if (m_image_placeholder && m_guide_image.bmp().IsOk()) {m_guide_image.msw_rescale();m_image_placeholder->SetBitmap(m_guide_image.bmp());}
 
-    if (m_next_button) {m_next_button->Rescale(); m_next_button->Layout(); m_next_button->Refresh();}
-    if (m_stop_button) {m_stop_button->Rescale(); m_stop_button->Layout(); m_stop_button->Refresh();}
-    if (m_start_button) {m_start_button->Rescale(); m_start_button->Layout(); m_start_button->Refresh();}
-    if (m_back_button) {m_back_button->Rescale(); m_back_button->Layout(); m_back_button->Refresh();}
+    // Rescale and update button sizes based on text content
+    if (m_next_button) {
+        m_next_button->Rescale();
+        update_button_size(m_next_button);
+        m_next_button->Layout();
+        m_next_button->Refresh();
+    }
+    if (m_stop_button) {
+        m_stop_button->Rescale();
+        update_button_size(m_stop_button);
+        m_stop_button->Layout();
+        m_stop_button->Refresh();
+    }
+    if (m_start_button) {
+        m_start_button->Rescale();
+        update_button_size(m_start_button);
+        m_start_button->Layout();
+        m_start_button->Refresh();
+    }
+    if (m_back_button) {
+        m_back_button->Rescale();
+        update_button_size(m_back_button);
+        m_back_button->Layout();
+        m_back_button->Refresh();
+    }
 
     if (m_guide_page) {m_guide_page->Layout();}
     if (m_original_page) {m_original_page->Layout();}
@@ -1187,6 +1268,8 @@ int AMSDryCtrWin::update_state(DevAms* dev_ams)
         m_cannot_dry_description_label->SetLabel(organize_cannot_reasons_text(cannot_reasons));
         m_cannot_dry_description_label->Wrap(FromDIP(300));
     }
+
+    restore_stop_button_if_deadline_passed();
 
     return 1;
 }
