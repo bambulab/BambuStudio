@@ -212,7 +212,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_notes",
         "process_notes",
         "printer_notes",
-        "filament_velocity_adaptation_factor"
+        "filament_velocity_adaptation_factor",
+        "filament_tower_interface_purge_volume",
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -305,6 +306,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "extruder_ams_count"
             || opt_key == "extruder_nozzle_stats"
             || opt_key == "filament_cooling_before_tower"
+            || opt_key == "enable_tower_interface_features"
+            || opt_key == "filament_tower_ironing_area"
+            || opt_key == "filament_tower_interface_print_temp"
+            || opt_key == "filament_tower_interface_pre_extrusion_dist"
+            || opt_key == "filament_tower_interface_pre_extrusion_length"
             || opt_key == "prime_volume_mode"
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
@@ -3052,6 +3058,7 @@ void Print::_make_wipe_tower()
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
     wipe_tower.set_nozzle_group_result(m_nozzle_group_result.value());
+    wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(i, m_config);
