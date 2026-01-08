@@ -10327,6 +10327,11 @@ public:
         option2_desc->SetForegroundColour(option2_text_color);
         option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
         option2_sizer->Add(option2_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        
+        wxHyperlinkCtrl* supported_materials_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+            _L("See supported materials"), "https://wiki.helioadditive.com/en/supportedprinters", 
+            wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        option2_sizer->Add(supported_materials_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
         option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
         
         // Go back button (recommended) - right aligned
@@ -10491,7 +10496,7 @@ public:
         // Note about approximation
         wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
         Label* note_text = new Label(option1_box, Label::Body_12, 
-            _L("Note: Using a reference material may result in approximate simulation results."), LB_AUTO_WRAP);
+            _L("Note: Using a reference material may result in approximate or erroneous results."), LB_AUTO_WRAP);
         note_text->SetForegroundColour(note_color);
         note_text->Wrap(wxWindowBase::FromDIP(420, this));
         option1_sizer->Add(note_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
@@ -10564,6 +10569,11 @@ public:
         option2_desc->SetForegroundColour(option2_text_color);
         option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
         option2_sizer->Add(option2_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        
+        wxHyperlinkCtrl* supported_materials_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+            _L("See supported materials"), "https://wiki.helioadditive.com/en/supportedprinters", 
+            wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        option2_sizer->Add(supported_materials_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
         option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
         
         // Go back button - right aligned
@@ -10791,7 +10801,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                     // Note about approximation
                     wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
                     Label* note_text = new Label(option1_box, Label::Body_12, 
-                        _L("Note: Using a reference printer may result in approximate simulation results."), LB_AUTO_WRAP);
+                        _L("Note: Using a reference printer may result in approximate or erroneous results."), LB_AUTO_WRAP);
                     note_text->SetForegroundColour(note_color);
                     note_text->Wrap(wxWindowBase::FromDIP(420, this));
                     option1_sizer->Add(note_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
@@ -10857,6 +10867,11 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                     option2_desc->SetForegroundColour(option2_text_color);
                     option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
                     option2_sizer->Add(option2_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    
+                    wxHyperlinkCtrl* supported_printers_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+                        _L("See supported printers"), "https://wiki.helioadditive.com/en/supportedprinters", 
+                        wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+                    option2_sizer->Add(supported_printers_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
                     option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
                     
                     // Go back button - right aligned
@@ -11326,7 +11341,7 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                         // Note about approximation
                         wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
                         Label* note_text = new Label(option1_box, Label::Body_12, 
-                            _L("Note: Using a reference material may result in approximate simulation results."), LB_AUTO_WRAP);
+                            _L("Note: Using a reference material may result in approximate or erroneous results."), LB_AUTO_WRAP);
                         note_text->SetForegroundColour(note_color);
                         note_text->Wrap(wxWindowBase::FromDIP(420, this));
                         option1_sizer->Add(note_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
@@ -11392,6 +11407,11 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                         option2_desc->SetForegroundColour(option2_text_color);
                         option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
                         option2_sizer->Add(option2_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        
+                        wxHyperlinkCtrl* supported_materials_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+                            _L("See supported materials"), "https://wiki.helioadditive.com/en/supportedprinters", 
+                            wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+                        option2_sizer->Add(supported_materials_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
                         option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
                         
                         // Go back button - right aligned

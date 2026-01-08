@@ -2326,21 +2326,21 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
 
     // Main heading
-    auto main_heading = new Label(content_panel, Label::Head_20, _L("Improve Print Reliability Before You Hit Print"));
+    auto main_heading = new Label(content_panel, Label::Head_20, _L("Know Your Print Will Work — Before You Hit Print"));
     wxFont heading_font = main_heading->GetFont();
     heading_font.SetWeight(wxFONTWEIGHT_BOLD);
     main_heading->SetFont(heading_font);
     main_heading->SetForegroundColour(HELIO_TEXT);
     
     // Subheading
-    auto subheading = new Label(content_panel, Label::Body_14, _L("Automatic analysis and optimization for faster, more reliable prints."));
+    auto subheading = new Label(content_panel, Label::Body_14, _L("Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."));
     subheading->SetForegroundColour(HELIO_MUTED);
     
     // Two feature cards side by side
     wxBoxSizer* cards_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     // Tooltip text for cards
-    wxString tooltip_text = _L("Helio Additive analyzes models and settings to reduce failures and improve quality before you print.");
+    wxString tooltip_text = _L("Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology.");
 
     // Feature Card 1 - Fewer Failed Prints
     wxPanel* card1 = new wxPanel(content_panel);
@@ -2416,6 +2416,7 @@ ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     m_button_activate->SetSize(wxSize(FromDIP(300), FromDIP(36)));
     m_button_activate->SetMinSize(wxSize(FromDIP(300), FromDIP(36)));
     m_button_activate->SetCornerRadius(FromDIP(4));
+    m_button_activate->SetToolTip(tooltip_text);
     m_button_activate->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_open_expand, this);
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     button_sizer->Add(m_button_activate, 0, wxALIGN_CENTER, 0);

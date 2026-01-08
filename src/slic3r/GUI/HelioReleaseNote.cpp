@@ -557,6 +557,7 @@ void HelioStatementDialog::create_pat_page()
     // Description text
     auto success_description = new Label(page_pat_panel, Label::Body_14, _L("Helio Additive is now active. You have unlocked free optimizations!"));
     success_description->SetForegroundColour(wxColour("#FFFFFF"));
+    success_description->SetToolTip(_L("Applies only when first activated"));
     
     // "Run Your First Optimization" button - use green primary style for visibility
     StateColor btn_bg_green = StateColor(
@@ -578,6 +579,7 @@ void HelioStatementDialog::create_pat_page()
     run_optimization_button->SetSize(wxSize(FromDIP(220), FromDIP(36)));
     run_optimization_button->SetMinSize(wxSize(FromDIP(220), FromDIP(36)));
     run_optimization_button->SetCornerRadius(FromDIP(4));
+    run_optimization_button->SetToolTip(_L("You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"));
     run_optimization_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         // Set tutorial flag for first-time users
         wxGetApp().app_config->set("helio_first_time_tutorial", "active");
@@ -1351,8 +1353,9 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     simulation_mode_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
     
     wxBoxSizer* sim_text_sizer = new wxBoxSizer(wxVERTICAL);
-    simulation_card_title = new Label(simulation_card_panel, Label::Head_14, _L("Simulation"));
+    simulation_card_title = new Label(simulation_card_panel, Label::Head_14, _L("Assess"));
     simulation_card_title->SetForegroundColour(theme.text);
+    simulation_card_title->SetToolTip(_L("Formerly referred to as 'Simulate' or 'Simulation'"));
     wxFont sim_title_font = simulation_card_title->GetFont();
     sim_title_font.SetWeight(wxFONTWEIGHT_BOLD);
     simulation_card_title->SetFont(sim_title_font);
@@ -1368,18 +1371,18 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     simulation_card_subtitle->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     
     sim_text_sizer->Add(simulation_card_title, 0, wxALIGN_LEFT, 0);
-    sim_text_sizer->Add(simulation_card_subtitle, 0, wxEXPAND | wxTOP, FromDIP(4));
+    sim_text_sizer->Add(simulation_card_subtitle, 0, wxEXPAND | wxTOP, FromDIP(2));
     
     sim_card_sizer->Add(simulation_mode_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
     sim_card_sizer->Add(sim_text_sizer, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
     sim_card_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(16));  // Spacer instead of check badge
     
     // Add the horizontal content sizer to outer vertical sizer with top/bottom inset padding
-    sim_outer_sizer->Add(sim_card_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(14));
+    sim_outer_sizer->Add(sim_card_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(10));
     simulation_card_panel->SetSizer(sim_outer_sizer);
-    // Larger mode cards: 220-260 x 90-110
-    simulation_card_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(100)));
-    simulation_card_panel->SetMaxSize(wxSize(FromDIP(260), FromDIP(110)));
+    // Mode cards with comfortable vertical padding
+    simulation_card_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(70)));
+    simulation_card_panel->SetMaxSize(wxSize(FromDIP(260), FromDIP(80)));
     
     // Bind click events on the whole card
     simulation_card_panel->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_simulation, this);
@@ -1429,8 +1432,9 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     optimization_mode_icon->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
     
     wxBoxSizer* opt_text_sizer = new wxBoxSizer(wxVERTICAL);
-    optimization_card_title = new Label(optimization_card_panel, Label::Head_14, _L("Optimization"));
+    optimization_card_title = new Label(optimization_card_panel, Label::Head_14, _L("Enhance"));
     optimization_card_title->SetForegroundColour(theme.text);
+    optimization_card_title->SetToolTip(_L("Formerly referred to as 'Optimize' or 'Optimization'"));
     wxFont opt_title_font = optimization_card_title->GetFont();
     opt_title_font.SetWeight(wxFONTWEIGHT_BOLD);
     optimization_card_title->SetFont(opt_title_font);
@@ -1446,18 +1450,18 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     optimization_card_subtitle->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
     
     opt_text_sizer->Add(optimization_card_title, 0, wxALIGN_LEFT, 0);
-    opt_text_sizer->Add(optimization_card_subtitle, 0, wxEXPAND | wxTOP, FromDIP(4));
+    opt_text_sizer->Add(optimization_card_subtitle, 0, wxEXPAND | wxTOP, FromDIP(2));
     
     opt_card_sizer->Add(optimization_mode_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(16));
     opt_card_sizer->Add(opt_text_sizer, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, FromDIP(12));
     opt_card_sizer->Add(0, 0, 0, wxRIGHT, FromDIP(16));  // Spacer instead of check badge
     
     // Add the horizontal content sizer to outer vertical sizer with top/bottom inset padding
-    opt_outer_sizer->Add(opt_card_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(14));
+    opt_outer_sizer->Add(opt_card_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(10));
     optimization_card_panel->SetSizer(opt_outer_sizer);
-    // Larger mode cards: 220-260 x 90-110
-    optimization_card_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(100)));
-    optimization_card_panel->SetMaxSize(wxSize(FromDIP(260), FromDIP(110)));
+    // Mode cards with comfortable vertical padding
+    optimization_card_panel->SetMinSize(wxSize(FromDIP(240), FromDIP(70)));
+    optimization_card_panel->SetMaxSize(wxSize(FromDIP(260), FromDIP(80)));
     
     // Bind click events on the whole card
     optimization_card_panel->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_selected_optimaztion, this);
@@ -1473,8 +1477,8 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     optimization_mode_icon->Bind(wxEVT_SET_CURSOR, opt_set_cursor);
 
     // Create hidden toggle buttons for backward compatibility with update_action
-    togglebutton_simulate = new CustomToggleButton(this, _L("Simulation"));
-    togglebutton_optimize = new CustomToggleButton(this, _L("Optimization"));
+    togglebutton_simulate = new CustomToggleButton(this, _L("Assess"));
+    togglebutton_optimize = new CustomToggleButton(this, _L("Enhance"));
     togglebutton_simulate->Hide();
     togglebutton_optimize->Hide();
 
@@ -1506,20 +1510,20 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     wxBoxSizer* chamber_temp_item_for_simulation = create_input_item(card_simulation, "chamber_temp_for_simulation", is_no_chamber?_L("Environment Temperature"):_L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
 
     m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetHint(wxT("5-70"));
-    wxString sim_temp_tooltip = _L("Optional: if no value is entered we will estimate the temperature from the available information of the printer and gcode");
+    wxString sim_temp_tooltip = _L("Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios.");
     m_input_items["chamber_temp_for_simulation"]->GetTextCtrl()->SetToolTip(sim_temp_tooltip);
     m_input_items["chamber_temp_for_simulation"]->SetToolTip(sim_temp_tooltip);
 
-    Label* sub_simulation = new Label(card_simulation, _L("Optional. More accurate data ensures better results."));
+    Label* sub_simulation = new Label(card_simulation, _L("Optional. More accurate temperatures ensures better results."));
     sub_simulation->SetForegroundColour(theme.muted);
     sub_simulation->SetSize(wxSize(FromDIP(420), -1));
     sub_simulation->Wrap(FromDIP(420));
 
-    card_sim_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    card_sim_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
     card_sim_sizer->Add(chamber_temp_item_for_simulation, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    card_sim_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+    card_sim_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
     card_sim_sizer->Add(sub_simulation, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    card_sim_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    card_sim_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
     
     // Wiki link will be added inside the simulation card
     // (moved from bottom of dialog to inside card for simulation mode)
@@ -1607,20 +1611,31 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     quota_grid->Add(label_addons, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
     quota_grid->Add(m_label_addons, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
 
-    // Create Buy More Optimizations button
+    // Create Plans / Upgrades button
     StateColor btn_buy_bg_outlined;
     StateColor btn_buy_border;
     StateColor btn_buy_text;
-    // Dark mode only for now
-    btn_buy_bg_outlined = StateColor(std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Hovered), 
-                                     std::pair<wxColour, int>(theme.card2, StateColor::Normal),
-                                     std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Pressed));
-    btn_buy_border = StateColor(std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
-    btn_buy_text = StateColor(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
-                              std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
-                              std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
     
-    buy_now_button = new Button(card_account_status, _L("Buy More Optimizations"));
+    if (wxGetApp().dark_mode()) {
+        // Dark mode: purple fill on hover, white icon always visible
+        btn_buy_bg_outlined = StateColor(std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Hovered), 
+                                         std::pair<wxColour, int>(theme.card2, StateColor::Normal),
+                                         std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Pressed));
+        btn_buy_text = StateColor(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                                  std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+    } else {
+        // Light mode: light purple tint on hover so purple icon stays visible
+        btn_buy_bg_outlined = StateColor(std::pair<wxColour, int>(wxColour(235, 220, 255), StateColor::Hovered), 
+                                         std::pair<wxColour, int>(theme.card2, StateColor::Normal),
+                                         std::pair<wxColour, int>(wxColour(220, 200, 255), StateColor::Pressed));
+        btn_buy_text = StateColor(std::pair<wxColour, int>(wxColour(130, 80, 200), StateColor::Hovered),
+                                  std::pair<wxColour, int>(wxColour(130, 80, 200), StateColor::Pressed),
+                                  std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+    }
+    btn_buy_border = StateColor(std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+    
+    buy_now_button = new Button(card_account_status, _L("Plans / Upgrades"), wxGetApp().dark_mode() ? "topbar_store" : "topbar_store_dark", 0, 16);
     buy_now_button->SetBackgroundColor(btn_buy_bg_outlined);
     buy_now_button->SetBorderColor(btn_buy_border);
     buy_now_button->SetTextColor(btn_buy_text);
@@ -1628,6 +1643,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     buy_now_button->SetSize(wxSize(-1, FromDIP(28)));
     buy_now_button->SetMinSize(wxSize(-1, FromDIP(28)));
     buy_now_button->SetCornerRadius(FromDIP(12));
+    buy_now_button->SetToolTip(_L("Go to our storefront to purchase more enhancements"));
     buy_now_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
         if (!helio_api_key.empty()) {
@@ -1659,9 +1675,9 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     secondary_actions_sizer->Add(0, 0, 0, wxLEFT, FromDIP(12));
     secondary_actions_sizer->Add(buy_now_button, 0, 0, 0);
     
-    card_account_sizer->Add(account_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
-    card_account_sizer->Add(quota_grid, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
-    card_account_sizer->Add(secondary_actions_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(16));
+    card_account_sizer->Add(account_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
+    card_account_sizer->Add(quota_grid, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+    card_account_sizer->Add(secondary_actions_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(12));
     card_account_status->SetSizer(card_account_sizer);
 
     // ========== CARD 2: ENVIRONMENT SETTINGS ==========
@@ -1680,11 +1696,11 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     if (is_no_chamber) {
         chamber_temp_item_for_optimization = create_input_item(card_environment, "chamber_temp_for_optimization", is_no_chamber?_L("Environment Temperature"):_L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
         m_input_items["chamber_temp_for_optimization"]->GetTextCtrl()->SetHint(wxT("5-70"));
-        wxString temp_tooltip = _L("Optional: if no value is entered we will estimate the temperature from the available information of the printer and gcode");
+        wxString temp_tooltip = _L("Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios.");
         m_input_items["chamber_temp_for_optimization"]->GetTextCtrl()->SetToolTip(temp_tooltip);
         m_input_items["chamber_temp_for_optimization"]->SetToolTip(temp_tooltip);
 
-        sub_optimization = new Label(card_environment, _L("Optional. More accurate data ensures better results."));
+        sub_optimization = new Label(card_environment, _L("Optional. More accurate temperatures ensures better results."));
         sub_optimization->SetForegroundColour(theme.muted);
         sub_optimization->SetSize(wxSize(FromDIP(400), -1));
         sub_optimization->Wrap(FromDIP(400));
@@ -1697,11 +1713,11 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     }
     
     // Layout environment card
-    card_env_sizer->Add(env_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
+    card_env_sizer->Add(env_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
     if (is_no_chamber && chamber_temp_item_for_optimization) {
-        card_env_sizer->Add(chamber_temp_item_for_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
+        card_env_sizer->Add(chamber_temp_item_for_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
     }
-    card_env_sizer->Add(sub_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(16));
+    card_env_sizer->Add(sub_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(10));
     card_environment->SetSizer(card_env_sizer);
 
     // ========== CARD 3: OPTIMIZATION SETTINGS ==========
@@ -1711,6 +1727,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     Label* opt_header = new Label(card_optimization_settings, Label::Head_14, _L("Optimization Settings"));
     opt_header->SetForegroundColour(theme.text);
+    opt_header->SetToolTip(_L("Now referred to as 'Enhance' or 'Enhancement'"));
     wxFont opt_font = opt_header->GetFont();
     opt_font.SetWeight(wxFONTWEIGHT_BOLD);
     opt_header->SetFont(opt_font);
@@ -1736,6 +1753,11 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     config_limits[LIMITS_HELIO_DEFAULT] = _L("Helio default (recommended)");
     config_limits[LIMITS_SLICER_DEFAULT] = _L("Slicer default");
     auto limits = create_combo_item(card_optimization_settings, "limits", _L("Limits"), config_limits, LIMITS_HELIO_DEFAULT, LIMITS_DROPDOWN_WIDTH);
+    
+    wxString limits_tooltip = _L("Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data.");
+    if (m_combo_items.find("limits") != m_combo_items.end()) {
+        m_combo_items["limits"]->SetToolTip(limits_tooltip);
+    }
 
     // Create panel for velocity and volumetric speed fields
     panel_velocity_volumetric = new wxPanel(card_optimization_settings);
@@ -1806,22 +1828,22 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     panel_advanced_option->Hide();
 
     // Layout optimization settings card
-    card_opt_sizer->Add(opt_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
-    card_opt_sizer->Add(outerwall, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
-    card_opt_sizer->Add(layers_to_optimize_item, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
-    card_opt_sizer->Add(limits, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(12));
-    card_opt_sizer->Add(panel_velocity_volumetric, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
-    card_opt_sizer->Add(0, 0, 0, wxBOTTOM, FromDIP(16));
+    card_opt_sizer->Add(opt_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
+    card_opt_sizer->Add(outerwall, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+    card_opt_sizer->Add(layers_to_optimize_item, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+    card_opt_sizer->Add(limits, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
+    card_opt_sizer->Add(panel_velocity_volumetric, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(6));
+    card_opt_sizer->Add(0, 0, 0, wxBOTTOM, FromDIP(10));
     card_optimization_settings->SetSizer(card_opt_sizer);
 
     // Stack the 3 cards in the optimization panel
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(16));
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer_optimization->Add(card_account_status, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
-    sizer_optimization->Add(card_environment, 0, wxEXPAND, 0);
-    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(12));
-    sizer_optimization->Add(card_optimization_settings, 0, wxEXPAND, 0);
     sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_optimization->Add(card_environment, 0, wxEXPAND, 0);
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_optimization->Add(card_optimization_settings, 0, wxEXPAND, 0);
+    sizer_optimization->Add(0, 0, 0, wxTOP, FromDIP(6));
 
     panel_optimization->SetSizer(sizer_optimization);
     panel_optimization->Layout();
@@ -1882,7 +1904,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
                               std::pair<wxColour, int>(wxColour(155, 104, 225), StateColor::Pressed), 
                               std::pair<wxColour, int>(theme.purple, StateColor::Normal));
 
-    m_button_confirm = new Button(this, _L("Start Optimization"));
+    m_button_confirm = new Button(this, _L("Enhance"));
     m_button_confirm->SetBackgroundColor(btn_primary_bg);
     m_button_confirm->SetBorderColor(theme.purple);
     // White text for all states - use 255,255,254 to avoid dark mode color mapping
@@ -1897,6 +1919,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     m_button_confirm->SetSize(wxSize(-1, FromDIP(56))); // Large CTA button
     m_button_confirm->SetMinSize(wxSize(-1, FromDIP(56)));
     m_button_confirm->SetCornerRadius(FromDIP(16));
+    m_button_confirm->SetToolTip(_L("Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"));
     m_button_confirm->Bind(wxEVT_LEFT_DOWN, &HelioInputDialog::on_confirm, this);
     m_button_confirm->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     m_button_confirm->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
@@ -1905,18 +1928,18 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     button_sizer->Add(m_button_confirm, 1, wxEXPAND, 0);
 
     main_sizer->Add(line, 0, wxEXPAND, 0);
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
     main_sizer->Add(control_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
     main_sizer->Add(panel_simulation, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     main_sizer->Add(panel_pay_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
     main_sizer->Add(panel_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(4));
     main_sizer->Add(last_tid_panel, 0, wxLEFT | wxRIGHT, FromDIP(20));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(16));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(6));
     // Primary action button - full width
     main_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
 
     update_action(1); // Default to Optimizations tab
 
@@ -1969,7 +1992,8 @@ void HelioInputDialog::update_action(int action)
                               std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
                               std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
         m_button_confirm->SetTextColor(white_text);
-        m_button_confirm->SetLabel(_L("Start Simulation"));
+        m_button_confirm->SetLabel(_L("Assess"));
+        m_button_confirm->SetToolTip(_L("Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"));
         m_button_confirm->Layout();
         m_button_confirm->Fit();
         m_button_confirm->Refresh();
@@ -2010,7 +2034,8 @@ void HelioInputDialog::update_action(int action)
                               std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
                               std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
         m_button_confirm->SetTextColor(white_text);
-        m_button_confirm->SetLabel(_L("Start Optimization"));
+        m_button_confirm->SetLabel(_L("Enhance"));
+        m_button_confirm->SetToolTip(_L("Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"));
         m_button_confirm->Layout();
         m_button_confirm->Fit();
         m_button_confirm->Refresh();
@@ -2035,7 +2060,7 @@ void HelioInputDialog::update_action(int action)
                         if (free_trial_eligible) {
                             buy_now_button->SetLabel(_L("Start Free Trial"));
                         } else {
-                            buy_now_button->SetLabel(_L("Buy More Optimizations"));
+                            buy_now_button->SetLabel(_L("Plans / Upgrades"));
                         }
                     }
                     
@@ -2280,6 +2305,8 @@ wxBoxSizer* HelioInputDialog::create_input_optimize_layers(wxWindow* parent, int
     Label* inout_title = new Label(parent, Label::Body_14, _L("Layers"));
     inout_title->SetFont(::Label::Body_14);
     inout_title->SetForegroundColour(theme.text);
+    wxString layers_tooltip = _L("Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)");
+    inout_title->SetToolTip(layers_tooltip);
 
     // Dark mode only for now
     wxColour input_bg_color = theme.card2;
@@ -2306,6 +2333,8 @@ wxBoxSizer* HelioInputDialog::create_input_optimize_layers(wxWindow* parent, int
     m_layer_min_item->GetTextCtrl()->SetMaxLength(10);
     m_layer_min_item->GetTextCtrl()->SetLabel("2");
     m_layer_min_item->SetValCheckers({layer_range_checker});
+    m_layer_min_item->SetToolTip(layers_tooltip);
+    m_layer_min_item->GetTextCtrl()->SetToolTip(layers_tooltip);
 
     TextInput* m_layer_max_item = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(80), -1), wxTE_PROCESS_ENTER);
     m_layer_max_item->SetBackgroundColor(input_bg);
@@ -2324,6 +2353,8 @@ wxBoxSizer* HelioInputDialog::create_input_optimize_layers(wxWindow* parent, int
     m_layer_max_item->GetTextCtrl()->SetMaxLength(10);
     m_layer_max_item->GetTextCtrl()->SetLabel(wxString::Format("%d", layer_count));
     m_layer_max_item->SetValCheckers({ layer_range_checker });
+    m_layer_max_item->SetToolTip(layers_tooltip);
+    m_layer_max_item->GetTextCtrl()->SetToolTip(layers_tooltip);
 
     // "to" label with theme color
     Label* to_label = new Label(parent, Label::Body_13, _L("to"));
@@ -2635,6 +2666,11 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     title_time_impro->SetForegroundColour(label_color);
     title_average_impro->SetForegroundColour(label_color);
     title_consistency_impro->SetForegroundColour(label_color);
+    
+    // Add tooltips for improvement metrics
+    title_time_impro->SetToolTip(_L("Estimate of improvement in print time before and after enhancement"));
+    title_average_impro->SetToolTip(_L("Level of Strength & Warping improvement for this part after enhancement - average for the part"));
+    title_consistency_impro->SetToolTip(_L("Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"));
 
     title_time_impro->SetMinSize(wxSize(FromDIP(225), -1));
     title_average_impro->SetMinSize(wxSize(FromDIP(225), -1));
@@ -2711,6 +2747,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     stars.push_back(rating_star5);
 
     for (auto i = 0; i < stars.size(); i++) { 
+        stars[i]->SetToolTip(_L("Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."));
         stars[i]->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
         stars[i]->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
         stars[i]->Bind(wxEVT_LEFT_DOWN, [this, stars, i](wxMouseEvent &e) {
@@ -2733,6 +2770,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
 
     wxStaticBitmap* save_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("save", this, 24), wxDefaultPosition,
         wxSize(FromDIP(24), FromDIP(24)));
+    save_icon->SetToolTip(_L("Save the enhanced gcode locally"));
 
     save_icon->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     save_icon->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
@@ -2758,6 +2796,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     m_button_print_plate->SetSize(wxSize(FromDIP(100), FromDIP(24)));
     m_button_print_plate->SetMinSize(wxSize(FromDIP(100), FromDIP(24)));
     m_button_print_plate->SetCornerRadius(FromDIP(12));
+    m_button_print_plate->SetToolTip(_L("Print the enhanced part immediately"));
     m_button_print_plate->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         EndModal(wxID_OK);
         wxGetApp().plater()->CallAfter([]() {
@@ -2933,6 +2972,7 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
 
     auto subtitle = new Label(this, Label::Body_14, _L("Simulates the thermal process to confirm your part will print without failure."));
     subtitle->SetForegroundColour(theme.muted);
+    subtitle->SetToolTip(_L("Now referred to as 'Assess' or 'Assessment'"));
     subtitle->SetSize(wxSize(FromDIP(410), -1));
     subtitle->SetMinSize(wxSize(FromDIP(410), -1));
     subtitle->SetMaxSize(wxSize(FromDIP(410), -1));
