@@ -208,6 +208,8 @@ private:
     Label* m_label_monthly_quota{nullptr};
     Label* m_label_addons{nullptr};
     bool m_free_trial_eligible{false};
+    bool m_is_free_trial_active{false};
+    bool m_is_free_trial_claimed{false};
     
     // Theme helper
     HelioInputDialogTheme get_theme() const;

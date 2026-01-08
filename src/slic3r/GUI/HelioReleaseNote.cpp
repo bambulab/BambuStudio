@@ -1587,6 +1587,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     m_label_subscription = new Label(card_account_status, "-");
     m_label_subscription->SetFont(bold_font);
     m_label_subscription->SetForegroundColour(theme.text);
+    m_label_subscription->SetToolTip(_L("Loading subscription status..."));
     
     quota_grid->Add(label_subscription, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
     quota_grid->Add(m_label_subscription, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL);
@@ -1643,7 +1644,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     buy_now_button->SetSize(wxSize(-1, FromDIP(28)));
     buy_now_button->SetMinSize(wxSize(-1, FromDIP(28)));
     buy_now_button->SetCornerRadius(FromDIP(12));
-    buy_now_button->SetToolTip(_L("Go to our storefront to purchase more enhancements"));
+    buy_now_button->SetToolTip(_L("Loading..."));
     buy_now_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
         std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
         if (!helio_api_key.empty()) {
@@ -2045,36 +2046,73 @@ void HelioInputDialog::update_action(int action)
         std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
         std::weak_ptr<int> weak_ptr = shared_ptr;
-        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times, int addons, const std::string& subscription_name, bool free_trial_eligible) {
+        HelioQuery::request_remaining_optimizations(helio_api_url, helio_api_key, [this, weak_ptr](int times, int addons, const std::string& subscription_name, bool free_trial_eligible, bool is_free_trial_active, bool is_free_trial_claimed) {
             if (auto temp_ptr = weak_ptr.lock()) {
                 CallAfter([=]() {
                     if (times > 0 || addons > 0) {
                         m_button_confirm->Enable();
                     }
                     
-                    // Store free trial eligibility for later use
+                    // Store free trial states for later use
                     m_free_trial_eligible = free_trial_eligible;
+                    m_is_free_trial_active = is_free_trial_active;
+                    m_is_free_trial_claimed = is_free_trial_claimed;
                     
-                    // Update button text based on free trial eligibility (always update)
+                    // Update button text and tooltip based on free trial eligibility
+                    // Show "Start Free Trial" only if eligible AND not yet claimed
                     if (buy_now_button) {
-                        if (free_trial_eligible) {
+                        if (free_trial_eligible && !is_free_trial_claimed) {
                             buy_now_button->SetLabel(_L("Start Free Trial"));
+                            buy_now_button->SetToolTip(_L("Activate your free trial to unlock premium enhancements"));
                         } else {
                             buy_now_button->SetLabel(_L("Plans / Upgrades"));
+                            buy_now_button->SetToolTip(_L("Go to our storefront to purchase more enhancements"));
                         }
                     }
                     
-                    // Update subscription label
+                    // Update subscription label based on free trial state and subscription name
                     if (m_label_subscription) {
-                        if (subscription_name.empty()) {
-                            m_label_subscription->SetLabelText("-");
-                        } else {
+                        // Check if user has a paid subscription (not "Anonymous Slicer Subscription")
+                        bool has_paid_subscription = !subscription_name.empty() && 
+                                                     subscription_name != "Anonymous Slicer Subscription";
+                        
+                        if (has_paid_subscription) {
+                            // User has a paid subscription - show the actual subscription name
                             m_label_subscription->SetLabelText(wxString::FromUTF8(subscription_name));
+                            m_label_subscription->SetToolTip("");
+                            m_label_subscription->SetCursor(wxCURSOR_ARROW);
+                        } else if (is_free_trial_active) {
+                            // Free trial is currently active
+                            m_label_subscription->SetLabelText(_L("Free Trial"));
+                            m_label_subscription->SetToolTip("");
+                            m_label_subscription->SetCursor(wxCURSOR_ARROW);
+                        } else if (is_free_trial_claimed && !is_free_trial_active) {
+                            // Free trial was claimed but is no longer active (expired)
+                            m_label_subscription->SetLabelText(_L("Free Trial Expired"));
+                            m_label_subscription->SetToolTip(_L("Your free trial has ended. Explore our plans to continue using premium features."));
+                            m_label_subscription->SetForegroundColour(wxColour(175, 124, 255));  // Purple to indicate actionable
+                            m_label_subscription->SetCursor(wxCURSOR_HAND);
+                        } else if (free_trial_eligible && !is_free_trial_claimed) {
+                            // User is eligible for free trial but hasn't started it yet
+                            wxString display_name = subscription_name.empty() ? "-" : wxString::FromUTF8(subscription_name);
+                            m_label_subscription->SetLabelText(display_name);
+                            m_label_subscription->SetToolTip(_L("Start your free trial to unlock premium enhancements and faster, warp-free prints!"));
+                            m_label_subscription->SetForegroundColour(wxColour(175, 124, 255));  // Purple to indicate actionable
+                            m_label_subscription->SetCursor(wxCURSOR_HAND);
+                        } else if (subscription_name.empty()) {
+                            m_label_subscription->SetLabelText("-");
+                            m_label_subscription->SetToolTip("");
+                            m_label_subscription->SetCursor(wxCURSOR_ARROW);
+                        } else {
+                            // Default: show the subscription name as-is
+                            m_label_subscription->SetLabelText(wxString::FromUTF8(subscription_name));
+                            m_label_subscription->SetToolTip("");
+                            m_label_subscription->SetCursor(wxCURSOR_ARROW);
                         }
                     }
                     
                     if (m_label_monthly_quota) {
-                        if (times > 1000) {
+                        if (times > 999) {
                             m_label_monthly_quota->SetLabelText(_L("Unlimited*"));
                             m_label_monthly_quota->SetToolTip(_L("*Fair usage terms apply - click to learn more"));
                             m_label_monthly_quota->SetForegroundColour(wxColour(175, 124, 255));  // Purple to indicate clickable

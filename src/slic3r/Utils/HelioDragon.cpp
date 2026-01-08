@@ -98,9 +98,9 @@ double HelioQuery::convert_volume_speed(float mm3_per_second) {
 }
 
 void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, 
-    std::function<void(int, int, const std::string&, bool)> func) {
+    std::function<void(int, int, const std::string&, bool, bool, bool)> func) {
     std::string query_body = R"( {
-        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations subscription { name } } freeTrialEligibility }",
+        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations isFreeTrialActive isFreeTrialClaimed subscription { name } } freeTrialEligibility }",
         "variables": {}
     } )";
 
@@ -129,6 +129,8 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
                 int global_remaining_addon_opt_count = 0;
                 std::string subscription_name = "";
                 bool free_trial_eligible = false;
+                bool is_free_trial_active = false;
+                bool is_free_trial_claimed = false;
 
                 if (parsed_obj["data"]["user"]["remainingOptsThisMonth"].is_number()) {
                     global_remaining_opt_count = parsed_obj["data"]["user"]["remainingOptsThisMonth"].get<int>();
@@ -151,18 +153,30 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
                     free_trial_eligible = parsed_obj["data"]["freeTrialEligibility"].get<bool>();
                 }
 
-                func(global_remaining_opt_count, global_remaining_addon_opt_count, subscription_name, free_trial_eligible);
+                // Parse isFreeTrialActive
+                if (parsed_obj["data"]["user"].contains("isFreeTrialActive") 
+                    && parsed_obj["data"]["user"]["isFreeTrialActive"].is_boolean()) {
+                    is_free_trial_active = parsed_obj["data"]["user"]["isFreeTrialActive"].get<bool>();
+                }
+
+                // Parse isFreeTrialClaimed
+                if (parsed_obj["data"]["user"].contains("isFreeTrialClaimed") 
+                    && parsed_obj["data"]["user"]["isFreeTrialClaimed"].is_boolean()) {
+                    is_free_trial_claimed = parsed_obj["data"]["user"]["isFreeTrialClaimed"].get<bool>();
+                }
+
+                func(global_remaining_opt_count, global_remaining_addon_opt_count, subscription_name, free_trial_eligible, is_free_trial_active, is_free_trial_claimed);
             }
             else {
-                func(0, 0, "", false);
+                func(0, 0, "", false, false, false);
             }
         }
         catch (...) {
-            func(0, 0, "", false);
+            func(0, 0, "", false, false, false);
         }
             })
         .on_error([func](std::string body, std::string error, unsigned status) {
-            func(0, 0, "", false);
+            func(0, 0, "", false, false, false);
             BOOST_LOG_TRIVIAL(error) << "Failed to obtain remaining optimization attempts: " << error << ", status: " << status;
         })
         .perform();

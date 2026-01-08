@@ -301,7 +301,7 @@ public:
 
     /*user*/
     static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, 
-        std::function<void(int times, int addons, const std::string& subscription_name, bool free_trial_eligible)> func);
+        std::function<void(int times, int addons, const std::string& subscription_name, bool free_trial_eligible, bool is_free_trial_active, bool is_free_trial_claimed)> func);
 };
 
 class HelioBackgroundProcess
