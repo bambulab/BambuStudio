@@ -88,7 +88,7 @@ public:
     std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
-    std::string unretract();
+    std::string unretract(float extra_retract = 0.f);
     double get_extruder_retracted_length(const int filament_id);
     // do lift instantly
     std::string eager_lift(const LiftType type,bool tool_change = false);

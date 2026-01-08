@@ -1407,7 +1407,13 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             hole_limit_max))
     ((ConfigOptionFloats,             filament_prime_volume))
     ((ConfigOptionFloats,             filament_prime_volume_nc))
-    ((ConfigOptionFloatsNullable,     filament_cooling_before_tower)))
+    ((ConfigOptionFloatsNullable,     filament_cooling_before_tower))
+    ((ConfigOptionFloats,             filament_tower_interface_pre_extrusion_dist))
+    ((ConfigOptionFloats,             filament_tower_interface_pre_extrusion_length))
+    ((ConfigOptionFloats,             filament_tower_ironing_area))
+    ((ConfigOptionFloats,             filament_tower_interface_purge_volume))
+    ((ConfigOptionInts,               filament_tower_interface_print_temp))
+    ((ConfigOptionBool,               enable_tower_interface_features)))
 // This object is mapped to Perl as Slic3r::Config::Full.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
     FullPrintConfig,

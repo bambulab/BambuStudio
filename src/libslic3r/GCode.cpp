@@ -867,7 +867,18 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("flush_length", new ConfigOptionFloat(purge_length));
                 config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
                 config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
-
+                if (m_print_config->enable_tower_interface_features.value) {
+                    config.set_key_value("is_prime_tower_interface", new ConfigOptionBool(tcr.is_contact));
+                    config.set_key_value("filament_tower_interface_purge_volume", new ConfigOptionFloat(m_print_config->filament_tower_interface_purge_volume.get_at(tcr.new_tool)));
+                    int filament_tower_interface_print_temp = m_print_config->filament_tower_interface_print_temp.get_at(tcr.new_tool);
+                    if (filament_tower_interface_print_temp == -1)
+                        filament_tower_interface_print_temp = m_print_config->nozzle_temperature_range_high.get_at(tcr.new_tool);
+                    config.set_key_value("filament_tower_interface_print_temp", new ConfigOptionInt(filament_tower_interface_print_temp));
+                } else {
+                    config.set_key_value("is_prime_tower_interface", new ConfigOptionBool(false));
+                    config.set_key_value("filament_tower_interface_purge_volume", new ConfigOptionFloat(0));
+                    config.set_key_value("filament_tower_interface_print_temp", new ConfigOptionInt(-1));
+                }
                 std::vector<double> filament_cooling_before_tower = m_print_config->filament_cooling_before_tower.values;
                 if (tcr.is_contact) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
                 config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
@@ -944,7 +955,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // end_point at the tower’s start_pos or at the starting point of the tower’s detour path.
             // In this case, disable “avoid crossing perimeters” to prevent inserting additional path points inside the previous printed object.
             gcodegen.m_avoid_crossing_perimeters.disable_once();
-
             // move to start_pos for wiping after toolchange
             if (!is_used_travel_avoid_perimeter) {
                 std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d), erMixed, "Move to start pos");
@@ -994,9 +1004,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         }
 
         // do unretract after setting current extruder_id
-        std::string toolchange_unretract_str = gcodegen.unretract();
-        check_add_eol(toolchange_unretract_str);
-
+        float filament_tower_interface_pre_extrusion_length = gcodegen.m_config.filament_tower_interface_pre_extrusion_length.values[tcr.new_tool];
+        std::string toolchange_unretract_str = (tcr.is_contact && gcodegen.m_config.enable_tower_interface_features) ? gcodegen.unretract(filament_tower_interface_pre_extrusion_length) : gcodegen.unretract();
+        // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
         gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_filament_id));
         gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(new_filament_id));
@@ -6913,6 +6923,9 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("wipe_tower_center_pos_x", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("wipe_tower_center_pos_y", new ConfigOptionFloat(0.f));
     dyn_config.set_key_value("wipe_tower_center_pos_valid", new ConfigOptionBool(false));
+    dyn_config.set_key_value("is_prime_tower_interface", new ConfigOptionBool(false));
+    dyn_config.set_key_value("filament_tower_interface_purge_volume", new ConfigOptionFloat(0));
+    dyn_config.set_key_value("filament_tower_interface_print_temp", new ConfigOptionFloat(-1));
     std::vector<double> filament_cooling_before_tower = m_config.filament_cooling_before_tower.values;
     std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
     dyn_config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
@@ -6996,7 +7009,6 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     if (m_config.single_extruder_multi_material && !m_config.enable_prime_tower) {
         int temp = (m_layer_index <= 0 ? m_config.nozzle_temperature_initial_layer.get_at(new_filament_id) :
                                          m_config.nozzle_temperature.get_at(new_filament_id));
-
         gcode += m_writer.set_temperature(temp, false);
     }
 

@@ -6215,8 +6215,8 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
         if (filament_id == -1)
             return from_or_to ? 140 : 0; // default temp
         double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);
-        if(consider_cooling_before_tower)
-            return (int)(temp - filament_cooling_before_tower[filament_id]);
+        if (consider_cooling_before_tower)
+            return (int) (temp - filament_cooling_before_tower[filament_id]);
         else
             return (int)(temp);
         };
