@@ -157,10 +157,19 @@ public:
         std::vector<Caveat> caveats;
     };
 
+    struct SuggestedFix
+    {
+        std::string category;  // "QUICK", "ADVANCED", "EXPERT"
+        std::vector<std::string> extraDetails;
+        std::string fix;
+        boost::optional<int> orderIndex;
+    };
+
     struct SimulationResult
     {
         boost::optional<PrintInfo> printInfo;
         boost::optional<double> speedFactor;
+        std::vector<SuggestedFix> suggestedFixes;
     };
 
     struct CheckSimulationProgressResult

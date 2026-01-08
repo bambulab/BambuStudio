@@ -1047,7 +1047,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 {
     HelioQuery::CheckSimulationProgressResult res;
     std::string                               query_body_template = R"( {
-							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl printInfo { printOutcome printOutcomeDescription temperatureDirection temperatureDirectionDescription caveats { caveatType description } } speedFactor } }",
+							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl printInfo { printOutcome printOutcomeDescription temperatureDirection temperatureDirectionDescription caveats { caveatType description } } speedFactor suggestedFixes { category extraDetails fix orderIndex } } }",
 							"variables": {
 								"id": "%1%"
 							}
@@ -1126,6 +1126,31 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
                     if (parsed_obj["data"]["simulation"].contains("speedFactor") && 
                         !parsed_obj["data"]["simulation"]["speedFactor"].is_null()) {
                         res.simulationResult.speedFactor = parsed_obj["data"]["simulation"]["speedFactor"];
+                    }
+                    
+                    // Parse suggestedFixes if present
+                    if (parsed_obj["data"]["simulation"].contains("suggestedFixes") && 
+                        parsed_obj["data"]["simulation"]["suggestedFixes"].is_array()) {
+                        for (const auto& fixJson : parsed_obj["data"]["simulation"]["suggestedFixes"]) {
+                            SuggestedFix fix;
+                            if (fixJson.contains("category") && fixJson["category"].is_string()) {
+                                fix.category = fixJson["category"];
+                            }
+                            if (fixJson.contains("fix") && fixJson["fix"].is_string()) {
+                                fix.fix = fixJson["fix"];
+                            }
+                            if (fixJson.contains("orderIndex") && !fixJson["orderIndex"].is_null()) {
+                                fix.orderIndex = fixJson["orderIndex"].get<int>();
+                            }
+                            if (fixJson.contains("extraDetails") && fixJson["extraDetails"].is_array()) {
+                                for (const auto& detail : fixJson["extraDetails"]) {
+                                    if (detail.is_string()) {
+                                        fix.extraDetails.push_back(detail.get<std::string>());
+                                    }
+                                }
+                            }
+                            res.simulationResult.suggestedFixes.push_back(fix);
+                        }
                     }
                 }
             }

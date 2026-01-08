@@ -32,6 +32,7 @@ namespace GUI {
 #include <miniz.h>
 #include <wx/valnum.h>
 #include <algorithm>
+#include <climits>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 
@@ -3499,68 +3500,120 @@ void HelioSimulationResultsDialog::create_fix_suggestions_section(wxBoxSizer* pa
         ready_label->SetForegroundColour(theme.text);
         content_sizer->Add(ready_label, 0, wxTOP, FromDIP(8));
     }
-    else if (direction == "OVERCOOLING") {
-        // Title
-        auto title_label = new Label(m_fix_suggestions_content, Label::Body_14, _L("Too cold (overall)"));
+    else if (!m_simulation.suggestedFixes.empty()) {
+        // Use dynamic suggested fixes from API
+        
+        // Title based on temperature direction
+        wxString title_text;
+        wxString body_text;
+        if (direction == "OVERCOOLING") {
+            title_text = _L("Too cold (overall)");
+            body_text = _L("The part cools too fast between layers on average. Some layers may behave differently—see observations.");
+        } else if (direction == "OVERHEATING") {
+            title_text = _L("Too hot (overall)");
+            body_text = _L("The part stays too warm between layers on average. Some layers may behave differently—see observations.");
+        } else {
+            title_text = _L("Suggestions");
+            body_text = wxString();
+        }
+        
+        auto title_label = new Label(m_fix_suggestions_content, Label::Body_14, title_text);
         title_label->SetForegroundColour(theme.text);
         wxFont bold_font = title_label->GetFont();
         bold_font.SetWeight(wxFONTWEIGHT_BOLD);
         title_label->SetFont(bold_font);
         content_sizer->Add(title_label, 0, wxTOP, FromDIP(8));
         
-        // Body
-        auto body_label = new Label(m_fix_suggestions_content, Label::Body_13, 
-            _L("The part cools too fast between layers on average. Some layers may behave differently—see observations."));
-        body_label->SetForegroundColour(theme.text);
-        body_label->SetSize(wxSize(FromDIP(500), -1));
-        body_label->SetMinSize(wxSize(FromDIP(500), -1));
-        body_label->SetMaxSize(wxSize(FromDIP(500), -1));
-        body_label->Wrap(FromDIP(500));
-        content_sizer->Add(body_label, 0, wxTOP, FromDIP(4));
+        if (!body_text.IsEmpty()) {
+            auto body_label = new Label(m_fix_suggestions_content, Label::Body_13, body_text);
+            body_label->SetForegroundColour(theme.text);
+            body_label->SetSize(wxSize(FromDIP(500), -1));
+            body_label->SetMinSize(wxSize(FromDIP(500), -1));
+            body_label->SetMaxSize(wxSize(FromDIP(500), -1));
+            body_label->Wrap(FromDIP(500));
+            content_sizer->Add(body_label, 0, wxTOP, FromDIP(4));
+        }
         
-        // Quick fixes
-        auto quick_fixes_title = new Label(m_fix_suggestions_content, Label::Body_13, _L("Quick fixes (beginner):"));
-        quick_fixes_title->SetForegroundColour(theme.text);
-        wxFont qf_bold = quick_fixes_title->GetFont();
-        qf_bold.SetWeight(wxFONTWEIGHT_BOLD);
-        quick_fixes_title->SetFont(qf_bold);
-        content_sizer->Add(quick_fixes_title, 0, wxTOP, FromDIP(12));
+        // Group fixes by category
+        std::vector<HelioQuery::SuggestedFix> quick_fixes;
+        std::vector<HelioQuery::SuggestedFix> advanced_fixes;
+        std::vector<HelioQuery::SuggestedFix> expert_fixes;
         
-        auto quick_fixes = new Label(m_fix_suggestions_content, Label::Body_13,
-            _L("1. Lower fan speed (except bridges/overhangs)\n"
-               "2. Print faster and/or reduce minimum layer time\n"
-               "3. Increase chamber temperature"));
-        quick_fixes->SetForegroundColour(theme.text);
-        content_sizer->Add(quick_fixes, 0, wxTOP | wxLEFT, FromDIP(4));
+        for (const auto& fix : m_simulation.suggestedFixes) {
+            if (fix.category == "QUICK") {
+                quick_fixes.push_back(fix);
+            } else if (fix.category == "ADVANCED") {
+                advanced_fixes.push_back(fix);
+            } else if (fix.category == "EXPERT") {
+                expert_fixes.push_back(fix);
+            }
+        }
         
-        // Advanced expander
-        auto advanced_sizer = create_nested_expander(m_fix_suggestions_content, _L("Advanced"),
-            m_advanced_arrow, m_advanced_content, [this]() { toggle_advanced(); });
-        wxBoxSizer* adv_content_sizer = new wxBoxSizer(wxVERTICAL);
-        add_wrapped_label(m_advanced_content, adv_content_sizer,
-            _L("If you've calibrated flow Max volumetric speed, increase flow to that limit"));
-        m_advanced_content->SetSizer(adv_content_sizer);
-        content_sizer->Add(advanced_sizer, 0, wxLEFT, 0);
+        // Sort quick fixes by orderIndex
+        std::sort(quick_fixes.begin(), quick_fixes.end(), [](const HelioQuery::SuggestedFix& a, const HelioQuery::SuggestedFix& b) {
+            int a_order = a.orderIndex ? *a.orderIndex : INT_MAX;
+            int b_order = b.orderIndex ? *b.orderIndex : INT_MAX;
+            return a_order < b_order;
+        });
         
-        // Expert expander (includes infill/walls guide)
-        auto expert_sizer = create_nested_expander(m_fix_suggestions_content, _L("Expert"),
-            m_expert_arrow, m_expert_content, [this]() { toggle_expert(); });
-        wxBoxSizer* exp_content_sizer = new wxBoxSizer(wxVERTICAL);
-        add_wrapped_label(m_expert_content, exp_content_sizer,
-            _L("Reduce infill / adjust walls to shorten time-per-layer"));
-        // Rule of thumb for infill - VERBATIM
-        add_wrapped_label(m_expert_content, exp_content_sizer,
-            _L("Rule of thumb for infill:\n"
-               "• Start here: Infill 5%, Walls 3–4\n"
-               "• Infill pattern: Lightning (for decorative parts, fastest) → or Grid (usually faster) → Gyroid (slower but has more even strength)"));
-        // Top surface scale guidance - VERBATIM
-        add_wrapped_label(m_expert_content, exp_content_sizer,
-            _L("Top surface scale guidance:\n"
-               "• Small top (≤ 3 cm across): keep 5% (or 0–3% for decor)\n"
-               "• Large top (≥ 6 cm across): raise infill to 8–12%, increase Top Shell thickness from 1.0 mm → 1.2–1.6 mm (+2 top layers)\n"
-               "• For advanced users: add a Modifier on stressed zones (screw holes, clips, hinges, mounts) → set that region to higher infill and/or +1–2 walls"));
-        m_expert_content->SetSizer(exp_content_sizer);
-        content_sizer->Add(expert_sizer, 0, wxLEFT, 0);
+        // Render quick fixes as numbered list
+        if (!quick_fixes.empty()) {
+            auto quick_fixes_title = new Label(m_fix_suggestions_content, Label::Body_13, _L("Quick fixes (beginner):"));
+            quick_fixes_title->SetForegroundColour(theme.text);
+            wxFont qf_bold = quick_fixes_title->GetFont();
+            qf_bold.SetWeight(wxFONTWEIGHT_BOLD);
+            quick_fixes_title->SetFont(qf_bold);
+            content_sizer->Add(quick_fixes_title, 0, wxTOP, FromDIP(12));
+            
+            wxString quick_fixes_text;
+            int idx = 1;
+            for (const auto& fix : quick_fixes) {
+                if (!quick_fixes_text.IsEmpty()) {
+                    quick_fixes_text += "\n";
+                }
+                quick_fixes_text += wxString::Format("%d. %s", idx++, wxString::FromUTF8(fix.fix.c_str()));
+            }
+            
+            auto quick_fixes_label = new Label(m_fix_suggestions_content, Label::Body_13, quick_fixes_text);
+            quick_fixes_label->SetForegroundColour(theme.text);
+            content_sizer->Add(quick_fixes_label, 0, wxTOP | wxLEFT, FromDIP(4));
+        }
+        
+        // Render advanced fixes in expander
+        if (!advanced_fixes.empty()) {
+            auto advanced_sizer = create_nested_expander(m_fix_suggestions_content, _L("Advanced"),
+                m_advanced_arrow, m_advanced_content, [this]() { toggle_advanced(); });
+            wxBoxSizer* adv_content_sizer = new wxBoxSizer(wxVERTICAL);
+            
+            for (const auto& fix : advanced_fixes) {
+                add_wrapped_label(m_advanced_content, adv_content_sizer, wxString::FromUTF8(fix.fix.c_str()));
+                // Add extra details as bullet points
+                for (const auto& detail : fix.extraDetails) {
+                    add_wrapped_label(m_advanced_content, adv_content_sizer, 
+                        wxString("• ") + wxString::FromUTF8(detail.c_str()));
+                }
+            }
+            m_advanced_content->SetSizer(adv_content_sizer);
+            content_sizer->Add(advanced_sizer, 0, wxLEFT, 0);
+        }
+        
+        // Render expert fixes in expander
+        if (!expert_fixes.empty()) {
+            auto expert_sizer = create_nested_expander(m_fix_suggestions_content, _L("Expert"),
+                m_expert_arrow, m_expert_content, [this]() { toggle_expert(); });
+            wxBoxSizer* exp_content_sizer = new wxBoxSizer(wxVERTICAL);
+            
+            for (const auto& fix : expert_fixes) {
+                add_wrapped_label(m_expert_content, exp_content_sizer, wxString::FromUTF8(fix.fix.c_str()));
+                // Add extra details as bullet points
+                for (const auto& detail : fix.extraDetails) {
+                    add_wrapped_label(m_expert_content, exp_content_sizer, 
+                        wxString("• ") + wxString::FromUTF8(detail.c_str()));
+                }
+            }
+            m_expert_content->SetSizer(exp_content_sizer);
+            content_sizer->Add(expert_sizer, 0, wxLEFT, 0);
+        }
         
         // Learn more expander
         auto learn_more_sizer = create_nested_expander(m_fix_suggestions_content, _L("Learn more"),
@@ -3576,64 +3629,17 @@ void HelioSimulationResultsDialog::create_fix_suggestions_section(wxBoxSizer* pa
         link1->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
         learn_content_sizer->Add(link1, 0, wxTOP, FromDIP(4));
         
-        auto link2 = new Label(m_learn_more_content, Label::Body_13, _L("Fixing cold prints"));
-        link2->SetForegroundColour(theme.purple);
-        link2->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
-            wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/simulation/how-tos/fixing-cold-prints");
-        });
-        link2->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-        link2->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-        learn_content_sizer->Add(link2, 0, wxTOP, FromDIP(4));
-        
-        m_learn_more_content->SetSizer(learn_content_sizer);
-        content_sizer->Add(learn_more_sizer, 0, wxLEFT, 0);
-    }
-    else if (direction == "OVERHEATING") {
-        // Title
-        auto title_label = new Label(m_fix_suggestions_content, Label::Body_14, _L("Too hot (overall)"));
-        title_label->SetForegroundColour(theme.text);
-        wxFont bold_font = title_label->GetFont();
-        bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-        title_label->SetFont(bold_font);
-        content_sizer->Add(title_label, 0, wxTOP, FromDIP(8));
-        
-        // Body
-        auto body_label = new Label(m_fix_suggestions_content, Label::Body_13, 
-            _L("The part stays too warm between layers on average. Some layers may behave differently—see observations."));
-        body_label->SetForegroundColour(theme.text);
-        body_label->SetSize(wxSize(FromDIP(500), -1));
-        body_label->SetMinSize(wxSize(FromDIP(500), -1));
-        body_label->SetMaxSize(wxSize(FromDIP(500), -1));
-        body_label->Wrap(FromDIP(500));
-        content_sizer->Add(body_label, 0, wxTOP, FromDIP(4));
-        
-        // Quick fixes
-        auto quick_fixes_title = new Label(m_fix_suggestions_content, Label::Body_13, _L("Quick fixes (beginner):"));
-        quick_fixes_title->SetForegroundColour(theme.text);
-        wxFont qf_bold = quick_fixes_title->GetFont();
-        qf_bold.SetWeight(wxFONTWEIGHT_BOLD);
-        quick_fixes_title->SetFont(qf_bold);
-        content_sizer->Add(quick_fixes_title, 0, wxTOP, FromDIP(12));
-        
-        auto quick_fixes = new Label(m_fix_suggestions_content, Label::Body_13,
-            _L("1. Increase fan speed (especially bridges/overhangs)\n"
-               "2. Print slower and/or increase minimum layer time"));
-        quick_fixes->SetForegroundColour(theme.text);
-        content_sizer->Add(quick_fixes, 0, wxTOP | wxLEFT, FromDIP(4));
-        
-        // Learn more expander for overheating
-        auto learn_more_sizer = create_nested_expander(m_fix_suggestions_content, _L("Learn more"),
-            m_learn_more_arrow, m_learn_more_content, [this]() { toggle_learn_more(); });
-        wxBoxSizer* learn_content_sizer = new wxBoxSizer(wxVERTICAL);
-        
-        auto link1 = new Label(m_learn_more_content, Label::Body_13, _L("Helio Flowchart"));
-        link1->SetForegroundColour(theme.purple);
-        link1->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
-            wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/flowchart");
-        });
-        link1->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
-        link1->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
-        learn_content_sizer->Add(link1, 0, wxTOP, FromDIP(4));
+        // Add context-sensitive link based on temperature direction
+        if (direction == "OVERCOOLING") {
+            auto link2 = new Label(m_learn_more_content, Label::Body_13, _L("Fixing cold prints"));
+            link2->SetForegroundColour(theme.purple);
+            link2->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& e) {
+                wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/simulation/how-tos/fixing-cold-prints");
+            });
+            link2->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+            link2->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+            learn_content_sizer->Add(link2, 0, wxTOP, FromDIP(4));
+        }
         
         m_learn_more_content->SetSizer(learn_content_sizer);
         content_sizer->Add(learn_more_sizer, 0, wxLEFT, 0);
