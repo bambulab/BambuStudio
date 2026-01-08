@@ -9833,6 +9833,197 @@ static std::vector<HelioQuery::SupportedData> find_similar_materials(
     return similar_materials;
 }
 
+// Helper function to extract printer model keywords from printer name
+// This helps find similar printers when exact match fails
+static std::vector<std::string> extract_printer_keywords(const std::string& printer_name)
+{
+    std::vector<std::string> keywords;
+    std::string lower_name = printer_name;
+    boost::algorithm::to_lower(lower_name);
+    
+    // Common Bambu Lab printer series keywords
+    std::vector<std::string> printer_models = {
+        "x1c", "x1e", "x1", "p1s", "p1p", "p1", "a1", "a1 mini",
+        "h2d", "h2d pro", "h2" , "a", "p", "x", "h"
+    };
+    
+    for (const std::string& model : printer_models) {
+        if (lower_name.find(model) != std::string::npos) {
+            keywords.push_back(model);
+        }
+    }
+    
+    return keywords;
+}
+
+// Helper function to find similar printers based on keywords
+static std::vector<HelioQuery::SupportedData> find_similar_printers(
+    const std::string& target_name,
+    const std::vector<std::string>& keywords)
+{
+    std::vector<HelioQuery::SupportedData> similar_printers;
+    
+    // If no keywords found, return all printers as options
+    if (keywords.empty()) {
+        for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_printers) {
+            if (!pdata.native_name.empty()) {
+                similar_printers.push_back(pdata);
+            }
+        }
+        return similar_printers;
+    }
+    
+    std::string lower_target = target_name;
+    boost::algorithm::to_lower(lower_target);
+    
+    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_printers) {
+        if (pdata.native_name.empty()) {
+            continue;
+        }
+        
+        std::string lower_native = pdata.native_name;
+        boost::algorithm::to_lower(lower_native);
+        
+        // Check if any keyword appears in the native printer name
+        bool has_keyword = false;
+        for (const std::string& keyword : keywords) {
+            if (lower_native.find(keyword) != std::string::npos) {
+                has_keyword = true;
+                break;
+            }
+        }
+        
+        if (has_keyword) {
+            similar_printers.push_back(pdata);
+        }
+    }
+    
+    return similar_printers;
+}
+
+// Helper function to match printer name with word-boundary awareness
+// Returns the matched printer ID and match length if found, empty string otherwise
+// Handles cases like "myBambu Lab H2Dsmells" matching to "Bambu Lab H2D"
+static std::pair<std::string, size_t> match_printer_with_boundaries(
+    const std::string& target_name,
+    const std::vector<HelioQuery::SupportedData>& supported_printers)
+{
+    std::string best_match_id;
+    size_t best_match_length = 0;
+    
+    std::string target_lower = target_name;
+    boost::algorithm::to_lower(target_lower);
+    
+    for (const HelioQuery::SupportedData& pdata : supported_printers) {
+        if (pdata.native_name.empty()) continue;
+        
+        std::string native_name = pdata.native_name;
+        boost::algorithm::to_lower(native_name);
+        
+        bool is_match = false;
+        
+        // Case 1: Exact match (highest priority)
+        if (target_lower == native_name) {
+            is_match = true;
+        }
+        // Case 2: Target is longer than native name - user may have added prefix/suffix
+        // e.g., "myBambu Lab H2Dsmells" contains "Bambu Lab H2D"
+        // We check if target CONTAINS native_name (not the other way around!)
+        else if (target_lower.length() > native_name.length()) {
+            size_t pos = target_lower.find(native_name);
+            if (pos != std::string::npos) {
+                // For word boundary matching with modified names like "myBambu Lab H2Dsmells"
+                // We check if native_name appears in target and prefer longer matches
+                is_match = true;
+            }
+        }
+        // Case 3: Native name is longer than target - DO NOT automatically match
+        // e.g., "Bambu Lab H2D" should NOT match "Bambu Lab H2D Pro"
+        // This is intentionally left out to prevent the exact issue reported:
+        // "Bambu Lab H2D" was incorrectly matching "Bambu Lab H2D Pro" because
+        // the old logic checked if native contains target with word boundaries.
+        // If user needs a more specific printer, they should select it explicitly.
+        
+        // Keep track of longest native_name match to prefer more specific printers
+        // when user has modified preset names with prefix/suffix
+        // e.g., if user has "myBambu Lab H2D Pro test", we want "H2D Pro" not "H2D"
+        if (is_match && native_name.length() > best_match_length) {
+            best_match_length = native_name.length();
+            best_match_id = pdata.id;
+        }
+    }
+    
+    return std::make_pair(best_match_id, best_match_length);
+}
+
+// Token-based matching for printers with modified preset names
+// Handles cases like "myBambu Lab H2Dsmells" or "yourH2Dfast"
+static std::pair<std::string, std::string> match_printer_tokens(
+    const std::string& target_name,
+    const std::vector<HelioQuery::SupportedData>& supported_printers)
+{
+    std::string target_lower = target_name;
+    boost::algorithm::to_lower(target_lower);
+    
+    // Tokenize target name by spaces
+    std::vector<std::string> target_tokens;
+    boost::split(target_tokens, target_lower, boost::is_any_of(" "), boost::token_compress_on);
+    
+    size_t best_token_match_length = 0;
+    std::string best_printer_id;
+    std::string best_native_name;
+    
+    for (const HelioQuery::SupportedData& pdata : supported_printers) {
+        if (pdata.native_name.empty()) continue;
+        
+        std::string native_name = pdata.native_name;
+        std::string native_lower = native_name;
+        boost::algorithm::to_lower(native_lower);
+        
+        // Tokenize native name
+        std::vector<std::string> native_tokens;
+        boost::split(native_tokens, native_lower, boost::is_any_of(" "), boost::token_compress_on);
+        
+        // Check if all native tokens appear in target tokens in order
+        // Also check if native tokens are embedded within target tokens
+        // (e.g., "h2d" in "myh2dsmells")
+        bool all_tokens_match = true;
+        size_t target_idx = 0;
+        
+        for (const std::string& native_token : native_tokens) {
+            bool found = false;
+            for (size_t i = target_idx; i < target_tokens.size(); ++i) {
+                // Check for exact match
+                if (target_tokens[i] == native_token) {
+                    found = true;
+                    target_idx = i + 1;
+                    break;
+                }
+                // Check if native token is embedded in target token
+                // (e.g., "h2d" in "myh2dsmells")
+                else if (target_tokens[i].find(native_token) != std::string::npos) {
+                    found = true;
+                    target_idx = i + 1;
+                    break;
+                }
+            }
+            if (!found) {
+                all_tokens_match = false;
+                break;
+            }
+        }
+        
+        // Keep track of longest token match
+        if (all_tokens_match && native_lower.length() > best_token_match_length) {
+            best_token_match_length = native_lower.length();
+            best_printer_id = pdata.id;
+            best_native_name = pdata.native_name; // Keep original case for display
+        }
+    }
+    
+    return std::make_pair(best_printer_id, best_native_name);
+}
+
 // Structure to hold filament support information for multi-filament checking
 struct FilamentSupportInfo {
     std::string preset_name;        // Original preset name
@@ -10440,34 +10631,301 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": preset_name = '" << preset_name << "', preset_pure_name = '" << preset_pure_name << "'";
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": global_supported_printers.size() = " << HelioQuery::global_supported_printers.size();
     
-     if (preset_pure_name.empty()) {
+    // For printer matching, use the full preset_name to handle modified names like "myBambu Lab H2Dsmells"
+    std::string printer_target_name = preset_name;
+    boost::trim(printer_target_name);
+    
+    if (printer_target_name.empty()) {
         GUI::MessageDialog msgdialog(nullptr, _L("Invalid printer preset. Unable to slice with Helio."), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
         return -1;
     }
 
-     bool helio_support = false;
-     for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_printers) {
-         if (!pdata.native_name.empty()) {
-             std::string native_name = pdata.native_name;
-             boost::algorithm::to_lower(native_name);
-             boost::algorithm::to_lower(preset_pure_name);
-             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": Comparing native_name='" << native_name << "' with preset_pure_name='" << preset_pure_name << "'";
-             if (native_name.find(preset_pure_name) != std::string::npos) {
-                 helio_support = true;
-                 printer_id = pdata.id;
-                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Found match! printer_id = " << printer_id;
-                 break;
-             }
-         }
+    bool helio_support = false;
+    bool helio_using_reference_printer = false;
+    
+    // Step 1: Try word-boundary matching (similar to material matching logic)
+    // This finds the best (longest) match to prefer specific printers over generic ones
+    // e.g., "H2D Pro" should match before "H2D" when both could match
+    auto [best_match_id, best_match_length] = match_printer_with_boundaries(
+        printer_target_name, HelioQuery::global_supported_printers);
+    
+    if (!best_match_id.empty()) {
+        helio_support = true;
+        printer_id = best_match_id;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Found word-boundary match! printer_id = " << printer_id;
     }
-
-    /*unsupported helio printers*/
-     if (!helio_support) {
-        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": No matching printer found for '" << preset_pure_name << "'";
-        GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
+    
+    // Step 2: If no match, try token-based matching for modified preset names
+    // This handles cases like "myBambu Lab H2Dsmells" or "yourH2Dfast"
+    if (!helio_support) {
+        auto [token_printer_id, token_native_name] = match_printer_tokens(
+            printer_target_name, HelioQuery::global_supported_printers);
+        
+        if (!token_printer_id.empty()) {
+            // Show confirmation dialog for token-based match
+            wxString message = wxString::Format(
+                _L("Helio found a potential printer match using token-based matching:\n\nYour printer: %s\nMatched printer: %s\n\nDo you want to use this match, or would you prefer to rename your printer profile?"),
+                printer_target_name, token_native_name);
+            
+            GUI::MessageDialog msgdialog(nullptr, message, _L("Helio Printer Match Confirmation"), 
+                                        wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+            int result = msgdialog.ShowModal();
+            
+            if (result == wxID_YES) {
+                printer_id = token_printer_id;
+                helio_support = true;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": User accepted token-based match: %1% -> %2%") 
+                                        % printer_target_name % token_native_name;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": User rejected token-based match for %1%") % printer_target_name;
+            }
+        }
+    }
+    
+    // Step 3: If still no match, show dialog to select a reference printer
+    if (!helio_support) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": No matching printer found for '" << printer_target_name << "'";
+        
+        // Extract keywords and find similar printers
+        std::vector<std::string> keywords = extract_printer_keywords(printer_target_name);
+        std::vector<HelioQuery::SupportedData> similar_printers = find_similar_printers(printer_target_name, keywords);
+        
+        if (!similar_printers.empty()) {
+            // Create list of printer names for selection dialog
+            wxArrayString printer_choices;
+            std::vector<std::string> printer_ids;
+            for (const auto& printer : similar_printers) {
+                printer_choices.Add(wxString::FromUTF8(printer.native_name));
+                printer_ids.push_back(printer.id);
+            }
+            
+            // Create custom dialog class for printer selection
+            class PrinterSelectionDialog : public DPIDialog {
+            public:
+                PrinterSelectionDialog(wxWindow* parent, const wxArrayString& choices, 
+                                      const wxString& used_printer, ComboBox*& combo_out)
+                    : DPIDialog(parent, wxID_ANY, _L("Unsupported Printer Detected"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+                    , m_combo_out(combo_out)
+                    , m_used_printer(used_printer)
+                {
+                    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+                    wxWindow* mainframe = static_cast<wxWindow *>(wxGetApp().mainframe);
+                    
+                    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+                    main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+                    
+                    bool is_dark_mode = wxGetApp().dark_mode();
+                    wxColour text_color = wxGetApp().get_label_clr_default();
+                    
+                    // Warning header with orange styling
+                    wxColour warning_color = wxColour("#FF6F00");
+                    wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
+                    
+                    m_warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                   wxSize(wxWindowBase::FromDIP(470, this), -1));
+                    m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+                    m_warning_box->SetBackgroundColour(warning_bg);
+                    m_warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+                    m_warning_box->SetBorderWidth(2);
+                    m_warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+                    
+                    wxBoxSizer *warning_sizer = new wxBoxSizer(wxVERTICAL);
+                    warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+                    
+                    m_warning_title = new Label(m_warning_box, Label::Head_16, _L("⚠ Unsupported Printer Detected"));
+                    wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+                    m_warning_title->SetForegroundColour(warning_title_color);
+                    warning_sizer->Add(m_warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    wxString warning_msg = wxString::Format(_L("You're using %s which is not officially supported by Helio."), m_used_printer);
+                    m_warning_text = new Label(m_warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+                    wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+                    m_warning_text->SetForegroundColour(warning_text_color);
+                    m_warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+                    warning_sizer->Add(m_warning_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+                    
+                    m_warning_box->SetSizer(warning_sizer);
+                    main_sizer->Add(m_warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+                    
+                    // Option 1: Proceed with reference printer
+                    wxColour section_bg = is_dark_mode ? wxColour(50, 50, 55) : wxColour("#F8F8F8");
+                    wxColour section_border = is_dark_mode ? wxColour(70, 70, 75) : wxColour("#E8E8E8");
+                    
+                    StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                           wxSize(wxWindowBase::FromDIP(470, this), -1));
+                    option1_box->SetBackgroundColor(StateColor(std::make_pair(section_bg, (int)StateColor::Normal)));
+                    option1_box->SetBackgroundColour(section_bg);
+                    option1_box->SetBorderColor(StateColor(std::make_pair(section_border, (int)StateColor::Normal)));
+                    option1_box->SetBorderWidth(1);
+                    option1_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                    
+                    wxBoxSizer* option1_sizer = new wxBoxSizer(wxVERTICAL);
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    Label* option1_title = new Label(option1_box, Label::Head_14, _L("Option 1: Proceed with a reference printer"));
+                    option1_title->SetForegroundColour(text_color);
+                    option1_sizer->Add(option1_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    Label* option1_desc = new Label(option1_box, Label::Body_13, 
+                        _L("Select a similar printer to use for simulation:"), LB_AUTO_WRAP);
+                    option1_desc->SetForegroundColour(text_color);
+                    option1_sizer->Add(option1_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    // Dropdown for printer selection
+                    ComboBox *printer_combo = new ComboBox(option1_box, wxID_ANY, choices[0], 
+                                                           wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1), 
+                                                           0, NULL, wxCB_READONLY);
+                    for (const wxString &type_name : choices) { 
+                        printer_combo->Append(type_name); 
+                    }
+                    printer_combo->SetSelection(0);
+                    m_combo_out = printer_combo;
+                    option1_sizer->Add(printer_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    // Note about approximation
+                    wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
+                    Label* note_text = new Label(option1_box, Label::Body_12, 
+                        _L("Note: Using a reference printer may result in approximate simulation results."), LB_AUTO_WRAP);
+                    note_text->SetForegroundColour(note_color);
+                    note_text->Wrap(wxWindowBase::FromDIP(420, this));
+                    option1_sizer->Add(note_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    // Proceed button - right aligned
+                    wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                    option1_button_sizer->AddStretchSpacer();
+                    
+                    StateColor btn_bg_orange(std::pair<wxColour, int>(wxColour(200, 100, 50), StateColor::Pressed),
+                                             std::pair<wxColour, int>(wxColour(255, 140, 80), StateColor::Hovered),
+                                             std::pair<wxColour, int>(wxColour(230, 120, 60), StateColor::Normal));
+                    
+                    Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
+                    proceed_button->SetBackgroundColor(btn_bg_orange);
+                    proceed_button->SetBorderColor(*wxWHITE);
+                    proceed_button->SetTextColor(wxColour(0xFFFFFE));
+                    proceed_button->SetFont(Label::Body_12);
+                    proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+                    proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+                    proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                    proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+                    option1_button_sizer->Add(proceed_button, 0);
+                    
+                    option1_sizer->Add(option1_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    option1_box->SetSizer(option1_sizer);
+                    main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                    
+                    // Option 2: Go back (recommended)
+                    wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
+                    wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
+                    wxColour recommended_color = is_dark_mode ? wxColour(129, 199, 132) : wxColour("#2E7D32");
+                    
+                    StaticBox* option2_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                           wxSize(wxWindowBase::FromDIP(470, this), -1));
+                    option2_box->SetBackgroundColor(StateColor(std::make_pair(option2_bg, (int)StateColor::Normal)));
+                    option2_box->SetBackgroundColour(option2_bg);
+                    option2_box->SetBorderColor(StateColor(std::make_pair(option2_border, (int)StateColor::Normal)));
+                    option2_box->SetBorderWidth(2);
+                    option2_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                    
+                    wxBoxSizer* option2_sizer = new wxBoxSizer(wxVERTICAL);
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    wxBoxSizer* option2_header = new wxBoxSizer(wxHORIZONTAL);
+                    Label* option2_title = new Label(option2_box, Label::Head_14, _L("Option 2: Go back and change printer selection"));
+                    wxColour option2_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+                    option2_title->SetForegroundColour(option2_text_color);
+                    option2_header->Add(option2_title, 0, wxALIGN_CENTER_VERTICAL);
+                    option2_header->AddSpacer(wxWindowBase::FromDIP(10, this));
+                    
+                    Label* recommended_badge = new Label(option2_box, Label::Body_12, _L("✓ Recommended"));
+                    recommended_badge->SetForegroundColour(recommended_color);
+                    option2_header->Add(recommended_badge, 0, wxALIGN_CENTER_VERTICAL);
+                    
+                    option2_sizer->Add(option2_header, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    Label* option2_desc = new Label(option2_box, Label::Body_13, 
+                        _L("Change your printer selection to use a supported printer, then try again."), LB_AUTO_WRAP);
+                    option2_desc->SetForegroundColour(option2_text_color);
+                    option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
+                    option2_sizer->Add(option2_desc, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    // Go back button - right aligned
+                    wxBoxSizer* option2_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                    option2_button_sizer->AddStretchSpacer();
+                    
+                    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                                           std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                           std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+                    
+                    Button* goback_button = new Button(option2_box, _L("Go Back"));
+                    goback_button->SetBackgroundColor(btn_bg_green);
+                    goback_button->SetBorderColor(*wxWHITE);
+                    goback_button->SetTextColor(wxColour(0xFFFFFE));
+                    goback_button->SetFont(Label::Body_12);
+                    goback_button->SetSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+                    goback_button->SetMinSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+                    goback_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                    goback_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+                    option2_button_sizer->Add(goback_button, 0);
+                    
+                    option2_sizer->Add(option2_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    option2_box->SetSizer(option2_sizer);
+                    main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                    
+                    SetSizer(main_sizer);
+                    Layout();
+                    main_sizer->Fit(this);
+                    wxGetApp().UpdateDlgDarkUI(this);
+                }
+                
+                void on_dpi_changed(const wxRect &suggested_rect) override {}
+                
+            private:
+                ComboBox*& m_combo_out;
+                wxString m_used_printer;
+                Label* m_warning_title = nullptr;
+                Label* m_warning_text = nullptr;
+                StaticBox* m_warning_box = nullptr;
+            };
+            
+            ComboBox* printer_combo = nullptr;
+            PrinterSelectionDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), 
+                                          printer_choices, 
+                                          wxString::FromUTF8(printer_target_name),
+                                          printer_combo);
+            
+            int result = dialog.ShowModal();
+            int selection = (result == wxID_OK && printer_combo) ? printer_combo->GetSelection() : -1;
+            
+            if (selection >= 0 && selection < (int)printer_ids.size()) {
+                printer_id = printer_ids[selection];
+                helio_support = true;
+                helio_using_reference_printer = true;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": User selected reference printer: %1% -> %2% (id: %3%)") 
+                                            % printer_target_name % similar_printers[selection].native_name % printer_id;
+            } else {
+                // User cancelled
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": User cancelled printer selection for %1%") % printer_target_name;
+                return -1;
+            }
+        } else {
+            // No similar printers found (should not happen since find_similar_printers returns all printers when no keywords found)
+            GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
+            msgdialog.ShowModal();
+            return -1;
+        }
     }
 
     /*check total number of materials*/
@@ -10642,36 +11100,25 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
             boost::algorithm::to_lower(native_name);
             boost::algorithm::to_lower(target_name);
 
-            // Fuzzy match: check if target_name contains native_name with word boundaries
-            // This allows:
-            // - "Bambu TPU 95A HF brown" to match "Bambu TPU 95A HF" (suffix)
-            // - "yellow Bambu PCFR" to match "Bambu PC FR" (prefix)
+            // Fuzzy match: check if target_name contains native_name
+            // This allows modified preset names like:
+            // - "Bambu TPU 95A HF brown" to match "Bambu TPU 95A HF" (suffix with space)
+            // - "blueBambu PLA basicblue" to match "Bambu PLA Basic" (prefix/suffix no space)
             // - "Bambu TPU 95A HF" to match "Bambu TPU 95A HF" (exact)
+            // The longest matching native_name wins to prefer specific materials
             bool is_match = false;
             if (target_name == native_name) {
                 is_match = true;
             } else if (target_name.length() > native_name.length()) {
-                // Check if target_name starts with native_name followed by space (suffix case)
-                if (target_name.substr(0, native_name.length()) == native_name &&
-                    target_name[native_name.length()] == ' ') {
+                // Check if target_name contains native_name as a substring
+                // No word-boundary requirement - handles cases like "blueBambu PLA basicblue"
+                size_t pos = target_name.find(native_name);
+                if (pos != std::string::npos) {
                     is_match = true;
                 }
-                // Check if target_name contains native_name with word boundaries (prefix case)
-                // e.g., "yellow Bambu PCFR" contains "Bambu PC FR"
-                else {
-                    size_t pos = target_name.find(native_name);
-                    if (pos != std::string::npos) {
-                        // Check word boundary before native_name (start of string or space)
-                        bool valid_start = (pos == 0 || target_name[pos - 1] == ' ');
-                        // Check word boundary after native_name (end of string or space)
-                        size_t after_pos = pos + native_name.length();
-                        bool valid_end = (after_pos >= target_name.length() || target_name[after_pos] == ' ');
-                        if (valid_start && valid_end) {
-                            is_match = true;
-                        }
-                    }
-                }
             }
+            // Note: Do NOT match when native is longer than target
+            // e.g., "Bambu PLA" should not match "Bambu PLA Basic"
 
             // Keep track of longest match to prefer more specific materials
             if (is_match && native_name.length() > best_match_length) {
