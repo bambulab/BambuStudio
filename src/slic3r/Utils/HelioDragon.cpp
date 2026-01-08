@@ -1512,6 +1512,8 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
         HelioQuery::CreateSimulationResult create_simulation_res = HelioQuery::create_simulation(helio_api_url, helio_api_key, gcode_id, simulation_input_data);
         current_simulation_result = create_simulation_res;
         current_optimization_result.reset();
+        // Clear previous stored result since we're starting a new simulation
+        clear_last_simulation_result();
 
         if (!create_simulation_res.trace_id.empty()) {
             HelioQuery::last_simulation_trace_id = create_simulation_res.trace_id;  
@@ -1549,6 +1551,11 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                             std::string url = check_simulation_progress_res.url;
                             std::string filename = m_gcode_result->filename;
                             HelioQuery::SimulationResult sim_result = check_simulation_progress_res.simulationResult;
+                            
+                            // Store simulation result for later access (e.g., "View Summary" button)
+                            last_simulation_result = sim_result;
+                            last_original_print_time_seconds = original_time_seconds;
+                            last_action = 0;  // Simulation
                             
                             // Start preview loading in background thread immediately
                             std::string simulated_gcode_path = create_path_for_simulated_gcode(filename);
@@ -1631,6 +1638,8 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
         HelioQuery::CreateOptimizationResult create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
         current_optimization_result = create_optimization_res;
         current_simulation_result.reset();
+        // Clear previous stored result since we're starting a new optimization
+        clear_last_simulation_result();
 
         if (!create_optimization_res.trace_id.empty()) {
             HelioQuery::last_optimization_trace_id = create_optimization_res.trace_id;

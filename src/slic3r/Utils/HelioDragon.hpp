@@ -335,6 +335,29 @@ public:
     HelioQuery::CreateSimulationResult current_simulation_result;
     HelioQuery::CreateOptimizationResult current_optimization_result;
 
+    // Stored results for showing summary dialog later
+    // -1=none, 0=simulation, 1=optimization
+    int last_action{-1};
+    
+    // Simulation result data
+    HelioQuery::SimulationResult last_simulation_result;
+    int last_original_print_time_seconds{0};
+    
+    // Optimization result data
+    int last_optimized_print_time_seconds{0};
+    std::string last_quality_mean_improvement;
+    std::string last_quality_std_improvement;
+
+    // Clear stored simulation/optimization result (call when re-slicing)
+    void clear_last_simulation_result() {
+        last_action = -1;
+        last_simulation_result = HelioQuery::SimulationResult();
+        last_original_print_time_seconds = 0;
+        last_optimized_print_time_seconds = 0;
+        last_quality_mean_improvement.clear();
+        last_quality_std_improvement.clear();
+    }
+
     //for user input
     HelioQuery::SimulationInput         simulation_input_data;
     HelioQuery::OptimizationInput       optimization_input_data;
