@@ -1559,9 +1559,18 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
 
 bool PartPlate::check_multi_filament_without_prime_tower(const DynamicPrintConfig &config)
 {
-    int  filament_used_count = get_extruders(true).size();
+    int  filament_used_count = get_used_filaments().size();
+    if (filament_used_count == 0) { filament_used_count = get_extruders(true).size(); }
     auto prime_tower_enabled = config.option<ConfigOptionBool>("enable_prime_tower");
-    if ((filament_used_count > 1) && prime_tower_enabled && (!(prime_tower_enabled->value))) { return false; }
+    auto by_object_plate        = m_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+    bool is_by_object        = false;
+    if (by_object_plate)
+        is_by_object = by_object_plate->value == PrintSequence::ByObject;
+    else
+        is_by_object = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value == PrintSequence::ByObject;
+    int object_count = get_obj_and_inst_set().size();
+    is_by_object     = is_by_object && (object_count > 1);
+    if ((!is_by_object) && (filament_used_count > 1) && prime_tower_enabled && (!(prime_tower_enabled->value))) { return false; }
     return true;
 }
 
