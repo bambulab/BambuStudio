@@ -4,8 +4,8 @@ find_package(OpenGL QUIET REQUIRED)
 
 bambustudio_add_cmake_project(
   GLEW
-  URL https://sourceforge.net/projects/glew/files/glew/2.2.0/glew-2.2.0.zip
-  URL_HASH SHA256=a9046a913774395a095edcc0b0ac2d81c3aacca61787b39839b941e9be14e0d4
+  URL https://github.com/nigels-com/glew/releases/download/glew-2.3.0/glew-2.3.0.zip
+  URL_HASH SHA256=fe8fdbaa77cfa354ff400da323ea5e32b3641ad58a218607de74d2998b872e66
   SOURCE_SUBDIR build/cmake
   CMAKE_ARGS
     -DBUILD_UTILS=OFF
