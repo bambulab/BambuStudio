@@ -214,6 +214,7 @@ void TextInput::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         int unit_space = (m_unit.IsEmpty() ? 0 : unitSize.x + 5) + 10;
         wxSize textSize = text_ctrl->GetSize();
         textSize.x = size.x - textPos.x - labelSize.x - unit_space;
+        if(textSize.x < -1) textSize.x = -1;
         text_ctrl->SetSize(textSize);
         text_ctrl->SetPosition({textPos.x, (size.y - textSize.y) / 2});
     }
