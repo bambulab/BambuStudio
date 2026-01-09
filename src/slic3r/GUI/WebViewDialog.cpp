@@ -126,6 +126,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     m_online_toolbar_panel = new wxPanel(m_online_container);
     m_online_toolbar_panel->SetBackgroundColour(*wxWHITE);
+    m_online_container->SetBackgroundColour(m_online_toolbar_panel->GetBackgroundColour());
     m_online_toolbar_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_online_toolbar_panel->SetSizer(m_online_toolbar_sizer);
 
@@ -159,7 +160,11 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     m_online_open_browser_btn->Enable(false);
 
     m_online_toolbar_panel->Hide();
-    m_online_container_sizer->Add(m_online_toolbar_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(16));
+    int toolbar_top_padding = FromDIP(16);
+#ifdef __WXOSX__
+    toolbar_top_padding = FromDIP(8);
+#endif
+    m_online_container_sizer->Add(m_online_toolbar_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, toolbar_top_padding);
 
     //Create Webview Panel
     m_home_web = new wxBoxSizer(wxHORIZONTAL);
