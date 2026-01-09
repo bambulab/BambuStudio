@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2600,6 +2600,9 @@ msgstr "Özel Şablon:"
 
 msgid "Custom G-code:"
 msgstr "Özel G kodu:"
+
+msgid "Toggle path view to current layer/all layers"
+msgstr ""
 
 msgid "Custom G-code"
 msgstr "Özel G kodu"
@@ -15098,7 +15101,11 @@ msgid "(Sync with printer)"
 msgstr "(Yazıcı ile senkronize edin)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
@@ -15106,12 +15113,6 @@ msgstr "Bu gruplama yöntemine göre dilimleyeceğiz:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "İpuçları: Filamentleri farklı nozullara yeniden atamak için sürükleyebilirsiniz."
-
-msgid "Please adjust your grouping or click "
-msgstr ""
-
-msgid " to set nozzle count"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr "Bij gebruik van ABS/ASA/PETG HF op de rechter extruder, kan deze alleen als ondersteunend materiaal worden gebruikt."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
-msgstr ""
+msgstr "Automatische dynamische doorstroomkalibratie wordt niet ondersteund voor TPU-filament."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Trek a.u.b. koud voordat u TPU afdrukt om verstopping te voorkomen. U kunt cold pull-onderhoud op de printer gebruiken."
@@ -2599,6 +2599,9 @@ msgstr "Aangepast sjabloon:"
 msgid "Custom G-code:"
 msgstr "Aangepaste G-code:"
 
+msgid "Toggle path view to current layer/all layers"
+msgstr "Schakel padweergave om naar huidige laag/alle lagen"
+
 msgid "Custom G-code"
 msgstr "Aangepaste G-code"
 
@@ -3194,10 +3197,10 @@ msgid "Are you sure you want to clear the filament information?"
 msgstr "Weet je zeker dat je de filament informatie wilt wissen?"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
-msgstr ""
+msgstr "TPU heeft een ander toevoerpad en laadprocedure nodig. Anders kan er een verstopping of vastlopen optreden. Lees de tutorial voordat u TPU gebruikt."
 
 msgid "Go to Check"
-msgstr ""
+msgstr "Ga naar controleren"
 
 msgid "You need to select the material type and color first."
 msgstr "Je dient eerst het materiaaltype en de kleur te selecteren."
@@ -3346,19 +3349,19 @@ msgid "Tips:"
 msgstr "Tips:"
 
 msgid "1. Filaments of different types cannot be matched."
-msgstr ""
+msgstr "1. Filamenten van verschillende types kunnen niet op elkaar worden afgestemd."
 
 msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
+msgstr "2. Het filament van de linker nozzle komt niet overeen met dat van de rechter nozzle."
 
 msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr ""
+msgstr "Om door te gaan, ga naar de voorbereidingspagina om de filament- of nozzle-toewijzing te wijzigen en snijd opnieuw. Raadpleeg de Wiki voor gebruik->"
 
 msgid "Please select the filament installed on the left nozzle."
-msgstr ""
+msgstr "Selecteer het filament dat op de linker nozzle is geïnstalleerd."
 
 msgid "Please select the filament installed on the right nozzle."
-msgstr ""
+msgstr "Selecteer het filament dat op de rechter nozzle is geïnstalleerd."
 
 msgid "Nozzle"
 msgstr "Nozzle"
@@ -3378,14 +3381,14 @@ msgstr "Printen met de huidige nozzle kan een extra %0.2f g afval opleveren."
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Kan niet selecteren: het filamenttype (%s) komt niet overeen met het filamenttype (%s) in het slicing-bestand. Als u dit slot wilt gebruiken, kunt u %s installeren in plaats van %s en de slotinformatie wijzigen op de pagina 'Apparaat'."
 
 #, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Kan niet selecteren: de sleuf is leeg of ongedefinieerd. Als u dit slot wilt gebruiken, kunt u %s installeren en de sleufgegevens wijzigen op de pagina 'Apparaat'."
 
 msgid "Cannot select: No filament loaded in current slot."
-msgstr ""
+msgstr "Kan niet selecteren: Geen filament geladen in de huidige sleuf."
 
 msgid "Enable AMS"
 msgstr "AMS inschakelen"
@@ -3527,13 +3530,13 @@ msgid "Arrange AMS Order"
 msgstr "Sorteer AMS-volgorde"
 
 msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
-msgstr ""
+msgstr "Als u een specifieke AMS ID-reeks wilt, verbreek dan alle AMS-verbindingen nadat u op 'Reset' hebt geklikt en sluit ze vervolgens opnieuw aan in de gewenste volgorde."
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
-msgstr ""
+msgstr "Weet u zeker dat u de ID-volgorde van de aangesloten AMS wilt resetten?"
 
 msgid "Reset AMS Sequence"
-msgstr ""
+msgstr "Reset AMS Volgorde"
 
 msgid "File"
 msgstr "Bestand"
@@ -4191,7 +4194,7 @@ msgid "Loading ..."
 msgstr "Bezig met laden..."
 
 msgid "Network unavailable"
-msgstr ""
+msgstr "Netwerk niet beschikbaar"
 
 msgid "default"
 msgstr "Standaard"
@@ -4808,7 +4811,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "PLA- en PETG-filamenten gedetecteerd in het mengsel. Pas de parameters aan volgens Wiki om de afdrukkwaliteit te garanderen."
 
 msgid "The prime tower improves multi-color print quality and is recommended."
-msgstr ""
+msgstr "De prime tower verbetert de afdrukkwaliteit bij meerkleurige prints en wordt aanbevolen."
 
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "De hoofdtoren steekt verder uit dan de plaatgrens."
@@ -4820,7 +4823,7 @@ msgid "Click Wiki for help."
 msgstr "Klik op Wiki voor hulp."
 
 msgid "Jump to: Prime tower"
-msgstr ""
+msgstr "Ga naar: prime tower"
 
 msgid "Click here to regroup"
 msgstr "Klik hier om te hergroeperen"
@@ -5836,10 +5839,10 @@ msgid "Printing Progress"
 msgstr "Print voortgang"
 
 msgid "Pausing"
-msgstr ""
+msgstr "Pauzeren"
 
 msgid "Stopping"
-msgstr ""
+msgstr "Stoppen"
 
 msgid "Parts Skip"
 msgstr "Onderdelen overslaan"
@@ -5965,10 +5968,10 @@ msgid "The selected slot is empty."
 msgstr "De geselecteerde sleuf is leeg."
 
 msgid "No extruder found for the selected slot."
-msgstr ""
+msgstr "Geen extruder gevonden voor het geselecteerde slot."
 
 msgid "The selected slot is not loaded in the extruder."
-msgstr ""
+msgstr "Het geselecteerde slot is niet in de extruder geladen."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Printer 2D-modus ondersteunt geen 3D-calibratie"
@@ -6433,10 +6436,10 @@ msgid "Bottom"
 msgstr "Onderste"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
-msgstr ""
+msgstr "Indien ingeschakeld, maakt de printer automatisch foto's van de geprinte onderdelen en uploadt deze naar de cloud. Wilt u deze optie inschakelen?"
 
 msgid "Confirm Enable Print Status Snapshot"
-msgstr ""
+msgstr "Bevestig dat de printstatus is ingeschakeld"
 
 msgid "Unavailable during the task"
 msgstr "Niet beschikbaar tijdens de taak"
@@ -6544,10 +6547,10 @@ msgid "Pause printing"
 msgstr "Afdrukken onderbreken"
 
 msgid "Print Status Snapshot"
-msgstr ""
+msgstr "Printstatus momentopname"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
-msgstr ""
+msgstr "Foto's van prints automatisch vastleggen en uploaden, waarbij defecten tijdens het printen en het eindresultaat getoond worden voor externe weergave."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -6663,10 +6666,10 @@ msgstr "%1% met %2%\n"
 
 #, c-format, boost-format
 msgid "The %s nozzle does not support automatic filament switching.\n"
-msgstr ""
+msgstr "De %s nozzle ondersteunt geen automatische filamentwisseling.\n"
 
 msgid "Please change the nozzle type or reassign the filaments and try again."
-msgstr ""
+msgstr "Wijzig het nozzle-type of wijs de filamenten opnieuw toe en probeer het opnieuw."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6712,13 +6715,13 @@ msgid "Not installed"
 msgstr "Niet geïnstalleerd"
 
 msgid "4-slot AMS"
-msgstr ""
+msgstr "4 slot AMS"
 
 msgid "1-slot AMS"
-msgstr ""
+msgstr "1 slot AMS"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "Verwijder deze AMS"
 
 msgid "Sync printer information"
 msgstr "Printergegevens synchroniseren"
@@ -6752,10 +6755,10 @@ msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchroniseer nozzle-informatie en het aantal AMS"
 
 msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
+msgstr "Er zijn geen nozzles onder de huidige diameter. Doorgaan met wisselen zal automatisch diameters van alle nozzles veranderen"
 
 msgid "Confirm Diameter Switch"
-msgstr ""
+msgstr "Bevestig diameter switch"
 
 msgid "Project Filaments"
 msgstr "Projectfilamenten"
@@ -6782,7 +6785,7 @@ msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
 
 msgid "(Unavailable for right extruder)"
-msgstr ""
+msgstr "(Niet beschikbaar voor rechter extruder)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6868,7 +6871,7 @@ msgid "Found following keys unrecognized:\n"
 msgstr "De volgende niet-erkende sleutels zijn gevonden:\n"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr ""
+msgstr "De 3mf is niet van Bambu Lab, laadt alleen geometriegegevens en kleurgegevens."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "De 3mf wordt gegenereerd door de oude Bambu Studio, alleen geometriegegevens laden."
@@ -8125,7 +8128,7 @@ msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Je methode voor het groeperen van filamenten in het gesneden bestand is niet optimaal."
 
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
-msgstr ""
+msgstr "Om de printkwaliteit te waarborgen, wordt de droogtemperatuur tijdens het printen verlaagd."
 
 msgid "Auto Bed Leveling"
 msgstr "Automatisch bednivellering"
@@ -8315,11 +8318,11 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "De huidige nozzle-mapping kan een extra %0.2f g afval opleveren."
 
 msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
-msgstr ""
+msgstr "Jouw huidige firmwareversie kan deze printtaak niet starten. Update naar de nieuwste versie en probeer het opnieuw."
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "De hardheid van het huidige materiaal (%s) overschrijdt de hardheid van %s(%s). Dit kan leiden tot nozzle-slijtage, wat materiaallekkage en een onstabiele doorstroming kan veroorzaken. Wees voorzichtig bij het gebruik ervan."
 
 msgid "Cool"
 msgstr "Koel"
@@ -9990,7 +9993,7 @@ msgid "Cutting Module"
 msgstr "Snijmodule"
 
 msgid "Rotary Attachment"
-msgstr ""
+msgstr "Rotary-accessoire"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "Automatisch brandblussysteem"
@@ -10147,16 +10150,16 @@ msgid " can not be placed in the "
 msgstr " kan niet worden geplaatst in de"
 
 msgid "Filament Grouping Error: Filament "
-msgstr ""
+msgstr "Fout bij het Groeperen van Filament: Filament "
 
 msgid " is not supported by the "
-msgstr ""
+msgstr " wordt niet ondersteund door het "
 
 msgid " nozzle. "
 msgstr ""
 
 msgid "Please change the nozzle type or reassign the filament and try again."
-msgstr ""
+msgstr "Wijzig het type nozzle of wijs het filament opnieuw toe en probeer het opnieuw."
 
 msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
 msgstr "De TPU High Flow nozzle ondersteunt geen automatische filamentwissel, dus er kan slechts één filament worden toegewezen.\n"
@@ -10814,7 +10817,7 @@ msgstr ""
 "3. Om te voorkomen dat er geprint wordt met snelheden die VFAs (fijne artefacten) op de buitenwanden veroorzaken"
 
 msgid "Cooling slowdown logic"
-msgstr ""
+msgstr "Vertragingslogica voor koeling"
 
 msgid ""
 "Determines how the printer slows down when minimum layer time isn't reached.\n"
@@ -10823,15 +10826,20 @@ msgid ""
 "\n"
 "'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
 msgstr ""
+"Bepaalt hoe de printer vertraagt wanneer de minimale laagtijd niet is bereikt.\n"
+"\n"
+"'Gelijkmatige koeling' vertraagt alle printonderdelen gelijkmatig (huidig standaardgedrag).\n"
+"\n"
+"'Consistent oppervlak' geeft prioriteit aan het vertragen van de vulling en de binnenste randen, terwijl de snelheid van de buitenste randen behouden blijft voor een betere oppervlakteafwerking op glanzende filamenten. Dit helpt VFA (Vertical Fine Artifacts) te verminderen en zorgt voor een consistente glans van het oppervlak."
 
 msgid "Uniform cooling"
-msgstr ""
+msgstr "Gelijkmatige koeling"
 
 msgid "Consistent surface"
-msgstr ""
+msgstr "Een consistent oppervlak"
 
 msgid "Perimeter transition distance"
-msgstr ""
+msgstr "Omtrek overgangsafstand"
 
 msgid ""
 "Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
@@ -10839,6 +10847,10 @@ msgid ""
 "Only applies when 'Consistent surface' cooling logic is selected.\n"
 "Recommended value: 5-10mm. Set to 0 to disable."
 msgstr ""
+"Afstand in millimeters vóór het einde van de vertraagde randen waar de oorspronkelijke printsnelheid geleidelijk wordt hersteld. Dit vermindert kwaliteitsproblemen bij de overgang van vertraagde kenmerken naar snelle printen van de buitenste randen.\n"
+"\n"
+"Alleen van toepassing wanneer de koellogica 'Consistent oppervlak' is geselecteerd.\n"
+"Aanbevolen waarde: 5-10 mm. Stel in op 0 om uit te schakelen."
 
 msgid "Normal printing"
 msgstr "Normaal printen"
@@ -10850,7 +10862,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr "De reisversnelling behalve de beginlaag"
 
 msgid "Short travel"
-msgstr ""
+msgstr "Korte reis"
 
 msgid ""
 "Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
@@ -10859,6 +10871,11 @@ msgid ""
 "\n"
 "Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
+"Versnellingsfactor gebruikt voor korte verplaatsingen in de buurt van de buitenrand. Korte verplaatsingen zijn verplaatsingen korter dan de 'Minimale intrekafstand'.\n"
+"\n"
+"Lagere waarden (bijv. 250-500 mm/s²) verminderen ringing-artefacten op scherpe hoeken zonder de printtijd significant te beïnvloeden.\n"
+"\n"
+"Stel in op 0 om uit te schakelen (gebruikt normale verplaatsingsversnelling)."
 
 msgid "Initial layer travel"
 msgstr "Eerste laagbeweging"
@@ -10897,13 +10914,13 @@ msgid "For the first"
 msgstr "Voor de eerste"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "Stel een speciale koelventilator in voor de eerste lagen. De koelventilator van de eerste laag wordt gesloten om een betere hechting van de printplaat te krijgen en wordt gebruikt voor de automatische koelfunctie"
 
 msgid "layers"
 msgstr "Lagen"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "Speciale extra koelventilatorsnelheid, alleen effectief voor de eerste x lagen."
 
 msgid "Don't support bridges"
 msgstr "Geen support bij bruggen toepassen"
@@ -15124,20 +15141,18 @@ msgid "(Sync with printer)"
 msgstr "(Synchroniseren met printer)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "Fout: %s extruder heeft geen beschikbare %s nozzle, de huidige groepsuitkomst is ongeldig."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "We zullen segmenteren volgens deze groeperingsmethode:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Tips: Je kunt de filamenten verslepen om ze aan verschillende nozzles toe te wijzen."
-
-msgid "Please adjust your grouping or click "
-msgstr "Pas uw groepering aan of klik "
-
-msgid " to set nozzle count"
-msgstr " om het aantal nozzles in te stellen"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15618,6 +15633,16 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "Fout: %s extruder heeft geen beschikbare %s nozzle, de huidige groepsuitkomst is ongeldig."
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "Pas uw groepering aan of klik "
+
+#~ msgid " to set nozzle count"
+#~ msgstr " om het aantal nozzles in te stellen"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."

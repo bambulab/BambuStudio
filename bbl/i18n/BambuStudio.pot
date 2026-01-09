@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2575,6 +2575,9 @@ msgid "Custom Template:"
 msgstr ""
 
 msgid "Custom G-code:"
+msgstr ""
+
+msgid "Toggle path view to current layer/all layers"
 msgstr ""
 
 msgid "Custom G-code"
@@ -14748,19 +14751,17 @@ msgid "(Sync with printer)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
-msgstr ""
-
-msgid "Please adjust your grouping or click "
-msgstr ""
-
-msgid " to set nozzle count"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

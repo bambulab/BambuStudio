@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2587,6 +2587,9 @@ msgstr "自定义模板："
 
 msgid "Custom G-code:"
 msgstr "自定义G-code："
+
+msgid "Toggle path view to current layer/all layers"
+msgstr "切换走线视图为当前层 / 所有层"
 
 msgid "Custom G-code"
 msgstr "自定义 G-code"
@@ -10831,7 +10834,7 @@ msgid "For the first"
 msgstr "在最初的"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "为前几层设置专用冷却风扇。首层的部件冷却风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能"
 
 msgid "layers"
 msgstr "层"
@@ -15042,20 +15045,18 @@ msgid "(Sync with printer)"
 msgstr "（请连接打印机）"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "错误: %s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "我们将基于当前分配方案切片："
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "提示：您可以拖动耗材以将其重新分配到不同的喷嘴。"
-
-msgid "Please adjust your grouping or click "
-msgstr "请调整您的分组或点击 "
-
-msgid " to set nozzle count"
-msgstr " 设置喷嘴数量"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15536,6 +15537,16 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "错误: %s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "请调整您的分组或点击 "
+
+#~ msgid " to set nozzle count"
+#~ msgstr " 设置喷嘴数量"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."

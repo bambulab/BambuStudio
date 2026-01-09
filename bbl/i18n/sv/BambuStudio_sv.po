@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -53,7 +53,7 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr "Vid användning av ABS/ASA/PETG HF på höger extruder kan det endast användas som support material."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
-msgstr ""
+msgstr "Automatisk dynamisk flödeskalibrering stöds inte för TPU filament."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Vänligen kall dra innan du skriver ut TPU för att undvika igensättning. Du kan använda kalldragnings underhåll på printern."
@@ -2596,6 +2596,9 @@ msgstr "Anpassad mall:"
 msgid "Custom G-code:"
 msgstr "Anpassad G-kod:"
 
+msgid "Toggle path view to current layer/all layers"
+msgstr "Växla sökvägs vy till nuvarande lager/alla lager"
+
 msgid "Custom G-code"
 msgstr "Custom G-kod"
 
@@ -3191,10 +3194,10 @@ msgid "Are you sure you want to clear the filament information?"
 msgstr "Är du säker på att du vill rensa filament informationen?"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
-msgstr ""
+msgstr "TPU behöver en annan matningsväg och ett annat laddnings förfarande. Annars kan igensättning eller fastkörning inträffa. Läs bruksanvisningen innan du använder TPU."
 
 msgid "Go to Check"
-msgstr ""
+msgstr "Gå till Kontrollera"
 
 msgid "You need to select the material type and color first."
 msgstr "Du måste först välja materialtyp och färg."
@@ -3343,19 +3346,19 @@ msgid "Tips:"
 msgstr "Tips:"
 
 msgid "1. Filaments of different types cannot be matched."
-msgstr ""
+msgstr "1. Filament av olika typer kan inte matchas."
 
 msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
+msgstr "2. Vänster nozzle filament matchar inte höger nozzle."
 
 msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr ""
+msgstr "För att fortsätta, gå till Förberedelse sidan för att ändra filament eller nozzle och bered igen. Se Wiki innan användning->"
 
 msgid "Please select the filament installed on the left nozzle."
-msgstr ""
+msgstr "Välj det filament som är installerat på vänster nozzle."
 
 msgid "Please select the filament installed on the right nozzle."
-msgstr ""
+msgstr "Välj det filament som är installerat på höger nozzle."
 
 msgid "Nozzle"
 msgstr "Nozzel"
@@ -3375,14 +3378,14 @@ msgstr "Utskrift med det aktuell nozzle kan ge extra %0.2fg avfall."
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Kan inte välja: filament typen(%s) matchar inte filament typen(%s) i berednings filen. Om du vill använda denna plats, du kan installera %s istället för %s och ändra platsinformation på sidan \"Enhet\"."
 
 #, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Kan inte välja: facket är tomt eller odefinierat. Om du vill använda denna plats kan du installera %s och ändra platsinformation på sidan \"Enhet\"."
 
 msgid "Cannot select: No filament loaded in current slot."
-msgstr ""
+msgstr "Kan inte välja: Inget filament laddat i aktuellt fack."
 
 msgid "Enable AMS"
 msgstr "Aktivera AMS"
@@ -4188,7 +4191,7 @@ msgid "Loading ..."
 msgstr "Laddar ..."
 
 msgid "Network unavailable"
-msgstr ""
+msgstr "Nätverk ej tillgängligt"
 
 msgid "default"
 msgstr "standard"
@@ -5833,10 +5836,10 @@ msgid "Printing Progress"
 msgstr "Utskriftsförlopp"
 
 msgid "Pausing"
-msgstr ""
+msgstr "Pausar"
 
 msgid "Stopping"
-msgstr ""
+msgstr "Stoppar"
 
 msgid "Parts Skip"
 msgstr "Hoppa över delar"
@@ -5962,10 +5965,10 @@ msgid "The selected slot is empty."
 msgstr "Det valda facket är tomt."
 
 msgid "No extruder found for the selected slot."
-msgstr ""
+msgstr "Ingen extruder hittades för den valda platsen."
 
 msgid "The selected slot is not loaded in the extruder."
-msgstr ""
+msgstr "Det valda facket är inte laddat i extrudern."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Printerns 2D läge stöder inte 3D kalibrering"
@@ -6430,10 +6433,10 @@ msgid "Bottom"
 msgstr "Bottenlager"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
-msgstr ""
+msgstr "När den är aktiverad kommer printern automatiskt att ta bilder på utskrivna delar och ladda upp dem till molnet. Vill du aktivera det här alternativet?"
 
 msgid "Confirm Enable Print Status Snapshot"
-msgstr ""
+msgstr "Bekräfta aktivering av ögonblicksbild av utskrifts status"
 
 msgid "Unavailable during the task"
 msgstr "Ej tillgänglig under uppgiften"
@@ -6541,10 +6544,10 @@ msgid "Pause printing"
 msgstr "Pausa utskrift"
 
 msgid "Print Status Snapshot"
-msgstr ""
+msgstr "Ögonblicksbild av utskrifts status"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
-msgstr ""
+msgstr "Ta automatiskt och ladda upp utskrifts bilder, visa defekter under utskrift och det slutliga resultatet för fjärrvisning."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -6660,10 +6663,10 @@ msgstr "%1% med %2%\n"
 
 #, c-format, boost-format
 msgid "The %s nozzle does not support automatic filament switching.\n"
-msgstr ""
+msgstr "Nozzle %s stöder inte automatiskt filament byte.\n"
 
 msgid "Please change the nozzle type or reassign the filaments and try again."
-msgstr ""
+msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6709,13 +6712,13 @@ msgid "Not installed"
 msgstr "Inte installerad"
 
 msgid "4-slot AMS"
-msgstr ""
+msgstr "4-fack AMS"
 
 msgid "1-slot AMS"
-msgstr ""
+msgstr "1-fack AMS"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "Ta bort denna AMS"
 
 msgid "Sync printer information"
 msgstr "Synkronisera printer information"
@@ -6749,10 +6752,10 @@ msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzle information och antalet AMS"
 
 msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
+msgstr "Det finns inga nozzles under nuvarande diameter. Fortsatt växling kommer automatiskt att ändra diametrar på alla nozzles"
 
 msgid "Confirm Diameter Switch"
-msgstr ""
+msgstr "Bekräfta diameter byte"
 
 msgid "Project Filaments"
 msgstr "Projekt Filament"
@@ -6779,7 +6782,7 @@ msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
 
 msgid "(Unavailable for right extruder)"
-msgstr ""
+msgstr "(Ej tillgängligt för höger extruder)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6863,7 +6866,7 @@ msgid "Found following keys unrecognized:\n"
 msgstr "Följande okända nycklar har hittats:\n"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr ""
+msgstr "3mf kommer inte från Bambu Lab, ladda endast geometridata och färgdata."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "3mf-filen genererades i en gammal version av Bambu Studio laddar endast geometri data."
@@ -8310,11 +8313,11 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "Nuvarande nozzle mappning kan producera ytterligare %0.2f g avfall."
 
 msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
-msgstr ""
+msgstr "Din nuvarande firmwareversion kan inte starta den här utskriften. Uppdatera till den senaste versionen och försök igen."
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
 
 msgid "Cool"
 msgstr ""
@@ -8407,7 +8410,7 @@ msgid "How to install"
 msgstr "Så här installerar du"
 
 msgid "Upgrade"
-msgstr ""
+msgstr "Uppgradera"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "Nuvarande firmware stöder inte fil överföring till internt lagringsutrymme."
@@ -9987,7 +9990,7 @@ msgid "Cutting Module"
 msgstr "Skär modul"
 
 msgid "Rotary Attachment"
-msgstr ""
+msgstr "Roterande tillbehör"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "Automatiskt brandsläcknings system"
@@ -10144,16 +10147,16 @@ msgid " can not be placed in the "
 msgstr " kan inte placeras i "
 
 msgid "Filament Grouping Error: Filament "
-msgstr ""
+msgstr "Filament grupperingsfel: Filament "
 
 msgid " is not supported by the "
-msgstr ""
+msgstr " stöds inte av "
 
 msgid " nozzle. "
 msgstr ""
 
 msgid "Please change the nozzle type or reassign the filament and try again."
-msgstr ""
+msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 
 msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
 msgstr "TPU Hög Flödes nozzle stöder inte automatisk byte av filament, så endast ett filament kan tilldelas.\n"
@@ -10811,7 +10814,7 @@ msgstr ""
 "3. För att undvika utskrift i hastigheter som orsakar VFA (fina artefakter) på de yttre väggarna"
 
 msgid "Cooling slowdown logic"
-msgstr ""
+msgstr "Kylningens avmattnings logik"
 
 msgid ""
 "Determines how the printer slows down when minimum layer time isn't reached.\n"
@@ -10820,15 +10823,20 @@ msgid ""
 "\n"
 "'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
 msgstr ""
+"Bestämmer hur printern saktar ner när minsta lager tid inte nås.\n"
+"\n"
+"\"Enhetlig kylning\" saktar ner alla utskriftsfunktioner lika (aktuellt standardbeteende).\n"
+"\n"
+"\"Konsekvent yta\" prioriterar att sakta ner utfyllnad och inre omkrets först, bevara yttre omkrets hastighet för bättre ytfinish på blanka filament. Detta bidrar till att minska VFA (Vertical Fine Artifacts) och bibehåller jämn yta glans."
 
 msgid "Uniform cooling"
-msgstr ""
+msgstr "Enhetlig kylning"
 
 msgid "Consistent surface"
-msgstr ""
+msgstr "Konsekvent yta"
 
 msgid "Perimeter transition distance"
-msgstr ""
+msgstr "Övergångs avstånd för omkrets"
 
 msgid ""
 "Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
@@ -10836,6 +10844,10 @@ msgid ""
 "Only applies when 'Consistent surface' cooling logic is selected.\n"
 "Recommended value: 5-10mm. Set to 0 to disable."
 msgstr ""
+"Avstånd i millimeter innan slutet av långsammare omkrets där den ursprungliga utskriftshastigheten gradvis återställs. Detta minskar kvalitetsproblem vid övergång från långsammare funktioner till snabb extern omkretsutskrift.\n"
+"\n"
+"Gäller endast när 'Konsekvent yta' kyl logik är vald.\n"
+"Rekommenderat värde: 5-10mm. Sätt till 0 för att inaktivera."
 
 msgid "Normal printing"
 msgstr "Normal utskrift"
@@ -10847,7 +10859,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr "Accelerationen av rörelse utom första lager"
 
 msgid "Short travel"
-msgstr ""
+msgstr "Kort förflyttning"
 
 msgid ""
 "Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
@@ -10856,6 +10868,11 @@ msgid ""
 "\n"
 "Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
+"Acceleration som används för korta förflyttningar nära externa omkretsar. Korta förflyttningar är kortare än 'Retraktionens minsta rörelse' avstånd.\n"
+"\n"
+"Lägre värden (e.., 250-500 mm/s2) minska ringande artefakter på skarpa hörn utan att avsevärt påverka utskriftstiden.\n"
+"\n"
+"Sätt till 0 för att inaktivera (använder normal förflyttnings acceleration)."
 
 msgid "Initial layer travel"
 msgstr "Inledande lager förflyttning"
@@ -10894,13 +10911,13 @@ msgid "For the first"
 msgstr "För det första"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "Ställ in speciell kylfläkt för de första lagren. Del kylfläkt av det första lagret som brukade stängas för att få bättre vidhäftning och används för automatisk kylning funktion"
 
 msgid "layers"
 msgstr "lager"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "Speciell extra kylfläkt som är effektiv endast för de första x lagren"
 
 msgid "Don't support bridges"
 msgstr "Ingen support vid bridges/bryggor"
@@ -15124,20 +15141,18 @@ msgid "(Sync with printer)"
 msgstr "(Synkronisera med printer)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "Fel: %s extruder har inga tillgängliga %s nozzle, nuvarande gruppresultat är ogiltigt."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "Vi kommer att bereda enligt denna grupperingsmetod:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Tips och tricks: Du kan dra filamenten för att omfördela dem till olika nozzle."
-
-msgid "Please adjust your grouping or click "
-msgstr "Justera din gruppering eller klicka "
-
-msgid " to set nozzle count"
-msgstr " för att ange antal nozzle"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15618,6 +15633,16 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "Fel: %s extruder har inga tillgängliga %s nozzle, nuvarande gruppresultat är ogiltigt."
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "Justera din gruppering eller klicka "
+
+#~ msgid " to set nozzle count"
+#~ msgstr " för att ange antal nozzle"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
