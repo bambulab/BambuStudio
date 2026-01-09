@@ -1,113 +1,269 @@
 ﻿English,Chinese,Status,Notes
-The filament may not be compatible with the current machine settings. Generic filament presets will be used.,该材料与当前机器设置不兼容，将使用通用的材料预设。,✓ Translated,
-The filament may not be compatible with the current machine settings. A random filament preset will be used.,该材料与当前机器设置不兼容，将使用随机的材料预设。,✓ Translated,
-%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting.,%1%中存在部分暂不支持的数据，请使用第三方软件转换该SVG为路径数据后重新导入。,✓ Translated,
-Open filled path,打开填充路径,✓ Translated,
-Path can't be healed from selfintersection and multiple points.,路径无法从自切入和多个点修复。,✓ Translated,
-Unknown filename,未知文件名,✓ Translated,
-"SVG file path is ""%1%""","SVG文件路径为 ""%1%""",✓ Translated,
-Choose one file (gcode/.gco/.g/.ngc/ngc):,选择一个文件（gcode/.gco/.g/.ngc/ngc）：,✓ Translated,
-Sending gcode file over LAN,通过局域网发送gcode文件,✓ Translated,
-Sending gcode file to sdcard,发送gcode文件到sd卡,✓ Translated,
-Thermal Preconditioning for first layer optimization,首层优化保温准备,✓ Translated,
-The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete.,保温热床可以优化首层打印质量，保温完成后将发起打印。,✓ Translated,
-"Failed to save gcode file.
-Error message: %1%.
-Source file %2%.","无法保存Gcode文件。
-错误信息：%1%。
-源文件 %2%.",✓ Translated,
-"Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d",当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。,✓ Translated,
-%1% infill pattern doesn't support 100%% density.,%1% 填充图案不支持 100%% 密度。,✓ Translated,
-"Switch to rectilinear pattern?
-Yes - switch to rectilinear pattern automatically
-No  - reset density to default non 100% value automatically","切换到直线图案？
-是 - 自动切换到直线图案
-否 - 自动将密度重置为默认的非100%值",✓ Translated,
-Pause (chamber temperature control problem),暂停（腔温控制异常）,✓ Translated,
-Pause (Gcode inserted by user),暂停（用户插入Gcode）,✓ Translated,
-Waiting for the Chamber temperature to equalize,等待腔温匀热,✓ Translated,
-"The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down.",腔温过高，可能导致打印材料软化。请等待腔温降至%d℃。您可以打开前门或启用风扇进行降温。,✓ Translated,
-"The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded.",当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）,✓ Translated,
-"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature.",挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许设置腔温。,✓ Translated,
-"When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃.",当您设置的腔温低于40℃时，腔温控制将不会启动。并且目标腔温将自动设置为0℃。,✓ Translated,
-Failed to generate cali gcode,生成标定GCode失败,✓ Translated,
-Loading gcode data,正在加载gcode数据,✓ Translated,
-Thermal Index (min),热指数（最小）,✓ Translated,
-Thermal Index (max),热指数（最大）,✓ Translated,
-Thermal Index (mean),热指数（平均）,✓ Translated,
-Thermal Index,热指数,✓ Translated,
-Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s).,发现第%d层存在重叠的走线，这可能导致打印失败或打印出来的模型不可用。请将有冲突的对象分得更开。有冲突的对象为%s <-> %s。,✓ Translated,
-A G-code path goes beyond the max print height.,检测出超出打印高度的G-code路径。,✓ Translated,
-A G-code path goes beyond the boundary of plate.,检测超出热床边界的G-code路径。,✓ Translated,
-"Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.",材料%s放置在%s中，但生成的G代码路径超出了%s的可打印范围。,✓ Translated,
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.",材料%s放置在%s中，但生成的G代码路径超出了%s的可打印范围。,✓ Translated,
-"Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.",材料%s放置在%s中，但生成的G代码路径超过了%s的可打印高度。,✓ Translated,
-"Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.",材料%s放置在%s中，但生成的G代码路径超过了%s的可打印高度。,✓ Translated,
-Open wiki for more information.,打开wiki以获取更多信息。,✓ Translated,
-PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.,检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。,✓ Translated,
-Click Wiki for help.,点击Wiki寻求帮助。,✓ Translated,
-"Unlock faster, more reliable, warp-free prints with Helio Additive.",使用 Helio Additive 解锁更快、更可靠、无翘曲的打印。,✓ Translated,
-PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. ,"PPS-CF/PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。请参考Wiki。",✓ Translated,
-Export toolpaths as OBJ,将工具路径导出为OBJ格式,✓ Translated,
+""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive Privacy Agreement</a> and <a href=""",,⚠ Needs Translation,
+""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive User Agreement</a> for detailed information.<br><br>",,⚠ Needs Translation,
+""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a> and refer to the <a href=""",,⚠ Needs Translation,
+""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=""",,⚠ Needs Translation,
+""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>",,⚠ Needs Translation,
+""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=""",,⚠ Needs Translation,
+--use-firmware-retraction is not compatible with --wipe,,⚠ Needs Translation,
+1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>,,⚠ Needs Translation,
+"2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;<br>",,⚠ Needs Translation,
+3. Using this software and services for any improper or illegal activities.<br><br>,,⚠ Needs Translation,
 Export &Toolpaths as OBJ,,⚠ Needs Translation,
-The .gcode.3mf file contains no G-code data.Please slice it whth Bambu Studio and export a new .gcode.3mf file.,.gcode.3mf文件中不包含G-code数据。请使用Bambu Studio进行切片并导出新的.gcode.3mf文件。,✓ Translated,
-Click to view thermal preconditioning explanation,点击查看保温处理说明,✓ Translated,
-Chamber temperature cannot be changed in cooling mode while printing.,打印过程中，冷却模式下无法调节腔温。,✓ Translated,
-"If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch.","如果腔室温度超过40℃, 系统将自动切换到腔温保持模式。请确认是否切换。",✓ Translated,
-View Wiki for more information,查看Wiki以获取更多信息,✓ Translated,
-Wiki,Wiki,✓ Translated,
-Gcode path overlap,Gcode路径有重叠,✓ Translated,
-View wiki,,⚠ Needs Translation,
+"Following objects are too far ( distance >= %1% in ) from the original of the world coordinate system:
+",,⚠ Needs Translation,
+"Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:
+",,⚠ Needs Translation,
 No wiki link available for this printer.,,⚠ Needs Translation,
-Click to view the wiki of the current plate type,点击查看当前热床类型的wiki,✓ Translated,
-"There are no compatible filaments, and sync is not performed.",没有任何兼容的材料，同步操作未执行。,✓ Translated,
-"There are some unknown or uncompatible filaments mapped to generic preset.
-Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets.","有一些未知或不兼容的耗材映射到通用预设。
-请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。",✓ Translated,
-(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed'),（修改路径：“工艺”-”其他“-”特殊模式“-”延时摄影“）,✓ Translated,
-Great! Now click the Helio button to start optimization.,很好！现在点击 Helio 按钮开始优化。,✓ Translated,
-Multiple Filament Materials Detected,检测到多种耗材,✓ Translated,
-⚠ Multiple Filament Materials Detected,⚠ 检测到多种耗材,✓ Translated,
-"Multicolour simulation currently supports only a single filament material.
-","多色仿真目前仅支持单一耗材类型。
-",✓ Translated,
+Save current style,,⚠ Needs Translation,
+Save the parameters of the current text tool as a style for easy subsequent use.,,⚠ Needs Translation,
+The current style has been modified but not saved. Do you want to save it?,,⚠ Needs Translation,
+There are spaces or illegal characters present.,,⚠ Needs Translation,
+"This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking ""Agree and Proceed"", you agree to Helio Additive's privacy policy.",,⚠ Needs Translation,
+"Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=""",,⚠ Needs Translation,
+View wiki,,⚠ Needs Translation,
+"Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok.",,⚠ Needs Translation,
+^,,⚠ Needs Translation,
+wiki,,⚠ Needs Translation,
 "
 
 Note: Unsupported materials will use the selected reference material for simulation.","
 
 注意：不支持的材料将使用选定的参考材料进行仿真。",✓ Translated,
-True multi-material support will be added in a future update.,真正的多材料支持将在未来更新中添加。,✓ Translated,
-Select which filament to use for simulation:,选择用于仿真的耗材：,✓ Translated,
-⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration.,⚠ 不推荐此操作。不同制造商和材料的耗材配方差异很大。Helio 无法保证在此配置下获得可靠结果。,✓ Translated,
-Unsupported Materials Detected,检测到不支持的材料,✓ Translated,
-⚠ Unsupported Materials Detected,⚠ 检测到不支持的材料,✓ Translated,
-"Some of your selected materials are not directly supported by Helio:
-","您选择的部分材料不是 Helio 直接支持的：
-",✓ Translated,
-Option 1: Proceed with a reference material,选项1：使用参考材料继续,✓ Translated,
-Select a similar material type to use for simulation:,选择用于仿真的类似材料类型：,✓ Translated,
-Note: Using a reference material may result in approximate or erroneous results.,注意：使用参考材料可能导致近似或错误的结果。,✓ Translated,
+"
+Do you want to save the modified values?","
+您是否想保存修改后的值？",✓ Translated,
+%1% contains some unsupported data. Please use third-party software to convert the SVG to path data before reimporting.,%1%中存在部分暂不支持的数据，请使用第三方软件转换该SVG为路径数据后重新导入。,✓ Translated,
+%1% infill pattern doesn't support 100%% density.,%1% 填充图案不支持 100%% 密度。,✓ Translated,
+%s is not compatible with %s,%s 与 %s 不兼容,✓ Translated,
+(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed'),（修改路径：“工艺”-”其他“-”特殊模式“-”延时摄影“）,✓ Translated,
+*Fair usage terms apply - click to learn more,*适用公平使用条款 - 点击了解更多,✓ Translated,
+1. Please confirm Bambu Studio and your printer are in the same LAN.,1. 请确认Bambu Studio和您的打印机在同一个局域网内。,✓ Translated,
+"2. If the IP and Access Code below are different from the actual values on your printer, please correct them.",2. 如果下面的IP和Access Code与您的打印机上的实际值不同，请更正。,✓ Translated,
+3. Please obtain the device SN from the printer side; it is usually found in the device information on the printer screen.,3. 请从打印机端获取设备序列号，它通常位于打印机屏幕上的设备信息中。,✓ Translated,
+A G-code path goes beyond the boundary of plate.,检测超出热床边界的G-code路径。,✓ Translated,
+A G-code path goes beyond the max print height.,检测出超出打印高度的G-code路径。,✓ Translated,
 A Helio simulation or optimization task is in progress.,Helio 仿真或优化任务正在进行中。,✓ Translated,
-Invalid printer preset. Unable to slice with Helio.,打印机预设无效，无法使用 Helio 功能。,✓ Translated,
-"Helio found a potential printer match using token-based matching:
+"A new Network plug-in(%s) available, Do you want to install it?",新的网络插件(%s) 可用，您是否需要安装它？,✓ Translated,
+Access Code,访问码,✓ Translated,
+Account Status,账户状态,✓ Translated,
+Activate your free trial to unlock premium enhancements,激活免费试用以解锁高级增强功能,✓ Translated,
+Activation Successful,激活成功,✓ Translated,
+Activation Successful!,激活成功！,✓ Translated,
+"Add an object to the build plate, select a material and printer that Helio supports, then slice.
 
-Your printer: %s
-Matched printer: %s
+Supported printers: https://wiki.helioadditive.com/en/supportedprinters","将对象添加到打印平台，选择 Helio 支持的材料和打印机，然后切片。
 
-Do you want to use this match, or would you prefer to rename your printer profile?","Helio 通过令牌匹配找到了一个可能的打印机匹配：
+支持的打印机：https://wiki.helioadditive.com/en/supportedprinters",✓ Translated,
+Add-ons:,附加配额：,✓ Translated,
+Additional observations:,其他观察：,✓ Translated,
+Adjust the line width of the selected skeleton paths.,为选择的骨架走线设置线宽,✓ Translated,
+Adjust the line width of the selected skin paths.,调整选择的表皮走线的线宽,✓ Translated,
+Advanced,高级,✓ Translated,
+"After slicing, click the Helio button to analyze your print.",切片后，点击 Helio 按钮分析您的打印。,✓ Translated,
+Agree and Proceed,同意并继续,✓ Translated,
+Air filtration enhancement,支持空气过滤增强,✓ Translated,
+An important update was detected and needs to be run before printing can continue. Do you want to update now? You can also update later from 'Upgrade firmware'.,检测到重要更新，需要升级后才可进行打印。您想现在就开始升级吗？您也可以稍后点击‘升级固件’完成升级。,✓ Translated,
+Analysis:,分析：,✓ Translated,
+"Angle for sparse infill pattern, which controls the start or main direction of line",稀疏填充图案的角度，决定走线的开始或整体方向。,✓ Translated,
+Applies Helio's optimized speed/flow/fan strategy.,应用 Helio 优化的速度/流量/风扇策略。,✓ Translated,
+Applies only when first activated,仅在首次激活时适用,✓ Translated,
+Are you sure you want to uninstall Helio Additive? This will disable all Helio features.,您确定要卸载 Helio Additive 吗？这将禁用所有 Helio 功能。,✓ Translated,
+Assess,评估,✓ Translated,
+"Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')","评估只需几分钟即可完成，具体取决于对象的大小。（后台正在进行大量计算）（原称为""仿真""或""模拟""）",✓ Translated,
+"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.
 
-您的打印机：%s
-匹配的打印机：%s
+The calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration through firmware updates over time.
 
-您想使用此匹配，还是更愿意重命名您的打印机配置文件？",✓ Translated,
+Caution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it.","自动流量比例校准采用Bambu Lab的微型激光雷达技术，直接测量校准图案。然而，请注意，这种方法的功效和准确性可能会因特定类型的材料而受影响。特别是透明或半透明、带有闪光颗粒或具有高反射表面的材料可能不适合这种校准，并可能产生不理想的结果。
+
+校准结果可能因每次校准或材料的不同而有所不同。我们仍在通过固件更新不断提高这种校准的准确性和兼容性。
+
+注意：流量比例校准是一项高级的过程，只有完全理解其目的和影响的人才应尝试。错误的使用可能导致打印质量不佳或损坏打印机。请确保在执行之前仔细阅读和理解此过程。",✓ Translated,
+Auto-fix with new speeds,使用新速度自动修复,✓ Translated,
+Auto-recovery from step loss,自动从丢步中恢复,✓ Translated,
+"Automatically re-slice according to the optimal filament grouping, and the grouping results will be displayed after slicing.",将会自动根据最优耗材分组重新切片，分组结果将会在切片后展示。,✓ Translated,
+Automatically tune speed and extrusion without manual tweaking.,自动调整速度和挤出，无需手动调参。,✓ Translated,
+Average Improvement,平均优化效果,✓ Translated,
+"Avoid warping
+Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping.","避免翘曲
+您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。",✓ Translated,
+Backup your project periodically for restoring from the occasional crash.,定期备份您的项目，以便从偶尔的崩溃中恢复过来。,✓ Translated,
+Bambu Studio also referenced some ideas from Cura by Ultimaker.,Bambu Studio还参考了Ultimaker的Cura中的一些想法。,✓ Translated,
+"Bambu Studio is based on PrusaSlicer by Prusa Research, which is from Slic3r by Alessandro Ranellucci and the RepRap community",Bambu Studio是基于Prusa Research的PrusaSlicer开发的，而PrusaSlicer是基于来自Alessandro Ranellucci和RepRap社区的Slic3r开发的,✓ Translated,
+Base pattern,支撑主体图案,✓ Translated,
+Base pattern spacing,主体图案线距,✓ Translated,
+Bottom surface pattern,底面图案,✓ Translated,
+"Calibrate nozzle offsets to enhance print quality.
+*Automatic mode: Check for calibration before printing. Skip if unnecessary.","校准不同喷嘴的偏移量，从而提升打印质量。
+*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。",✓ Translated,
+"Calibrate nozzle offsets to enhance print quality.
+*Automatic mode: Check for calibration before printing; skip if unnecessary.","校准不同喷嘴的偏移量，提升打印质量。
+*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。",✓ Translated,
+Cancel,取消,✓ Translated,
+Catch issues before printing and improve first-try success.,在打印前发现问题，提高首次打印成功率。,✓ Translated,
+Chamber Temperature,腔温,✓ Translated,
+Chamber temperature,腔体温度,✓ Translated,
+Chamber temperature cannot be changed in cooling mode while printing.,打印过程中，冷却模式下无法调节腔温。,✓ Translated,
+Change SVG Type,改变SVG类型,✓ Translated,
+Check Assistant,前往机器助手,✓ Translated,
+Choose a Reference Material,选择参考材料,✓ Translated,
+Choose a file to import bed texture from (PNG/SVG):,选择 (PNG/SVG) 文件作为热床纹理：,✓ Translated,
+Click OK to update the Network plug-in when Bambu Studio launches next time.,点击“确认”，将在Bambu Studio下次启动之后自动升级网络插件,✓ Translated,
+Click Wiki for help.,点击Wiki寻求帮助。,✓ Translated,
+Click for more details,点击查看更多详情,✓ Translated,
+Click the Optimize/Enhance button to start your first optimization.,点击优化/增强按钮开始您的首次优化。,✓ Translated,
+Click to download new version in default browser: %s,在默认浏览器中点击下载最新版本: %s,✓ Translated,
+Click to view the wiki of the current plate type,点击查看当前热床类型的wiki,✓ Translated,
+Comfirm Save As,确认另存为,✓ Translated,
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost invisible layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。,✓ Translated,
+"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in minimal layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。,✓ Translated,
+"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in much higher printing quality, but a much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，打印速度、加速度较低，稀疏填充图案为螺旋体，打印质量更高，但耗时更长。,✓ Translated,
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost negligible layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，层纹更不明显，打印质量很高，但打印耗时很长。,✓ Translated,
+"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in less apparent layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，层纹较不明显，打印质量较高，但打印耗时很长。,✓ Translated,
+Compatible machine,兼容的机器,✓ Translated,
+Compatible machine condition,兼容的机器的条件,✓ Translated,
+Compatible process profiles,兼容的切片配置,✓ Translated,
+Compatible process profiles condition,兼容的切片配置的条件,✓ Translated,
+Configuration incompatible,配置不兼容,✓ Translated,
+Confirm,确定,✓ Translated,
+Confirm and Update Nozzle,确认并更新喷嘴,✓ Translated,
+Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s).,发现第%d层存在重叠的走线，这可能导致打印失败或打印出来的模型不可用。请将有冲突的对象分得更开。有冲突的对象为%s <-> %s。,✓ Translated,
+Connect,连接,✓ Translated,
+Connect the printer using IP and access code,使用IP和访问代码连接打印,✓ Translated,
+Connecting to printer... The dialog will close later,连接打印机中… 对话框稍后将自动关闭。,✓ Translated,
+Connection failed! Please refer to the wiki page.,连接失败！请参考wiki页面,✓ Translated,
+"Connection failed, please double check IP and Access Code",连接失败，请再次检查IP地址和访问码。,✓ Translated,
+Consistency Improvement,一致性优化效果,✓ Translated,
+Convert from inch,从英寸转换,✓ Translated,
+Convert from meter,从米转换,✓ Translated,
+Copy,复制,✓ Translated,
+Copy PAT,复制 PAT,✓ Translated,
+Copy preset from filament,从材料中复制预设,✓ Translated,
+Copy successful!,复制成功！,✓ Translated,
+Create from Template,基于模板创建,✓ Translated,
+"Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d",当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。,✓ Translated,
+"Cut Warping on ASA/ABS and other advanced materials
+Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil.","减少ASA/ABS及其他高级材料的翘曲
+翘曲会毁掉长时间的打印。Helio在打印前显示风险最高的位置，通过增强功能将翘曲风险降至几乎为零。",✓ Translated,
+Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree,决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。,✓ Translated,
+Delete connector from object which is a part of cut,删除的连接件属于切割对象的一部分,✓ Translated,
+Delete negative volume from object which is a part of cut,删除的负体积属于切割对象的一部分,✓ Translated,
+Delete selected files from printer.,从打印机中删除选中的文件。,✓ Translated,
+Delete solid part from object which is a part of cut,删除的实体属于切割对象的一部分,✓ Translated,
+Describe how long the nozzle will move along the last path when retracting,表示回抽时擦拭的移动距离。,✓ Translated,
+Designed to help prints succeed — even if you're new to 3D printing.,帮助打印成功——即使您是3D打印新手。,✓ Translated,
+Detect overhang paths in vertical shells and slow them by bridge speed.,识别斜面填充中的悬空路径，并使用桥接速度降速。,✓ Translated,
+"Different types of supports
+Did you know that you can choose from multiple types of supports? Tree supports work great for organic models, while saving filament and improving print speed. Check them out!","支撑类型
+您知道吗？有多种可选的支撑类型，树状支撑非常适合人物/动物模型，同时可以节省耗材并提高打印速度。试试看！",✓ Translated,
+Distance from model to the outermost brim line,从模型到最外圈brim走线的距离,✓ Translated,
+Distance from skirt to brim or object,从skirt到模型或者brim的距离,✓ Translated,
+"Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.","G-code 0,0 坐标相对于矩形框左前角的距离。",✓ Translated,
+"Do not run any validity checks, such as gcode path conflicts check.",不要运行任何有效性检查，如gcode路径冲突检查。,✓ Translated,
+Do you want to delete the file '%s' from printer?,您确定要从打印机中删除文件'%s'吗？,✓ Translated,
+"Do you want to save changes to ""%1%""?",是否保存修改到“%1%”？,✓ Translated,
+Do you want to save the changes ?,是否保存当前更改？,✓ Translated,
+"Do you want to synchronize your personal data from Bambu Cloud? 
+It contains the following information:
+1. The Process presets
+2. The Filament presets
+3. The Printer presets","是否从Bambu云同步如下信息：
+1.工艺预设
+2.材料预设
+3.打印机预设",✓ Translated,
+"Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower",当空驶完全在填充区域内时不触发回抽。这意味着即使漏料也是不可见的。对于复杂模型，该设置能够减少回抽次数以及打印时长，但是会造成G-code生成变慢,✓ Translated,
+Don't show again,不再显示,✓ Translated,
+Done,完成,✓ Translated,
+Download,下载,✓ Translated,
+Download selected files from printer.,从打印机中下载选择的文件。,✓ Translated,
+Enable Helio Additive,启用 Helio Additive,✓ Translated,
+Enable this if printer support air filtration enhancement.,如果打印机支持空气过滤增强，请启用此选项。,✓ Translated,
+Enable this to get precise z height of object after slicing. It will get the precise object height by fine-tuning the layer heights of the last few layers. Note that this is an experimental parameter.,开启这个设置，对象在切片后将得到精准的Z高度。它将通过微调对象最后几层的层高来确保对象Z高度精准。注意这是一个实验性参数。,✓ Translated,
+Enhance,增强,✓ Translated,
+Enhance Speed & Quality,增强速度和质量,✓ Translated,
+"Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')","增强只需几分钟即可完成，具体取决于对象的大小。（后台正在进行大量计算）（原称为""优化""）",✓ Translated,
+Ensure seam placement away from overhangs for alignment and backing modes.,接缝避让悬垂附近，对齐模式生效,✓ Translated,
+Environment Settings,环境设置,✓ Translated,
+Environment Temperature,环境温度,✓ Translated,
+"Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again.",错误：检测到不正确的网格id或未知错误，重新生成文本可能会导致不正确的结果。请拖动文本，保存，然后重新编辑。,✓ Translated,
+Estimate of improvement in print time before and after enhancement,增强前后打印时间改善的估计,✓ Translated,
+Expected Outcome:,预期结果：,✓ Translated,
+Expert,专家,✓ Translated,
+Export toolpaths as OBJ,将工具路径导出为OBJ格式,✓ Translated,
+Failed to connect to printer.,无法连接到打印机,✓ Translated,
+Failed to create GCodeV2,无法创建 GCode,✓ Translated,
+Failed to fetch model information from printer.,无法从打印机获取模型信息。,✓ Translated,
+"Failed to get Helio PAT, Click Refresh to obtain it again.",获取 Helio-PAT 失败，点击刷新重新获取。,✓ Translated,
+"Failed to obtain Helio PAT, Click Refresh to obtain it again.",获取 Helio-PAT 失败，点击刷新重新获取。,✓ Translated,
+Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available.,获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。,✓ Translated,
+"Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT.",获取 Helio-PAT 失败。已达到数量上限，无法再获取。请点击刷新按钮重新获取PAT。,✓ Translated,
+Failed to parse response,解析响应失败,✓ Translated,
+Failed to publish login request.,发布登录请求失败,✓ Translated,
+Failed to receive nozzle auto-mapping table from printer { msg: %s }. Please refresh the printer information.,未能从打印机接收喷嘴自动映射表 {消息：%s}。请刷新打印机信息。,✓ Translated,
+"Failed to save gcode file.
+Error message: %1%.
+Source file %2%.","无法保存Gcode文件。
+错误信息：%1%。
+源文件 %2%.",✓ Translated,
+"Failed to save the project.
+Please check whether the folder exists online or if other programs open the project file or if there is enough disk space.","保存项目失败。
+请检查目录是否存在，或者其他程序是否打开了项目文件，以及磁盘空间是否足够。",✓ Translated,
+"Failed to send. Click Retry to attempt sending again. If retrying does not work, please check the reason.",发送失败。您可以点击“重试”再次发送。如果重试无效，请检查原因。,✓ Translated,
+"Faster Prints, Better Quality",更快打印，更好质量,✓ Translated,
+Fewer Failed Prints,更少的失败打印,✓ Translated,
+"Filament %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.",材料%s放置在%s中，但生成的G代码路径超过了%s的可打印高度。,✓ Translated,
+"Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.",材料%s放置在%s中，但生成的G代码路径超出了%s的可打印范围。,✓ Translated,
+"Filament Extruded, Continue",耗材已挤出，继续,✓ Translated,
+"Filament Loaded, Resume",耗材已加载，继续,✓ Translated,
+"Filaments %s is placed in the %s, but the generated G-code path exceeds the printable height of the %s.",材料%s放置在%s中，但生成的G代码路径超过了%s的可打印高度。,✓ Translated,
+"Filaments %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s.",材料%s放置在%s中，但生成的G代码路径超出了%s的可打印范围。,✓ Translated,
+"Finished, Continue",已完成，继续,✓ Translated,
+"First-Time-Right Reliability
+Less babysitting, more predictable output. Example: a small farm running PETG parts avoids ""fail at hour 6"" surprises and keeps batches on schedule.","首次打印即成功的可靠性
+更少看护，更可预测的产出。例如：运行PETG零件的小型生产线避免了「第6小时失败」的意外，保持批量生产按时进行。",✓ Translated,
+Fix suggestions,修复建议,✓ Translated,
+Fixing cold prints,修复冷打印问题,✓ Translated,
+"Flow Rate Calibration measures the ratio of expected to actual extrusion volumes. The default setting works well in Bambu Lab printers and official filaments as they were pre-calibrated and fine-tuned. For a regular filament, you usually won't need to perform a Flow Rate Calibration unless you still see the listed defects after you have done other calibrations. For more details, please check out the wiki article.",流量比例校准测量预期挤出体积与实际挤出体积之间的比率。默认设置在Bambu Lab打印机和官方材料上表现良好，因为它们已经进行了预先校准和微调。对于普通的材料，通常情况下，您不需要执行流量比例校准，除非在完成其他校准后仍然看到上述列出的缺陷。如需更多详细信息，请查阅wiki文章。,✓ Translated,
+"Flush into support/objects/infill
+Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?","冲刷到支持/对象/填充中
+您知道吗？您可以在换料时将它们冲入支撑/对象/填充，以节省浪费的料丝。",✓ Translated,
+"For more information, please check out Wiki",了解更多信息，请参阅Wiki,✓ Translated,
+Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree,当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没有下层支撑的线的宽度是多少。0%%意味着无论悬垂程度如何，都要对所有外壁强制冷却。,✓ Translated,
+Formerly referred to as 'Optimize' or 'Optimization',"原称为""优化""",✓ Translated,
+Formerly referred to as 'Simulate' or 'Simulation',"原称为""仿真""或""模拟""",✓ Translated,
+Free Trial,免费试用,✓ Translated,
+Free Trial Expired,免费试用已过期,✓ Translated,
+From ,从 ,✓ Translated,
+From Volumetric Speed,从体积速度,✓ Translated,
+From k Value,起始k值,✓ Translated,
+From surface,距表面,✓ Translated,
+G-code path is generated after simplifying the contour of model to avoid too many points and gcode lines in the gcode file. Smaller value means higher resolution and more time to slice,为了避免G-code文件中过密集的点和走线，G-code走线通常是在简化模型的外轮廓之后生成。越小的数值代表更高的分辨率，同时需要更长的切片时间。,✓ Translated,
+Gcode path overlap,Gcode路径有重叠,✓ Translated,
+Generating infill toolpath,正在生成填充走线,✓ Translated,
+Get ticket from device timeout,从设备获取ticket超时,✓ Translated,
+Get ticket from server timeout,从服务器获取ticket超时,✓ Translated,
+Go to our storefront to purchase more enhancements,前往我们的商店购买更多增强功能,✓ Translated,
+Got it,知道了,✓ Translated,
+"Got it, Turn off the Fire Alarm.",我已知晓，关闭火警警报,✓ Translated,
+Great! Now click the Helio button to start optimization.,很好！现在点击 Helio 按钮开始优化。,✓ Translated,
+HELIO ADDITIVE,HELIO ADDITIVE,✓ Translated,
+Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features.,热量在小层中积聚的速度超过散热速度。这可能导致精细特征下垂或细节丢失。,✓ Translated,
+"Helio API endpoint is empty, please check the configuration.",Helio API 端点为空，请检查配置。,✓ Translated,
+Helio Additive,Helio Additive,✓ Translated,
+Helio Additive does not change your printer's firmware.,Helio Additive 不会更改您的打印机固件。,✓ Translated,
+Helio Additive is now active. You have unlocked free optimizations!,Helio Additive 已激活。您已解锁免费优化！,✓ Translated,
+Helio Flowchart,Helio 流程图,✓ Translated,
+Helio Material Match Confirmation,Helio 材料匹配确认,✓ Translated,
 Helio Printer Match Confirmation,Helio 打印机匹配确认,✓ Translated,
-Unsupported Printer Detected,检测到不支持的打印机,✓ Translated,
-⚠ Unsupported Printer Detected,⚠ 检测到不支持的打印机,✓ Translated,
-You're using %s which is not officially supported by Helio.,您正在使用的 %s 不是 Helio 官方支持的。,✓ Translated,
-Option 1: Proceed with a reference printer,选项1：使用参考打印机继续,✓ Translated,
-Select a similar printer to use for simulation:,选择用于仿真的类似打印机：,✓ Translated,
-Note: Using a reference printer may result in approximate or erroneous results.,注意：使用参考打印机可能导致近似或错误的结果。,✓ Translated,
-The current printer preset cannot be sliced using Helio.,当前打印机预设无法使用 Helio 功能。,✓ Translated,
+Helio action completed successfully.,Helio操作已成功完成。,✓ Translated,
+Helio default (recommended),Helio 默认设置（推荐）,✓ Translated,
+Helio does not support materials %s,Helio 不支持材料 %s,✓ Translated,
+"Helio does not support materials %s.
+
+Please choose an officially supported material. ","Helio 不支持材料 %s。
+
+请选择官方支持的材料。",✓ Translated,
 "Helio found a potential material match using token-based matching:
 
 Your material: %s
@@ -119,113 +275,133 @@ Do you want to use this match, or would you prefer to rename your material profi
 匹配的材料：%s
 
 您想使用此匹配，还是更愿意重命名您的材料配置文件？",✓ Translated,
-Helio Material Match Confirmation,Helio 材料匹配确认,✓ Translated,
-"Helio does not support materials %s.
+"Helio found a potential printer match using token-based matching:
 
-Please choose an officially supported material. ","Helio 不支持材料 %s。
+Your printer: %s
+Matched printer: %s
 
-请选择官方支持的材料。",✓ Translated,
-Unsupported Material Detected,检测到不支持的材料,✓ Translated,
-⚠ Unsupported Material Detected,⚠ 检测到不支持的材料,✓ Translated,
-Choose a Reference Material,选择参考材料,✓ Translated,
-Helio does not support materials %s,Helio 不支持材料 %s,✓ Translated,
+Do you want to use this match, or would you prefer to rename your printer profile?","Helio 通过令牌匹配找到了一个可能的打印机匹配：
+
+您的打印机：%s
+匹配的打印机：%s
+
+您想使用此匹配，还是更愿意重命名您的打印机配置文件？",✓ Translated,
 "Helio functions do not support the print sequence of ""ByObject"".",Helio 功能不支持“逐件”的打印顺序。,✓ Translated,
-Click the Optimize/Enhance button to start your first optimization.,点击优化/增强按钮开始您的首次优化。,✓ Translated,
+Helio optimization task failed,Helio 优化任务失败,✓ Translated,
+Helio simulation task failed,Helio仿真任务失败,✓ Translated,
+Helio's advanced feature for power users: available post purchase on its official website.,Helio 的高级功能，面向专业用户：可在官方网站购买后获得。,✓ Translated,
+Helio: Failed to create GCode,Helio: 创建GCode失败,✓ Translated,
+Helio: Failed to create Optimization,Helio: 创建优化失败,✓ Translated,
+Helio: Failed to create Simulation,Helio: 创建仿真失败,✓ Translated,
+Helio: GCode created successfully,Helio：G代码已成功创建,✓ Translated,
+Helio: GCode download failed,Helio: GCode 下载失败,✓ Translated,
+Helio: GCode downloaded successfully,Helio：G代码下载成功,✓ Translated,
+Helio: Optimzaion check failed,Helio：优化检查失败,✓ Translated,
+Helio: Presigned URL Created,Helio：预签名URL已创建,✓ Translated,
+Helio: Simulation check failed,Helio：仿真检测失败,✓ Translated,
+Helio: file succesfully uploaded,Helio：文件已成功上传,✓ Translated,
+Helio: file upload failed,Helio：文件上传失败,✓ Translated,
+Helio: optimization failed,Helio：优化失败,✓ Translated,
+Helio: optimization successfully created,Helio：优化创建成功,✓ Translated,
+Helio: optimization working,Helio：优化运行中,✓ Translated,
+Helio: simulation failed,Helio：仿真失败,✓ Translated,
+Helio: simulation successfully created,Helio：仿真创建成功,✓ Translated,
+Helio: simulation working,Helio：仿真运行中,✓ Translated,
+High,高,✓ Translated,
+High chamber temperature is required. Please close the door.,需高腔温打印，请关门。,✓ Translated,
+"Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended",更高的腔温可以帮助抑制或减少翘曲，同时可能会提高高温材料（如ABS、ASA、PC、PA等）的层间粘合强度。与此同时，ABS和ASA的空气过滤性能会变差。而对于PLA、PETG、TPU、PVA等低温材料，为了避免堵塞，实际的腔温不应该过高，因此强烈建议使用0（表示关闭）。,✓ Translated,
+IP and Access Code Verified! You may close the window,IP地址和访问码验证成功！您可以关闭此窗口。,✓ Translated,
+"If smooth or traditional mode is selected, a timelapse video will be generated for each print. After each layer is printed, a snapshot is taken with the chamber camera. All of these snapshots are composed into a timelapse video when printing completes. If smooth mode is selected, the toolhead will move to the excess chute after each layer is printed and then take a snapshot. Since the melt filament may leak from the nozzle during the process of taking a snapshot, prime tower is required for smooth mode to wipe nozzle.",如果启用平滑模式或者传统模式，将在每次打印时生成延时摄影视频。打印完每层后，将用内置相机拍摄快照。打印完成后，所有这些快照会组合成一个延时视频。如果启用平滑模式，打印完每层后，工具头将移动到吐料槽，然后拍摄快照。由于平滑模式在拍摄快照的过程中熔丝可能会从喷嘴中泄漏，因此需要使用擦拭塔进行喷嘴擦拭。,✓ Translated,
+"If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch.","如果腔室温度超过40℃, 系统将自动切换到腔温保持模式。请确认是否切换。",✓ Translated,
+"If you are to print a kind of soft TPU, please don't slice with this profile, and it is only for TPU that has high enough hardness (not less than 55D) and is compatible with the AMS. To get better printing quality, please refer to this wiki: TPU printing guide.",若要打印的 TPU 硬度较低，请勿用此参数切片。此参数仅适配硬度较高的 TPU（硬度通常需 ≥ 55D），也即可通过 AMS 打印的 TPU。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。,✓ Translated,
+"If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and variables of settings also can be read",如果您想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用分号来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置的变量也可以被读取。,✓ Translated,
+Ignore this and Resume,忽略此问题，继续,✓ Translated,
+Ignore. Don't Remind Next Time,忽略，下次不再提醒,✓ Translated,
+Illegal instruction,非法指令,✓ Translated,
+Import geometry data from STL/STEP/3MF/OBJ/AMF files,从STL/STEP/3MF/OBJ/AMF文件中导入几何数据,✓ Translated,
+"In the 3D Printing community, we learn from each other's successes and failures to adjust our own slicing parameters and settings. %s follows the same principle and uses machine learning to improve its performance from the successes and failures of the vast number of prints by our users. We are training %s to be smarter by feeding them the real-world data. If you are willing, this service will access information from your error logs and usage logs, which may include information described in  Privacy Policy. We will not collect any Personal Data by which an individual can be identified directly or indirectly, including without limitation names, addresses, payment information, or phone numbers. By enabling this service, you agree to these terms and the statement about Privacy Policy.",在3D打印社区，我们从彼此的成功和失败中学习调整自己的切片参数和设置。%s遵循同样的原则，通过机器学习的方式从大量用户打印的成功和失败中获取经验，从而改善打印性能。我们正在通过向%s提供真实世界的数据来训练他们变得更聪明。如果您愿意，此服务将访问您的错误日志和使用日志中的信息，其中可能包括隐私政策中描述的信息。我们不会收集任何可以直接或间接识别个人的个人数据，包括但不限于姓名、地址、支付信息或电话号码。启用此服务即表示您同意这些条款和有关隐私政策的声明。,✓ Translated,
+Incompatible,不兼容的预设,✓ Translated,
+Incompatible presets,不兼容的预设,✓ Translated,
+Increase %1%g filament and save %2% changes compared to a printer with one nozzle.,相较于单头打印机，多使用%1%g耗材，减少%2%次换料。,✓ Translated,
+Increase %1%g filament and save %2% changes compared to optimal grouping.,相较于最优分组，多使用%1%g耗材，减少%2%次换料。,✓ Translated,
+Install toolhead enhanced cooling fan to prevent filament softening.,为避免高环境温度下耗材软化，请安装工具头增强散热风扇。,✓ Translated,
+Interface pattern,支撑面图案,✓ Translated,
+Interface use loop pattern,接触面采用圈形走线。,✓ Translated,
+Internal solid infill pattern,内部实心填充图案,✓ Translated,
+Invalid printer preset. Unable to slice with Helio.,打印机预设无效，无法使用 Helio 功能。,✓ Translated,
+Ironing Pattern,熨烫模式,✓ Translated,
+Know Your Print Will Work — Before You Hit Print,在打印前确认您的打印将会成功,✓ Translated,
+Last Trace ID: ,最后跟踪 ID: ,✓ Translated,
+Layers,层,✓ Translated,
+Learn more,更多信息查看wiki,✓ Translated,
+Legal & Activation Terms,法律和激活条款,✓ Translated,
+Level of Strength & Warping improvement for this part after enhancement - average for the part,增强后此零件的强度和翘曲改善程度 - 零件平均值,✓ Translated,
+Level of Strength & Warping improvement for this part after enhancement - change in overall consistency,增强后此零件的强度和翘曲改善程度 - 整体一致性变化,✓ Translated,
+Limits,限制,✓ Translated,
+Line pattern for internal sparse infill,内部稀疏填充的走线图案,✓ Translated,
+Line pattern for skeleton,骨架填充的走线图案,✓ Translated,
+Line pattern for skin,表皮填充的走线图案,✓ Translated,
+"Line pattern of bottom surface infill, not bridge infill",除了桥接外的底面填充的走线图案,✓ Translated,
+"Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area.",内部实心填充的线型图案。如果启用了检测狭窄的内部实心填充，将使用同心圆图案来填充小区域。,✓ Translated,
+Line pattern of support,支撑走线图案,✓ Translated,
+Line pattern of support interface. Default pattern for support interface is Rectilinear Interlaced,支撑接触面的走线图案。支撑接触面的缺省图案为交叠的直线。,✓ Translated,
+Line pattern of top surface infill,顶面填充的走线图案,✓ Translated,
+Load Filament,进料并前往进料页面,✓ Translated,
+Loading subscription status...,正在加载订阅状态...,✓ Translated,
+Loading...,正在加载视频……,✓ Translated,
+Low,低,✓ Translated,
+"Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature.",挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许设置腔温。,✓ Translated,
+"Make Prints up to 30% Faster (Safely)
+Get real throughput, not risky ""speed mode"". A print that normally takes 8 hours might drop to ~5.6 hours.","打印速度最高提升30%（安全可靠）
+获得真正的效率提升，而非冒险的「速度模式」。一个通常需要8小时的打印可能缩短至约5.6小时。",✓ Translated,
+Manage Account,管理账户,✓ Translated,
+"Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking.",材料在下一层之前冷却过快。这可能导致层间结合弱、翘曲或开裂。,✓ Translated,
+Max Velocity,最大速度,✓ Translated,
+Max Volumetric Speed,最大体积速度,✓ Translated,
+Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable,避免跨越外墙时的最大绕行距离。当绕行距离比这个数值大时，此次空驶不绕行。绕行距离可表达为绝对值，或者相对直线空驶长度的百分比(例如50%)。0表示禁用,✓ Translated,
+Medium,中,✓ Translated,
+Min Velocity,最小速度,✓ Translated,
+Min Volumetric Speed,最小体积速度,✓ Translated,
+Monthly quota:,每月配额：,✓ Translated,
+Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. This can minimize blob when printing new part after travel,当回抽时，让喷嘴沿着前面的走线方向继续移动，清除掉喷嘴上的漏料。这能够避免空驶结束打印新的区域时产生斑点。,✓ Translated,
+"Multicolour simulation currently supports only a single filament material.
+","多色仿真目前仅支持单一耗材类型。
+",✓ Translated,
+Multiple Filament Materials Detected,检测到多种耗材,✓ Translated,
+Nano SVG parser can't load from file (%1%).,Nano SVG解析器不能加载文件（%1%）。,✓ Translated,
+Network plug-in update,网络插件升级,✓ Translated,
+New version of Bambu Studio,新版本的Bambu Studio,✓ Translated,
+No Reminder Next Time,下次不再提醒,✓ Translated,
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. 
 Please request a new Helio-PAT.","未检测到有效的Helio PAT。无法进行Helio模拟与优化。
 请申请新的Helio PAT。",✓ Translated,
-Regenerate PAT,重新生成 PAT,✓ Translated,
-"Failed to obtain Helio PAT, Click Refresh to obtain it again.",获取 Helio-PAT 失败，点击刷新重新获取。,✓ Translated,
-Successfully obtained PAT.,成功获得PAT。,✓ Translated,
-Synchronizing Helio,正在同步 Helio,✓ Translated,
-"Preview only mode:
-The loaded file contains gcode only, Can not enter the Prepare page","仅预览模式：
-被加载的文件仅包含G-Code，不支持进入准备页面",✓ Translated,
-does not contain valid gcode.,不包含有效的G-code文件。,✓ Translated,
-Enable advanced gcode viewer,启用高级 gcode 查看器,✓ Translated,
-Enable advanced gcode viewer.,启用高级 gcode 查看器。,✓ Translated,
-Incompatible presets,不兼容的预设,✓ Translated,
-Incompatible,不兼容的预设,✓ Translated,
+"Not Extruded Yet, Retry",耗材未挤出，重试,✓ Translated,
 Note: The preparation may take several minutes. Please be patient.,提示：发布前需要一些准备时间，请耐心等待。,✓ Translated,
-"Preset ""%1%"" already exists and is incompatible with current printer.",预设“%1%”已存在，并且和当前打印机不兼容。,✓ Translated,
-"Turning off this option will affect print quality if:
-1. Uncalibrated hotends is used
-2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions
-3. The toolhead hotend was manually removed or installed","出现以下情况时，关闭该选项会影响打印质量：
-1.当前打印使用了未被校准的热端
-2.当前打印的喷嘴温度、热床温度、腔温与校准时不同
-3.手动拆装过工具头热端",✓ Translated,
-"Calibrate nozzle offsets to enhance print quality.
-*Automatic mode: Check for calibration before printing. Skip if unnecessary.","校准不同喷嘴的偏移量，从而提升打印质量。
-*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。",✓ Translated,
-The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page.,当前选择的打印机（%s）与打印文件配置（%s）不兼容，请前往准备界面重新选择打印机预设，或在此页面选择兼容的打印机。,✓ Translated,
-Install toolhead enhanced cooling fan to prevent filament softening.,为避免高环境温度下耗材软化，请安装工具头增强散热风扇。,✓ Translated,
-High chamber temperature is required. Please close the door.,需高腔温打印，请关门。,✓ Translated,
-Please refer to Wiki before use->,请在使用前查看wiki。,✓ Translated,
-The selected printer is incompatible with the chosen printer presets.,所选打印机与选择的打印机预设不兼容。,✓ Translated,
-Helio action completed successfully.,Helio操作已成功完成。,✓ Translated,
-"When using PLA to support TPU, We recommend the following settings:
-0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable 
-independent support layer height and use PLA for both support interface and support base","当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：
-0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将PLA同时用于支撑接触面和支撑主体",✓ Translated,
-"When using soluble material for the support, We recommend the following settings:
-0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable 
-independent support layer height and use soluble materials for both support interface and support base","当使用可溶性材料作为支撑时，我们推荐以下设置：
-0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体",✓ Translated,
-"When using support material for the support interface, We recommend the following settings:
-0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height","当支撑接触面使用支撑材料时，我们推荐以下设置：
-0顶部z距离，0接触面间距，交叠直线图案，并且禁用支撑独立层高",✓ Translated,
-"When using soluble material for the support interface, We recommend the following settings:
-0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable 
-independent support layer height and use soluble materials for both support interface and support base","当支撑接触面使用可溶性材料时，我们推荐以下设置：
-0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体",✓ Translated,
-Machine gcode,打印机G-code,✓ Translated,
-"Preset ""%1%"" is not compatible with the new printer profile and it contains the following unsaved changes:","预设 ""%1%"" 与新的打印机预设不兼容，并且包含以下未保存的修改：",✓ Translated,
-"Preset ""%1%"" is not compatible with the new process profile and it contains the following unsaved changes:",预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改：,✓ Translated,
-Show all presets (including incompatible),显示所有预设(包括不兼容的),✓ Translated,
-Configuration incompatible,配置不兼容,✓ Translated,
-the configuration package is incompatible with current application.,配置包和当前的应用程序不兼容。,✓ Translated,
-"The configuration package is incompatible with current application.
-%s will update the configuration package, Otherwise it won't be able to start","配置包和当前的应用程序不兼容。
-%s会更新配置包，否则无法正常启动",✓ Translated,
-the Configuration package is incompatible with current APP.,the Configuration package is incompatible with current APP.,✓ Translated,
+Note: Using a reference material may result in approximate or erroneous results.,注意：使用参考材料可能导致近似或错误的结果。,✓ Translated,
+Note: Using a reference printer may result in approximate or erroneous results.,注意：使用参考打印机可能导致近似或错误的结果。,✓ Translated,
+Now referred to as 'Assess' or 'Assessment',"现称为""评估""",✓ Translated,
+Now referred to as 'Enhance' or 'Enhancement',"现称为""增强""",✓ Translated,
+OK,确认,✓ Translated,
+Object will be raised by this number of support layers. Use this function to avoid warping when print ABS,模型会在相应层数的支撑上抬高进行打印。使用该功能通常用于打印ABS时翘曲。,✓ Translated,
+On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances of same app from the command line. In such case this settings will allow only one instance.,在OSX上，默认情况下总是只有一个应用程序实例在运行。但是，允许从命令行运行同一应用程序的多个实例。在这种情况下，此设置将只允许一个实例。,✓ Translated,
+"On this system, %s uses HTTPS certificates from the system Certificate Store or Keychain.",在此系统上，%s 使用来自系统证书存储或密钥链的HTTPS证书。,✓ Translated,
 Open Wiki for more information >,打开Wiki了解更多信息 >,✓ Translated,
-"Calibrate nozzle offsets to enhance print quality.
-*Automatic mode: Check for calibration before printing; skip if unnecessary.","校准不同喷嘴的偏移量，提升打印质量。
-*自动模式：发起打印前检测是否需要校准，无需校准则跳过校准。",✓ Translated,
-The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s).,所选打印机（%s）与切片软件中选择的打印机配置文件（%s）不兼容。,✓ Translated,
-Connection failed! Please refer to the wiki page.,连接失败！请参考wiki页面,✓ Translated,
-Welcome to Helio Additive,欢迎使用 Helio Additive,✓ Translated,
-"Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable.",基于物理的分析和优化，使打印更快、更强、更可靠。,✓ Translated,
-"Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology.",使用 Helio 最先进的基于物理的3D打印仿真技术，解锁更快、更可靠的打印世界。,✓ Translated,
-Enable Helio Additive,启用 Helio Additive,✓ Translated,
-"After slicing, click the Helio button to analyze your print.",切片后，点击 Helio 按钮分析您的打印。,✓ Translated,
-Helio Additive does not change your printer's firmware.,Helio Additive 不会更改您的打印机固件。,✓ Translated,
-Are you sure you want to uninstall Helio Additive? This will disable all Helio features.,您确定要卸载 Helio Additive 吗？这将禁用所有 Helio 功能。,✓ Translated,
-Uninstall Helio Additive,卸载 Helio Additive,✓ Translated,
-Legal & Activation Terms,法律和激活条款,✓ Translated,
-"Failed to get Helio PAT, Click Refresh to obtain it again.",获取 Helio-PAT 失败，点击刷新重新获取。,✓ Translated,
-"Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT.",获取 Helio-PAT 失败。已达到数量上限，无法再获取。请点击刷新按钮重新获取PAT。,✓ Translated,
-You are activating Helio Additive's advanced simulation services.,您正在激活 Helio Additive 的高级仿真服务。,✓ Translated,
-"Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=""",,⚠ Needs Translation,
-""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=""",,⚠ Needs Translation,
-""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=""",,⚠ Needs Translation,
-""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a> and refer to the <a href=""",,⚠ Needs Translation,
-""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive Privacy Agreement</a> and <a href=""",,⚠ Needs Translation,
-""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive User Agreement</a> for detailed information.<br><br>",,⚠ Needs Translation,
-""" style=""color:#00AE42; text-decoration:underline;"">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>",,⚠ Needs Translation,
-1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>,,⚠ Needs Translation,
-"This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking ""Agree and Proceed"", you agree to Helio Additive's privacy policy.",,⚠ Needs Translation,
-Activation Successful!,激活成功！,✓ Translated,
-Helio Additive is now active. You have unlocked free optimizations!,Helio Additive 已激活。您已解锁免费优化！,✓ Translated,
-Run Your First Optimization,运行您的首次优化,✓ Translated,
-"You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')","您快成功了！Helio 已激活，您的首次优化只需几分钟即可实现更快、更可靠的打印！（现称为""增强""）",✓ Translated,
-"Add an object to the build plate, select a material and printer that Helio supports, then slice.
-
-Supported printers: https://wiki.helioadditive.com/en/supportedprinters","将对象添加到打印平台，选择 Helio 支持的材料和打印机，然后切片。
-
-支持的打印机：https://wiki.helioadditive.com/en/supportedprinters",✓ Translated,
-Copy PAT,复制 PAT,✓ Translated,
+Open filled path,打开填充路径,✓ Translated,
+Open wiki for more information.,打开wiki以获取更多信息。,✓ Translated,
+Optimization Settings,优化设置,✓ Translated,
+Optimizing toolpath,正在优化走线,✓ Translated,
+Option 1: Proceed with a reference material,选项1：使用参考材料继续,✓ Translated,
+Option 1: Proceed with a reference printer,选项1：使用参考打印机继续,✓ Translated,
+Optional. More accurate temperatures ensures better results.,可选。更准确的温度可确保更好的结果。,✓ Translated,
+Overhang threshold for participating cooling,参与冷却降速的悬垂阈值,✓ Translated,
+PA Pattern,PA图案,✓ Translated,
+PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality.,检测到 PLA 和 PETG 同时打印，请根据 Wiki 中的建议调整打印参数来确保打印质量。,✓ Translated,
+PPS-CF/PPA-CF is brittle and could break in bended PTFE tube above Toolhead. Please refer to Wiki before use. ,"PPS-CF/PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。请参考Wiki。",✓ Translated,
+Paste from clipboard,从剪切板粘贴,✓ Translated,
+Path can't be healed from selfintersection and multiple points.,路径无法从自切入和多个点修复。,✓ Translated,
+Pattern,图案,✓ Translated,
+Pattern angle,模式角度,✓ Translated,
+Pause (chamber temperature control problem),暂停（腔温控制异常）,✓ Translated,
 "Personal Access Token (PAT)
 
 A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.
@@ -241,140 +417,10 @@ You may need to copy this to:
 • 将 Helio 与其他切片软件或工具集成
 • 直接使用 Helio API
 • 在故障排除时提供给技术支持",✓ Translated,
-Helio Additive,Helio Additive,✓ Translated,
-Activation Successful,激活成功,✓ Translated,
-Assess,评估,✓ Translated,
-Formerly referred to as 'Simulate' or 'Simulation',"原称为""仿真""或""模拟""",✓ Translated,
-Enhance,增强,✓ Translated,
-Formerly referred to as 'Optimize' or 'Optimization',"原称为""优化""",✓ Translated,
-Chamber Temperature,腔温,✓ Translated,
-Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios.,指打印的环境温度（即A系列 - 室温）。在运行评估/仿真时更改腔温可以让您尝试不同的温度场景。,✓ Translated,
-Helio's advanced feature for power users: available post purchase on its official website.,Helio 的高级功能，面向专业用户：可在官方网站购买后获得。,✓ Translated,
-Subscription:,订阅：,✓ Translated,
-Loading subscription status...,正在加载订阅状态...,✓ Translated,
-Monthly quota:,每月配额：,✓ Translated,
-Add-ons:,附加配额：,✓ Translated,
-Environment Settings,环境设置,✓ Translated,
-Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature.,在可用时使用耗材设置中的腔温；否则从热床温度估算。,✓ Translated,
-Optimization Settings,优化设置,✓ Translated,
-Now referred to as 'Enhance' or 'Enhancement',"现称为""增强""",✓ Translated,
-Preserve Surface Finish,保持表面光洁度,✓ Translated,
-Speed & Strength,速度和强度,✓ Translated,
-Print Priority,打印优先级,✓ Translated,
-"Speed & Strength: Optimizes outer walls for improved performance.
-(Formerly 'Optimise Outer Walls: Yes')
-
-Preserve Surface Finish: Maintains outer wall quality and visual finish.
-(Formerly 'Optimise Outer Walls: No')","速度和强度：优化外壁以提升性能。
-（原""优化外壁：是""）
-
-保持表面光洁度：保持外壁质量和视觉效果。
-（原""优化外壁：否""）",✓ Translated,
-Helio default (recommended),Helio 默认设置（推荐）,✓ Translated,
-Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data.,设置您自己的速度和流量限制 - 或依赖 Helio 的自定义限制设置。对于不支持的材料，您需要提供自己的数据或依赖切片软件的内置数据。,✓ Translated,
-"Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')","增强只需几分钟即可完成，具体取决于对象的大小。（后台正在进行大量计算）（原称为""优化""）",✓ Translated,
-"Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')","评估只需几分钟即可完成，具体取决于对象的大小。（后台正在进行大量计算）（原称为""仿真""或""模拟""）",✓ Translated,
-Start Free Trial,开始免费试用,✓ Translated,
-Activate your free trial to unlock premium enhancements,激活免费试用以解锁高级增强功能,✓ Translated,
-Go to our storefront to purchase more enhancements,前往我们的商店购买更多增强功能,✓ Translated,
-Free Trial,免费试用,✓ Translated,
-Free Trial Expired,免费试用已过期,✓ Translated,
-Your free trial has ended. Explore our plans to continue using premium features.,您的免费试用已结束。请查看我们的套餐以继续使用高级功能。,✓ Translated,
-"Start your free trial to unlock premium enhancements and faster, warp-free prints!",开始免费试用，解锁高级增强功能，享受更快、无翘曲的打印！,✓ Translated,
-"Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)",将 Helio 的修复限制在某些层，或保留所有层 - 选择权在您！（附着在热床上的第1层通常会跳过。）,✓ Translated,
-Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available.,获取 Helio-PAT 失败。已达到发行 PAT 的上限。请关注 Helio 官方网站的信息。可点击刷新重新获取。,✓ Translated,
-HELIO ADDITIVE,HELIO ADDITIVE,✓ Translated,
-Estimate of improvement in print time before and after enhancement,增强前后打印时间改善的估计,✓ Translated,
-Level of Strength & Warping improvement for this part after enhancement - average for the part,增强后此零件的强度和翘曲改善程度 - 零件平均值,✓ Translated,
-Level of Strength & Warping improvement for this part after enhancement - change in overall consistency,增强后此零件的强度和翘曲改善程度 - 整体一致性变化,✓ Translated,
-Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next.,您的G代码已完成优化，以实现最佳打印效果。若需进一步提升打印质量，可查阅我们的wiki文档，获取后续操作的实用技巧与建议。,✓ Translated,
-Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you.,根据您的期望评价增强效果。5星表示非常棒！1星表示对您没有太大价值。,✓ Translated,
-Save the enhanced gcode locally,在本地保存增强后的G代码,✓ Translated,
-Print the enhanced part immediately,立即打印增强后的零件,✓ Translated,
-Verify Print Success Results,验证打印成功结果,✓ Translated,
-Simulates the thermal process to confirm your part will print without failure.,模拟热过程以确认您的零件可以无故障打印。,✓ Translated,
-Now referred to as 'Assess' or 'Assessment',"现称为""评估""",✓ Translated,
-Fix suggestions,修复建议,✓ Translated,
-With Enhance Speed & Quality:,使用速度和质量增强：,✓ Translated,
-Enhance Speed & Quality,增强速度和质量,✓ Translated,
-Applies Helio's optimized speed/flow/fan strategy.,应用 Helio 优化的速度/流量/风扇策略。,✓ Translated,
-Thermal conditions are balanced. The part is printing within safe temperature limits.,热条件平衡。零件在安全温度范围内打印。,✓ Translated,
-"Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking.",材料在下一层之前冷却过快。这可能导致层间结合弱、翘曲或开裂。,✓ Translated,
-Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features.,热量在小层中积聚的速度超过散热速度。这可能导致精细特征下垂或细节丢失。,✓ Translated,
-Your part is ready to print! Thermal conditions are within safe limits.,您的零件已准备好打印！热条件在安全范围内。,✓ Translated,
-Learn more,更多信息查看wiki,✓ Translated,
-Helio Flowchart,Helio 流程图,✓ Translated,
-"Failed to generate gcode for invalid custom G-code.
-
-","由于错误的自定义G-code，G-code生成失败。
-
-",✓ Translated,
-Maximum detour distance for avoiding crossing wall. Don't detour if the detour distance is larger than this value. Detour length could be specified either as an absolute value or as percentage (for example 50%) of a direct travel path. Zero to disable,避免跨越外墙时的最大绕行距离。当绕行距离比这个数值大时，此次空驶不绕行。绕行距离可表达为绝对值，或者相对直线空驶长度的百分比(例如50%)。0表示禁用,✓ Translated,
-Overhang threshold for participating cooling,参与冷却降速的悬垂阈值,✓ Translated,
-"Use only one wall on flat top surface, to give more space to the top infill pattern. Could be applied on topmost surface or all top surface.",顶面只使用单层墙，从而更多的空间能够使用顶部填充图案。可以应用于最顶部表面或所有顶部表面。,✓ Translated,
-Compatible machine,兼容的机器,✓ Translated,
-upward compatible machine,向上兼容的机器,✓ Translated,
-Compatible machine condition,兼容的机器的条件,✓ Translated,
-Compatible process profiles,兼容的切片配置,✓ Translated,
-Compatible process profiles condition,兼容的切片配置的条件,✓ Translated,
-Speed of exhaust fan during printing.This speed will overwrite the speed in filament custom gcode,打印过程中排风扇的速度。此速度将覆盖材料的自定义G代码中的速度。,✓ Translated,
-Between Object Gcode,对象之间Gcode,✓ Translated,
-Insert Gcode between objects. This parameter will only come into effect when you print your models object by object,在对象之间插入 Gcode。此参数仅在逐个打印模型物体时生效。,✓ Translated,
-Detect overhang paths in vertical shells and slow them by bridge speed.,识别斜面填充中的悬空路径，并使用桥接速度降速。,✓ Translated,
-"When sparse infill density is low, the internal solid infill or internal bridge may have no archor at the end of line. This causes falling and bad quality when printing internal solid infill. When enable this feature, loop paths will be added to the sparse fill of the lower layers for specific thickness, so that better archor can be provided for internal bridge. 0 means disable this feature",如果开启，Studio会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓可以防止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设置用于调整支撑轮廓的厚度，0表示关闭此特性。,✓ Translated,
-Top surface pattern,顶面图案,✓ Translated,
-Line pattern of top surface infill,顶面填充的走线图案,✓ Translated,
-Bottom surface pattern,底面图案,✓ Translated,
-"Line pattern of bottom surface infill, not bridge infill",除了桥接外的底面填充的走线图案,✓ Translated,
-Internal solid infill pattern,内部实心填充图案,✓ Translated,
-"Line pattern of internal solid infill. if the detect narrow internal solid infill be enabled, the concentric pattern will be used for the small area.",内部实心填充的线型图案。如果启用了检测狭窄的内部实心填充，将使用同心圆图案来填充小区域。,✓ Translated,
-The material may have volumetric change after switching between molten state and crystalline state. This setting changes all extrusion flow of this filament in gcode proportionally. Recommended value range is between 0.95 and 1.05. Maybe you can tune this value to get nice flat surface when there has slight overflow or underflow,材料经过融化后凝固可能会产生体积差异。这个设置会等比例改变所有挤出走线的挤出量。推荐的范围为0.95到1.05。发现大平层模型的顶面有轻微的缺料或多料时，或许可以尝试微调这个参数。,✓ Translated,
-"Filament diameter is used to calculate extrusion in gcode, so it's important and should be accurate",耗材丝直径被用于计算G-code文件中的挤出量。因此很重要，应尽可能精确。,✓ Translated,
-"To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled.",为防止漏料，喷嘴温度将在预冲刷过程中被冷却。注意：此过程仅会触发降温指令和风扇启动，但不保证能达到目标温度。设置为 0 表示禁用。,✓ Translated,
-"Angle for sparse infill pattern, which controls the start or main direction of line",稀疏填充图案的角度，决定走线的开始或整体方向。,✓ Translated,
-"Using multiple lines for the infill pattern, if supported by infill pattern.",启用多线填充模式，当所选填充图案支持时生效。,✓ Translated,
-Sparse infill pattern,稀疏填充图案,✓ Translated,
-Line pattern for internal sparse infill,内部稀疏填充的走线图案,✓ Translated,
-Skin infill pattern,表皮填充图案,✓ Translated,
-Line pattern for skin,表皮填充的走线图案,✓ Translated,
-Skeleton infill pattern,骨架填充图案,✓ Translated,
-Line pattern for skeleton,骨架填充的走线图案,✓ Translated,
-Decides the size of thumbnail stored in gcode files,决定存储在Gcode文件中的缩略图大小,✓ Translated,
-Support control chamber temperature,支持腔温控制,✓ Translated,
-This option is enabled if machine support controlling chamber temperature,此选项在支持腔温控制时启用。,✓ Translated,
-Air filtration enhancement,支持空气过滤增强,✓ Translated,
-Enable this if printer support air filtration enhancement.,如果打印机支持空气过滤增强，请启用此选项。,✓ Translated,
-What kind of gcode the printer is compatible with,打印机兼容的G-code风格',✓ Translated,
-Adjust the line width of the selected skin paths.,调整选择的表皮走线的线宽,✓ Translated,
-Adjust the line width of the selected skeleton paths.,为选择的骨架走线设置线宽,✓ Translated,
-Ironing Pattern,熨烫模式,✓ Translated,
-This gcode part is inserted at every layer change after lift z,在每次换层抬升Z高度之后插入这段G-code。,✓ Translated,
-This G-code will be used as a code for the pause print. User can insert pause G-code in gcode viewer,该G-code用于暂停打印。您可以在gcode预览中插入暂停G-code,✓ Translated,
-"The smaller the number, the longer the speed transition path. 0 means not apply.",数值越小速度过渡区越大。0表示不应用。,✓ Translated,
-"If you want to process the output G-code through custom scripts, just list their absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed the absolute path to the G-code file as the first argument, and variables of settings also can be read",如果您想通过自定义脚本来处理输出的G代码，只需在这里列出它们的绝对路径。用分号来分隔多个脚本。脚本将被传递给G代码文件的绝对路径作为第一个参数，设置的变量也可以被读取。,✓ Translated,
-Object will be raised by this number of support layers. Use this function to avoid warping when print ABS,模型会在相应层数的支撑上抬高进行打印。使用该功能通常用于打印ABS时翘曲。,✓ Translated,
-G-code path is generated after simplifying the contour of model to avoid too many points and gcode lines in the gcode file. Smaller value means higher resolution and more time to slice,为了避免G-code文件中过密集的点和走线，G-code走线通常是在简化模型的外轮廓之后生成。越小的数值代表更高的分辨率，同时需要更长的切片时间。,✓ Translated,
-"The printing speed in exported gcode will be slowed down, when the estimated layer time is shorter than this value, to get better cooling for these layers",当层预估打印时间小于这个数值时，打印速度将会降低，从而获得更好的冷却效果。,✓ Translated,
-Pattern angle,模式角度,✓ Translated,
-Use this setting to rotate the support pattern on the horizontal plane.,设置支撑图案在水平面的旋转角度。,✓ Translated,
-Interface use loop pattern,接触面采用圈形走线。,✓ Translated,
-Base pattern,支撑主体图案,✓ Translated,
-Line pattern of support,支撑走线图案,✓ Translated,
-Interface pattern,支撑面图案,✓ Translated,
-Line pattern of support interface. Default pattern for support interface is Rectilinear Interlaced,支撑接触面的走线图案。支撑接触面的缺省图案为交叠的直线。,✓ Translated,
-Base pattern spacing,主体图案线距,✓ Translated,
-Chamber temperature,腔体温度,✓ Translated,
-"Higher chamber temperature can help suppress or reduce warping and potentially lead to higher interlayer bonding strength for high temperature materials like ABS, ASA, PC, PA and so on.At the same time, the air filtration of ABS and ASA will get worse.While for PLA, PETG, TPU, PVA and other low temperature materials,the actual chamber temperature should not be high to avoid cloggings, so 0 which stands for turning off is highly recommended",更高的腔温可以帮助抑制或减少翘曲，同时可能会提高高温材料（如ABS、ASA、PC、PA等）的层间粘合强度。与此同时，ABS和ASA的空气过滤性能会变差。而对于PLA、PETG、TPU、PVA等低温材料，为了避免堵塞，实际的腔温不应该过高，因此强烈建议使用0（表示关闭）。,✓ Translated,
-"This gcode is inserted when change filament, including T command to trigger tool change",换料时插入的G-code，包括T命令。,✓ Translated,
-Convert the retraction moves to G10 and G11 gcode,"将回抽指令改为G10,G11",✓ Translated,
-Move nozzle along the last extrusion path when retracting to clean leaked material on nozzle. This can minimize blob when printing new part after travel,当回抽时，让喷嘴沿着前面的走线方向继续移动，清除掉喷嘴上的漏料。这能够避免空驶结束打印新的区域时产生斑点。,✓ Translated,
-Describe how long the nozzle will move along the last path when retracting,表示回抽时擦拭的移动距离。,✓ Translated,
-The wall of prime tower will skip the start points of wipe path,擦料塔的外墙跳过内部擦拭路径的起点,✓ Translated,
-"This option will auto detect narrow internal solid infill area. If enabled, concentric pattern will be used for the area to speed printing up. Otherwise, rectilinear pattern is used defaultly.",此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充加快打印速度。否则使用默认的直线填充。,✓ Translated,
---use-firmware-retraction is not compatible with --wipe,,⚠ Needs Translation,
-"Do not run any validity checks, such as gcode path conflicts check.",不要运行任何有效性检查，如gcode路径冲突检查。,✓ Translated,
-Generating infill toolpath,正在生成填充走线,✓ Translated,
-Optimizing toolpath,正在优化走线,✓ Translated,
+"Personal assecc token is empty, please fill in the correct token.",个人访问令牌为空，请填写正确的令牌。,✓ Translated,
+"Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable.",基于物理的分析和优化，使打印更快、更强、更可靠。,✓ Translated,
+Plans / Upgrades,套餐 / 升级,✓ Translated,
+Please enter the name you want to save to printer.,请输入要保存到打印机的名称。,✓ Translated,
 "Please find the details of Flow Dynamics Calibration from our wiki.
 
 Usually the calibration is unnecessary. When you start a single color/material print, with the ""flow dynamics calibration"" option checked in the print start menu, the printer will follow the old way, calibrate the filament before the print; When you start a multi color/material print, the printer will use the default compensation parameter for the filament during every filament switch which will have a good result in most cases.
@@ -388,89 +434,321 @@ The calibration results have about 10 percent jitter in our test, which may caus
 有几种情况可能导致校准结果不可靠，例如打印板的的附着力不足。清洗打印板或者使用胶水可以增强打印板附着力。您可以在我们的维基上找到更多相关信息。
 
 在我们的测试中，校准结果有约10%的波动，这可能导致每次校准的结果略有不同。我们仍在调查根本原因，并通过新的更新进行改进。",✓ Translated,
-"Flow Rate Calibration measures the ratio of expected to actual extrusion volumes. The default setting works well in Bambu Lab printers and official filaments as they were pre-calibrated and fine-tuned. For a regular filament, you usually won't need to perform a Flow Rate Calibration unless you still see the listed defects after you have done other calibrations. For more details, please check out the wiki article.",流量比例校准测量预期挤出体积与实际挤出体积之间的比率。默认设置在Bambu Lab打印机和官方材料上表现良好，因为它们已经进行了预先校准和微调。对于普通的材料，通常情况下，您不需要执行流量比例校准，除非在完成其他校准后仍然看到上述列出的缺陷。如需更多详细信息，请查阅wiki文章。,✓ Translated,
-"Auto Flow Rate Calibration utilizes Bambu Lab's Micro-Lidar technology, directly measuring the calibration patterns. However, please be advised that the efficacy and accuracy of this method may be compromised with specific types of materials. Particularly, filaments that are transparent or semi-transparent, sparkling-particled, or have a high-reflective finish may not be suitable for this calibration and can produce less-than-desirable results.
-
-The calibration results may vary between each calibration or filament. We are still improving the accuracy and compatibility of this calibration through firmware updates over time.
-
-Caution: Flow Rate Calibration is an advanced process, to be attempted only by those who fully understand its purpose and implications. Incorrect usage can lead to sub-par prints or printer damage. Please make sure to carefully read and understand the process before doing it.","自动流量比例校准采用Bambu Lab的微型激光雷达技术，直接测量校准图案。然而，请注意，这种方法的功效和准确性可能会因特定类型的材料而受影响。特别是透明或半透明、带有闪光颗粒或具有高反射表面的材料可能不适合这种校准，并可能产生不理想的结果。
-
-校准结果可能因每次校准或材料的不同而有所不同。我们仍在通过固件更新不断提高这种校准的准确性和兼容性。
-
-注意：流量比例校准是一项高级的过程，只有完全理解其目的和影响的人才应尝试。错误的使用可能导致打印质量不佳或损坏打印机。请确保在执行之前仔细阅读和理解此过程。",✓ Translated,
-"material with significant thermal shrinkage/expansion, such as...",具有显著热收缩/膨胀的材料，例如...,✓ Translated,
-Pattern,图案,✓ Translated,
-%s is not compatible with %s,%s 与 %s 不兼容,✓ Translated,
-PA Pattern,PA图案,✓ Translated,
-wiki,,⚠ Needs Translation,
+Please make sure you have the corrent API key set in preferences.,请确保您已在偏好设置中正确设置了 API 密钥。,✓ Translated,
+Please refer to Wiki before use->,请在使用前查看wiki。,✓ Translated,
+Please save project and restart the program. ,请保存项目并重启程序。,✓ Translated,
+Please select from the following filaments,请从以下耗材中选择,✓ Translated,
+Preserve Surface Finish,保持表面光洁度,✓ Translated,
+"Preset ""%1%"" already exists and is incompatible with current printer.",预设“%1%”已存在，并且和当前打印机不兼容。,✓ Translated,
+"Preset ""%1%"" is not compatible with the new printer profile and it contains the following unsaved changes:","预设 ""%1%"" 与新的打印机预设不兼容，并且包含以下未保存的修改：",✓ Translated,
+"Preset ""%1%"" is not compatible with the new process profile and it contains the following unsaved changes:",预设“%1%”和新的工艺预设不兼容，并且它包含以下未保存的修改：,✓ Translated,
 "Preset path is not found, please reselect vendor.",预设路径未找到，请重新选择供应商。,✓ Translated,
-"For more information, please check out Wiki",了解更多信息，请参阅Wiki,✓ Translated,
-"Compared with the default profile of a 0.2 mm nozzle, it has lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in much higher printing quality, but a much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，打印速度、加速度较低，稀疏填充图案为螺旋体，打印质量更高，但耗时更长。,✓ Translated,
-"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost invisible layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。,✓ Translated,
-"Compared with the default profile of a 0.2 mm nozzle, it has a smaller layer lines, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in minimal layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，几乎不显层纹，打印质量非常高，但打印耗时很长。,✓ Translated,
-"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in less apparent layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，层纹较不明显，打印质量较高，但打印耗时很长。,✓ Translated,
-"Compared with the default profile of a 0.4 mm nozzle, it has a smaller layer height, lower speeds and acceleration, and the sparse infill pattern is Gyroid. So, it results in almost negligible layer lines and much higher printing quality, but much longer printing time.",此为高质量参数，相比于此喷嘴的默认参数，层高较小，打印速度、加速度较低，稀疏填充图案为螺旋体，层纹更不明显，打印质量很高，但打印耗时很长。,✓ Translated,
-"When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",此耗材打印时有翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。,✓ Translated,
-"When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",此耗材打印时有堵喷嘴、漏料、翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。,✓ Translated,
-"To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",若要用此耗材的透明耗材打印透明效果很好的模型，请查阅 wiki: 透明 PETG 打印指南。,✓ Translated,
-"This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: Instructions for printing RC model with foaming PLA (PLA Aero).",此耗材通常只用于打印低密度的模型，且必须使用特殊参数。为保证打印质量，请查阅 wiki: 发泡 PLA（PLA Aero）打印航模操作指南。,✓ Translated,
-"This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: ASA Aero Printing Guide.",此耗材通常只用于打印低密度的模型，且必须使用特殊参数。为保证打印质量，请查阅 wiki: 发泡 ASA （ASA Aero）打印指南。,✓ Translated,
-"This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",此耗材太软，不适配 AMS。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。,✓ Translated,
-"This filament has high enough hardness (about 67D)  and is compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",此耗材的硬度较高（约 67D），可通过 AMS 打印。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。,✓ Translated,
-"If you are to print a kind of soft TPU, please don't slice with this profile, and it is only for TPU that has high enough hardness (not less than 55D) and is compatible with the AMS. To get better printing quality, please refer to this wiki: TPU printing guide.",若要打印的 TPU 硬度较低，请勿用此参数切片。此参数仅适配硬度较高的 TPU（硬度通常需 ≥ 55D），也即可通过 AMS 打印的 TPU。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。,✓ Translated,
-"This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide.",此为水溶性支撑耗材，通常只能用于打印支撑结构，不能用于打印模型主体。其使用要求较高，为保证打印质量，请查阅 wiki: PVA 打印指南。,✓ Translated,
-"This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",此为非水溶性支撑耗材，通常只能用于打印支撑结构，不能用于打印模型主体。为保证打印质量，请查阅 wiki: 支撑耗材与支撑功能的介绍。,✓ Translated,
-"The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets.",Generic 参数为了兼容更多种耗材而进行了较为保守的调校，使用拓竹原装耗材配合拓竹专用参数可获得更高的打印质量与更高的打印速度。,✓ Translated,
-Failed to create GCodeV2,无法创建 GCode,✓ Translated,
-Something went wrong while creating GCode. Please check your custom GCodes,创建G代码时出错。请检查您的自定义G代码,✓ Translated,
-Helio simulation task failed,Helio仿真任务失败,✓ Translated,
-Helio optimization task failed,Helio 优化任务失败,✓ Translated,
-"Helio API endpoint is empty, please check the configuration.",Helio API 端点为空，请检查配置。,✓ Translated,
-Helio: Presigned URL Created,Helio：预签名URL已创建,✓ Translated,
-Helio: file succesfully uploaded,Helio：文件已成功上传,✓ Translated,
-Helio: file upload failed,Helio：文件上传失败,✓ Translated,
-Helio: GCode created successfully,Helio：G代码已成功创建,✓ Translated,
-Helio: simulation successfully created,Helio：仿真创建成功,✓ Translated,
-Helio: simulation working,Helio：仿真运行中,✓ Translated,
-Helio: simulation failed,Helio：仿真失败,✓ Translated,
-Helio: Simulation check failed,Helio：仿真检测失败,✓ Translated,
-Helio: Failed to create Simulation,Helio: 创建仿真失败,✓ Translated,
-Helio: Failed to create GCode,Helio: 创建GCode失败,✓ Translated,
-Helio: optimization successfully created,Helio：优化创建成功,✓ Translated,
-Helio: optimization working,Helio：优化运行中,✓ Translated,
-Helio: optimization failed,Helio：优化失败,✓ Translated,
-Helio: Optimzaion check failed,Helio：优化检查失败,✓ Translated,
-Helio: Failed to create Optimization,Helio: 创建优化失败,✓ Translated,
-Helio: GCode downloaded successfully,Helio：G代码下载成功,✓ Translated,
-Helio: GCode download failed,Helio: GCode 下载失败,✓ Translated,
+Print Plate,打印盘,✓ Translated,
+Print Priority,打印优先级,✓ Translated,
 Print Success,打印成功,✓ Translated,
-"When need to print with the printer door opened
-Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki.","什么时候需要打开机箱门打印
-您知道吗？在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更多信息，请参阅Wiki。",✓ Translated,
-"Avoid warping
-Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping.","避免翘曲
-您知道吗？打印ABS这类易翘曲材料时，适当提高热床温度可以降低翘曲的概率。",✓ Translated,
-"Run Nylon & PC (and other advanced materials) Like a Pro
-Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the ""almost worked"" failure.","像专业人士一样使用尼龙和PC（及其他高级材料）
-正在打印尼龙612或聚碳酸酯等高级材料？Helio帮您避免「差一点就成功」的失败。",✓ Translated,
-"Make Prints up to 30% Faster (Safely)
-Get real throughput, not risky ""speed mode"". A print that normally takes 8 hours might drop to ~5.6 hours.","打印速度最高提升30%（安全可靠）
-获得真正的效率提升，而非冒险的「速度模式」。一个通常需要8小时的打印可能缩短至约5.6小时。",✓ Translated,
-"Stop Wasting Precious Design Time on Tuning
-Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right.","停止在调参上浪费宝贵的设计时间
-更少的测试打印，更快的调试。用Helio检测问题，一次打印成功。",✓ Translated,
-"Cut Warping on ASA/ABS and other advanced materials
-Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil.","减少ASA/ABS及其他高级材料的翘曲
-翘曲会毁掉长时间的打印。Helio在打印前显示风险最高的位置，通过增强功能将翘曲风险降至几乎为零。",✓ Translated,
+Print Time Improvement,打印时间优化,✓ Translated,
+Print plate,打印单盘,✓ Translated,
+Print the enhanced part immediately,立即打印增强后的零件,✓ Translated,
+Printer model,打印机型号,✓ Translated,
+Privacy Policy,隐私协议,✓ Translated,
+Privacy Policy Update,隐私协议更新,✓ Translated,
+Problem Solved and Resume,问题已解决，继续,✓ Translated,
+Processing G-Code from Previous file...,从之前的文件加载G代码...,✓ Translated,
 "Quality Check Before You Hit Print
 Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run.","打印前进行质量检查
 就像飞行前检查一样。例如：如果PC支架在薄肋处显示低TQI，您就知道在进行通宵打印之前需要调整。",✓ Translated,
-"Stronger Parts With One Click
-Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization.","一键获得更强的零件
-更好的层间结合，更少的脆性失效。例如：聚碳酸酯优化后拉伸强度提升约65%。",✓ Translated,
+Quick fixes (beginner):,快速修复（初学者）：,✓ Translated,
+Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you.,根据您的期望评价增强效果。5星表示非常棒！1星表示对您没有太大价值。,✓ Translated,
+Re&load from Disk,从磁盘重新加载,✓ Translated,
+Ready to print,准备打印,✓ Translated,
+Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios.,指打印的环境温度（即A系列 - 室温）。在运行评估/仿真时更改腔温可以让您尝试不同的温度场景。,✓ Translated,
+Regenerate PAT,重新生成 PAT,✓ Translated,
+Release Note,更新说明,✓ Translated,
+Reload SVG file from disk.,从磁盘重新加载SVG文件,✓ Translated,
+Reload file list from printer.,从打印机重新加载文件列表。,✓ Translated,
+Reload from disk,从磁盘重新加载,✓ Translated,
+Reload the plater from disk,从磁盘重新加载平台,✓ Translated,
+Reload the selected parts from disk,从磁盘重新加载选中的零件,✓ Translated,
+Remove Window from Set,从集合中移除窗口,✓ Translated,
+Remove connector from selection,取消选择连接件,✓ Translated,
+"Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)",将 Helio 的修复限制在某些层，或保留所有层 - 选择权在您！（附着在热床上的第1层通常会跳过。）,✓ Translated,
+Resume (defects acceptable),继续 （缺陷可接受）,✓ Translated,
+Resume (problem solved),继续（问题已解决）,✓ Translated,
+Resume Printing,继续打印,✓ Translated,
+Retry,重试,✓ Translated,
+Retry (problem solved),重试 (问题已解决）,✓ Translated,
+"Run Nylon & PC (and other advanced materials) Like a Pro
+Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the ""almost worked"" failure.","像专业人士一样使用尼龙和PC（及其他高级材料）
+正在打印尼龙612或聚碳酸酯等高级材料？Helio帮您避免「差一点就成功」的失败。",✓ Translated,
+Run Your First Optimization,运行您的首次优化,✓ Translated,
+"SVG file path is ""%1%""","SVG文件路径为 ""%1%""",✓ Translated,
+Save ,保存 ,✓ Translated,
+Save %1% style,保存%1%样式,✓ Translated,
+Save %1%g filament and %2% changes compared to a printer with one nozzle.,相较于单头打印机可节省%1%g耗材和%2%次换料。,✓ Translated,
+Save %1%g filament and increase %2% changes compared to a printer with one nozzle.,相较于单头打印机，节省%1%g耗材，增加%2%次换料。,✓ Translated,
+Save %1%g filament and increase %2% changes compared to optimal grouping.,相较于最优分组，节省%1%g耗材，增加%2%次换料。,✓ Translated,
+Save %s as,另存%s为,✓ Translated,
+Save G-code file as:,G-code文件另存为：,✓ Translated,
 "Save Money Every Run
 Faster + fewer failures = real savings.","每次打印都省钱
 更快+更少失败=真正的节省。",✓ Translated,
-"First-Time-Right Reliability
-Less babysitting, more predictable output. Example: a small farm running PETG parts avoids ""fail at hour 6"" surprises and keeps batches on schedule.","首次打印即成功的可靠性
-更少看护，更可预测的产出。例如：运行PETG零件的小型生产线避免了「第6小时失败」的意外，保持批量生产按时进行。",✓ Translated,
+Save Project,保存项目,✓ Translated,
+Save Project as,项目另存为,✓ Translated,
+Save SLA file as:,SLA 文件另存为：,✓ Translated,
+Save SVG,保存SVG,✓ Translated,
+Save SVG file,保存SVG文件,✓ Translated,
+Save Sliced file as:,切片文件另存为：,✓ Translated,
+Save as,另存为,✓ Translated,
+Save as '.svg' file,另存为'.svg'文件,✓ Translated,
+Save as new style,另存为新样式,✓ Translated,
+Save current %s,保存当前 %s,✓ Translated,
+Save current project as,项目另存为,✓ Translated,
+Save current project to file,保存当前项目到文件,✓ Translated,
+Save file as:,文件另存为：,✓ Translated,
+Save or Discard Modified Value,保存或丢弃修改值,✓ Translated,
+Save preset,保存预设,✓ Translated,
+Save project,保存项目,✓ Translated,
+Save the enhanced gcode locally,在本地保存增强后的G代码,✓ Translated,
+"Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage",将从 Bambu Studio、Bambu Handy 和 MakerWorld 启动的打印文件保存在外部存储中,✓ Translated,
+"Save the selected options to preset 
+""%1%"".","保存所选选项到预设 
+""%1%"".",✓ Translated,
+Save the selected options.,保存所选项。,✓ Translated,
+Save to Filament Preset,保存到材料预设,✓ Translated,
+Seam placement away from overhangs(experimental),接缝远离悬垂点放置（实验）,✓ Translated,
+See where it will fail,查看可能失败的位置,✓ Translated,
+Select a similar material type to use for simulation:,选择用于仿真的类似材料类型：,✓ Translated,
+Select a similar printer to use for simulation:,选择用于仿真的类似打印机：,✓ Translated,
+Select which filament to use for simulation:,选择用于仿真的耗材：,✓ Translated,
+Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data.,设置您自己的速度和流量限制 - 或依赖 Helio 的自定义限制设置。对于不支持的材料，您需要提供自己的数据或依赖切片软件的内置数据。,✓ Translated,
+Show all presets (including incompatible),显示所有预设(包括不兼容的),✓ Translated,
+Simulates the thermal process to confirm your part will print without failure.,模拟热过程以确认您的零件可以无故障打印。,✓ Translated,
+Skeleton infill pattern,骨架填充图案,✓ Translated,
+Skin infill pattern,表皮填充图案,✓ Translated,
+Skip this Version,跳过本版本,✓ Translated,
+Slicer default,切片软件默认值,✓ Translated,
+Software Service Terms && Conditions,软件服务条款和条件,✓ Translated,
+"Some of your selected materials are not directly supported by Helio:
+","您选择的部分材料不是 Helio 直接支持的：
+",✓ Translated,
+Something went wrong while creating GCode. Please check your custom GCodes,创建G代码时出错。请检查您的自定义G代码,✓ Translated,
+Sparse infill pattern,稀疏填充图案,✓ Translated,
+Special Note && Privacy Policy,特别说明和隐私政策,✓ Translated,
+Speed & Strength,速度和强度,✓ Translated,
+"Speed & Strength: Optimizes outer walls for improved performance.
+(Formerly 'Optimise Outer Walls: Yes')
+
+Preserve Surface Finish: Maintains outer wall quality and visual finish.
+(Formerly 'Optimise Outer Walls: No')","速度和强度：优化外壁以提升性能。
+（原""优化外壁：是""）
+
+保持表面光洁度：保持外壁质量和视觉效果。
+（原""优化外壁：否""）",✓ Translated,
+"Split your prints into plates
+Did you know that you can split a model that has a lot of parts into individual plates ready to print? This will simplify the process of keeping track of all the parts.","分盘打印
+您知道吗？您可以把一个有很多零件的模型安排到多个独立的分盘，然后打印出来，这将简化对所有零件的管理。",✓ Translated,
+Start Free Trial,开始免费试用,✓ Translated,
+"Start your free trial to unlock premium enhancements and faster, warp-free prints!",开始免费试用，解锁高级增强功能，享受更快、无翘曲的打印！,✓ Translated,
+Stop Drying,停止烘干,✓ Translated,
+Stop Printing,停止打印,✓ Translated,
+"Stop Wasting Precious Design Time on Tuning
+Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right.","停止在调参上浪费宝贵的设计时间
+更少的测试打印，更快的调试。用Helio检测问题，一次打印成功。",✓ Translated,
+"Stronger Parts With One Click
+Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization.","一键获得更强的零件
+更好的层间结合，更少的脆性失效。例如：聚碳酸酯优化后拉伸强度提升约65%。",✓ Translated,
+"Style ""%1%"" can't be used and will be removed from a list.","样式""%1%""无法使用，将从列表中删除。",✓ Translated,
+"Style and shape of the support. For normal support, projecting the supports into a regular grid will create more stable supports (default), while snug support towers will save material and reduce object scarring.
+For tree support, slim style will merge branches more aggressively and save a lot of material, strong style will make larger and stronger support structure and use more materials, while hybrid style is the combination of slim tree and normal support with normal nodes under large flat overhangs. Organic style will produce more organic shaped tree structure and less interfaces which makes it easer to be removed. The default style is organic tree for most cases, and hybrid tree if adaptive layer height or soluble interface is enabled.","支撑的样式和形状。对于普通支撑，将支撑投射到一个规则的网格中，将创建更稳定的支撑（默认），而紧贴的支撑塔将节省材料并减少物体的瑕疵。
+对于树形支撑，苗条树将更激进地合并树枝，并节省大量的材料；粗壮树会产生更大更强壮的支撑结构，但用料更多；而混合树是苗条树和普通支撑的结合，它会在大的平面悬垂下创建与正常支撑类似的结构；有机树将产生更有机的树状结构，并且减少界面层，这使得它们更容易被移除。多数情况下，默认风格是有机树，如果启用了自适应层高或使用了可溶性支撑材料，则为混合树。",✓ Translated,
+Subscription:,订阅：,✓ Translated,
+"Subtract a Part
+Did you know that you can subtract one mesh from another using the Negative part modifier? That way you can, for example, create easily resizable holes directly in Bambu Studio. Read more in the documentation.","减去部分几何体
+您知道吗？您可以使用负零件从另一个几何体中减去另一个几何体。例如，可以直接在Bambu Studio中创建可轻松调整大小的孔。",✓ Translated,
+Successfully obtained PAT.,成功获得PAT。,✓ Translated,
+Successfully synchronized color and type of filament from printer.,成功从打印机同步耗材颜色和类型。,✓ Translated,
+Successfully unmounted. The device %s(%s) can now be safely removed from the computer.,卸载成功。设备%s(%s)现在可能安全地从电脑移除。,✓ Translated,
+Suggestions,建议,✓ Translated,
+Support control chamber temperature,支持腔温控制,✓ Translated,
+Support layer uses layer height independent with object layer. This is to support customizing z-gap and save print time.This option will be invalid when the prime tower is enabled.,支撑层使用与对象层独立的层高。这是为了支持自定义z-gap并且节省打印时间。当擦料塔被启用时，这个选项将无效。,✓ Translated,
+"Switch to rectilinear pattern?
+Yes - switch to rectilinear pattern automatically
+No  - reset density to default non 100% value automatically","切换到直线图案？
+是 - 自动切换到直线图案
+否 - 自动将密度重置为默认的非100%值",✓ Translated,
+Synchronize filament list from AMS,从AMS同步材料列表,✓ Translated,
+Synchronizing Helio,正在同步 Helio,✓ Translated,
+Terms of Use,使用条款,✓ Translated,
+"Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the ""Terms""). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.",感谢您购买Bambu Lab设备，使用Bambu Lab设备前，请阅读一下条款，单击同意使用您的Bambu Lab设备即表示您同意遵守隐私政策以及使用条款（统称为“条款”）。如果您不符合或不同意Bambu Lab隐私政策，请不要使用Bambu Lab设备和服务。,✓ Translated,
+"The 3mf is not from Bambu Lab, load geometry data only.",该3mf文件不是来自Bambu Lab，将只加载几何数据。,✓ Translated,
+The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown.,AMS不会在启动时自动读取耗材丝信息。它会使用上次关机前记录的信息。,✓ Translated,
+The Bambu Studio version is too old to enable cloud service. Please download the latest version from Bambu Lab website.,"当前BambuStudio的版本过低导致云端服务不可用,请从官网更新BambuStudio到最新版本。",✓ Translated,
+"The chamber temperature is too high, which may cause the filament to soften. Please wait until the chamber temperature drops below %d℃. You may open the front door or enable fans to cool down.",腔温过高，可能导致打印材料软化。请等待腔温降至%d℃。您可以打开前门或启用风扇进行降温。,✓ Translated,
+"The configuration package is incompatible with current application.
+%s will update the configuration package, Otherwise it won't be able to start","配置包和当前的应用程序不兼容。
+%s会更新配置包，否则无法正常启动",✓ Translated,
+"The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded.",当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）,✓ Translated,
+The current printer preset cannot be sliced using Helio.,当前打印机预设无法使用 Helio 功能。,✓ Translated,
+"The current project has unsaved changes, save it before continue?",当前项目包含未保存的修改。是否先保存？,✓ Translated,
+"The current project has unsaved changes, save it before continuing?",当前项目有未保存的更改，是否保存后再继续？,✓ Translated,
+"The distance from the boundary between filaments to generate interlocking structure, measured in cells. Too few cells will result in poor adhesion.",从耗材丝之间的边界到产生互锁的距离以细胞为单位测量的结构。细胞太少会导致粘附不良。,✓ Translated,
+"The distance from the outside of a model where interlocking structures will not be generated, measured in cells.",互锁结构与模型外部的距离不生成，以单元格为单位测量。,✓ Translated,
+The distance to keep the from the edges of ironing line. 0 means not apply.,这个表示熨烫区域距离轮廓边界的距离，0表示不使用。,✓ Translated,
+The filament may not be compatible with the current machine settings. A random filament preset will be used.,该材料与当前机器设置不兼容，将使用随机的材料预设。,✓ Translated,
+The filament may not be compatible with the current machine settings. Generic filament presets will be used.,该材料与当前机器设置不兼容，将使用通用的材料预设。,✓ Translated,
+The filament type setting of external spool is different from the filament in the slicing file.,外挂槽的耗材设置与切片文件中的耗材不同，可能会引起打印不良。,✓ Translated,
+The following plates are skipped due to different arranging settings from global:,由于单盘摆盘设置与全局不同，以下盘被跳过：,✓ Translated,
+"The generic presets are conservatively tuned for compatibility with a wider range of filaments. For higher printing quality and speeds, please use Bambu filaments with Bambu presets.",Generic 参数为了兼容更多种耗材而进行了较为保守的调校，使用拓竹原装耗材配合拓竹专用参数可获得更高的打印质量与更高的打印速度。,✓ Translated,
+The nozzle diameter has been synchronized from the printer Settings,喷嘴直径已从打印机设置同步,✓ Translated,
+"The nozzle type and AMS quantity information has not been synced from the connected printer.
+After syncing, software can optimize printing time and filament usage when slicing.
+Would you like to sync now ?",喷嘴和AMS数量信息尚未从当前连接的打印机同步。同步后，软件能够在切片时优化打印时间并减少打印时耗材浪费。是否现在同步？,✓ Translated,
+"The number of walls, counted from the center, over which the variation needs to be spread. Lower values mean that the outer walls don't change in width",从中心开始计算的墙层数，线宽变化需要分布在这些墙走线上。较低的数值意味着外墙宽度更不易被改变,✓ Translated,
+"The object from file %s is too small, and maybe in meters or inches.
+ Do you want to scale to millimeters?","文件 %s 中对象的尺寸似乎是以米或者英寸为单位定义的。
+BambuStudio的内部单位为毫米。是否要转换成毫米？",✓ Translated,
+The part cools too fast between layers on average. Some layers may behave differently—see observations.,零件层间平均冷却过快。某些层可能表现不同 — 查看观察结果。,✓ Translated,
+The part stays too warm between layers on average. Some layers may behave differently—see observations.,零件层间平均温度过高。某些层可能表现不同 — 查看观察结果。,✓ Translated,
+The printer has already been bound.,打印机已绑定。,✓ Translated,
+"The printer mode is incorrect, please switch to LAN Only.",打印机模式不正确，请切换到仅局域网。,✓ Translated,
+"The remaining part of the model contour after removing a certain depth from the surface is called the skeleton. This parameter is used to adjust the density of this section.When two regions have the same sparse infill settings but different skeleton densities, their skeleton areas will develop overlapping sections.default is as same as infill density.",去除表面一定深度之后余留的部分被称作骨架。这个参数用于调整骨架部分的密度。两个有同样的稀疏填充密度但是不同骨架密度的区域走线会有重叠的部分。默认值和稀疏填充密度一致。,✓ Translated,
+The selected printer (%s) is incompatible with the chosen printer profile in the slicer (%s).,所选打印机（%s）与切片软件中选择的打印机配置文件（%s）不兼容。,✓ Translated,
+The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page.,当前选择的打印机（%s）与打印文件配置（%s）不兼容，请前往准备界面重新选择打印机预设，或在此页面选择兼容的打印机。,✓ Translated,
+The selected printer is incompatible with the chosen printer presets.,所选打印机与选择的打印机预设不兼容。,✓ Translated,
+"The smaller the number, the longer the speed transition path. 0 means not apply.",数值越小速度过渡区越大。0表示不应用。,✓ Translated,
+The start and end points which are from cutter area to garbage can.,从切割区域到垃圾桶的起始和结束点。,✓ Translated,
+The toolhead and hotend rack may move. Please keep your hands away from the chamber.,工具头和热端架可能会运动，请勿将手伸入机箱。,✓ Translated,
+The wall of prime tower will skip the start points of wipe path,擦料塔的外墙跳过内部擦拭路径的起点,✓ Translated,
+"There are no compatible filaments, and sync is not performed.",没有任何兼容的材料，同步操作未执行。,✓ Translated,
+"There are some unknown or uncompatible filaments mapped to generic preset.
+Please update Bambu Studio or restart Bambu Studio to check if there is an update to system presets.","有一些未知或不兼容的耗材映射到通用预设。
+请更新Bambu Studio或重新启动Bambu Studio，以检查是否有系统预设的更新。",✓ Translated,
+There are warnings after slicing models:,模型切片警告：,✓ Translated,
+"There many parts of the software that come from community contributions, so we're unable to list them one-by-one, and instead, they'll be attributed in the corresponding code comments.",软件中有很多部分来自于社区贡献，因此我们不便逐一列出他们，作为替代，他们将在相应的代码注释中被介绍。,✓ Translated,
+Thermal Preconditioning for first layer optimization,首层优化保温准备,✓ Translated,
+Thermal conditions are balanced. The part is printing within safe temperature limits.,热条件平衡。零件在安全温度范围内打印。,✓ Translated,
+"This filament has high enough hardness (about 67D)  and is compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",此耗材的硬度较高（约 67D），可通过 AMS 打印。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。,✓ Translated,
+"This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: ASA Aero Printing Guide.",此耗材通常只用于打印低密度的模型，且必须使用特殊参数。为保证打印质量，请查阅 wiki: 发泡 ASA （ASA Aero）打印指南。,✓ Translated,
+"This filament is only used to print models with a low density usually, and some special parameters are required. To get better printing quality, please refer to this wiki: Instructions for printing RC model with foaming PLA (PLA Aero).",此耗材通常只用于打印低密度的模型，且必须使用特殊参数。为保证打印质量，请查阅 wiki: 发泡 PLA（PLA Aero）打印航模操作指南。,✓ Translated,
+"This filament is too soft and not compatible with the AMS. Printing it is of many requirements, and to get better printing quality, please refer to this wiki: TPU printing guide.",此耗材太软，不适配 AMS。其使用要求较高，为保证打印质量，请查阅 wiki: TPU 打印建议。,✓ Translated,
+"This file is not from a trusted site, do you want to open it anyway?",This file is not from a trusted site; do you want to open it anyway?,✓ Translated,
+"This is a non-water-soluble support filament, and usually it is only for the support structure and not for the model body. To get better printing quality, please refer to this wiki: Printing Tips for Support Filament and Support Function.",此为非水溶性支撑耗材，通常只能用于打印支撑结构，不能用于打印模型主体。为保证打印质量，请查阅 wiki: 支撑耗材与支撑功能的介绍。,✓ Translated,
+"This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide.",此为水溶性支撑耗材，通常只能用于打印支撑结构，不能用于打印模型主体。其使用要求较高，为保证打印质量，请查阅 wiki: PVA 打印指南。,✓ Translated,
+"This is neither a commonly used filament, nor one of Bambu filaments, and it varies a lot from brand to brand. So, it's highly recommended to ask its vendor for suitable profile before printing and adjust some parameters according to its performances.",此耗材较为小众，拓竹并未出售，且不同品牌的差异很大，故强烈建议打印前向厂家咨询预设参数，并根据打印表现来调整打印参数。,✓ Translated,
+"This object will be used to purge the nozzle after a filament change to save filament and decrease the print time. Colours of the objects will be mixed as a result. It will not take effect, unless the prime tower is enabled.",换料后的过渡料会被用来打印这个对象。这样可以减少材料浪费和缩短打印时间，但是这个对象的外观会是混色的。该功能只有在启用擦料塔的时候才生效。,✓ Translated,
+This option is enabled if machine support controlling chamber temperature,此选项在支持腔温控制时启用。,✓ Translated,
+"This option will auto detect narrow internal solid infill area. If enabled, concentric pattern will be used for the area to speed printing up. Otherwise, rectilinear pattern is used defaultly.",此选项用于自动识别内部狭窄的实心填充。开启后，将对狭窄实心区域使用同心填充加快打印速度。否则使用默认的直线填充。,✓ Translated,
+"This parameter reflects the speed at which a material transitions from one state to another. It, along with the smooth coefficient, determines the final length of the transition zone. A larger value: requires a shorter transition zone. A smaller value: requires a longer transition zone to avoid flow instability.","此参数反映材料从一种状态过渡到另一种状态的速度。它与平滑系数一起决定过渡区的最终长度。
+大数值：需要较短的过渡区。
+小数值：需要较长的过渡区以避免流动不稳定。",✓ Translated,
+"Tip: Calibrating foam filaments(%s) in X series printers may not get accurate results
+because their dynamic response is much different from that of ordinary filaments, and there is a high risk of oozing when printing calibration lines.","提示：X系列设备校准发泡材料（%s）可能无法得到一个准确的校准值，
+因为它的动态响应和普通材料差距较大，且在打印校准线的时候有较大的漏料风险。",✓ Translated,
+"To get better transparent or translucent results with the corresponding filament, please refer to this wiki: Printing tips for transparent PETG.",若要用此耗材的透明耗材打印透明效果很好的模型，请查阅 wiki: 透明 PETG 打印指南。,✓ Translated,
+"To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled.",为防止漏料，喷嘴温度将在预冲刷过程中被冷却。注意：此过程仅会触发降温指令和风扇启动，但不保证能达到目标温度。设置为 0 表示禁用。,✓ Translated,
+To save cut correspondence you can delete all connectors from all related objects.,为保证切割关系，您可以将所有关联对象的连接件一起删除。,✓ Translated,
+Too cold (overall),整体过冷,✓ Translated,
+Too cold overall — see suggestions,整体过冷 — 查看建议,✓ Translated,
+Too hot (overall),整体过热,✓ Translated,
+Too hot overall — see suggestions,整体过热 — 查看建议,✓ Translated,
+Top surface pattern,顶面图案,✓ Translated,
+True multi-material support will be added in a future update.,真正的多材料支持将在未来更新中添加。,✓ Translated,
+Try the following methods to update the connection parameters and reconnect to the printer.,尝试以下方法更新连接参数并重新连接打印机。,✓ Translated,
+"Turning off this option will affect print quality if:
+1. Uncalibrated hotends is used
+2. The current nozzle, heatbed, or chamber temperature differs from the calibration conditions
+3. The toolhead hotend was manually removed or installed","出现以下情况时，关闭该选项会影响打印质量：
+1.当前打印使用了未被校准的热端
+2.当前打印的喷嘴温度、热床温度、腔温与校准时不同
+3.手动拆装过工具头热端",✓ Translated,
+Uninstall,卸载,✓ Translated,
+Uninstall Helio Additive,卸载 Helio Additive,✓ Translated,
+Unknown,未知,✓ Translated,
+Unknown filename,未知文件名,✓ Translated,
+Unlimited*,无限*,✓ Translated,
+"Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology.",使用 Helio 最先进的基于物理的3D打印仿真技术，解锁更快、更可靠的打印世界。,✓ Translated,
+"Unlock faster, more reliable, warp-free prints with Helio Additive.",使用 Helio Additive 解锁更快、更可靠、无翘曲的打印。,✓ Translated,
+Unsupported Material Detected,检测到不支持的材料,✓ Translated,
+Unsupported Materials Detected,检测到不支持的材料,✓ Translated,
+Unsupported Printer Detected,检测到不支持的打印机,✓ Translated,
+"Upper half area:  Original
+Lower half area: The filament from original project will be used when unmapped.
+And you can click it to modify","上半部分：原项目耗材
+下半部分：未匹配则使用原项目耗材
+您可以单击它进行修改",✓ Translated,
+"Use only one wall on flat top surface, to give more space to the top infill pattern. Could be applied on topmost surface or all top surface.",顶面只使用单层墙，从而更多的空间能够使用顶部填充图案。可以应用于最顶部表面或所有顶部表面。,✓ Translated,
+Use this setting to rotate the support pattern on the horizontal plane.,设置支撑图案在水平面的旋转角度。,✓ Translated,
+Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature.,在可用时使用耗材设置中的腔温；否则从热床温度估算。,✓ Translated,
+"Using multiple lines for the infill pattern, if supported by infill pattern.",启用多线填充模式，当所选填充图案支持时生效。,✓ Translated,
+Value %s is out of range. The valid range is from %d to %d.,值 %s 超出了范围，有效的范围是从 %d 到 %d 。,✓ Translated,
+Verify Print Success Results,验证打印成功结果,✓ Translated,
+View Details,查看详情,✓ Translated,
+View Liveview,查看LiveView,✓ Translated,
+View Summary,查看摘要,✓ Translated,
+View Wiki for more information,查看Wiki以获取更多信息,✓ Translated,
+Waiting for the Chamber temperature to equalize,等待腔温匀热,✓ Translated,
+"Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again.",警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。,✓ Translated,
+Welcome to Helio Additive,欢迎使用 Helio Additive,✓ Translated,
+What kind of gcode the printer is compatible with,打印机兼容的G-code风格',✓ Translated,
+"When changing the extruder, it is recommended to extrude a certain length of filament from the original extruder. This helps minimize nozzle oozing.",更换挤出机时，建议从原挤出机中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。,✓ Translated,
+"When changing the hotend, it is recommended to extrude a certain length of filament from the original nozzle. This helps minimize nozzle oozing.",更换热端时，建议从原热端中挤出一定长度的耗材丝。这有助于最大限度地减少喷嘴漏料。,✓ Translated,
+"When enabled, the extrusion flow is limited by the smaller of the fitted value (calculated from line width and layer height) and the user-defined maximum flow. When disabled, only the user-defined maximum flow is applied.",启用时，体积速度取“拟合值（由线宽和层高计算）“与”用户定义的最大值”中的较小值。禁用时，仅应用用户定义的最大值。,✓ Translated,
+"When need to print with the printer door opened
+Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki.","什么时候需要打开机箱门打印
+您知道吗？在较高腔温下打印低温耗材，打开机箱门可以减少挤出机/热端堵塞的概率。有关此的更多信息，请参阅Wiki。",✓ Translated,
+"When printing this filament, there's a risk of nozzle clogging, oozing, warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",此耗材打印时有堵喷嘴、漏料、翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。,✓ Translated,
+"When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",此耗材打印时有翘曲、层间强度较低等风险。为获得更好的打印效果，请查阅 wiki: 工程材料打印指南。,✓ Translated,
+"When sparse infill density is low, the internal solid infill or internal bridge may have no archor at the end of line. This causes falling and bad quality when printing internal solid infill. When enable this feature, loop paths will be added to the sparse fill of the lower layers for specific thickness, so that better archor can be provided for internal bridge. 0 means disable this feature",如果开启，Studio会沿着内部桥接的边沿在其下方生成支撑轮廓。这些支撑轮廓可以防止悬空地打印内部桥接并提高顶面质量，特别是在填充密度较低的情况下。这个设置用于调整支撑轮廓的厚度，0表示关闭此特性。,✓ Translated,
+"When using PLA to support TPU, We recommend the following settings:
+0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable 
+independent support layer height and use PLA for both support interface and support base","当使用PLA作为支撑材料支撑TPU时，我们推荐以下设置：
+0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将PLA同时用于支撑接触面和支撑主体",✓ Translated,
+"When using soluble material for the support interface, We recommend the following settings:
+0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable 
+independent support layer height and use soluble materials for both support interface and support base","当支撑接触面使用可溶性材料时，我们推荐以下设置：
+0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体",✓ Translated,
+"When using soluble material for the support, We recommend the following settings:
+0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable 
+independent support layer height and use soluble materials for both support interface and support base","当使用可溶性材料作为支撑时，我们推荐以下设置：
+0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体",✓ Translated,
+"When using support material for the support interface, We recommend the following settings:
+0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height","当支撑接触面使用支撑材料时，我们推荐以下设置：
+0顶部z距离，0接触面间距，交叠直线图案，并且禁用支撑独立层高",✓ Translated,
+"When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.",当您确认开启此功能后，代表您已经确认和同意以上声明。,✓ Translated,
+"When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃.",当您设置的腔温低于40℃时，腔温控制将不会启动。并且目标腔温将自动设置为0℃。,✓ Translated,
+"Whenever the retraction is done, the nozzle is lifted a little to create clearance between nozzle and the print. It prevents nozzle from hitting the print when travel moves. Using spiral line to lift z can prevent stringing",回抽完成之后，喷嘴轻微抬升，和打印件之间产生一定间隙。这能够避免空驶时喷嘴和打印件剐蹭和碰撞。使用螺旋线抬升z能够减少拉丝。,✓ Translated,
+Where to find your printer's IP and Access Code?,在哪里可以找到打印机的IP和访问代码?,✓ Translated,
+Wiki,Wiki,✓ Translated,
+With Enhance Speed & Quality:,使用速度和质量增强：,✓ Translated,
+You are activating Helio Additive's advanced simulation services.,您正在激活 Helio Additive 的高级仿真服务。,✓ Translated,
+You can find it from 'Filament settings' -> 'Advanced'.,您可以在“耗材设置”->“高级”中找到它,✓ Translated,
+You can find it from 'Printer settings' -> 'Machine G-code'.,您可以在“打印机设置”->“打印机 G-code”中找到它。,✓ Translated,
+You can find them from 'Printer settings' -> 'Machine G-code' and 'Filament settings' -> 'Advanced'.,您可以在“打印机设置”->“打印机 G-code”和“耗材设置”->“高级”中找到它们。,✓ Translated,
+"You can keep the modified presets for the new project, discard or save changes as new presets.",您可以保留未保存修改的预设应用到新项目中，或者选择忽略。,✓ Translated,
+You have entered an illegal input in the printable area section on the first page. Please check before creating it.,您在第一页的可打印区域部分输入了非法输入。请检查后再创建。,✓ Translated,
+"You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')","您快成功了！Helio 已激活，您的首次优化只需几分钟即可实现更快、更可靠的打印！（现称为""增强""）",✓ Translated,
+You're using %s which is not officially supported by Helio.,您正在使用的 %s 不是 Helio 官方支持的。,✓ Translated,
+Your free trial has ended. Explore our plans to continue using premium features.,您的免费试用已结束。请查看我们的套餐以继续使用高级功能。,✓ Translated,
+Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next.,您的G代码已完成优化，以实现最佳打印效果。若需进一步提升打印质量，可查阅我们的wiki文档，获取后续操作的实用技巧与建议。,✓ Translated,
+Your part is ready to print! Thermal conditions are within safe limits.,您的零件已准备好打印！热条件在安全范围内。,✓ Translated,
+connecting...,连接中...,✓ Translated,
+debug save button,保存,✓ Translated,
+illegal characters:,非法字符：,✓ Translated,
+illegal suffix:,非法后缀：,✓ Translated,
+reconnect,重新连接,✓ Translated,
+resume,继续,✓ Translated,
+save debug settings,保存调试设置,✓ Translated,
+sending failed,发送失败,✓ Translated,
+the Configuration package is incompatible with current APP.,the Configuration package is incompatible with current APP.,✓ Translated,
+the configuration package is incompatible with current application.,配置包和当前的应用程序不兼容。,✓ Translated,
+to,到,✓ Translated,
+upward compatible machine,向上兼容的机器,✓ Translated,
+version %s update information :,版本 %s 更新信息,✓ Translated,
+⚠ Multiple Filament Materials Detected,⚠ 检测到多种耗材,✓ Translated,
+⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration.,⚠ 不推荐此操作。不同制造商和材料的耗材配方差异很大。Helio 无法保证在此配置下获得可靠结果。,✓ Translated,
+⚠ Unsupported Material Detected,⚠ 检测到不支持的材料,✓ Translated,
+⚠ Unsupported Materials Detected,⚠ 检测到不支持的材料,✓ Translated,
+⚠ Unsupported Printer Detected,⚠ 检测到不支持的打印机,✓ Translated,
+⚠️ May Print with Issues,⚠️ 可能存在问题,✓ Translated,
+✅ Will Print,✅ 可以打印,✓ Translated,
+❌ Likely to Fail,❌ 可能失败,✓ Translated,
