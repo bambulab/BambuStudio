@@ -100,6 +100,11 @@ namespace Slic3r
             }
         }
 
+        for (int i = 24; i <= 27; i++) /* ams lite for N9*/
+        {
+            if (fila_back_group & (1 << i)) { trayid_group[i] = true; }
+        }
+
         return trayid_group;
     }
 
