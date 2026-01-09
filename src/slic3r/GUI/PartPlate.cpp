@@ -1542,8 +1542,6 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         for (auto filament_idx : used_filaments) {
             int              filament_id               = filament_idx - 1;
             if (filament_id < 0 || (size_t)filament_id >= fil_used_types.size()) continue;
-            auto             nozzle_diam               = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-            auto             extruder_type             = config.option<ConfigOptionEnumsGeneric>("extruder_type");
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
 
@@ -1567,12 +1565,6 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
                     error_message = wxString::Format(_L("The %s nozzle can not print filament %s when it is used as support.."), extruder_name, fil_name);
                     return false;
                 }
-            }
-
-            if (nozzle_diam && std::abs(nozzle_diam->values.at(extruder_idx) - 0.2) < EPSILON && extruder_type->values.at(extruder_idx) == 1) {
-                wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message          = wxString::Format(_L("The %s nozzle (0.2mm) can not work with Bowden extruder."), extruder_name);
-                return false;
             }
         }
     }

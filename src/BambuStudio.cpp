@@ -6788,9 +6788,6 @@ int CLI::run(int argc, char **argv)
                                         else if (gcode_result->gcode_check_result.error_code & 0b00011) {
                                             record_exit_reson(outfile_dir, CLI_GCODE_PATH_IN_UNPRINTABLE_AREA, index + 1, cli_errors[CLI_GCODE_PATH_IN_UNPRINTABLE_AREA], sliced_info);
                                             flush_and_exit(CLI_GCODE_PATH_IN_UNPRINTABLE_AREA);
-                                        } else if (gcode_result->gcode_check_result.error_code & (1 << 10) ) {
-                                            record_exit_reson(outfile_dir, CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER, index + 1, cli_errors[CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER], sliced_info);
-                                            flush_and_exit(CLI_FILAMENTS_NOT_SUPPORTED_BY_EXTRUDER);
                                         }
                                     }
 

@@ -1806,10 +1806,6 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
         const std::set<int> &filament_ids = unprintable_filament_types[extruder_id];
         for (int filament_id : filament_ids) {
             m_result.limit_filament_maps[filament_id] |= (1 << extruder_id);
-            if (filament_id < filament_map.size() && filament_map[filament_id] == extruder_id + 1) {
-                m_result.gcode_check_result.error_code |= (1 << 10);// unprintable filament type error
-                valid = false;
-            }
         }
     };
 
