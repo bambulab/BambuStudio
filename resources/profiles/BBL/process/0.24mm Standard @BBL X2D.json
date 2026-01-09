@@ -30,10 +30,10 @@
         "100"
     ],
     "outer_wall_speed": [
-        "200",
-        "200",
-        "100",
-        "100"
+        "50",
+        "50",
+        "50",
+        "50"
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",

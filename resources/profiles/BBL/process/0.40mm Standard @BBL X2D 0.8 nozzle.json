@@ -49,10 +49,10 @@
         "5"
     ],
     "outer_wall_speed": [
-        "200",
-        "120",
-        "120",
-        "120"
+        "50",
+        "50",
+        "50",
+        "50"
     ],
     "print_extruder_variant": [
         "Direct Drive Standard",
