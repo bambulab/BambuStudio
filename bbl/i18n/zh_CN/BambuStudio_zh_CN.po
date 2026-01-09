@@ -4243,7 +4243,7 @@ msgid "Filament change times"
 msgstr "换料次数"
 
 msgid "View Summary"
-msgstr ""
+msgstr "查看摘要"
 
 msgid "Color change"
 msgstr "颜色更换"
@@ -6825,13 +6825,13 @@ msgid "Slicing Plate %d"
 msgstr "正在切片盘%d"
 
 msgid "Multiple Filament Materials Detected"
-msgstr ""
+msgstr "检测到多种耗材"
 
 msgid "⚠ Multiple Filament Materials Detected"
-msgstr ""
+msgstr "⚠ 检测到多种耗材"
 
 msgid " (unsupported)"
-msgstr ""
+msgstr "（不支持）"
 
 msgid "Multicolour simulation currently supports only a single filament material.\n"
 msgstr ""
@@ -6847,10 +6847,10 @@ msgid ""
 msgstr ""
 
 msgid "True multi-material support will be added in a future update."
-msgstr ""
+msgstr "真正的多材料支持将在未来更新中添加。"
 
 msgid "Option 1: Proceed using a single filament type"
-msgstr ""
+msgstr "选项1：使用单一耗材类型继续"
 
 msgid "Select which filament to use for simulation:"
 msgstr "选择用于仿真的耗材："
@@ -6859,43 +6859,43 @@ msgid "⚠ This is not recommended. Filament formulations vary significantly bet
 msgstr "⚠ 不推荐此操作。不同制造商和材料的耗材配方差异很大。Helio 无法保证在此配置下获得可靠结果。"
 
 msgid "Proceed Anyway"
-msgstr ""
+msgstr "仍然继续"
 
 msgid "Option 2: Go back and change filament selection"
-msgstr ""
+msgstr "选项2：返回并更改耗材选择"
 
 msgid "✓ Recommended"
-msgstr ""
+msgstr "✓ 推荐"
 
 msgid "Change your filament selection to use the same type for all colours, then try again."
-msgstr ""
+msgstr "请将所有颜色的耗材选择更改为相同类型，然后重试。"
 
 msgid "See supported materials"
-msgstr ""
+msgstr "查看支持的材料"
 
 msgid "Go Back"
-msgstr ""
+msgstr "返回"
 
 msgid "Unsupported Materials Detected"
-msgstr ""
+msgstr "检测到不支持的材料"
 
 msgid "⚠ Unsupported Materials Detected"
-msgstr ""
+msgstr "⚠ 检测到不支持的材料"
 
 msgid "Some of your selected materials are not directly supported by Helio:\n"
 msgstr ""
 
 msgid "Option 1: Proceed with a reference material"
-msgstr ""
+msgstr "选项1：使用参考材料继续"
 
 msgid "Select a similar material type to use for simulation:"
 msgstr "选择用于仿真的类似材料类型："
 
 msgid "Note: Using a reference material may result in approximate or erroneous results."
-msgstr ""
+msgstr "注意：使用参考材料可能导致近似或错误的结果。"
 
 msgid "Change your filament selection to use a supported material, then try again."
-msgstr ""
+msgstr "请将耗材选择更改为支持的材料，然后重试。"
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 仿真或优化任务正在进行中。"
@@ -6917,32 +6917,32 @@ msgid "Helio Printer Match Confirmation"
 msgstr "Helio 打印机匹配确认"
 
 msgid "Unsupported Printer Detected"
-msgstr ""
+msgstr "检测到不支持的打印机"
 
 msgid "⚠ Unsupported Printer Detected"
-msgstr ""
+msgstr "⚠ 检测到不支持的打印机"
 
 #, c-format, boost-format
 msgid "You're using %s which is not officially supported by Helio."
 msgstr ""
 
 msgid "Option 1: Proceed with a reference printer"
-msgstr ""
+msgstr "选项1：使用参考打印机继续"
 
 msgid "Select a similar printer to use for simulation:"
 msgstr "选择用于仿真的类似打印机："
 
 msgid "Note: Using a reference printer may result in approximate or erroneous results."
-msgstr ""
+msgstr "注意：使用参考打印机可能导致近似或错误的结果。"
 
 msgid "Option 2: Go back and change printer selection"
-msgstr ""
+msgstr "选项2：返回并更改打印机选择"
 
 msgid "Change your printer selection to use a supported printer, then try again."
-msgstr ""
+msgstr "请将打印机选择更改为支持的打印机，然后重试。"
 
 msgid "See supported printers"
-msgstr ""
+msgstr "查看支持的打印机"
 
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "当前打印机预设无法使用 Helio 功能。"
@@ -6968,16 +6968,16 @@ msgid ""
 msgstr ""
 
 msgid "View supported materials"
-msgstr ""
+msgstr "查看支持的材料"
 
 msgid "Unsupported Material Detected"
-msgstr ""
+msgstr "检测到不支持的材料"
 
 msgid "⚠ Unsupported Material Detected"
-msgstr ""
+msgstr "⚠ 检测到不支持的材料"
 
 msgid "Choose a Reference Material"
-msgstr ""
+msgstr "选择参考材料"
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -9732,7 +9732,7 @@ msgid "Welcome to Helio Additive"
 msgstr "欢迎使用 Helio Additive"
 
 msgid "Know Your Print Will Work — Before You Hit Print"
-msgstr ""
+msgstr "在打印前确认您的打印将会成功"
 
 msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
 msgstr "基于物理的分析和优化，使打印更快、更强、更可靠。"
@@ -9741,22 +9741,22 @@ msgid "Unlock a world of faster, more reliable printing with Helio's state of th
 msgstr "使用 Helio 最先进的基于物理的3D打印仿真技术，解锁更快、更可靠的打印世界。"
 
 msgid "Fewer Failed Prints"
-msgstr ""
+msgstr "更少的失败打印"
 
 msgid "Catch issues before printing and improve first-try success."
-msgstr ""
+msgstr "在打印前发现问题，提高首次打印成功率。"
 
 msgid "Faster Prints, Better Quality"
-msgstr ""
+msgstr "更快打印，更好质量"
 
 msgid "Automatically tune speed and extrusion without manual tweaking."
-msgstr ""
+msgstr "自动调整速度和挤出，无需手动调参。"
 
 msgid "Enable Helio Additive"
 msgstr "启用 Helio Additive"
 
 msgid "Uninstall"
-msgstr ""
+msgstr "卸载"
 
 msgid "After slicing, click the Helio button to analyze your print."
 msgstr "切片后，点击 Helio 按钮分析您的打印。"
@@ -9765,7 +9765,7 @@ msgid "Helio Additive does not change your printer's firmware."
 msgstr "Helio Additive 不会更改您的打印机固件。"
 
 msgid "Designed to help prints succeed — even if you're new to 3D printing."
-msgstr ""
+msgstr "帮助打印成功——即使您是3D打印新手。"
 
 msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
 msgstr "您确定要卸载 Helio Additive 吗？这将禁用所有 Helio 功能。"
@@ -9840,12 +9840,14 @@ msgid ""
 "I have read and agree to the terms\n"
 "and policies."
 msgstr ""
+"我已阅读并同意\n"
+"条款和政策。"
 
 msgid "Agree and Proceed"
 msgstr "同意并继续"
 
 msgid "Activation Successful!"
-msgstr ""
+msgstr "激活成功！"
 
 msgid "Helio Additive is now active. You have unlocked free optimizations!"
 msgstr "Helio Additive 已激活。您已解锁免费优化！"
@@ -9883,7 +9885,7 @@ msgid "Copy successful!"
 msgstr "复制成功！"
 
 msgid "Helio Additive"
-msgstr ""
+msgstr "Helio Additive"
 
 msgid "Terms of Use"
 msgstr "使用条款"
@@ -14938,7 +14940,7 @@ msgid "Failed to create GCodeV2"
 msgstr "无法创建 GCode"
 
 msgid "Something went wrong while creating GCode. Please check your custom GCodes"
-msgstr ""
+msgstr "创建G代码时出错。请检查您的自定义G代码"
 
 msgid "Failed to parse response"
 msgstr "解析响应失败"
@@ -14995,7 +14997,7 @@ msgid "Helio: optimization working"
 msgstr "Helio：优化运行中"
 
 msgid "Helio: optimization failed"
-msgstr ""
+msgstr "Helio：优化失败"
 
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio：优化检查失败"
