@@ -9750,16 +9750,16 @@ msgid "Welcome to Helio Additive"
 msgstr "欢迎使用 Helio Additive"
 
 msgid "Know Your Print Will Work — Before You Hit Print"
-msgstr "在打印前确认您的打印将会成功"
+msgstr "在打印前通过优化提升打印成功率"
 
 msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
-msgstr "基于物理的分析和优化，使打印更快、更强、更可靠。"
+msgstr "基于物理仿真的分析和优化，使打印更快、更强、更可靠。"
 
 msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
 msgstr "使用 Helio 最先进的基于物理的3D打印仿真技术，解锁更快、更可靠的打印世界。"
 
 msgid "Fewer Failed Prints"
-msgstr "更少的失败打印"
+msgstr "更低的打印失败率"
 
 msgid "Catch issues before printing and improve first-try success."
 msgstr "在打印前发现问题，提高首次打印成功率。"
