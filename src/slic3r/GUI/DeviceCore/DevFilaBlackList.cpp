@@ -259,6 +259,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             L("The current filament doesn't support the E3D high-flow nozzle and can't be used.");
             L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
             L("Auto dynamic flow calibration is not supported for TPU filament.");
+            L("The current filament doesn't support the TPU high-flow nozzle and can't be used.");
 
             // Warning in description
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
