@@ -83,8 +83,8 @@ FilamentItemPanel::FilamentItemPanel(wxWindow* parent, const wxString& text, con
     , m_icon_name(icon_name)
 {
     SetBackgroundColour(wxColour("#F7F7F7")); // Light gray background
-    SetMinSize(wxSize(FromDIP(60), FromDIP(100))); // Width: 64, Height: 100
-    SetSize(wxSize(FromDIP(60), FromDIP(100)));    // Fixed size
+    SetMinSize(wxSize(FromDIP(64), FromDIP(106))); // Width: 64, Height: 106
+    SetSize(wxSize(FromDIP(64), FromDIP(106)));    // Fixed size
     
     // Create sizer for vertical layout
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
@@ -97,7 +97,7 @@ FilamentItemPanel::FilamentItemPanel(wxWindow* parent, const wxString& text, con
     m_text_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour(*wxBLACK)));
     m_text_label->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F7F7F7")));
     m_text_label->SetFont(Label::Body_12);
-    m_text_label->Wrap(FromDIP(30));
+    m_text_label->Wrap(FromDIP(40));
     top_sizer->Add(m_text_label, 0, wxALIGN_CENTER_HORIZONTAL);
     
     top_sizer->AddStretchSpacer(1); // Increased bottom spacer to push text down
@@ -459,11 +459,6 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         } else if (keycode == WXK_BACK || keycode == WXK_DELETE || keycode == WXK_LEFT || keycode == WXK_RIGHT) {
             event.Skip();
         }
-        long time_val;
-        m_time_input->GetValue().ToLong(&time_val);
-        if (time_val > 24) {
-            m_time_input->SetValue("24");
-        }
     });
 
     Label* time_unit_label = new Label(parent, _L("H"));
@@ -689,7 +684,7 @@ wxBoxSizer* AMSDryCtrWin::create_guide_right_section(wxPanel* parent)
 
     m_back_button = create_button(
         parent,
-        _L("Back"),
+        _CTX("Back", "DryControl"),
         wxColour("#F8F8F8"),       // Background color - light gray
         wxColour("#D0D0D0"),       // Border color - gray
         *wxBLACK                   // Text color - black
@@ -1092,43 +1087,66 @@ bool AMSDryCtrWin::check_values_changed(DevAms* dev_ams)
 
 void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
 {
-    if (m_tray_ids.empty() || m_trays_combo->GetSelection() >= m_tray_ids.size()) {
-        return;
-    }
+    if (m_tray_ids.empty() || m_trays_combo->GetSelection() >= m_tray_ids.size()) { return; }
 
     FilamentBaseInfo info = m_tray_ids[m_trays_combo->GetSelection()];
-    bool need_warn = false;
-    wxString warning_text = "";
-    switch (dev_ams->GetAmsType()) {
-        case DevAms::AmsType::N3F:
-            if (info.filament_type.compare(0, 3, "PET")  == 0 && info.filament_type.compare(0, 4, "PETG")) {
-                warning_text = _L(wxString::FromUTF8("The maximum drying temperature for AMS2 is 65°C;\n this filament may not be completely dried.\n\n"));
-                need_warn = true;
-            }
-            break;
-        case DevAms::AmsType::N3S: 
-            if (!info.filament_type.compare(0, 3, "PPA") || !info.filament_type.compare(0, 3, "PPS")) {
-                warning_text = _L(wxString::FromUTF8("The maximum drying temperature for AMS-S is 65°C;\n this filament may not be completely dried.\n\n"));
-                need_warn = true;
-            }
-            break;
-        default: 
-            break;
-    }
-
-    long temp_val;
-    std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(info.filament_id);
+    wxString warning_text;
+    bool can_enable_button = true;
+    long temp_val = 0, time_val = 0;
     m_temperature_input->GetValue().ToLong(&temp_val);
-    if (preset.has_value()) {
-        if (m_printer_status.m_is_printing && temp_val >= preset.value().filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()]) {
-            warning_text += _L(wxString::FromUTF8("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the temperature currently shown.\n\n"));
-            m_temperature_input->SetValue(std::to_string(static_cast<int>(preset.value().filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()])));
+    m_time_input->GetValue().ToLong(&time_val);
+    std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(info.filament_id);
+    auto total_dry = preset.has_value() ? preset.value().ams_limitations : std::unordered_set<DevAms::AmsType>();
+
+    struct AmsTempLimit { DevAms::AmsType type; int min_temp; int max_temp; const char* name; };
+    static const AmsTempLimit ams_limits[] = {
+        { DevAms::AmsType::N3F, 45, 65, "AMS2" },
+        { DevAms::AmsType::N3S, 45, 85, "AMS-S" }
+    };
+
+    for (const auto& lim : ams_limits) {
+        if (dev_ams->GetAmsType() == lim.type) {
+            if (temp_val > lim.max_temp) {
+                wxString msg = wxString(lim.name) + _L(" maximum drying temperature is ") + wxString::Format(wxT("%d"), lim.max_temp) + _L("°C;\n");
+                warning_text += msg;
+                can_enable_button = false;
+            } else if (temp_val < lim.min_temp) {
+                wxString msg = wxString(lim.name) + _L(" minimum drying temperature is ") + wxString::Format(wxT("%d"), lim.min_temp) + _L("°C;\n");
+                warning_text += msg;
+                can_enable_button = false;
+            }
+            if (total_dry.find(lim.type) == total_dry.end()) {
+                warning_text += _L("This filament may not be completely dried.\n\n");
+            }
+            break;
         }
     }
 
-    
+    if (m_printer_status.m_is_printing && temp_val  > m_ams_info.m_recommand_dry_temp) {
+        warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n");
+        can_enable_button = false;
+    } else if (preset.has_value()) {
+        auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature;
+        if (temp_val > limit_temperature) {
+            wxString warning_text_temp = _L("The temperature shall not exceed the heat distortion temperature(") +
+                wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + _L("°C) of the filament.\n");
+            warning_text += warning_text_temp;
+            can_enable_button = false;
+        }
+    }
+
+    if (time_val < 1) {
+        warning_text += _L("Minimum time value cannot be less than 1.\n");
+        can_enable_button = false;
+    } else if (time_val > 24) {
+        warning_text += _L("Maximum time value cannot be greater than 24.\n");
+        can_enable_button = false;
+    }
+
+    m_next_button->Enable(can_enable_button);
     m_normal_description->SetLabel(warning_text);
     m_normal_description->Wrap(FromDIP(250));
+    m_normal_description->GetParent()->Layout();
 }
 
 void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
@@ -1381,38 +1399,40 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
                       m_temperature_input->GetValue().ToLong(&input_temp);
     bool can_start = true;
     
+    int slot_count = 0, empty_count = 0;
     for (auto& tray_pair : dev_ams->GetTrays()) {
         if (!tray_pair.second) {
             continue;
         }
-
-        // Check if tray has valid drying preset
+        ++slot_count;
+        if (!tray_pair.second->is_tray_info_ready()) {
+            m_ams_filament_panel->AddFilamentItem("Empty", "dev_ams_dry_ctr_enable");
+            ++empty_count;
+            continue;
+        }
         auto preset_opt = tray_pair.second->get_ams_drying_preset();
-
-        int heat_distortion_temp;
-        DevFilamentDryingPreset preset = DevUtilBackend::GetFilamentDryingPreset("GFA00").value();
-        wxString filament_type = "PLA";
-
-        // if no tray's info, set it by default PLA
-        if (preset_opt.has_value() && tray_pair.second->is_tray_info_ready()) {
+        wxString filament_type = tray_pair.second->get_display_filament_type();
+        DevFilamentDryingPreset preset;
+        if (filament_type.IsEmpty()) {
+            auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
+            preset = fallback_preset.value();
+            filament_type = "PLA";
+        } else if (preset_opt.has_value()) {
             preset = preset_opt.value();
-            filament_type = tray_pair.second->get_display_filament_type();
         } else {
-            BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update_filament_guide_info: ams filament info is not ready";
+            auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
+            preset = fallback_preset.value();
         }
-
-        std::string icon_path = "";
-        icon_path = "dev_ams_dry_ctr_enable";
-
-        if (valid_temp) {
-            heat_distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature);
-            if (heat_distortion_temp < input_temp) {
-                icon_path = "dev_ams_dry_ctr_disable";
-                can_start = false;
-            }
+        std::string icon_path = "dev_ams_dry_ctr_enable";
+        int heat_distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature);
+        if (valid_temp && heat_distortion_temp < input_temp) {
+            icon_path = "dev_ams_dry_ctr_disable";
+            can_start = false;
         }
-
         m_ams_filament_panel->AddFilamentItem(filament_type, icon_path);
+    }
+    if (slot_count > 0 && slot_count == empty_count) {
+        can_start = false;
     }
 
     if (can_start) {
@@ -1431,11 +1451,8 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
 
 int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 {
-    if (!is_ams_changed(dev_ams)) {
-        return 0;
-    }
-
-    if (!is_dry_ctr_idle(dev_ams) && m_dry_setting.m_filament_names.find(dev_ams->GetAmsId()) != m_dry_setting.m_filament_names.end()) {
+    if (!is_ams_changed(dev_ams)) { return 0; }
+    if (!is_dry_ctr_idle(dev_ams) && m_dry_setting.m_filament_names.count(dev_ams->GetAmsId())) {
         m_trays_combo->SetLabel(m_dry_setting.m_filament_names[dev_ams->GetAmsId()]);
         m_temperature_input->SetValue(std::to_string(m_dry_setting.m_dry_temp[dev_ams->GetAmsId()]));
         m_time_input->SetValue(std::to_string(m_dry_setting.m_dry_time[dev_ams->GetAmsId()]));
@@ -1446,61 +1463,83 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
     m_tray_ids.clear();
 
     auto& preset_bundle = GUI::wxGetApp().preset_bundle;
-    Preset *printer_preset = GUI::get_printer_preset(obj);
-    
-    if (preset_bundle && printer_preset) {
-        std::set<std::string> filament_id_set;
-        // collect unique valid filament IDs
-        for (auto iter = preset_bundle->filaments.begin(); iter != preset_bundle->filaments.end(); ++iter) {
-            auto opt_info = preset_bundle->get_filament_by_filament_id(iter->filament_id, printer_preset->name);
-            if (opt_info.has_value() && !opt_info.value().filament_name.empty()) {
-                filament_id_set.insert(iter->filament_id);
-            }
-        }
+    Preset* printer_preset = GUI::get_printer_preset(obj);
+    if (!(preset_bundle && printer_preset)) return 0;
 
-        // add non-empty filaments to combo
-        for (const auto& filament_id : filament_id_set) {
-            auto opt_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
-            if (opt_info.has_value()) {
-                m_tray_ids.push_back(opt_info.value());
-                m_trays_combo->Append(opt_info.value().filament_name);
-            }
+    std::set<std::string> filament_id_set;
+    for (const auto& fila : preset_bundle->filaments) {
+        auto opt_info = preset_bundle->get_filament_by_filament_id(fila.filament_id, printer_preset->name);
+        if (opt_info && !opt_info->filament_name.empty() && filament_id_set.insert(opt_info->filament_id).second) {
+            m_tray_ids.push_back(*opt_info);
+            m_trays_combo->Append(opt_info->filament_name);
         }
     }
-
-    // Check if we have any valid filaments
     if (m_tray_ids.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "AMSDryCtrWin::update_filament_list: No valid filaments found";
         return 0;
     }
 
+    // Select recommended drying temperature and default filament
     float min_dry_temp = std::numeric_limits<float>::max();
-    unsigned int default_index = 0;
     std::string default_filament_id = "GFA00";
-
-    for (auto& tray_pair : dev_ams->GetTrays()) {
-        if (tray_pair.second && tray_pair.second->is_tray_info_ready()) {
-            Slic3r::DevFilamentDryingPreset preset = tray_pair.second->get_ams_drying_preset().value();
-            if (preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()] < min_dry_temp) {
-                min_dry_temp = preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
-                default_filament_id = preset.filament_id;
+    bool has_ready = false;
+    for (const auto& tray_pair : dev_ams->GetTrays()) {
+        if (!tray_pair.second || !tray_pair.second->is_tray_info_ready()) continue;
+        has_ready = true;
+        wxString filament_type = tray_pair.second->get_display_filament_type();
+        Slic3r::DevFilamentDryingPreset preset;
+        if (filament_type.IsEmpty()) {
+            // no filament type, is PLA
+            auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
+            if (!fallback_preset) continue;
+            preset = fallback_preset.value();
+        } else {
+            auto preset_opt = tray_pair.second->get_ams_drying_preset();
+            if (preset_opt.has_value()) {
+                preset = preset_opt.value();
+            } else {
+                // no preset，is PLA
+                auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
+                if (!fallback_preset) continue;
+                preset = fallback_preset.value();
             }
         }
+        float cur_temp = m_printer_status.m_is_printing
+            ? std::min({preset.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()],
+                preset.filament_dev_drying_softening_temperature, preset.filament_dev_ams_drying_heat_distortion_temperature})
+            : preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
+        if (cur_temp < min_dry_temp) {
+            min_dry_temp = cur_temp;
+            default_filament_id = preset.filament_id;
+        }
     }
+    // if no tray is ready, use PLA as default
+    if (!has_ready) {
+        auto opt_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
+        if (opt_preset.has_value()) {
+            Slic3r::DevFilamentDryingPreset preset = opt_preset.value();
+            float cur_temp = m_printer_status.m_is_printing
+                ? std::min({preset.filament_dev_ams_drying_temperature_on_print[dev_ams->GetAmsType()],
+                    preset.filament_dev_drying_softening_temperature, preset.filament_dev_ams_drying_heat_distortion_temperature})
+                : preset.filament_dev_ams_drying_temperature_on_idle[dev_ams->GetAmsType()];
+            min_dry_temp = cur_temp;
+            default_filament_id = preset.filament_id;
+        }
+    }
+    m_ams_info.m_recommand_dry_temp = min_dry_temp;
 
-    // Try to find matching filament index
+    // Set default selection
+    unsigned int default_index = 0;
     for (unsigned int i = 0; i < m_tray_ids.size(); i++) {
         if (m_tray_ids[i].filament_id == default_filament_id) {
             default_index = i;
             break;
         }
     }
-
     m_trays_combo->SetSelection(default_index);
     wxCommandEvent evt(wxEVT_COMBOBOX, m_trays_combo->GetId());
     evt.SetInt(default_index);
     OnFilamentSelectionChanged(evt);
-
     return 1;
 }
 

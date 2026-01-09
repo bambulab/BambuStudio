@@ -174,6 +174,7 @@ private:
         int m_humidity_percent;
         int m_temperature;
         int m_left_dry_time;
+        float m_recommand_dry_temp;
     } m_ams_info;
 
     struct {
