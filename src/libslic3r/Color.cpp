@@ -9,7 +9,8 @@ namespace Slic3r {
 bool color_is_equal(const RGBA a, const RGBA& b)
 {
     for (size_t i = 0; i < 4; i++) {
-        if (int(abs(a[i] - b[i]) * 255) >= 1) {
+        float value = abs(a[i] - b[i]) * 255.f;
+        if (value >= 0.9f) {//Floating-point precision
             return false;
         }
     }
