@@ -111,8 +111,8 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -200,8 +200,8 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -262,8 +262,8 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -411,8 +411,8 @@ void HelioQuery::optimization_feedback(const std::string helio_api_url, const st
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -439,8 +439,8 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -485,8 +485,8 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
 
     Http http = Http::put(upload_url);
     http.header("Content-Type", "application/octet-stream")
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION));
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION));
 
     boost::filesystem::path file_path(file_path_string);
 
@@ -635,8 +635,8 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -905,8 +905,8 @@ std::string HelioQuery::create_optimization_default_get(const std::string helio_
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     std::string response_headers;
@@ -959,8 +959,8 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -1016,8 +1016,8 @@ void HelioQuery::stop_simulation(const std::string helio_api_url, const std::str
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -1059,8 +1059,8 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -1230,8 +1230,8 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
     auto http = Http::post(helio_api_url);
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -1287,8 +1287,8 @@ void HelioQuery::stop_optimization(const std::string helio_api_url, const std::s
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -1330,8 +1330,8 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
