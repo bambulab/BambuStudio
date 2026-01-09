@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2602,6 +2602,9 @@ msgstr "Modelo personalizado:"
 
 msgid "Custom G-code:"
 msgstr "Código G personalizado:"
+
+msgid "Toggle path view to current layer/all layers"
+msgstr ""
 
 msgid "Custom G-code"
 msgstr "G-code personalizado"
@@ -15125,20 +15128,18 @@ msgid "(Sync with printer)"
 msgstr "(Sincronizar com a impressora)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "Erro: extrusora %s não possui bico %s disponível, resultado atual do grupo é inválido."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "Vamos fatiar de acordo com este método de agrupamento:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Dicas: Você pode arrastar os filamentos para reatribuí-los a diferentes bicos."
-
-msgid "Please adjust your grouping or click "
-msgstr "Por favor, ajuste seu agrupamento ou clique "
-
-msgid " to set nozzle count"
-msgstr " para definir a quantidade de bicos"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15619,6 +15620,16 @@ msgid ""
 msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "Erro: extrusora %s não possui bico %s disponível, resultado atual do grupo é inválido."
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "Por favor, ajuste seu agrupamento ou clique "
+
+#~ msgid " to set nozzle count"
+#~ msgstr " para definir a quantidade de bicos"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
