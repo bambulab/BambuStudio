@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr "ABS / ASA / PETG HF を右側の押出機で使用する場合、サポート材としてのみ使用できます。"
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
-msgstr ""
+msgstr "TPU フィラメントでは自動動的流量キャリブレーションは使用できません。"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "詰まり防止のために、TPUの造形前にコールドプルを行ってください。プリンターのコールドプルメンテナンス機能をご利用いただけます。"
@@ -2592,6 +2592,9 @@ msgstr "カスタムテンプレート:"
 msgid "Custom G-code:"
 msgstr "カスタムG-code："
 
+msgid "Toggle path view to current layer/all layers"
+msgstr "パス表示を現在のレイヤー／全レイヤーに切り替え"
+
 msgid "Custom G-code"
 msgstr "カスタム G-code"
 
@@ -3179,10 +3182,10 @@ msgid "Are you sure you want to clear the filament information?"
 msgstr "フィラメント情報をクリアしてもよろしいですか?"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
-msgstr ""
+msgstr "TPU は通常とは異なる供給経路およびロード手順が必要です。適切に行わないと、詰まりやジャムが発生する可能性があります。使用前にチュートリアルをお読みください。"
 
 msgid "Go to Check"
-msgstr ""
+msgstr "確認へ"
 
 msgid "You need to select the material type and color first."
 msgstr "最初に素材の種類と色を選択する必要があります。"
@@ -3331,19 +3334,19 @@ msgid "Tips:"
 msgstr "ヒント"
 
 msgid "1. Filaments of different types cannot be matched."
-msgstr ""
+msgstr "1. 異なる種類のフィラメントは組み合わせできません。"
 
 msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
+msgstr "2. 左ノズルのフィラメントが右ノズルと一致していません。"
 
 msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr ""
+msgstr "続行するには、「準備」ページでフィラメントまたはノズルの割り当てを変更し、再度スライスしてください。使用前に Wiki を参照してください。"
 
 msgid "Please select the filament installed on the left nozzle."
-msgstr ""
+msgstr "左ノズルに装着されているフィラメントを選択してください。"
 
 msgid "Please select the filament installed on the right nozzle."
-msgstr ""
+msgstr "右ノズルに装着されているフィラメントを選択してください。"
 
 msgid "Nozzle"
 msgstr "ノズル"
@@ -3363,14 +3366,14 @@ msgstr "現在のノズルで造形すると、約%0.2fgのフィラメントが
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "選択できません：フィラメントの種類（%s）が、スライスファイル内のフィラメント種類（%s）と一致しません。このスロットを使用する場合は、%s の代わりに %s を装着し、「デバイス」ページでスロット情報を変更してください。"
 
 #, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "選択できません：スロットが空、または未定義です。このスロットを使用する場合は、%s を装着し、「デバイス」ページでスロット情報を変更してください。"
 
 msgid "Cannot select: No filament loaded in current slot."
-msgstr ""
+msgstr "選択できません：現在のスロットにフィラメントが装着されていません。"
 
 msgid "Enable AMS"
 msgstr "AMSを有効"
@@ -3512,13 +3515,13 @@ msgid "Arrange AMS Order"
 msgstr "AMSの順序を並べ替え"
 
 msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
-msgstr ""
+msgstr "特定の AMS ID 順にしたい場合は、「リセット」をクリックした後、すべての AMS を一度切断し、希望する順番で再接続してください。"
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
-msgstr ""
+msgstr "接続されている AMS の ID 順をリセットしますか？"
 
 msgid "Reset AMS Sequence"
-msgstr ""
+msgstr "AMS ID 順をリセット"
 
 msgid "File"
 msgstr "ファイル"
@@ -4174,7 +4177,7 @@ msgid "Loading ..."
 msgstr "読み込み中..."
 
 msgid "Network unavailable"
-msgstr ""
+msgstr "ネットワークに接続できません"
 
 msgid "default"
 msgstr "デフォルト"
@@ -4790,7 +4793,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "混合物にPLAとPETGフィラメントが検出されました。印刷品質を確保するために、Wikiの指示に従ってパラメータを調整してください。"
 
 msgid "The prime tower improves multi-color print quality and is recommended."
-msgstr ""
+msgstr "プライムタワーは多色造形の品質を向上させるため、使用を推奨します。"
 
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "プライムタワーがプレートの境界をはみ出しています。"
@@ -4802,7 +4805,7 @@ msgid "Click Wiki for help."
 msgstr "詳しくはWikiをクリックしてください。"
 
 msgid "Jump to: Prime tower"
-msgstr ""
+msgstr "移動：プライムタワー"
 
 msgid "Click here to regroup"
 msgstr "再グループ化するにはここをクリック"
@@ -5804,10 +5807,10 @@ msgid "Printing Progress"
 msgstr "造形進捗"
 
 msgid "Pausing"
-msgstr ""
+msgstr "一時停止中"
 
 msgid "Stopping"
-msgstr ""
+msgstr "停止中"
 
 msgid "Parts Skip"
 msgstr "部品スキップ"
@@ -5931,10 +5934,10 @@ msgid "The selected slot is empty."
 msgstr "選択されたスロットは空です。"
 
 msgid "No extruder found for the selected slot."
-msgstr ""
+msgstr "選択したスロットに対応する押出機が見つかりません。"
 
 msgid "The selected slot is not loaded in the extruder."
-msgstr ""
+msgstr "選択したスロットのフィラメントが押出機にロードされていません。"
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "プリンターの2Dモードは3Dキャリブレーションに対応していません"
@@ -6393,10 +6396,10 @@ msgid "Bottom"
 msgstr "底面"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
-msgstr ""
+msgstr "この機能を有効にすると、造形中および造形完了時に自動で写真を撮影し、クラウドにアップロードします。有効にしますか？"
 
 msgid "Confirm Enable Print Status Snapshot"
-msgstr ""
+msgstr "造形ステータススナップショットの有効化を確認"
 
 msgid "Unavailable during the task"
 msgstr "作業中は利用できません"
@@ -6504,10 +6507,10 @@ msgid "Pause printing"
 msgstr "印刷を一時停止"
 
 msgid "Print Status Snapshot"
-msgstr ""
+msgstr "造形ステータススナップショット"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
-msgstr ""
+msgstr "造形中の不具合や最終結果を確認できるよう、造形写真を自動で撮影・アップロードし、リモートで閲覧できます。"
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -6623,10 +6626,10 @@ msgstr "%1%と %2%\n"
 
 #, c-format, boost-format
 msgid "The %s nozzle does not support automatic filament switching.\n"
-msgstr ""
+msgstr "%s ノズルは自動フィラメント切り替えに対応していません。\n"
 
 msgid "Please change the nozzle type or reassign the filaments and try again."
-msgstr ""
+msgstr "ノズルタイプを変更するか、フィラメントの割り当てを見直してから、再度お試しください。"
 
 #, boost-format
 msgid " plate %1%: "
@@ -6672,13 +6675,13 @@ msgid "Not installed"
 msgstr "未装着"
 
 msgid "4-slot AMS"
-msgstr ""
+msgstr "4スロットAMS"
 
 msgid "1-slot AMS"
-msgstr ""
+msgstr "1スロットAMS"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "この AMS を取り外す"
 
 msgid "Sync printer information"
 msgstr "プリンタ同期"
@@ -6712,10 +6715,10 @@ msgid "Synchronize nozzle information and the number of AMS"
 msgstr "ノズル情報とAMSの数を同期させる"
 
 msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
+msgstr "現在の直径に対応するノズルがありません。切り替えを続行すると、すべてのノズルの直径が自動的に変更されます。"
 
 msgid "Confirm Diameter Switch"
-msgstr ""
+msgstr "ノズル径の切り替えを確認"
 
 msgid "Project Filaments"
 msgstr "プロジェクトフィラメント"
@@ -6742,7 +6745,7 @@ msgid "Search plate, object and part."
 msgstr "プレート、オブジェクト、パーツを検索"
 
 msgid "(Unavailable for right extruder)"
-msgstr ""
+msgstr "（右側の押出機では使用できません）"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6828,7 +6831,7 @@ msgid "Found following keys unrecognized:\n"
 msgstr "以下の認識できないキーが見つかりました:\n"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr ""
+msgstr "この 3MF ファイルは Bambu Lab 製ではないため、形状データとカラーデータのみを読み込みます。"
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "この3mfファイルは古いバージョンのBambu Studioで作成されたため、ジオメトリデータのみを読み込みます。"
@@ -8079,7 +8082,7 @@ msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "スライスファイルでのフィラメントのグループ化の方法が最適ではありません。"
 
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
-msgstr ""
+msgstr "造形品質を保つため、造形中は乾燥温度を低く設定します。"
 
 msgid "Auto Bed Leveling"
 msgstr "自動ベッドレベリング"
@@ -8267,11 +8270,11 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "現在のノズルマッピングでは、追加で%0.2f gの廃材が発生する可能性があります。"
 
 msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
-msgstr ""
+msgstr "現在のファームウェアバージョンでは、この造形ジョブを開始できません。最新バージョンに更新してから、再度お試しください。"
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "現在の材料（%s）の硬度は、%s（%s）の硬度を上回っています。そのため、ノズルの摩耗が発生し、材料漏れや流量の不安定化を引き起こす可能性があります。使用時は十分ご注意ください。"
 
 msgid "Cool"
 msgstr "クール"
@@ -8364,7 +8367,7 @@ msgid "How to install"
 msgstr "インストール方法"
 
 msgid "Upgrade"
-msgstr ""
+msgstr "アップグレード"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "現在のファームウェアは、内部ストレージへのファイル転送に対応していません。"
@@ -9941,7 +9944,7 @@ msgid "Cutting Module"
 msgstr "カットモジュール"
 
 msgid "Rotary Attachment"
-msgstr ""
+msgstr "ロータリー アタッチメント"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "自動消火システム"
@@ -10098,16 +10101,16 @@ msgid " can not be placed in the "
 msgstr "に配置できません"
 
 msgid "Filament Grouping Error: Filament "
-msgstr ""
+msgstr "フィラメントのグループ化エラー：フィラメント"
 
 msgid " is not supported by the "
-msgstr ""
+msgstr "このノズルではサポートされていません。"
 
 msgid " nozzle. "
-msgstr ""
+msgstr "ノズル。"
 
 msgid "Please change the nozzle type or reassign the filament and try again."
-msgstr ""
+msgstr "ノズルタイプを変更するか、フィラメントの割り当てを変更してから、再度お試しください。"
 
 msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
 msgstr "TPU ハイフローノズルは自動フィラメント切り替えに対応していないため、1種類のフィラメントしか割り当てできません。\n"
@@ -10765,7 +10768,7 @@ msgstr ""
 "3. 外周壁にVFAs（微細なアーティファクト）が出る原因となる低速印刷を避けるため"
 
 msgid "Cooling slowdown logic"
-msgstr ""
+msgstr "冷却時の減速ロジック"
 
 msgid ""
 "Determines how the printer slows down when minimum layer time isn't reached.\n"
@@ -10774,15 +10777,20 @@ msgid ""
 "\n"
 "'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
 msgstr ""
+"最小レイヤー時間に達しない場合に、プリンターをどのように減速させるかを設定します。\n"
+"\n"
+"「均一冷却」は、すべての造形要素を均等に減速します（現在のデフォルト動作）。\n"
+"\n"
+"「表面品質優先」は、まずインフィルと内周の減速を優先し、外周の速度を維持することで、光沢フィラメントの表面仕上がりを向上させます。これにより、VFA（Vertical Fine Artifacts：縦方向の微細アーティファクト）を低減し、表面の光沢を均一に保ちます。"
 
 msgid "Uniform cooling"
-msgstr ""
+msgstr "均一冷却"
 
 msgid "Consistent surface"
-msgstr ""
+msgstr "表面品質優先"
 
 msgid "Perimeter transition distance"
-msgstr ""
+msgstr "外周の遷移距離"
 
 msgid ""
 "Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
@@ -10790,6 +10798,10 @@ msgid ""
 "Only applies when 'Consistent surface' cooling logic is selected.\n"
 "Recommended value: 5-10mm. Set to 0 to disable."
 msgstr ""
+"減速された外周の終了手前から、元の造形速度へ徐々に戻す距離（mm）です。減速部分から高速な外周造形へ切り替わる際の品質低下を抑えます。\n"
+"\n"
+"「表面品質優先」を選択した場合にのみ適用されます。\n"
+"推奨値：5～10 mm。0 に設定すると無効になります。"
 
 msgid "Normal printing"
 msgstr "通常造形"
@@ -10801,7 +10813,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr "1層目を除く移動動作の加速度"
 
 msgid "Short travel"
-msgstr ""
+msgstr "短距離移動"
 
 msgid ""
 "Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
@@ -10810,6 +10822,11 @@ msgid ""
 "\n"
 "Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
+"外周付近での短距離移動に使用される移動加速度です。短距離移動とは、「リトラクション最小移動距離」より短い移動を指します。\n"
+"\n"
+"値を低く設定（例：250～500 mm/s²）すると、鋭い角で発生しやすいリンギング（振動）アーティファクトを抑えつつ、造形時間への影響を最小限に抑えられます。\n"
+"\n"
+"0 に設定すると無効になり、通常の移動加速度が使用されます。"
 
 msgid "Initial layer travel"
 msgstr "1層目の移動動作"
@@ -10848,13 +10865,13 @@ msgid "For the first"
 msgstr "最初に"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "最初の数層に対して、専用の冷却ファン設定を行います。一層目では、ビルドプレートへの密着性を高めるため、パーツ冷却ファンは通常オフになり、その後は自動冷却機能が使用されます。"
 
 msgid "layers"
 msgstr "積層"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "最初の x 層にのみ有効な、補助冷却ファンの回転速度"
 
 msgid "Don't support bridges"
 msgstr "ブリッジにサポートしない"
@@ -13708,9 +13725,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始温度：350度以下\n"
-"\t•\t終了温度：180度 以上\n"
-"\t•\t開始温度は終了温度より5 度以上高くしてください"
+"	•	開始温度：350度以下\n"
+"	•	終了温度：180度 以上\n"
+"	•	開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -13730,9 +13747,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 0\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 0\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -13749,9 +13766,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 10\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 10\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -15077,20 +15094,18 @@ msgid "(Sync with printer)"
 msgstr "(プリンタと同期)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "エラー：%s押出機には利用可能な%sノズルがなく、現在のグループ構成は無効です。"
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "このグループ化方法に従ってスライスします。"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "ヒント:フィラメントをドラッグして、別のノズルに再割り当てできます。"
-
-msgid "Please adjust your grouping or click "
-msgstr "グループ設定を調整するか、以下をクリックして"
-
-msgid " to set nozzle count"
-msgstr "ノズル数を設定してください。"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15570,6 +15585,16 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "エラー：%s押出機には利用可能な%sノズルがなく、現在のグループ構成は無効です。"
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "グループ設定を調整するか、以下をクリックして"
+
+#~ msgid " to set nozzle count"
+#~ msgstr "ノズル数を設定してください。"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."

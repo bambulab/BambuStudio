@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr "오른쪽 압출기에서 ABS/ASA/PETG HF를 사용하는 경우, 지지대 재료로만 사용할 수 있습니다."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
-msgstr ""
+msgstr "TPU 필라멘트에는 자동 동적 유량 보정이 지원되지 않습니다."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "막히지 않도록 TPU를 출력하기 전에 저온 당겨주세요. 저온 당기기는 프린터 유지 관리에 사용할 수 있습니다."
@@ -2594,6 +2594,9 @@ msgstr "커스텀 템플릿:"
 msgid "Custom G-code:"
 msgstr "커스텀 G 코드:"
 
+msgid "Toggle path view to current layer/all layers"
+msgstr ""
+
 msgid "Custom G-code"
 msgstr "커스텀 G 코드"
 
@@ -3522,13 +3525,13 @@ msgid "Arrange AMS Order"
 msgstr "AMS 순서 정렬"
 
 msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
-msgstr ""
+msgstr "특정 AMS ID 순서를 원하신다면, '재설정' 버튼을 클릭한 후 모든 AMS 연결을 해제하고 원하는 순서대로 다시 연결해 주세요."
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
-msgstr ""
+msgstr "연결된 AMS의 ID 시퀀스를 재설정하신 것이 맞습니까?"
 
 msgid "Reset AMS Sequence"
-msgstr ""
+msgstr "AMS 시퀀스 재설정"
 
 msgid "File"
 msgstr "파일"
@@ -4803,7 +4806,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "혼합물에서 PLA 및 PETG 필라멘트가 감지되었습니다. 위키에 따라 매개변수를 조정하여 출력 품질을 보장합니다."
 
 msgid "The prime tower improves multi-color print quality and is recommended."
-msgstr ""
+msgstr "프라임 타워는 다색 출력 품질을 향상시키며 권장됩니다."
 
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "프라임 타워가 플레이트 경계를 넘었습니다."
@@ -4815,7 +4818,7 @@ msgid "Click Wiki for help."
 msgstr "위키를 클릭하여 도움을 받습니다."
 
 msgid "Jump to: Prime tower"
-msgstr ""
+msgstr "바로가기: 프라임 타워"
 
 msgid "Click here to regroup"
 msgstr "재편성하려면 여기를 클릭하세요"
@@ -6651,10 +6654,10 @@ msgstr "%1%와 %2%\n"
 
 #, c-format, boost-format
 msgid "The %s nozzle does not support automatic filament switching.\n"
-msgstr ""
+msgstr "%s 노즐은 자동 필라멘트 전환을 지원하지 않습니다.\n"
 
 msgid "Please change the nozzle type or reassign the filaments and try again."
-msgstr ""
+msgstr "노즐 종류를 변경하거나 필라멘트를 다시 지정한 후 다시 시도해 주세요."
 
 #, boost-format
 msgid " plate %1%: "
@@ -8113,7 +8116,7 @@ msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "슬라이스된 파일의 필라멘트 그룹화 방법이 최적이 아닙니다."
 
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
-msgstr ""
+msgstr "출력 품질을 보장하기 위해 출력 중 건조 온도를 낮춥니다."
 
 msgid "Auto Bed Leveling"
 msgstr "자동 베드 레벨링"
@@ -8307,7 +8310,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "현재 재료(%s)의 경도가 %s(%s)의 경도를 초과합니다. 이는 노즐 마모를 유발하여 재료 누출 및 흐름 불안정을 초래할 수 있습니다. 사용 시 주의해 주십시오."
 
 msgid "Cool"
 msgstr "쿨한"
@@ -9973,7 +9976,7 @@ msgid "Cutting Module"
 msgstr "커팅 모듈"
 
 msgid "Rotary Attachment"
-msgstr ""
+msgstr "회전 부착물"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "자동 화재 진압 시스템"
@@ -10130,16 +10133,16 @@ msgid " can not be placed in the "
 msgstr " 에 배치할 수 없습니다"
 
 msgid "Filament Grouping Error: Filament "
-msgstr ""
+msgstr "필라멘트 그룹화 오류: 필라멘트 "
 
 msgid " is not supported by the "
-msgstr ""
+msgstr " 지원되지 않습니다. "
 
 msgid " nozzle. "
-msgstr ""
+msgstr " 노즐. "
 
 msgid "Please change the nozzle type or reassign the filament and try again."
-msgstr ""
+msgstr "노즐 종류를 변경하거나 필라멘트를 다시 지정한 후 다시 시도해 주세요."
 
 msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
 msgstr "TPU 고유량 노즐은 자동 필라멘트 전환을 지원하지 않으므로 하나의 필라멘트만 지정할 수 있습니다.\n"
@@ -10880,13 +10883,13 @@ msgid "For the first"
 msgstr "첫 몇개의"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "첫 번째 특정 레이어에 특수 부품 냉각 팬을 설정합니다. 첫 번째 레이어의 부품 냉각 팬은 빌드 플레이트 접착력을 향상시키기 위해 닫혔으며 자동 냉각 기능에 사용되었습니다."
 
 msgid "layers"
 msgstr "레이어"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "특수 보조 냉각 팬 속도 조절 기능은 첫 x개 레이어에만 효과적입니다."
 
 msgid "Don't support bridges"
 msgstr "브리지에 서포트 안함"
@@ -15108,20 +15111,18 @@ msgid "(Sync with printer)"
 msgstr "(프린터와 동기화)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "오류: %s 압출기에 사용 가능한 %s 노즐이 없어 현재 그룹 결과가 유효하지 않습니다."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "이 그룹화 방법에 따라 슬라이싱합니다:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "팁: 팁: 필라멘트를 드래그하여 다른 노즐에 재할당할 수 있습니다."
-
-msgid "Please adjust your grouping or click "
-msgstr "그룹화를 조정하거나 클릭하세요. "
-
-msgid " to set nozzle count"
-msgstr " 노즐 수를 설정하려면"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15602,6 +15603,16 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "오류: %s 압출기에 사용 가능한 %s 노즐이 없어 현재 그룹 결과가 유효하지 않습니다."
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "그룹화를 조정하거나 클릭하세요. "
+
+#~ msgid " to set nozzle count"
+#~ msgstr " 노즐 수를 설정하려면"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."

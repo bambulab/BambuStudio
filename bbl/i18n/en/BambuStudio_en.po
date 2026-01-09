@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2584,6 +2584,9 @@ msgstr "Custom Template:"
 
 msgid "Custom G-code:"
 msgstr "Custom G-code:"
+
+msgid "Toggle path view to current layer/all layers"
+msgstr ""
 
 msgid "Custom G-code"
 msgstr "Custom G-code"
@@ -14968,19 +14971,17 @@ msgid "(Sync with printer)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
-msgstr ""
-
-msgid "Please adjust your grouping or click "
-msgstr ""
-
-msgid " to set nozzle count"
 msgstr ""
 
 #, c-format, boost-format

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-05 10:09+0800\n"
+"POT-Creation-Date: 2026-01-09 16:53+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr "W przypadku używania ABS/ASA/PETG HF w prawym ekstruderze, materiał ten może być używany wyłącznie jako materiał podporowy."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
-msgstr ""
+msgstr "Automatyczna kalibracja dynamiki przepływu nie jest obsługiwana w przypadku filamentu TPU."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Przed drukiem z TPU należy wykonać cold pull, aby uniknąć zatkania. Można użyć opcji cold pull na drukarce."
@@ -2604,6 +2604,9 @@ msgstr "Niestandardowy szablon:"
 msgid "Custom G-code:"
 msgstr "Niestandardowy G-code:"
 
+msgid "Toggle path view to current layer/all layers"
+msgstr "Przełącz widok ścieżki na bieżącą warstwę/wszystkie warstwy"
+
 msgid "Custom G-code"
 msgstr "Niestandardowy G-code"
 
@@ -3199,10 +3202,10 @@ msgid "Are you sure you want to clear the filament information?"
 msgstr "Czy na pewno chcesz usunąć informacje o filamencie?"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
-msgstr ""
+msgstr "TPU wymaga innej ścieżki podawania i procedury załadunku. W przeciwnym razie może dojść do zatkania lub zacięcia. Proszę przeczytać poradnik przed użyciem TPU."
 
 msgid "Go to Check"
-msgstr ""
+msgstr "Przejdź do kontroli"
 
 msgid "You need to select the material type and color first."
 msgstr "Najpierw musisz wybrać typ i kolor materiału."
@@ -3351,19 +3354,19 @@ msgid "Tips:"
 msgstr "Wskazówki:"
 
 msgid "1. Filaments of different types cannot be matched."
-msgstr ""
+msgstr "1. Filamenty różnych rodzajów nie mogą być ze sobą mieszane."
 
 msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
+msgstr "2. Filamenty w lewej dyszy nie pasują do dyszy prawej."
 
 msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr ""
+msgstr "Aby kontynuować, przejdź do strony Przygotowanie, aby zmienić przypisanie filamentu lub dyszy, a następnie ponownie wykonaj cięcie. Przed użyciem zapoznaj się z Wiki ->"
 
 msgid "Please select the filament installed on the left nozzle."
-msgstr ""
+msgstr "Proszę wybrać filament zainstalowany w lewej dyszy."
 
 msgid "Please select the filament installed on the right nozzle."
-msgstr ""
+msgstr "Proszę wybrać filament zainstalowany w prawej dyszy."
 
 msgid "Nozzle"
 msgstr "Dysza"
@@ -3383,14 +3386,14 @@ msgstr "Drukowanie przy użyciu obecnej dyszy może powodować powstanie dodatko
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Nie można wybrać: typ filamentu (%s) nie jest zgodny z typem filamentu (%s) w pociętym pliku. Jeśli chcesz używać tego gniazda, możesz zainstalować %s zamiast %s i zmienić informacje o gnieździe na stronie \"Urządzenie\"."
 
 #, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Nie można wybrać: gniazdo jest puste lub nie zostało zdefiniowane. Jeśli chcesz korzystać z tego gniazda, możesz zainstalować %s i zmienić informacje o gnieździe na stronie \"Urządzenie\"."
 
 msgid "Cannot select: No filament loaded in current slot."
-msgstr ""
+msgstr "Nie można wybrać: brak załadowanego filamentu w bieżącym gnieździe."
 
 msgid "Enable AMS"
 msgstr "Włącz AMS"
@@ -3532,13 +3535,13 @@ msgid "Arrange AMS Order"
 msgstr "Określ kolejność AMS"
 
 msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
-msgstr ""
+msgstr "Jeśli chcesz ustawić konkretną sekwencję identyfikacji AMS, po kliknięciu \"Resetuj\" odłącz wszystkie moduły AMS, a następnie podłącz je ponownie w żądanej kolejności."
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
-msgstr ""
+msgstr "Czy na pewno chcesz zresetować sekwencję identyfikacji podłączonego AMS?"
 
 msgid "Reset AMS Sequence"
-msgstr ""
+msgstr "Zresetuj sekwencję AMS"
 
 msgid "File"
 msgstr "Plik"
@@ -4197,7 +4200,7 @@ msgid "Loading ..."
 msgstr "Ładowanie..."
 
 msgid "Network unavailable"
-msgstr ""
+msgstr "Sieć niedostępna"
 
 msgid "default"
 msgstr "domyślne"
@@ -4814,7 +4817,7 @@ msgid "PLA and PETG filaments detected in the mixture. Adjust parameters accordi
 msgstr "Wykryto filamenty PLA i PETG. Dostosuj parametry zgodnie z Wiki, aby zapewnić dobrą jakość druku."
 
 msgid "The prime tower improves multi-color print quality and is recommended."
-msgstr ""
+msgstr "Wieża czyszcząca poprawia jakość drukowania wielokolorowego i jest zalecana."
 
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "Wieża czyszcząca wystaje poza granicę płyty."
@@ -4826,7 +4829,7 @@ msgid "Click Wiki for help."
 msgstr "Kliknij na Wiki, aby uzyskać pomoc."
 
 msgid "Jump to: Prime tower"
-msgstr ""
+msgstr "Przejdź do: Wieża czyszcząca"
 
 msgid "Click here to regroup"
 msgstr "Kliknij tutaj, aby zmienić grupowanie"
@@ -5847,10 +5850,10 @@ msgid "Printing Progress"
 msgstr "Postęp drukowania"
 
 msgid "Pausing"
-msgstr ""
+msgstr "Wstrzymuje"
 
 msgid "Stopping"
-msgstr ""
+msgstr "Zatrzymuje"
 
 msgid "Parts Skip"
 msgstr "Pomiń części"
@@ -5976,10 +5979,10 @@ msgid "The selected slot is empty."
 msgstr "Wybrane gniazdo jest puste."
 
 msgid "No extruder found for the selected slot."
-msgstr ""
+msgstr "Nie znaleziono ekstrudera dla wybranego gniazda."
 
 msgid "The selected slot is not loaded in the extruder."
-msgstr ""
+msgstr "Wybrane gniazdo nie jest załadowane do ekstrudera."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Tryb 2D drukarki nie obsługuje kalibracji 3D"
@@ -6448,10 +6451,10 @@ msgid "Bottom"
 msgstr "Dół"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
-msgstr ""
+msgstr "Po włączeniu drukarka automatycznie wykona zdjęcia wydrukowanych części i prześle je do chmury. Czy chcesz włączyć tę opcję?"
 
 msgid "Confirm Enable Print Status Snapshot"
-msgstr ""
+msgstr "Potwierdź włączenie migawki ze stanu wydruku"
 
 msgid "Unavailable during the task"
 msgstr "Niedostępne podczas zadania"
@@ -6559,10 +6562,10 @@ msgid "Pause printing"
 msgstr "Wstrzymaj drukowanie"
 
 msgid "Print Status Snapshot"
-msgstr ""
+msgstr "Migawka stanu wydruku"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
-msgstr ""
+msgstr "Automatycznie przechwytuj i przesyłaj zdjęcia wydruków, pokazujące wady powstałe w trakcie drukowania oraz końcowy efekt w celu zdalnego podglądu."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -6678,10 +6681,10 @@ msgstr "%1% z %2%\n"
 
 #, c-format, boost-format
 msgid "The %s nozzle does not support automatic filament switching.\n"
-msgstr ""
+msgstr "Dysza %s nie obsługuje automatycznej zmiany filamentu.\n"
 
 msgid "Please change the nozzle type or reassign the filaments and try again."
-msgstr ""
+msgstr "Proszę zmienić typ dyszy lub ponownie przypisać filamenty i spróbować ponownie."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6727,13 +6730,13 @@ msgid "Not installed"
 msgstr "Nie zainstalowano"
 
 msgid "4-slot AMS"
-msgstr ""
+msgstr "AMS z 4 gniazdami"
 
 msgid "1-slot AMS"
-msgstr ""
+msgstr "AMS z 1 gniazdem"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "Usuń ten AMS"
 
 msgid "Sync printer information"
 msgstr "Synchronizacja informacji o drukarce"
@@ -6767,10 +6770,10 @@ msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizacja informacji o dyszach i liczbie AMS"
 
 msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
+msgstr "Brak dysz o aktualnej średnicy. Kontynuowanie przełączania spowoduje automatyczną zmianę średnicy wszystkich dysz."
 
 msgid "Confirm Diameter Switch"
-msgstr ""
+msgstr "Potwierdź zmianę średnicy"
 
 msgid "Project Filaments"
 msgstr "Filamenty projektu"
@@ -6797,7 +6800,7 @@ msgid "Search plate, object and part."
 msgstr "Wyszukaj płytę, obiekt i część."
 
 msgid "(Unavailable for right extruder)"
-msgstr ""
+msgstr "(Niedostępne dla prawego ekstrudera)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6868,7 +6871,7 @@ msgid "Loading file: %s"
 msgstr "Ładowanie pliku: %s"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data only."
-msgstr "Plik 3mf nie pochodzi z Bambu Lab, ładowanie tylko danych geometrycznych."
+msgstr "Plik 3mf nie pochodzi z Bambu Lab, zostaną wczytane wyłącznie dane geometrii."
 
 msgid "Load 3mf"
 msgstr "Ładuj 3mf"
@@ -6883,7 +6886,7 @@ msgid "Found following keys unrecognized:\n"
 msgstr "Znaleziono następujące nierozpoznane klucze:\n"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr ""
+msgstr "Plik 3mf nie pochodzi z Bambu Lab, zostaną wczytane wyłącznie dane geometrii oraz dane kolorów."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "Plik 3mf został wygenerowany przez starą wersję Bambu Studio, ładowanie tylko danych geometrycznych."
@@ -8140,7 +8143,7 @@ msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "Twoja metoda grupowania filamentów w pliku cięcia nie jest optymalna."
 
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
-msgstr ""
+msgstr "Aby zapewnić jakość wydruku, podczas drukowania temperatura suszenia zostanie obniżona."
 
 msgid "Auto Bed Leveling"
 msgstr "Automatyczne poziomowanie stołu"
@@ -8330,11 +8333,11 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "Aktualne mapowanie dyszy może spowodować powstanie dodatkowych %0.2f g odpadów."
 
 msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
-msgstr ""
+msgstr "Twoja aktualna wersja firmware nie może rozpocząć tego zadania druku. Proszę zaktualizować do najnowszej wersji i spróbować ponownie."
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "Twardość obecnego materiału (%s) przekracza twardość %s(%s). Może to spowodować zużycie dyszy, co prowadzi do wycieku materiału i niestabilnego przepływu. Podczas korzystania z tego materiału należy zachować ostrożność."
 
 msgid "Cool"
 msgstr ""
@@ -8427,7 +8430,7 @@ msgid "How to install"
 msgstr "Jak zainstalować"
 
 msgid "Upgrade"
-msgstr ""
+msgstr "Aktualizuj"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "Aktualne firmware nie obsługuje przesyłania plików do pamięci wewnętrznej."
@@ -10012,7 +10015,7 @@ msgid "Cutting Module"
 msgstr "Moduł tnący"
 
 msgid "Rotary Attachment"
-msgstr ""
+msgstr "Przystawka obrotowa"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "Automatyczny system gaśniczy"
@@ -10169,16 +10172,16 @@ msgid " can not be placed in the "
 msgstr " nie może być umieszczony w "
 
 msgid "Filament Grouping Error: Filament "
-msgstr ""
+msgstr "Błąd grupowania filamentu: Filament "
 
 msgid " is not supported by the "
-msgstr ""
+msgstr " nie jest obsługiwany przez "
 
 msgid " nozzle. "
-msgstr ""
+msgstr " dysze. "
 
 msgid "Please change the nozzle type or reassign the filament and try again."
-msgstr ""
+msgstr "Proszę zmienić typ dyszy lub przypisać ponownie filament, a następnie spróbować ponownie."
 
 msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
 msgstr "Dysza TPU o wysokim przepływie nie obsługuje automatycznej zmiany filamentu, dlatego można przypisać tylko jeden filament.\n"
@@ -10837,7 +10840,7 @@ msgstr ""
 "3. Aby uniknąć drukowania z prędkościami powodującymi VFAs (drobne artefakty) na zewnętrznych ścianach."
 
 msgid "Cooling slowdown logic"
-msgstr ""
+msgstr "Logika spowalniania chłodzenia"
 
 msgid ""
 "Determines how the printer slows down when minimum layer time isn't reached.\n"
@@ -10846,15 +10849,20 @@ msgid ""
 "\n"
 "'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
 msgstr ""
+"Określa, jak drukarka zwalnia, gdy minimalny czas warstwy nie zostanie osiągnięty.\n"
+"\n"
+"\"Równomierne chłodzenie\" spowalnia wszystkie elementy wydruku równomiernie (aktualne domyślne zachowanie).\n"
+"\n"
+"\"Jednolita powierzchnia\" priorytetowo spowalnia druk podczas wypełnienia i przy wewnętrznych obrysach, pozostawiając prędkość dla zewnętrznego obrysu w celu lepszego wykończenia powierzchni na błyszczących filamentach. Pomaga to zredukować VFA (pionowe drobne artefakty) i utrzymać równomierny połysk powierzchni."
 
 msgid "Uniform cooling"
-msgstr ""
+msgstr "Równomierne chłodzenie"
 
 msgid "Consistent surface"
-msgstr ""
+msgstr "Jednolita powierzchnia"
 
 msgid "Perimeter transition distance"
-msgstr ""
+msgstr "Odległość przejścia obrysu"
 
 msgid ""
 "Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
@@ -10862,6 +10870,10 @@ msgid ""
 "Only applies when 'Consistent surface' cooling logic is selected.\n"
 "Recommended value: 5-10mm. Set to 0 to disable."
 msgstr ""
+"Dystans w milimetrach przed końcem spowolnionych obwodów, gdzie pierwotna prędkość druku jest stopniowo przywracana. Zmniejsza to problemy z jakością podczas przechodzenia ze spowolnionych elementów do szybkiego drukowania zewnętrznego obwodu.\n"
+"\n"
+"Dotyczy tylko sytuacji, gdy wybrana jest logika chłodzenia \"Jednolita powierzchnia\".\n"
+"Zalecana wartość: 5–10 mm. Ustaw na 0, aby wyłączyć."
 
 msgid "Normal printing"
 msgstr "Normalne drukowanie"
@@ -10873,7 +10885,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr "Przyspieszenie przejazdów z pominięciem pierwszej warstwy"
 
 msgid "Short travel"
-msgstr ""
+msgstr "Krótki ruch jałowy"
 
 msgid ""
 "Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
@@ -10882,6 +10894,11 @@ msgid ""
 "\n"
 "Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
+"Przyspieszenie stosowane podczas krótkich ruchów jałowych w pobliżu zewnętrznych obrysów. Krótkie ruchy to przemieszczenia krótsze niż odległość \"Minimalny ruch podczas retrakcji\".\n"
+"\n"
+"Niższe wartości (np. 250–500 mm/s²) redukują artefakty rezonansowe na ostrych narożnikach bez istotnego wpływu na czas drukowania.\n"
+"\n"
+"Ustaw na 0, aby wyłączyć (używa normalnego przyspieszenia przejazdów)."
 
 msgid "Initial layer travel"
 msgstr "Przejazd pierwszej warstwy"
@@ -10920,13 +10937,13 @@ msgid "For the first"
 msgstr "Dla pierwszego"
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr ""
+msgstr "Ustaw specjalny tryb pracy wentylatora chłodzącego wydruk dla kilku pierwszych warstw. Wentylator chłodzący wydruk dla pierwszej warstwy jest wyłączony, aby uzyskać lepszą przyczepność do płyty roboczej, a później sterowany jest automatycznie."
 
 msgid "layers"
 msgstr "warstwy"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "Prędkość pomocniczego wentylatora chłodzącego, stosowana jedynie dla pierwszych X warstw."
 
 msgid "Don't support bridges"
 msgstr "Nie twórz podpór pod mostami"
@@ -15152,20 +15169,18 @@ msgid "(Sync with printer)"
 msgstr "(Synchronizuj z drukarką)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "Błąd: ekstruder %s nie dysponuje dyszą %s, obecny wynik grupy jest nieprawidłowy."
+msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr "Potniemy zgodnie z tą metodą grupowania:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Wskazówka: Można przeciągać filamenty, aby przypisać je do innych dysz."
-
-msgid "Please adjust your grouping or click "
-msgstr "Proszę dostosować grupowanie lub kliknąć "
-
-msgid " to set nozzle count"
-msgstr " aby ustawić liczbę dysz"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15646,6 +15661,16 @@ msgid ""
 msgstr ""
 "Skurcz, wypaczenia i naprężenia\n"
 "Kontrolując wskaźnik termiczny, możesz wyeliminować termicznie przyczyny wypaczeń oraz naprężeń."
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+#~ msgstr "Błąd: ekstruder %s nie dysponuje dyszą %s, obecny wynik grupy jest nieprawidłowy."
+
+#~ msgid "Please adjust your grouping or click "
+#~ msgstr "Proszę dostosować grupowanie lub kliknąć "
+
+#~ msgid " to set nozzle count"
+#~ msgstr " aby ustawić liczbę dysz"
 
 #, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
