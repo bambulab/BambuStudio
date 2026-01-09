@@ -28,6 +28,7 @@ public:
     void send_new_filament_to_ui();
     void cancel_paint_color();
     void update_filament_ids();
+    Slic3r::ObjDialogInOut::FormatType get_input_type() const { return m_obj_in_out.input_type; }
     struct ButtonState
     {
         ComboBox*   bitmap_combox{nullptr};
@@ -75,7 +76,8 @@ private:
     wxBoxSizer *              m_sizer_simple = nullptr;
     wxBoxSizer *               m_sizer_current_filaments = nullptr;
     SpinInput *                m_color_cluster_num_by_user_ebox{nullptr};
-    wxStaticText *             m_warning_text{nullptr};
+    Label*                     m_warn_text{nullptr};
+    Label*                     m_note_text{nullptr};
     wxGridSizer *              m_new_grid_sizer{nullptr};
     wxScrolledWindow *         m_scrolledWindow{nullptr};
     Button *    m_quick_approximate_match_btn{nullptr};

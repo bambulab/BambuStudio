@@ -767,11 +767,13 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
             render_icon_texture(m_partplate_list->m_arrange_icon, m_partplate_list->m_arrange_texture);
 
         if (hover_id == 4) {
-            if (this->is_locked())
+            if (this->is_locked()) {
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_hovered_texture);
-            else
+                show_tooltip(_u8L("Unlock current plate"));
+            } else {
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_lockopen_hovered_texture);
-            show_tooltip(_u8L("Unlock current plate"));
+                show_tooltip(_u8L("Lock current plate"));
+            }
         } else {
             if (this->is_locked())
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_texture);

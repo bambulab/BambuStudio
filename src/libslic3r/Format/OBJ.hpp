@@ -68,6 +68,8 @@ struct ObjDialogInOut
         Standard3mf
     };
     FormatType input_type{FormatType::Obj};
+    bool       exist_color_error{false};
+    bool       exist_texture_error{false};
 };
 typedef std::function<void(ObjDialogInOut &in_out)> ObjImportColorFn;
 extern bool load_obj(const char *path, TriangleMesh *mesh, ObjInfo &vertex_colors, std::string &message, bool gamma_correct =false);

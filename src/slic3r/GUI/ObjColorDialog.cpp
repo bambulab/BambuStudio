@@ -27,7 +27,8 @@ const int HEADER_BORDER  = 5;
 const int CONTENT_BORDER = 3;
 const int PANEL_WIDTH = 500;
 const int COLOR_LABEL_WIDTH = 180;
-#define MIN_OBJCOLOR_DIALOG_WIDTH FromDIP(500)
+#define OBJCOLOR_DIALOG_WIDTH FromDIP(520)
+#define OBJCOLOR_TEXT_MAX_WIDTH FromDIP(480)
 #define FIX_SCROLL_HEIGTH         FromDIP(410)
 #define BTN_SIZE                wxSize(FromDIP(58), FromDIP(24))
 #define BTN_GAP                 FromDIP(15)
@@ -60,10 +61,18 @@ wxBoxSizer* ObjColorDialog::create_btn_sizer(long flags,bool exist_error)
         tips->SetForegroundColour(wxColour(0, 174, 100));
         tips->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
             bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
-            if (is_zh) {
-                wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/software/bambu-studio/import_obj");
-            } else {
-                wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/import_obj");
+            if (m_panel_ObjColor->get_input_type() == ObjDialogInOut::FormatType::Standard3mf) {
+                if (is_zh) {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/bambu-studio/Standard-3MF-File-Color-Parsing");
+                } else {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/bambu-studio/Standard-3MF-File-Color-Parsing");
+                }
+            } else {//obj
+                if (is_zh) {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/software/bambu-studio/import_obj");
+                } else {
+                    wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/import_obj");
+                }
             }
         });
         btn_sizer->Add(tips, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL);
@@ -176,14 +185,14 @@ ObjColorDialog::ObjColorDialog(wxWindow *parent, Slic3r::ObjDialogInOut &in_out,
     m_line_top->SetBackgroundColour(wxColour(166, 169, 170));
 
     this->SetBackgroundColour(*wxWHITE);
-    this->SetMinSize(wxSize(MIN_OBJCOLOR_DIALOG_WIDTH, -1));
 
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     m_main_sizer->Add(m_line_top, 0, wxEXPAND, 0);
     // set min sizer width according to extruders count
     auto sizer_width = (int) (2.8 * OBJCOLOR_ITEM_WIDTH());
-    sizer_width      = sizer_width > MIN_OBJCOLOR_DIALOG_WIDTH ? sizer_width : MIN_OBJCOLOR_DIALOG_WIDTH;
+    sizer_width      = sizer_width > OBJCOLOR_DIALOG_WIDTH ? sizer_width : OBJCOLOR_DIALOG_WIDTH;
     m_main_sizer->SetMinSize(wxSize(sizer_width, -1));
+
     bool some_face_no_color = false;
     if (in_out.input_type == ObjDialogInOut::FormatType::Obj && !in_out.deal_vertex_color) {
         auto temp0 = in_out.input_colors.size();
@@ -480,11 +489,38 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
         quick_set_sizer->AddSpacer(FromDIP(10));
         m_sizer_simple->Add(quick_set_sizer, 0, wxEXPAND | wxTOP, FromDIP(10));
 
-        wxBoxSizer *warning_sizer = new wxBoxSizer(wxHORIZONTAL);
-        m_warning_text = new wxStaticText(m_page_simple, wxID_ANY, "");
-        m_warning_text->SetForegroundColour(wxColour(107, 107, 107, 100));
-        warning_sizer->Add(m_warning_text, 0, wxALIGN_CENTER | wxALL, 0);
-        m_sizer_simple->Add(warning_sizer, 0, wxEXPAND | wxLEFT, FromDIP(25));
+        wxBoxSizer *warning_error_sizer  = new wxBoxSizer(wxVERTICAL);
+
+        if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Standard3mf && (m_obj_in_out.exist_color_error || m_obj_in_out.exist_texture_error)) {
+            m_warn_text = new Label(m_page_simple, "", LB_AUTO_WRAP);
+            m_warn_text->SetForegroundColour(wxColour(255, 111, 0, 255));
+
+            wxString error_str = _L("Warning") + ": ";
+            if (m_obj_in_out.exist_color_error) {
+                error_str += _L("There are color input errors.");
+            }
+            if (m_obj_in_out.exist_texture_error) {
+                auto texture_error_str = _L("Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color.");
+                if (m_obj_in_out.exist_color_error) {
+                    error_str += _L(" And ") + texture_error_str;
+                } else {
+                    error_str += texture_error_str;
+                }
+            }
+            m_warn_text->SetLabelText(error_str);
+            m_warn_text->SetMaxSize(wxSize(OBJCOLOR_TEXT_MAX_WIDTH, -1));
+            m_warn_text->SetMinSize(wxSize(OBJCOLOR_TEXT_MAX_WIDTH, -1));
+
+            warning_error_sizer->Add(m_warn_text, 0, wxALIGN_LEFT | wxTOP, 0);
+        }
+        wxString note_str = _L("Note") + ": " + _L("The color has been selected, you can choose OK to continue or manually adjust it.");
+        m_note_text       = new Label(m_page_simple, note_str, LB_AUTO_WRAP);
+        m_note_text->SetForegroundColour(wxColour(107, 107, 107, 100));
+        m_note_text->SetMinSize(wxSize(OBJCOLOR_TEXT_MAX_WIDTH, -1));
+        m_note_text->SetMaxSize(wxSize(OBJCOLOR_TEXT_MAX_WIDTH, -1));
+        warning_error_sizer->Add(m_note_text, 0, wxALIGN_LEFT  | wxTOP, 0);
+
+        m_sizer_simple->Add(warning_error_sizer, 0, wxEXPAND | wxLEFT, FromDIP(20));
 
         m_sizer_simple->AddSpacer(15);
     }
@@ -493,10 +529,13 @@ ObjColorPanel::ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, c
     //page_simple//page_advanced
     m_sizer = new wxBoxSizer(wxVERTICAL);
     m_sizer->Add(m_page_simple, 0, wxEXPAND, 0);
+    m_page_simple->SetMinSize(wxSize(OBJCOLOR_DIALOG_WIDTH, -1));
+    m_page_simple->SetMaxSize(wxSize(OBJCOLOR_DIALOG_WIDTH, -1));
 
     m_sizer->SetSizeHints(this);
     SetSizer(m_sizer);
     this->Layout();
+    this->Fit();
 }
 
 ObjColorPanel::~ObjColorPanel() {
@@ -737,7 +776,7 @@ ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect la
 
 void ObjColorPanel::deal_approximate_match_btn()
 {
-    m_warning_text->SetLabelText("");
+    m_note_text->Show(false);
     if (m_result_icon_list.size() == 0) { return; }
     auto map_count = m_result_icon_list[0]->bitmap_combox->GetCount() -1;
     if (map_count < 1) { return; }
@@ -946,7 +985,7 @@ void ObjColorPanel::deal_default_strategy()
     if (!is_exceed) {
         deal_approximate_match_btn();
     }
-    m_warning_text->SetLabelText(_L("Note") + ": " + _L("The color has been selected, you can choose OK \n to continue or manually adjust it."));
+    m_note_text->Show(true);
 }
 
 void ObjColorPanel::deal_thumbnail() {
@@ -1223,7 +1262,7 @@ void ObjColorPanel::deal_reset_btn()
     for (int i = 0; i < m_new_add_colors.size(); i++) {
         m_new_add_colors[i] = g_undefined_color_in_obj;
     }
-    m_warning_text->SetLabelText("");
+    m_note_text->Show(false);
 }
 
 wxBoxSizer *ObjColorPanel::create_color_icon_map_rgba_sizer(wxWindow *parent, int id, const wxColour &color)
