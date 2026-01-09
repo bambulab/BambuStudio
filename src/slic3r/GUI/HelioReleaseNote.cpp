@@ -2753,7 +2753,7 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
     line->SetBackgroundColour(line_color);
 
-    auto tips = new Label(this, Label::Body_14, L("Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."));
+    auto tips = new Label(this, Label::Body_14, _L("Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."));
     tips->SetForegroundColour(label_color);
     tips->SetSize(wxSize(FromDIP(410), -1));
     tips->SetMinSize(wxSize(FromDIP(410), -1));
