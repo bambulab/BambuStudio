@@ -3869,13 +3869,15 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         writer.append(format_line_M104(target_temp, m_filament_map[this->m_current_tool] - 1));
     };
     float speed_factor = 1.f;
-    if (should_heating) {
-        float estimate_time = estimate_wipe_time(0);
-        int   extruder_id   = m_filament_map[m_current_tool] - 1;
-        float heat_time     = m_filpar[m_current_tool].filament_cooling_before_tower / m_hotend_heating_rate[extruder_id];
-        heat_time /= 2.f;
-        speed_factor = estimate_time / (heat_time+estimate_time);
-        wipe_speed *= speed_factor;
+    if (should_heating)
+    {
+        //No additional heating time is required.
+        //float estimate_time = estimate_wipe_time(0);
+        //int   extruder_id   = m_filament_map[m_current_tool] - 1;
+        //float heat_time     = m_filpar[m_current_tool].filament_cooling_before_tower / m_hotend_heating_rate[extruder_id];
+        //heat_time /= 2.f;
+        //speed_factor = estimate_time / (heat_time+estimate_time);
+        //wipe_speed *= speed_factor;
     }
     if (should_cooling_before_object) {
         int n = (cleaning_box.lu[1] - cleaning_box.ld[1]) / dy;
