@@ -3513,7 +3513,9 @@ void sGetSwitchInfo(MachineObject* obj,
     }
 
     if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
-        if (extder->GetSlotNow().ams_id != ams_id || extder->GetSlotNow().slot_id != slot_id) {
+        if (!extder->HasFilamentInExt() ||
+            extder->GetSlotNow().ams_id != ams_id ||
+            extder->GetSlotNow().slot_id != slot_id) {
             unload_error_info = _L("The selected slot is not loaded in the extruder.");
         };
     }
