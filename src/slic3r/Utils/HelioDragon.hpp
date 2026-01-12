@@ -78,6 +78,7 @@ public:
         std::string id;
         std::string name;
         std::string native_name;
+        std::string feedstock;
     };
 
     struct PollResult {
@@ -85,6 +86,7 @@ public:
         int progress;
         int sizeKb;
         bool success;
+        std::vector<std::string> errors;
     };
 
     struct CreateGCodeResult
@@ -140,6 +142,36 @@ public:
         };
     };
 
+    struct Caveat
+    {
+        std::string caveatType;
+        std::string description;
+    };
+
+    struct PrintInfo
+    {
+        std::string printOutcome;  // "WILL_PRINT", "MAY_PRINT", "LIKELY_FAIL"
+        std::string printOutcomeDescription;
+        std::string temperatureDirection;  // "NONE", "OVERCOOLING", "OVERHEATING"
+        std::string temperatureDirectionDescription;
+        std::vector<Caveat> caveats;
+    };
+
+    struct SuggestedFix
+    {
+        std::string category;  // "QUICK", "ADVANCED", "EXPERT"
+        std::vector<std::string> extraDetails;
+        std::string fix;
+        boost::optional<int> orderIndex;
+    };
+
+    struct SimulationResult
+    {
+        boost::optional<PrintInfo> printInfo;
+        boost::optional<double> speedFactor;
+        std::vector<SuggestedFix> suggestedFixes;
+    };
+
     struct CheckSimulationProgressResult
     {
         unsigned    status;
@@ -150,6 +182,7 @@ public:
         std::string url;
         std::string error;
         std::string trace_id;
+        SimulationResult simulationResult;
     };
 
     struct CheckOptimizationResult
@@ -276,7 +309,8 @@ public:
     static double convert_volume_speed(float mm3_per_second);
 
     /*user*/
-    static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, std::function<void(int, int)> func);
+    static void request_remaining_optimizations(const std::string& helio_api_url, const std::string& helio_api_key, 
+        std::function<void(int times, int addons, const std::string& subscription_name, bool free_trial_eligible, bool is_free_trial_active, bool is_free_trial_claimed)> func);
 };
 
 class HelioBackgroundProcess
@@ -309,6 +343,29 @@ public:
     /*task data*/
     HelioQuery::CreateSimulationResult current_simulation_result;
     HelioQuery::CreateOptimizationResult current_optimization_result;
+
+    // Stored results for showing summary dialog later
+    // -1=none, 0=simulation, 1=optimization
+    int last_action{-1};
+    
+    // Simulation result data
+    HelioQuery::SimulationResult last_simulation_result;
+    int last_original_print_time_seconds{0};
+    
+    // Optimization result data
+    int last_optimized_print_time_seconds{0};
+    std::string last_quality_mean_improvement;
+    std::string last_quality_std_improvement;
+
+    // Clear stored simulation/optimization result (call when re-slicing)
+    void clear_last_simulation_result() {
+        last_action = -1;
+        last_simulation_result = HelioQuery::SimulationResult();
+        last_original_print_time_seconds = 0;
+        last_optimized_print_time_seconds = 0;
+        last_quality_mean_improvement.clear();
+        last_quality_std_improvement.clear();
+    }
 
     //for user input
     HelioQuery::SimulationInput         simulation_input_data;
