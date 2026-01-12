@@ -572,7 +572,59 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     Close();
 }
 
-void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
+
+static DevFilaBlacklist::CheckResult
+sCheckFilamentInfo(PresetBundle* preset_bundle,
+                   MachineObject* obj,
+                   int ams_id, int slot_id,
+                   const std::string& filament_id,
+                   std::string& ams_filament_id,
+                   std::string& ams_setting_id)
+{
+    DevFilaBlacklist::CheckResult result;
+    if (!preset_bundle) {
+        return result;
+    }
+
+    auto it = preset_bundle->get_filament_by_filament_id(filament_id);
+    if (!it.has_value()) {
+        return result;
+    }
+
+    if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
+        DevFilaBlacklist::CheckFilamentInfo check_info;
+        check_info.dev_id = obj->get_dev_id();
+        check_info.model_id = obj->printer_type;
+        check_info.fila_id = it->filament_id;
+        check_info.fila_type = it->filament_type;
+
+        auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
+        check_info.fila_name = option ? option->filament_name : "";
+        check_info.fila_vendor = option ? option->vendor : "";
+
+        check_info.ams_id = ams_id;
+        check_info.slot_id = slot_id;
+        check_info.extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
+
+        if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj->GetNozzleRack()->IsSupported()) {
+            ;// the extruder have serval nozzles, do nothing here
+        } else {
+            check_info.nozzle_flow = obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
+            auto nozzle = obj->GetNozzleSystem()->GetNozzleByPosId(check_info.extruder_id.value_or(-1));
+            if (!nozzle.IsEmpty()) {
+                check_info.nozzle_diameter = nozzle.GetNozzleDiameter();
+            }
+        }
+
+        result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
+    }
+
+    ams_filament_id = it->filament_id;
+    ams_setting_id = it->setting_id;
+    return result;
+}
+
+void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 {
     if (!obj) {
         return;
@@ -585,10 +637,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
     // the combobox item
     auto filament_item = map_filament_items[into_u8(m_comboBox_filament->GetValue())];
 
-    // check if need to set usr_has_setup_tpu
+    // check filament info
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    const auto& fila_check_res = sCheckFilamentInfo(preset_bundle, obj, ams_id, slot_id, filament_item.filament_id, ams_filament_id, ams_setting_id);
+    bool can_set_fila = fila_check_res.get_items_by_action("prohibition").empty();
+
+    // check if need to set usr_has_setup_tpu
     auto fila_item = preset_bundle ? preset_bundle->get_filament_by_filament_id(filament_item.filament_id) : std::nullopt;
-    if (fila_item.has_value() && DevPrinterConfigUtil::support_user_first_setup_tpu_check(obj->printer_type)) {
+    if (fila_item.has_value() && can_set_fila && DevPrinterConfigUtil::support_user_first_setup_tpu_check(obj->printer_type)) {
         if ((fila_item->filament_type == "TPU" || fila_item->filament_type == "TPU-AMS") &&
             wxGetApp().app_config->get("usr_has_setup_tpu") != "true") {
 
@@ -610,65 +666,26 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent &event)
         };
     }
 
-    if (preset_bundle) {
-        for (auto it = preset_bundle->filaments.begin(); it != preset_bundle->filaments.end(); it++) {
-            std::string filament_id = filament_item.filament_id;
-            if (it->filament_id.compare(filament_id) == 0) {
-                //check is it in the filament blacklist
-                if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
-                    DevFilaBlacklist::CheckFilamentInfo check_info;
-                    check_info.dev_id = obj->get_dev_id();
-                    check_info.model_id = obj->printer_type;
-                    check_info.fila_id = it->filament_id;
-                    it->get_filament_type(check_info.fila_type);
-
-                    auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
-                    check_info.fila_name = option ? option->filament_name : "";
-                    check_info.fila_vendor = option ? option->vendor : "";
-
-                    check_info.ams_id = ams_id;
-                    check_info.slot_id = slot_id;
-                    check_info.extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-
-                    if (check_info.extruder_id == MAIN_EXTRUDER_ID && obj->GetNozzleRack()->IsSupported()) {
-                        ;
-                    } else {
-                        check_info.nozzle_flow = obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id));
-                        auto nozzle = obj->GetNozzleSystem()->GetNozzleByPosId(check_info.extruder_id.value_or(-1));
-                        if (!nozzle.IsEmpty()) {
-                            check_info.nozzle_diameter = nozzle.GetNozzleDiameter();
-                        }
-                    }
-
-                    auto result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
-                    if (!result.action_items.empty()) {
-                        if (const auto& prohibit_items = result.get_items_by_action("prohibition"); !prohibit_items.empty()) {
-                            wxString info_msg;
-                            for (auto item : prohibit_items) {
-                                info_msg += item.info_msg + "\n";
-                            }
-
-                            MessageDialog msg_wingow(nullptr, info_msg, _L("Error"), wxICON_WARNING | wxOK);
-                            msg_wingow.ShowModal();
-                            return;
-                        }
-
-                        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
-                            wxString info_msg;
-                            for (auto item : warning_items) {
-                                info_msg += item.info_msg + "\n";
-                            }
-
-                            MessageDialog msg_wingow(nullptr, info_msg, _L("Warning"), wxICON_WARNING | wxOK);
-                            msg_wingow.ShowModal();
-                        }
-                    }
-                }
-
-                ams_filament_id = it->filament_id;
-                ams_setting_id = it->setting_id;
-                break;
+    if (!fila_check_res.action_items.empty()) {
+        if (const auto& prohibit_items = fila_check_res.get_items_by_action("prohibition"); !prohibit_items.empty()) {
+            wxString info_msg;
+            for (auto item : prohibit_items) {
+                info_msg += item.info_msg + "\n";
             }
+
+            MessageDialog msg_wingow(nullptr, info_msg, _L("Error"), wxICON_WARNING | wxOK);
+            msg_wingow.ShowModal();
+            return;
+        }
+
+        if (const auto& warning_items = fila_check_res.get_items_by_action("warning"); !warning_items.empty()) {
+            wxString info_msg;
+            for (auto item : warning_items) {
+                info_msg += item.info_msg + "\n";
+            }
+
+            MessageDialog msg_wingow(nullptr, info_msg, _L("Warning"), wxICON_WARNING | wxOK);
+            msg_wingow.ShowModal();
         }
     }
 

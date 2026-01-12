@@ -646,6 +646,7 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
             if(config.has("temperature_vitrification"))
                 info.temperature_vitrification = config.option<ConfigOptionInts>("temperature_vitrification")->values[0];
 
+            info.setting_id = filament_preset.setting_id;
             if (!printer_name.empty()) {
                 std::vector<std::string> compatible_printers = config.option<ConfigOptionStrings>("compatible_printers")->values;
                 auto iter = std::find(compatible_printers.begin(), compatible_printers.end(), printer_name);
