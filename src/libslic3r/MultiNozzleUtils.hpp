@@ -8,6 +8,7 @@
 #include "PrintConfig.hpp"
 
 namespace Slic3r {
+class PrintObject;
 struct FilamentInfo;
 class PrintObject;
 namespace MultiNozzleUtils {

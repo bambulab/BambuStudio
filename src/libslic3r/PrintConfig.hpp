@@ -503,6 +503,12 @@ extern const PrintConfigDef print_config_def;
 
 class StaticPrintConfig;
 
+struct ExtruderNozleInfo
+{
+    ExtruderType extruder_type;
+    NozzleVolumeType nozzle_volume_type;
+};
+
 // Minimum object distance for arrangement, based on printer technology.
 double min_object_distance(const ConfigBase &cfg);
 
@@ -563,6 +569,13 @@ public:
     std::vector<int> update_values_to_printer_extruders(DynamicPrintConfig& printer_config, int extruder_count, int extruder_nozzle_volume_count, std::vector<std::vector<NozzleVolumeType>>& nv_types,
         std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0, NozzleVolumeType filament_nvt = nvtStandard);
     void update_values_to_printer_extruders_for_multiple_filaments(DynamicPrintConfig& printer_config, int extruder_count, int extruder_nozzle_volume_count, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
+    void update_filament_config_values_for_multiple_extruders(DynamicPrintConfig                                            &printer_config,
+                                                              const std::unordered_map<int, std::vector<ExtruderNozleInfo>> &filament_extruder_nozzle_infos,
+                                                              int                                                            extruder_count,
+                                                              int                                                            extruder_nozzle_volume_count,
+                                                              std::set<std::string>                                         &key_set,
+                                                              std::string                                                    id_name,
+                                                              std::string                                                    variant_name);
 
     void update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys, std::string extruder_id_name, std::string extruder_variant_name,
         std::set<std::string>& key_set1, std::set<std::string>& key_set2);

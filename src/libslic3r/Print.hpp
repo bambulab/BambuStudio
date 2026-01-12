@@ -926,6 +926,7 @@ public:
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
 
     void update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps = std::vector<int>{}, std::vector<int> f_nozzle_maps = std::vector<int>{});
+    void update_to_config_by_nozzle_group_result();
     void apply_config_for_render(const DynamicConfig &config);
 
     // 1 based group ids
@@ -1044,7 +1045,35 @@ public:
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
     }
 
+    int get_filament_config_indx(const PrintObject* print_object, int filament_id, int layer_id);
+    int get_nozzle_config_index(const PrintObject *print_object, int filament_id, int layer_id);
+
 protected:
+    struct FilamentIndexKey
+    {
+        int              filament_id;
+        ExtruderType     extruder;
+        NozzleVolumeType nozzle_volume_type;
+
+        bool operator==(const FilamentIndexKey &other) const
+        {
+            return filament_id == other.filament_id && extruder == other.extruder && nozzle_volume_type == other.nozzle_volume_type;
+        }
+    };
+
+    struct FilamentIndexKeyHash
+    {
+        std::size_t operator()(const FilamentIndexKey &k) const
+        {
+            size_t h1 = std::hash<int>{}(k.filament_id);
+            size_t h2 = std::hash<int>{}(static_cast<int>(k.extruder));
+            size_t h3 = std::hash<int>{}(static_cast<int>(k.nozzle_volume_type));
+            return h1 ^ (h2 << 8) ^ (h3 << 12);
+        }
+    };
+    using FilamentIndexMap = std::unordered_map<FilamentIndexKey, int, FilamentIndexKeyHash>;
+    int get_config_index(const PrintObject *print_object, int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map);
+
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
 
@@ -1094,6 +1123,13 @@ private:
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
 
     std::optional<MultiNozzleUtils::MultiNozzleGroupResult> m_nozzle_group_result;
+
+    // Used to cache filament parameter information
+    FilamentIndexMap m_filament_index_map;
+    // Used to cache printer and process parameter information
+    FilamentIndexMap m_nozzle_index_map;
+    // save the config value of "filament_self_index"
+    std::vector<int> m_filament_self_index;
 
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;
