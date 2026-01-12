@@ -9674,7 +9674,9 @@ msgstr ""
 msgid ""
 "Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
 "\n"
-"Supported printers: https://wiki.helioadditive.com/en/supportedprinters"
+msgstr ""
+
+msgid "Supported printers and materials"
 msgstr ""
 
 msgid "Copy PAT"

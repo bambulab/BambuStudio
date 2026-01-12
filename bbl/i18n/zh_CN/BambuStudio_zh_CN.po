@@ -9880,13 +9880,18 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "您快成功了！Helio 已激活，您的首次优化只需几分钟即可实现更快、更可靠的打印！（现称为\"增强\"）"
 
 msgid ""
-"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
-"\n"
-"Supported printers: https://wiki.helioadditive.com/en/supportedprinters"
+"Add an object to the build plate, select a material and printer that Helio supports, then slice.
+"
+"
+"
 msgstr ""
-"将对象添加到打印平台，选择 Helio 支持的材料和打印机，然后切片。\n"
-"\n"
-"支持的打印机：https://wiki.helioadditive.com/en/supportedprinters"
+"将对象添加到打印平台，选择 Helio 支持的材料和打印机，然后切片。
+"
+"
+"
+
+msgid "Supported printers and materials"
+msgstr "支持的打印机和材料"
 
 msgid "Copy PAT"
 msgstr "复制 PAT"

@@ -591,11 +591,18 @@ void HelioStatementDialog::create_pat_page()
         
         // Show first tutorial popup (don't open Helio dialog immediately - let user follow tutorial steps)
         if (wxGetApp().plater() && wxGetApp().plater()->get_notification_manager()) {
-            wxString tutorial_msg = _L("Add an object to the build plate, select a material and printer that Helio supports, then slice.\n\nSupported printers: https://wiki.helioadditive.com/en/supportedprinters");
+            wxString tutorial_msg = _L("Add an object to the build plate, select a material and printer that Helio supports, then slice.\n\n");
+            wxString hypertext = _L("Supported printers and materials");
+            std::string url = "https://wiki.helioadditive.com/en/supportedprinters";
             wxGetApp().plater()->get_notification_manager()->push_notification(
                 NotificationType::CustomNotification,
                 NotificationManager::NotificationLevel::HintNotificationLevel,
-                into_u8(tutorial_msg)
+                into_u8(tutorial_msg),
+                into_u8(hypertext),
+                [url](wxEvtHandler*) {
+                    wxLaunchDefaultBrowser(url);
+                    return false;
+                }
             );
         }
     });
