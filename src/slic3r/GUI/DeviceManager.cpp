@@ -184,7 +184,7 @@ wxString Slic3r::get_stage_string(int stage)
     case 49:
         return _L("Heating chamber");
     case 50:
-        return _L("Cooling heatbed");
+        return _L("Adjusting heatbed temperature");
     case 51:
         return _L("Printing calibration lines");
     case 52:
@@ -217,6 +217,8 @@ wxString Slic3r::get_stage_string(int stage)
         return _L("Calibrating the detection position of nozzle clumping"); // N7
     case 66:
         return _L("Purifying the chamber air");
+    case 77:
+        return _L("Preparing AMS");
     default:
         BOOST_LOG_TRIVIAL(info) << "stage = " << stage;
     }
