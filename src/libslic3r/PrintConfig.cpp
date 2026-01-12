@@ -623,6 +623,19 @@ static void assign_printer_technology_to_unknown(t_optiondef_map &options, Print
             kvp.second.printer_technology = printer_technology;
 }
 
+template<typename OptType, typename ValueType>
+void trim_option_values(OptType *opt, const std::vector<int> &trim_param_indices)
+{
+    std::vector<ValueType> new_values;
+    new_values.reserve(trim_param_indices.size());
+
+    for (int idx : trim_param_indices) {
+        new_values.emplace_back(opt->get_at(idx));
+    }
+
+    opt->values = std::move(new_values);
+}
+
 PrintConfigDef::PrintConfigDef()
 {
     this->init_common_params();
@@ -8267,6 +8280,139 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
     }
 }
 
+
+void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(DynamicPrintConfig                                            &printer_config,
+                                                                              const std::unordered_map<int, std::vector<ExtruderNozleInfo>> &filament_extruder_nozzle_infos,
+                                                                              int                                                            extruder_count,
+                                                                              int                                                            extruder_nozzle_volume_count,
+                                                                              std::set<std::string>                                         &key_set,
+                                                                              std::string                                                    id_name,
+                                                                              std::string                                                    variant_name)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                            << boost::format(", Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%") % __LINE__ % extruder_count % extruder_nozzle_volume_count;
+
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing") % __LINE__;
+        std::vector<int> filament_maps  = printer_config.option<ConfigOptionInts>("filament_map")->values;
+        size_t           filament_count = filament_maps.size();
+
+        auto opt_extruder_type      = dynamic_cast<const ConfigOptionEnumsGeneric *>(printer_config.option("extruder_type"));
+        auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(printer_config.option("nozzle_volume_type"));
+
+        auto             opt_filament_volume_maps = dynamic_cast<const ConfigOptionInts *>(printer_config.option("filament_volume_map"));
+        std::vector<int> filament_volume_maps;
+        if (opt_filament_volume_maps) filament_volume_maps = opt_filament_volume_maps->values;
+        auto             opt_ids = id_name.empty() ? nullptr : dynamic_cast<const ConfigOptionInts *>(this->option(id_name));
+        std::vector<int> variant_index;
+        variant_index.resize(filament_count, -1);
+
+        std::vector<int> trim_param_indices;
+        trim_param_indices.reserve(filament_count * 2);
+        for (int f_index = 0; f_index < filament_count; f_index++) {
+            ExtruderType extruder_type = (ExtruderType) (opt_extruder_type->get_at(filament_maps[f_index] - 1));
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(filament_maps[f_index] - 1));
+            auto iter = filament_extruder_nozzle_infos.find(f_index);
+            if (iter != filament_extruder_nozzle_infos.end()) {
+                std::vector<ExtruderNozleInfo> nozzle_infos = iter->second;
+                for (ExtruderNozleInfo nozzle_info : nozzle_infos) {
+                    extruder_type = nozzle_info.extruder_type;
+                    nozzle_volume_type = nozzle_info.nozzle_volume_type;
+                    int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
+                    if (param_index < 0) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                                 << boost::format(
+                                                        ", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
+                                                        __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index + 1) %
+                                                        filament_maps[f_index];
+                        assert(false);
+                        // for some updates happens in a invalid state(caused by popup window)
+                        // we need to avoid crash
+                        param_index = 0;
+                        if (opt_ids) {
+                            for (int i = 0; i < opt_ids->values.size(); i++) {
+                                if (opt_ids->values[i] == (f_index + 1)) {
+                                    param_index = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    trim_param_indices.push_back(param_index);
+                }
+            } else {
+                // filament not used in slicing
+                if ((extruder_nozzle_volume_count > extruder_count) && (!filament_volume_maps.empty())) {
+                    nozzle_volume_type = (NozzleVolumeType) (filament_volume_maps[f_index]);
+                }
+                int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
+                if (param_index < 0) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                             << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
+                                                    __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index + 1) %
+                                                    filament_maps[f_index];
+                    assert(false);
+                    // for some updates happens in a invalid state(caused by popup window)
+                    // we need to avoid crash
+                    param_index = 0;
+                    if (opt_ids) {
+                        for (int i = 0; i < opt_ids->values.size(); i++) {
+                            if (opt_ids->values[i] == (f_index + 1)) {
+                                param_index = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+                trim_param_indices.push_back(param_index);
+            }
+        }
+
+        const ConfigDef *config_def = this->def();
+        if (!config_def) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define") % __LINE__;
+            return;
+        }
+        for (auto &key : key_set) {
+            const ConfigOptionDef *optdef = config_def->get(key);
+            if (!optdef) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%") % __LINE__ % key;
+                continue;
+            }
+            switch (optdef->type) {
+            case coStrings: {
+                trim_option_values<ConfigOptionStrings, std::string>(this->option<ConfigOptionStrings>(key), trim_param_indices);
+                break;
+            }
+            case coInts: {
+                trim_option_values<ConfigOptionInts, int>(this->option<ConfigOptionInts>(key), trim_param_indices);
+                break;
+            }
+            case coFloats: {
+                trim_option_values<ConfigOptionFloats, double>(this->option<ConfigOptionFloats>(key), trim_param_indices);
+                break;
+            }
+            case coPercents: {
+                trim_option_values<ConfigOptionPercents, double>(this->option<ConfigOptionPercents>(key), trim_param_indices);
+                break;
+            }
+            case coFloatsOrPercents: {
+                trim_option_values<ConfigOptionFloatsOrPercents, FloatOrPercent>(this->option<ConfigOptionFloatsOrPercents>(key), trim_param_indices);
+                break;
+            }
+            case coBools: {
+                trim_option_values<ConfigOptionBools, unsigned char>(this->option<ConfigOptionBools>(key), trim_param_indices);
+                break;
+            }
+            case coEnums: {
+                trim_option_values<ConfigOptionEnumsGeneric, int>(this->option<ConfigOptionEnumsGeneric>(key), trim_param_indices);
+                break;
+            }
+            default: BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%") % __LINE__ % key; break;
+            }
+        }
+    }
+}
 
 void DynamicPrintConfig::update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys,
     std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2)

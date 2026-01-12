@@ -1,6 +1,7 @@
 #include "MultiNozzleUtils.hpp"
 #include "ProjectTask.hpp"
 #include "Utils.hpp"
+#include "Print.hpp"
 
 namespace Slic3r { namespace MultiNozzleUtils {
 
