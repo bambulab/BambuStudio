@@ -55,7 +55,9 @@
         "12",
         "12"
     ],
-    "filament_dev_ams_drying_ams_limitations": [],
+    "filament_dev_ams_drying_ams_limitations": [
+        "-1"
+    ],
     "filament_dev_chamber_drying_time": [
         "18"
     ],
