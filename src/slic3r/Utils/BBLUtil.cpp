@@ -214,6 +214,94 @@ std::string BBLCrossTalk::Crosstalk_UsrId(const std::string& uid)
     return "******";
 }
 
+std::string BBLCrossTalk::Encode_DevIp(const std::string& str, const std::string& rand)
+{
+    if (str.empty() || rand.empty()) {
+        return str;
+    }
+
+    uint32_t seed = 2166136261u;
+    for (unsigned char ch : rand) {
+        seed ^= ch;
+        seed *= 16777619u;
+    }
+    std::mt19937 rng(seed);
+
+    std::string obfuscated;
+    obfuscated.resize(str.size());
+    for (size_t i = 0; i < str.size(); ++i) {
+        unsigned char k = static_cast<unsigned char>(rng() & 0xFF);
+        obfuscated[i] = static_cast<char>(static_cast<unsigned char>(str[i]) ^ k);
+    }
+
+    static const char hexmap[] = "0123456789abcdef";
+    std::string hex;
+    hex.reserve(obfuscated.size() * 2);
+    for (char* p = obfuscated.data(); p < obfuscated.data() + obfuscated.size(); ++p) {
+        unsigned char v = static_cast<unsigned char>(*p);
+        if (v >> 4 > 16) {
+            BOOST_LOG_TRIVIAL(error) << "Encode_DevIp error: invalid byte value.";
+            return "";
+        }
+
+        if ((v & 0x0F) > 16) {
+            BOOST_LOG_TRIVIAL(error) << "Encode_DevIp error: invalid byte value.";
+            return "";
+        }
+
+        hex.push_back(hexmap[v >> 4]);
+        hex.push_back(hexmap[v & 0x0F]);
+    }
+
+    return hex;
+}
+
+std::string BBLCrossTalk::Decode_DevIp(const std::string& str, const std::string& rand)
+{
+    if (str.empty() || rand.empty()) {
+        return str;
+    }
+
+    if ((str.size() % 2) != 0) {
+        return str;
+    }
+
+    auto hexval = [](char c) -> int {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        return -1;
+    };
+
+    std::string bytes;
+    bytes.reserve(str.size() / 2);
+    for (size_t i = 0; i < str.size(); i += 2) {
+        int hi = hexval(str[i]);
+        int lo = hexval(str[i + 1]);
+        if (hi < 0 || lo < 0) {
+            return str;
+        }
+        unsigned char v = static_cast<unsigned char>((hi << 4) | lo);
+        bytes.push_back(static_cast<char>(v));
+    }
+
+    uint32_t seed = 2166136261u;
+    for (unsigned char ch : rand) {
+        seed ^= ch;
+        seed *= 16777619u;
+    }
+    std::mt19937 rng(seed);
+
+    std::string plain;
+    plain.resize(bytes.size());
+    for (size_t i = 0; i < bytes.size(); ++i) {
+        unsigned char k = static_cast<unsigned char>(rng() & 0xFF);
+        plain[i] = static_cast<char>(static_cast<unsigned char>(bytes[i]) ^ k);
+    }
+
+    return plain;
+}
+
 bool BBL_Encrypt::AESEncrypt(unsigned char* src, unsigned src_len, unsigned char* encrypt,
                              unsigned& out_len, const std::string& fixed_key)
 {

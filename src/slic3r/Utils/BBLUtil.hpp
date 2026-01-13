@@ -17,6 +17,9 @@ public:
     static std::string Crosstalk_JsonLog(const nlohmann::json& json);
     static std::string Crosstalk_UsrId(const std::string& uid);
 
+    static std::string Encode_DevIp(const std::string& str, const std::string& rand);
+    static std::string Decode_DevIp(const std::string& str, const std::string& rand);
+
 private:
     static std::string Crosstalk_ChannelName(const std::string& str);
 };
