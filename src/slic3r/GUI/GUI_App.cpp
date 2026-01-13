@@ -2141,8 +2141,7 @@ void GUI_App::init_networking_callbacks()
             });
         });
 
-        m_agent->set_on_local_connect_fn(
-            [this](int state, std::string dev_id, std::string msg) {
+        m_agent->set_on_local_connect_fn([this](int state, std::string dev_id, std::string msg) {
                 if (is_closing()) {
                     return;
                 }
@@ -2162,6 +2161,9 @@ void GUI_App::init_networking_callbacks()
                                 obj->command_get_version();
                                 event.SetInt(0);
                                 event.SetString(obj->get_dev_id());
+                                const auto& dev_ip_str = BBLCrossTalk::Encode_DevIp(obj->get_dev_ip(), wxGetApp().app_config->get("slicer_uuid"));
+                                GUI::wxGetApp().app_config->set_str("access_dev_ip", obj->get_dev_id(), dev_ip_str);
+                                GUI::wxGetApp().app_config->set_str("access_code", obj->get_dev_id(), obj->get_access_code());
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 m_device_manager->erase_local_machine(obj->get_dev_id());
                                 m_device_manager->set_selected_machine("");
@@ -8075,10 +8077,84 @@ bool is_support_filament(int extruder_id, bool strict_check)
     return support_option->get_at(0);
 };
 
-void TryLoadLastMachine::InnerLoad(NetworkAgent *agent, DeviceManager *dev)
+static void sLocalBindFunc(std::string str_ip,
+                           std::string str_access_code,
+                           std::string sn)
+{
+    detectResult detectData;
+    auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
+    if (result < 0) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result;
+        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("access_dev_ip", sn);});
+        return;
+    }
+
+    if (detectData.connect_type != "farm") {
+        if (detectData.bind_state == "occupied") {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied";
+            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("access_dev_ip", sn);});
+            return;
+        }
+
+        if (detectData.connect_type == "cloud") {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud";
+            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("access_dev_ip", sn);});
+            return;
+        }
+    }
+
+    wxGetApp().CallAfter([detectData, str_ip, str_access_code]() {
+        if (DeviceManager* dev = wxGetApp().getDeviceManager()) {
+            auto obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip,
+                                                detectData.connect_type, detectData.bind_state, detectData.version,
+                                                str_access_code, detectData.model_id);
+            if (obj) {
+                obj->set_user_access_code(str_access_code);
+                dev->set_selected_machine(obj->get_dev_id());
+            };
+        };
+    });
+};
+
+TryLoadLastMachine::~TryLoadLastMachine()
+{
+    try {
+        if (local_bind_thread.joinable()) {
+            local_bind_thread.join();
+        }
+    } catch (const std::exception& ex) {
+        BOOST_LOG_TRIVIAL(error) << "Local bind thread join failed in destructor: " << ex.what();
+    }
+}
+
+void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
 {
     if (is_mqtt_ok && is_list_ok) {
-        if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0)) dev->set_selected_machine(agent->get_user_selected_machine());
+        if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0)) {
+            const auto& last_select_machine = agent->get_user_selected_machine();
+            const auto& encoded_dev_ip_str = wxGetApp().app_config->get("access_dev_ip", last_select_machine);
+            const auto& dev_ip_str = BBLCrossTalk::Decode_DevIp(encoded_dev_ip_str, wxGetApp().app_config->get("slicer_uuid"));
+            if (!encoded_dev_ip_str.empty() && dev_ip_str.empty()) {
+                return;
+            }
+
+            const auto& dev_access_code_str = GUI::wxGetApp().app_config->get("access_code", last_select_machine);
+            if (!dev_ip_str.empty() && !dev_access_code_str.empty() && !dev->get_my_machine(last_select_machine)) {
+                try {
+                    if (local_bind_thread.joinable()) {
+                        return;
+                    }
+
+                    auto bind = boost::bind(&sLocalBindFunc, dev_ip_str, dev_access_code_str, last_select_machine);
+                    local_bind_thread = boost::thread(bind);
+                } catch (const std::exception& ex) {
+                    BOOST_LOG_TRIVIAL(error) << "Local bind thread creation failed: " << ex.what();
+                }
+                return;
+            };
+
+            dev->set_selected_machine(last_select_machine);
+        };
     }
 }
 

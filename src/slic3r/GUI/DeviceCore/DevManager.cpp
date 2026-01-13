@@ -495,7 +495,6 @@ namespace Slic3r
                     {
                         // diff dev_id, cloud => set_user_selected_machine(new)
                         BOOST_LOG_TRIVIAL(info) << "set_selected_machine: select new cloud machine, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id);
-                        m_agent->set_user_selected_machine(dev_id);
                         it->second->reset();
                     }
                     else
@@ -521,6 +520,10 @@ namespace Slic3r
         }
 
         selected_machine = dev_id;
+        if (m_agent->get_user_selected_machine() != selected_machine) {
+            m_agent->set_user_selected_machine(selected_machine);
+        }
+
         return true;
     }
 
@@ -837,7 +840,6 @@ namespace Slic3r
     {
         for (auto obj : this->userMachineList) { obj.second->reload_printer_settings(); };
     }
-
 
     DeviceManagerRefresher::DeviceManagerRefresher(DeviceManager* manger) : wxObject()
     {
