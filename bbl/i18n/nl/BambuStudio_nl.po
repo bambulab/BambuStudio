@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-12 16:34+0800\n"
+"POT-Creation-Date: 2025-11-18 16:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2179,18 +2179,6 @@ msgstr "Automatisch roteren"
 msgid "auto rotate current plate"
 msgstr "huidig printbed automatisch roteren"
 
-msgid "Expand all"
-msgstr ""
-
-msgid "Expand all objects on this plate"
-msgstr ""
-
-msgid "Collapse all"
-msgstr ""
-
-msgid "Collapse all objects on this plate"
-msgstr ""
-
 msgid "Delete Plate"
 msgstr "Plaat verwijderen"
 
@@ -2406,6 +2394,9 @@ msgstr "Als het eerste geselecteerde item een object is, moet het tweede item oo
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "Als het eerste geselecteerde item een onderdeel is, moet het tweede onderdeel deel uitmaken van hetzelfde object."
 
+msgid "The type of the last solid object part is not to be changed."
+msgstr "Het type van het laatste solide object onderdeel kan niet worden veranderd."
+
 msgid "Negative Part"
 msgstr "Negatief deel"
 
@@ -2420,9 +2411,6 @@ msgstr "Type:"
 
 msgid "Choose part type"
 msgstr "Kies het onderdeel type"
-
-msgid "The type of the last solid object part is not to be changed."
-msgstr "Het type van het laatste solide object onderdeel kan niet worden veranderd."
 
 msgid "Enter new name"
 msgstr "Voer nieuwe naam in"
@@ -4282,9 +4270,6 @@ msgstr "Totale tijd"
 msgid "Filament change times"
 msgstr "Filamentwisseltijden"
 
-msgid "View Summary"
-msgstr ""
-
 msgid "Color change"
 msgstr "Kleur veranderen"
 
@@ -4854,9 +4839,6 @@ msgstr "Nee"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "wordt gesloten voordat een nieuw model wordt gemaakt. Wil je doorgaan?"
-
-msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
-msgstr ""
 
 msgid "Slice plate"
 msgstr "Slice printbed"
@@ -6386,8 +6368,8 @@ msgstr "Verzonden bestanden opslaan op externe opslag"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "Sla de afdrukbestanden op die gestart zijn vanuit Bambu Studio, Bambu Handy en MakerWorld op een extern opslagmedium"
 
-msgid "Enable notification sounds"
-msgstr ""
+msgid "Allow Prompt Sound"
+msgstr "Promptgeluid toestaan"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
@@ -6878,85 +6860,9 @@ msgstr "Interne solide vulling (infill)"
 msgid "Slicing Canceled"
 msgstr "Slicing Geannuleerd"
 
-msgid "Great! Now click the Helio button to start optimization."
-msgstr ""
-
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Slicing printbed %d"
-
-msgid "Multiple Filament Materials Detected"
-msgstr ""
-
-msgid "⚠ Multiple Filament Materials Detected"
-msgstr ""
-
-msgid " (unsupported)"
-msgstr ""
-
-msgid "Multicolour simulation currently supports only a single filament material.\n"
-msgstr ""
-
-#, c-format, boost-format
-msgid "You have selected multiple materials: %s"
-msgstr ""
-
-msgid ""
-"\n"
-"\n"
-"Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
-
-msgid "True multi-material support will be added in a future update."
-msgstr ""
-
-msgid "Option 1: Proceed using a single filament type"
-msgstr ""
-
-msgid "Select which filament to use for simulation:"
-msgstr ""
-
-msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
-msgstr ""
-
-msgid "Proceed Anyway"
-msgstr ""
-
-msgid "Option 2: Go back and change filament selection"
-msgstr ""
-
-msgid "✓ Recommended"
-msgstr ""
-
-msgid "Change your filament selection to use the same type for all colours, then try again."
-msgstr ""
-
-msgid "See supported materials"
-msgstr ""
-
-msgid "Go Back"
-msgstr ""
-
-msgid "Unsupported Materials Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Materials Detected"
-msgstr ""
-
-msgid "Some of your selected materials are not directly supported by Helio:\n"
-msgstr ""
-
-msgid "Option 1: Proceed with a reference material"
-msgstr ""
-
-msgid "Select a similar material type to use for simulation:"
-msgstr ""
-
-msgid "Note: Using a reference material may result in approximate or erroneous results."
-msgstr ""
-
-msgid "Change your filament selection to use a supported material, then try again."
-msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Een Helio-simulatie- of optimalisatietaak is bezig."
@@ -6964,81 +6870,11 @@ msgstr "Een Helio-simulatie- of optimalisatietaak is bezig."
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Ongeldige printerpreset. Kan niet slicen met Helio."
 
-#, c-format, boost-format
-msgid ""
-"Helio found a potential printer match using token-based matching:\n"
-"\n"
-"Your printer: %s\n"
-"Matched printer: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your printer profile?"
-msgstr ""
-
-msgid "Helio Printer Match Confirmation"
-msgstr ""
-
-msgid "Unsupported Printer Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Printer Detected"
-msgstr ""
-
-#, c-format, boost-format
-msgid "You're using %s which is not officially supported by Helio."
-msgstr ""
-
-msgid "Option 1: Proceed with a reference printer"
-msgstr ""
-
-msgid "Select a similar printer to use for simulation:"
-msgstr ""
-
-msgid "Note: Using a reference printer may result in approximate or erroneous results."
-msgstr ""
-
-msgid "Option 2: Go back and change printer selection"
-msgstr ""
-
-msgid "Change your printer selection to use a supported printer, then try again."
-msgstr ""
-
-msgid "See supported printers"
-msgstr ""
-
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "De huidige printerpreset kan niet worden gesliced met Helio."
 
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-
-msgid "Helio Material Match Confirmation"
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Helio does not support materials %s.\n"
-"\n"
-"Please choose an officially supported material. "
-msgstr ""
-
-msgid "View supported materials"
-msgstr ""
-
-msgid "Unsupported Material Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Material Detected"
-msgstr ""
-
-msgid "Choose a Reference Material"
-msgstr ""
+msgid "Helio does not support using a number of materials greater than 1."
+msgstr "Helio slicen ondersteunt het gebruik van meer dan 1 materiaal niet."
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -7046,9 +6882,6 @@ msgstr "Helio ondersteunt materialen %s niet"
 
 msgid "Helio functions do not support the print sequence of \"ByObject\"."
 msgstr "Helio-functies ondersteunen de printvolgorde \"ByObject\" niet."
-
-msgid "Click the Optimize/Enhance button to start your first optimization."
-msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -9800,53 +9633,44 @@ msgstr "Verzenden mislukt. Klik op Opnieuw proberen om opnieuw te proberen te ve
 msgid "reconnect"
 msgstr "sluit opnieuw aan"
 
-msgid "Welcome to Helio Additive"
+msgid "Third-party Extension"
+msgstr "Extensie van derden"
+
+msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgstr "Sterkere onderdelen, minder kromtrekken, snellere prints - aangedreven door snelle, op fysica gebaseerde FEM-simulatie"
+
+msgid "Uninstall the Helio Additive extension"
+msgstr "Verwijder de Helio Additive-extensie"
+
+msgid "Use Immediately"
+msgstr "Direct gebruiken"
+
+msgid "Third-Party Extension"
+msgstr "Extensie van derden"
+
+msgid "HELIO ADDITIVE"
+msgstr "HELIO ADDITIEF"
+
+msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgstr "Functie voor externe softwaredienst van Helio Additive is succesvol ingeschakeld!"
+
+msgid "Helio-PAT"
 msgstr ""
 
-msgid "Know Your Print Will Work — Before You Hit Print"
-msgstr ""
+msgid "Copy successful!"
+msgstr "Succesvol gekopieerd!"
 
-msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
-msgstr ""
+msgid "Helio Additive"
+msgstr "Helio-additief"
 
-msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
-msgstr ""
+msgid "Privacy Policy of Helio Additive"
+msgstr "Privacybeleid van Helio Additive"
 
-msgid "Fewer Failed Prints"
-msgstr ""
+msgid "Terms of Use of Helio Additive"
+msgstr "Gebruiksvoorwaarden van Helio Additive"
 
-msgid "Catch issues before printing and improve first-try success."
-msgstr ""
-
-msgid "Faster Prints, Better Quality"
-msgstr ""
-
-msgid "Automatically tune speed and extrusion without manual tweaking."
-msgstr ""
-
-msgid "Enable Helio Additive"
-msgstr ""
-
-msgid "Uninstall"
-msgstr ""
-
-msgid "After slicing, click the Helio button to analyze your print."
-msgstr ""
-
-msgid "Helio Additive does not change your printer's firmware."
-msgstr ""
-
-msgid "Designed to help prints succeed — even if you're new to 3D printing."
-msgstr ""
-
-msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
-msgstr ""
-
-msgid "Uninstall Helio Additive"
-msgstr ""
-
-msgid "Legal & Activation Terms"
-msgstr ""
+msgid "Agree and proceed"
+msgstr "Akkoord en doorgaan"
 
 msgid "Got it"
 msgstr "Ik heb het"
@@ -9857,131 +9681,11 @@ msgstr "Kon Helio PAT niet verkrijgen, klik op Vernieuwen om het opnieuw te verk
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr "Kon PAT niet verkrijgen. De hoeveelheidlimiet is bereikt, dus het kan niet worden verkregen. Klik op de vernieuwen-knop om PAT opnieuw te verkrijgen."
 
-msgid "You are activating Helio Additive's advanced simulation services."
-msgstr ""
+msgid "Simulation"
+msgstr "Simulatie"
 
-msgid "Software Service Terms && Conditions"
-msgstr ""
-
-msgid "^"
-msgstr ""
-
-msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=\""
-msgstr ""
-
-msgid "\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=\""
-msgstr ""
-
-msgid "\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=\""
-msgstr ""
-
-msgid "\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a> and refer to the <a href=\""
-msgstr ""
-
-msgid "\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive Privacy Agreement</a> and <a href=\""
-msgstr ""
-
-msgid "\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive User Agreement</a> for detailed information.<br><br>"
-msgstr ""
-
-msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on <a href=\""
-msgstr ""
-
-msgid "\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>"
-msgstr ""
-
-msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>"
-msgstr ""
-
-msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;<br>"
-msgstr ""
-
-msgid "3. Using this software and services for any improper or illegal activities.<br><br>"
-msgstr ""
-
-msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "Wanneer u bevestigt deze functie in te schakelen, betekent dit dat u de bovenstaande verklaringen hebt bevestigd en ermee akkoord gaat."
-
-msgid "Special Note && Privacy Policy"
-msgstr ""
-
-msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
-msgstr ""
-
-msgid ""
-"I have read and agree to the terms\n"
-"and policies."
-msgstr ""
-
-msgid "Agree and Proceed"
-msgstr ""
-
-msgid "Activation Successful!"
-msgstr ""
-
-msgid "Helio Additive is now active. You have unlocked free optimizations!"
-msgstr ""
-
-msgid "Applies only when first activated"
-msgstr ""
-
-msgid "Run Your First Optimization"
-msgstr ""
-
-msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
-msgstr ""
-
-msgid ""
-"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
-"\n"
-msgstr ""
-
-msgid "Supported printers and materials"
-msgstr ""
-
-msgid "Copy PAT"
-msgstr ""
-
-msgid ""
-"Personal Access Token (PAT)\n"
-"\n"
-"A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.\n"
-"\n"
-"You may need to copy this to:\n"
-"• Integrate Helio with other slicers or tools\n"
-"• Use the Helio API directly\n"
-"• Provide to support when troubleshooting"
-msgstr ""
-
-msgid "Copy successful!"
-msgstr "Succesvol gekopieerd!"
-
-msgid "Helio Additive"
-msgstr "Helio-additief"
-
-msgid "Terms of Use"
-msgstr ""
-
-msgid "Activation Successful"
-msgstr ""
-
-msgid "Assess"
-msgstr ""
-
-msgid "Formerly referred to as 'Simulate' or 'Simulation'"
-msgstr ""
-
-msgid "See where it will fail"
-msgstr ""
-
-msgid "Enhance"
-msgstr ""
-
-msgid "Formerly referred to as 'Optimize' or 'Optimization'"
-msgstr ""
-
-msgid "Auto-fix with new speeds"
-msgstr ""
+msgid "Optimization"
+msgstr "Optimalisatie"
 
 msgid "Environment Temperature"
 msgstr "Omgevingstemperatuur"
@@ -9989,64 +9693,20 @@ msgstr "Omgevingstemperatuur"
 msgid "Chamber Temperature"
 msgstr "Kamertemperatuur"
 
-msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
-msgstr ""
-
-msgid "Optional. More accurate temperatures ensures better results."
-msgstr ""
+msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgstr "Opmerking: Stel de bovenstaande temperatuur af op basis van de werkelijke omstandigheden. Nauwkeurigere gegevens zorgen voor preciezere analyseresultaten."
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "Geavanceerde functie van Helio voor power users: beschikbaar na aankoop op de officiële website."
 
-msgid "Account Status"
-msgstr ""
+msgid "Monthly quota remaining: "
+msgstr "Maandelijkse resterende quotum: "
 
-msgid "Subscription:"
-msgstr ""
+msgid "Add-ons available: "
+msgstr "Beschikbare add-ons: "
 
-msgid "Loading subscription status..."
-msgstr ""
-
-msgid "Monthly quota:"
-msgstr ""
-
-msgid "Add-ons:"
-msgstr ""
-
-msgid "Plans / Upgrades"
-msgstr ""
-
-msgid "Manage Account"
-msgstr ""
-
-msgid "Environment Settings"
-msgstr ""
-
-msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
-msgstr ""
-
-msgid "Optimization Settings"
-msgstr ""
-
-msgid "Now referred to as 'Enhance' or 'Enhancement'"
-msgstr ""
-
-msgid "Preserve Surface Finish"
-msgstr ""
-
-msgid "Speed & Strength"
-msgstr ""
-
-msgid "Print Priority"
-msgstr ""
-
-msgid ""
-"Speed & Strength: Optimizes outer walls for improved performance.\n"
-"(Formerly 'Optimise Outer Walls: Yes')\n"
-"\n"
-"Preserve Surface Finish: Maintains outer wall quality and visual finish.\n"
-"(Formerly 'Optimise Outer Walls: No')"
-msgstr ""
+msgid "Optimise Outer Walls"
+msgstr "Optimaliseer buitenmuren"
 
 msgid "Helio default (recommended)"
 msgstr "Helio standaard (aanbevolen)"
@@ -10056,9 +9716,6 @@ msgstr "Standaard Slicer"
 
 msgid "Limits"
 msgstr "Beperkingen"
-
-msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
-msgstr ""
 
 msgid "Min Velocity"
 msgstr "Minimale snelheid"
@@ -10075,50 +9732,26 @@ msgstr "Maximale volumetrische snelheid"
 msgid "Last Trace ID: "
 msgstr "Laatste tracering-ID: "
 
+msgid "Buy Now / Manage Account"
+msgstr "Nu Kopen / Account Beheren"
+
 msgid "Click for more details"
 msgstr "Klik voor meer details"
 
-msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
-msgstr ""
+msgid "Start Simulation"
+msgstr "Simulatie starten"
 
-msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
-msgstr ""
+msgid "Start Optimization"
+msgstr "Optimalisatie starten"
 
-msgid "Start Free Trial"
-msgstr ""
+msgid "Buy add-ons"
+msgstr "Add-ons kopen"
 
-msgid "Activate your free trial to unlock premium enhancements"
-msgstr ""
-
-msgid "Go to our storefront to purchase more enhancements"
-msgstr ""
-
-msgid "Free Trial"
-msgstr ""
-
-msgid "Free Trial Expired"
-msgstr ""
-
-msgid "Your free trial has ended. Explore our plans to continue using premium features."
-msgstr ""
-
-msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
-msgstr ""
-
-msgid "Unlimited*"
-msgstr ""
-
-msgid "*Fair usage terms apply - click to learn more"
-msgstr ""
-
-msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
-msgstr ""
+msgid "Layers to Optimize "
+msgstr "Te optimaliseren lagen "
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Kon Helio PAT niet verkrijgen. Het aantal uitgegeven PAT's heeft de bovengrens bereikt. Houd de informatie op de officiële Helio-website in de gaten. Klik op Vernieuwen om het opnieuw te proberen zodra het beschikbaar is."
-
-msgid "HELIO ADDITIVE"
-msgstr "HELIO ADDITIEF"
 
 msgid "Print Time Improvement"
 msgstr "Verbetering van printtijd"
@@ -10129,131 +9762,8 @@ msgstr "Gemiddelde verbetering"
 msgid "Consistency Improvement"
 msgstr "Verbetering van de consistentie"
 
-msgid "Estimate of improvement in print time before and after enhancement"
-msgstr ""
-
-msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
-msgstr ""
-
-msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
-msgstr ""
-
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
 msgstr "Je gcode is geoptimaliseerd voor de best mogelijke print. Voor nog betere prints, bekijk onze wiki voor tips en trucs over wat je hierna kunt doen."
-
-msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
-msgstr ""
-
-msgid "Save the enhanced gcode locally"
-msgstr ""
-
-msgid "Print Plate"
-msgstr ""
-
-msgid "Print the enhanced part immediately"
-msgstr ""
-
-msgid "View Details"
-msgstr ""
-
-msgid "Verify Print Success Results"
-msgstr ""
-
-msgid "Simulates the thermal process to confirm your part will print without failure."
-msgstr ""
-
-msgid "Now referred to as 'Assess' or 'Assessment'"
-msgstr ""
-
-msgid "Time saved: "
-msgstr ""
-
-msgid "From "
-msgstr ""
-
-msgid "Expected Outcome:"
-msgstr ""
-
-msgid "Analysis:"
-msgstr ""
-
-msgid "Additional observations:"
-msgstr ""
-
-msgid "Fix suggestions"
-msgstr ""
-
-msgid "With Enhance Speed & Quality:"
-msgstr ""
-
-msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
-msgstr ""
-
-msgid "Enhance Speed & Quality"
-msgstr ""
-
-msgid "Applies Helio's optimized speed/flow/fan strategy."
-msgstr ""
-
-msgid "✅ Will Print"
-msgstr ""
-
-msgid "⚠️ May Print with Issues"
-msgstr ""
-
-msgid "❌ Likely to Fail"
-msgstr ""
-
-msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
-msgstr ""
-
-msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
-msgstr ""
-
-msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
-msgstr ""
-
-msgid "Ready to print"
-msgstr ""
-
-msgid "Too cold overall — see suggestions"
-msgstr ""
-
-msgid "Too hot overall — see suggestions"
-msgstr ""
-
-msgid "Your part is ready to print! Thermal conditions are within safe limits."
-msgstr ""
-
-msgid "Too cold (overall)"
-msgstr ""
-
-msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
-msgstr ""
-
-msgid "Too hot (overall)"
-msgstr ""
-
-msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
-msgstr ""
-
-msgid "Suggestions"
-msgstr ""
-
-msgid "Quick fixes (beginner):"
-msgstr ""
-
-msgid "Expert"
-msgstr ""
-
-msgid "Learn more"
-msgstr "Leer meer"
-
-msgid "Helio Flowchart"
-msgstr ""
-
-msgid "Fixing cold prints"
-msgstr ""
 
 msgid "Air Pump"
 msgstr "Luchtpomp"
@@ -10678,9 +10188,6 @@ msgstr "De laaghoogte kan niet groter zijn dan de diameter van de nozzle"
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Printbed %d: %s ondersteunt filament %s niet."
 
-msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
-msgstr ""
-
 msgid "Generating skirt & brim"
 msgstr "Skirt en brim worden gegenereerd"
 
@@ -10900,12 +10407,14 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Drempel voor overhang koeling"
 
+#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Laat de koelventilator op een bepaalde snelheid draaien als de mate van overhang van het geprinte onderdeel deze waarde overschrijdt. Uitgedrukt als percentage dat aangeeft hoe breed de lijn is zonder ondersteuning van de onderste laag. 0%% betekent dat koeling voor de hele buitenwand wordt geforceerd, ongeacht de mate van overhang."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Overhangdrempel voor deelnemende koeling"
 
+#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Bepaal welk overhangdeel zich aansluit op de koelfunctie om de snelheid te vertragen. Dit wordt uitgedrukt als een percentage dat de breedte van de lijn aangeeft zonder ondersteuning van een lagere laag. 100%% betekent het forceren van koeling voor alle buitenmuren, ongeacht de overhanggraad."
 
@@ -11071,33 +10580,6 @@ msgstr ""
 "2. Om veranderingen in de snelheid van de buitenwand te voorkomen, wat lichte wandartefacten kan veroorzaken die lijken op Z-bandvorming\n"
 "3. Om te voorkomen dat er geprint wordt met snelheden die VFAs (fijne artefacten) op de buitenwanden veroorzaken"
 
-msgid "Cooling slowdown logic"
-msgstr ""
-
-msgid ""
-"Determines how the printer slows down when minimum layer time isn't reached.\n"
-"\n"
-"'Uniform cooling' slows down all print features equally (current default behavior).\n"
-"\n"
-"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
-msgstr ""
-
-msgid "Uniform cooling"
-msgstr ""
-
-msgid "Consistent surface"
-msgstr ""
-
-msgid "Perimeter transition distance"
-msgstr ""
-
-msgid ""
-"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
-"\n"
-"Only applies when 'Consistent surface' cooling logic is selected.\n"
-"Recommended value: 5-10mm. Set to 0 to disable."
-msgstr ""
-
 msgid "Normal printing"
 msgstr "Normaal printen"
 
@@ -11106,17 +10588,6 @@ msgstr "De standaardversnelling van zowel normaal printen als reizen, behalve de
 
 msgid "The acceleration of travel except initial layer"
 msgstr "De reisversnelling behalve de beginlaag"
-
-msgid "Short travel"
-msgstr ""
-
-msgid ""
-"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
-"\n"
-"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
-"\n"
-"Set to 0 to disable (uses normal travel acceleration)."
-msgstr ""
 
 msgid "Initial layer travel"
 msgstr "Eerste laagbeweging"
@@ -11669,6 +11140,7 @@ msgstr "Hoek voor schaars invulpatroon, die de start- of hoofdrichting van de li
 msgid "Sparse infill density"
 msgstr "Vulling percentage"
 
+#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Dichtheid van interne schaarse invulling, 100%% betekent overal massief"
 
@@ -15061,9 +14533,6 @@ msgstr "Standaardprofiel voor nozzle van 0,8 mm, waarbij snelheid voorop staat."
 msgid "Failed to create GCodeV2"
 msgstr "Kon GCodeV2 niet aanmaken"
 
-msgid "Something went wrong while creating GCode. Please check your custom GCodes"
-msgstr ""
-
 msgid "Failed to parse response"
 msgstr "Kon antwoord niet ontleden"
 
@@ -15117,9 +14586,6 @@ msgstr "Helio: optimalisatie succesvol aangemaakt"
 
 msgid "Helio: optimization working"
 msgstr "Helio: optimalisatie actief"
-
-msgid "Helio: optimization failed"
-msgstr ""
 
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: Optimzaion-controle mislukt"
@@ -15322,6 +14788,9 @@ msgstr "Algemene Instellingen"
 
 msgid "Video tutorial"
 msgstr "Instructie video"
+
+msgid "Learn more"
+msgstr "Leer meer"
 
 msgid "(Sync with printer)"
 msgstr "(Synchroniseren met printer)"
@@ -15696,232 +15165,134 @@ msgstr ""
 "Kromtrekken voorkomen\n"
 "Wist je dat bij het printen van materialen die gevoelig zijn voor kromtrekken, zoals ABS, een juiste verhoging van de temperatuur van het warmtebed de kans op kromtrekken kan verkleinen?"
 
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
-#: materials) Like a Pro]
+#: resources/data/helio_hints.ini: [hint: Single-Material Only]
 msgid ""
-"Run Nylon & PC (and other advanced materials) Like a Pro\n"
-"Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the \"almost worked\" failure."
+"Single-Material Only\n"
+"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
 msgstr ""
+"Alleen Enkel Materiaal\n"
+"Helio simuleert momenteel één materiaal en één nozzle per taak. Multi-materiaal- of multi-extruder G-code veroorzaakt lange pauzes die de thermische continuïteit doorbreken, dus de resultaten zouden niet betrouwbaar zijn."
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
-#: (Safely)]
+#: resources/data/helio_hints.ini: [hint: One Plate per Job]
 msgid ""
-"Make Prints up to 30% Faster (Safely)\n"
-"Get real throughput, not risky \"speed mode\". A print that normally takes 8 hours might drop to ~5.6 hours."
+"One Plate per Job\n"
+"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
 msgstr ""
+"Eén plaat per taak\n"
+"Upload G-code met één bouwplaat. Projecten met meerdere platen worden nog niet ondersteund, dus alleen de eerste plaat wordt uitgevoerd."
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
-#: Tuning]
+#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
 msgid ""
-"Stop Wasting Precious Design Time on Tuning\n"
-"Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
+"What is the Thermal Quality Index?\n"
+"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
 msgstr ""
+"Wat is de thermische kwaliteitsindex?\n"
+"De thermische kwaliteitsindex (schaal –100 tot +100) geeft aan hoe warm of koud elk gebied afdrukt. Groen (≈ 0) is de \"precies juiste\" zone voor sterke, kromtrekvrije onderdelen. Houd het grootste deel van het onderdeel groen voor de beste resultaten."
 
-#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
-#: advanced materials]
+#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
 msgid ""
-"Cut Warping on ASA/ABS and other advanced materials\n"
-"Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
+"Voxel-Level Accuracy\n"
+"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
 msgstr ""
+"Voxel-nauwkeurigheid\n"
+"We voorspellen de temperatuur in elke voxel bij elke tijdstap, en voor standaardtaken ligt de voorspelling doorgaans binnen ±5–10 °C. Pauzes, aangepaste firmware of ongebruikelijke koeling kunnen die marge vergroten."
 
-#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
+#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
 msgid ""
-"Quality Check Before You Hit Print\n"
-"Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
+"Fan & Airflow Model\n"
+"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
 msgstr ""
+"Ventilator- en Luchtstroommodel\n"
+"Een vereenvoudigd ventilator- en kamermodel toont hoe koelinstellingen de temperatuur van onderdelen veranderen zonder trage CFD-berekeningen—ideaal voor dagelijkse afstelling. Kamerwervelingen worden nog niet gesimuleerd, waardoor de runs snel blijven."
 
-#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
+#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
 msgid ""
-"Stronger Parts With One Click\n"
-"Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
+"TQI Limits Explained\n"
+"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
 msgstr ""
+"Uitleg TQI-limieten\n"
+"-100 → te koud: treksterkte is ~50 % lager dan onderdelen die geprint zijn bij de ideale 0 (ASTM D638 hondbeentest). +100 → te heet: lagen blijven gesmolten en kunnen doorzakken of instorten. Houd regio's dicht bij 0 voor maximale sterkte en nauwkeurigheid."
 
-#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
+#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
 msgid ""
-"Save Money Every Run\n"
-"Faster + fewer failures = real savings."
+"What Drives Runtime?\n"
+"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
 msgstr ""
+"Wat beïnvloedt de runtime?\n"
+"Extra lagen, dichte infill, veel kleine bogen (kleine mesh-elementen) of zeer lage printsnelheden verlengen allemaal de simulatietijd omdat de solver meer seconden moet doorlopen. Multi-core CPU's of CUDA GPU's versnellen de processen."
 
-#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
+#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
 msgid ""
-"First-Time-Right Reliability\n"
-"Less babysitting, more predictable output. Example: a small farm running PETG parts avoids \"fail at hour 6\" surprises and keeps batches on schedule."
+"Nozzle Temp Range\n"
+"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
 msgstr ""
+"Nozzle temperatuurbereik\n"
+"Ondersteunde setpoints zijn 190 – 320 °C; alles daarbuiten wordt beperkt om de fysica realistisch te houden."
 
-#~ msgid "Allow Prompt Sound"
-#~ msgstr "Promptgeluid toestaan"
+#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
+msgid ""
+"Debugging Flowchart\n"
+"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+msgstr ""
+"Stroomdiagram voor foutopsporing\n"
+"Weet u niet zeker waarom een resultaat er niet goed uitziet? Volg ons stapsgewijze stroomdiagram voor foutopsporing om binnen enkele minuten problemen met instellingen, G-code en materiaal op te sporen."
 
-#~ msgid "Helio does not support using a number of materials greater than 1."
-#~ msgstr "Helio slicen ondersteunt het gebruik van meer dan 1 materiaal niet."
+#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
+msgid ""
+"Why Cooling Varies\n"
+"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+msgstr ""
+"Waarom koeling varieert\n"
+"Buitenmuren en bruggen koelen het snelst af, terwijl dikke binnenmuren warmer blijven. Geometrie, luchtstroom en gereedschapspad spelen allemaal een rol, en de simulatie visualiseert deze verschillen."
 
-#~ msgid "Third-party Extension"
-#~ msgstr "Extensie van derden"
+#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
+msgid ""
+"Extrusion Temp Model\n"
+"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+msgstr ""
+"Extrusietemperatuurmodel\n"
+"De materiaaleigenschappen bepalen de smeltcurve, maar de printergeometrie bepaalt hoeveel warmte het filament daadwerkelijk opneemt. Het model is dus materiaalspecifiek en printergekalibreerd."
 
-#~ msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-#~ msgstr "Sterkere onderdelen, minder kromtrekken, snellere prints - aangedreven door snelle, op fysica gebaseerde FEM-simulatie"
+#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
+#: °C?]
+msgid ""
+"Nozzle setting of 190 °C vs 320 °C?\n"
+"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+msgstr ""
+"Nozzle-instelling van 190 °C versus 320 °C?\n"
+"Een nozzle-wijziging van 100 °C beïnvloedt de thermische index slechts licht, want extrusietemperatuur, doorvoersnelheid en afkoeling na depot domineren de warmtegeschiedenis van het onderdeel."
 
-#~ msgid "Uninstall the Helio Additive extension"
-#~ msgstr "Verwijder de Helio Additive-extensie"
+#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
+msgid ""
+"Bed Temperature influence\n"
+"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+msgstr ""
+"Invloed van bedtemperatuur\n"
+"Op dit moment wordt het model alleen gevoed door de bedtemperatuur van de eerste laag. Latere bedwijzigingen worden nog niet vastgelegd."
 
-#~ msgid "Use Immediately"
-#~ msgstr "Direct gebruiken"
+#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
+msgid ""
+"Actual Tool-Path\n"
+"Yes—your exact G-code path, speeds and fan commands are simulated."
+msgstr ""
+"Werkelijke gereedschapspad\n"
+"Ja, uw exacte G-code pad, snelheden en ventilatoropdrachten worden gesimuleerd."
 
-#~ msgid "Third-Party Extension"
-#~ msgstr "Extensie van derden"
+#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
+msgid ""
+"Mesh Resolution\n"
+"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+msgstr ""
+"Meshresolutie\n"
+"Het voxelraster is fijner dan de G-code-regelafstand, waardoor laag-voor-laag-details worden vastgelegd zonder dat er rekenkracht wordt verspild."
 
-#~ msgid "Helio Additive third - party software service feature has been successfully enabled!"
-#~ msgstr "Functie voor externe softwaredienst van Helio Additive is succesvol ingeschakeld!"
-
-#~ msgid "Privacy Policy of Helio Additive"
-#~ msgstr "Privacybeleid van Helio Additive"
-
-#~ msgid "Terms of Use of Helio Additive"
-#~ msgstr "Gebruiksvoorwaarden van Helio Additive"
-
-#~ msgid "Agree and proceed"
-#~ msgstr "Akkoord en doorgaan"
-
-#~ msgid "Simulation"
-#~ msgstr "Simulatie"
-
-#~ msgid "Optimization"
-#~ msgstr "Optimalisatie"
-
-#~ msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-#~ msgstr "Opmerking: Stel de bovenstaande temperatuur af op basis van de werkelijke omstandigheden. Nauwkeurigere gegevens zorgen voor preciezere analyseresultaten."
-
-#~ msgid "Monthly quota remaining: "
-#~ msgstr "Maandelijkse resterende quotum: "
-
-#~ msgid "Add-ons available: "
-#~ msgstr "Beschikbare add-ons: "
-
-#~ msgid "Buy Now / Manage Account"
-#~ msgstr "Nu Kopen / Account Beheren"
-
-#~ msgid "Start Simulation"
-#~ msgstr "Simulatie starten"
-
-#~ msgid "Start Optimization"
-#~ msgstr "Optimalisatie starten"
-
-#~ msgid "Buy add-ons"
-#~ msgstr "Add-ons kopen"
-
-#~ msgid "Layers to Optimize "
-#~ msgstr "Te optimaliseren lagen "
-
-#~ msgid ""
-#~ "Single-Material Only\n"
-#~ "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
-#~ msgstr ""
-#~ "Alleen Enkel Materiaal\n"
-#~ "Helio simuleert momenteel één materiaal en één nozzle per taak. Multi-materiaal- of multi-extruder G-code veroorzaakt lange pauzes die de thermische continuïteit doorbreken, dus de resultaten zouden niet betrouwbaar zijn."
-
-#~ msgid ""
-#~ "One Plate per Job\n"
-#~ "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
-#~ msgstr ""
-#~ "Eén plaat per taak\n"
-#~ "Upload G-code met één bouwplaat. Projecten met meerdere platen worden nog niet ondersteund, dus alleen de eerste plaat wordt uitgevoerd."
-
-#~ msgid ""
-#~ "What is the Thermal Quality Index?\n"
-#~ "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
-#~ msgstr ""
-#~ "Wat is de thermische kwaliteitsindex?\n"
-#~ "De thermische kwaliteitsindex (schaal –100 tot +100) geeft aan hoe warm of koud elk gebied afdrukt. Groen (≈ 0) is de \"precies juiste\" zone voor sterke, kromtrekvrije onderdelen. Houd het grootste deel van het onderdeel groen voor de beste resultaten."
-
-#~ msgid ""
-#~ "Voxel-Level Accuracy\n"
-#~ "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
-#~ msgstr ""
-#~ "Voxel-nauwkeurigheid\n"
-#~ "We voorspellen de temperatuur in elke voxel bij elke tijdstap, en voor standaardtaken ligt de voorspelling doorgaans binnen ±5–10 °C. Pauzes, aangepaste firmware of ongebruikelijke koeling kunnen die marge vergroten."
-
-#~ msgid ""
-#~ "Fan & Airflow Model\n"
-#~ "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
-#~ msgstr ""
-#~ "Ventilator- en Luchtstroommodel\n"
-#~ "Een vereenvoudigd ventilator- en kamermodel toont hoe koelinstellingen de temperatuur van onderdelen veranderen zonder trage CFD-berekeningen—ideaal voor dagelijkse afstelling. Kamerwervelingen worden nog niet gesimuleerd, waardoor de runs snel blijven."
-
-#~ msgid ""
-#~ "TQI Limits Explained\n"
-#~ "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
-#~ msgstr ""
-#~ "Uitleg TQI-limieten\n"
-#~ "-100 → te koud: treksterkte is ~50 % lager dan onderdelen die geprint zijn bij de ideale 0 (ASTM D638 hondbeentest). +100 → te heet: lagen blijven gesmolten en kunnen doorzakken of instorten. Houd regio's dicht bij 0 voor maximale sterkte en nauwkeurigheid."
-
-#~ msgid ""
-#~ "What Drives Runtime?\n"
-#~ "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
-#~ msgstr ""
-#~ "Wat beïnvloedt de runtime?\n"
-#~ "Extra lagen, dichte infill, veel kleine bogen (kleine mesh-elementen) of zeer lage printsnelheden verlengen allemaal de simulatietijd omdat de solver meer seconden moet doorlopen. Multi-core CPU's of CUDA GPU's versnellen de processen."
-
-#~ msgid ""
-#~ "Nozzle Temp Range\n"
-#~ "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
-#~ msgstr ""
-#~ "Nozzle temperatuurbereik\n"
-#~ "Ondersteunde setpoints zijn 190 – 320 °C; alles daarbuiten wordt beperkt om de fysica realistisch te houden."
-
-#~ msgid ""
-#~ "Debugging Flowchart\n"
-#~ "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-#~ msgstr ""
-#~ "Stroomdiagram voor foutopsporing\n"
-#~ "Weet u niet zeker waarom een resultaat er niet goed uitziet? Volg ons stapsgewijze stroomdiagram voor foutopsporing om binnen enkele minuten problemen met instellingen, G-code en materiaal op te sporen."
-
-#~ msgid ""
-#~ "Why Cooling Varies\n"
-#~ "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-#~ msgstr ""
-#~ "Waarom koeling varieert\n"
-#~ "Buitenmuren en bruggen koelen het snelst af, terwijl dikke binnenmuren warmer blijven. Geometrie, luchtstroom en gereedschapspad spelen allemaal een rol, en de simulatie visualiseert deze verschillen."
-
-#~ msgid ""
-#~ "Extrusion Temp Model\n"
-#~ "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-#~ msgstr ""
-#~ "Extrusietemperatuurmodel\n"
-#~ "De materiaaleigenschappen bepalen de smeltcurve, maar de printergeometrie bepaalt hoeveel warmte het filament daadwerkelijk opneemt. Het model is dus materiaalspecifiek en printergekalibreerd."
-
-#~ msgid ""
-#~ "Nozzle setting of 190 °C vs 320 °C?\n"
-#~ "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-#~ msgstr ""
-#~ "Nozzle-instelling van 190 °C versus 320 °C?\n"
-#~ "Een nozzle-wijziging van 100 °C beïnvloedt de thermische index slechts licht, want extrusietemperatuur, doorvoersnelheid en afkoeling na depot domineren de warmtegeschiedenis van het onderdeel."
-
-#~ msgid ""
-#~ "Bed Temperature influence\n"
-#~ "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-#~ msgstr ""
-#~ "Invloed van bedtemperatuur\n"
-#~ "Op dit moment wordt het model alleen gevoed door de bedtemperatuur van de eerste laag. Latere bedwijzigingen worden nog niet vastgelegd."
-
-#~ msgid ""
-#~ "Actual Tool-Path\n"
-#~ "Yes—your exact G-code path, speeds and fan commands are simulated."
-#~ msgstr ""
-#~ "Werkelijke gereedschapspad\n"
-#~ "Ja, uw exacte G-code pad, snelheden en ventilatoropdrachten worden gesimuleerd."
-
-#~ msgid ""
-#~ "Mesh Resolution\n"
-#~ "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-#~ msgstr ""
-#~ "Meshresolutie\n"
-#~ "Het voxelraster is fijner dan de G-code-regelafstand, waardoor laag-voor-laag-details worden vastgelegd zonder dat er rekenkracht wordt verspild."
-
-#~ msgid ""
-#~ "Shrinkage, Warping & Stress\n"
-#~ "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-#~ msgstr ""
-#~ "Krimp, kromtrekken en spanning\n"
-#~ "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
+msgid ""
+"Shrinkage, Warping & Stress\n"
+"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+msgstr ""
+"Krimp, kromtrekken en spanning\n"
+"Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
 
 #~ msgid "Distribute along Y axis"
 #~ msgstr "Verdelen langs Y-as"
@@ -16158,6 +15529,9 @@ msgstr ""
 
 #~ msgid "3.Using this software and services for any improper or illegal activities."
 #~ msgstr "3. Het gebruik van deze software en diensten voor onjuiste of illegale activiteiten."
+
+#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+#~ msgstr "Wanneer u bevestigt deze functie in te schakelen, betekent dit dat u de bovenstaande verklaringen hebt bevestigd en ermee akkoord gaat."
 
 #~ msgid "Agree"
 #~ msgstr "Akkoord"
