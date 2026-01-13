@@ -442,6 +442,9 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         }
     });
 
+    m_temperature_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    m_temperature_input->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
+
     Label* temp_unit_label = new Label(parent, wxString::FromUTF8("℃"));
     temp_unit_label->SetForegroundColour(*wxBLACK);
     temp_sizer->Add(m_temperature_input, 1, wxRIGHT, FromDIP(1));
@@ -460,6 +463,9 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
             event.Skip();
         }
     });
+
+    m_time_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    m_time_input->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 
     Label* time_unit_label = new Label(parent, _L("H"));
     time_unit_label->SetForegroundColour(*wxBLACK);
@@ -1155,8 +1161,8 @@ void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
         m_next_button->Show(true);
         m_normal_description->Show(true);
         m_trays_combo->Enable();
-        m_temperature_input->Enable();
-        m_time_input->Enable();
+        m_temperature_input->SetEditable(true);
+        m_time_input->SetEditable(true);
 
         m_stop_button->Hide();
         m_dry_error_sizer->Show(false);
@@ -1174,8 +1180,8 @@ void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
         m_normal_description->Hide();
 
         m_trays_combo->Disable();
-        m_temperature_input->Disable();
-        m_time_input->Disable();
+        m_temperature_input->SetEditable(false);
+        m_time_input->SetEditable(false);
         m_stop_button->Show(true);
         m_dry_error_sizer->Show(false);      
     }

@@ -54,6 +54,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->ams_humidity = ams->SupportHumidityLevel() ? ams->GetHumidityLevel() : -1;
     this->ams_humidity_percent = ams->SupportHumidityPercent() ? ams->GetHumidityPercent() : -1;
     this->left_dray_time = ams->GetLeftDryTime();
+    this->m_ams_drying = ams->AmsIsDrying();
     this->current_temperature = ams->GetCurrentTemperature();
     this->ams_type = AMSModel(ams->GetAmsType());
 
@@ -3051,7 +3052,7 @@ void AMSHumidity::doRender(wxDC& dc)
             // sun image
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             pot.x += ((size.GetWidth() - pot.x) - ams_drying_img.GetBmpWidth()) / 2;// spacing
-            if (m_amsinfo.left_dray_time > 0) {
+            if (m_amsinfo.m_ams_drying) {
                 pot.y = (size.y - ams_drying_img.GetBmpHeight()) / 2;
                 dc.DrawBitmap(ams_drying_img.bmp(), pot);
             } else {
