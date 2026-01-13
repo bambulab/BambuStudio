@@ -3199,6 +3199,8 @@ int CLI::run(int argc, char **argv)
         }
     }
     else {
+        if (!machine_switch && !current_nozzle_volume_type.empty())
+            new_nozzle_volume_type = current_nozzle_volume_type;
         new_nozzle_volume_type.resize(new_extruder_count, nvtStandard);
         if ((new_extruder_count > 1) || different_extruder) {
             BOOST_LOG_TRIVIAL(error) << boost::format("%1%: nozzle_volume_type not found, when different_extruder or multiple extruder, new_printer_name %2%, extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
