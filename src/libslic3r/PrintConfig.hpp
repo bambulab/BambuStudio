@@ -586,6 +586,7 @@ extern std::set<std::string> print_options_with_variant;
 extern std::set<std::string> filament_options_with_variant;
 extern std::set<std::string> printer_options_with_variant_1;
 extern std::set<std::string> printer_options_with_variant_2;
+extern std::set<std::string> multi_variant_text_ctrl_options;
 extern std::set<std::string> empty_options;
 
 extern void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride = 1);
