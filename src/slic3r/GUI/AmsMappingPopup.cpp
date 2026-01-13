@@ -756,7 +756,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      m_sizer_ams_right_horizonal->AddStretchSpacer();
 
-     m_reset_btn = new ScalableButton(m_right_first_text_panel, wxID_ANY, wxGetApp().dark_mode() ? "erase_dark" : "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition,
+     m_reset_btn = new ScalableButton(m_scrolled_window, wxID_ANY, wxGetApp().dark_mode() ? "erase_dark" : "erase", wxEmptyString, wxDefaultSize, wxDefaultPosition,
                                       wxBU_EXACTFIT | wxNO_BORDER, true, 14);
      m_reset_btn->SetName(wxGetApp().dark_mode() ? "erase_dark" : "erase");
      m_reset_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) { reset_ams_info(); });
@@ -765,7 +765,6 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      m_sizer_ams_right_horizonal->AddStretchSpacer();
      m_sizer_ams_right_horizonal->AddSpacer(FromDIP(5));
-     m_sizer_ams_right_horizonal->Add(m_reset_btn, 0, wxALIGN_TOP | wxEXPAND );
      m_reset_btn->Hide();
      m_right_first_text_panel->SetSizer(m_sizer_ams_right_horizonal);
      const int same_height = 20;
@@ -799,33 +798,18 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_ams_tips_panel = new wxPanel(m_scrolled_window);
      m_ams_tips_panel->SetBackgroundColour(*wxWHITE);
      auto m_ams_tips_sizer_h = new wxBoxSizer(wxHORIZONTAL);
-     auto m_ams_tips_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-     auto ams_tips_notes  = new Label(m_ams_tips_panel, _L("Tips:"));
+     auto ams_tips_notes  = new Label(m_ams_tips_panel, _L("Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"));
      ams_tips_notes->SetForegroundColour("#FF6F00");
-     auto ams_tips_first  = new Label(m_ams_tips_panel, _L("1. Filaments of different types cannot be matched."));
-     ams_tips_first->SetForegroundColour("#FF6F00");
-     ams_tips_first->Wrap(FromDIP(400));
-     auto ams_tips_second = new Label(m_ams_tips_panel, _L("2. Left nozzle filaments do not match the right nozzle."));
-     ams_tips_second->SetForegroundColour("#FF6F00");
-     ams_tips_second->Wrap(FromDIP(400));
-     auto ams_tips_third  = new Label(m_ams_tips_panel, _L("To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"));
-     ams_tips_third->SetForegroundColour("#FF6F00");
-     ams_tips_third->Wrap(FromDIP(400));
+     ams_tips_notes->Wrap(FromDIP(500));
 
-     ams_tips_third->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
-     ams_tips_third->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
-     ams_tips_third->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
-       /*  auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
-         wxLaunchDefaultBrowser(url);*/
+     ams_tips_notes->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
+     ams_tips_notes->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
+     ams_tips_notes->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+         wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=v4Q4e7Rm2dR0dWkw");
      });
 
-     m_ams_tips_sizer_v->Add(ams_tips_first, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
-     m_ams_tips_sizer_v->Add(ams_tips_second, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
-     m_ams_tips_sizer_v->Add(ams_tips_third, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
-
      m_ams_tips_sizer_h->Add(ams_tips_notes, 0, wxEXPAND | wxRIGHT, FromDIP(10));
-     m_ams_tips_sizer_h->Add(m_ams_tips_sizer_v);
 
      m_ams_tips_panel->SetSizer(m_ams_tips_sizer_h);
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
@@ -833,16 +817,26 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
      m_sizer_ams_v = new wxBoxSizer(wxVERTICAL);
 
+     m_split_line_panel = new wxPanel(m_scrolled_window, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(1), -1));
+     m_split_line_panel->SetBackgroundColour(*wxWHITE);
+     m_split_line_panel->Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {
+         wxPaintDC dc(m_split_line_panel);
+         dc.SetPen(wxPen(wxColour(0xAC, 0xAC, 0xAC), 1, wxPENSTYLE_SHORT_DASH));
+         dc.DrawLine(0, FromDIP(20), 0, m_sizer_ams->GetSize().GetHeight());
+     });
+
      //m_sizer_ams->Add(m_left_marea_panel, 0, wxEXPAND, FromDIP(0));
      m_sizer_ams->Add(m_left_marea_panel, 0, wxRIGHT, FromDIP(10));
-     m_sizer_ams->Add(0, 0, 0, wxEXPAND, FromDIP(15));
-     m_sizer_ams->Add(m_right_marea_panel, 0, wxEXPAND, FromDIP(0));
+     m_sizer_ams->Add(m_split_line_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(7));
+     m_sizer_ams->Add(m_right_marea_panel, 0, wxEXPAND | wxLEFT, FromDIP(10));
 
-     m_sizer_ams_v->Add(m_sizer_ams, 0, wxEXPAND | wxBOTTOM, FromDIP(50));
-     m_sizer_ams_v->Add(m_ams_tips_panel, 0, wxEXPAND | wxTop, FromDIP(10));
+     m_sizer_ams_v->Add(m_reset_btn, 0, wxALIGN_RIGHT);
+     m_sizer_ams_v->Add(m_sizer_ams, 0, wxEXPAND | wxBOTTOM, FromDIP(30));
+     m_sizer_ams_v->AddStretchSpacer();
+     m_sizer_ams_v->Add(m_ams_tips_panel, 0, wxEXPAND | wxTop, FromDIP(30));
 
      m_sizer_main_h->Add(m_sizer_ams_v, 0, wxEXPAND | wxRIGHT, FromDIP(10));
-     m_sizer_main_h->Add(m_rack_nozzle_select, 0, wxEXPAND | wxTOP, FromDIP(18));
+     m_sizer_main_h->Add(m_rack_nozzle_select, 0, wxEXPAND | wxTOP, FromDIP(15));
 
      m_scrolled_window->SetSizer(m_sizer_main_h);
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));
@@ -1165,10 +1159,10 @@ void AmsMapingPopup::update_title(MachineObject* obj)
 
     // Control visibility of dual-nozzle tip based on nozzle count
     if (m_ams_tips_panel) {
-        if (nozzle_nums > 1) {
-            update_amsmappping_tips(true);
-        } else {
+        if (nozzle_nums == 1 || m_show_type == ShowType::LEFT_AND_RIGHT) {
             update_amsmappping_tips(false);
+        } else {
+            update_amsmappping_tips(true);
         }
     }
 
@@ -1272,9 +1266,11 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
         m_left_extra_slot->Hide();
         //m_left_marea_panel->Show();
         m_right_marea_panel->Show();
+        m_right_marea_panel->Enable(true);
         set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
     //    m_right_tips->SetLabel(m_single_tip_text);
         m_right_extra_slot->Show();
+        m_right_extra_slot->Enable(true);
     }
     else if (nozzle_nums > 1) {
         m_left_marea_panel->Show();
@@ -1315,6 +1311,10 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
                 m_right_tips->SetLabel("");
             }
             m_right_extra_slot->Show();
+            m_left_marea_panel->Enable(true);
+            m_left_extra_slot->Enable(true);
+            m_right_marea_panel->Enable(true);
+            m_right_extra_slot->Enable(true);
         }
         // 无论哪个喷嘴被选中，tips 面板始终保持启用状态
      /*   if (m_ams_tips_panel) {
@@ -1603,7 +1603,7 @@ void AmsMapingPopup::update_rack_select(MachineObject *obj)
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
         obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().GetNozzleMapping().empty()) {
         int mapped_nozzle_pos_id =  obj->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj, m_current_filament_id);
-        if (mapped_nozzle_pos_id == MAIN_EXTRUDER_ID)
+        if (mapped_nozzle_pos_id != DEPUTY_EXTRUDER_ID)
         {
             m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), mapped_nozzle_pos_id);
 
@@ -1812,10 +1812,19 @@ void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString n
     if (m_unmatch || (m_name == "-"))
     {
         if (m_unmatch) {
+            bool is_external_spool = (m_tray_data.ams_id == VIRTUAL_TRAY_MAIN_ID || m_tray_data.ams_id == VIRTUAL_TRAY_DEPUTY_ID);
+
             if (!m_name.IsEmpty() && (m_name != "-")) {
-                const wxString &msg = wxString::Format(_L("Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. "
-                                                          "If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."),
-                                                           m_name, tag_name, tag_name, m_name);
+                wxString msg;
+                if (is_external_spool) {
+                    msg = wxString::Format(_L("Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. "
+                                              "If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."),
+                                               m_name, tag_name, tag_name, m_name);
+                } else {
+                    msg = wxString::Format(_L("Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. "
+                                              "If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."),
+                                               m_name, tag_name, tag_name, m_name);
+                }
                 SetToolTip(msg);
             } else {
                 const wxString &msg = wxString::Format(_L("Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."), tag_name);

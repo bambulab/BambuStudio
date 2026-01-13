@@ -302,6 +302,7 @@ public:
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
     wxPanel *    m_ams_tips_panel{nullptr};
+    wxPanel *    m_split_line_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
     Label *      m_left_tips{nullptr};
