@@ -24,31 +24,22 @@
         "1.22"
     ],
     "filament_deretraction_speed": [
-        "10"
+        "50"
     ],
     "filament_extruder_variant": [
         "Direct Drive TPU High Flow"
     ],
     "filament_flow_ratio": [
-        "0.95"
-    ],
-    "filament_flush_temp": [
-        "0"
-    ],
-    "filament_flush_volumetric_speed": [
-        "0"
+        "1.1"
     ],
     "filament_long_retractions_when_cut": [
-        "nil"
+        "0"
     ],
     "filament_max_volumetric_speed": [
-        "2.2"
+        "2.5"
     ],
     "filament_pre_cooling_temperature": [
         "195"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "0"
     ],
     "filament_printable": [
         "2"
@@ -56,50 +47,29 @@
     "filament_ramming_travel_time": [
         "20"
     ],
-    "filament_ramming_travel_time_nc": [
-        "0"
-    ],
     "filament_ramming_volumetric_speed": [
         "0.55"
     ],
-    "filament_ramming_volumetric_speed_nc": [
-        "-1"
-    ],
-    "filament_retract_before_wipe": [
-        "nil"
-    ],
-    "filament_retract_restart_extra": [
-        "nil"
-    ],
-    "filament_retract_when_changing_layer": [
-        "nil"
-    ],
-    "filament_retraction_distances_when_cut": [
-        "nil"
-    ],
     "filament_retraction_length": [
-        "2"
-    ],
-    "filament_retraction_minimum_travel": [
-        "nil"
+        "2.3"
     ],
     "filament_retraction_speed": [
-        "10"
+        "20"
     ],
     "filament_support_printable": [
         "2"
     ],
     "filament_wipe": [
-        "nil"
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil"
+        "1"
     ],
     "filament_z_hop": [
-        "nil"
+        "0.6"
     ],
     "filament_z_hop_types": [
-        "nil"
+        "Spiral Lift"
     ],
     "impact_strength_z": [
         "88.7"
@@ -108,16 +78,22 @@
         "1"
     ],
     "nozzle_temperature": [
-        "225"
+        "230"
     ],
     "nozzle_temperature_initial_layer": [
-        "225"
+        "230"
     ],
     "nozzle_temperature_range_high": [
         "250"
     ],
     "retraction_distances_when_ec": [
         "10"
+    ],
+    "slow_down_min_speed": [
+        "30"
+    ],
+    "slow_down_layer_time": [
+        "14"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.4 nozzle"

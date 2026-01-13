@@ -25,12 +25,12 @@
     "filament_deretraction_speed": [
         "25",
         "25",
-        "25"
+        "30"
     ],
     "filament_flow_ratio": [
         "1.05",
         "1.05",
-        "1.05"
+        "1.08"
     ],
     "filament_flush_temp": [
         "0",
@@ -50,7 +50,7 @@
     "filament_max_volumetric_speed": [
         "2.8",
         "2.8",
-        "2.8"
+        "5.6"
     ],
     "filament_ramming_volumetric_speed": [
         "0.7",
@@ -88,7 +88,7 @@
     "filament_retraction_length": [
         "0.6",
         "0.6",
-        "0.6"
+        "1.8"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -98,7 +98,7 @@
     "filament_retraction_speed": [
         "10",
         "10",
-        "10"
+        "30"
     ],
     "filament_wipe": [
         "nil",
@@ -202,12 +202,12 @@
     "nozzle_temperature": [
         "225",
         "225",
-        "225"
+        "220"
     ],
     "nozzle_temperature_initial_layer": [
         "225",
         "225",
-        "225"
+        "220"
     ],
     "override_process_overhang_speed": [
         "0",
@@ -222,7 +222,7 @@
     "slow_down_min_speed": [
         "25",
         "25",
-        "25"
+        "50"
     ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",
