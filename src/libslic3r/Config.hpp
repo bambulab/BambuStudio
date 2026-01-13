@@ -2243,6 +2243,7 @@ public:
         legend,
         // Vector value, but edited as a single string.
         one_string,
+        multi_variant,
     };
 
 	// Identifier of this option. It is stored here so that it is accessible through the by_serialization_key_ordinal map.

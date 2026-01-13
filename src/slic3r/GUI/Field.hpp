@@ -239,6 +239,8 @@ inline bool is_window_field(const t_field& obj) { return !is_bad_field(obj) && o
 /// Covenience function to determine whether this field is a valid sizer field.
 inline bool is_sizer_field(const t_field& obj) { return !is_bad_field(obj) && obj->getSizer() != nullptr; }
 
+inline bool is_pure_sizer_field(const t_field& obj) { return is_sizer_field(obj) && obj->getWindow() == nullptr; }
+
 class TextCtrl : public Field {
     using Field::Field;
 #ifdef __WXGTK__
@@ -536,6 +538,45 @@ public:
 	}
 	wxSizer*		getSizer() override { return m_sizer; }
 	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(m_slider); }
+};
+
+class MultiVariantTextCtrl : public Field {
+    using Field::Field;
+public:
+	struct VariantTextCtrl {
+        t_field text_ctrl;
+        int opt_index;
+        wxString label_text;
+
+        VariantTextCtrl(t_field&& tc,
+                       int idx, const wxString& txt)
+            : text_ctrl(std::move(tc)), opt_index(idx), label_text(txt) {}
+    };
+
+    MultiVariantTextCtrl(const ConfigOptionDef& opt, const t_config_option_key& id)
+        : Field(opt, id) {}
+    MultiVariantTextCtrl(wxWindow* parent, const ConfigOptionDef& opt,
+                        const t_config_option_key& id)
+        : Field(parent, opt, id) {}
+    ~MultiVariantTextCtrl() {}
+
+    void BUILD() override;
+    void set_value(const boost::any& value, bool change_event = false) override;
+    boost::any& get_value() override;
+    void enable() override;
+    void disable() override;
+    void msw_rescale() override;
+    wxSizer* getSizer() override { return m_variant_sizer; }
+	void refresh_text_ctrls_layout(wxWindow *parent = nullptr);
+
+    int get_index_for_extruder(int extruder_id, NozzleVolumeType nozzle_type);
+    std::vector<std::pair<int, wxString>> get_current_layout();
+
+    t_field create_text_ctrl(int opt_index, wxWindow *parent = nullptr);
+
+	std::vector<VariantTextCtrl> m_text_ctrls;
+    wxBoxSizer                  *m_variant_sizer;
+    PresetBundle                *m_preset_bundle;
 };
 
 } // GUI

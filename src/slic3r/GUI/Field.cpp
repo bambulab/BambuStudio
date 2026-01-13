@@ -2193,5 +2193,227 @@ boost::any& SliderCtrl::get_value()
 	return m_value = int(m_slider->GetValue()/m_scale);
 }
 
+t_field MultiVariantTextCtrl::create_text_ctrl(int opt_index, wxWindow *parent)
+{
+    ConfigOptionDef opt_copy = m_opt;
+    std::string opt_id_with_index = m_opt_id + "#" + std::to_string(opt_index);
+    wxWindow *parent_to_use = parent ? parent : m_parent;
+    auto text_ctrl = TextCtrl::Create<TextCtrl>(parent_to_use, opt_copy, opt_id_with_index);
+    text_ctrl->m_opt_idx = opt_index;
+
+    text_ctrl->m_on_change = [this, opt_id_with_index](const t_config_option_key& key, 
+                                                         const boost::any& value) {
+        if (m_on_change && !m_disable_change_event) {
+            m_on_change(opt_id_with_index, value);
+        }
+    };
+
+    text_ctrl->m_on_kill_focus = [this, opt_id_with_index](const std::string& key) {
+        if (m_on_kill_focus) {
+            m_on_kill_focus(opt_id_with_index);
+        }
+    };
+
+    text_ctrl->m_back_to_initial_value = [this, opt_id_with_index](std::string opt_key) {
+        if (m_back_to_initial_value) {
+            m_back_to_initial_value(opt_id_with_index);
+        }
+    };
+
+    text_ctrl->m_back_to_sys_value = [this, opt_id_with_index](std::string opt_key) {
+        if (m_back_to_sys_value) {
+            m_back_to_sys_value(opt_id_with_index);
+        }
+    };
+
+    return text_ctrl;
+}
+
+std::vector<std::pair<int, wxString>> MultiVariantTextCtrl::get_current_layout()
+{
+    std::vector<std::pair<int, wxString>> layout;
+    auto& project_config = m_preset_bundle->project_config;
+    auto nozzle_volumes = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    int extruder_nums = m_preset_bundle->get_printer_extruder_count();
+
+    for (int i = 0; i < extruder_nums; ++i) {
+        NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volumes->values[i]);
+        if (volume_type == NozzleVolumeType::nvtHybrid) {
+            int standard_index = get_index_for_extruder(i, NozzleVolumeType::nvtStandard);
+            int highflow_index = get_index_for_extruder(i, NozzleVolumeType::nvtHighFlow);
+            wxString extruder_name = (i == 0) ? _L("L") : _L("R");
+            layout.push_back({standard_index, wxString::Format(_L("%s %s:"), extruder_name, _L("Std"))});
+            layout.push_back({highflow_index, wxString::Format(_L("%s %s:"), extruder_name, _L("HF"))});
+        } else {
+            int index = get_index_for_extruder(i, volume_type);
+            wxString extruder_name = (i == 0) ? _L("L:") : _L("R:");
+            wxString volume_name = DevNozzle::GetNozzleVolumeTypeStr(volume_type);
+            layout.push_back({index, extruder_name});
+        }
+    }
+
+    return layout;
+}
+
+int MultiVariantTextCtrl::get_index_for_extruder(int extruder_id, NozzleVolumeType nozzle_type)
+{
+    auto& printer_config = m_preset_bundle->printers.get_edited_preset().config;
+    auto extruders = printer_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+
+    static std::pair<std::string, std::string> extruder_variant_keys[]{
+        {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
+        {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
+        {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
+    };
+    auto variant_keys = extruder_variant_keys[
+        Preset::TYPE_PRINTER
+    ];
+
+    return printer_config.get_index_for_extruder(
+        extruder_id + 1,
+        variant_keys.first,
+        ExtruderType(extruders->values[extruder_id]),
+        nozzle_type,
+        variant_keys.second
+    );
+}
+
+void MultiVariantTextCtrl::BUILD()
+{
+    m_preset_bundle = wxGetApp().preset_bundle;
+    m_variant_sizer = new wxBoxSizer(wxVERTICAL);
+
+    refresh_text_ctrls_layout();
+}
+
+void MultiVariantTextCtrl::refresh_text_ctrls_layout(wxWindow *parent)
+{
+    auto new_layout   = get_current_layout();
+    bool need_rebuild = (new_layout.size() != m_text_ctrls.size());
+    if (!need_rebuild) {
+        for (size_t i = 0; i < new_layout.size(); ++i) {
+            if (new_layout[i].first != m_text_ctrls[i].opt_index ||
+                new_layout[i].second != m_text_ctrls[i].label_text) {
+                need_rebuild = true;
+                break;
+            }
+        }
+    }
+
+    if (!need_rebuild) return;
+
+    m_variant_sizer->Clear(true);
+    m_text_ctrls.clear();
+    wxWindow *parent_to_use = parent ? parent : m_parent;
+
+    for (auto& [index, label_text] : new_layout) {
+        auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+        t_field text_ctrl = create_text_ctrl(index, parent_to_use);
+        if (new_layout.size() != 1 && label_text) {
+            auto text_input = dynamic_cast<::TextInput*>(text_ctrl->getWindow());
+            if (text_input) {
+                text_input->SetSize(wxSize(def_width_wider() * m_em_unit + 20, wxDefaultCoord));
+                text_input->SetPrefix(label_text);
+            }
+        }
+        wxWindow* text_window = text_ctrl->getWindow();
+        h_sizer->Add(text_window, 0, wxALIGN_CENTER_VERTICAL);
+        m_variant_sizer->Add(h_sizer, 0, wxEXPAND | wxBOTTOM, 5);
+        m_text_ctrls.push_back(VariantTextCtrl(
+            std::move(text_ctrl), index, label_text));
+    }
+    
+    parent_to_use->Layout();
+    set_value(boost::any(), false);
+
+    if (parent_is_custom_ctrl && parent_to_use) {
+        wxWindow *current = parent_to_use;
+        while (current) {
+            if (auto *custom_ctrl = dynamic_cast<OG_CustomCtrl *>(current)) {
+                custom_ctrl->update_line_height_for_field(m_opt_id);
+                break;
+            }
+            current = current->GetParent();
+        }
+    }
+}
+
+void MultiVariantTextCtrl::set_value(const boost::any& value, bool change_event)
+{
+    m_disable_change_event = !change_event;
+
+    auto vec_opt = dynamic_cast<ConfigOptionVectorBase*>(
+        m_preset_bundle->prints.get_edited_preset().config.option(m_opt.opt_key));
+
+    if (!vec_opt) {
+        m_disable_change_event = false;
+        return;
+    }
+
+    for (auto& ctrl : m_text_ctrls) {
+        if (ctrl.opt_index >= 0 && ctrl.opt_index < vec_opt->size()) {
+            if (m_opt.type == coFloats || m_opt.type == coPercents) {
+                auto floats = dynamic_cast<ConfigOptionFloatsNullable*>(vec_opt);
+                ctrl.text_ctrl->set_value(
+                    double_to_string(floats->get_at(ctrl.opt_index)), false);
+            } else if (m_opt.type == coInts) {
+                auto ints = dynamic_cast<ConfigOptionInts*>(vec_opt);
+                ctrl.text_ctrl->set_value(
+                    wxString::Format("%d", ints->get_at(ctrl.opt_index)), false);
+            }
+        }
+    }
+
+    m_disable_change_event = false;
+}
+
+boost::any& MultiVariantTextCtrl::get_value()
+{
+    std::vector<std::string> values;
+    for (auto& ctrl : m_text_ctrls) {
+        auto& val = ctrl.text_ctrl->get_value();
+        if (!val.empty()) {
+            if (m_opt.type == coFloats || m_opt.type == coPercents) {
+                values.push_back(std::to_string(boost::any_cast<double>(val)));
+            } else if (m_opt.type == coInts) {
+                values.push_back(std::to_string(boost::any_cast<int>(val)));
+            } else {
+                values.push_back(boost::any_cast<std::string>(val));
+            }
+        }
+    }
+    m_value = values;
+    return m_value;
+}
+
+void MultiVariantTextCtrl::enable()
+{
+    for (auto& ctrl : m_text_ctrls) {
+        ctrl.text_ctrl->enable();
+    }
+}
+
+void MultiVariantTextCtrl::disable()
+{
+    for (auto& ctrl : m_text_ctrls) {
+        ctrl.text_ctrl->disable();
+    }
+}
+
+void MultiVariantTextCtrl::msw_rescale()
+{
+    Field::msw_rescale();
+
+    for (auto& ctrl : m_text_ctrls) {
+        auto win = ctrl.text_ctrl->getWindow();
+        int current_width = win->GetSize().GetWidth();
+        ctrl.text_ctrl->msw_rescale();
+        win->SetSize(current_width, win->GetSize().GetHeight());
+    }
+
+    if (m_parent) {
+        m_parent->Layout();
+    }
+}
 
 }} // Slic3r
