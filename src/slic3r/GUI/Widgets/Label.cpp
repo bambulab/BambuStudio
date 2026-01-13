@@ -67,12 +67,10 @@ void Label::initSysFont(std::string lang_code, bool load_font_resource)
         const std::string& resource_path = Slic3r::resources_dir();
         wxString font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Bold.ttf");
         bool result = wxFont::AddPrivateFont(font_path);
-        //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
-        printf("add font of HarmonyOS_Sans_SC_Bold returns %d\n", result);
+        BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Bold returns %1%")%result;
         font_path = wxString::FromUTF8(resource_path+"/fonts/HarmonyOS_Sans_SC_Regular.ttf");
         result = wxFont::AddPrivateFont(font_path);
-        //BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
-        printf("add font of HarmonyOS_Sans_SC_Regular returns %d\n", result);
+        BOOST_LOG_TRIVIAL(info) << boost::format("add font of HarmonyOS_Sans_SC_Regular returns %1%")%result;
     }
 #endif
     Head_48 = Label::sysFont(48, true, lang_code);
