@@ -1135,14 +1135,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
-    def = this->add("top_solid_infill_flow_ratio", coFloat);
+    def = this->add("top_solid_infill_flow_ratio", coFloats);
     def->label = L("Top surface flow ratio");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for top solid infill. "
                      "You can decrease it slightly to have smooth surface finish");
     def->min = 0;
     def->max = 2;
     def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionFloat(1));
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
 
     def = this->add("initial_layer_flow_ratio", coFloat);
     def->label = L("Initial layer flow ratio");
@@ -6651,7 +6652,8 @@ std::set<std::string> print_options_with_variant = {
     "sparse_infill_acceleration", //coFloatsOrPercents
     "top_surface_acceleration",
     "print_extruder_id", //coInts
-    "print_extruder_variant" //coStrings
+    "print_extruder_variant", //coStrings
+    "top_solid_infill_flow_ratio"
 };
 
 std::set<std::string> filament_options_with_variant = {
@@ -6759,6 +6761,7 @@ std::set<std::string> printer_options_with_variant_2 = {
 };
 
 std::set<std::string> multi_variant_text_ctrl_options = {
+    "top_solid_infill_flow_ratio"
 };
 
 std::set<std::string> empty_options;
