@@ -22,12 +22,12 @@
     "filament_deretraction_speed": [
         "10",
         "10",
-        "10"
+        "50"
     ],
     "filament_flow_ratio": [
         "1",
         "1",
-        "1"
+        "1.03"
     ],
     "filament_flush_temp": [
         "0",
@@ -47,7 +47,7 @@
     "filament_max_volumetric_speed": [
         "2.2",
         "2.2",
-        "2.2"
+        "4.8"
     ],
     "filament_ramming_volumetric_speed": [
         "0.55",
@@ -85,7 +85,7 @@
     "filament_retraction_length": [
         "2",
         "2",
-        "2"
+        "2.3"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -95,27 +95,27 @@
     "filament_retraction_speed": [
         "10",
         "10",
-        "10"
+        "40"
     ],
     "filament_wipe": [
         "nil",
         "nil",
-        "nil"
+        "1"
     ],
     "filament_wipe_distance": [
         "nil",
         "nil",
-        "nil"
+        "1"
     ],
     "filament_z_hop": [
         "nil",
         "nil",
-        "nil"
+        "0.4"
     ],
     "filament_z_hop_types": [
         "nil",
         "nil",
-        "nil"
+        "Spiral Lift"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
@@ -204,12 +204,12 @@
     "nozzle_temperature": [
         "225",
         "225",
-        "225"
+        "230"
     ],
     "nozzle_temperature_initial_layer": [
         "225",
         "225",
-        "225"
+        "230"
     ],
     "override_process_overhang_speed": [
         "0",
@@ -224,7 +224,7 @@
     "slow_down_min_speed": [
         "10",
         "10",
-        "10"
+        "40"
     ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",

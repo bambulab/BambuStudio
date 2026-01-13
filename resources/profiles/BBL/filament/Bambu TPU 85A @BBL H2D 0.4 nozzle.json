@@ -5,12 +5,6 @@
     "from": "system",
     "setting_id": "GFSU04_17",
     "instantiation": "true",
-    "filament_adaptive_volumetric_speed": [
-        "0"
-    ],
-    "filament_cooling_before_tower": [
-        "10"
-    ],
     "additional_cooling_fan_speed": [
         "100"
     ],
@@ -20,6 +14,12 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
+    "filament_adaptive_volumetric_speed": [
+        "0"
+    ],
+    "filament_cooling_before_tower": [
+        "10"
+    ],
     "filament_cost": [
         "41.99"
     ],
@@ -27,7 +27,7 @@
         "1.22"
     ],
     "filament_deretraction_speed": [
-        "10"
+        "50"
     ],
     "filament_enable_overhang_speed": [
         "1"
@@ -42,10 +42,10 @@
         "0"
     ],
     "filament_flow_ratio": [
-        "1"
+        "1.1"
     ],
     "filament_long_retractions_when_cut": [
-        "nil"
+        "0"
     ],
     "filament_overhang_1_4_speed": [
         "0"
@@ -72,10 +72,10 @@
         "2"
     ],
     "filament_retraction_length": [
-        "2"
+        "2.3"
     ],
     "filament_retraction_speed": [
-        "10"
+        "20"
     ],
     "filament_pre_cooling_temperature": [
         "195"
@@ -110,20 +110,23 @@
     "filament_retract_when_changing_layer": [
         "nil"
     ],
-    "impact_strength_z": [
-        "88.7"
-    ],
     "filament_wipe": [
-        "nil"
+        "1"
     ],
     "filament_wipe_distance": [
-        "nil"
+        "1"
     ],
     "filament_z_hop": [
-        "nil"
+        "0.6"
     ],
     "filament_z_hop_types": [
-        "nil"
+        "Spiral Lift"
+    ],
+    "filament_max_volumetric_speed": [
+        "2.5"
+    ],
+    "impact_strength_z": [
+        "88.7"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -135,13 +138,22 @@
         "250"
     ],
     "nozzle_temperature": [
-        "225"
+        "230"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "230"
     ],
     "override_process_overhang_speed": [
         "0"
     ],
     "retraction_distances_when_ec": [
         "0"
+    ],
+    "slow_down_layer_time": [
+        "14"
+    ],
+    "slow_down_min_speed": [
+        "30"
     ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0"
