@@ -6758,6 +6758,9 @@ std::set<std::string> printer_options_with_variant_2 = {
     "machine_max_jerk_e"
 };
 
+std::set<std::string> multi_variant_text_ctrl_options = {
+};
+
 std::set<std::string> empty_options;
 
 DynamicPrintConfig DynamicPrintConfig::full_print_config()

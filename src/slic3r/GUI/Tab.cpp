@@ -37,6 +37,7 @@
 #include "SavePresetDialog.hpp"
 #include "MsgDialog.hpp"
 #include "Notebook.hpp"
+#include "Field.hpp"
 
 #include "Widgets/Label.hpp"
 #include "Widgets/TabCtrl.hpp"
@@ -916,6 +917,46 @@ void Tab::update_label_colours()
 
 void Tab::decorate()
 {
+    auto decorate_field = [this](Field* field, const std::string& opt_key, int opt_status) {
+        if (!field)
+            return;
+
+        bool is_nonsys_value = false;
+        bool is_modified_value = true;
+        const ScalableBitmap* sys_icon  = &m_bmp_value_lock;
+        const ScalableBitmap* icon      = &m_bmp_value_revert;
+        const wxColour* color = m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr;
+        const wxString* sys_tt  = &m_tt_value_lock;
+        const wxString* tt      = &m_tt_value_revert;
+
+        // value isn't equal to system value
+        if ((opt_status & osSystemValue) == 0) {
+            is_nonsys_value = true;
+            sys_icon = m_bmp_non_system;
+            sys_tt = m_tt_non_system;
+            // value is equal to last saved
+            if ((opt_status & osInitValue) != 0)
+                color = &m_default_text_clr;
+            // value is modified
+            else
+                color = &m_modified_label_clr;
+        }
+        if ((opt_status & osInitValue) != 0)
+        {
+            is_modified_value = false;
+            icon = &m_bmp_white_bullet;
+            tt = &m_tt_white_bullet;
+        }
+
+        field->m_is_nonsys_value = is_nonsys_value;
+        field->m_is_modified_value = is_modified_value;
+        field->set_undo_bitmap(icon);
+        field->set_undo_to_sys_bitmap(sys_icon);
+        field->set_undo_tooltip(tt);
+        field->set_undo_to_sys_tooltip(sys_tt);
+        field->set_label_colour(color);
+    };
+
     for (const auto& opt : m_options_list)
     {
         Field*      field = nullptr;
@@ -927,52 +968,45 @@ void Tab::decorate()
 
         if (!colored_label_clr) {
             field = get_field(opt.first);
-            if (!field)
-                continue;
+            if (!field) {
+                field = get_field(opt.first.substr(0, opt.first.find("#")));
+                if (!field)
+                    continue;
+            }
         }
 
-        bool is_nonsys_value = false;
-        bool is_modified_value = true;
-        const ScalableBitmap* sys_icon  = &m_bmp_value_lock;
-        const ScalableBitmap* icon      = &m_bmp_value_revert;
+        // Decorate the main field
+        decorate_field(field, opt.first, opt.second);
 
-        const wxColour* color = m_is_default_preset ? &m_default_text_clr : &m_sys_label_clr;
+        // Handle MultiVariantTextCtrl specially
+        if (auto* multi_variant_field = dynamic_cast<MultiVariantTextCtrl*>(field)) {
+            bool any_modified = false;
+            bool all_sys      = true;
+            // Process each text control in the MultiVariantTextCtrl
+            for (auto& variant_ctrl : multi_variant_field->m_text_ctrls) {
+                std::string opt_key_with_index = variant_ctrl.text_ctrl->m_opt_id;
+                
+                // Find the status for this specific index
+                int  status   = m_opt_status_value;
+                auto opt_iter = m_multi_variant_status.find(opt_key_with_index);
+                if (opt_iter != m_multi_variant_status.end()) {
+                    status = opt_iter->second;
+                }
 
-        const wxString* sys_tt  = &m_tt_value_lock;
-        const wxString* tt      = &m_tt_value_revert;
+                if ((status & osInitValue) == 0) { any_modified = true; }
+                if ((status & osSystemValue) == 0) { all_sys = false; }
 
-        // value isn't equal to system value
-        if ((opt.second & osSystemValue) == 0) {
-            is_nonsys_value = true;
-            sys_icon = m_bmp_non_system;
-            sys_tt = m_tt_non_system;
-            // value is equal to last saved
-            if ((opt.second & osInitValue) != 0)
-                color = &m_default_text_clr;
-            // value is modified
-            else
-                color = &m_modified_label_clr;
+                // Decorate each variant text control with its own status
+                Field* text_field = variant_ctrl.text_ctrl.get();
+                if (text_field) {
+                    decorate_field(text_field, opt_key_with_index, status);
+                }
+            }
+            int status = m_opt_status_value;
+            if (any_modified) { status &= ~osInitValue; }
+            if (!all_sys) { status &= ~osSystemValue; }
+            decorate_field(field, opt.first, status);
         }
-        if ((opt.second & osInitValue) != 0)
-        {
-            is_modified_value = false;
-            icon = &m_bmp_white_bullet;
-            tt = &m_tt_white_bullet;
-        }
-
-        if (colored_label_clr) {
-            *colored_label_clr = *color;
-            continue;
-        }
-
-        field->m_is_nonsys_value = is_nonsys_value;
-        field->m_is_modified_value = is_modified_value;
-        field->set_undo_bitmap(icon);
-        //BBS: GUI refactor
-        field->set_undo_to_sys_bitmap(sys_icon);
-        field->set_undo_tooltip(tt);
-        field->set_undo_to_sys_tooltip(sys_tt);
-        field->set_label_colour(color);
     }
 
     if (m_active_page)
@@ -1017,6 +1051,22 @@ void Tab::update_changed_ui()
 
     update_custom_dirty(dirty_options, nonsys_options);
     update_all_extruder_options_status();
+
+    m_multi_variant_status.clear();
+    for (auto opt_key : dirty_options) {
+        auto iter = m_options_list.find(opt_key.substr(0, opt_key.find('#')) + "#0");
+        if (iter != m_options_list.end()) {
+            m_multi_variant_status.emplace(opt_key, m_opt_status_value);
+            m_multi_variant_status[opt_key] &= ~osInitValue;
+        }
+    }
+    for (auto opt_key : nonsys_options) {
+        auto iter = m_options_list.find(opt_key.substr(0, opt_key.find('#')) + "#0");
+        if (iter != m_options_list.end()) {
+            m_multi_variant_status.emplace(opt_key, m_opt_status_value);
+            m_multi_variant_status[opt_key] &= ~osSystemValue;
+        }
+    }
 
     filter_diff_option(dirty_options);
     filter_diff_option(nonsys_options);
@@ -1277,8 +1327,18 @@ void TabFilament::init_options_list()
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
 {
     auto opt = m_options_list.find(opt_key);
-    if (opt == m_options_list.end())
+    if (opt == m_options_list.end()) {
+        auto multi_opt = std::find_if(m_multi_variant_status.begin(), m_multi_variant_status.end(),
+            [&opt_key](const auto& pair) {
+                return pair.first.find(opt_key + "#") == 0;
+            });
+        if (multi_opt == m_multi_variant_status.end()) {
+            return;
+        }
+        if (sys_page) sys_page = (multi_opt->second & osSystemValue) != 0;
+        modified_page |= (multi_opt->second & osInitValue) == 0;
         return;
+    }
 
     if (sys_page) sys_page = (opt->second & osSystemValue) != 0;
     modified_page |= (opt->second & osInitValue) == 0;
@@ -1427,9 +1487,29 @@ void Tab::on_roll_back_value(const bool to_sys /*= true*/)
         //}
         for (const auto &kvp : group->opt_map()) {
             const std::string &opt_key = kvp.first;
-            auto iter = m_options_list.find(opt_key);
-            if (iter != m_options_list.end() && (iter->second & os) == 0)
-                to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
+            
+            std::string opt_key_with_index = opt_key + "#0";
+            auto iter = m_options_list.find(opt_key_with_index);
+            
+            if (iter != m_options_list.end()) {
+                Field* field = group->get_fieldc(opt_key, -1);
+                if (auto* multi_variant = dynamic_cast<MultiVariantTextCtrl*>(field)) {
+                    for (auto& variant_ctrl : multi_variant->m_text_ctrls) {
+                        if (variant_ctrl.text_ctrl) {
+                            std::string opt_key_with_index_full = variant_ctrl.text_ctrl->m_opt_id;
+                            auto iter_sub = m_multi_variant_status.find(opt_key_with_index_full);
+                            if (iter_sub != m_multi_variant_status.end() && (iter_sub->second & os) == 0) {
+                                to_sys ? variant_ctrl.text_ctrl->on_back_to_sys_value() : variant_ctrl.text_ctrl->on_back_to_initial_value();
+                            }
+                        }
+                    }
+                }
+            } else {
+                iter = m_options_list.find(opt_key);
+                if (iter != m_options_list.end() && (iter->second & os) == 0) {
+                    to_sys ? group->back_to_sys_value(opt_key) : group->back_to_initial_value(opt_key);
+                }
+            }
         }
     }
 
@@ -4240,6 +4320,39 @@ wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticTex
     return sizer;
 }
 
+void Tab::update_pages_with_multi_variant()
+{
+    if (!m_active_page) {
+        return;
+    }
+    for (auto optgroup : m_active_page->m_optgroups) {
+        Field *multi_variant_field = nullptr;
+        std::string opt_key;
+
+        for (const auto& opt : multi_variant_text_ctrl_options) {
+            Field* field = optgroup->get_fieldc(opt, 0);
+            if (field) {
+                auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
+                if (multi_variant) {;
+                    multi_variant_field = field;
+                    opt_key = opt;
+                }
+                break;
+            }
+        }
+        if (multi_variant_field) {
+            auto * multi_variant_ctrl = dynamic_cast<MultiVariantTextCtrl*>(multi_variant_field);
+            multi_variant_ctrl->refresh_text_ctrls_layout(optgroup->ctrl_parent());
+            if (optgroup->custom_ctrl) {
+                optgroup->custom_ctrl->update_line_height_for_field(opt_key);
+            }
+        }
+        m_page_view->GetParent()->Layout();
+        m_parent->Layout();
+    }
+    update_changed_ui();
+}
+
 bool Tab::saved_preset_is_dirty() const { return m_presets->saved_is_dirty(); }
 void Tab::update_saved_preset_from_current_preset() { m_presets->update_saved_preset_from_current_preset(); }
 bool Tab::current_preset_is_dirty() const { return m_presets->current_is_dirty(); }
@@ -6888,6 +7001,9 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         m_variant_combo->Enable(m_variant_combo->GetCount() > 1);
     }
     switch_excluder(extruder_id, reload);
+    if (m_type == Preset::TYPE_PRINT) {
+        update_pages_with_multi_variant();
+    }
     if (m_variant_sizer) {
         wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
         m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));

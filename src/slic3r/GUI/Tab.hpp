@@ -316,6 +316,7 @@ public:
     ScalableButton *m_extruder_sync   = nullptr;
 	wxPanel *       m_extruder_sync_box  = nullptr;
     std::vector<NozzleVolumeType> m_actual_nozzle_volumes;
+    std::unordered_map<std::string, int> m_multi_variant_status;
 
 public:
 	// BBS
@@ -405,6 +406,7 @@ public:
 	bool			current_preset_is_dirty() const;
 	bool			saved_preset_is_dirty() const;
 	void            update_saved_preset_from_current_preset();
+    void            update_pages_with_multi_variant();
 
 	DynamicPrintConfig*	get_config() { return m_config; }
     PresetCollection *  get_presets() { return m_presets; }

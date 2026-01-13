@@ -16,6 +16,7 @@ class TextInput : public wxNavigationEnabled<StaticBox>
     wxTextCtrl * text_ctrl;
     
     wxString       m_unit;
+    wxString       m_prefix;
     wxString  static_tips;
     wxSize    static_tips_size;
     wxBitmap  static_tips_icon;
@@ -35,7 +36,8 @@ public:
               const wxPoint &pos   = wxDefaultPosition,
               const wxSize & size  = wxDefaultSize,
               long           style = 0,
-              wxString       uint  = "");
+              wxString       uint  = "",
+              wxString       prefix = "");
     virtual ~TextInput() {};
 
 public:
@@ -46,11 +48,14 @@ public:
               const wxPoint &pos   = wxDefaultPosition,
               const wxSize & size  = wxDefaultSize,
               long           style = 0, 
-              wxString       uint  = "");
+              wxString       uint  = "",
+              wxString       prefix = "");
 
     void SetCornerRadius(double radius);
 
     void SetLabel(const wxString& label);
+
+    void SetPrefix(const wxString &prefix);
 
     void SetStaticTips(const wxString& tips, const wxBitmap& bitmap);
 
