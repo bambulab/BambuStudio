@@ -262,7 +262,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
         std::string err       = dll_error ? std::string(dll_error) : std::string("(null)");
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%") % err;
     }
-    printf("after dlopen, network_module is %p\n", networking_module);
+    BOOST_LOG_TRIVIAL(info) << boost::format("after dlopen, network_module is %1%") % networking_module;
 #endif
 
     if (!networking_module) {
