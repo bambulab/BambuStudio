@@ -11,12 +11,6 @@
         "1000",
         "1000"
     ],
-    "gap_infill_speed": [
-        "50",
-        "50",
-        "100",
-        "100"
-    ],
     "initial_layer_infill_speed": [
         "105",
         "70",
