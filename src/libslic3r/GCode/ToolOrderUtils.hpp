@@ -19,13 +19,14 @@ namespace MaxFlowGraph {
     const int INVALID_ID = -1;
 }
 
+struct Edge
+{
+    int from, to, capacity, cost, flow;
+    Edge(int u, int v, int cap, int cst = 0) : from(u), to(v), capacity(cap), cost(cst), flow(0) {}
+};
+
 class MaxFlowSolver
 {
-private:
-    struct Edge {
-        int from, to, capacity, flow;
-        Edge(int u, int v, int cap) :from(u), to(v), capacity(cap), flow(0) {}
-    };
 public:
     MaxFlowSolver(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
@@ -50,6 +51,7 @@ private:
 
 
 struct MinCostMaxFlow;
+struct MaxFlowWithLowerBounds;
 
 class GeneralMinCostSolver
 {
@@ -62,6 +64,53 @@ public:
     ~GeneralMinCostSolver();
 private:
     std::unique_ptr<MinCostMaxFlow> m_solver;
+};
+
+class GeneralMinCostLowerBoundsSolver
+{
+public:
+    GeneralMinCostLowerBoundsSolver(
+        const std::vector<FlushMatrix> &matrix_,
+        const std::vector<int>& u_nodes,
+        const std::vector<int>& v_nodes,
+        const std::vector<int>& v_nodes_group);
+
+    std::vector<int> solve();
+    ~GeneralMinCostLowerBoundsSolver();
+
+private:
+    void build_feasible_graph(const std::unordered_set<int>& no_lower_groups);
+
+    void build_graph_with_feasible_result();
+
+    void add_edge_with_lower_bound(int from, int to, int lower, int upper, int cost);
+
+    int get_distance(const int idx_in_left,const int idx_in_right);
+
+private:
+    std::unique_ptr<MaxFlowWithLowerBounds> m_solver_lower_bounds;
+    std::unique_ptr<MinCostMaxFlow> m_solver_min_cost;
+
+    std::vector<FlushMatrix> flush_matrix;
+    std::vector<int> l_nodes;
+    std::vector<int> r_nodes;
+    std::vector<int> r_nodes_group;
+    int num_groups = 0;
+
+    // support lower bounds
+    struct LowerBoundEdge{
+        int edge_id;
+        int lower;
+    };
+
+    std::vector<int> demand;
+    std::vector<LowerBoundEdge> lower_bound_edges;
+
+    int super_source = -1;
+    int super_sink = -1;
+    int source_id = -1;
+    int sink_id = -1;
+    int max_flow_edges = 0;
 };
 
 

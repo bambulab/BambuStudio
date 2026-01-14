@@ -7,13 +7,100 @@
 
 namespace Slic3r
 {
+// ==================== MaxFlowWithLowerBounds ====================
+    struct MaxFlowWithLowerBounds {
+    public:
+
+        void add_edge(int from, int to, int capacity);
+
+        bool bfs();
+        int dfs(int u, int f);
+        int solve(std::vector<int>& matching);
+
+    public:
+        std::vector<int> l_nodes;
+        std::vector<int> r_nodes;
+        std::vector<Edge> edges;
+        std::vector<std::vector<int>> adj;
+        std::vector<int> level;
+        std::vector<int> it;
+
+        int total_nodes{ -1 };
+        int source_id{ -1 };
+        int sink_id{ -1 };
+    };
+
+    void MaxFlowWithLowerBounds::add_edge(int from, int to, int capacity)
+    {
+        adj[from].emplace_back(edges.size());
+        edges.emplace_back(from, to, capacity, 0);
+        // also add reverse edge ,set capacity to zero,cost to negative
+        adj[to].emplace_back(edges.size());
+        edges.emplace_back(to, from, 0, 0);
+    }
+
+    bool MaxFlowWithLowerBounds::bfs() {
+        level.assign(total_nodes, -1);
+        std::queue<int> q;
+        q.push(source_id);
+        level[source_id] = 0;
+
+        while (!q.empty()) {
+            int u = q.front(); q.pop();
+            for (int eid : adj[u]) {
+                Edge &e = edges[eid];
+                if (e.flow < e.capacity && level[e.to] == -1) {
+                    level[e.to] = level[u] + 1;
+                    q.push(e.to);
+                }
+            }
+        }
+        return level[sink_id] != -1;
+    }
+
+    int MaxFlowWithLowerBounds::dfs(int u, int f) {
+        if (u == sink_id) return f;
+        for (int &i = it[u]; i < (int)adj[u].size(); ++i) {
+            int eid = adj[u][i];
+            Edge &e = edges[eid];
+            if (e.flow < e.capacity && level[e.to] == level[u] + 1) {
+                int pushed = dfs(e.to, std::min(f, e.capacity - e.flow));
+                if (pushed > 0) {
+                    e.flow += pushed;
+                    edges[eid ^ 1].flow -= pushed;
+                    return pushed;
+                }
+            }
+        }
+        return 0;
+    }
+
+    int MaxFlowWithLowerBounds::solve(std::vector<int>& matching) {
+        int flow = 0;
+        while (bfs()) {
+            it.assign(total_nodes, 0);
+            while (int pushed = dfs(source_id, MaxFlowGraph::INF))
+                flow += pushed;
+        }
+
+        int L = l_nodes.size();
+        int R = r_nodes.size();
+        // collect l-r matches
+        matching.resize(l_nodes.size(), MaxFlowGraph::INVALID_ID);
+        for (int u = 0; u < L; ++u) {
+            for (int eid : adj[u]) {
+                Edge &e = edges[eid];
+                if (e.flow > 0 && e.to >= L && e.to < L + R) {
+                    matching[e.from] = e.to - L;
+                }
+            }
+        }
+        return flow;
+    }
+
+// ==================== MinCostMaxFlow ====================
     struct MinCostMaxFlow {
     public:
-        struct Edge {
-            int from, to, capacity, cost, flow;
-            Edge(int u, int v, int cap, int cst) : from(u), to(v), capacity(cap), cost(cst), flow(0) {}
-        };
-
         std::vector<int> solve();
         void add_edge(int from, int to, int capacity, int cost);
         bool spfa(int source, int sink);
@@ -41,7 +128,7 @@ namespace Slic3r
             for (int eid : adj[u]) {
                 Edge& e = edges[eid];
                 if (e.flow > 0 && e.to >= l_nodes.size() && e.to < l_nodes.size() + r_nodes.size())
-                    matching[e.from] = r_nodes[e.to - l_nodes.size()];
+                    matching[e.from] = e.to - l_nodes.size();
             }
         }
 
@@ -118,7 +205,7 @@ namespace Slic3r
         return matrix[l_nodes[idx_in_left]][r_nodes[idx_in_right]];
     }
 
-
+// ==================== MaxFlowSolver ====================
     MaxFlowSolver::MaxFlowSolver(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits,
         const std::unordered_map<int, std::vector<int>>& uv_unlink_limits,
@@ -241,6 +328,7 @@ namespace Slic3r
         return matching;
     }
 
+// ==================== GeneralMinCostSolver ====================
     GeneralMinCostSolver::~GeneralMinCostSolver()
     {
     }
@@ -248,7 +336,7 @@ namespace Slic3r
     GeneralMinCostSolver::GeneralMinCostSolver(const std::vector<std::vector<float>>& matrix_, const std::vector<int>& u_nodes, const std::vector<int>& v_nodes)
     {
         m_solver = std::make_unique<MinCostMaxFlow>();
-        m_solver->matrix = matrix_;;
+        m_solver->matrix = matrix_;
         m_solver->l_nodes = u_nodes;
         m_solver->r_nodes = v_nodes;
 
@@ -282,6 +370,162 @@ namespace Slic3r
         return m_solver->solve();
     }
 
+// ==================== GeneralMinCostLowerBoundsSolver ====================
+    GeneralMinCostLowerBoundsSolver::~GeneralMinCostLowerBoundsSolver() = default;
+
+    GeneralMinCostLowerBoundsSolver::GeneralMinCostLowerBoundsSolver(const std::vector<FlushMatrix> &matrix_,
+                                                                     const std::vector<int>         &u_nodes,
+                                                                     const std::vector<int>         &v_nodes,
+                                                                     const std::vector<int>         &v_nodes_group)
+    {
+        flush_matrix  = matrix_;
+        l_nodes = u_nodes;
+        r_nodes = v_nodes;
+        r_nodes_group = v_nodes_group;
+        num_groups    = *std::max_element(r_nodes_group.begin(), r_nodes_group.end()) + 1;
+
+        m_solver_lower_bounds = std::make_unique<MaxFlowWithLowerBounds>();
+        m_solver_min_cost = std::make_unique<MinCostMaxFlow>();
+    }
+
+    std::vector<int> GeneralMinCostLowerBoundsSolver::solve()
+    {
+        // 不需要下界约束的group节点
+        std::unordered_set<int> no_lower_group;
+        for (int i = 0; i < r_nodes.size(); i++) {
+            if (r_nodes[i] >= 0)
+                no_lower_group.insert(r_nodes_group[i]);
+        }
+
+        // 1. 构建下界网络图
+        build_feasible_graph(no_lower_group);
+
+        // 2. 计算最大流
+        int need = 0;
+        for (int d : demand)
+            if (d > 0) need += d;
+        std::vector<int> feasible_matching;
+        int pushed_flow = m_solver_lower_bounds->solve(feasible_matching);
+        assert(need == pushed_flow);
+
+        // 3. 下界最大流网络转化为最小费用最大流网络
+        build_graph_with_feasible_result();
+        // 4. 计算最小费用最大流
+        auto min_cost_matching = m_solver_min_cost->solve();
+
+        return min_cost_matching;
+    }
+
+    void GeneralMinCostLowerBoundsSolver::build_feasible_graph(const std::unordered_set<int> &no_lower_groups)
+    {
+        m_solver_lower_bounds->l_nodes = l_nodes;
+        m_solver_lower_bounds->r_nodes = r_nodes;
+        m_solver_lower_bounds->total_nodes = l_nodes.size() + r_nodes.size() + num_groups + 2;
+
+        m_solver_lower_bounds->source_id = m_solver_lower_bounds->total_nodes - 2;
+        m_solver_lower_bounds->sink_id   = m_solver_lower_bounds->total_nodes - 1;
+        m_solver_lower_bounds->adj.resize(m_solver_lower_bounds->total_nodes);
+        demand.resize(m_solver_lower_bounds->total_nodes, 0);
+
+        const int L = m_solver_lower_bounds->l_nodes.size();
+        const int R = m_solver_lower_bounds->r_nodes.size();
+
+        // source -> l
+        for (int i = 0; i < L; ++i)
+            m_solver_lower_bounds->add_edge(m_solver_lower_bounds->source_id, i, 1);
+
+        // u -> v
+        for (int i = 0; i < L; ++i) {
+            for (int j = 0; j < R; ++j)
+                m_solver_lower_bounds->add_edge(i, L + j, 1);
+        }
+
+        // r -> group
+        for (int j = 0; j < R; ++j) {
+            int g = r_nodes_group[j];
+            m_solver_lower_bounds->add_edge(L + j, L + R + g, 1);
+        }
+
+        // group -> sink（low bound=1）
+        for (int g = 0; g < num_groups; ++g) {
+            if (no_lower_groups.count(g))
+                m_solver_lower_bounds->add_edge(L + R + g, m_solver_lower_bounds->sink_id, R);
+            else
+                add_edge_with_lower_bound(L + R + g, m_solver_lower_bounds->sink_id, 1, R, 0);
+        }
+
+        max_flow_edges = m_solver_lower_bounds->edges.size();
+
+        // support lower bounds, add super source  super sink
+        super_source = m_solver_lower_bounds->total_nodes++;
+        super_sink = m_solver_lower_bounds->total_nodes++;
+
+        m_solver_lower_bounds->adj.resize(m_solver_lower_bounds->total_nodes);
+        demand.resize(m_solver_lower_bounds->total_nodes, 0);
+
+        for (int i = 0; i < super_source; ++i) {
+            if (demand[i] > 0) {
+                m_solver_lower_bounds->add_edge(super_source, i, demand[i]);
+            } else if (demand[i] < 0) {
+                m_solver_lower_bounds->add_edge(i, super_sink, -demand[i]);
+            }
+        }
+        m_solver_lower_bounds->add_edge(m_solver_lower_bounds->sink_id, m_solver_lower_bounds->source_id, MaxFlowGraph::INF);
+        source_id = m_solver_lower_bounds->source_id;
+        sink_id = m_solver_lower_bounds->sink_id;
+        m_solver_lower_bounds->source_id = super_source;
+        m_solver_lower_bounds->sink_id = super_sink;
+    }
+
+    void GeneralMinCostLowerBoundsSolver::build_graph_with_feasible_result()
+    {
+        for (auto&lb:lower_bound_edges){
+            m_solver_lower_bounds->edges[lb.edge_id].flow += lb.lower;
+            m_solver_lower_bounds->edges[lb.edge_id ^ 1].flow -= lb.lower;
+        }
+
+        m_solver_min_cost->l_nodes = m_solver_lower_bounds->l_nodes;
+        m_solver_min_cost->r_nodes = m_solver_lower_bounds->r_nodes;
+
+        m_solver_min_cost->source_id = source_id;
+        m_solver_min_cost->sink_id = sink_id;
+        m_solver_min_cost->total_nodes = sink_id + 1;
+
+        m_solver_min_cost->edges = m_solver_lower_bounds->edges;
+        m_solver_min_cost->edges.erase(m_solver_min_cost->edges.begin() + max_flow_edges, m_solver_min_cost->edges.end());
+
+        m_solver_min_cost->adj = m_solver_lower_bounds->adj;
+        m_solver_min_cost->adj.resize(m_solver_min_cost->total_nodes);
+        for (auto &node_edges : m_solver_min_cost->adj) {
+            node_edges.erase(std::remove_if(node_edges.begin(), node_edges.end(), [this](int val) {return val >= this->max_flow_edges;}), node_edges.end());
+        }
+
+
+        for (auto& e : m_solver_min_cost->edges) {
+            int L            = m_solver_min_cost->l_nodes.size();
+            int R            = m_solver_min_cost->r_nodes.size();
+
+            if (e.from < L && e.to >= L && e.to < L + R) {
+                int idx_in_left  = e.from;
+                int idx_in_right = e.to - L;
+                int group_id = r_nodes_group[idx_in_right];
+
+                if (r_nodes[idx_in_right] == -1) continue;
+                e.cost = flush_matrix[group_id][l_nodes[idx_in_left]][r_nodes[idx_in_right]];
+            }
+        }
+    }
+    void GeneralMinCostLowerBoundsSolver::add_edge_with_lower_bound(int from, int to, int lower, int upper, int cost)
+    {
+        int eid = m_solver_lower_bounds->edges.size();
+        m_solver_lower_bounds->add_edge(from, to, upper - lower);
+
+        lower_bound_edges.push_back({eid, lower});
+        demand[from] -= lower;
+        demand[to]   += lower;
+    }
+
+// ==================== MinFlushFlowSolver ====================
     MinFlushFlowSolver::~MinFlushFlowSolver()
     {
     }
@@ -354,6 +598,7 @@ namespace Slic3r
         return m_solver->solve();
     }
 
+// ==================== MatchModeGroupSolver ====================
     MatchModeGroupSolver::~MatchModeGroupSolver()
     {
     }
@@ -402,6 +647,7 @@ namespace Slic3r
         return m_solver->solve();
     }
 
+// ==================== static functions ====================
     //solve the problem by searching the least flush of current filament
     static std::vector<unsigned int> solve_extruder_order_with_greedy(const std::vector<std::vector<float>>& wipe_volumes,
         const std::vector<unsigned int> curr_layer_extruders,

@@ -19,9 +19,9 @@ struct NozzleInfo
     std::string      diameter;
     NozzleVolumeType volume_type;
     int              extruder_id{ -1 }; // 逻辑挤出机id
-    int              group_id{ -1 };    // 对应逻辑喷嘴id, 无实际意义
+    int              group_id{ -1 };    // 对应逻辑喷嘴id
 
-    std::string serialize() const;
+    std::string serialize(int id = -1) const;
     static std::optional<NozzleInfo> deserialize(const std::string& str);
 };
 

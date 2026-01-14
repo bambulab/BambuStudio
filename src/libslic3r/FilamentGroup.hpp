@@ -192,6 +192,15 @@ namespace Slic3r
 
     std::vector<int> calc_filament_group_for_match_multi_nozzle(const FilamentGroupContext& ctx);
 
+    struct FilamentPlanRes
+    {
+        std::vector<int> fil_order;
+        std::unordered_map<int, int> fil_nozzle_match;
+    };
+
+    std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order(const FilamentGroupContext& ctx);
+
+
     class KMediods2
     {
         using MemoryedGroupHeap = FilamentGroupUtils::MemoryedGroupHeap;
