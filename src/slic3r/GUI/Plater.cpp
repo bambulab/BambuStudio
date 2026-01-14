@@ -3188,6 +3188,26 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto diameter = printer_preset.config.opt_string("printer_variant");
         auto extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
         bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
+        auto update_extruder_variant = [printer_model, extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
+            extruder.combo_flow->Clear();
+            auto type = extruders_def->enum_labels[extruders->values[index]];
+            int select = -1;
+            for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
+                if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i]) ||
+                    extruder_max_nozzle_count->values[index] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == nvtHybrid) {
+                    if (nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow &&(diameter == "0.2" ||
+                        is_skip_high_flow_printer(printer_model)))
+                        continue;
+                    if (nozzle_volumes->values[index] == i)
+                        select = extruder.combo_flow->GetCount();
+                    extruder.combo_flow->Append(_L(nozzle_volumes_def->enum_labels[i]), {}, (void*)i);
+                }
+            }
+            if (select == -1)
+                select = extruder.combo_flow->GetCount() - 1;
+            extruder.combo_flow->SetSelection(select);
+        };
+
         auto update_extruder_diameter = [&diameters, &diameter, extruders](ExtruderGroup &extruder) {
             extruder.combo_diameter->Clear();
             int select = -1;
@@ -3213,12 +3233,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
             }
             return diameter_choices;
         };
-        auto get_flow_choices = [extruder_variants, extruders_def, extruders, nozzle_volumes_def, diameter,printer_model](int index) {
+        auto get_flow_choices = [extruder_variants, extruders_def, extruders, nozzle_volumes_def, diameter](int index) {
             std::vector<wxString> flow_choices;
             auto type = extruders_def->enum_labels[extruders->values[index]];
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i])) {
-                    if ((diameter == "0.2" || is_skip_high_flow_printer(printer_model)) && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
                         continue;
                     flow_choices.push_back(_L(nozzle_volumes_def->enum_labels[i]));
                 }
