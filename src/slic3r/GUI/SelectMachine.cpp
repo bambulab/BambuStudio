@@ -1489,6 +1489,35 @@ bool SelectMachineDialog::is_ams_drying(MachineObject* obj)
     return false;
 }
 
+bool SelectMachineDialog::is_selected_ams_drying(MachineObject* obj)
+{
+    if (!obj) return false;
+
+    // If a UI material is selected, only when that material is mapped to an AMS
+    // and that AMS is currently drying.
+    for (const auto &kv : m_materialList) {
+        Material *mat = kv.second;
+        if (!mat || !mat->item) continue;
+        if (!mat->item->m_selected) continue;
+
+        // find mapping entry for this material id
+        for (const FilamentInfo &f : m_ams_mapping_result) {
+            if (f.id != mat->id) continue;
+
+            if (f.ams_id.empty()) return false;
+
+            auto fila_system = obj->GetFilaSystem();
+            if (!fila_system) return false;
+            DevAms* dev_ams = fila_system->GetAmsById(f.ams_id);
+            return (dev_ams && dev_ams->AmsIsDrying());
+        }
+
+        return false;
+    }
+
+    return false;
+}
+
 void SelectMachineDialog::prepare(int print_plate_idx)
 {
     m_print_plate_idx = print_plate_idx;
@@ -3279,7 +3308,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         m_check_ext_change_assist->Enable(false);
     }
 
-    if (is_ams_drying(obj_)) {
+    if (is_selected_ams_drying(obj_)) {
         m_warn_when_drying_sizer->Show(true);
     } else {
         m_warn_when_drying_sizer->Show(false);
