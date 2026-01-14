@@ -90,11 +90,6 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
 
         nozzle_fils[extruder_variant]++;
     }
-    if (nozzle_fils["Direct Drive TPU High Flow"] > 1) {
-        std::string error_msg = _L("The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n") +
-                                std::to_string(nozzle_fils["Direct Drive TPU High Flow"]) + _L(" filaments are assigned to the TPU High Flow nozzle");
-        throw Slic3r::RuntimeError(error_msg);
-    }
     return true;
 }
 
