@@ -5477,6 +5477,28 @@ void Plater::priv::select_view(const std::string& direction)
     }
 }
 
+bool Plater::check_include_gcode()
+{
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    const DynamicPrintConfig& config = preset_bundle.prints.get_edited_preset().config;
+
+    if (config.has("post_process")) {
+        auto* opt = config.opt<ConfigOptionStrings>("post_process");
+        if (opt && !opt->values.empty()) {
+            std::string first_script = opt->values.front();
+            std::string all_scripts = boost::algorithm::join(opt->values, "; ");
+            if (!first_script.empty()) {
+                MessageDialog msg(wxGetApp().mainframe, _L("There is a G-code script present in the current 3mf file, please verify the content of the script."), _L("Warning"), wxOK | wxICON_WARNING);
+                if (msg.ShowModal() == wxID_OK) {
+                    wxGetApp().sidebar().jump_to_option("post_process", Preset::TYPE_PRINT, L"");
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 const VendorProfile::PrinterModel *Plater::get_curr_printer_model()
 {
     auto bundle = wxGetApp().preset_bundle;
@@ -12666,6 +12688,8 @@ int Plater::load_project(wxString const &filename2,
         input_paths.push_back(into_u8(originfile));
 
     std::vector<size_t> res = load_files(input_paths, strategy);
+
+    check_include_gcode();
 
     reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
