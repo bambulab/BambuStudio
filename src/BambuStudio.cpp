@@ -2946,6 +2946,7 @@ int CLI::run(int argc, char **argv)
                                 ConfigOptionVectorBase* opt_vec_dest = static_cast<ConfigOptionVectorBase*>(dest_opt);
 
                                 opt_vec_dest->set_with_restore(opt_vec_src, variant_index, stride);
+                                continue;
                             }
                             else
                                 continue;
