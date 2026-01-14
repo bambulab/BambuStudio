@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,6 +57,9 @@ msgstr "ABS / ASA / PETG HF を右側の押出機で使用する場合、サポ�
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "TPU フィラメントでは自動動的流量キャリブレーションは使用できません。"
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "詰まり防止のために、TPUの造形前にコールドプルを行ってください。プリンターのコールドプルメンテナンス機能をご利用いただけます。"
@@ -3330,17 +3333,8 @@ msgstr "現在のフィラメントマッピングをリセット"
 msgid "Right AMS"
 msgstr "右 AMS"
 
-msgid "Tips:"
-msgstr "ヒント"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr "1. 異なる種類のフィラメントは組み合わせできません。"
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr "2. 左ノズルのフィラメントが右ノズルと一致していません。"
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr "続行するには、「準備」ページでフィラメントまたはノズルの割り当てを変更し、再度スライスしてください。使用前に Wiki を参照してください。"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "左ノズルに装着されているフィラメントを選択してください。"
@@ -3363,6 +3357,10 @@ msgstr "フィラメントを選択"
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "現在のノズルで造形すると、約%0.2fgのフィラメントが無駄になる可能性があります。"
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4015,8 +4013,8 @@ msgstr "自動ベッドレベリング - フェーズ 2"
 msgid "Heating chamber"
 msgstr "加熱チャンバー"
 
-msgid "Cooling heatbed"
-msgstr "ヒートベッド冷却中"
+msgid "Adjusting heatbed temperature"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "キャリブレーションラインを印刷中"
@@ -4062,6 +4060,9 @@ msgstr "ノズル固まり検知位置をキャリブレーション中"
 
 msgid "Purifying the chamber air"
 msgstr "チャンバー内の空気を浄化する"
+
+msgid "Preparing AMS"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "このプリンタではタイムラプスはサポートされていません。"
@@ -4221,6 +4222,28 @@ msgstr "無効なフォーマット、%1%であるはずです。"
 
 msgid "Clear color"
 msgstr "カラーをクリア"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Gコードを読み込み中"
@@ -4416,6 +4439,9 @@ msgstr "右ノズル"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "グループ化結果に基づいてプリンタにフィラメントを配置してください。"
+
+msgid "Tips:"
+msgstr "ヒント"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "現在のスライス結果のグルーピングは最適ではありません。"
@@ -4816,17 +4842,26 @@ msgstr "フラッシュ量"
 msgid "Calibration step selection"
 msgstr "キャリブレーション項目を選択"
 
-msgid "Micro lidar calibration"
-msgstr "ライダー キャリブレーション"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "ベッドレベリング"
+msgid "Auto Bed Leveling"
+msgstr "自動ベッドレベリング"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "高温ヒートベッドキャリブレーション"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "ノズル固まり検知キャリブレーション"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "ノズルオフセットキャリブレーション"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "キャリブレーション項目"
@@ -6593,6 +6628,9 @@ msgstr "現在のプレート上のオブジェクトを自動配置"
 msgid "Unlock current plate"
 msgstr "現在のプレートのロックを解除"
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr "フィラメントのグループ分けを編集"
 
@@ -8084,9 +8122,6 @@ msgstr "スライスファイルでのフィラメントのグループ化の方
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "造形品質を保つため、造形中は乾燥温度を低く設定します。"
 
-msgid "Auto Bed Leveling"
-msgstr "自動ベッドレベリング"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8103,9 +8138,6 @@ msgid ""
 msgstr ""
 "このプロセスは、動的流量値を決定し、全体的な印刷品質を向上させます。\n"
 "*自動モード: 最近フィラメントがキャリブレーションされている場合はスキップされます。"
-
-msgid "Nozzle Offset Calibration"
-msgstr "ノズルオフセットキャリブレーション"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -9283,6 +9315,21 @@ msgstr "マッチング"
 msgid "Quick set"
 msgstr "クイック設定"
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr "メモ"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr "オリジナル"
@@ -9304,16 +9351,6 @@ msgstr "既存のフィラメントに追加"
 
 msgid "Reset mapped extruders."
 msgstr "マッピングされた押出機をリセットする。"
-
-msgid "Note"
-msgstr "メモ"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"色が選択されました。「OK」を選択して続行するか、\n"
-"手動で調整することができます。"
 
 msgid "—> "
 msgstr ""
@@ -10374,6 +10411,9 @@ msgstr "積層ピッチはノズル径を超えることはできません。"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "プレート %d: %s がフィラメント %s を使用できません"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr "壁の順序が「内側／外側」に設定されていない場合、精密外壁は無視されます。"
 
 msgid "Generating skirt & brim"
 msgstr "スカートとブリムを生成"
@@ -15095,11 +15135,11 @@ msgstr "(プリンタと同期)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
+msgstr "エラー：%s 押出機に使用可能な %s ノズルがありません。現在のグループ設定は無効です。"
 
 #, c-format, boost-format
 msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr ""
+msgstr "グループ設定を調整するか、「準備」ページ左上の %s 押出機設定を変更し、直径 %s mm のノズルが少なくとも 1 つ含まれるようにしてください。"
 
 msgid "We will slice according to this grouping method:"
 msgstr "このグループ化方法に従ってスライスします。"
@@ -15237,6 +15277,83 @@ msgstr "パージによる廃材を削減し、造形時間を短縮します。
 
 msgid "Learn more about purge mode"
 msgstr "パージモードの詳細を見る"
+
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr "開始"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15585,6 +15702,37 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. 異なる種類のフィラメントは組み合わせできません。"
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. 左ノズルのフィラメントが右ノズルと一致していません。"
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "続行するには、「準備」ページでフィラメントまたはノズルの割り当てを変更し、再度スライスしてください。使用前に Wiki を参照してください。"
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "ヒートベッド冷却中"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "ライダー キャリブレーション"
+
+#~ msgid "Bed leveling"
+#~ msgstr "ベッドレベリング"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "高温ヒートベッドキャリブレーション"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "ノズル固まり検知キャリブレーション"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "色が選択されました。「OK」を選択して続行するか、\n"
+#~ "手動で調整することができます。"
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18235,9 +18383,6 @@ msgstr ""
 
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "選択したオブジェクトを複数のパーツに分割"
-
-#~ msgid "Start"
-#~ msgstr "開始"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "スパゲティや廃料口詰りを検出した場合、造形を停止します"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,6 +57,9 @@ msgstr "Bij gebruik van ABS/ASA/PETG HF op de rechter extruder, kan deze alleen 
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Automatische dynamische doorstroomkalibratie wordt niet ondersteund voor TPU-filament."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Trek a.u.b. koud voordat u TPU afdrukt om verstopping te voorkomen. U kunt cold pull-onderhoud op de printer gebruiken."
@@ -3345,17 +3348,8 @@ msgstr "Huidige toewijzing van gloeidraden resetten"
 msgid "Right AMS"
 msgstr "Rechts AMS"
 
-msgid "Tips:"
-msgstr "Tips:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr "1. Filamenten van verschillende types kunnen niet op elkaar worden afgestemd."
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr "2. Het filament van de linker nozzle komt niet overeen met dat van de rechter nozzle."
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr "Om door te gaan, ga naar de voorbereidingspagina om de filament- of nozzle-toewijzing te wijzigen en snijd opnieuw. Raadpleeg de Wiki voor gebruik->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "Selecteer het filament dat op de linker nozzle is geïnstalleerd."
@@ -3378,6 +3372,10 @@ msgstr "Selecteer filament"
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "Printen met de huidige nozzle kan een extra %0.2f g afval opleveren."
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4032,7 +4030,7 @@ msgstr "Automatische bednivellering - fase 2"
 msgid "Heating chamber"
 msgstr "Verwarmingskamer"
 
-msgid "Cooling heatbed"
+msgid "Adjusting heatbed temperature"
 msgstr ""
 
 msgid "Printing calibration lines"
@@ -4079,6 +4077,9 @@ msgstr "De detectiepositie van verstopping in de nozzle kalibreren"
 
 msgid "Purifying the chamber air"
 msgstr "Lucht in de kamer zuiveren"
+
+msgid "Preparing AMS"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse wordt niet ondersteund op deze printer."
@@ -4239,6 +4240,28 @@ msgstr "Onjuist formaat. Het Vector formaat wordt verwacht: \"%1%\""
 
 msgid "Clear color"
 msgstr "Kleur wissen"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "G-codes laden"
@@ -4434,6 +4457,9 @@ msgstr "Rechter nozzle"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Plaats filamenten op de printer op basis van het groepsresultaat."
+
+msgid "Tips:"
+msgstr "Tips:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "De huidige groepering van slice-resultaten is niet optimaal."
@@ -4834,17 +4860,26 @@ msgstr "Volumes schoonmaken"
 msgid "Calibration step selection"
 msgstr "Kalibratiestap selectie"
 
-msgid "Micro lidar calibration"
-msgstr "Micro Lidar Kalibratie"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "Bed leveling"
+msgid "Auto Bed Leveling"
+msgstr "Automatisch bednivellering"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "Kalibratie van het hittebed bij hoge temperatuur"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "Kalibratie detectie van nozzle-klontervorming"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "Nozzle Offset Kalibratie"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibratie programma"
@@ -6633,6 +6668,9 @@ msgstr "Rangschikt de objecten op het huidige plaat"
 msgid "Unlock current plate"
 msgstr "Ontgrendel huidige plaat"
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr "Filamentgroepering bewerken"
 
@@ -8130,9 +8168,6 @@ msgstr "Je methode voor het groeperen van filamenten in het gesneden bestand is 
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "Om de printkwaliteit te waarborgen, wordt de droogtemperatuur tijdens het printen verlaagd."
 
-msgid "Auto Bed Leveling"
-msgstr "Automatisch bednivellering"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8149,9 +8184,6 @@ msgid ""
 msgstr ""
 "Dit proces bepaalt de dynamische stroomwaarden om de algehele afdrukkwaliteit te verbeteren.\n"
 "*Automatische modus: Overslaan als het filament onlangs is gekalibreerd."
-
-msgid "Nozzle Offset Calibration"
-msgstr "Nozzle Offset Kalibratie"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -9332,6 +9364,21 @@ msgstr "Bijpassend"
 msgid "Quick set"
 msgstr "Snelle set"
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr "Notitie"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr "Origineel"
@@ -9353,16 +9400,6 @@ msgstr "Toevoegen aan bestaande filamenten"
 
 msgid "Reset mapped extruders."
 msgstr "In kaart gebrachte extruders resetten."
-
-msgid "Note"
-msgstr "Notitie"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"De kleur is geselecteerd; u kunt OK kiezen \n"
-"om door te gaan of handmatig aan te passen."
 
 msgid "—> "
 msgstr ""
@@ -10423,6 +10460,9 @@ msgstr "De laaghoogte kan niet groter zijn dan de diameter van de nozzle"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Printbed %d: %s ondersteunt filament %s niet."
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr "Precieze buitenwand wordt genegeerd tenzij de volgorde van muren is ingesteld op binnen/buiten"
 
 msgid "Generating skirt & brim"
 msgstr "Skirt en brim worden gegenereerd"
@@ -15142,11 +15182,11 @@ msgstr "(Synchroniseren met printer)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
+msgstr "Fout: %s extruder heeft geen beschikbare %s nozzle, huidige groepering is ongeldig."
 
 #, c-format, boost-format
 msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr ""
+msgstr "Pas uw groepering aan of wijzig uw %s extruder linksboven op de Voorbereiden-pagina om ervoor te zorgen dat deze ten minste één nozzle bevat met een diameter van %s mm"
 
 msgid "We will slice according to this grouping method:"
 msgstr "We zullen segmenteren volgens deze groeperingsmethode:"
@@ -15284,6 +15324,83 @@ msgstr "Vermindert het afval bij spoelen en drukt sneller af. Kan lichte kleurve
 
 msgid "Learn more about purge mode"
 msgstr "Meer informatie over de reinigingsmodus"
+
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr "Starten"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15633,6 +15750,34 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. Filamenten van verschillende types kunnen niet op elkaar worden afgestemd."
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. Het filament van de linker nozzle komt niet overeen met dat van de rechter nozzle."
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "Om door te gaan, ga naar de voorbereidingspagina om de filament- of nozzle-toewijzing te wijzigen en snijd opnieuw. Raadpleeg de Wiki voor gebruik->"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Micro Lidar Kalibratie"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Bed leveling"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Kalibratie van het hittebed bij hoge temperatuur"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "Kalibratie detectie van nozzle-klontervorming"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "De kleur is geselecteerd; u kunt OK kiezen \n"
+#~ "om door te gaan of handmatig aan te passen."
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18298,9 +18443,6 @@ msgstr ""
 
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "Splits het geselecteerde object op in meerdere onderdelen"
-
-#~ msgid "Start"
-#~ msgstr "Starten"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Stop met afdrukken wanneer Spaghetti of verstopping van de afvoer chute wordt gedetecteerd"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,6 +57,9 @@ msgstr "Lors de l'utilisation d'ABS/ASA/PETG HF sur l'extrudeuse droite, cette b
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "La calibration automatique du débit dynamique n'est pas prise en charge pour le filament TPU."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Veuillez effectuer un tirage à froid avant d'imprimer du TPU pour éviter tout bouchage. Vous pouvez utiliser la procédure de Tirage à froid sur l'imprimante."
@@ -2696,7 +2699,7 @@ msgid "Unload"
 msgstr "retirer"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
-msgstr "Sélectionner un emplacement AMS, puis appuyez sur l'option choisi pour « Charger » ou « Décharger » le filament automatiquement."
+msgstr "Sélectionner une fente AMS, puis appuyez sur l'option choisi pour « Charger » ou « Décharger » le filament automatiquement."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Le type de filament requis pour effectuer cette action est inconnu. Veuillez définir les informations du filament cible."
@@ -3182,10 +3185,10 @@ msgid "Factor N"
 msgstr "Facteur N"
 
 msgid "Setting AMS slot information while printing is not supported"
-msgstr "La définition des informations relatives aux emplacements AMS pendant l'impression n'est pas prise en charge."
+msgstr "La définition des informations relatives aux fentes AMS pendant l'impression n'est pas prise en charge"
 
 msgid "Setting Virtual slot information while printing is not supported"
-msgstr "Le réglage des informations relatives à l'emplacement virtuel pendant l'impression n'est pas pris en charge"
+msgstr "Définir des fentes Virtuelles pendant l'impression n'est pas prise en charge"
 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Êtes-vous sûr de vouloir effacer les informations du filament ?"
@@ -3316,7 +3319,7 @@ msgstr ""
 "Et vous ne pouvez pas cliquer pour modifier"
 
 msgid "AMS Slots"
-msgstr "Emplacements AMS"
+msgstr "Fentes AMS"
 
 msgid "Please select from the following filaments"
 msgstr "Veuillez choisir parmi les filaments suivants"
@@ -3339,17 +3342,8 @@ msgstr "Réinitialisation de la cartographie actuelle du filament"
 msgid "Right AMS"
 msgstr "Droit AMS"
 
-msgid "Tips:"
-msgstr "Astuces:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr "1. Les filaments de types différents ne peuvent pas être associés."
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr "2. Les filaments de la buse gauche ne correspondent pas à ceux de la buse droite."
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr "Pour continuer, allez à la page de \"Préparation\" pour modifier l'affectation du filament ou de la buse, puis tranchez à nouveau. Veuillez consulter le Wiki avant utilisation ->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "Veuillez sélectionner le filament installé sur la buse gauche."
@@ -3374,15 +3368,19 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "Imprimer avec la buse actuelle peut générer %0.2f g de déchets supplémentaires."
 
 #, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Impossible de sélectionner : le type de filament (%s) ne correspond pas au type de filament (%s) dans le fichier tranché. Si vous souhaitez utiliser cet emplacement, vous pouvez installer %s à la place de %s et modifier ses informations sur la page « Périphérique »."
+msgstr "Impossible de sélectionner : le type de filament (%s) ne correspond pas au type de filament (%s) dans le fichier tranché. Si vous souhaitez utiliser cette fente, vous pouvez installer %s à la place de %s et modifier ses informations sur la page « Périphérique »."
 
 #, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Impossible de sélectionner : l’emplacement est vide ou non défini. Si vous souhaitez utiliser cet emplacement, vous pouvez installer %s et modifier les informations de l’emplacement sur la page « Périphérique »."
+msgstr "Impossible de sélectionner : la fente est vide ou non défini. Si vous souhaitez utiliser cette fente, vous pouvez installer %s et modifier les informations depuis la page « Périphérique »."
 
 msgid "Cannot select: No filament loaded in current slot."
-msgstr "Impossible de sélectionner : Aucun filament chargé dans l'emplacement actuel."
+msgstr "Impossible de sélectionner : Aucun filament chargé dans la fente actuelle."
 
 msgid "Enable AMS"
 msgstr "Activer l'AMS"
@@ -3400,16 +3398,16 @@ msgid "Please change the desiccant when it is too wet. The indicator may not rep
 msgstr "Veuillez changer le déshydratant lorsqu'il est trop humide. L'indicateur peut ne pas être précis dans les cas suivants : Lorsque le couvercle est ouvert ou que le sachet de dessicant est changé, cela peut prendre plusieurs heures ou une nuit pour absorber l'humidité. Les basses températures ralentissent également le processus."
 
 msgid "Config which AMS slot should be used for a filament used in the print job"
-msgstr "Configurez quel emplacement AMS doit être utilisé pour le filament utilisé dans l'impression."
+msgstr "Configurez quelle fente AMS doit être utilisé pour le filament utilisé dans l'impression"
 
 msgid "Filament used in this print job"
 msgstr "Filament utilisé dans ce travail d'impression"
 
 msgid "AMS slot used for this filament"
-msgstr "Emplacement AMS utilisé pour ce filament"
+msgstr "Fente AMS utilisée pour ce filament"
 
 msgid "Click to select AMS slot manually"
-msgstr "Cliquez pour sélectionner manuellement l'emplacement AMS"
+msgstr "Cliquez pour sélectionner manuellement la fente AMS"
 
 msgid "Do not Enable AMS"
 msgstr "Ne pas activer l'AMS"
@@ -4023,8 +4021,8 @@ msgstr "Nivellement auto du plateau - phase 2"
 msgid "Heating chamber"
 msgstr "Chauffage de la chambre"
 
-msgid "Cooling heatbed"
-msgstr "Refroidissement du plateau"
+msgid "Adjusting heatbed temperature"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "Impression de lignes d'étalonnage"
@@ -4070,6 +4068,9 @@ msgstr "Calibration de la position de détection de l'encrassement de la buse"
 
 msgid "Purifying the chamber air"
 msgstr "Purification de l’air dans la chambre"
+
+msgid "Preparing AMS"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "La fonction Timelapse n'est pas prise en charge par cette imprimante."
@@ -4230,6 +4231,28 @@ msgstr "Format invalide. Format vectoriel attendu : \"%1%\""
 
 msgid "Clear color"
 msgstr "Effacer couleur"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Chargement des G-codes"
@@ -4425,6 +4448,9 @@ msgstr "Buse droite"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Veuillez placer les filaments sur l'imprimante en fonction du résultat du regroupement."
+
+msgid "Tips:"
+msgstr "Astuces:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "Le regroupement actuel du résultat de découpe n'est pas optimal."
@@ -4823,17 +4849,26 @@ msgstr "Volumes de Purge"
 msgid "Calibration step selection"
 msgstr "Sélection de l'étape de calibration"
 
-msgid "Micro lidar calibration"
-msgstr "Calibration du Micro-Lidar"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "Nivellement du plateau"
+msgid "Auto Bed Leveling"
+msgstr "Nivellement Auto du Plateau"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "Étalonnage du plateau chauffant à haute température"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "Calibrage de la détection d'encrassement de la buse"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "Calibration Offset Buse"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Programme de calibration"
@@ -5945,19 +5980,19 @@ msgid "The printer is busy on other print job"
 msgstr "L'imprimante est occupée par un autre travail d'impression."
 
 msgid "When printing is paused, filament loading and unloading are only supported for external slots."
-msgstr "Lorsque l’impression est en pause, le chargement et le déchargement du filament sont uniquement pris en charge pour les emplacements externes."
+msgstr "Lorsque l’impression est en pause, le chargement et le déchargement du filament sont uniquement pris en charge pour les filaments externes."
 
 msgid "Current extruder is busy changing filament"
 msgstr "L'extrudeuse actuelle est occupée à changer de filament"
 
 msgid "Current slot has alread been loaded"
-msgstr "L'emplacement actuel a déjà été chargé"
+msgstr "La fente actuelle a déjà été chargé"
 
 msgid "The selected slot is empty."
-msgstr "L'emplacement sélectionné est vide."
+msgstr "La fente sélectionnée est vide."
 
 msgid "No extruder found for the selected slot."
-msgstr "Aucun extrudeur n'a été trouvé pour l'emplacement sélectionné."
+msgstr "Aucun extrudeur n'a été trouvé pour la fente sélectionné."
 
 msgid "The selected slot is not loaded in the extruder."
 msgstr "Le filament sélectionné n'est pas chargé dans l'extrudeur."
@@ -6078,7 +6113,7 @@ msgid " upload config parse failed\n"
 msgstr " L'analyse de la configuration téléversée a échoué\n"
 
 msgid " No corresponding storage bucket\n"
-msgstr " Aucun emplacement correspondant\n"
+msgstr " Aucune fente correspondante\n"
 
 msgid " can not be opened\n"
 msgstr " cannot be opened\n"
@@ -6620,6 +6655,9 @@ msgstr "Disposer les objets sur la plaque actuelle"
 msgid "Unlock current plate"
 msgstr "Déverrouiller la plaque actuelle"
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr "Modifier le regroupement de filament"
 
@@ -6693,19 +6731,19 @@ msgid "Set the number of AMS installed on the nozzle."
 msgstr "Définir le nombre d'AMS installés sur la buse."
 
 msgid "AMS(4 slots)"
-msgstr "AMS (4 emplacements)"
+msgstr "AMS (4 fentes)"
 
 msgid "AMS(1 slot)"
-msgstr "AMS (1 emplacement)"
+msgstr "AMS (1 fente)"
 
 msgid "Not installed"
 msgstr "Non installé"
 
 msgid "4-slot AMS"
-msgstr "AMS à 4 emplacements"
+msgstr "AMS à 4 fentes"
 
 msgid "1-slot AMS"
-msgstr "AMS à 1 emplacements"
+msgstr "AMS à 1 fente"
 
 msgid "Remove this AMS"
 msgstr "Supprimer cet AMS"
@@ -8113,9 +8151,6 @@ msgstr "Votre méthode de regroupement des filaments dans le fichier en tranches
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "Pour garantir la qualité d'impression, la température de séchage sera abaissée pendant l'impression."
 
-msgid "Auto Bed Leveling"
-msgstr "Nivellement Auto du Plateau"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8132,9 +8167,6 @@ msgid ""
 msgstr ""
 "Ce processus détermine les valeurs de la dynamique de débit afin d'améliorer la qualité globale de l'impression.\n"
 "*Mode automatique : Sauter si le filament a été calibré récemment."
-
-msgid "Nozzle Offset Calibration"
-msgstr "Calibration Offset Buse"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -8154,10 +8186,10 @@ msgstr "Code erreur"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
-msgstr "Le filament %s ne correspond pas au filament de l'emplacement AMS %s. Veuillez mettre à jour le firmware de l'imprimante pour qu'il prenne en charge l'attribution des emplacements AMS."
+msgstr "Le filament %s ne correspond pas au filament de la fente AMS %s. Veuillez mettre à jour le firmware de l'imprimante pour qu'il prenne en charge l'attribution des fentes AMS."
 
 msgid "Filament does not match the filament in AMS slot. Please update the printer firmware to support AMS slot assignment."
-msgstr "Le filament ne correspond pas au filament du slot AMS. Mettez à jour le firmware de l'imprimante pour qu'il prenne en charge l'attribution des emplacements AMS."
+msgstr "Le filament ne correspond pas au filament de la fente AMS. Veuillez mettre à jour le firmware de l'imprimante pour qu'il prenne en charge l'attribution des fentes AMS."
 
 #, c-format, boost-format
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
@@ -9031,7 +9063,7 @@ msgid ""
 "If the preset corresponds to a filament currently in use on your printer, please reset the filament information for that slot."
 msgstr ""
 "Êtes-vous sûr de devoir supprimer le préréglage sélectionné ? \n"
-"Si le préréglage correspond à un filament actuellement utilisé sur votre imprimante, réinitialisez les informations relatives au filament pour cet emplacement."
+"Si le préréglage correspond à un filament actuellement utilisé sur votre imprimante, réinitialisez les informations relatives au filament pour cette fente."
 
 #, boost-format
 msgid "Are you sure to %1% the selected preset?"
@@ -9313,6 +9345,21 @@ msgstr "Correspondant"
 msgid "Quick set"
 msgstr "Set rapide"
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr ""
@@ -9334,16 +9381,6 @@ msgstr "Ajouter aux filaments existants"
 
 msgid "Reset mapped extruders."
 msgstr "Réinitialisez les extrudeuses assignés."
-
-msgid "Note"
-msgstr ""
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"La couleur a été sélectionnée, vous pouvez choisir OK\n"
-" pour continuer ou l'ajuster manuellement."
 
 msgid "—> "
 msgstr "->"
@@ -10404,6 +10441,9 @@ msgstr "La hauteur de couche ne doit pas excéder le diamètre de la buse"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Plaque %d : %s ne prend pas en charge le filament %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr "La paroi extérieure précise sera ignorée sauf si l'ordre des parois est défini sur intérieur/extérieur"
 
 msgid "Generating skirt & brim"
 msgstr "Génération jupe et bord"
@@ -14433,7 +14473,7 @@ msgid ""
 "If you are using this filament on your printer, please reset the filament information for that slot."
 msgstr ""
 "Tous les préréglages de ce filament seront supprimés. \n"
-"Si vous utilisez ce filament sur votre imprimante, veuillez réinitialiser les informations relatives au filament pour cet emplacement."
+"Si vous utilisez ce filament sur votre imprimante, veuillez réinitialiser les informations relatives au filament pour cette fente."
 
 msgid "Delete filament"
 msgstr "Supprimer filament"
@@ -15125,7 +15165,7 @@ msgstr "(Synchronisation avec l'imprimante)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
+msgstr "Erreur : l'extrudeur %s ne dispose d'aucune buse %s disponible, le groupement actuel est invalide."
 
 #, c-format, boost-format
 msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
@@ -15267,6 +15307,83 @@ msgstr "Réduit les déchets de purge et imprime plus rapidement. Peut entraîne
 
 msgid "Learn more about purge mode"
 msgstr "En savoir plus sur le mode purge"
+
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr "Démarrer"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15618,6 +15735,37 @@ msgid ""
 msgstr ""
 "Retrait, Warping et Contraintes\n"
 "En contrôlant l'indice thermique, vous pouvez éliminer les causes thermiques du soulèvement et des contraintes."
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. Les filaments de types différents ne peuvent pas être associés."
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. Les filaments de la buse gauche ne correspondent pas à ceux de la buse droite."
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "Pour continuer, allez à la page de \"Préparation\" pour modifier l'affectation du filament ou de la buse, puis tranchez à nouveau. Veuillez consulter le Wiki avant utilisation ->"
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "Refroidissement du plateau"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Calibration du Micro-Lidar"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Nivellement du plateau"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Étalonnage du plateau chauffant à haute température"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "Calibrage de la détection d'encrassement de la buse"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "La couleur a été sélectionnée, vous pouvez choisir OK\n"
+#~ " pour continuer ou l'ajuster manuellement."
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18240,9 +18388,6 @@ msgstr ""
 
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "Diviser l'objet sélectionné en plusieurs parties"
-
-#~ msgid "Start"
-#~ msgstr "Démarrer"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Arrêter l'impression en cas de détection d'Amas dans la goulotte d'évacuation ou de présence de Spaghetti"

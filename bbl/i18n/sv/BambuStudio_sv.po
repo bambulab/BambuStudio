@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -54,6 +54,9 @@ msgstr "Vid användning av ABS/ASA/PETG HF på höger extruder kan det endast an
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Automatisk dynamisk flödeskalibrering stöds inte för TPU filament."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr "Nuvarande filament stöder inte TPU högflödes nozzle och kan inte användas."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Vänligen kall dra innan du skriver ut TPU för att undvika igensättning. Du kan använda kalldragnings underhåll på printern."
@@ -3342,17 +3345,8 @@ msgstr "Återställ aktuell filament mappning"
 msgid "Right AMS"
 msgstr "Höger AMS"
 
-msgid "Tips:"
-msgstr "Tips:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr "1. Filament av olika typer kan inte matchas."
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr "2. Vänster nozzle filament matchar inte höger nozzle."
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr "För att fortsätta, gå till Förberedelse sidan för att ändra filament eller nozzle och bered igen. Se Wiki innan användning->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "Välj det filament som är installerat på vänster nozzle."
@@ -3375,6 +3369,10 @@ msgstr "Välj filament"
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "Utskrift med det aktuell nozzle kan ge extra %0.2fg avfall."
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4029,8 +4027,8 @@ msgstr "Automatisk bädd utjämning - fas 2"
 msgid "Heating chamber"
 msgstr "Värmekammare"
 
-msgid "Cooling heatbed"
-msgstr "Kyler värmebädd"
+msgid "Adjusting heatbed temperature"
+msgstr "Justerar värmebäddens temperatur"
 
 msgid "Printing calibration lines"
 msgstr "Utskrift av kalibreringslinjer"
@@ -4076,6 +4074,9 @@ msgstr "Kalibrering av detekterings positionen för nozzle klumpar"
 
 msgid "Purifying the chamber air"
 msgstr "Rening av kammarluften"
+
+msgid "Preparing AMS"
+msgstr "Förbereder AMS"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse stöds inte på den här printern."
@@ -4236,6 +4237,28 @@ msgstr "Ogiltligt format. Förväntat vector format: \"%1%\""
 
 msgid "Clear color"
 msgstr "Klar färg"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "Laddar G-koder"
@@ -4431,6 +4454,9 @@ msgstr "Höger nozzle"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Placera filamenten i printern baserat på grupperings resultatet."
+
+msgid "Tips:"
+msgstr "Tips:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "Nuvarande gruppering av berednings resultat är inte optimal."
@@ -4831,17 +4857,26 @@ msgstr "Spolnings volym"
 msgid "Calibration step selection"
 msgstr "Val av kalibreringssteg"
 
-msgid "Micro lidar calibration"
-msgstr "Micro Lidar Kalibrering"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "Justering av Byggplattan"
+msgid "Auto Bed Leveling"
+msgstr "Automatisk bäddutjämning"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "Kalibrering av värmebädd för hög temperatur"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "Kalibrering av nozzle klumpar"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "Kalibrering av nozzle offset"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibrerings program"
@@ -6630,6 +6665,9 @@ msgstr "Ordna objekt på aktuell platta"
 msgid "Unlock current plate"
 msgstr "Lås upp aktuell platta"
 
+msgid "Lock current plate"
+msgstr "Lås nuvarande platta"
+
 msgid "Edit filament grouping"
 msgstr "Redigera gruppering av filament"
 
@@ -8125,9 +8163,6 @@ msgstr "Din metod för gruppering av filament i berednings filen är inte optima
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "För att säkerställa utskriftskvalitet sänks torktiden under utskriften."
 
-msgid "Auto Bed Leveling"
-msgstr "Automatisk bäddutjämning"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8144,9 +8179,6 @@ msgid ""
 msgstr ""
 "Denna process bestämmer det dynamiska flödesvärdet för att förbättra den totala utskriftskvaliteten.\n"
 "*Automatiskt läge: Hoppa över om filamentet nyligen har kalibrerats."
-
-msgid "Nozzle Offset Calibration"
-msgstr "Kalibrering av nozzle offset"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -9329,6 +9361,21 @@ msgstr "Matchning"
 msgid "Quick set"
 msgstr "Snabb inställning"
 
+msgid "There are color input errors."
+msgstr "Det finns fel på färginmatningen."
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr "Texturimport är tillfälligt inte tillgänglig, partiell färg ersätts automatiskt med standardfärg."
+
+msgid " And "
+msgstr " Och "
+
+msgid "Note"
+msgstr "Notera"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr "Färgen har valts, du kan välja OK för att fortsätta eller manuellt justera den."
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr ""
@@ -9350,16 +9397,6 @@ msgstr "Lägg till befintliga filament"
 
 msgid "Reset mapped extruders."
 msgstr "Återställ mappade extrudrar."
-
-msgid "Note"
-msgstr "Notera"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"Färgen har valts; du kan välja OK \n"
-" för att fortsätta eller justera den manuellt."
 
 msgid "—> "
 msgstr ""
@@ -10420,6 +10457,9 @@ msgstr "Lagerhöjden kan inte överstiga nozzel diametern"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Plate %d: %s stöder inte filamentet %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr "Exakt yttervägg kommer att ignoreras om inte ordningen på väggar är inställd på inre/yttre"
 
 msgid "Generating skirt & brim"
 msgstr "Skapar Skirt & Brim"
@@ -15142,11 +15182,11 @@ msgstr "(Synkronisera med printer)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
+msgstr "Fel: %s extruder har inga tillgängliga %s nozzle, nuvarande gruppering är ogiltig."
 
 #, c-format, boost-format
 msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr ""
+msgstr "Vänligen justera din gruppering eller ändra din %s extruder överst till vänster på sidan Förbered för att se till att den innehåller minst en nozzle med en diameter på %s mm"
 
 msgid "We will slice according to this grouping method:"
 msgstr "Vi kommer att bereda enligt denna grupperingsmetod:"
@@ -15284,6 +15324,83 @@ msgstr "Minskar rensnings avfall och printar snabbare. Kan orsaka liten färgbla
 
 msgid "Learn more about purge mode"
 msgstr "Läs mer om rensnings läge"
+
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr "Starta"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15633,6 +15750,37 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. Filament av olika typer kan inte matchas."
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. Vänster nozzle filament matchar inte höger nozzle."
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "För att fortsätta, gå till Förberedelse sidan för att ändra filament eller nozzle och bered igen. Se Wiki innan användning->"
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "Kyler värmebädd"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Micro Lidar Kalibrering"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Justering av Byggplattan"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Kalibrering av värmebädd för hög temperatur"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "Kalibrering av nozzle klumpar"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "Färgen har valts; du kan välja OK \n"
+#~ " för att fortsätta eller justera den manuellt."
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18340,9 +18488,6 @@ msgstr ""
 
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "Dela det valda objektet till multipla delar"
-
-#~ msgid "Start"
-#~ msgstr "Starta"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Stoppa utskriften när spaghetti fenomen eller fylld avfallsränna upptäcks"

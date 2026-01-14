@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,6 +57,9 @@ msgstr "Az ABS/ASA/PETG HF csak támaszanyagként használható a jobb oldali ex
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Az automatikus dinamikus anyagáramlás kalibráció nem támogatott a TPU filamenttel."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
@@ -3345,17 +3348,8 @@ msgstr "Jelenlegi filamentkiosztás törlése"
 msgid "Right AMS"
 msgstr "Jobb AMS"
 
-msgid "Tips:"
-msgstr "Tippek:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr "1. A különböző típusú filamentek nem párosíthatók."
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr "2. A bal oldali fúvóka filamentjei nem egyeznek a jobb oldali fúvókáéval."
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr "A folytatáshoz lépj az Előkészítés oldalra a filament vagy fúvóka kijelölésének módosításához, majd szeleteld újra a tárgyat. A részletekért lásd a Wiki-t ->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "Kérjük, válaszd ki a bal oldali fúvókába töltött filamentet."
@@ -3378,6 +3372,10 @@ msgstr "Filament kiválasztása"
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "A jelenlegi fúvókával történő nyomtatás %0.2f g többlethulladékot eredményezhet."
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4032,8 +4030,8 @@ msgstr "Automatikus asztalyszintezés - 2. fázis"
 msgid "Heating chamber"
 msgstr "Kamra fűtése"
 
-msgid "Cooling heatbed"
-msgstr "Tárgyasztal hűtése"
+msgid "Adjusting heatbed temperature"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "Kalibrációs vonalak nyomtatása"
@@ -4079,6 +4077,9 @@ msgstr "A fúvókára tapadt anyag érzékelési pozíciójának kalibrálása"
 
 msgid "Purifying the chamber air"
 msgstr "Kamra levegőjének tisztítása"
+
+msgid "Preparing AMS"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "A timelapse funkció nem támogatott ezen a nyomtatón."
@@ -4239,6 +4240,28 @@ msgstr "Érvénytelen formátum. Elvárt vektor formátum: \"%1%\""
 
 msgid "Clear color"
 msgstr "Szín törlése"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "G-kódok betöltése"
@@ -4434,6 +4457,9 @@ msgstr "Jobb fúvóka"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Kérjük, a csoportosítási eredmény alapján helyezd a filamenteket a nyomtatóba."
+
+msgid "Tips:"
+msgstr "Tippek:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "A szeletelés jelenlegi csoportosítása nem optimális."
@@ -4834,17 +4860,26 @@ msgstr "Tisztítási mennyiségek"
 msgid "Calibration step selection"
 msgstr "Kalibrálási lépés kiválasztása"
 
-msgid "Micro lidar calibration"
-msgstr "Micro Lidar kalibrálás"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "Asztalszintezés"
+msgid "Auto Bed Leveling"
+msgstr "Automatikus asztalszintezés"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "Magas hőmérsékletű tárgyasztal kalibrálás"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "Fúvókára tapadt anyag észlelésének kalibrálása"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "Fúvókaeltérés kalibrálása"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "Kalibrációs program"
@@ -6633,6 +6668,9 @@ msgstr "Objektumok elrendezése a tálcán"
 msgid "Unlock current plate"
 msgstr "Tálca feloldása"
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr "Filamentcsoportosítás szerkesztése"
 
@@ -8127,9 +8165,6 @@ msgstr "A szeletelt fájlban a filamentek csoportosítása nem optimális."
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "A nyomtatási minőség biztosítása érdekében a szárítási hőmérséklet nyomtatás közben csökkenni fog."
 
-msgid "Auto Bed Leveling"
-msgstr "Automatikus asztalszintezés"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8146,9 +8181,6 @@ msgid ""
 msgstr ""
 "Megkeresi a legjobb értéket a dinamikus anyagáramláshoz, hogy javítsa a nyomtatás minőségét.\n"
 "*Automatikus mód: Kihagyás, ha a filament nemrég lett kalibrálva."
-
-msgid "Nozzle Offset Calibration"
-msgstr "Fúvókaeltérés kalibrálása"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -9327,6 +9359,21 @@ msgstr "Egyezés"
 msgid "Quick set"
 msgstr "Gyors beállítás"
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr "Megjegyzés"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr "Eredeti"
@@ -9348,16 +9395,6 @@ msgstr "Hozzáfűzés a meglévő filamentekhez"
 
 msgid "Reset mapped extruders."
 msgstr "Extruder-kiosztás visszaállítása."
-
-msgid "Note"
-msgstr "Megjegyzés"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"A szín kiválasztása megtörtént, az OK gombbal\n"
-"folytathatod vagy beállíthatod kézzel."
 
 msgid "—> "
 msgstr ""
@@ -10418,6 +10455,9 @@ msgstr "A rétegmagasság nem lehet nagyobb a fúvóka átmérőjénél"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "%d. tálca: %s nem használható %s filamenttel."
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Szoknya & perem generálása"
@@ -15278,6 +15318,83 @@ msgstr "Csökkenti a felesleges öblítést és gyorsabb nyomtatást tesz lehet�
 msgid "Learn more about purge mode"
 msgstr "Tudj meg többet az átöblítési módról"
 
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr "Indítás"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15627,6 +15744,37 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. A különböző típusú filamentek nem párosíthatók."
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. A bal oldali fúvóka filamentjei nem egyeznek a jobb oldali fúvókáéval."
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "A folytatáshoz lépj az Előkészítés oldalra a filament vagy fúvóka kijelölésének módosításához, majd szeleteld újra a tárgyat. A részletekért lásd a Wiki-t ->"
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "Tárgyasztal hűtése"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Micro Lidar kalibrálás"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Asztalszintezés"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Magas hőmérsékletű tárgyasztal kalibrálás"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "Fúvókára tapadt anyag észlelésének kalibrálása"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "A szín kiválasztása megtörtént, az OK gombbal\n"
+#~ "folytathatod vagy beállíthatod kézzel."
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -18250,9 +18398,6 @@ msgstr ""
 
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "Szétválasztja a kijelölt objektumot több tárgyra"
-
-#~ msgid "Start"
-#~ msgstr "Indítás"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Nyomtatás leállítása, ha spagettit vagy kidobónyílás eltömődést észlelt"

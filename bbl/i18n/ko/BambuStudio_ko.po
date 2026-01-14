@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,6 +57,9 @@ msgstr "오른쪽 압출기에서 ABS/ASA/PETG HF를 사용하는 경우, 지지
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "TPU 필라멘트에는 자동 동적 유량 보정이 지원되지 않습니다."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "막히지 않도록 TPU를 출력하기 전에 저온 당겨주세요. 저온 당기기는 프린터 유지 관리에 사용할 수 있습니다."
@@ -2595,7 +2598,7 @@ msgid "Custom G-code:"
 msgstr "커스텀 G 코드:"
 
 msgid "Toggle path view to current layer/all layers"
-msgstr ""
+msgstr "현재 레이어/모든 레이어로 경로 보기 전환"
 
 msgid "Custom G-code"
 msgstr "커스텀 G 코드"
@@ -3192,10 +3195,10 @@ msgid "Are you sure you want to clear the filament information?"
 msgstr "필라멘트 정보를 지우시겠습니까?"
 
 msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
-msgstr ""
+msgstr "TPU는 다른 공급 경로와 로딩 절차가 필요합니다. 그렇지 않으면 막힘이나 걸림이 발생할 수 있습니다. TPU를 사용하기 전에 튜토리얼을 읽어보세요."
 
 msgid "Go to Check"
-msgstr ""
+msgstr "확인으로 이동"
 
 msgid "You need to select the material type and color first."
 msgstr "재료 유형과 색상을 먼저 선택해야 합니다."
@@ -3340,23 +3343,14 @@ msgstr "현재 필라멘트 매핑 재설정"
 msgid "Right AMS"
 msgstr "오른쪽 AMS"
 
-msgid "Tips:"
-msgstr "팁:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr ""
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
-msgstr ""
+msgstr "왼쪽 노즐에 장착된 필라멘트를 선택하십시오."
 
 msgid "Please select the filament installed on the right nozzle."
-msgstr ""
+msgstr "오른쪽 노즐에 장착된 필라멘트를 선택하십시오."
 
 msgid "Nozzle"
 msgstr "노즐"
@@ -3375,15 +3369,19 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "현재 노즐로 출력하면 약 %0.2fg의 낭비물이 발생할 수 있습니다."
 
 #, c-format, boost-format
-msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
 #, c-format, boost-format
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr "선택할 수 없습니다: 필라멘트 유형(%s)이 슬라이싱 파일에 있는 필라멘트 유형(%s)과 일치하지 않습니다. 이 슬롯을 사용하려면 %s 대신 %s을 설치하고 '장치' 페이지에서 슬롯 정보를 변경하십시오."
+
+#, c-format, boost-format
 msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "선택 불가: 슬롯이 비어 있거나 정의되지 않았습니다. 이 슬롯을 사용하려면 %s를 설치하고 '장치' 페이지에서 슬롯 정보를 변경하세요."
 
 msgid "Cannot select: No filament loaded in current slot."
-msgstr ""
+msgstr "선택 불가: 현재 슬롯에 필라멘트가 로드되어 있지 않습니다."
 
 msgid "Enable AMS"
 msgstr "AMS 활성화"
@@ -4027,8 +4025,8 @@ msgstr "자동 베드 레벨링 - 2단계"
 msgid "Heating chamber"
 msgstr "실내 난방"
 
-msgid "Cooling heatbed"
-msgstr "히트베드 식히기"
+msgid "Adjusting heatbed temperature"
+msgstr ""
 
 msgid "Printing calibration lines"
 msgstr "보정 라인 출력"
@@ -4074,6 +4072,9 @@ msgstr "노즐 뭉침 감지 위치 교정 중"
 
 msgid "Purifying the chamber air"
 msgstr "챔버 공기 정화 중"
+
+msgid "Preparing AMS"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "이 프린터에서는 타임랩스가 지원되지 않습니다."
@@ -4189,7 +4190,7 @@ msgid "Loading ..."
 msgstr "로드 중..."
 
 msgid "Network unavailable"
-msgstr ""
+msgstr "네트워크 사용 불가"
 
 msgid "default"
 msgstr "기본값"
@@ -4234,6 +4235,28 @@ msgstr "잘못된 형식입니다. 예상 벡터 형식: \"%1%\""
 
 msgid "Clear color"
 msgstr "색상 지우기"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "G-code 로딩 중"
@@ -4429,6 +4452,9 @@ msgstr "오른쪽 노즐"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "그룹화 결과에 따라 프린터에 필라멘트를 배치하세요."
+
+msgid "Tips:"
+msgstr "팁:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "현재 슬라이스 결과의 그룹화가 최적이 아닙니다."
@@ -4829,17 +4855,26 @@ msgstr "플러싱 볼륨"
 msgid "Calibration step selection"
 msgstr "캘리브레이션 단계 선택"
 
-msgid "Micro lidar calibration"
-msgstr "라이다 센서 캘리브레이션"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "베드 레벨링"
+msgid "Auto Bed Leveling"
+msgstr "자동 베드 레벨링"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "고온 열판 보정"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "노즐 뭉침 감지 보정"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "노즐 오프셋 정 실패."
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "캘리브레이션 프로그램"
@@ -5831,10 +5866,10 @@ msgid "Printing Progress"
 msgstr "출력 진행상황"
 
 msgid "Pausing"
-msgstr ""
+msgstr "일시 중지 중"
 
 msgid "Stopping"
-msgstr ""
+msgstr "중지 중"
 
 msgid "Parts Skip"
 msgstr "물체 건너뛰기"
@@ -5960,10 +5995,10 @@ msgid "The selected slot is empty."
 msgstr "선택한 슬롯이 비어 있습니다."
 
 msgid "No extruder found for the selected slot."
-msgstr ""
+msgstr "선택한 슬롯에 압출기가 없습니다"
 
 msgid "The selected slot is not loaded in the extruder."
-msgstr ""
+msgstr "선택한 슬롯이 압출기에 로드되지 않았습니다."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "프린터 2D 모드는 3D 교정을 지원하지 않습니다"
@@ -6424,10 +6459,10 @@ msgid "Bottom"
 msgstr "하단"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
-msgstr ""
+msgstr "활성화하면 프린터가 출력된 부품 사진을 자동으로 촬영하여 클라우드에 업로드합니다. 이 옵션을 활성화하시겠습니까?"
 
 msgid "Confirm Enable Print Status Snapshot"
-msgstr ""
+msgstr "프린트 상태 스냅샷 활성화 확인"
 
 msgid "Unavailable during the task"
 msgstr "작업 중 사용 불가"
@@ -6535,10 +6570,10 @@ msgid "Pause printing"
 msgstr "출력 일시 중지"
 
 msgid "Print Status Snapshot"
-msgstr ""
+msgstr "프린트 상태 스냅샷"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
-msgstr ""
+msgstr "출력 중의 결함과 최종 결과를 원격으로 볼 수 있도록 출력 사진을 자동으로 촬영하고 업로드합니다."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -6620,6 +6655,9 @@ msgstr "현재 플레이트의 객체 정렬"
 
 msgid "Unlock current plate"
 msgstr "현재 플레이트 잠금 해제"
+
+msgid "Lock current plate"
+msgstr ""
 
 msgid "Edit filament grouping"
 msgstr "필라멘트 그룹화 편집"
@@ -6703,13 +6741,13 @@ msgid "Not installed"
 msgstr "설치되지 않음"
 
 msgid "4-slot AMS"
-msgstr ""
+msgstr "4슬롯 AMS"
 
 msgid "1-slot AMS"
-msgstr ""
+msgstr "1슬롯 AMS"
 
 msgid "Remove this AMS"
-msgstr ""
+msgstr "이 AMS를 제거하세요"
 
 msgid "Sync printer information"
 msgstr "프린터 정보 동기화"
@@ -6743,10 +6781,10 @@ msgid "Synchronize nozzle information and the number of AMS"
 msgstr "노즐 정보 및 AMS 개수 동기화"
 
 msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
+msgstr "현재 직경에 해당하는 노즐이 없습니다. 계속 전환하면 모든 노즐의 직경이 자동으로 변경됩니다."
 
 msgid "Confirm Diameter Switch"
-msgstr ""
+msgstr "직경 전환 확인"
 
 msgid "Project Filaments"
 msgstr "프로젝트 필라멘트"
@@ -6773,7 +6811,7 @@ msgid "Search plate, object and part."
 msgstr "플레이트, 개체 및 부품을 검색합니다."
 
 msgid "(Unavailable for right extruder)"
-msgstr ""
+msgstr "(오른쪽 압출기에서는 사용할 수 없음)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6859,7 +6897,7 @@ msgid "Found following keys unrecognized:\n"
 msgstr "다음과 같은 인식할 수 없는 키가 발견되었습니다:\n"
 
 msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
-msgstr ""
+msgstr "이 3mf는 Bambu Lab 출처가 아닙니다. 형상 데이터와 색상 데이터만 불러옵니다."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "3mf는 이전 버전의 Bambu Studio에서 생성되었습니다. 형상 데이터만 불러옵니다."
@@ -8118,9 +8156,6 @@ msgstr "슬라이스된 파일의 필라멘트 그룹화 방법이 최적이 아
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "출력 품질을 보장하기 위해 출력 중 건조 온도를 낮춥니다."
 
-msgid "Auto Bed Leveling"
-msgstr "자동 베드 레벨링"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8137,9 +8172,6 @@ msgid ""
 msgstr ""
 "이 프로세스는 전반적인 출력 품질을 개선하기 위해 동적 흐름 값을 결정합니다.\n"
 "*자동 모드: 필라멘트가 최근에 보정된 경우 건너뜁니다."
-
-msgid "Nozzle Offset Calibration"
-msgstr "노즐 오프셋 정 실패."
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -8306,7 +8338,7 @@ msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "현재 노즐 매핑으로 출력하면 약 %0.2f g의 낭비물이 추가로 발생할 수 있습니다."
 
 msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
-msgstr ""
+msgstr "현재 펌웨어 버전으로는 이 츌력 작업을 시작할 수 없습니다. 최신 버전으로 업데이트한 후 다시 시도해 주세요."
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
@@ -8403,7 +8435,7 @@ msgid "How to install"
 msgstr "설치 방법"
 
 msgid "Upgrade"
-msgstr ""
+msgstr "업그레이드"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "현재 펌웨어는 내부 스토리지로의 파일 전송을 지원하지 않습니다."
@@ -9315,6 +9347,21 @@ msgstr "매칭"
 msgid "Quick set"
 msgstr "빠른 설정"
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr "메모"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr "원본"
@@ -9336,16 +9383,6 @@ msgstr "기존 필라멘트에 추가"
 
 msgid "Reset mapped extruders."
 msgstr "매핑된 압출기를 재설정합니다."
-
-msgid "Note"
-msgstr "메모"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"색상이 선택되었으면 확인\n"
-" 을 선택하여 계속하거나 수동으로 조정할 수 있습니다."
 
 msgid "—> "
 msgstr ""
@@ -10407,6 +10444,9 @@ msgstr "레이어 높이는 노즐 직경을 초과할 수 없습니다."
 msgid "Plate %d: %s does not support filament %s"
 msgstr "플레이트 %d: %s은 (는) 필라멘트 %s을 (를) 지원하지 않습니다."
 
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
+
 msgid "Generating skirt & brim"
 msgstr "스커트 및 브림 생성"
 
@@ -10800,7 +10840,7 @@ msgstr ""
 "3. 외부 벽에서 미세 결함(VFA)이 발생하는 속도로 출력하는 것을 방지함"
 
 msgid "Cooling slowdown logic"
-msgstr ""
+msgstr "냉각 속도 감소 로직"
 
 msgid ""
 "Determines how the printer slows down when minimum layer time isn't reached.\n"
@@ -10809,15 +10849,20 @@ msgid ""
 "\n"
 "'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
 msgstr ""
+"최소 레이어 시간이 충족되지 않을 때 프린터가 감속하는 방식을 결정합니다.\n"
+"\n"
+"'균일 냉각'은 모든 프린트 기능을 동일하게 감속합니다(현재 기본 동작).\n"
+"\n"
+"'일관된 표면'은 내부 충진과 내부 둘레를 우선적으로 감속하여, 광택이 있는 필라멘트의 표면 마감을 위해 외부 둘레 속도를 유지합니다. 이로써 수직 미세 흔적(VFA)을 줄이고 일관된 표면 광택을 유지할 수 있습니다."
 
 msgid "Uniform cooling"
-msgstr ""
+msgstr "균일 냉각"
 
 msgid "Consistent surface"
-msgstr ""
+msgstr "일관된 표면"
 
 msgid "Perimeter transition distance"
-msgstr ""
+msgstr "외곽 전환 거리"
 
 msgid ""
 "Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
@@ -10825,6 +10870,10 @@ msgid ""
 "Only applies when 'Consistent surface' cooling logic is selected.\n"
 "Recommended value: 5-10mm. Set to 0 to disable."
 msgstr ""
+"감속된 외곽선이 끝나기 전 밀리미터 단위 거리로, 원래 출력 속도로 점차 복원됩니다. 이는 감속된 특징에서 빠른 외곽선 출력으로 전환할 때 품질 문제를 줄여줍니다.\n"
+"\n"
+"이 설정은 '일관된 표면' 냉각 로직이 선택된 경우에만 적용됩니다.\n"
+"권장 값: 5-10mm. 비활성화하려면 0으로 설정하십시오."
 
 msgid "Normal printing"
 msgstr "일반 출력"
@@ -10836,7 +10885,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr "초기 레이어를 제외한 이동 가속도"
 
 msgid "Short travel"
-msgstr ""
+msgstr "짧은 이동거리"
 
 msgid ""
 "Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
@@ -10845,6 +10894,11 @@ msgid ""
 "\n"
 "Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
+"외부 경계선 근처의 짧은 이동에 사용되는 가속도입니다. 짧은 이동이란 '수축 최소 이동 거리'보다 짧은 이동을 의미합니다.\n"
+"\n"
+"낮은 값(예: 250-500 mm/s²)은 인쇄 시간에 큰 영향을 주지 않으면서 날카로운 모서리에서 발생하는 링잉 현상을 줄여줍니다.\n"
+"\n"
+"0으로 설정하면 비활성화됩니다(일반 이동 가속도 사용)."
 
 msgid "Initial layer travel"
 msgstr "초기 레이어 이동"
@@ -15255,6 +15309,83 @@ msgstr "퍼지 폐기물을 줄이고 출력 속도를 높입니다. 약간의 �
 msgid "Learn more about purge mode"
 msgstr "퍼지 모드에 대해 자세히 알아보기"
 
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15603,6 +15734,28 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "히트베드 식히기"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "라이다 센서 캘리브레이션"
+
+#~ msgid "Bed leveling"
+#~ msgstr "베드 레벨링"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "고온 열판 보정"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "노즐 뭉침 감지 보정"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "색상이 선택되었으면 확인\n"
+#~ " 을 선택하여 계속하거나 수동으로 조정할 수 있습니다."
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."

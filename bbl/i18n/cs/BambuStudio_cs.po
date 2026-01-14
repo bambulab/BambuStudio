@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -61,6 +61,9 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
+msgstr ""
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -3319,16 +3322,7 @@ msgstr ""
 msgid "Right AMS"
 msgstr ""
 
-msgid "Tips:"
-msgstr "Tipy:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr ""
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
@@ -3351,6 +3345,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
 #, c-format, boost-format
@@ -3976,7 +3974,7 @@ msgstr ""
 msgid "Heating chamber"
 msgstr ""
 
-msgid "Cooling heatbed"
+msgid "Adjusting heatbed temperature"
 msgstr ""
 
 msgid "Printing calibration lines"
@@ -4022,6 +4020,9 @@ msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
 msgid "Purifying the chamber air"
+msgstr ""
+
+msgid "Preparing AMS"
 msgstr ""
 
 msgid "Timelapse is not supported on this printer."
@@ -4182,6 +4183,28 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Neplatný formát. Očekávaný vektorový formát: \"%1%\""
 
 msgid "Clear color"
+msgstr ""
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -4378,6 +4401,9 @@ msgstr ""
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr ""
+
+msgid "Tips:"
+msgstr "Tipy:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr ""
@@ -4776,16 +4802,25 @@ msgstr ""
 msgid "Calibration step selection"
 msgstr "Výběr kroku kalibrace"
 
-msgid "Micro lidar calibration"
-msgstr "Micro lidar kalibrace"
-
-msgid "Bed leveling"
-msgstr "Vyrovnání podložky"
-
-msgid "High-temperature Heatbed Calibration"
+msgid "Micro Lidar Calibration"
 msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
+msgid "Auto Bed Leveling"
+msgstr ""
+
+msgid "Vibration Compensation"
+msgstr ""
+
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
 msgstr ""
 
 msgid "Calibration program"
@@ -6554,6 +6589,9 @@ msgstr ""
 msgid "Unlock current plate"
 msgstr ""
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr ""
 
@@ -8022,9 +8060,6 @@ msgstr ""
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
-msgid "Auto Bed Leveling"
-msgstr ""
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8036,9 +8071,6 @@ msgstr "Kalibrace Dynamiky Průtoku"
 msgid ""
 "This process determines the dynamic flow values to improve overall print quality.\n"
 "*Automatic mode: Skip if the filament was calibrated recently."
-msgstr ""
-
-msgid "Nozzle Offset Calibration"
 msgstr ""
 
 msgid ""
@@ -9190,6 +9222,21 @@ msgstr ""
 msgid "Quick set"
 msgstr ""
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr ""
@@ -9210,14 +9257,6 @@ msgid "Append to existing filaments"
 msgstr ""
 
 msgid "Reset mapped extruders."
-msgstr ""
-
-msgid "Note"
-msgstr ""
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
 msgstr ""
 
 msgid "—> "
@@ -10271,6 +10310,9 @@ msgstr "Výška vrstvy nemůže překročit průměr trysky"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Podložka %d: %s nepodporuje filament %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Generování Obrysu a Límce"
@@ -15029,6 +15071,83 @@ msgstr ""
 msgid "Learn more about purge mode"
 msgstr ""
 
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15337,6 +15456,12 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Micro lidar kalibrace"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Vyrovnání podložky"
 
 #~ msgid "Calibration error"
 #~ msgstr "Chyba kalibrace"

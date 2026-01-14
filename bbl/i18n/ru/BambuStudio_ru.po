@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -64,6 +64,9 @@ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as 
 msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
+msgstr ""
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -3415,16 +3418,7 @@ msgstr "Сброс текущего сопоставления материал�
 msgid "Right AMS"
 msgstr "Правая АСПП"
 
-msgid "Tips:"
-msgstr "Предупреждение:"
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr ""
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr ""
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
 msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
@@ -3447,6 +3441,10 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
 #, c-format, boost-format
@@ -4096,7 +4094,7 @@ msgstr "Автовыравнивание стола - этап 2"
 msgid "Heating chamber"
 msgstr "Нагрев термокамеры"
 
-msgid "Cooling heatbed"
+msgid "Adjusting heatbed temperature"
 msgstr ""
 
 msgid "Printing calibration lines"
@@ -4142,6 +4140,9 @@ msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
 msgid "Purifying the chamber air"
+msgstr ""
+
+msgid "Preparing AMS"
 msgstr ""
 
 msgid "Timelapse is not supported on this printer."
@@ -4306,6 +4307,28 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Недопустимый формат. Ожидаемый векторный формат: \"%1%\""
 
 msgid "Clear color"
+msgstr ""
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -4511,6 +4534,9 @@ msgstr "Правое сопло"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Разместите материал в принтере в соответствии с результатом группировки."
+
+msgid "Tips:"
+msgstr "Предупреждение:"
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "Текущая группировка не является оптимальной."
@@ -4915,17 +4941,25 @@ msgstr ""
 msgid "Calibration step selection"
 msgstr "Выбор шагов калибровки"
 
-msgid "Micro lidar calibration"
-msgstr "Калибровка микролидаром"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "Выравнивание стола"
+msgid "Auto Bed Leveling"
+msgstr "Автовыравнивание стола"
 
-# ??? Не длинно? Высокотемп. калибровка стола
-msgid "High-temperature Heatbed Calibration"
-msgstr "Высокотемпературная калибровка стола"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "Калибровка смещения сопла"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
 msgstr ""
 
 # ??? О калибровке
@@ -6745,6 +6779,9 @@ msgstr ""
 msgid "Unlock current plate"
 msgstr ""
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr ""
 
@@ -8280,9 +8317,6 @@ msgstr "Ваш метод группировки материалов не яв�
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
-msgid "Auto Bed Leveling"
-msgstr "Автовыравнивание стола"
-
 # ???55
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
@@ -8303,9 +8337,6 @@ msgid ""
 msgstr ""
 "Этот процесс определяет значение динамического потока для улучшения общего качества печати.\n"
 "*Автоматический режим: в этом режиме проверка пропускается, если значение для данного прутка уже было недавно определено."
-
-msgid "Nozzle Offset Calibration"
-msgstr "Калибровка смещения сопла"
 
 # ?????56
 msgid ""
@@ -9508,6 +9539,21 @@ msgstr "Соответствие"
 msgid "Quick set"
 msgstr "Быстрый выбор"
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr "Примечание"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr ""
@@ -9533,16 +9579,6 @@ msgstr "Добавить к существующим пруткам."
 # ??? Сброс сопоставленных экструдеров.
 msgid "Reset mapped extruders."
 msgstr "Сброс сопоставленных прутков."
-
-msgid "Note"
-msgstr "Примечание"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"цвета уже выбраны. Для продолжения вы можете\n"
-"нажать «OK» или подобрать их вручную."
 
 msgid "—> "
 msgstr "—> "
@@ -10621,6 +10657,9 @@ msgstr "Высота слоя не может быть больше диамет
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Печатная пластина %d: %s не поддерживает пруток %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Генерация юбки и каймы"
@@ -15566,6 +15605,83 @@ msgstr ""
 msgid "Learn more about purge mode"
 msgstr ""
 
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15882,6 +15998,23 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Калибровка микролидаром"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Выравнивание стола"
+
+# ??? Не длинно? Высокотемп. калибровка стола
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Высокотемпературная калибровка стола"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "цвета уже выбраны. Для продолжения вы можете\n"
+#~ "нажать «OK» или подобрать их вручную."
 
 #~ msgid ""
 #~ "The software does not support using different diameter of nozzles for one print.\n"
