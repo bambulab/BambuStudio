@@ -3045,6 +3045,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("apply_top_surface_compensation", coBool);
     def->label  = L("Apply top surface compensation");
+    def->tooltip = L("Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls.");
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
