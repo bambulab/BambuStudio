@@ -241,7 +241,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
                     result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
                 }
             } else if (description == "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
-                result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (description == "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
             } else if (description == "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.") {
