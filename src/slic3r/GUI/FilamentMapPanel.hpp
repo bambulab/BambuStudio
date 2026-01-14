@@ -46,7 +46,7 @@ private:
     Label *m_description;
     Label *m_tips;
     Label *m_errors;
-    Label   *m_suggestion;
+    wxPanel *m_suggestion_panel;
 
     ScalableButton *m_switch_btn;
 
