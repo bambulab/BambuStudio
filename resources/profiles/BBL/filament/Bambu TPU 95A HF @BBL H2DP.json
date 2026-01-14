@@ -22,12 +22,12 @@
     "filament_deretraction_speed": [
         "10",
         "10",
-        "10"
+        "40"
     ],
     "filament_flow_ratio": [
         "1",
         "1",
-        "1"
+        "0.99"
     ],
     "filament_flush_temp": [
         "0",
@@ -82,7 +82,7 @@
     "filament_retraction_length": [
         "2",
         "2",
-        "2"
+        "0.4"
     ],
     "filament_retraction_minimum_travel": [
         "nil",
@@ -92,17 +92,17 @@
     "filament_retraction_speed": [
         "10",
         "10",
-        "10"
+        "40"
     ],
     "filament_wipe": [
         "nil",
         "nil",
-        "nil"
+        "1"
     ],
     "filament_wipe_distance": [
         "nil",
         "nil",
-        "nil"
+        "1"
     ],
     "filament_z_hop": [
         "nil",
@@ -112,7 +112,7 @@
     "filament_z_hop_types": [
         "nil",
         "nil",
-        "nil"
+        "Spiral Lift"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
@@ -160,22 +160,27 @@
     "filament_overhang_2_4_speed": [
         "50",
         "50",
-        "50"
+        "25"
     ],
     "filament_overhang_3_4_speed": [
         "30",
         "30",
-        "30"
+        "25"
     ],
     "filament_overhang_4_4_speed": [
         "10",
         "10",
-        "10"
+        "25"
     ],
     "filament_overhang_totally_speed": [
         "10",
         "10",
-        "10"
+        "25"
+    ],
+    "filament_bridge_speed": [
+        "25",
+        "25",
+        "25"
     ],
     "filament_adaptive_volumetric_speed": [
         "0",
@@ -193,17 +198,17 @@
     "nozzle_temperature": [
         "230",
         "230",
-        "230"
+        "235"
     ],
     "nozzle_temperature_initial_layer": [
         "230",
         "230",
-        "230"
+        "235"
     ],
     "override_process_overhang_speed": [
         "0",
         "0",
-        "0"
+        "1"
     ],
     "retraction_distances_when_ec": [
         "0",
@@ -213,7 +218,7 @@
     "slow_down_min_speed": [
         "10",
         "10",
-        "10"
+        "30"
     ],
     "volumetric_speed_coefficients": [
         "0 0 0 0 0 0",

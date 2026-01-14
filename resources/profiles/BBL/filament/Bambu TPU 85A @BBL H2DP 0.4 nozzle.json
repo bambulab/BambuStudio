@@ -71,6 +71,18 @@
     "filament_z_hop_types": [
         "Spiral Lift"
     ],
+    "filament_overhang_3_4_speed": [
+        "25"
+    ],
+    "filament_overhang_4_4_speed": [
+        "20"
+    ],
+    "filament_overhang_2_4_speed": [
+        "25"
+    ],
+    "filament_overhang_totally_speed": [
+        "25"
+    ],
     "impact_strength_z": [
         "88.7"
     ],
@@ -86,8 +98,11 @@
     "nozzle_temperature_range_high": [
         "250"
     ],
+    "override_process_overhang_speed": [
+        "1"
+    ],
     "retraction_distances_when_ec": [
-        "10"
+        "0"
     ],
     "slow_down_min_speed": [
         "30"
