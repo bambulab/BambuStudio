@@ -466,8 +466,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/UserPresetsDialog.hpp
     GUI/ExtraRenderers.cpp
     GUI/ExtraRenderers.hpp
-    GUI/ExtruderPanel.cpp
-    GUI/ExtruderPanel.hpp
     GUI/ProjectDirtyStateManager.hpp
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
