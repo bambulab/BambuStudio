@@ -160,7 +160,7 @@
     "filament_overhang_2_4_speed": [
         "50",
         "50",
-        "50"
+        "30"
     ],
     "filament_overhang_3_4_speed": [
         "30",
@@ -170,17 +170,17 @@
     "filament_overhang_4_4_speed": [
         "10",
         "10",
-        "10"
+        "30"
     ],
     "filament_overhang_totally_speed": [
         "10",
         "10",
-        "10"
+        "30"
     ],
     "filament_bridge_speed": [
         "25",
         "25",
-        "25"
+        "30"
     ],
     "filament_adaptive_volumetric_speed": [
         "0",
@@ -214,7 +214,7 @@
     "override_process_overhang_speed": [
         "0",
         "0",
-        "0"
+        "1"
     ],
     "retraction_distances_when_ec": [
         "0",

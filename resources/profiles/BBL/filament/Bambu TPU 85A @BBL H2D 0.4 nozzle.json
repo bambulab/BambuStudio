@@ -14,9 +14,6 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
-    "filament_adaptive_volumetric_speed": [
-        "0"
-    ],
     "filament_cooling_before_tower": [
         "10"
     ],
@@ -29,17 +26,8 @@
     "filament_deretraction_speed": [
         "50"
     ],
-    "filament_enable_overhang_speed": [
-        "1"
-    ],
     "filament_extruder_variant": [
         "Direct Drive TPU High Flow"
-    ],
-    "filament_flush_temp": [
-        "0"
-    ],
-    "filament_flush_volumetric_speed": [
-        "0"
     ],
     "filament_flow_ratio": [
         "1.1"
@@ -47,22 +35,16 @@
     "filament_long_retractions_when_cut": [
         "0"
     ],
-    "filament_overhang_1_4_speed": [
-        "0"
-    ],
     "filament_overhang_2_4_speed": [
-        "50"
+        "25"
     ],
     "filament_overhang_3_4_speed": [
-        "30"
+        "25"
     ],
     "filament_overhang_4_4_speed": [
-        "10"
+        "20"
     ],
     "filament_overhang_totally_speed": [
-        "10"
-    ],
-    "filament_bridge_speed": [
         "25"
     ],
     "filament_ramming_volumetric_speed": [
@@ -80,35 +62,8 @@
     "filament_pre_cooling_temperature": [
         "195"
     ],
-    "filament_pre_cooling_temperature_nc": [
-        "0"
-    ],
     "filament_ramming_travel_time": [
         "20"
-    ],
-    "filament_ramming_travel_time_nc": [
-        "0"
-    ],
-    "filament_ramming_volumetric_speed_nc": [
-        "-1"
-    ],
-    "filament_retraction_distances_when_cut": [
-        "nil"
-    ],
-    "filament_retract_length_nc": [
-        "14"
-    ],
-    "filament_retraction_minimum_travel": [
-        "nil"
-    ],
-    "filament_retract_before_wipe": [
-        "nil"
-    ],
-    "filament_retract_restart_extra": [
-        "nil"
-    ],
-    "filament_retract_when_changing_layer": [
-        "nil"
     ],
     "filament_wipe": [
         "1"
@@ -128,9 +83,6 @@
     "impact_strength_z": [
         "88.7"
     ],
-    "include": [
-        "fdm_filament_template_direct_dual"
-    ],
     "long_retractions_when_ec": [
         "1"
     ],
@@ -144,7 +96,7 @@
         "230"
     ],
     "override_process_overhang_speed": [
-        "0"
+        "1"
     ],
     "retraction_distances_when_ec": [
         "0"
