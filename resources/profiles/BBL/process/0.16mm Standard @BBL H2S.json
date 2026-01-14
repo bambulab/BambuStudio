@@ -30,17 +30,13 @@
         "50",
         "50"
     ],
-    "internal_solid_infill_speed": [
-        "250",
-        "300"
-    ],
     "inner_wall_speed": [
         "300",
         "300"
     ],
-    "initial_layer_infill_speed": [
-        "105",
-        "105"
+    "internal_solid_infill_speed": [
+        "250",
+        "300"
     ],
     "initial_layer_travel_acceleration": [
         "6000",
@@ -50,6 +46,10 @@
         "500",
         "500"
     ],
+    "initial_layer_infill_speed": [
+        "105",
+        "105"
+    ],
     "inner_wall_acceleration": [
         "0",
         "0"
@@ -58,13 +58,17 @@
         "200",
         "200"
     ],
-    "overhang_1_4_speed": [
-        "60",
-        "60"
+    "overhang_totally_speed": [
+        "10",
+        "10"
     ],
     "outer_wall_acceleration": [
         "5000",
         "5000"
+    ],
+    "overhang_1_4_speed": [
+        "60",
+        "60"
     ],
     "overhang_2_4_speed": [
         "30",
@@ -78,12 +82,9 @@
         "10",
         "10"
     ],
-    "overhang_totally_speed": [
-        "10",
-        "10"
-    ],
-    "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
+    "prime_tower_brim_width": "-1",
+    "prime_tower_flat_ironing": "1",
     "print_extruder_id": [
         "1",
         "1"
@@ -92,10 +93,18 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
-    "prime_tower_flat_ironing": "1",
+    "smooth_coefficient": "4",
     "sparse_infill_speed": [
         "350",
         "600"
+    ],
+    "support_interface_speed": [
+        "80",
+        "80"
+    ],
+    "support_speed": [
+        "150",
+        "150"
     ],
     "slowdown_start_height": [
         "0",
@@ -129,34 +138,29 @@
         "0",
         "0"
     ],
-    "smooth_coefficient": "4",
     "sparse_infill_acceleration": [
         "100%",
         "100%"
     ],
-    "support_interface_speed": [
-        "80",
-        "80"
+    "top_surface_speed": [
+        "200",
+        "200"
     ],
-    "support_speed": [
-        "150",
-        "150"
-    ],
-    "travel_speed": [
-        "1000",
-        "1000"
+    "top_solid_infill_flow_ratio": [
+        "1",
+        "1"
     ],
     "travel_acceleration": [
         "10000",
         "10000"
     ],
+    "travel_speed": [
+        "1000",
+        "1000"
+    ],
     "top_surface_acceleration": [
         "2000",
         "2000"
-    ],
-    "top_surface_speed": [
-        "200",
-        "200"
     ],
     "travel_speed_z": [
         "0",
