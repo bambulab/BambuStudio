@@ -481,12 +481,6 @@ void ExtruderPanel::CreateLayout()
         });
         event.Skip();
     });
-
-    CallAfter([this]() {
-        if (m_ams_sizer) {
-            update_ams();
-        }
-    });
 }
 
 void ExtruderPanel::SetNozzlePanelCount(int count)
@@ -727,16 +721,9 @@ void ExtruderPanel::update_ams()
             }
         }
     } else {
-        if (m_ext_previews.empty()) {
-            auto ext_preview = new AMSPreview(m_scroll, wxID_ANY, AMSinfo(), AMSModel::EXT_AMS);
-            ext_preview->Close();
-            m_ext_previews.push_back(ext_preview);
+        for (auto preview : m_ext_previews) {
+            preview->Close();
         }
-
-        m_ext_previews[0]->Update(info_ext);
-        m_ext_previews[0]->Refresh();
-        m_ext_previews[0]->Open();
-        m_ams_sizer->Add(m_ext_previews[0], 0, wxALL, FromDIP(2));
     }
 
     UpdateLayout();
@@ -830,7 +817,7 @@ void ExtruderPanel::UpdateLayout()
     }
 
     if (m_type != SingleExtruder && m_scroll) {
-        int ams_height    = FromDIP(40);
+        int ams_height    = (m_ams_n4 > 0 || m_ams_n1 > 0) ? FromDIP(40) : 0;
         int nozzle_height = m_wide_layout ? FromDIP(50) * 2 : FromDIP(54);
         int total_height  = ams_height + nozzle_height + FromDIP(4);
 
@@ -908,7 +895,11 @@ NozzleVolumeType ExtruderPanel::GetVolumeType(const wxString& diameter) const
 
     if (m_nozzle_panels.size() == 1) {
         ExtruderNozzlePanel* panel = m_nozzle_panels[0];
-        return panel->GetFlow();
+        if (panel && panel->GetDiameter() == diameter) {
+            return panel->GetFlow();
+        } else {
+            return nvtStandard;
+        }
     } else {
         std::set<NozzleVolumeType> matching_flows;
 
