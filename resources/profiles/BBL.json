@@ -6024,8 +6024,16 @@
             "sub_path": "filament/Bambu TPU 95A HF @BBL H2D.json"
         },
         {
+            "name": "Bambu TPU 95A HF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL H2D 0.4 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 95A HF @BBL H2DP",
             "sub_path": "filament/Bambu TPU 95A HF @BBL H2DP.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL H2DP 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL H2DP 0.4 nozzle.json"
         },
         {
             "name": "Bambu TPU 95A HF @BBL H2S",
