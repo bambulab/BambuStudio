@@ -43,6 +43,9 @@
     "filament_change_length_nc": [
         "4"
     ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
