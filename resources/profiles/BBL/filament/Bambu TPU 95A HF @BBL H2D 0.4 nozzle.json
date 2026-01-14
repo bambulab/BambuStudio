@@ -1,0 +1,11 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU 95A HF @BBL H2D 0.4 nozzle",
+    "inherits": "Bambu TPU 95A HF @BBL H2D",
+    "from": "system",
+    "setting_id": "GFSU00_20",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Bambu Lab H2D 0.4 nozzle"
+    ]
+}
