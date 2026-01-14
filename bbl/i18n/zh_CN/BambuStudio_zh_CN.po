@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-09 16:53+0800\n"
+"POT-Creation-Date: 2026-01-14 12:14+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -61,6 +61,9 @@ msgstr "ABS/ASA/PETG HF在右挤出机打印时，仅能作为支撑材料使用
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "TPU线材不支持自动动态流量校准。"
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr "当前耗材不支持 TPU 大流量喷嘴，无法使用。"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的冷拔维护功能。"
@@ -3330,17 +3333,8 @@ msgstr "重置当前耗材映射"
 msgid "Right AMS"
 msgstr "右侧AMS"
 
-msgid "Tips:"
-msgstr "提示："
-
-msgid "1. Filaments of different types cannot be matched."
-msgstr "1. 不同类型的耗材不能混用。"
-
-msgid "2. Left nozzle filaments do not match the right nozzle."
-msgstr "2. 左喷嘴的耗材与右喷嘴不匹配。"
-
-msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
-msgstr "若要继续，请转到准备页面更改耗材或喷嘴分配，然后重新切片。请使用前参考Wiki ->"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr ""
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "请选择安装在左喷嘴上的耗材丝。"
@@ -3363,6 +3357,10 @@ msgstr ""
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "使用当前喷嘴打印可能会产生额外 %0.2f 克废料。"
+
+#, c-format, boost-format
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4002,8 +4000,8 @@ msgstr "自动热床调平 –阶段二"
 msgid "Heating chamber"
 msgstr "腔体加热中 "
 
-msgid "Cooling heatbed"
-msgstr "热床降温中"
+msgid "Adjusting heatbed temperature"
+msgstr "热床温度调节中"
 
 msgid "Printing calibration lines"
 msgstr "打印标定线"
@@ -4049,6 +4047,9 @@ msgstr "裹头检测位置校准"
 
 msgid "Purifying the chamber air"
 msgstr "腔体空气净化中"
+
+msgid "Preparing AMS"
+msgstr "AMS准备中"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "此打印机不支持延时摄影"
@@ -4209,6 +4210,28 @@ msgstr "无效格式，应该是\"%1%\"这种数组格式"
 
 msgid "Clear color"
 msgstr "清除颜色"
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
+msgstr ""
 
 msgid "Loading G-codes"
 msgstr "正在加载G-code"
@@ -4404,6 +4427,9 @@ msgstr "右喷嘴"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "请按上述分组结果到打印机放置耗材"
+
+msgid "Tips:"
+msgstr "提示："
 
 msgid "Current grouping of slice result is not optimal."
 msgstr "当前材料分组不是最优结果。"
@@ -4803,17 +4829,26 @@ msgstr "打开冲刷表"
 msgid "Calibration step selection"
 msgstr "校准步骤选择"
 
-msgid "Micro lidar calibration"
-msgstr "微型激光雷达校准"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "热床调平"
+msgid "Auto Bed Leveling"
+msgstr "自动热床调平"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "高温热床校准"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "喷嘴裹头检测位置校准"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr "喷嘴偏移校准"
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr ""
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -5805,7 +5840,7 @@ msgid "Pausing"
 msgstr ""
 
 msgid "Stopping"
-msgstr ""
+msgstr "停止中"
 
 msgid "Parts Skip"
 msgstr "零件跳过"
@@ -6583,6 +6618,9 @@ msgstr "在当前盘上摆放对象"
 
 msgid "Unlock current plate"
 msgstr "解锁当前盘"
+
+msgid "Lock current plate"
+msgstr ""
 
 msgid "Edit filament grouping"
 msgstr "编辑材料分组"
@@ -8076,9 +8114,6 @@ msgstr "切片文件中的材料分组不是最优结果。"
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "为确保打印质量，打印过程中将降低干燥温度。"
 
-msgid "Auto Bed Leveling"
-msgstr "自动热床调平"
-
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8095,9 +8130,6 @@ msgid ""
 msgstr ""
 "此过程确定动态流量校准的最佳系数，从而提升打印质量。\n"
 "*自动模式：如果该耗材近期被校准过，则跳过流量校准。"
-
-msgid "Nozzle Offset Calibration"
-msgstr "喷嘴偏移校准"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -9268,6 +9300,21 @@ msgstr "匹配"
 msgid "Quick set"
 msgstr "快捷设置"
 
+msgid "There are color input errors."
+msgstr "存在颜色输入错误。"
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr "纹理导入暂时不可用，部分着色将自动替换为默认颜色。"
+
+msgid " And "
+msgstr " 并且"
+
+msgid "Note"
+msgstr "提示"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr "颜色已经默认匹配好了，您可以选中确认继续或手动修改它。"
+
 msgctxt "ObjImport"
 msgid "Original"
 msgstr "原项目"
@@ -9289,16 +9336,6 @@ msgstr "在已有耗材后面追加耗材"
 
 msgid "Reset mapped extruders."
 msgstr "重置匹配的耗材丝。"
-
-msgid "Note"
-msgstr "提示"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"颜色已经选好了，您可以选中确认 \n"
-" 继续或手动修改它。"
 
 msgid "—> "
 msgstr ""
@@ -10357,6 +10394,9 @@ msgstr "层高不能超过喷嘴直径"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "盘%d：%s不支持耗材丝 %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
@@ -12272,7 +12312,7 @@ msgid "Aligned"
 msgstr "对齐"
 
 msgid "Back"
-msgstr "背面"
+msgstr "返回"
 
 msgid "Random"
 msgstr "随机"
@@ -15189,6 +15229,83 @@ msgstr "减少冲刷量，加快打印速度，但可能出现轻微的颜色混
 msgid "Learn more about purge mode"
 msgstr "了解更多冲刷模式信息"
 
+msgid "AMS Dryness Control"
+msgstr "AMS烘干"
+
+msgid "Filament Drying Settings"
+msgstr "耗材烘干设置"
+
+msgid "H"
+msgstr ""
+
+msgid "Start"
+msgstr "开始"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr "暂时无法烘干，由于 ..."
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting>"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr "请拔出并收起耗材（如图）"
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid "°C;\n"
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid ""
+"This filament may not be completely dried.\n"
+"\n"
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgstr ""
+
+msgid "The temperature shall not exceed the heat distortion temperature("
+msgstr ""
+
+msgid "°C) of the filament.\n"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1.\n"
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying preseets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15537,6 +15654,37 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. 不同类型的耗材不能混用。"
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. 左喷嘴的耗材与右喷嘴不匹配。"
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "若要继续，请转到准备页面更改耗材或喷嘴分配，然后重新切片。请使用前参考Wiki ->"
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "热床降温中"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "微型激光雷达校准"
+
+#~ msgid "Bed leveling"
+#~ msgstr "热床调平"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "高温热床校准"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "喷嘴裹头检测位置校准"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "颜色已经选好了，您可以选中确认 \n"
+#~ " 继续或手动修改它。"
 
 #, c-format, boost-format
 #~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
@@ -19003,9 +19151,6 @@ msgstr ""
 
 #~ msgid "When you need Pressure Advance Calibration"
 #~ msgstr "当您需要进行压力提升校准时"
-
-#~ msgid "Start"
-#~ msgstr "首层"
 
 #~ msgid "Pressure Advance"
 #~ msgstr "压力提升"
