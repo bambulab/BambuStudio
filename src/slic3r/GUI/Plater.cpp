@@ -792,7 +792,9 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
     btn_connect_printer->Show(!isBBL);
     btn_sync_printer->Show(isBBL);
     panel_printer_bed->Show(isBBL);
-    diameter_btns->Show(isBBL);
+    //vsizer_printer->GetItem(2)->GetSizer()->GetItem(1)->Show(isDual);
+    //vsizer_printer->GetItem(2)->Show(isBBL && isDual);
+    //vsizer_printer->GetItem(3)->Show(isBBL && !isDual);
 
     vsizer_printer->GetItem(3)->GetSizer()->GetItem(1)->Show(isDual);
     vsizer_printer->GetItem(3)->Show(isBBL && isDual);
@@ -1587,38 +1589,19 @@ void ExtruderPanel::sync_ams(MachineObject const *obj, std::vector<DevAms *> con
     };
 
     if (sync(m_ams_4, ams4) || sync(m_ams_1, ams1) || sync_ext(m_ext, ext))
-        // set_ams_count(m_ams_4.size(), m_ams_1.size());
         update_ams();
 }
 
 void ExtruderPanel::ShowAMSCountPopup()
 {
-    if (m_ams_popup) {
-        m_ams_popup->Dismiss();
-        m_ams_popup->Destroy();
-        m_ams_popup = nullptr;
-    }
     auto popup = new PopupWindow(this, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS);
     popup->SetBackgroundColour(*wxWHITE);
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    int extruder_idx = m_type == LeftExtruder ? 0 : (m_type == RightExtruder ? 1 : 0);
-    int ams4, ams1;
-    AMSCountPopupWindow::GetAMSCount(extruder_idx, ams4, ams1);
-
-    int other_idx = 1 - extruder_idx;
-    int oth4, oth1;
-    AMSCountPopupWindow::GetAMSCount(other_idx, oth4, oth1);
-
-
     auto btn_ams4 = new Button(popup, _L("4-slot AMS"));
     btn_ams4->SetMinSize(wxSize(FromDIP(100), FromDIP(28)));
     btn_ams4->SetFont(Label::Body_12);
-    btn_ams4->Enable(ams4 + oth4 < 4);
-    if (!btn_ams4->IsEnabled()) {
-        btn_ams4->SetTextColor(wxColour("#CECECE"));
-    }
     btn_ams4->Bind(wxEVT_BUTTON, [this, popup](wxCommandEvent &) {
         int extruder_idx = m_type == LeftExtruder ? 0 : (m_type == RightExtruder ? 1 : 0);
         int ams4, ams1;
@@ -1639,10 +1622,6 @@ void ExtruderPanel::ShowAMSCountPopup()
     auto btn_ams1 = new Button(popup, _L("1-slot AMS"));
     btn_ams1->SetMinSize(wxSize(FromDIP(100), FromDIP(28)));
     btn_ams1->SetFont(Label::Body_12);
-    btn_ams1->Enable(ams1 + oth1 < 8);
-    if (!btn_ams1->IsEnabled()) {
-        btn_ams1->SetTextColor(wxColour("#CECECE"));
-    }
     btn_ams1->Bind(wxEVT_BUTTON, [this, popup](wxCommandEvent &) {
         int extruder_idx = m_type == LeftExtruder ? 0 : (m_type == RightExtruder ? 1 : 0);
         int ams4, ams1;
@@ -1678,24 +1657,19 @@ void ExtruderPanel::ShowAMSCountPopup()
                 !m_add_btn->GetScreenRect().Contains(current_pos)) {
                 popup->Dismiss();
                 m_ams_popup = nullptr;
-                wxGetApp().CallAfter([popup]() {
-                    if (popup) {
-                        popup->Destroy();
-                    }
-                });
             }
         }
         evt.Skip();
     });
 
+    if (m_ams_popup) {
+        m_ams_popup->Dismiss();
+    }
     m_ams_popup = popup;
 
     wxPoint pos  = m_add_btn->GetScreenPosition();
     wxSize  size = m_add_btn->GetSize();
     popup->Position(wxPoint(pos.x, pos.y + size.y), wxSize(0, 0));
-    if (m_ams_popup) {
-        m_ams_popup->Popup();
-    }
 }
 
 void ExtruderPanel::ShowAMSDeletePopup(AMSPreview *ams_preview)
@@ -1806,6 +1780,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     //    return false;
     //}
 
+    if (!plater->check_printer_initialized(obj)) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
+        return false;
+    }
+
     std::string machine_print_name = obj->get_show_printer_type();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
@@ -1904,12 +1883,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     switch_diameter();
     is_switching_diameter = false;
     if (extruder_nums > 1) {
-        AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
-        AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
         AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
         AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
     } else {
-        AMSCountPopupWindow::SetAMSCount(0, main_4, main_1);
         AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
     }
 
@@ -3260,11 +3236,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
             auto panels = extruder.GetNozzlePanels();
             if (p->is_syncing && /*target_volume_type == NozzleVolumeType::nvtHybrid && */ obj && obj->GetNozzleSystem()) {
-                int  main_index     = obj->is_main_extruder_on_left() ? 0 : 1;
-                int  deputy_index   = obj->is_main_extruder_on_left() ? 1 : 0;
-                vector<int> indices  = nozzle_volumes->values.size() == 1 ? vector<int>{0} : obj->is_main_extruder_on_left() ? vector<int>{0, 1} : vector<int>{1, 0};
-                int  extruder_index = indices[index];
-                auto nozzle_configs = p->collect_nozzle_configs_from_machine(obj, extruder_index, extruder_nozzle_count);
+                auto nozzle_configs = p->collect_nozzle_configs_from_machine(obj, index == 1 ? MAIN_EXTRUDER_ID : DEPUTY_EXTRUDER_ID, extruder_nozzle_count);
 
                 for (int i = 0; i < extruder_nozzle_count && i < panels.size(); i++) {
                     auto panel = panels[i];
@@ -3334,11 +3306,14 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 update_extruder_nozzle_count(*p->s_extruder_panel, 0);
                 p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
             }
-            p->diameter_btns->RefreshLayout(diameter_choices);
-            int index = std::distance(diameter_choices.begin(), std::find_if(diameter_choices.begin(), diameter_choices.end(), [diameter](const wxString &str) {
-                                          return str.Find(diameter) != wxNOT_FOUND;
-                                      }));
-            p->diameter_btns->SetSelectedDiameter(diameter_choices[index]);
+            auto diameter_choices = get_diameter_choices();
+            wxGetApp().CallAfter([this, diameter, diameter_choices]() {
+                p->diameter_btns->RefreshLayout(diameter_choices);
+                int index = std::distance(diameter_choices.begin(), std::find_if(diameter_choices.begin(), diameter_choices.end(), [diameter](const wxString &str) {
+                                              return str.Find(diameter) != wxNOT_FOUND;
+                                          }));
+                p->diameter_btns->SetSelectedDiameter(diameter_choices[index]);
+            });
         }
 
         if (GUI::wxGetApp().plater())
@@ -3560,7 +3535,6 @@ void Sidebar::msw_rescale()
     //BBS
     p->combo_printer_bed->Rescale();
     p->combo_printer_bed->SetMinSize({-1, 3 * wxGetApp().em_unit()});
-    p->diameter_btns->Rescale();
     p->l_extruder_panel->Rescale();
     p->r_extruder_panel->Rescale();
     p->s_extruder_panel->Rescale();
