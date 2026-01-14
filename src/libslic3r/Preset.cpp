@@ -165,8 +165,13 @@ void extend_default_config_length(DynamicPrintConfig& config, const DynamicPrint
         if (!config.has(variant_key) && inherit_config.has(variant_key))
             config.set_key_value(variant_key, inherit_config.option(variant_key)->clone());
 
-        if (!id_key.empty() && !config.has(variant_key) && inherit_config.has(id_key))
+        if (!id_key.empty() && !config.has(id_key) && inherit_config.has(id_key))
             config.set_key_value(id_key, inherit_config.option(id_key)->clone());
+
+        if (!config.has(variant_key) || (!id_key.empty() && !config.has(id_key))) {
+            config.erase(variant_key);
+            config.erase(id_key);
+        }
 
         if (auto* opt = config.option<ConfigOptionStrings>(variant_key))
             return (int)opt->size();
