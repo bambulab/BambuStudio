@@ -230,7 +230,7 @@
       "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
     },
     {
-      "type": "PA6-GF",
+      "type": "PA-GF",
       "nozzle_flows": ["High Flow"],
       "nozzle_diameters": [ 0.4 ],
       "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
