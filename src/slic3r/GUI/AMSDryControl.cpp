@@ -1006,7 +1006,7 @@ void AMSDryCtrWin::set_ams_id(const std::string& ams_id)
 void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
 {
     if (status == DevAms::DryStatus::Off || status == DevAms::DryStatus::Cooling) {
-        m_image_description->SetLabel("Idle");
+        m_image_description->SetLabel(_L("Idle"));
         m_image_description_icon->Show(false);
         return;
     }
@@ -1014,11 +1014,11 @@ void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DryS
     // Determine label text for non-idle states
     wxString label_text;
     if (status == DevAms::DryStatus::Error) {
-        label_text = "Drying";
+        label_text = _L("Drying");
     } else if (sub_status == DevAms::DrySubStatus::Heating) {
-        label_text = "Drying-Heating";
+        label_text = _L("Drying-Heating");
     } else if (sub_status == DevAms::DrySubStatus::Dehumidify) {
-        label_text = "Drying-Dehumidifying";
+        label_text = _L("Drying-Dehumidifying");
     } else {
         m_image_description_icon->Show(false);
         return;
@@ -1228,53 +1228,53 @@ void AMSDryCtrWin::OnFilamentSelectionChanged(wxCommandEvent& event)
     update_filament_guide_info(dev_ams);
 }
 
-std::string get_cannot_reason_text(DevAms::CannotDryReason reason)
+wxString get_cannot_reason_text(DevAms::CannotDryReason reason)
 {
-    std::string cannot_reason_text;
+    wxString cannot_reason_text;
     switch (reason)
     {
     case DevAms::CannotDryReason::InsufficientPower:
-        cannot_reason_text = "*Insufficient power\n";
-        cannot_reason_text += "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n";
+        cannot_reason_text = _L("*Insufficient power\n");
+        cannot_reason_text += _L("  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n");
         break;
     case DevAms::CannotDryReason::AmsBusy:
-        cannot_reason_text = "*AMS is busy\n";
-        cannot_reason_text += "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n";
+        cannot_reason_text = _L("*AMS is busy\n");
+        cannot_reason_text += _L("  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n");
         break;
     case DevAms::CannotDryReason::ConsumableAtAmsOutlet:
-        cannot_reason_text = "*Consumable at AMS outlet\n";
-        cannot_reason_text += "  The high drying temperature may cause AMS blockage; please unload first.";
+        cannot_reason_text = _L("*Consumable at AMS outlet\n");
+        cannot_reason_text += _L("  The high drying temperature may cause AMS blockage; please unload first.");
         break;
     case DevAms::CannotDryReason::InitiatingAmsDrying:
-        cannot_reason_text = "*Initiating AMS drying\n";
+        cannot_reason_text = _L("*Initiating AMS drying\n");
         break;
     case DevAms::CannotDryReason::NotSupportedIn2dMode:
-        cannot_reason_text = "*Not supported in 2D mode\n";
+        cannot_reason_text = _L("*Not supported in 2D mode\n");
         break;
     case DevAms::CannotDryReason::DryingInProgress:
-        cannot_reason_text = "*Task in progress\n";
-        cannot_reason_text += "  The AMS might be in use during Task.\n";
+        cannot_reason_text = _L("*Task in progress\n");
+        cannot_reason_text += _L("  The AMS might be in use during Task.\n");
         break;
     case DevAms::CannotDryReason::Upgrading:
-        cannot_reason_text = "*Upgrading\n";
-        cannot_reason_text += "  Firmware update in progress, please wait...\n";
+        cannot_reason_text = _L("*Upgrading\n");
+        cannot_reason_text += _L("  Firmware update in progress, please wait...\n");
         break;
     case DevAms::CannotDryReason::InsufficientPowerNeedPluginPower:
-        cannot_reason_text = "*Insufficient power\n";
-        cannot_reason_text += "  Please plug in the power and then use the drying function.\n";
+        cannot_reason_text = _L("*Insufficient power\n");
+        cannot_reason_text += _L("  Please plug in the power and then use the drying function.\n");
         break;
     default:
-        cannot_reason_text = "*System is busy\n";
-        cannot_reason_text += "  Initiating other drying processes, please wait a few seconds...\n";
+        cannot_reason_text = _L("*System is busy\n");
+        cannot_reason_text += _L("  Initiating other drying processes, please wait a few seconds...\n");
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": unknown cannot dry reason";
         break;
     }
     return cannot_reason_text;
 }
 
-std::string organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reasons)
+wxString organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reasons)
 {
-    std::string cannot_reasons_text = "";
+    wxString cannot_reasons_text;
     if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::DryingInProgress) != reasons.end()) {
         cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::DryingInProgress);
     } else if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::AmsBusy) != reasons.end()) {
@@ -1300,8 +1300,8 @@ std::string organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& r
     }
 
     if (cannot_reasons_text.empty()) {
-        cannot_reasons_text += "*System is busy\n";
-        cannot_reasons_text += "  Initiating other drying processes, please wait a few seconds...\n";
+        cannot_reasons_text += _L("*System is busy\n");
+        cannot_reasons_text += _L("  Initiating other drying processes, please wait a few seconds...\n");
     }
 
     return cannot_reasons_text;

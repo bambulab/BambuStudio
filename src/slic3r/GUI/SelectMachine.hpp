@@ -521,6 +521,7 @@ public:
     void auto_supply_with_ext(std::vector<DevAmsTray> slots);
 
     bool is_ams_drying(MachineObject* obj);
+    bool is_selected_ams_drying(MachineObject* obj);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(NozzleType type);
