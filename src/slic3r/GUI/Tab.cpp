@@ -2062,6 +2062,29 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         }
     }
 
+    if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer" ||
+        opt_key == "eng_plate_temp" || opt_key == "eng_plate_temp_initial_layer" ||
+        opt_key == "hot_plate_temp" || opt_key == "hot_plate_temp_initial_layer" ||
+        opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer" ||
+        opt_key == "supertack_plate_temp" || opt_key == "supertack_plate_temp_initial_layer") {
+        std::string printer_id = m_preset_bundle->printers.get_edited_preset().get_printer_type(m_preset_bundle);
+        int bed_temperature_limit = DevPrinterConfigUtil::get_bed_temperature_limit(printer_id);
+        if (bed_temperature_limit > 0 && bed_temperature_limit < BED_TEMP_LIMIT) {
+            if (boost::any_cast<int>(value) > bed_temperature_limit) {
+                wxString msg_text = wxString::Format(
+                    _L("The selected printer has a bed temperature limit of %d°C.\nSetting a higher bed temperature may cause damage to the printer."),
+                    bed_temperature_limit);
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxOK);
+                if (dialog.ShowModal() == wxID_OK) {
+                    DynamicPrintConfig new_conf = *m_config;
+                    new_conf.set_key_value(opt_key, new ConfigOptionInts{bed_temperature_limit});
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    on_value_change(opt_key, bed_temperature_limit);
+                }
+            }
+        }
+    }
+
     // reload scene to update timelapse wipe tower
     if (opt_key == "timelapse_type") {
         bool wipe_tower_enabled = m_config->option<ConfigOptionBool>("enable_prime_tower")->value;
