@@ -830,7 +830,6 @@ namespace Slic3r
                                                  const std::string& /*new_dev_id*/)
     {
         if (MachineObject* obj_ = get_selected_machine()) {
-            GUI::wxGetApp().sidebar().reset_all_nozzle_panels();
             GUI::wxGetApp().sidebar().update_sync_status(obj_);
             GUI::wxGetApp().sidebar().load_ams_list(obj_);
         };
