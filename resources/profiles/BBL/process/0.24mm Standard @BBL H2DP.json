@@ -245,6 +245,13 @@
         "200",
         "200"
     ],
+    "top_solid_infill_flow_ratio": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
     "travel_acceleration": [
         "10000",
         "10000",
