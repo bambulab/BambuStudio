@@ -84,7 +84,6 @@ class PartPlateList;
 class SyncNozzleAndAmsDialog;
 class FinishSyncAmsDialog;
 class Bed3D;
-class DiameterButtonPanel;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
@@ -199,7 +198,6 @@ public:
     bool sync_extruder_list(bool first_time = false);
     bool need_auto_sync_extruder_list_after_connect_priner(const MachineObject* obj);
     void update_sync_status(const MachineObject* obj);
-    DiameterButtonPanel *get_diameter_btn_panel();
     int get_sidebar_pos_right_x();
     void on_size(SimpleEvent &e);
     void on_full_screen(IntEvent &);
