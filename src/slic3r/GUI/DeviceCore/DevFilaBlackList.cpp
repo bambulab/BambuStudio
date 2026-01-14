@@ -217,15 +217,33 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             }
 
             // white items
-            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
-            if (!white_names.empty() && !tag_name.empty()) {
-                auto it = std::find_if(white_names.begin(), white_names.end(), [&tag_name](auto white_name){
-                    std::transform(white_name.begin(), white_name.end(), white_name.begin(), ::tolower);
-                    return tag_name.find(white_name) != std::string::npos;
-                });
-                // the filament name is in white names, skip this blacklist item
-                if(it != white_names.end())
-                    continue;
+            {
+                // contains match
+                std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
+                if (!white_names.empty() && !tag_name.empty()) {
+                    auto it = std::find_if(white_names.begin(), white_names.end(), [&tag_name](auto white_name) {
+                        std::transform(white_name.begin(), white_name.end(), white_name.begin(), ::tolower);
+                        return tag_name.find(white_name) != std::string::npos;
+                    });
+                    // the filament name is contains in the white names, skip this blacklist item
+                    if (it != white_names.end()) {
+                        continue;
+                    }
+                }
+            }
+
+            {
+                // equal match
+                std::set<std::string> white_fila_ids = filament_item.contains("white_fila_ids") ? filament_item["white_fila_ids"].get<std::set<std::string>>() : std::set<std::string>();
+                if (!white_fila_ids.empty() && !check_info.fila_id.empty()) {
+                    auto it = std::find_if(white_fila_ids.begin(), white_fila_ids.end(), [&tag_name, check_info](auto white_fila_id) {
+                        return white_fila_id == check_info.fila_id;
+                    });
+
+                    if (it != white_fila_ids.end()) {
+                        continue;
+                    }
+                }
             }
 
             // the item is matched
