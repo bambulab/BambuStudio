@@ -9818,6 +9818,19 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
         Model::setExtruderParams(config, filament_count);
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
+
+        auto agent      = wxGetApp().getAgent();
+        auto curr_plate = q->get_partplate_list().get_curr_plate();
+        if (agent && curr_plate){
+            auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
+            auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+            json j;
+            j["mode"] = mode_name;
+            j["is_connected"] = q->get_machine_sync_status();
+            j["slice_type"]   = "single_plate";
+            agent->track_event("slice_group_mode", j.dump());
+        }
+
         q->reslice();
         q->select_view_3D("Preview");
     }
@@ -10144,6 +10157,17 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
             q->select_view_3D("Preview");
         //BBS: wish to select all plates stats item
         preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+
+        auto agent      = wxGetApp().getAgent();
+        auto curr_plate = q->get_partplate_list().get_curr_plate();
+        if (!agent || !curr_plate) return;
+        auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
+        auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+        json j;
+        j["mode"] = mode_name;
+        j["is_connected"] = q->get_machine_sync_status();
+        j["slice_type"]   = "all_plate";
+        agent->track_event("slice_group_mode", j.dump());
     }
 }
 
