@@ -82,6 +82,7 @@ class DevExtensionTool;
 class DevExtderSystem;
 class DevFan;
 class DevFilaSystem;
+class DevFilaSwitch;
 class DevPrintOptions;
 class DevHMS;
 class DevInfo;
@@ -124,6 +125,7 @@ private:
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
     std::shared_ptr<DevFilaSystem> m_fila_system;
+    std::shared_ptr<DevFilaSwitch> m_fila_switch;
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;

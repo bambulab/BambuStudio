@@ -36,6 +36,7 @@
 #include "DeviceCore/DevAxis.h"
 #include "DeviceCore/DevChamber.h"
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevExtensionTool.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
@@ -596,6 +597,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
         m_extension_tool = DevExtensionTool::Create(this);
         m_nozzle_system = new DevNozzleSystem(this);
         m_fila_system = std::make_shared<DevFilaSystem>(this);
+        m_fila_switch = std::make_shared<DevFilaSwitch>(this);
         m_upgrade       = DevUpgrade::Create(this);
         m_hms_system    = new DevHMS(this);
         m_config = new DevConfig(this);
@@ -2593,6 +2595,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                 m_config->ParseConfig(jj);
                 m_status->ParseStatus(jj);
                 m_fan->ParseV2_0(jj);
+                m_fila_switch->ParseFilaSwitchInfo(jj);
 
                 if (!m_manager->IsMultiMachineEnabled() && !is_support_agora) {
                     if (jj.contains("support_tunnel_mqtt")) {

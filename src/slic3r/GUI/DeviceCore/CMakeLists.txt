@@ -36,6 +36,8 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevFilaSystem.h
     GUI/DeviceCore/DevFilaSystem.cpp
     GUI/DeviceCore/DevFilaSystemCtrl.cpp
+    GUI/DeviceCore/DevFilaSwitch.h
+    GUI/DeviceCore/DevFilaSwitch.cpp
     GUI/DeviceCore/DevFirmware.h
     GUI/DeviceCore/DevFirmware.cpp
     GUI/DeviceCore/DevPrintOptions.h
