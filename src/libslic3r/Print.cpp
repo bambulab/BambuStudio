@@ -2803,12 +2803,8 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     if (extruder_num < 2)
         return physical_unprintables;
 
-    auto get_unprintable_extruder_id = [&](unsigned int filament_idx, FilamentUsageType used_type) -> int {
-        int model_status = m_config.filament_printable.values[filament_idx];
-        int support_status = m_config.filament_support_printable.values[filament_idx];
-        int status = used_type == FilamentUsageType::Hybrid ? model_status & support_status :
-                    (used_type == FilamentUsageType::ModelOnly ? model_status : support_status);
-
+    auto get_unprintable_extruder_id = [&](unsigned int filament_idx) -> int {
+        int status = m_config.filament_printable.values[filament_idx];
         for (int i = 0; i < extruder_num; ++i) {
             if (!(status >> i & 1)) {
                 return i;
@@ -2817,7 +2813,6 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
         return -1;
     };
 
-    std::vector<FilamentUsageType> filament_usage_types = get_filament_usage_type();
     std::set<int> tpu_filaments;
     for (auto f : used_filaments) {
         if (m_config.filament_type.get_at(f) == "TPU")
@@ -2825,7 +2820,7 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     }
 
     for (auto f : used_filaments) {
-        int extruder_id = get_unprintable_extruder_id(f, filament_usage_types[f]);
+        int extruder_id = get_unprintable_extruder_id(f);
         if (extruder_id == -1)
             continue;
         physical_unprintables[extruder_id].insert(f);

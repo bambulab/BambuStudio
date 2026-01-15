@@ -258,33 +258,25 @@ bool check_filaments_printable(const std::string        &dev_id,
                                const std::string        &filament_name,
                                const std::string        &tag_type,
                                const std::string        &filament_id,
-                               const std::optional<bool> is_support,
-                               const std::optional<bool> is_model,
                                int                       ams_id,
                                bool                     &in_blacklist,
                                std::string              &ac,
                                wxString                 &info)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) {
-        return true;
-    }
+    if (!dev) { return true; }
 
-    MachineObject* obj = dev->get_my_machine(dev_id);
-    if (obj == nullptr || !obj->is_multi_extruders()) {
-        return true;
-    }
+    MachineObject *obj = dev->get_my_machine(dev_id);
+    if (obj == nullptr || !obj->is_multi_extruders()) { return true; }
 
     Preset *printer_preset = GUI::get_printer_preset(obj);
-    if (!printer_preset)
-        return true;
+    if (!printer_preset) return true;
 
     ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
-    if (!physical_extruder_map_op)
-        return true;
+    if (!physical_extruder_map_op) return true;
     std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
-    int obj_extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    int extruder_idx = obj_extruder_id;
+    int              obj_extruder_id        = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+    int              extruder_idx           = obj_extruder_id;
     for (int index = 0; index < physical_extruder_maps.size(); ++index) {
         if (physical_extruder_maps[index] == obj_extruder_id) {
             extruder_idx = index;
@@ -292,51 +284,15 @@ bool check_filaments_printable(const std::string        &dev_id,
         }
     }
 
-    bool used_for_support = is_support.has_value() && is_support.value();
-    bool used_for_model   = is_model.has_value() && is_model.value();
-    bool usage_unconfirm  = !is_support.has_value() && !is_model.has_value();
-
-    PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
+    PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
-
-    if (filament_info.has_value()) {
-        int filament_printable = filament_info->filament_printable;
-        int filament_support_printable = filament_info->filament_support_printable;
-
-        auto edited_preset = preset_bundle->filaments.get_edited_preset();
-        if (edited_preset.setting_id == filament_info->setting_id) {
-            filament_printable = edited_preset.config.option<ConfigOptionInts>("filament_printable")->values[0];
-            filament_support_printable = edited_preset.config.option<ConfigOptionInts>("filament_support_printable")->values[0];
-        }
-
-        wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-        auto printer_name = printer_preset->config.opt_string("printer_model");
-        std::string fila_name = filament_name.empty() ? tag_type : filament_name;
-
-        auto reject = [&](const bool with_uasge, const wxString &usage = "") {
-            ac = "prohibition";
-            if (with_uasge)
-                info = wxString::Format(_L("%s is not supported by %s extruder of %s, when used for %s."), fila_name, extruder_name, printer_name, usage);
-            else
-                info = wxString::Format(_L("%s is not supported by %s extruder of %s."), fila_name, extruder_name, printer_name);
-            in_blacklist = true;
-            return false;
-        };
-
-        bool can_used_for_support = filament_support_printable >> extruder_idx & 1;
-        bool can_used_for_model = filament_printable >> extruder_idx & 1;
-
-        if (usage_unconfirm) {
-            if(!can_used_for_model && !can_used_for_support)
-                return reject(false);
-        }
-        else {
-            if (used_for_model && !can_used_for_model)
-                return reject(true, _L("model"));
-            if (used_for_support && !can_used_for_support)
-                return reject(true, _L("support"));
-        }
-
+    if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
+        wxString    extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        std::string fila_name     = filament_name.empty() ? tag_type : filament_name;
+        ac                        = "prohibition";
+        info                      = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
+        in_blacklist              = true;
+        return false;
     }
 
     return true;
@@ -352,7 +308,7 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
 
     bool in_blacklist = false;
     CheckResultItem blacklist_item;
-    if (!check_filaments_printable(info.dev_id, info.fila_vendor,info.fila_name, info.fila_type, info.fila_id, info.used_for_print_support, info.used_for_print_object, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
+    if (!check_filaments_printable(info.dev_id, info.fila_vendor,info.fila_name, info.fila_type, info.fila_id, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
         result.action_items[blacklist_item.action].push_back(blacklist_item);
         return result;
     }
