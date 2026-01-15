@@ -5550,9 +5550,19 @@ void GCodeProcessor::process_M702(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_SYNC(const GCodeReader::GCodeLine& line)
 {
-    float time = 0;
-    if (line.has_value('T', time) ) {
-        simulate_st_synchronize(time,erFlush);
+    float time          = 0;
+    float time_role     = 0;
+    int   time_role_int = 0;
+    if (line.has_value('R', time_role)) {
+        time_role_int = static_cast<int>(std::round(time_role));
+    } else {
+        time_role_int = 1; //To be compatible with older G-code, the absence of 'R' is interpreted as a flush command.
+    }
+    if (line.has_value('T', time)) {
+        if (time_role_int == 1) // this is flush time
+            simulate_st_synchronize(time, erFlush);
+        else // this is none typed time (prepare time)
+            simulate_st_synchronize(time, erNone);
     }
 }
 
