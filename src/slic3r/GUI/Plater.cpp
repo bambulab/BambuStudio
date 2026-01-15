@@ -1539,9 +1539,9 @@ bool Sidebar::priv::switch_diameter(bool single)
     }
     preset->is_visible = true; // force visible
     bool result = wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
-    if (result) {
-        update_right_extruder_group_color();
-    }
+    //if (result) {
+    //    update_right_extruder_group_color();
+    //}
     return result;
 }
 
@@ -2441,9 +2441,9 @@ Sidebar::Sidebar(Plater *parent)
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
 
-    wxGetApp().CallAfter([this]() {
-        p->update_right_extruder_group_color();
-    });
+    //wxGetApp().CallAfter([this]() {
+    //    p->update_right_extruder_group_color();
+    //});
 }
 
 Sidebar::~Sidebar() {
@@ -2819,11 +2819,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             for (size_t i = 0; i < diameters.size(); ++i) {
                 if (diameters[i] == diameter)
                     select = extruder.combo_diameter->GetCount();
-                if (diameters[i] == "0.2" && extruders->values.size() >= 2 && ExtruderType(extruders->values[1]) == etBowden) {
-                    extruder.combo_diameter->Append(wxString(diameters[i]) + _L("(Unavailable for right extruder)"), {}, extruder.GetIndex() == 1 ? DD_ITEM_STYLE_DISABLED : 0);
-                } else {
-                    extruder.combo_diameter->Append(diameters[i], {});
-                }
+                extruder.combo_diameter->Append(diameters[i], {});
             }
             extruder.combo_diameter->SetSelection(select);
             extruder.diameter = diameter;
@@ -2848,7 +2844,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     update_extruder_diameter(*p->single_extruder);
                 p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
             }
-            p->update_right_extruder_group_color();
+            // p->update_right_extruder_group_color();
         }
 
         if (GUI::wxGetApp().plater())
