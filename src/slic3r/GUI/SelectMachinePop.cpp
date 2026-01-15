@@ -698,7 +698,8 @@ void SelectMachinePopup::update_user_devices()
                 if (mobj) {
                     mobj->set_access_code("");
                     mobj->erase_user_access_code();
-                    wxGetApp().app_config->erase("access_dev_ip", mobj->get_dev_id());
+                    mobj->erase_user_access_dev_ip();
+                    wxGetApp().app_config->erase("user_access_dev_ip", mobj->get_dev_id());
                 }
 
                 if (GUI::wxGetApp().plater())
