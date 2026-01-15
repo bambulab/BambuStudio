@@ -75,7 +75,7 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
         int extruder_idx = filament_maps[filament_id];
         if (!(printable_status >> extruder_idx & 1)) {
             std::string extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-            std::string error_msg     = _L("Grouping error: filament") + std::to_string(filament_id) + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
+            std::string error_msg     = _L("Grouping error: filament") + std::to_string(filament_id + 1) + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
             throw Slic3r::RuntimeError(error_msg);
         }
 
