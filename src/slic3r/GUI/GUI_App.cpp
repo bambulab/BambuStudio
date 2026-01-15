@@ -2161,8 +2161,7 @@ void GUI_App::init_networking_callbacks()
                                 obj->command_get_version();
                                 event.SetInt(0);
                                 event.SetString(obj->get_dev_id());
-                                const auto& dev_ip_str = BBLCrossTalk::Encode_DevIp(obj->get_dev_ip(), wxGetApp().app_config->get("slicer_uuid"));
-                                GUI::wxGetApp().app_config->set_str("access_dev_ip", obj->get_dev_id(), dev_ip_str);
+                                obj->record_user_access_dev_ip();// only record access_dev_ip when lan mode
                                 GUI::wxGetApp().app_config->set_str("access_code", obj->get_dev_id(), obj->get_access_code());
                             } else if (state == ConnectStatus::ConnectStatusFailed) {
                                 m_device_manager->erase_local_machine(obj->get_dev_id());
@@ -2171,6 +2170,7 @@ void GUI_App::init_networking_callbacks()
                                 if (msg == "5") {
                                     obj->set_access_code("");
                                     obj->erase_user_access_code();
+                                    obj->erase_user_access_dev_ip();
                                     text = wxString::Format(_L("Incorrect password"));
                                     wxGetApp().show_dialog(text);
                                 } else {
@@ -2635,7 +2635,6 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
 
         if ( (dev_id == obj->get_dev_id()) && obj->is_connecting() && obj->subscribe_counter > 0) {
             obj->subscribe_counter--;
-            if(wxGetApp().getAgent()) wxGetApp().getAgent()->set_user_selected_machine(dev_id);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": dev_id=" << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id());
         }
     });
@@ -3500,6 +3499,7 @@ __retry:
             std::string country_code = app_config->get_country_code();
             m_agent->set_country_code(country_code);
             m_agent->start();
+            m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
         }
     }
     else {
@@ -4413,7 +4413,11 @@ void GUI_App::request_user_logout()
         m_load_last_machine.is_mqtt_ok = false;
         // Update data first before showing dialogs
         m_agent->user_logout(true);
-        m_agent->set_user_selected_machine("");
+        if (auto obj = m_device_manager->get_selected_machine();
+            obj && obj->is_cloud_mode_printer()) {
+            m_device_manager->record_user_last_machine("");
+        }
+
         /* delete old user settings */
         bool     transfer_preset_changes = false;
         wxString header = _L("Some presets are modified.") + "\n" +
@@ -8085,20 +8089,20 @@ static void sLocalBindFunc(std::string str_ip,
     auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
     if (result < 0) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result;
-        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("access_dev_ip", sn);});
+        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
         return;
     }
 
     if (detectData.connect_type != "farm") {
         if (detectData.bind_state == "occupied") {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("access_dev_ip", sn);});
+            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
             return;
         }
 
         if (detectData.connect_type == "cloud") {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("access_dev_ip", sn);});
+            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
             return;
         }
     }
@@ -8129,32 +8133,56 @@ TryLoadLastMachine::~TryLoadLastMachine()
 
 void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
 {
-    if (is_mqtt_ok && is_list_ok) {
-        if ((dev->get_selected_machine() == nullptr) && (dev->get_user_machinelist().size() > 0)) {
-            const auto& last_select_machine = agent->get_user_selected_machine();
-            const auto& encoded_dev_ip_str = wxGetApp().app_config->get("access_dev_ip", last_select_machine);
-            const auto& dev_ip_str = BBLCrossTalk::Decode_DevIp(encoded_dev_ip_str, wxGetApp().app_config->get("slicer_uuid"));
-            if (!encoded_dev_ip_str.empty() && dev_ip_str.empty()) {
-                return;
-            }
+    if (!agent || !dev) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid agent or device manager";
+        return;
+    }
 
-            const auto& dev_access_code_str = GUI::wxGetApp().app_config->get("access_code", last_select_machine);
-            if (!dev_ip_str.empty() && !dev_access_code_str.empty() && !dev->get_my_machine(last_select_machine)) {
-                try {
-                    if (local_bind_thread.joinable()) {
-                        return;
-                    }
+    if (dev->get_selected_machine()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": the machine has been selected";
+        return;
+    }
 
-                    auto bind = boost::bind(&sLocalBindFunc, dev_ip_str, dev_access_code_str, last_select_machine);
-                    local_bind_thread = boost::thread(bind);
-                } catch (const std::exception& ex) {
-                    BOOST_LOG_TRIVIAL(error) << "Local bind thread creation failed: " << ex.what();
+    const auto& last_select_machine = dev->get_user_last_machine();
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try to reconnect " << BBLCrossTalk::Crosstalk_DevId(last_select_machine)
+        << ", is_mqtt_ok=" << is_mqtt_ok << ", is_list_ok=" << is_list_ok;
+    if (last_select_machine.empty()) {
+        return;
+    }
+
+    const auto& encoded_dev_ip_str = wxGetApp().app_config->get("user_access_dev_ip", last_select_machine);
+    const auto& dev_ip_str = BBLCrossTalk::Decode_DevIp(encoded_dev_ip_str, wxGetApp().app_config->get("slicer_uuid"));
+    if (!encoded_dev_ip_str.empty() && dev_ip_str.empty()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Decode_DevIp failed, the slicer maybe switched";
+        wxGetApp().app_config->erase("user_access_dev_ip", last_select_machine);
+        return;
+    }
+
+    const auto& user_access_code_str = GUI::wxGetApp().app_config->get("user_access_code", last_select_machine);
+    if (!dev_ip_str.empty() && !user_access_code_str.empty()) {
+        if (!dev->get_my_machine(last_select_machine)) {
+            try {
+                if (local_bind_thread.joinable()) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": thread is running";
+                    return;
                 }
-                return;
-            };
 
+                auto bind = boost::bind(&sLocalBindFunc, dev_ip_str, user_access_code_str, last_select_machine);
+                local_bind_thread = boost::thread(bind);
+            } catch (const std::exception& ex) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": thread exception: " << ex.what();
+            }
+        } else {
             dev->set_selected_machine(last_select_machine);
-        };
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select lan machine";
+        }
+    } else {
+        if (is_mqtt_ok && is_list_ok) {
+            dev->set_selected_machine(last_select_machine);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
+        } else {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mqtt or list not ready";
+        }
     }
 }
 

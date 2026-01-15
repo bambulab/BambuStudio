@@ -206,6 +206,9 @@ public:
     void erase_user_access_code();
     std::string get_user_access_code() const;
 
+    void record_user_access_dev_ip();
+    void erase_user_access_dev_ip();
+
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
     std::string   get_show_printer_type() const;
