@@ -305,6 +305,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "other_layers_print_sequence_nums"
             || opt_key == "extruder_ams_count"
             || opt_key == "extruder_nozzle_stats"
+            || opt_key == "enable_filament_dynamic_map"
             || opt_key == "filament_cooling_before_tower"
             || opt_key == "enable_tower_interface_features"
             || opt_key == "filament_tower_ironing_area"
@@ -3090,8 +3091,10 @@ void Print::_make_wipe_tower()
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
         assert(m_nozzle_group_result.has_value());
+        int layer_idx = 0;
+
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
-        nozzle_recorder.set_nozzle_status(m_nozzle_group_result->get_nozzle_for_filament(old_filament_id)->group_id, old_filament_id);
+        nozzle_recorder.set_nozzle_status(m_nozzle_group_result->get_nozzle_for_filament(old_filament_id, layer_idx)->group_id, old_filament_id);
 
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
@@ -3105,7 +3108,7 @@ void Print::_make_wipe_tower()
                     continue;
 
                 int extruder_id = filament_maps[filament_id] - 1;
-                int nozzle_id = m_nozzle_group_result->get_nozzle_for_filament(filament_id)->group_id;
+                int nozzle_id = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_idx)->group_id;
                 int prev_nozzle_filament = nozzle_recorder.get_filament_in_nozzle(nozzle_id);
 
                 float volume_to_purge = 0;
@@ -3132,6 +3135,7 @@ void Print::_make_wipe_tower()
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);
+                ++layer_idx;
             }
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 

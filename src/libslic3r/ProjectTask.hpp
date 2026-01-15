@@ -54,7 +54,7 @@ struct FilamentInfo
     bool        used_for_object{false};
 
     /*for multi nozzle*/
-    int group_id {-1};
+    std::vector<int> group_id;
     double nozzle_diameter{0};
     std::string nozzle_volume_type;
 

@@ -4,6 +4,7 @@
 #include "../GCode/ThumbnailData.hpp"
 #include "libslic3r/ProjectTask.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/MultiNozzleUtils.hpp"
 #include <functional>
 
 namespace Slic3r {
@@ -101,6 +102,7 @@ struct PlateData
     using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
     LayerFilaments layer_filaments;
     std::vector<unsigned int> filament_change_sequence;
+    std::optional<MultiNozzleUtils::MultiNozzleGroupResult> nozzle_group_result;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1
     // the 1th digit corresponds to extruder 2

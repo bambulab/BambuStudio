@@ -41,7 +41,7 @@ DevUtilBackend::CollectNozzleInfo(MultiNozzleUtils::MultiNozzleGroupResult* nozz
         return need_nozzle_map;
     }
 
-    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_nozzle_vec(logic_ext_id);
+    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_used_nozzles_in_extruder(logic_ext_id);
     for (auto slicing_nozzle : nozzle_vec) {
         try {
             NozzleDef data;

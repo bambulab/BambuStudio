@@ -277,39 +277,42 @@ namespace FilamentGroupUtils
     }
     int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info)
     {
-        int ret = 0;
-        for (size_t layer_id = 0; layer_id < layer_filaments.size(); ++layer_id) {
-            auto& filament_list = layer_filaments[layer_id];
-            int extruder_count = extruder_nozzle_info.get_used_extruders(filament_list).size();
-            ret += (extruder_count - 1);
-        }
-        return ret;
+        return 0;
+        //int ret = 0;
+        //for (size_t layer_id = 0; layer_id < layer_filaments.size(); ++layer_id) {
+        //    auto& filament_list = layer_filaments[layer_id];
+        //    int extruder_count = extruder_nozzle_info.get_used_extruders(filament_list).size();
+        //    ret += (extruder_count - 1);
+        //}
+        //return ret;
     }
 
     int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info)
     {
-        int ret = 0;
-        for (size_t layer_id = 0; layer_id < layer_filaments.size(); ++layer_id) {
-            auto& filament_list = layer_filaments[layer_id];
-            auto extruder_list = extruder_nozzle_info.get_extruder_list();
-            for (auto extruder_id : extruder_list) {
-                int nozzle_count = extruder_nozzle_info.get_used_nozzles(filament_list, extruder_id).size();
-                if (nozzle_count > 1) ret += (nozzle_count - 1);
-            }
-        }
-        return ret;
+        return 0;
+        //int ret = 0;
+        //for (size_t layer_id = 0; layer_id < layer_filaments.size(); ++layer_id) {
+        //    auto& filament_list = layer_filaments[layer_id];
+        //    auto extruder_list = extruder_nozzle_info.get_extruder_list();
+        //    for (auto extruder_id : extruder_list) {
+        //        int nozzle_count = extruder_nozzle_info.get_used_nozzles_in_extruder(filament_list, extruder_id).size();
+        //        if (nozzle_count > 1) ret += (nozzle_count - 1);
+        //    }
+        //}
+        //return ret;
     }
 
     std::pair<int, int> get_estimate_extruder_filament_change_count(const std::vector<std::vector<unsigned int>> &layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult &extruder_nozzle_info)
     {
-        std::pair<int, int> ret{0,0};
-        for (auto &filament_list : layer_filaments) {
-            auto extruder_nozzle = extruder_nozzle_info.get_used_extruders_nozzles_count(filament_list);
+        return {};
+        //std::pair<int, int> ret{0,0};
+        //for (auto &filament_list : layer_filaments) {
+        //    auto extruder_nozzle = extruder_nozzle_info.get_used_extruders_nozzles_count(filament_list);
 
-            ret.first += (extruder_nozzle.first - 1);
-            ret.second += std::max(0, int(filament_list.size()) - extruder_nozzle.first);
-        }
-        return ret;
+        //    ret.first += (extruder_nozzle.first - 1);
+        //    ret.second += std::max(0, int(filament_list.size()) - extruder_nozzle.first);
+        //}
+        //return ret;
     }
 
     std::map<int,std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list)

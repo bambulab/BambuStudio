@@ -4654,7 +4654,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         return;// there are no slicing data when print from sdcard
     }
 
-    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_nozzle_vec(LOGIC_R_EXTRUDER_ID);
+    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID);
     if (nozzle_vec.empty()) {
         return;// no need to check if no right nozzles used in slicing
     }
@@ -4901,7 +4901,7 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
     MachineObject* obj_ = dev_ ? dev_->get_my_machine(m_printer_last_select) : nullptr;
     if (obj_ && m_plater && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
         auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-        if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) != 0) {
+        if (nozzle_group_res && !nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
 
             if (event.GetString() == "off") {
                 MessageDialog dlg(this, S_RACK_FLOW_DYNAMICS_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
@@ -5117,7 +5117,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
     }
 
     auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);;
-    if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) == 0) {
+    if (nozzle_group_res && !nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
         return true;// no need to check if no right nozzles used in slicing
     }
 

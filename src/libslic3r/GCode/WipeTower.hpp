@@ -407,9 +407,9 @@ public:
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
-    bool               is_need_ramming(int filament_id_1, int filament_id_2);
-    bool               is_same_extruder(int filament_id_1, int filament_id_2);
-    bool               is_same_nozzle(int filament_id_1, int filament_id_2);
+    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id = -1);
+    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id = -1);
+    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id = -1);
 
 
 private:
