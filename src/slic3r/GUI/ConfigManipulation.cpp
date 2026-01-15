@@ -743,11 +743,6 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
                                     pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
 
     toggle_line("fill_multiline", have_infill && support_multiline_infill);
-    if (support_multiline_infill == false) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
-        apply(config, &new_conf);
-    }
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);
