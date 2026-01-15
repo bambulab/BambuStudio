@@ -63,6 +63,15 @@ struct FilamentBaseInfo
     int  filament_printable = 3;
 };
 
+struct FilamentCombination
+{
+    std::string material_a;
+    std::string material_a_type;
+    std::vector<std::string> material_b_list;
+    std::string material_b_type;
+    int priority{0};
+};
+
 class PresetBundle;
 struct ExtruderNozzleStat
 {
@@ -162,6 +171,11 @@ public:
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string()) const;
 
+    // Load filament combination rules from JSON file
+    void load_filament_combinations();
+    // Get filament combinations
+    const std::vector<FilamentCombination> &get_filament_combinations() const { return filament_combinations; }
+
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();
@@ -239,6 +253,9 @@ public:
         std::vector<std::string> printers;
     };
     ObsoletePresets             obsolete_presets;
+
+    // Filament combination rules loaded from JSON
+    std::vector<FilamentCombination> filament_combinations;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }

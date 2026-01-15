@@ -1080,6 +1080,198 @@ bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &
     return range_low_exist && range_high_exist;
 }
 
+int has_filament_combination()
+{
+    auto       &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto       &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+    const auto &combinations     = Slic3r::GUI::wxGetApp().preset_bundle->get_filament_combinations();
+
+    if (combinations.empty()) { return -1; }
+
+    // get filaments that models are using (types and names)
+    std::set<std::string> model_filament_types;
+    std::set<std::string> model_filament_names;
+
+    try {
+        auto                              model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
+        const Slic3r::DynamicPrintConfig &config        = wxGetApp().preset_bundle->full_config();
+        Slic3r::Model::setExtruderParams(config, filament_presets.size());
+
+        auto get_filament_name = [](int id) {
+            return Slic3r::Model::extruderParamsMap.find(id) != Slic3r::Model::extruderParamsMap.end() ? Slic3r::Model::extruderParamsMap.at(id).materialName : "PLA";
+        };
+
+        for (const Slic3r::ModelObject *mo : model_objects) {
+            for (auto vol : mo->volumes) {
+                auto ve = vol->get_extruders();
+                for (auto id : ve) {
+                    if (id > 0 && id <= filament_presets.size()) {
+                        Slic3r::Preset *model_filament = filaments.find_preset(filament_presets[id - 1]);
+                        if (model_filament) {
+                            std::string model_filament_type = model_filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+                            std::string model_filament_name = model_filament->alias;
+                            model_filament_types.insert(model_filament_type);
+                            model_filament_names.insert(model_filament_name);
+                        }
+                    }
+                }
+            }
+        }
+    } catch (...) {
+        // Failed, return -1
+        return -1;
+    }
+
+    // no model filaments, return -1
+    if (model_filament_types.empty() && model_filament_names.empty()) { return -1; }
+
+    for (const auto &combination : combinations) {
+        // get all matched combinations, stored with <priority, filament_index> to sort
+        std::vector<std::pair<int, int>> matched_combinations;
+        // check if model filaments are in material_b_lists
+        bool model_uses_b_material = false;
+
+        for (const auto &b_material : combination.material_b_list) {
+            if (combination.material_b_type == "name") {
+                // name check
+                if (model_filament_names.find(b_material) != model_filament_names.end()) {
+                    model_uses_b_material = true;
+                    break;
+                }
+            } else if (combination.material_b_type == "type") {
+                // type check
+                if (model_filament_types.find(b_material) != model_filament_types.end()) {
+                    model_uses_b_material = true;
+                    break;
+                }
+            }
+        }
+
+        // only when model filaments are found in material_b_list, keep checking
+        if (!model_uses_b_material) { continue; }
+
+        // check if there is the correspond material_a in filaments
+        for (int i = 0; i < filament_presets.size(); i++) {
+            Slic3r::Preset *filament = filaments.find_preset(filament_presets[i]);
+            if (!filament) continue;
+
+            std::string filament_type  = filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+            std::string filament_alias = filament->alias;
+
+            // if material_a matches
+            bool matches_a = false;
+
+            if (combination.material_a_type == "name") {
+                // name check
+                if (filament_alias == combination.material_a) { matches_a = true; }
+            } else if (combination.material_a_type == "type") {
+                // type check
+                if (filament_type == combination.material_a) { matches_a = true; }
+            }
+
+            if (matches_a) {
+                // combination found, store id of material_a
+                matched_combinations.push_back(std::make_pair(combination.priority, i));
+            }
+        }
+
+        if (matched_combinations.empty()) continue;
+
+        std::sort(matched_combinations.begin(), matched_combinations.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.first > b.first; });
+
+        return matched_combinations[0].second;
+    }
+
+    return -1;
+}
+
+bool is_filament_combination(int extruder_id)
+{
+    auto       &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto       &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+    const auto &combinations     = Slic3r::GUI::wxGetApp().preset_bundle->get_filament_combinations();
+
+    if (extruder_id < 0 || extruder_id >= filament_presets.size() || combinations.empty()) { return false; }
+
+    Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
+    if (!filament) { return false; }
+
+    std::string filament_type  = filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+    std::string filament_alias = filament->alias;
+
+    // get filaments that models are using (types and names)
+    std::set<std::string> model_filament_types;
+    std::set<std::string> model_filament_names;
+
+    try {
+        auto                              model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
+        const Slic3r::DynamicPrintConfig &config        = wxGetApp().preset_bundle->full_config();
+        Slic3r::Model::setExtruderParams(config, filament_presets.size());
+
+        auto get_filament_name = [](int id) {
+            return Slic3r::Model::extruderParamsMap.find(id) != Slic3r::Model::extruderParamsMap.end() ? Slic3r::Model::extruderParamsMap.at(id).materialName : "PLA";
+        };
+
+        for (const Slic3r::ModelObject *mo : model_objects) {
+            for (auto vol : mo->volumes) {
+                auto ve = vol->get_extruders();
+                for (auto id : ve) {
+                    if (id > 0 && id <= filament_presets.size()) {
+                        Slic3r::Preset *model_filament = filaments.find_preset(filament_presets[id - 1]);
+                        if (model_filament) {
+                            std::string model_filament_type = model_filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+                            std::string model_filament_name = model_filament->alias;
+                            model_filament_types.insert(model_filament_type);
+                            model_filament_names.insert(model_filament_name);
+                        }
+                    }
+                }
+            }
+        }
+    } catch (...) {
+        // Failed, return false
+        return false;
+    }
+
+    for (const auto &combination : combinations) {
+        bool matches_a = false;
+
+        // check if material_a matches
+        if (combination.material_a_type == "name") {
+            // name check
+            if (filament_alias == combination.material_a) { matches_a = true; }
+        } else if (combination.material_a_type == "type") {
+            // type check
+            if (filament_type == combination.material_a) { matches_a = true; }
+        }
+
+        if (!matches_a) { continue; }
+
+        // check if model filaments are in material_b_lists
+        bool model_uses_b_material = false;
+
+        for (const auto &b_material : combination.material_b_list) {
+            if (combination.material_b_type == "name") {
+                // name check
+                if (model_filament_names.find(b_material) != model_filament_names.end()) {
+                    model_uses_b_material = true;
+                    break;
+                }
+            } else if (combination.material_b_type == "type") {
+                // type check
+                if (model_filament_types.find(b_material) != model_filament_types.end()) {
+                    model_uses_b_material = true;
+                    break;
+                }
+            }
+        }
+
+        // only when model filaments are found in material_b_list, return true
+        if (model_uses_b_material) { return true; }
+    }
+
+    return false;
+}
 
 } // GUI
 } // Slic3r

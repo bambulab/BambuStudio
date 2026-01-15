@@ -97,6 +97,13 @@ private:
     bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
 
+// check if there is filament combination match.
+// If yes, return the index of material_a. Otherwise return -1
+int has_filament_combination();
+
+// check if the filament at the given index matches material_a in any combination.
+bool is_filament_combination(int extruder_id);
+
 } // GUI
 } // Slic3r
 

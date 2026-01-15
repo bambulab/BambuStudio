@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
+#include "nlohmann/json.hpp"
 #include "libslic3r.h"
 #include "I18N.hpp"
 #include "Utils.hpp"
@@ -536,6 +537,9 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(Ap
     this->load_selections(config, preferred_selection);
 
     set_calibrate_printer("");
+
+    // Load filament combination rules from JSON
+    this->load_filament_combinations();
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
@@ -5201,6 +5205,55 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     sla_prints.set_default_suppressed(default_suppressed);
     sla_materials.set_default_suppressed(default_suppressed);
     printers.set_default_suppressed(default_suppressed);
+}
+
+void PresetBundle::load_filament_combinations()
+{
+    filament_combinations.clear();
+    boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "filament_combinations.json").make_preferred();
+
+    if (!boost::filesystem::exists(json_path)) {
+        BOOST_LOG_TRIVIAL(warning) << "Filament combinations JSON file not found";
+        return;
+    }
+
+    try {
+        boost::nowide::ifstream ifs(json_path.string());
+        if (!ifs.is_open()) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to open filament combinations JSON file";
+            return;
+        }
+
+        nlohmann::json j;
+        ifs >> j;
+
+        if (j.contains("combinations") && j["combinations"].is_array()) {
+            for (const auto &combo : j["combinations"]) {
+                FilamentCombination combination;
+
+                if (combo.contains("material_a") && combo["material_a"].is_string()) { combination.material_a = combo["material_a"].get<std::string>(); }
+
+                if (combo.contains("material_a_type") && combo["material_a_type"].is_string()) { combination.material_a_type = combo["material_a_type"].get<std::string>(); }
+
+                if (combo.contains("material_b_list") && combo["material_b_list"].is_array()) {
+                    for (const auto &b_material : combo["material_b_list"]) {
+                        if (b_material.is_string()) { combination.material_b_list.push_back(b_material.get<std::string>()); }
+                    }
+                }
+
+                if (combo.contains("material_b_type") && combo["material_b_type"].is_string()) { combination.material_b_type = combo["material_b_type"].get<std::string>(); }
+
+                if (combo.contains("priority") && combo["priority"].is_number_integer()) { combination.priority = combo["priority"].get<int>(); }
+
+                if (!combination.material_a.empty() && !combination.material_b_list.empty()) filament_combinations.push_back(combination);
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Loaded " << filament_combinations.size() << " filament combinations from JSON";
+    }
+    catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "Error loading filament combinations JSON: " << e.what();
+    }
 }
 
 } // namespace Slic3r

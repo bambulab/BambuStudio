@@ -1974,6 +1974,24 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "support_interface_filament") {
         int filament_id           = m_config->opt_int("support_filament") - 1;
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
+        
+        // check if there is support filament combination but not used
+        int supp_fila_ind = has_filament_combination();
+        if (supp_fila_ind >= 0 && !is_filament_combination(interface_filament_id)) {
+            wxString msg_text = _L("A compatible support filament combination that can support each other is detected among your filaments");
+            msg_text += "\n\n" + _L("Do you want to use support filament for the support interface?\n"
+                                    "Yes - Change these settings automatically\n"
+                                    "No  - Do not change these settings for me");
+            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+            DynamicPrintConfig new_conf = *m_config;
+            if (dialog.ShowModal() == wxID_YES) {
+                new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(supp_fila_ind + 1));
+                m_config_manipulation.apply(m_config, &new_conf);
+            }
+            wxGetApp().plater()->update();
+        }
+
+        interface_filament_id                 = m_config->opt_int("support_interface_filament") - 1;
         auto           &filament_presets      = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
         auto           &filaments             = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
         bool            support_TPU = false;

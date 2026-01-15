@@ -1731,19 +1731,6 @@ void TreeSupport::generate_toolpaths()
                             }
                         }
 
-                        if (m_support_params.soluble_interface) {
-                            SupportLayer *upper_layer = m_object->get_support_layer(layer_id + 1);
-                            if (upper_layer && overlaps(shrink_ex({poly}, 10), upper_layer->roof_areas)) {
-                                ExtrusionEntityCollection *temp_support_ironings = new ExtrusionEntityCollection();
-                                generate_support_ironing_entity({poly}, bbox_object, ts_layer, temp_support_ironings, true);
-                                temp_support_ironings->no_sort = true; // make sure loops are first
-                                if (!temp_support_ironings->entities.empty())
-                                    ts_layer->support_fills.entities.push_back(temp_support_ironings);
-                                else
-                                    delete temp_support_ironings;
-                            }
-                        }
-
                         // generate a perimeter first to support interface better
                         ExtrusionEntityCollection* temp_support_fills = new ExtrusionEntityCollection();
                         make_perimeter_and_infill(temp_support_fills->entities, poly, 1, roof_1st_layer_flow, erSupportTransition,
@@ -2465,19 +2452,14 @@ void TreeSupport::draw_circles()
                              node.distance_to_top >= m_support_params.num_top_interface_layers) {
                         append(roof_1st_layer, area);
                         max_layers_above_roof1 = std::max(max_layers_above_roof1, node.dist_mm_to_top);
-                    }
-                    else if (obj_layer_nr > 0 && node.support_roof_layers_below > 0)
-                    {
+                    } else if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr > 0 && node.support_roof_layers_below > 0) {
                         append(roof_areas, area);
-                        max_layers_above_roof = std::max(max_layers_above_roof, node.dist_mm_to_top);
-                        interface_id = node.obj_layer_nr % top_interface_layers;
-                    }
-                    else
-                    {
+                        max_layers_above_roof = top_z_distance == 0 ? node.height : std::max(max_layers_above_roof, node.dist_mm_to_top);
+                        interface_id          = node.obj_layer_nr % top_interface_layers;
+                    } else {
                         append(base_areas, area);
                         max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
-
                 }
 
                 //m_object->print()->set_status(65, (boost::format( _u8L("Support: generate polygons at layer %d")) % layer_nr).str());
@@ -2547,8 +2529,8 @@ void TreeSupport::draw_circles()
                 }
                 ExPolygons new_roofs;
                 for (auto &expoly : ts_layer->roof_areas) {
-                    if (area(expoly) < SQ(scale_(2))) {
-                        if (max_layers_above_roof > 0.2) { ts_layer->roof_1st_layer.push_back(expoly); }
+                    if (area(expoly) < SQ(scale_(1))) {
+                        if (max_layers_above_roof > EPSILON) { ts_layer->roof_1st_layer.push_back(expoly); }
                         continue;
                     }
                     new_roofs.push_back(expoly);
