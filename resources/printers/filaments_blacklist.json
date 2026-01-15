@@ -58,62 +58,6 @@
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
-      "type": "ABS",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
-      "type": "ASA",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
-      "type": "PVA",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
-      "type": "PLA-S",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
-      "type": "ABS-S",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
-      "name_suffix": "PETG HF",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
-      "name_suffix": "PETG Basic",
-      "extruder_id": [0],
-      "used_for_print_object": true,
-      "model_id":["N6"],
-      "action": "prohibition",
-      "description": "When using %s on the right extruder, it can only be used as support material."
-    },
-    {
       "type": "TPU",
       "action": "warning",
       "model_id":["N6"],
