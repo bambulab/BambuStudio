@@ -56,9 +56,6 @@
         "-1",
         "-1"
     ],
-    "filament_printable": [
-        "1"
-    ],
     "filament_retract_before_wipe": [
         "nil",
         "nil",
@@ -136,9 +133,6 @@
         "0",
         "0",
         "0"
-    ],
-    "filament_support_printable": [
-        "1"
     ],
     "filament_ramming_travel_time": [
         "0",
