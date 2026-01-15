@@ -463,6 +463,31 @@ std::string MachineObject::get_user_access_code() const
     return "";
 }
 
+void MachineObject::record_user_access_dev_ip()
+{
+    if (!is_lan_mode_printer()) {
+        assert(false);
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": should not record un-lan dev";
+        return;
+    }
+
+    if (GUI::wxGetApp().app_config) {
+        if (!dev_ip.empty()) {
+            const auto& dev_ip_str = BBLCrossTalk::Encode_DevIp(dev_ip, GUI::wxGetApp().app_config->get("slicer_uuid"));
+            GUI::wxGetApp().app_config->set_str("user_access_dev_ip", get_dev_id(), dev_ip_str);
+        } else {
+            GUI::wxGetApp().app_config->erase("user_access_dev_ip", get_dev_id());
+        }
+    }
+}
+
+void MachineObject::erase_user_access_dev_ip()
+{
+    if (GUI::wxGetApp().app_config) {
+        GUI::wxGetApp().app_config->erase("user_access_dev_ip", get_dev_id());
+    }
+}
+
 std::string MachineObject::get_show_printer_type() const
 {
     std::string printer_type = this->printer_type;
