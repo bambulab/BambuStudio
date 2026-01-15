@@ -777,9 +777,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             DynamicConfig config;
             int old_filament_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
             int old_extruder_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->extruder_id() : -1;
+            int next_nozzle_id = gcodegen.m_print->get_nozzle_group_result()->get_nozzle_for_filament(new_filament_id, m_layer_idx)->group_id;
 
             config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
             config.set_key_value("next_extruder", new ConfigOptionInt(new_filament_id));
+            config.set_key_value("next_hotend_id", new ConfigOptionInt(next_nozzle_id));
             config.set_key_value("layer_num", new ConfigOptionInt(gcodegen.m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(tcr.print_z));
             config.set_key_value("toolchange_z", new ConfigOptionFloat(z));
@@ -6726,12 +6728,16 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bool by_object)
 {
     int new_extruder_id = get_extruder_id(new_filament_id);
-    if (!m_writer.need_toolchange(new_filament_id))
+    auto group_result = m_print->get_nozzle_group_result();
+    if (!m_writer.need_toolchange(new_filament_id) || !group_result)
         return "";
+
+    int new_nozzle_id = group_result->get_nozzle_for_filament(new_filament_id, m_layer_index)->group_id;
 
     // if we are running a single-extruder setup, just set the extruder and return nothing
     if (!m_writer.multiple_extruders) {
         m_placeholder_parser.set("current_extruder", new_filament_id);
+        m_placeholder_parser.set("current_hotend", new_nozzle_id);
         m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(new_filament_id));
         m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(new_filament_id));
         m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(new_filament_id));
@@ -6849,9 +6855,9 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
         assert(m_print->get_nozzle_group_result().has_value());
 
-        int new_nozzle_id = m_print->get_nozzle_group_result()->get_nozzle_for_filament(new_filament_id)->group_id;
+        int new_nozzle_id = m_print->get_nozzle_group_result()->get_nozzle_for_filament(new_filament_id, m_layer_index)->group_id;
 
-        if (old_extruder_id != new_extruder_id || !m_print->get_nozzle_group_result()->are_filaments_same_nozzle(old_filament_id,new_filament_id)) {
+        if (old_extruder_id != new_extruder_id || !m_print->get_nozzle_group_result()->are_filaments_same_nozzle(old_filament_id,new_filament_id, m_layer_index)) {
             wipe_volume = switch_to_nozzle(new_filament_id, new_nozzle_id);
         }
         else {
@@ -6887,6 +6893,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
     dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)new_filament_id));
+    dyn_config.set_key_value("next_hotend", new ConfigOptionInt(new_nozzle_id));
     dyn_config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
     dyn_config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
     dyn_config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));

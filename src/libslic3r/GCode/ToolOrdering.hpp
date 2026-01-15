@@ -133,6 +133,34 @@ struct FilamentChangeStats
 };
 
 
+namespace GroupReorder
+{
+using FlushMatrix = std::vector<std::vector<float>>;
+
+std::vector<MultiNozzleUtils::NozzleInfo>      build_default_nozzle_list(const PrintConfig &config, size_t extruder_nums);
+std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(const PrintConfig &config, size_t extruder_nums);
+
+// 分组相关的函数
+std::vector<FlushMatrix> prepare_flush_matrices(const PrintConfig &print_config);
+
+FilamentGroupContext build_filament_group_context(Print                                           *print,
+                                                  const std::vector<std::vector<unsigned int>>    &layer_filaments,
+                                                  const std::vector<std::set<int>>                &physical_unprintables,
+                                                  const std::vector<std::set<int>>                &geometric_unprintables,
+                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
+                                                  FilamentMapMode                                  mode);
+
+std::function<bool(int, std::vector<int> &)> create_custom_seq_function(const PrintConfig               &print_config,
+                                                                        bool                             include_first_layer,
+                                                                        const std::vector<unsigned int> &first_layer_filaments = {});
+
+FilamentGroupContext build_filament_group_context(Print                                           *print,
+                                                  const std::vector<std::vector<unsigned int>>    &layer_filaments,
+                                                  const std::vector<std::set<int>>                &physical_unprintables,
+                                                  const std::vector<std::set<int>>                &geometric_unprintables,
+                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes);
+} // namespace GroupReorder
+
 class LayerTools
 {
 public:
@@ -256,6 +284,42 @@ public:
                                                                                   const std::vector<std::set<int>>                &physical_unprintables,
                                                                                   const std::vector<std::set<int>>                &geometric_unprintables,
                                                                                   const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes);
+
+    struct LayerData{
+        std::vector<std::vector<unsigned int>> layer_filaments;
+        std::vector<unsigned int> used_filaments;
+        std::vector<std::set<int>> physical_unprintables;
+        std::vector<std::set<int>> geometric_unprintables;
+        std::map<int, std::set<NozzleVolumeType>> filament_unprintable_volumes;
+    };
+
+    struct OrderingContext{
+        std::vector<unsigned int> filament_lists;
+        std::function<bool(int,std::vector<int>&)> get_custom_seq;
+        bool support_multi_nozzle;
+        bool support_dynamic_map;
+    };
+
+    LayerData collect_layer_and_unprintable_data();
+    MultiNozzleUtils::MultiNozzleGroupResult perform_filament_group(const PrintConfig &print_config, const LayerData &layer_data);
+    OrderingContext prepare_ordering_context(const PrintConfig& print_config, bool reorder_first_layer);
+
+    std::vector<std::vector<unsigned int>> execute_filament_ordering(
+        const PrintConfig* print_config,
+        const MultiNozzleUtils::MultiNozzleGroupResult& grouping_result,
+        const LayerData& layer_data,
+        const OrderingContext& ordering_contex,
+        const std::vector<FlushMatrix>& nozzle_flush_mtx
+    );
+
+    void calculate_and_store_statistics(
+        const PrintConfig& print_config,
+        const MultiNozzleUtils::MultiNozzleGroupResult& grouping_result,
+        const LayerData& layer_data,
+        const OrderingContext& ordering_context,
+        const std::vector<FlushMatrix>& nozzle_flush_mtx,
+        const std::vector<std::vector<unsigned int>>& filament_sequences);
+
 
     // should be called after doing reorder
     FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);

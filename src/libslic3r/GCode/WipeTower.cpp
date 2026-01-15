@@ -2812,13 +2812,13 @@ WipeTower::WipeTowerInfo::ToolChange WipeTower::set_toolchange(int old_tool, int
     float length_to_extrude = volume_to_length(wipe_volume, m_perimeter_width, layer_height);
     float                             toolchange_gap_width    = get_block_gap_width(new_tool,false);
     float                             nozzlechange_gap_width  = get_block_gap_width(old_tool,true);
-    float filament_change_length = !is_same_extruder(old_tool, new_tool) ? m_filaments_change_length.first[old_tool] : m_filaments_change_length.second[old_tool];
+    float filament_change_length = !is_same_extruder(old_tool, new_tool, m_cur_layer_id) ? m_filaments_change_length.first[old_tool] : m_filaments_change_length.second[old_tool];
     depth += std::ceil(length_to_extrude / width) * toolchange_gap_width;
     // depth *= m_extra_spacing;
 
     float nozzle_change_depth  = 0;
     float nozzle_change_length = 0;
-    if (is_need_ramming(old_tool,new_tool)) {
+    if (is_need_ramming(old_tool,new_tool, m_cur_layer_id)) {
         double e_flow                   = nozzle_change_extrusion_flow(layer_height);
         double length                   = filament_change_length / e_flow;
         int    nozzle_change_line_count = std::ceil(length / nozzle_change_width);
@@ -2837,7 +2837,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
                                 unsigned int new_tool, float wipe_volume_ec,float wipe_volume_nc,float purge_volume)
 {
 	assert(m_plan.empty() || m_plan.back().z <= z_par + WT_EPSILON);	// refuses to add a layer below the last one
-    float wipe_volume = is_same_extruder(old_tool,new_tool)&&!is_same_nozzle(old_tool, new_tool) ? wipe_volume_nc : wipe_volume_ec;
+    float wipe_volume = is_same_extruder(old_tool,new_tool, m_cur_layer_id)&&!is_same_nozzle(old_tool, new_tool, m_cur_layer_id) ? wipe_volume_nc : wipe_volume_ec;
 	if (m_plan.empty() || m_plan.back().z + WT_EPSILON < z_par) // if we moved to a new layer, we'll add it to m_plan first
 		m_plan.push_back(WipeTowerInfo(z_par, layer_height_par));
 
@@ -2876,10 +2876,10 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
 
     depth += std::ceil(length_to_extrude / width) * m_perimeter_width;
     //depth *= m_extra_spacing;
-    float filament_change_length = !is_same_extruder(old_tool, new_tool) ? m_filaments_change_length.first[old_tool] : m_filaments_change_length.second[old_tool];
+    float filament_change_length = !is_same_extruder(old_tool, new_tool, m_cur_layer_id) ? m_filaments_change_length.first[old_tool] : m_filaments_change_length.second[old_tool];
     float nozzle_change_depth = 0;
     float nozzle_change_length = 0;
-    if (is_need_ramming(old_tool,new_tool)) {
+    if (is_need_ramming(old_tool,new_tool, m_cur_layer_id)) {
         double e_flow                   = nozzle_change_extrusion_flow(layer_height_par);
         double length                   = filament_change_length / e_flow;
         int    nozzle_change_line_count = std::ceil(length / (m_wipe_tower_width - 2*m_nozzle_change_perimeter_width));
@@ -3124,7 +3124,7 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer, int layer_id)
         float process_depth = 0.f;
         if (!cur_block_depth.count(m_filpar[new_filament].category)) cur_block_depth[m_filpar[new_filament].category] = block->start_depth;
         process_depth = cur_block_depth[m_filpar[new_filament].category];
-        if (is_need_ramming(new_filament, old_filament)) {
+        if (is_need_ramming(new_filament, old_filament,i)) {
             if (m_filament_categories[new_filament] == m_filament_categories[old_filament])
                 process_depth += nozzle_change_depth;
             else {
@@ -3194,8 +3194,8 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
 {
     m_nozzle_change_result.gcode.clear();
     bool hotend_change = false;
-    if (is_need_ramming(m_current_tool,new_tool)) {
-        hotend_change = m_multi_nozzle_group_result->are_filaments_same_extruder(m_current_tool, new_tool);
+    if (is_need_ramming(m_current_tool,new_tool, m_cur_layer_id)) {
+        hotend_change = is_same_extruder(m_current_tool, new_tool, m_cur_layer_id);
         //If it is the last layer and exceeds the printable height, cancel ramming
         if (is_valid_last_layer(m_current_tool)) m_nozzle_change_result = ramming(m_current_tool, new_tool, solid_nozzlechange, !hotend_change);
     }
@@ -4213,7 +4213,7 @@ void WipeTower::generate_wipe_tower_blocks(bool add_solid_flag)
     m_cur_layer_id = 0;
     for (auto& info : m_plan) {
         for (const WipeTowerInfo::ToolChange &tool_change : info.tool_changes) {
-            if (!is_need_ramming(tool_change.old_tool, tool_change.new_tool)) {
+            if (!is_need_ramming(tool_change.old_tool, tool_change.new_tool, m_cur_layer_id)) {
                 int filament_adhesiveness_category = get_filament_category(tool_change.new_tool);
                 add_depth_to_block(tool_change.new_tool, filament_adhesiveness_category, tool_change.required_depth);
             }
@@ -4348,7 +4348,7 @@ void WipeTower::calc_block_infill_gap()
         for (auto &toolchange : m_plan[i].tool_changes) {
             int new_tool =toolchange.new_tool;
             int old_tool =toolchange.old_tool;
-            if (is_need_ramming(old_tool,new_tool)) {
+            if (is_need_ramming(old_tool,new_tool, i)) {
                 bool extruder_change = is_in_same_extruder(new_tool, old_tool);
                 block_info[m_filpar[old_tool].category].has_ramming=true;
                 if (is_need_reverse_travel(old_tool, extruder_change)) block_info[m_filpar[old_tool].category].has_reverse_travel = true;
@@ -5176,20 +5176,20 @@ float WipeTower::get_block_gap_width(int tool,bool is_nozzlechangle)
 
 }
 
-bool WipeTower::is_need_ramming(int filament_id_1, int filament_id_2)
+bool WipeTower::is_need_ramming(int filament_id_1, int filament_id_2, int layer_id)
 {
-    return !m_multi_nozzle_group_result->are_filaments_same_nozzle(filament_id_1, filament_id_2);
+    return !m_multi_nozzle_group_result->are_filaments_same_nozzle(filament_id_1, filament_id_2, layer_id);
     //return !is_in_same_extruder(filament_id_1, filament_id_2);
 }
 
-bool WipeTower::is_same_extruder(int filament_id_1, int filament_id_2)
+bool WipeTower::is_same_extruder(int filament_id_1, int filament_id_2,int layer_id)
 {
-    return m_multi_nozzle_group_result->are_filaments_same_extruder(filament_id_1, filament_id_2);
+    return m_multi_nozzle_group_result->are_filaments_same_extruder(filament_id_1, filament_id_2, layer_id);
 }
 
-bool WipeTower::is_same_nozzle(int filament_id_1, int filament_id_2)
+bool WipeTower::is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id)
 {
-    return m_multi_nozzle_group_result->are_filaments_same_nozzle(filament_id_1, filament_id_2);
+    return m_multi_nozzle_group_result->are_filaments_same_nozzle(filament_id_1, filament_id_2, layer_id);
 }
 
 } // namespace Slic3r

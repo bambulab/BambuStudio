@@ -536,6 +536,19 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
+static unsigned int get_layer_id_from_gcode_id(const std::vector<GCodeProcessorResult::MoveVertex> &moves, size_t gcode_id)
+{
+    auto move_iter = std::lower_bound(moves.begin(), moves.end(), gcode_id,
+                                      [](const GCodeProcessorResult::MoveVertex &a, unsigned int gcode_id) { return a.gcode_id < gcode_id; });
+    // 在gcode解析的最后一步,layer_duration才会转换
+    if (move_iter != moves.end()) {
+        return static_cast<unsigned int>(move_iter->layer_duration);
+    } else if (!moves.empty()) {
+        return static_cast<unsigned int>(moves.back().layer_duration);
+    }
+    return 0;
+}
+
 void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, const TimeProcessContext& context)
 {
     using namespace ExtruderPreHeating;
@@ -617,6 +630,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     unsigned int machine_start_gcode_end_line_id = (unsigned int)(-1); // mark the end line of machine start gcode
     unsigned int machine_end_gcode_start_line_id = (unsigned int)(-1); // mark the start line of machine end gcode
     std::vector<std::pair<unsigned int, unsigned int>> skippable_blocks;
+    unsigned int current_layer_id = 0;
+
 
     // keeps track of last exported pair <percent, remaining time>
     std::array<std::pair<int, int>, static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Count)> last_exported_main;
@@ -926,7 +941,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             write_string(filename_out, out, export_line, out_file_pos, line_ends);
         };
 
-    auto handle_nozzle_change_line = [&filament_maps=context.filament_maps](const std::string& line, int& old_filament, int& next_filament, int& extruder_id)->bool {
+    auto handle_nozzle_change_line = [&](const std::string& line, int& old_filament, int& next_filament, int& extruder_id, int gcode_id)->bool {
         std::regex re(R"(OF(\d+)\s+NF(\d+))");
         std::smatch match;
 
@@ -935,7 +950,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
         old_filament = std::stoi(match[1]);
         next_filament = std::stoi(match[2]);
-        extruder_id = filament_maps[next_filament];
+
+        unsigned int layer_id = get_layer_id_from_gcode_id(moves,gcode_id);
+        extruder_id = context.nozzle_group_result.get_extruder_id(next_filament, layer_id);
         return true;
     };
     auto handle_toolchange_wipe_line = [&](const std::string &line, bool& is_contact) -> bool {
@@ -956,20 +973,28 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
     lines_ends.clear();
     ExtruderUsageBlcok temp_construct_block; // the temperarily constructed block, will be pushed into container after initializing
 
-    auto handle_filament_change = [&filament_blocks,&machine_start_gcode_end_line_id,&machine_end_gcode_start_line_id](int filament_id,int line_id){
+    auto handle_filament_change = [&](int filament_id, int line_id, int nozzle_id = -1) {
         // skip the filaments change in machine start/end gcode
-        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && (unsigned int)(line_id)<machine_start_gcode_end_line_id ||
-            machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id)>machine_end_gcode_start_line_id)
+        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && (unsigned int)(line_id) < machine_start_gcode_end_line_id ||
+            machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id) > machine_end_gcode_start_line_id)
             return;
 
         if (!filament_blocks.empty())
             filament_blocks.back().upper_gcode_id = line_id;
-        filament_blocks.emplace_back(filament_id, line_id, -1);
+
+        if(nozzle_id == -1)
+            nozzle_id = context.nozzle_group_result.get_nozzle_id(filament_id, current_layer_id);
+
+        int extruder_id = 0;
+        if (context.handle_hotend_as_extruder)
+            extruder_id = nozzle_id;
+        else
+            extruder_id = context.nozzle_group_result.get_nozzle_by_id(nozzle_id)->extruder_id;
+
+        filament_blocks.emplace_back(filament_id, extruder_id, line_id, -1);
         };
 
-    auto gcode_time_handler = [&temp_construct_block, &filament_blocks, &extruder_blocks, &offsets, &handle_toolchange_wipe_line, & handle_nozzle_change_line, &process_placeholders,
-                               &is_temporary_decoration, &process_line_move, &g1_lines_counter, &machine_start_gcode_end_line_id, &machine_end_gcode_start_line_id,
-                               handle_filament_change](std::string &gcode_line, std::string &gcode_buffer, int line_id) {
+    auto gcode_time_handler = [&](std::string &gcode_line, std::string &gcode_buffer, int line_id) {
         auto [processed, lines_added_count] = process_placeholders(gcode_line,line_id);
         if (processed && lines_added_count > 0)
             offsets.push_back({ line_id, lines_added_count });
@@ -990,7 +1015,17 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 std::istringstream str(gcode_line.substr(skips + 1)); // skip white spaces and T
                 str >> fid;
                 if (!str.fail() && 0 <= fid && fid < 255) {
-                    handle_filament_change(fid, line_id);
+                    int nozzle_id = -1;
+                    char param;
+                    while (str >> param) {
+                        if (param == 'H') {
+                            if (!(str >> nozzle_id)) {
+                                BOOST_LOG_TRIVIAL(warning) << "Invalid nozzle id format in T command: " << gcode_line;
+                            }
+                            break;
+                        }
+                    }
+                    handle_filament_change(fid, line_id, nozzle_id);
                 }
             }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, ";VT")) {
@@ -1015,14 +1050,14 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::NozzleChangeStart)).c_str())) {
                 int prev_filament{ -1 }, next_filament{ -1 }, extruder_id{ -1 };
-                handle_nozzle_change_line(gcode_line, prev_filament, next_filament, extruder_id);
+                handle_nozzle_change_line(gcode_line, prev_filament, next_filament, extruder_id, line_id);
                 if (!extruder_blocks.empty()) {
                     extruder_blocks.back().initialize_step_2(line_id);
                 }
             }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::NozzleChangeEnd)).c_str())) {
                 int prev_filament{ -1 }, next_filament{ -1 }, extruder_id{ -1 };
-                handle_nozzle_change_line(gcode_line, prev_filament, next_filament, extruder_id);
+                handle_nozzle_change_line(gcode_line, prev_filament, next_filament, extruder_id, line_id);
                 if (!extruder_blocks.empty()) {
                     extruder_blocks.back().initialize_step_3(line_id, prev_filament, line_id);
                 }
@@ -1033,6 +1068,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 bool is_contact = false;
                 handle_toolchange_wipe_line(gcode_line, is_contact);
                 if (!extruder_blocks.empty()) { extruder_blocks.back().ignore_cooling_before_tower = is_contact; }
+            }
+            else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::Layer_Change)).c_str())) {
+                ++current_layer_id;
             }
         }
         };
@@ -1077,7 +1115,6 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         curr_filament = -1;
         int curr_filament_change_num = 0;
         for (const auto& fb : filament_blocks) {
-            int extruder_id = context.filament_maps[fb.filament_id];
             if (curr_filament != -1 && curr_filament != fb.filament_id) {
                 curr_filament_change_num += 1;
                 inserted_operation_lines[fb.lower_gcode_id].emplace_back(format_M73_remain_filament_changes(curr_filament_change_num, total_filament_count), InsertLineType::FilamentChangePredict);
@@ -1099,7 +1136,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             first_filament = filament_blocks.front().filament_id;
             last_filament = filament_blocks.back().filament_id;
         }
-        extruder_blocks.front().initialize_step_1(context.filament_maps[first_filament], machine_start_gcode_end_line_id, first_filament);
+        unsigned int first_layer_id = 0;
+        extruder_blocks.front().initialize_step_1(context.nozzle_group_result.get_extruder_id(first_filament, first_layer_id), machine_start_gcode_end_line_id, first_filament);
         extruder_blocks.back().initialize_step_2(machine_end_gcode_start_line_id);
         extruder_blocks.back().initialize_step_3(machine_end_gcode_start_line_id,last_filament,machine_end_gcode_start_line_id);
     }
@@ -2565,16 +2603,6 @@ void GCodeProcessor::finalize(bool post_process)
     std::vector<float>& layer_times = m_result.print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].layers_times;
     m_result.initial_layer_time     = layer_times.size() > 0 ? std::max(float(0.0), layer_times[0] - prepare_time) : 0;
 
-    //update times for results
-    for (size_t i = 0; i < m_result.moves.size(); i++) {
-        //field layer_duration contains the layer id for the move in which the layer_duration has to be set.
-        size_t layer_id = size_t(m_result.moves[i].layer_duration);
-        if (layer_times.size() > layer_id - 1 && layer_id > 0)
-            m_result.moves[i].layer_duration = layer_id == 1 ? std::max(0.f,layer_times[layer_id - 1] - prepare_time) : layer_times[layer_id - 1];
-        else
-            m_result.moves[i].layer_duration = 0;
-    }
-
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     std::cout << "\n";
     m_mm3_per_mm_compare.output();
@@ -2600,6 +2628,16 @@ void GCodeProcessor::finalize(bool post_process)
             m_filament_cooling_before_tower
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
+    }
+
+    //update times for results
+    for (size_t i = 0; i < m_result.moves.size(); i++) {
+        //field layer_duration contains the layer id for the move in which the layer_duration has to be set.
+        size_t layer_id = size_t(m_result.moves[i].layer_duration);
+        if (layer_times.size() > layer_id - 1 && layer_id > 0)
+            m_result.moves[i].layer_duration = layer_id == 1 ? std::max(0.f,layer_times[layer_id - 1] - prepare_time) : layer_times[layer_id - 1];
+        else
+            m_result.moves[i].layer_duration = 0;
     }
 #if ENABLE_GCODE_VIEWER_STATISTICS
     m_result.time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_start_time).count();
@@ -5549,37 +5587,53 @@ void GCodeProcessor::process_SYNC(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_T(const GCodeReader::GCodeLine& line)
 {
-    process_T(line.cmd());
+    int nozzle_id = -1;
+    float val = 0.f;
+    if (line.has_value('H', val)) {
+        nozzle_id = static_cast<int>(val);
+    }
+    process_T(line.cmd(), nozzle_id);
 }
 
 void GCodeProcessor::process_M1020(const GCodeReader::GCodeLine &line)
 {
     int curr_filament_id = get_filament_id(false);
     int curr_extruder_id = get_extruder_id(false);
-    if (line.raw().length() > 5) {
-        std::string filament_id_str = line.raw().substr(7);
-        if (filament_id_str.empty())
-            return;
 
-        int eid = 0;
-        eid = std::stoi(filament_id_str);
-        if (eid < 0 || eid > 254) {
-            // M1020-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools)
-            if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
-                BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
+    int eid = -1;
+    float val = 0.f;
+    if (line.has_value('S', val)) {
+        eid = static_cast<int>(val);
+    } else if (line.raw().length() > 5) {
+        std::string filament_id_str = line.raw().substr(7);
+        if (!filament_id_str.empty()) {
+             try {
+                eid = std::stoi(filament_id_str);
+             } catch(...) {}
         }
-        else {
-            if (eid >= m_result.filaments_count)
-                BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
-            process_filament_change(eid);
+    }
+
+    if (eid == -1) return;
+
+    if (eid < 0 || eid > 254) {
+        // M1020-1 is a valid gcode line for RepRap Firmwares (used to deselects all tools)
+        if ((m_flavor != gcfRepRapFirmware && m_flavor != gcfRepRapSprinter) || eid != -1)
+            BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
+    }
+    else {
+        if (eid >= m_result.filaments_count)
+            BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
+        
+        int nozzle_id = -1;
+        if (line.has_value('H', val)) {
+            nozzle_id = static_cast<int>(val);
         }
+        process_filament_change(eid, nozzle_id);
     }
 }
 
-void GCodeProcessor::process_T(const std::string_view command)
+void GCodeProcessor::process_T(const std::string_view command, int nozzle_id)
 {
-    int curr_filament_id = get_filament_id(false);
-    int curr_extruder_id = get_extruder_id(false);
     //TODO: multi switch
     if (command.length() > 1) {
         int eid = 0;
@@ -5596,7 +5650,7 @@ void GCodeProcessor::process_T(const std::string_view command)
         else {
             if (eid >= m_result.filaments_count)
                 BOOST_LOG_TRIVIAL(error) << "Invalid T command (" << command << ").";
-            process_filament_change(eid);
+            process_filament_change(eid, nozzle_id);
         }
     }
 }
@@ -5612,108 +5666,59 @@ void GCodeProcessor::init_filament_maps_and_nozzle_type_when_import_only_gcode()
     }
 }
 
-void GCodeProcessor::process_filament_change(int id)
+void GCodeProcessor::process_filament_change(int id, int nozzle_id)
 {
     assert(id < m_result.filaments_count);
     int prev_extruder_id = get_extruder_id(false);
     int prev_filament_id = get_filament_id(false);
-    int next_extruder_id = m_filament_maps[id];
-    int next_filament_id = id;
     float extra_time = 0;
 
-    if (prev_filament_id == next_filament_id)
+    if (prev_filament_id == id && nozzle_id == -1)
         return;
 
     if (prev_extruder_id != -1)
         m_last_filament_id[prev_extruder_id] = prev_filament_id;
 
-    if(!m_nozzle_group_result.has_value()){
-        if (prev_extruder_id == next_extruder_id) {
-            // don't need extruder change
-            assert(prev_extruder_id != -1);
-            process_filaments(CustomGCode::ToolChange);
-            m_filament_id[next_extruder_id] = next_filament_id;
-            m_result.lock();
-            m_result.print_statistics.total_filament_changes += 1;
-            m_result.unlock();
-            extra_time += get_filament_unload_time(static_cast<size_t>(prev_filament_id));
-            m_time_processor.extruder_unloaded = false;
-            extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
-        }
-        else {
-            if (prev_extruder_id == -1) {
-                // initialize
-                m_extruder_id = next_extruder_id;
-                m_filament_id[next_extruder_id] = next_filament_id;
-                m_time_processor.extruder_unloaded = false;
-                extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
-            }
-            else {
-                //first process cache generated by last extruder
-                process_filaments(CustomGCode::ToolChange);
-                //switch to current extruder
-                m_extruder_id = next_extruder_id;
-                if (m_last_filament_id[next_extruder_id] == (unsigned char)(-1)) {
-                    //no filament in current extruder
-                    m_filament_id[next_extruder_id] = next_filament_id;
-                    m_time_processor.extruder_unloaded = false;
-                    extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
-                }
-                else if (m_last_filament_id[next_extruder_id] != next_filament_id) {
-                    //need to change filament
-                    m_filament_id[next_extruder_id] = next_filament_id;
-                    m_result.lock();
-                    m_result.print_statistics.total_filament_changes += 1;
-                    m_result.unlock();
-                    extra_time += get_filament_unload_time(static_cast<size_t>(prev_filament_id));
-                    m_time_processor.extruder_unloaded = false;
-                    extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
-                }
-                m_result.lock();
-                m_result.print_statistics.total_extruder_changes++;
-                m_result.unlock();
-                extra_time += get_extruder_change_time(next_extruder_id);
-            }
-        }
-    }
-    else {
-        auto old_extruder_opt = m_nozzle_group_result->get_nozzle_for_filament(prev_filament_id);
-        auto new_extruder_opt = m_nozzle_group_result->get_nozzle_for_filament(next_filament_id);
+        std::optional<MultiNozzleUtils::NozzleInfo> target_nozzle_info;
+        // If nozzle_id is specified, try to get the nozzle info by nozzle_id
+        if(nozzle_id != -1)
+            target_nozzle_info = m_nozzle_group_result->get_nozzle_by_id(nozzle_id);
+        // If nozzle_id is not specified or not found, try to get the nozzle info for the filament
+        if(!target_nozzle_info)
+            target_nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(id);
 
-        int old_extruder_id = old_extruder_opt ? old_extruder_opt->extruder_id : -1;
-        int new_extruder_id = new_extruder_opt ? new_extruder_opt->extruder_id : -1;
+        if(!target_nozzle_info)
+            return;
 
-        int old_filament_in_extruder = m_last_filament_id[next_extruder_id];
-        auto old_nozzle_in_extruder_opt = m_nozzle_group_result->get_nozzle_for_filament(old_filament_in_extruder);
-        auto new_nozzle_in_extruder_opt = m_nozzle_group_result->get_nozzle_for_filament(next_filament_id);
-
-        int old_nozzle_in_extruder = old_nozzle_in_extruder_opt ? old_nozzle_in_extruder_opt->group_id : -1;
-        int new_nozzle_in_extruder = new_nozzle_in_extruder_opt ? new_nozzle_in_extruder_opt->group_id : -1;
-
-        int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(new_nozzle_in_extruder);
+        int new_extruder_id = target_nozzle_info->extruder_id;
+        int new_nozzle_in_extruder = target_nozzle_info->group_id;
+        int new_filament_in_nozzle = id;
+        
+        int old_extruder_id = prev_extruder_id;
+        int old_nozzle_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(old_extruder_id);
+        int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_in_extruder);
 
         bool is_extruder_change = (old_extruder_id != new_extruder_id);
         bool is_nozzle_change = (old_nozzle_in_extruder != new_nozzle_in_extruder);
-        bool is_filament_change = (old_filament_in_nozzle != next_filament_id);
-
+        bool is_flush_change = (old_filament_in_nozzle != new_filament_in_nozzle);
 
         if (is_extruder_change) {
-            extra_time += get_extruder_change_time(next_extruder_id);
+            extra_time += get_extruder_change_time(new_extruder_id);
         }
         if (is_nozzle_change) {
             extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
             extra_time += get_hotend_change_time();
             m_time_processor.extruder_unloaded = false;
-            extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
+            extra_time += get_filament_load_time(static_cast<size_t>(new_filament_in_nozzle));
         }
-        if (is_filament_change) {
+        if (is_flush_change) {
             extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
             m_time_processor.extruder_unloaded = false;
-            extra_time += get_filament_load_time(static_cast<size_t>(next_filament_id));
+            extra_time += get_filament_load_time(static_cast<size_t>(new_filament_in_nozzle));
         }
 
         m_result.lock();
-        if (is_extruder_change || is_nozzle_change || is_filament_change) {
+        if (is_extruder_change || is_nozzle_change || is_flush_change) {
             process_filaments(CustomGCode::ToolChange);
         }
 
@@ -5723,16 +5728,21 @@ void GCodeProcessor::process_filament_change(int id)
         else if(is_nozzle_change){
             m_result.print_statistics.total_nozzle_changes++;
         }
-        else if(is_filament_change){
-            m_result.print_statistics.total_filament_changes++;
+        else if(is_flush_change){
+            m_result.print_statistics.total_flush_chages++;
         }
         m_result.unlock();
 
-        m_filament_id[next_extruder_id] = next_filament_id;
+        if (new_extruder_id != -1) {
+            m_filament_id[new_extruder_id] = new_filament_in_nozzle;
+        }
         m_extruder_id = new_extruder_id;
-        m_nozzle_status_recorder.set_nozzle_status(new_nozzle_in_extruder, next_filament_id);
-    }
-    m_cp_color.current = m_extruder_colors[next_filament_id];
+        
+        // 3. Ensure all state changes are recorded via NozzleStatusRecorder
+        m_nozzle_status_recorder.set_nozzle_status(new_nozzle_in_extruder, new_filament_in_nozzle, new_extruder_id);
+    
+
+    m_cp_color.current = m_extruder_colors[new_filament_in_nozzle];
     // store tool change move
     store_move_vertex(EMoveType::Tool_change);
 
@@ -6253,6 +6263,19 @@ void GCodeProcessor::PreCoolingInjector::build_extruder_free_blocks(const std::v
 
 void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProcessor::InsertedLinesMap& inserted_operation_lines, const ExtruderFreeBlock& block, float curr_temp, float target_temp, bool pre_cooling, bool pre_heating)
 {
+    unsigned int layer_id = 1;
+  
+    //assert(block.last_filament_id == -1 || block.next_filament_id == -1 || nozzle_group_result.get_extruder_id(block.last_filament_id, layer_id) == nozzle_group_result.get_extruder_id(block.next_filament_id, layer_id));
+
+    auto get_valid_extruder_id = [&](int filament_idx1, int filament_idx2) {
+        if (filament_idx1 != -1)
+            return nozzle_group_result.get_extruder_id(filament_idx1, layer_id);
+        if (filament_idx2 != -1)
+            return nozzle_group_result.get_extruder_id(filament_idx2, layer_id);
+        throw "Two invalid idx for one block";
+        return -1;
+        };
+
     auto is_pre_cooling_valid = [&nozzle_temps = this->filament_nozzle_temps, &pre_cooling_temps = this->filament_pre_cooling_temps](int idx) ->bool {
         if(idx < 0)
             return false;
@@ -6452,12 +6475,13 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
 void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vector<ExtruderPreHeating::FilamentUsageBlock>& filament_usage_blocks_)
 {
     m_extruder_free_blocks.clear();
-    std::vector<std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_extruder_usage_blocks(2);
-    for (auto& block : filament_usage_blocks_)
-        per_extruder_usage_blocks[filament_maps[block.filament_id]].emplace_back(block);
 
-    ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1, 0, machine_start_gcode_end_id);
-    ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
+    std::unordered_map<int,std::vector<ExtruderPreHeating::FilamentUsageBlock>> per_extruder_usage_blocks;
+    for (auto& block : filament_usage_blocks_){
+        per_extruder_usage_blocks[block.extruder_id].emplace_back(block);
+    }
+    ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1,-1, 0, machine_start_gcode_end_id);
+    ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1,-1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
 
     for (auto& blocks : per_extruder_usage_blocks) {
         blocks.insert(blocks.begin(), start_filament_block);

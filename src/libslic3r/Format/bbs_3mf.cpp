@@ -221,6 +221,7 @@ static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_lis
 static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
 static constexpr const char *FILAMENT_NOZZLE_DIAMETER_TAG    = "nozzle_diameter";
 static constexpr const char *FILAMENT_NOZZLE_VOLUME_TYPE_TAG = "volume_type";
+static constexpr const char *NOZZLE_TAG                      = "nozzle";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -338,6 +339,7 @@ static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
 static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
 static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
+static constexpr const char* ENABLE_FILAMENT_DYNAMIC_MAP_ATTR = "enable_filament_dynamic_map";
 static constexpr const char* SKIPPED_ATTR = "skipped";
 
 static constexpr const char* OBJECT_TYPE = "object";
@@ -508,6 +510,40 @@ void add_vector(std::stringstream &stream, const std::vector<T> &values)
     }
 }
 
+std::vector<int> parse_int_list(const std::string& value)
+{
+    std::vector<int> out;
+    if (value.empty())
+        return out;
+
+    std::vector<std::string> tokens;
+    boost::split(tokens, value, boost::is_any_of(" ,"), boost::token_compress_on);
+    out.reserve(tokens.size());
+    for (const auto& t : tokens) {
+        if (t.empty())
+            continue;
+        try {
+            out.emplace_back(boost::lexical_cast<int>(t));
+        } catch (...) {
+        }
+    }
+
+    std::sort(out.begin(), out.end());
+    out.erase(std::unique(out.begin(), out.end()), out.end());
+    return out;
+}
+
+std::string join_int_list_comma(const std::vector<int>& values)
+{
+    std::stringstream stream;
+    for (size_t i = 0; i < values.size(); ++i) {
+        stream << values[i];
+        if (i + 1 < values.size())
+            stream << ",";
+    }
+    return stream.str();
+}
+
 Slic3r::Vec3f get_vec3_from_string(const std::string &pos_str)
 {
     Slic3r::Vec3f pos(0, 0, 0);
@@ -647,11 +683,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.used_m = used_filament_m;
 
         if (result && result->nozzle_group_result) {
-            auto nozzle_for_filament = result->nozzle_group_result->get_nozzle_for_filament(it->first);
-            if (nozzle_for_filament) {
-                info.nozzle_diameter = string_to_double_decimal_point(nozzle_for_filament->diameter.c_str());
-                info.group_id = nozzle_for_filament->group_id;
-                info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
+            auto nozzles_for_filament = result->nozzle_group_result->get_nozzles_for_filament(it->first);
+            if (!nozzles_for_filament.empty()) {
+                info.group_id.reserve(nozzles_for_filament.size());
+                std::set<double> diameters;
+                std::set<NozzleVolumeType> volume_types;
+                for (const auto& nozzle : nozzles_for_filament) {
+                    info.group_id.emplace_back(nozzle.group_id);
+                    diameters.insert(string_to_double_decimal_point(nozzle.diameter.c_str()));
+                    volume_types.insert(nozzle.volume_type);
+                }
+                std::sort(info.group_id.begin(), info.group_id.end());
+                info.group_id.erase(std::unique(info.group_id.begin(), info.group_id.end()), info.group_id.end());
+                if (!diameters.empty())
+                    info.nozzle_diameter = *diameters.begin();
+                if (volume_types.size() > 1)
+                    info.nozzle_volume_type = get_nozzle_volume_type_string(nvtHybrid);
+                else if (!volume_types.empty())
+                    info.nozzle_volume_type = get_nozzle_volume_type_string(*volume_types.begin());
             }
         }
 
@@ -662,6 +711,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         slice_filaments_info.push_back(info);
     }
+
+    nozzle_group_result = result->nozzle_group_result;
 
     /* only for test
     GCodeProcessorResult::SliceWarning sw;
@@ -4535,6 +4586,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
             }
+            else if (key == ENABLE_FILAMENT_DYNAMIC_MAP_ATTR)
+            {
+                if (m_curr_plater) {
+                    bool enable_filament_dynamic_map = false;
+                    std::istringstream(value) >> std::boolalpha >> enable_filament_dynamic_map;
+                    m_curr_plater->config.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(enable_filament_dynamic_map));
+                }
+            }
             else if (key == PRINTER_MODEL_ID_ATTR)
             {
                 if (m_curr_plater)
@@ -4575,8 +4634,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
             filament_info.filament_id = filament_id;
-            if (!group_id.empty())
-                filament_info.group_id = atoi(group_id.c_str());
+            filament_info.group_id = parse_int_list(group_id);
             filament_info.nozzle_diameter = atof(nozzle_diameter.c_str());
             filament_info.nozzle_volume_type = volume_type;
             m_curr_plater->slice_filaments_info.push_back(filament_info);
@@ -8268,7 +8326,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LABEL_OBJECT_ENABLED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_label_object_enabled << "\"/>\n";
-
+                if (plate_data && plate_data->nozzle_group_result)
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->nozzle_group_result->is_support_dynamic_nozzle_map() << "\"/>\n";
+                else
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << false << "\"/>\n";
                 std::vector<int> filament_maps = plate_data->filament_maps;
                 if (filament_maps.empty())
                     filament_maps = config.option<ConfigOptionInts>("filament_map")->values;
@@ -8320,21 +8381,32 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {
+                    std::string group_id_value = join_int_list_comma(it->group_id);
                     stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
-                        << FILAMENT_TRAY_INFO_ID_TAG << "=\"" << it->filament_id << "\" "
-                        << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
-                        << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
-                        << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
-                        << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
-                        << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
-                        << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
-                        << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
-                        << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
-                        << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\"/>\n";
+                           << FILAMENT_TRAY_INFO_ID_TAG <<"=\""<< it->filament_id <<"\" "
+                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                           << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
+                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
+                           << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << group_id_value << "\" "
+                           << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
+                           << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
+                           << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
+                           << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
                     stream << "    <" << SLICE_WARNING_TAG << " msg=\"" << it->msg << "\" level=\"" << std::to_string(it->level) << "\" error_code =\"" << it->error_code << "\"  />\n";
+                }
+
+                if (plate_data->nozzle_group_result) {
+                    // 获取使用的所有逻辑喷嘴
+                    auto used_nozzle_list = plate_data->nozzle_group_result->get_used_nozzles_in_extruder();
+                   if(!used_nozzle_list.empty()){
+                      for(auto& used_nozzle: used_nozzle_list){
+                         stream <<"    <"<< NOZZLE_TAG <<" "<< used_nozzle.serialize() << "/>\n";
+                      }
+                   }
                 }
 
                 if (!plate_data->layer_filaments.empty()) {

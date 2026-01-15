@@ -1214,6 +1214,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnumsGeneric,        nozzle_volume_type))
     ((ConfigOptionStrings,             extruder_ams_count))
     ((ConfigOptionStrings,             extruder_nozzle_stats))
+    ((ConfigOptionBool,                enable_filament_dynamic_map))
     ((ConfigOptionEnum<PrimeVolumeMode>,prime_volume_mode))
     ((ConfigOptionInts,                printer_extruder_id))
     ((ConfigOptionInt,                 master_extruder_id))

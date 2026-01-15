@@ -98,7 +98,7 @@ namespace Slic3r {
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
-        unsigned int                                        total_filament_changes;
+        unsigned int                                        total_flush_chages;
         unsigned int                                        total_extruder_changes;
         unsigned int                                        total_nozzle_changes;
 
@@ -116,7 +116,7 @@ namespace Slic3r {
             total_volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
-            total_filament_changes = 0;
+            total_flush_chages = 0;
             total_extruder_changes = 0;
             total_nozzle_changes   = 0;
         }
@@ -353,9 +353,10 @@ namespace Slic3r {
         struct FilamentUsageBlock
         {
             int filament_id;
+            int extruder_id;
             unsigned int lower_gcode_id;
             unsigned int upper_gcode_id;  // [lower_gcode_id,upper_gcode_id) uses current filament , upper gcode id will be set after finding next block
-            FilamentUsageBlock(int filament_id_, unsigned int lower_gcode_id_, unsigned int upper_gcode_id_) :filament_id(filament_id_), lower_gcode_id(lower_gcode_id_), upper_gcode_id(upper_gcode_id_) {}
+            FilamentUsageBlock(int filament_id_, int extruder_id_, unsigned int lower_gcode_id_, unsigned int upper_gcode_id_) :filament_id(filament_id_), extruder_id(extruder_id_), lower_gcode_id(lower_gcode_id_), upper_gcode_id(upper_gcode_id_) {}
         };
 
         /**
@@ -1391,13 +1392,13 @@ namespace Slic3r {
 
         // Processes T line (Select Tool)
         void process_T(const GCodeReader::GCodeLine& line);
-        void process_T(const std::string_view command);
+        void process_T(const std::string_view command, int nozzle_id = -1);
         void process_M1020(const GCodeReader::GCodeLine &line);
 
         void process_M622(const GCodeReader::GCodeLine &line);
         void process_M623(const GCodeReader::GCodeLine &line);
 
-        void process_filament_change(int id);
+        void process_filament_change(int filament_id, int nozzle_id);
         //BBS: different path_type is only used for arc move
         void store_move_vertex(EMoveType type, EMovePathType path_type = EMovePathType::Noop_move);
 

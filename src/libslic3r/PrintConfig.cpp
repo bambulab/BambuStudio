@@ -4189,6 +4189,9 @@ void PrintConfigDef::init_fff_params()
     def = this->add("extruder_nozzle_stats", coStrings);
     def->set_default_value(new ConfigOptionStrings { });
 
+    def = this->add("enable_filament_dynamic_map", coBool);
+    def->set_default_value(new ConfigOptionBool{ false });
+
     def = this->add("prime_volume_mode", coEnum);
     def->enum_values.push_back("Default");
     def->enum_values.push_back("Saving");
