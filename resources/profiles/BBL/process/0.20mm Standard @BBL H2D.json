@@ -275,6 +275,13 @@
         "0",
         "0"
     ],
+    "top_solid_infill_flow_ratio": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1.09"
+    ],
     "vertical_shell_speed": [
         "80%",
         "80%",
