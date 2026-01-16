@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,13 +49,20 @@ msgstr ""
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
 msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -67,26 +74,16 @@ msgstr "Damp PVA will become flexible and get stuck inside the AMS; please take 
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "Damp PVA is flexible and may get stuck in the extruder. Please dry it before use."
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr ""
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF filaments are hard and brittle, so they can easily break or get stuck in an AMS; please use with caution."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr ""
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr ""
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
 msgstr ""
 
 #, c-format, boost-format
@@ -6703,13 +6700,21 @@ msgstr ""
 msgid "Not installed"
 msgstr ""
 
-msgid "4-slot AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
 msgstr ""
 
-msgid "1-slot AMS"
+msgid "Switch diameter"
 msgstr ""
 
-msgid "Remove this AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
 msgstr ""
 
 msgid "Sync printer information"
@@ -6741,12 +6746,6 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
-
-msgid "Confirm Diameter Switch"
-msgstr ""
-
 msgid "Project Filaments"
 msgstr ""
 
@@ -6770,9 +6769,6 @@ msgstr "Set filaments to use"
 
 msgid "Search plate, object and part."
 msgstr "Search plate, object and part."
-
-msgid "(Unavailable for right extruder)"
-msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6811,6 +6807,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Restore"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -10094,12 +10093,6 @@ msgstr ""
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr ""
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr ""
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr ""
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr ""
 
@@ -11315,6 +11308,42 @@ msgstr ""
 msgid "Temperature drop before entering filament tower"
 msgstr ""
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Softening temperature"
 
@@ -11641,6 +11670,9 @@ msgid "This option is enabled if machine support controlling chamber temperature
 msgstr "This option is enabled if machine support controlling chamber temperature"
 
 msgid "Apply top surface compensation"
+msgstr ""
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
 msgstr ""
 
 msgid "Air filtration enhancement"
@@ -12364,9 +12396,6 @@ msgstr "Minimum sparse infill threshold"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "Sparse infill areas which are smaller than this threshold value are replaced by internal solid infill."
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr ""
@@ -15013,17 +15042,19 @@ msgid "(Sync with printer)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgstr ""
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
 msgstr ""
 
 #, c-format, boost-format
@@ -15187,6 +15218,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15214,6 +15251,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15550,6 +15632,9 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "CF/GF filaments are hard and brittle, so they can easily break or get stuck in an AMS; please use with caution."
 
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Micro lidar calibration"
@@ -18352,9 +18437,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "You can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+Any arrow"

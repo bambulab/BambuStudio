@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -52,13 +52,20 @@ msgstr ""
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
 msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
 msgstr ""
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
@@ -70,26 +77,16 @@ msgstr "Вологий PVA стає гнучким і може застрягт�
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr ""
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr ""
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони можуть застряти в AMS, будьте обережні під час використання."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr ""
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr ""
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
 msgstr ""
 
 #, c-format, boost-format
@@ -6731,14 +6728,22 @@ msgstr ""
 msgid "Not installed"
 msgstr ""
 
-msgid "4-slot AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
 msgstr ""
 
-msgid "1-slot AMS"
-msgstr ""
+msgid "Switch diameter"
+msgstr "Змінити діаметр"
 
-msgid "Remove this AMS"
-msgstr ""
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Ліве сопло: %sмм"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Праве сопло: %sмм"
 
 msgid "Sync printer information"
 msgstr "Синхронізувати інформацію принтера"
@@ -6769,12 +6774,6 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Синхронізувати інформацію про сопла та кількість AMS"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
-
-msgid "Confirm Diameter Switch"
-msgstr ""
-
 msgid "Project Filaments"
 msgstr "Філаменти проєкта"
 
@@ -6798,9 +6797,6 @@ msgstr "Встановіть нитки для використання"
 
 msgid "Search plate, object and part."
 msgstr "Пошук плити, об’єкта і деталі."
-
-msgid "(Unavailable for right extruder)"
-msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6841,6 +6837,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Відновити"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "Поточна температура гарячого ложа висока. При друку цим філаментом в закритому приміщенні може статися забивання сопла. Будь ласка, відкрийте передню дверцю та/або видаліть верхнє скло."
@@ -10133,12 +10132,6 @@ msgstr ""
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr ""
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr ""
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr ""
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr ""
 
@@ -11366,6 +11359,42 @@ msgstr ""
 msgid "Temperature drop before entering filament tower"
 msgstr ""
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "мм²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Температура м’якості"
 
@@ -11692,6 +11721,9 @@ msgid "This option is enabled if machine support controlling chamber temperature
 msgstr "Ця опція включається, якщо пристрій підтримує керування температурою камери"
 
 msgid "Apply top surface compensation"
+msgstr ""
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
 msgstr ""
 
 msgid "Air filtration enhancement"
@@ -12415,9 +12447,6 @@ msgstr "Мінімальний поріг заповнення"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "Площа заповнення, яка менша за порогове значення, замінюється внутрішнім суцільним заповненням"
-
-msgid "mm²"
-msgstr "мм²"
 
 msgid "Solid infill filament"
 msgstr ""
@@ -15076,17 +15105,19 @@ msgid "(Sync with printer)"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
 msgstr ""
 
 msgid "We will slice according to this grouping method:"
 msgstr ""
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
+msgstr ""
+
+msgid "Please adjust your grouping or click "
+msgstr ""
+
+msgid " to set nozzle count"
 msgstr ""
 
 #, c-format, boost-format
@@ -15250,6 +15281,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15277,6 +15314,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15615,6 +15697,9 @@ msgid ""
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
 
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони можуть застряти в AMS, будьте обережні під час використання."
+
 #~ msgid "Micro lidar calibration"
 #~ msgstr "Калібрування мікролідара"
 
@@ -15623,17 +15708,6 @@ msgstr ""
 
 #~ msgid "High-temperature Heatbed Calibration"
 #~ msgstr "Високотемпературне калібрування гарячого ліжка"
-
-#~ msgid "Switch diameter"
-#~ msgstr "Змінити діаметр"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Ліве сопло: %sмм"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Праве сопло: %sмм"
 
 #~ msgid "This calibration does not support the currently selected nozzle diameter"
 #~ msgstr "Калібрування не підтримує обраний діаметр сопла"
@@ -17138,9 +17212,6 @@ msgstr ""
 
 #~ msgid "IP"
 #~ msgstr "IP"
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "CoreXY"
 #~ msgstr "CoreXY"

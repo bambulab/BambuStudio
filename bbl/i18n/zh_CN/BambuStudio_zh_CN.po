@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -56,14 +56,21 @@ msgstr "AMS 不支持 'Bambu Lab PET-CF'。"
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "当前耗材不支持 E3D 大流量喷嘴，无法使用。"
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr "ABS/ASA/PETG HF在右挤出机打印时，仅能作为支撑材料使用。"
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "%s在右挤出机打印时，只能作为支撑耗材。"
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr "当前耗材不支持 TPU 大流量喷嘴，无法使用。"
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "TPU线材不支持自动动态流量校准。"
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
-msgstr "当前耗材不支持 TPU 大流量喷嘴，无法使用。"
+msgid "How to feed TPU filament."
+msgstr "TPU进料方式。"
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "使用非拓竹耗材可能会存在打印质量问题。"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "为了避免堵塞，打印TPU前请冷拔。您可使用打印机上的冷拔维护功能。"
@@ -74,27 +81,17 @@ msgstr "潮湿的PVA会变得柔软并粘在AMS内，请在使用前注意干燥
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "受潮的PVA会变柔，可能会卡在挤出机中。使用前请先烘干。"
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPS-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF较脆, 容易断在工具头上方的弯折铁氟龙管里。"
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "夜光耗材可能磨损 AMS 进料口，建议使用外挂料盘打印。"
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "使用默认参数打印可能影响打印质量，请根据实际效果调整参数以获得最佳结果。"
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr "使用非拓竹耗材可能会存在打印质量问题。"
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr "%s在右挤出机打印时，只能作为支撑耗材。"
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -3360,7 +3357,7 @@ msgstr "使用当前喷嘴打印可能会产生额外 %0.2f 克废料。"
 
 #, c-format, boost-format
 msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "提示：耗材类型(%s)与切片文件中的耗材类型(%s)不匹配。如果您想使用此槽位，可以安装%s替代%s，并在“设备”页面更改槽位信息。"
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4830,25 +4827,25 @@ msgid "Calibration step selection"
 msgstr "校准步骤选择"
 
 msgid "Micro Lidar Calibration"
-msgstr ""
+msgstr "激光雷达校准"
 
 msgid "Auto Bed Leveling"
 msgstr "自动热床调平"
 
 msgid "Vibration Compensation"
-msgstr ""
+msgstr "振动补偿"
 
 msgid "Motor Noise Cancellation"
-msgstr ""
+msgstr "电机降噪"
 
 msgid "Nozzle Offset Calibration"
 msgstr "喷嘴偏移校准"
 
 msgid "High-temperature Bed Leveling"
-msgstr ""
+msgstr "高温热床调平"
 
 msgid "Nozzle Clumping Detection Calibration"
-msgstr ""
+msgstr "触碰裹头检测校准"
 
 msgid "Calibration program"
 msgstr "校准程序"
@@ -6620,7 +6617,7 @@ msgid "Unlock current plate"
 msgstr "解锁当前盘"
 
 msgid "Lock current plate"
-msgstr ""
+msgstr "锁定当前盘"
 
 msgid "Edit filament grouping"
 msgstr "编辑材料分组"
@@ -6703,14 +6700,25 @@ msgstr "AMS（单槽）"
 msgid "Not installed"
 msgstr "未安装"
 
-msgid "4-slot AMS"
-msgstr "4槽AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
+"由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。 \n"
+"请确认使用哪个喷嘴打印当前项目。"
 
-msgid "1-slot AMS"
-msgstr "单槽AMS"
+msgid "Switch diameter"
+msgstr "设置喷嘴直径"
 
-msgid "Remove this AMS"
-msgstr "移除此AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "左喷嘴：%smm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "右喷嘴：%smm"
 
 msgid "Sync printer information"
 msgstr "同步打印机信息"
@@ -6743,12 +6751,6 @@ msgstr "同步信息"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr "当前直径下无喷嘴。继续切换将自动更改所有喷嘴的直径。"
-
-msgid "Confirm Diameter Switch"
-msgstr "确认直径切换"
-
 msgid "Project Filaments"
 msgstr "项目耗材列表"
 
@@ -6772,9 +6774,6 @@ msgstr "配置可选择的材料"
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
-
-msgid "(Unavailable for right extruder)"
-msgstr "（右侧挤出机不可用）"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6817,6 +6816,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "恢复"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "当前热床温度相对较高。在封闭式外壳中打印这种丝可能会导致喷嘴堵塞。请打开前门和/或取下上部玻璃。"
@@ -10132,12 +10134,6 @@ msgstr " 喷嘴. "
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "请更换喷嘴类型或重新分配耗材，然后重试。"
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr "TPU 高流量喷嘴不支持自动切换耗材，因此只能分配一种耗材。\n"
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr " 耗材被分配到 TPU 高流量喷嘴上"
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "自定义模式分组错误。请检查喷嘴数量或重新分组。"
 
@@ -11362,6 +11358,42 @@ msgstr "擦料塔冷却"
 msgid "Temperature drop before entering filament tower"
 msgstr "进入擦料塔前的降温量"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "软化温度"
 
@@ -11689,6 +11721,9 @@ msgstr "此选项在支持腔温控制时启用。"
 
 msgid "Apply top surface compensation"
 msgstr "应用顶面补偿"
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "支持空气过滤增强"
@@ -12411,9 +12446,6 @@ msgstr "稀疏填充最小阈值"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "小于这个阈值的稀疏填充区域将会被内部实心填充替代。"
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "实心填充耗材"
@@ -15085,18 +15117,20 @@ msgid "(Sync with printer)"
 msgstr "（请连接打印机）"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr ""
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr "错误: %s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
 
 msgid "We will slice according to this grouping method:"
 msgstr "我们将基于当前分配方案切片："
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "提示：您可以拖动耗材以将其重新分配到不同的喷嘴。"
+
+msgid "Please adjust your grouping or click "
+msgstr "请调整您的分组或点击 "
+
+msgid " to set nozzle count"
+msgstr " 设置喷嘴数量"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15259,6 +15293,12 @@ msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15286,6 +15326,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15655,6 +15740,36 @@ msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
 
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "ABS/ASA/PETG HF在右挤出机打印时，仅能作为支撑材料使用。"
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "CF/GF耗材丝又硬又脆，在AMS中很容易断裂或卡住，请谨慎使用。"
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4槽AMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "单槽AMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "移除此AMS"
+
+#~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+#~ msgstr "当前直径下无喷嘴。继续切换将自动更改所有喷嘴的直径。"
+
+#~ msgid "Confirm Diameter Switch"
+#~ msgstr "确认直径切换"
+
+#~ msgid "(Unavailable for right extruder)"
+#~ msgstr "（右侧挤出机不可用）"
+
+#~ msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+#~ msgstr "TPU 高流量喷嘴不支持自动切换耗材，因此只能分配一种耗材。\n"
+
+#~ msgid " filaments are assigned to the TPU High Flow nozzle"
+#~ msgstr " 耗材被分配到 TPU 高流量喷嘴上"
+
 #~ msgid "1. Filaments of different types cannot be matched."
 #~ msgstr "1. 不同类型的耗材不能混用。"
 
@@ -15687,16 +15802,6 @@ msgstr ""
 #~ " 继续或手动修改它。"
 
 #, c-format, boost-format
-#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-#~ msgstr "错误: %s 挤出机没有可用的 %s 喷嘴，当前分组结果无效。"
-
-#~ msgid "Please adjust your grouping or click "
-#~ msgstr "请调整您的分组或点击 "
-
-#~ msgid " to set nozzle count"
-#~ msgstr " 设置喷嘴数量"
-
-#, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 #~ msgstr "提示: 此耗材类型(%s)与切片文件中的耗材类型(%s)不匹配。如果您想使用这个槽位，请安装%s耗材替换掉%s耗材，然后在''设备'页面设置槽位信息。"
 
@@ -15706,26 +15811,6 @@ msgstr ""
 
 #~ msgid "Note: Only filament-loaded slots can be selected."
 #~ msgstr "提示：仅允许选择放置有耗材的槽位。"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
-#~ "由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。 \n"
-#~ "请确认使用哪个喷嘴打印当前项目。"
-
-#~ msgid "Switch diameter"
-#~ msgstr "设置喷嘴直径"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "左喷嘴：%smm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "右喷嘴：%smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "按字符环绕投影"
@@ -18403,9 +18488,6 @@ msgstr ""
 
 #~ msgid "Ctrl+Left mouse button"
 #~ msgstr "Ctrl+鼠标左键"
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "The beginning of the vendor can not be a number. Please re-enter."
 #~ msgstr "自定义供应商的开头不能是数字。请重新输入。"

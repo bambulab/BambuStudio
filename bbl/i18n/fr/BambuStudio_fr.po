@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,14 +52,21 @@ msgstr "L'AMS ne prend pas en charge 'Bambu Lab PET-CF'."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "Le filament actuel n'est pas compatible avec la buse E3D à haut débit et ne peut pas être utilisé."
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr "Lors de l'utilisation d'ABS/ASA/PETG HF sur l'extrudeuse droite, cette buse ne pourra être utilisé que comme matériau de support."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "Lors de l'utilisation de %s sur l'extrudeuse droite, cette buse ne pourra être utilisé que comme matériau de support."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "La calibration automatique du débit dynamique n'est pas prise en charge pour le filament TPU."
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
 msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "L'utilisation de filaments non Bambu peut entraîner des problèmes de qualité d'impression."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Veuillez effectuer un tirage à froid avant d'imprimer du TPU pour éviter tout bouchage. Vous pouvez utiliser la procédure de Tirage à froid sur l'imprimante."
@@ -70,27 +77,17 @@ msgstr "Le PVA humide deviendra souple et se coincera dans l'AMS, veillez à bie
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "Le PVA humide est flexible et peut se coincer dans l'extrudeur. Séchez-le avant utilisation."
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "Le PLA Glow peut user prématurément l'alimentation de premier étage de l'AMS. Utilisez plutôt une bobine externe."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Les filaments CF/GF sont durs et fragiles, ils peuvent donc facilement se casser ou se coincer dans un AMS, veuillez les utiliser avec prudence."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "Le PPS-CF est fragile et pourrait se briser dans un tube en PTFE plié au-dessus de la tête d'outil."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "Le PPA-CF est fragile et pourrait se briser dans un tube en PTFE plié au-dessus de la tête d'outil."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "Le PLA Glow peut user prématurément l'alimentation de premier étage de l'AMS. Utilisez plutôt une bobine externe."
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "Les réglages par défaut peuvent affecter la qualité d'impression. Ajustez-les selon vos besoins pour obtenir les meilleurs résultats."
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr "L'utilisation de filaments non Bambu peut entraîner des problèmes de qualité d'impression."
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr "Lors de l'utilisation de %s sur l'extrudeuse droite, cette buse ne pourra être utilisé que comme matériau de support."
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -6739,14 +6736,25 @@ msgstr "AMS (1 fente)"
 msgid "Not installed"
 msgstr "Non installé"
 
-msgid "4-slot AMS"
-msgstr "AMS à 4 fentes"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"Le logiciel ne permet pas d'utiliser des buses de diamètres différents pour une même impression.\n"
+"Si les buses gauche et droite sont incompatibles, nous ne pouvons procéder qu'à une impression à une seule tête.\n"
+"Veuillez confirmer la buse que vous souhaitez utiliser pour ce projet."
 
-msgid "1-slot AMS"
-msgstr "AMS à 1 fente"
+msgid "Switch diameter"
+msgstr "Diamètre de l'interrupteur"
 
-msgid "Remove this AMS"
-msgstr "Supprimer cet AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Buse gauche : %smm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Buse droite : %smm"
 
 msgid "Sync printer information"
 msgstr "Synchroniser les informations de l'imprimante"
@@ -6779,12 +6787,6 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchroniser les informations sur les buses et le nombre d'AMS"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr "Aucune buse n’est disponible pour le diamètre actuel. Poursuivre le changement modifiera automatiquement le diamètre de toutes les buses"
-
-msgid "Confirm Diameter Switch"
-msgstr "Confirmer le Changement de Diamètre"
-
 msgid "Project Filaments"
 msgstr "Filaments de projet"
 
@@ -6808,9 +6810,6 @@ msgstr "Définir les filaments à utiliser"
 
 msgid "Search plate, object and part."
 msgstr "Recherchez une plaque, un objet ou une pièce."
-
-msgid "(Unavailable for right extruder)"
-msgstr "(Indisponible pour l'extrudeur droite)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6851,6 +6850,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Restaurer"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -10179,12 +10181,6 @@ msgstr " buse. "
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Veuillez changer le type de buse ou réaffecter le filament, puis réessayer."
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr "La buse TPU High Flow ne prend pas en charge le changement automatique de filament, en conséquence un seul filament peut être assigné.\n"
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr " filaments sont affectés à la buse TPU High Flow"
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Erreur de groupe en mode manuel. Veuillez vérifier le nombre de buses ou regrouper à nouveau."
 
@@ -11420,6 +11416,42 @@ msgstr "Refroidissement de la tour de purge"
 msgid "Temperature drop before entering filament tower"
 msgstr "Baisse de température avant l’entrée sur la tour de filament"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "T°C de ramollissement"
 
@@ -11747,6 +11779,9 @@ msgstr "Cette option est activée si la machine supporte le contrôle de la temp
 
 msgid "Apply top surface compensation"
 msgstr "Appliquer la compensation de la surface supérieure"
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "Amélioration filtration de l'air"
@@ -12469,9 +12504,6 @@ msgstr "Seuil minimum de remplissage"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "Un remplissage solide remplacera le remplissage classique si la surface à remplir est inférieure au seuil défini."
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "Filament de remplissage solide"
@@ -15164,18 +15196,20 @@ msgid "(Sync with printer)"
 msgstr "(Synchronisation avec l'imprimante)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr "Erreur : l'extrudeur %s ne dispose d'aucune buse %s disponible, le groupement actuel est invalide."
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr "Veuillez ajuster votre regroupement ou modifier votre extrudeur %s en haut à gauche de la page Préparation pour vous assurer qu'il comprend au moins une buse d'un diamètre de %s mm"
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr "Erreur : l'extrudeur %s ne dispose d'aucune buse %s disponible, le résultat du groupe actuel est invalide."
 
 msgid "We will slice according to this grouping method:"
 msgstr "Nous allons trancher selon cette méthode de regroupement :"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Conseils : Vous pouvez faire glisser les filaments pour les réaffecter à des buses différentes."
+
+msgid "Please adjust your grouping or click "
+msgstr "Veuillez ajuster votre regroupement ou cliquer "
+
+msgid " to set nozzle count"
+msgstr " pour définir le nombre de buses"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15338,6 +15372,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15365,6 +15405,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15736,6 +15821,44 @@ msgstr ""
 "Retrait, Warping et Contraintes\n"
 "En contrôlant l'indice thermique, vous pouvez éliminer les causes thermiques du soulèvement et des contraintes."
 
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "Lors de l'utilisation d'ABS/ASA/PETG HF sur l'extrudeuse droite, cette buse ne pourra être utilisé que comme matériau de support."
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "Les filaments CF/GF sont durs et fragiles, ils peuvent donc facilement se casser ou se coincer dans un AMS, veuillez les utiliser avec prudence."
+
+#~ msgid "4-slot AMS"
+#~ msgstr "AMS à 4 fentes"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "AMS à 1 fente"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "Supprimer cet AMS"
+
+#~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+#~ msgstr "Aucune buse n’est disponible pour le diamètre actuel. Poursuivre le changement modifiera automatiquement le diamètre de toutes les buses"
+
+#~ msgid "Confirm Diameter Switch"
+#~ msgstr "Confirmer le Changement de Diamètre"
+
+#~ msgid "(Unavailable for right extruder)"
+#~ msgstr "(Indisponible pour l'extrudeur droite)"
+
+#~ msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+#~ msgstr "La buse TPU High Flow ne prend pas en charge le changement automatique de filament, en conséquence un seul filament peut être assigné.\n"
+
+#~ msgid " filaments are assigned to the TPU High Flow nozzle"
+#~ msgstr " filaments sont affectés à la buse TPU High Flow"
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+#~ msgstr "Erreur : l'extrudeur %s ne dispose d'aucune buse %s disponible, le groupement actuel est invalide."
+
+#, c-format, boost-format
+#~ msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+#~ msgstr "Veuillez ajuster votre regroupement ou modifier votre extrudeur %s en haut à gauche de la page Préparation pour vous assurer qu'il comprend au moins une buse d'un diamètre de %s mm"
+
 #~ msgid "1. Filaments of different types cannot be matched."
 #~ msgstr "1. Les filaments de types différents ne peuvent pas être associés."
 
@@ -15768,16 +15891,6 @@ msgstr ""
 #~ " pour continuer ou l'ajuster manuellement."
 
 #, c-format, boost-format
-#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-#~ msgstr "Erreur : l'extrudeur %s ne dispose d'aucune buse %s disponible, le résultat du groupe actuel est invalide."
-
-#~ msgid "Please adjust your grouping or click "
-#~ msgstr "Veuillez ajuster votre regroupement ou cliquer "
-
-#~ msgid " to set nozzle count"
-#~ msgstr " pour définir le nombre de buses"
-
-#, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 #~ msgstr "Remarque : le type de filament (%s) ne correspond pas au type de filament (%s) dans le fichier tranché. Si vous souhaitez utiliser cet emplacement, vous pouvez installer %s à la place de %s et modifier ses informations sur la page « Périphérique »."
 
@@ -15787,26 +15900,6 @@ msgstr ""
 
 #~ msgid "Note: Only filament-loaded slots can be selected."
 #~ msgstr "Remarque : Seuls les emplacements avec filament chargé peuvent être sélectionnés."
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "Le logiciel ne permet pas d'utiliser des buses de diamètres différents pour une même impression.\n"
-#~ "Si les buses gauche et droite sont incompatibles, nous ne pouvons procéder qu'à une impression à une seule tête.\n"
-#~ "Veuillez confirmer la buse que vous souhaitez utiliser pour ce projet."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Diamètre de l'interrupteur"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Buse gauche : %smm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Buse droite : %smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "Projection de l'entourage par caractère"
@@ -18953,9 +19046,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "Vous pouvez mettre à jour Bambu Studio quand vous le souhaitez. Le fichier tranché sera cependant chargé sans toutes les fonctionnalités existantes."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+n'importe quelle flèche"
