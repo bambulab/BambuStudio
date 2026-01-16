@@ -829,7 +829,7 @@ namespace Slic3r
                 if (unprintable_volumes.count(nozzle_info.volume_type)) {
                     if (unprintable_ext == -1)
                         unprintable_ext = nozzle_info.extruder_id;
-                    else
+                    else if (unprintable_ext != nozzle_info.extruder_id)
                         multi_unprintable = true;
                 }
             }
@@ -925,10 +925,10 @@ namespace Slic3r
 
     std::vector<int> FilamentGroup::calc_filament_group(int* cost)
     {
-        auto extruder_variant_list = ctx.nozzle_info.extruder_nozzle_list;
+        /*auto extruder_variant_list = ctx.nozzle_info.extruder_nozzle_list;
         for (auto nozzle : ctx.nozzle_info.nozzle_list)
             if (nozzle.volume_type == NozzleVolumeType::nvtTPUHighFlow)
-                return calc_filament_group_for_tpu(cost);
+                return calc_filament_group_for_tpu(cost);*/
 
         try {
             if (FGMode::MatchMode == ctx.group_info.mode)
@@ -1072,7 +1072,7 @@ namespace Slic3r
                 // 第三阶段：在最佳偏好得分的候选方案中选择最均衡负载的方案
                 int best_candidate = -1;
                 int best_gap = std::numeric_limits<int>::max();
-                
+
                 for (const auto& candidate : valid_candidates) {
                     // 只考虑具有最佳偏好得分的候选方案
                     int machine_filament = candidate.first;
@@ -1180,7 +1180,7 @@ namespace Slic3r
         std::iota(l_nodes.begin(), l_nodes.end(), 0);
         std::vector<int> r_nodes(ctx.nozzle_info.extruder_nozzle_list.size());
         std::iota(r_nodes.begin(), r_nodes.end(), 0);
-        std::vector<int> machine_filament_capacity ({int(used_filaments.size()), 1});
+        std::vector<int> machine_filament_capacity({int(used_filaments.size()), int(used_filaments.size())});
 
         std::map<int, int> unprintable_limit_indices; // key stores filament idx in used_filament, value stores unprintable extruder
         extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unprintable_limit_indices);
