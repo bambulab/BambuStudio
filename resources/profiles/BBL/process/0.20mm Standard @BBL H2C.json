@@ -12,7 +12,6 @@
         "8000",
         "8000"
     ],
-    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "250",
         "150",
