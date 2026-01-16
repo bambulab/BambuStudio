@@ -150,7 +150,7 @@ private:
     std::vector<wxString> m_progress_text = {
         _L("Starting: Checking adapter connection"),
         _L("Starting: Checking filament status"),
-        _L("Starting: Checking drying preseets"),
+        _L("Starting: Checking drying presets"),
         _L("Starting: Checking filament location"),
         _L("Starting: Checking air intake"),
         _L("Starting: Checking air vent")
