@@ -502,8 +502,10 @@ public:
 
             for (size_t i = 0; i < restore_index.size(); i++) {
                 if (restore_index[i] != -1) {
-                    for (size_t j = 0; j < stride; j++)
-                        this->values[i * stride +j] = backup_values[restore_index[i] * stride +j];
+                    for (size_t j = 0; j < stride; j++) {
+                        if (restore_index[i] * stride + j < backup_values.size())
+                            this->values[i * stride +j] = backup_values[restore_index[i] * stride +j];
+                    }
                 }
             }
         }
@@ -580,7 +582,7 @@ public:
                 if (diff_index[i] != -1) {
                     for (size_t j = 0; j < stride; j++)
                     {
-                        if (!other->is_nil(diff_index[i] * stride))
+                        if (diff_index[i] * stride + j < other->values.size() && !other->is_nil(diff_index[i] * stride))
                             this->values[i * stride +j] = other->values[diff_index[i] * stride +j];
                     }
                 }
