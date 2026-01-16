@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,14 +52,21 @@ msgstr "Az AMS nem támogatja a „Bambu Lab PET-CF“ anyagot."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "A jelenlegi filament nem támogatja az E3D nagy áramlású fúvókát, így nem használható."
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr "Az ABS/ASA/PETG HF csak támaszanyagként használható a jobb oldali extruderben."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "A(z) %s csak támaszanyagként használható a jobb oldali extruderben."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Az automatikus dinamikus anyagáramlás kalibráció nem támogatott a TPU filamenttel."
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
 msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "Nem Bambu filament használata nyomtatási minőségi problémákat okozhat."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
@@ -70,27 +77,17 @@ msgstr "A nedves PVA rugalmassá válik és elakadhat az AMS belsejében; kérj�
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "A nedves PVA felpuhul, ezért elakadhat az extruderben. Használat előtt szárítsd ki."
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "A PLA Glow kopást okozhat az AMS első fokozatának adagolójában. Használd külső tartón."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "A PPS-CF rideg és eltörhet szerszámfej feletti hajlított PTFE-csőben."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "A PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "A PLA Glow kopást okozhat az AMS első fokozatának adagolójában. Használd külső tartón."
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "Az alapértelmezett beállítások befolyásolhatják a nyomtatási minőséget. A legjobb eredmény elérése érdekében szükség szerint módosítsd."
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr "Nem Bambu filament használata nyomtatási minőségi problémákat okozhat."
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr "A(z) %s csak támaszanyagként használható a jobb oldali extruderben."
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -6752,14 +6749,25 @@ msgstr "AMS (1 férőhely)"
 msgid "Not installed"
 msgstr "Nincs telepítve"
 
-msgid "4-slot AMS"
-msgstr "4 férőhelyes AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
+"Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
+"Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
 
-msgid "1-slot AMS"
-msgstr "1 férőhelyes AMS"
+msgid "Switch diameter"
+msgstr "Átmérő váltása"
 
-msgid "Remove this AMS"
-msgstr "AMS eltávolítása"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Bal oldali fúvóka: %s mm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Jobb oldali fúvóka: %s mm"
 
 msgid "Sync printer information"
 msgstr "Nyomtatóadatok szinkronizálása"
@@ -6792,12 +6800,6 @@ msgstr "Szinkronizálási információ"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Fúvókainformációk és az AMS-ek számának szinkronizálása"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr "Nincs fúvóka, amely megegyezik a jelenlegi átmérővel. A folytatással automatikusan megváltoztatod az összes fúvóka átmérőjét"
-
-msgid "Confirm Diameter Switch"
-msgstr "Átmérőváltás megerősítése"
-
 msgid "Project Filaments"
 msgstr "Projekt filamentek"
 
@@ -6821,9 +6823,6 @@ msgstr "Használni kívánt filament beállítása"
 
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
-
-msgid "(Unavailable for right extruder)"
-msgstr "(Nem elérhető a jobb oldali extruderhez)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6864,6 +6863,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Visszaállítás"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -10193,12 +10195,6 @@ msgstr " fúvóka. "
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Kérjük, módosítsd a fúvóka típusát, vagy változtasd meg a filamentek kiosztását, és próbáld újra."
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr "A TPU nagy áramlású fúvóka nem támogatja az automatikus filamentváltást, így csak egy filament rendelhető hozzá.\n"
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr " a filament a TPU nagy áramlású fúvókához van rendelve"
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Csoportosítási hiba manuális módban. Ellenőrizd a fúvókák számát, vagy csoportosítsd őket újra."
 
@@ -10457,7 +10453,7 @@ msgid "Plate %d: %s does not support filament %s"
 msgstr "%d. tálca: %s nem használható %s filamenttel."
 
 msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
-msgstr ""
+msgstr "A pontos külső fal figyelmen kívül lesz hagyva, kivéve, ha a falak sorrendje belső/külsőre van állítva"
 
 msgid "Generating skirt & brim"
 msgstr "Szoknya & perem generálása"
@@ -11434,6 +11430,42 @@ msgstr "Törlőtorony hűtés"
 msgid "Temperature drop before entering filament tower"
 msgstr "Hőmérsékletcsökkenés a törlőtoronyba lépés előtt"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Lágyulási hőmérséklet"
 
@@ -11761,6 +11793,9 @@ msgstr "Ez az opció csak akkor működik, ha a nyomtató rendelkezik kamra hőm
 
 msgid "Apply top surface compensation"
 msgstr "Felső felület kompenzációjának alkalmazása"
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "Levegőszűrés javítása"
@@ -12483,9 +12518,6 @@ msgstr "Ritkás kitöltés küszöbértéke"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "A küszöbérték alatti ritkás kitöltési terület belső szilárd kitöltéssel kerül leváltásra."
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "Tömör kitöltés filament"
@@ -15174,18 +15206,20 @@ msgid "(Sync with printer)"
 msgstr "(Szinkronizálás a nyomtatóval)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr ""
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr "Hiba: A(z) %s extrudernek nincs %s fúvókája, a jelenlegi csoporteredmény érvénytelen."
 
 msgid "We will slice according to this grouping method:"
 msgstr "Ennek a csoportosítási módszernek megfelelően fogunk szeletelni:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Tipp: A filamenteket húzással más fúvókákhoz is hozzárendelheted."
+
+msgid "Please adjust your grouping or click "
+msgstr "Kérjük, módosítsd a csoportosítást, vagy kattints "
+
+msgid " to set nozzle count"
+msgstr " a fúvókaszám beállításához"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15348,6 +15382,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15375,6 +15415,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15745,6 +15830,36 @@ msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
 
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "Az ABS/ASA/PETG HF csak támaszanyagként használható a jobb oldali extruderben."
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4 férőhelyes AMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "1 férőhelyes AMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "AMS eltávolítása"
+
+#~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+#~ msgstr "Nincs fúvóka, amely megegyezik a jelenlegi átmérővel. A folytatással automatikusan megváltoztatod az összes fúvóka átmérőjét"
+
+#~ msgid "Confirm Diameter Switch"
+#~ msgstr "Átmérőváltás megerősítése"
+
+#~ msgid "(Unavailable for right extruder)"
+#~ msgstr "(Nem elérhető a jobb oldali extruderhez)"
+
+#~ msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+#~ msgstr "A TPU nagy áramlású fúvóka nem támogatja az automatikus filamentváltást, így csak egy filament rendelhető hozzá.\n"
+
+#~ msgid " filaments are assigned to the TPU High Flow nozzle"
+#~ msgstr " a filament a TPU nagy áramlású fúvókához van rendelve"
+
 #~ msgid "1. Filaments of different types cannot be matched."
 #~ msgstr "1. A különböző típusú filamentek nem párosíthatók."
 
@@ -15777,16 +15892,6 @@ msgstr ""
 #~ "folytathatod vagy beállíthatod kézzel."
 
 #, c-format, boost-format
-#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-#~ msgstr "Hiba: A(z) %s extrudernek nincs %s fúvókája, a jelenlegi csoporteredmény érvénytelen."
-
-#~ msgid "Please adjust your grouping or click "
-#~ msgstr "Kérjük, módosítsd a csoportosítást, vagy kattints "
-
-#~ msgid " to set nozzle count"
-#~ msgstr " a fúvókaszám beállításához"
-
-#, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 #~ msgstr "Megjegyzés: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
 
@@ -15796,26 +15901,6 @@ msgstr ""
 
 #~ msgid "Note: Only filament-loaded slots can be selected."
 #~ msgstr "Megjegyzés: Csak olyan helyek választhatók ki, amelyekbe filament van betöltve."
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
-#~ "Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
-#~ "Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Átmérő váltása"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Bal oldali fúvóka: %s mm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Jobb oldali fúvóka: %s mm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "A kivetítés körbevétele szöveggel"
@@ -18972,9 +19057,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "A Bambu Studiót bármikor frissítheted. A szeletelőfájl teljes funkcionalitás nélkül töltődik be."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+Bármilyen nyíl gomb"

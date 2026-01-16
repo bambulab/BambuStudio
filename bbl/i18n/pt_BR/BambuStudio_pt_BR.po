@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,14 +56,21 @@ msgstr "O AMS não suporta 'Bambu Lab PET-CF'."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "O filamento atual não suporta o bico E3D de alto fluxo e não pode ser usado."
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr "Ao usar ABS/ASA/PETG HF na extrusora direita, ele só pode ser usado como material de suporte."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "Ao usar %s na extrusora direita, ele só pode ser usado como material de suporte."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "A calibração automática do fluxo dinâmico não é compatível com filamentos de TPU."
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
 msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "O uso de filamento que não seja de bambu pode causar problemas de qualidade na impressão."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Por favor, puxe a frio antes de imprimir TPU para evitar entupimentos. Você pode usar a manutenção por tração a frio na impressora."
@@ -74,27 +81,17 @@ msgstr "O PVA úmido se tornará flexível e ficará preso dentro do AMS. Por fa
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "O PVA úmido é flexível e pode ficar preso no extrusor. Seque antes de usar."
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "PLA Glow pode desgastar o alimentador da primeira etapa do AMS. Use um carretel externo em seu lugar."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Os filamentos CF/GF são duros e quebradiços. É fácil quebrar ou ficar presos no AMS, use com cuidado."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "O PPS-CF é quebradiço e pode quebrar em um tubo de PTFE dobrado acima do cabeçote."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "O PPA-CF é quebradiço e pode quebrar em um tubo de PTFE dobrado acima do cabeçote."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "PLA Glow pode desgastar o alimentador da primeira etapa do AMS. Use um carretel externo em seu lugar."
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "As configurações padrão podem afetar a qualidade de impressão. Ajuste conforme necessário para obter os melhores resultados."
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr "O uso de filamento que não seja de bambu pode causar problemas de qualidade na impressão."
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr "Ao usar %s na extrusora direita, ele só pode ser usado como material de suporte."
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -6751,14 +6748,25 @@ msgstr ""
 msgid "Not installed"
 msgstr "Não instalado"
 
-msgid "4-slot AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
 msgstr ""
+"O software não suporta o uso de diferentes diâmetros de bicos para uma impressão.\n"
+"Se os bicos esquerdo e direito forem inconsistentes, só podemos prosseguir com a impressão de cabeça única.\n"
+"Por favor, confirme qual bico você gostaria de usar para este projeto."
 
-msgid "1-slot AMS"
-msgstr ""
+msgid "Switch diameter"
+msgstr "Diâmetro do interruptor"
 
-msgid "Remove this AMS"
-msgstr ""
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Bico esquerdo: %smm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Bico direito: %smm"
 
 msgid "Sync printer information"
 msgstr "Sincronizar informações da impressora"
@@ -6791,12 +6799,6 @@ msgstr "Sincronizar informações"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar informações do bico e o número de AMS"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr ""
-
-msgid "Confirm Diameter Switch"
-msgstr ""
-
 msgid "Project Filaments"
 msgstr "Filamentos do Projeto"
 
@@ -6820,9 +6822,6 @@ msgstr "Defina os filamentos a serem usados"
 
 msgid "Search plate, object and part."
 msgstr "Placa de busca, objeto e peça."
-
-msgid "(Unavailable for right extruder)"
-msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6863,6 +6862,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Restaurar"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "A temperatura atual da cama quente é relativamente alta. O bocal pode ficar entupido ao imprimir esse filamento em um compartimento fechado. Abra a porta frontal e/ou remova o vidro superior."
@@ -10199,12 +10201,6 @@ msgstr " bico. "
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Por favor, altere o tipo de bico ou reatribua o filamento e tente novamente."
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr ""
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr ""
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Erro de agrupamento no modo manual. Verifique a quantidade de bicos ou reagrupe."
 
@@ -11426,6 +11422,42 @@ msgstr "Resfriamento da torre de limpeza"
 msgid "Temperature drop before entering filament tower"
 msgstr "Queda de temperatura antes de entrar na torre de filament"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Temperatura de amolecimento"
 
@@ -11753,6 +11785,9 @@ msgstr "Esta opção é ativada se a máquina suportar o controle da temperatura
 
 msgid "Apply top surface compensation"
 msgstr "Aplicar compensação da superfície superior"
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "Aprimoramento da filtragem de ar"
@@ -12473,9 +12508,6 @@ msgstr "Limite mínimo de preenchimento"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "A área de preenchimento interior, menor que o valor limite, é substituída por preenchimento sólido interno"
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "Filamento para preenchimento sólido"
@@ -15168,18 +15200,20 @@ msgid "(Sync with printer)"
 msgstr "(Sincronizar com a impressora)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr "Erro: %s extrusora não tem bico %s disponível, agrupamento atual é inválido."
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr "Ajuste o agrupamento ou modifique a extrusora %s no canto superior esquerdo da página Preparar para garantir que ela inclua pelo menos um bico com diâmetro de %s mm"
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr "Erro: extrusora %s não possui bico %s disponível, resultado atual do grupo é inválido."
 
 msgid "We will slice according to this grouping method:"
 msgstr "Vamos fatiar de acordo com este método de agrupamento:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Dicas: Você pode arrastar os filamentos para reatribuí-los a diferentes bicos."
+
+msgid "Please adjust your grouping or click "
+msgstr "Por favor, ajuste seu agrupamento ou clique "
+
+msgid " to set nozzle count"
+msgstr " para definir a quantidade de bicos"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15342,6 +15376,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15369,6 +15409,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15738,6 +15823,20 @@ msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
 
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "Ao usar ABS/ASA/PETG HF na extrusora direita, ele só pode ser usado como material de suporte."
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "Os filamentos CF/GF são duros e quebradiços. É fácil quebrar ou ficar presos no AMS, use com cuidado."
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+#~ msgstr "Erro: %s extrusora não tem bico %s disponível, agrupamento atual é inválido."
+
+#, c-format, boost-format
+#~ msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+#~ msgstr "Ajuste o agrupamento ou modifique a extrusora %s no canto superior esquerdo da página Preparar para garantir que ela inclua pelo menos um bico com diâmetro de %s mm"
+
 #~ msgid "Cooling heatbed"
 #~ msgstr "Resfriamento da mesa aquecida"
 
@@ -15761,16 +15860,6 @@ msgstr ""
 #~ "para continuar ou ajustá-lo manualmente."
 
 #, c-format, boost-format
-#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-#~ msgstr "Erro: extrusora %s não possui bico %s disponível, resultado atual do grupo é inválido."
-
-#~ msgid "Please adjust your grouping or click "
-#~ msgstr "Por favor, ajuste seu agrupamento ou clique "
-
-#~ msgid " to set nozzle count"
-#~ msgstr " para definir a quantidade de bicos"
-
-#, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 #~ msgstr "Nota: o tipo de filamento(%s ) não corresponde ao tipo de filamento(%s ) no arquivo de fatiamento. Se você quiser usar este slot, você pode instalar%s em vez de%s e altere as informações do slot na página &#39;Dispositivo&#39;."
 
@@ -15780,26 +15869,6 @@ msgstr ""
 
 #~ msgid "Note: Only filament-loaded slots can be selected."
 #~ msgstr "Observação: Somente os slots com filamento carregado podem ser selecionados."
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "O software não suporta o uso de diferentes diâmetros de bicos para uma impressão.\n"
-#~ "Se os bicos esquerdo e direito forem inconsistentes, só podemos prosseguir com a impressão de cabeça única.\n"
-#~ "Por favor, confirme qual bico você gostaria de usar para este projeto."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Diâmetro do interruptor"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Bico esquerdo: %smm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Bico direito: %smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "Projeção surround por caractere"
@@ -18948,9 +19017,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "Você sempre pode atualizar o Bambu Studio conforme sua conveniência. O arquivo de segmentação de dados agora será carregado sem funcionalidade completa."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+Qualquer seta"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,14 +52,21 @@ msgstr "El AMS no incluye 'Bambu Lab PET-CF'."
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "El filamento actual no es compatible con la boquilla de alto flujo E3D y no se puede usar."
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr "Cuando se utiliza ABS/ASA/PETG HF en el extrusor derecho, solo se puede utilizar como material de soporte."
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "Al utilizar %s en el extrusor derecho, solo se puede utilizar como material de soporte."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "La calibración automática del flujo dinámico no es compatible con el filamento de TPU."
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
 msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "El uso de filamento que no sea de Bambu puede presentar problemas de calidad de impresión."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "Antes de imprimir en TPU, tire de la tinta en frío para evitar obstrucciones. Puede usar el mantenimiento de la impresora con tirada en frío."
@@ -70,27 +77,17 @@ msgstr "El PVA húmedo se volverá flexible y se atascará dentro del AMS; aseg�
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "El PVA húmedo es flexible y puede quedar atascado en el extrusor. Séquelo antes de usarlo."
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "PLA Glow puede causar desgaste en la primera etapa del alimentador del AMS. Utilice una bobina externa en su lugar."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Los filamentos CF/GF son duros y quebradizos, por lo que pueden romperse o atascarse fácilmente en un AMS; utilícelos con precaución."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "El PPS-CF es quebradizo y podría romperse en un tubo de PTFE doblado por encima del cabezal."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "El PPA-CF es quebradizo y podría romperse en un tubo de PTFE doblado por encima del cabezal."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "PLA Glow puede causar desgaste en la primera etapa del alimentador del AMS. Utilice una bobina externa en su lugar."
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "La configuración predeterminada puede afectar la calidad de impresión. Ajústela según sea necesario para obtener los mejores resultados."
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr "El uso de filamento que no sea de Bambu puede presentar problemas de calidad de impresión."
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr "Al utilizar %s en el extrusor derecho, solo se puede utilizar como material de soporte."
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -6752,14 +6749,25 @@ msgstr "AMS (1 ranura)"
 msgid "Not installed"
 msgstr "No está instalado"
 
-msgid "4-slot AMS"
-msgstr "AMS de 4 ranuras"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"El software no admite el uso de boquillas de diferentes diámetros para una impresión.\n"
+"Si las boquillas izquierda y derecha son inconsistentes, solo podemos proceder con la impresión de un solo cabezal.\n"
+"Confirme qué boquilla desea utilizar para este proyecto."
 
-msgid "1-slot AMS"
-msgstr "AMS de 1 ranura"
+msgid "Switch diameter"
+msgstr "Diámetro del interruptor"
 
-msgid "Remove this AMS"
-msgstr "Eliminar este AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Boquilla izquierda: %s mm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Boquilla derecha: %s mm"
 
 msgid "Sync printer information"
 msgstr "Sincronizar información de la impresora"
@@ -6792,12 +6800,6 @@ msgstr "Sincronizar información"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar la información de la boquilla y el número de AMS"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr "No hay boquillas con el diámetro actual. Al continuar con el cambio, se modificarán automáticamente los diámetros de todas las boquillas"
-
-msgid "Confirm Diameter Switch"
-msgstr "Confirmar cambio de diámetro"
-
 msgid "Project Filaments"
 msgstr "Filamentos del proyecto"
 
@@ -6821,9 +6823,6 @@ msgstr "Establecer filamentos a utilizar"
 
 msgid "Search plate, object and part."
 msgstr "Buscar placa, objeto y pieza."
-
-msgid "(Unavailable for right extruder)"
-msgstr "(No disponible para el extrusor derecho)"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6864,6 +6863,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Restaurar"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -10202,12 +10204,6 @@ msgstr " boquilla. "
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Por favor, cambie el tipo de boquilla o reasigne el filamento y vuelva a intentarlo."
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr "La boquilla de alto flujo de TPU no admite el cambio automático de filamento, por lo que solo se puede asignar un filamento.\n"
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr " los filamentos se asignan a la boquilla de alto flujo de TPU"
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Error de agrupación en modo manual. Compruebe el número de boquillas o vuelva a agrupar."
 
@@ -11443,6 +11439,42 @@ msgstr "Enfriamiento de la torre de limpieza"
 msgid "Temperature drop before entering filament tower"
 msgstr "Caída de temperatura antes de entrar en la torre del filamento"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Temperatura de ablandamiento"
 
@@ -11770,6 +11802,9 @@ msgstr "Esta opción se activa si la máquina admite el control de la temperatur
 
 msgid "Apply top surface compensation"
 msgstr "Aplicar compensación de superficie superior"
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "Mejora de la filtración de aire"
@@ -12492,9 +12527,6 @@ msgstr "Umbral mínimo de relleno disperso"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "El área de relleno disperso que es menor que el valor del umbral se sustituye por un relleno sólido interno"
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "Filamento para relleno sólido"
@@ -15187,18 +15219,20 @@ msgid "(Sync with printer)"
 msgstr "(Sincronizar con la impresora)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr "Error: %sEl extrusor no tiene boquilla disponible%s, la agrupación actual no es válida."
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr "Ajuste su agrupación o modifique su %sextrusor en la parte superior izquierda de la página Preparar para asegurarse de que incluya al menos una boquilla con un diámetro de %s mm"
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr "Error: El extrusor %s no tiene boquilla %s disponible, el resultado del grupo actual no es válido."
 
 msgid "We will slice according to this grouping method:"
 msgstr "Cortaremos según este método de agrupación:"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "Consejo: Puede arrastrar los filamentos para reasignarlos a diferentes boquillas."
+
+msgid "Please adjust your grouping or click "
+msgstr "Por favor, ajuste su grupo o haga clic. "
+
+msgid " to set nozzle count"
+msgstr " para configurar el número de boquillas"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15361,6 +15395,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15388,6 +15428,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15757,6 +15842,44 @@ msgstr ""
 "Disminución, deformación y estrés\n"
 "Al controlar el índice térmico puedes remover las causas de calor de la deformación y el estrés."
 
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "Cuando se utiliza ABS/ASA/PETG HF en el extrusor derecho, solo se puede utilizar como material de soporte."
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "Los filamentos CF/GF son duros y quebradizos, por lo que pueden romperse o atascarse fácilmente en un AMS; utilícelos con precaución."
+
+#~ msgid "4-slot AMS"
+#~ msgstr "AMS de 4 ranuras"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "AMS de 1 ranura"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "Eliminar este AMS"
+
+#~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+#~ msgstr "No hay boquillas con el diámetro actual. Al continuar con el cambio, se modificarán automáticamente los diámetros de todas las boquillas"
+
+#~ msgid "Confirm Diameter Switch"
+#~ msgstr "Confirmar cambio de diámetro"
+
+#~ msgid "(Unavailable for right extruder)"
+#~ msgstr "(No disponible para el extrusor derecho)"
+
+#~ msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+#~ msgstr "La boquilla de alto flujo de TPU no admite el cambio automático de filamento, por lo que solo se puede asignar un filamento.\n"
+
+#~ msgid " filaments are assigned to the TPU High Flow nozzle"
+#~ msgstr " los filamentos se asignan a la boquilla de alto flujo de TPU"
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+#~ msgstr "Error: %sEl extrusor no tiene boquilla disponible%s, la agrupación actual no es válida."
+
+#, c-format, boost-format
+#~ msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+#~ msgstr "Ajuste su agrupación o modifique su %sextrusor en la parte superior izquierda de la página Preparar para asegurarse de que incluya al menos una boquilla con un diámetro de %s mm"
+
 #~ msgid "1. Filaments of different types cannot be matched."
 #~ msgstr "1. No es posible combinar filamentos de distintos tipos."
 
@@ -15786,16 +15909,6 @@ msgstr ""
 #~ " para continuar o ajustarlo manualmente."
 
 #, c-format, boost-format
-#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-#~ msgstr "Error: El extrusor %s no tiene boquilla %s disponible, el resultado del grupo actual no es válido."
-
-#~ msgid "Please adjust your grouping or click "
-#~ msgstr "Por favor, ajuste su grupo o haga clic. "
-
-#~ msgid " to set nozzle count"
-#~ msgstr " para configurar el número de boquillas"
-
-#, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 #~ msgstr "Nota: el tipo de filamento (%s) no coincide con el tipo de filamento (%s) en el archivo de corte. Si quieres usar esta ranura, puedes instalarla %s en lugar de %s cambiarla en la página «Dispositivo»."
 
@@ -15805,26 +15918,6 @@ msgstr ""
 
 #~ msgid "Note: Only filament-loaded slots can be selected."
 #~ msgstr "Nota: Solo se pueden seleccionar ranuras con filamento cargado."
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "El software no admite el uso de boquillas de diferentes diámetros para una impresión.\n"
-#~ "Si las boquillas izquierda y derecha son inconsistentes, solo podemos proceder con la impresión de un solo cabezal.\n"
-#~ "Confirme qué boquilla desea utilizar para este proyecto."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Diámetro del interruptor"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Boquilla izquierda: %s mm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Boquilla derecha: %s mm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "Proyección envolvente por char"
@@ -18973,9 +19066,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "Siempre puedes actualizar Bambu Studio cuando te convenga. El archivo segmentado ahora se cargará sin todas sus funciones."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+Cualquier tecla"
