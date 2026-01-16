@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-14 12:14+0800\n"
+"POT-Creation-Date: 2026-01-16 11:59+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -52,14 +52,21 @@ msgstr "AMSは「Bambu Lab PET-CF」に対応していません。"
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr "現在のフィラメントは E3D 高流量ノズルに対応していないため、使用できません。"
 
-msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr "ABS / ASA / PETG HF を右側の押出機で使用する場合、サポート材としてのみ使用できます。"
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "%s を右側の押出機で使用する場合、サポート材としてのみ使用できます。"
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "TPU フィラメントでは自動動的流量キャリブレーションは使用できません。"
 
-msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgid "How to feed TPU filament."
 msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "Bambu 以外のフィラメントを使用すると、造形品質に問題が発生する可能性があります。"
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "詰まり防止のために、TPUの造形前にコールドプルを行ってください。プリンターのコールドプルメンテナンス機能をご利用いただけます。"
@@ -70,27 +77,17 @@ msgstr "湿ったPVAは柔軟になりAMS内部で詰まる恐れがあります
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "湿ったPVAは柔らかくなり、押出機で詰まるおそれがあります。使用前に乾燥させてください。"
 
-msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
-msgstr "PLA Glow は AMS の一次フィーダーを摩耗させる可能性があります。外部スプールの使用を推奨します。"
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GFフィラメントは硬くて脆いので、AMSの中で折れたり引っかかったりしやすいので、注意して使用してください。"
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPS-CF は脆いため、ツールヘッド上部で曲がったPTFEチューブ内で破損する可能性があります。"
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CFは脆いため、ツールヘッド上部で曲がったPTFEチューブ内で破損する可能性があります。"
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "PLA Glow は AMS の一次フィーダーを摩耗させる可能性があります。外部スプールの使用を推奨します。"
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
 msgstr "デフォルト設定では造形品質に影響する可能性があります。必要に応じて調整してください。"
-
-msgid "Using non-bambu filament may have printing quality issues."
-msgstr "Bambu 以外のフィラメントを使用すると、造形品質に問題が発生する可能性があります。"
-
-#, c-format, boost-format
-msgid "When using %s on the right extruder, it can only be used as support material."
-msgstr "%s を右側の押出機で使用する場合、サポート材としてのみ使用できます。"
 
 #, c-format, boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
@@ -6712,14 +6709,25 @@ msgstr "AMS(1スロット)"
 msgid "Not installed"
 msgstr "未装着"
 
-msgid "4-slot AMS"
-msgstr "4スロットAMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"ソフトウェアでは、1回の印刷で異なる直径のノズルを使用することはできません。\n"
+"左右のノズルが不一致の場合、単一ヘッドでしか印刷を進めることができません。\n"
+"ご希望のノズルをご確認ください。"
 
-msgid "1-slot AMS"
-msgstr "1スロットAMS"
+msgid "Switch diameter"
+msgstr "直径を切り替え"
 
-msgid "Remove this AMS"
-msgstr "この AMS を取り外す"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "左ノズル：%s mm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "右ノズル:%smm"
 
 msgid "Sync printer information"
 msgstr "プリンタ同期"
@@ -6752,12 +6760,6 @@ msgstr "同期情報"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "ノズル情報とAMSの数を同期させる"
 
-msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
-msgstr "現在の直径に対応するノズルがありません。切り替えを続行すると、すべてのノズルの直径が自動的に変更されます。"
-
-msgid "Confirm Diameter Switch"
-msgstr "ノズル径の切り替えを確認"
-
 msgid "Project Filaments"
 msgstr "プロジェクトフィラメント"
 
@@ -6781,9 +6783,6 @@ msgstr "フィラメントを選択"
 
 msgid "Search plate, object and part."
 msgstr "プレート、オブジェクト、パーツを検索"
-
-msgid "(Unavailable for right extruder)"
-msgstr "（右側の押出機では使用できません）"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6824,6 +6823,9 @@ msgstr ""
 
 msgid "Restore"
 msgstr "復元"
+
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "現在のヒートベッド温度は比較的高いです。このフィラメントを密閉環境で印刷すると、ノズルが詰まる可能性があります。フロントドアを開けるか、上部ガラスを取り外してください。"
@@ -10149,12 +10151,6 @@ msgstr "ノズル。"
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "ノズルタイプを変更するか、フィラメントの割り当てを変更してから、再度お試しください。"
 
-msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
-msgstr "TPU ハイフローノズルは自動フィラメント切り替えに対応していないため、1種類のフィラメントしか割り当てできません。\n"
-
-msgid " filaments are assigned to the TPU High Flow nozzle"
-msgstr "TPU ハイフローノズルに複数のフィラメントが割り当てられています。"
-
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "手動モードでグループエラーが発生しました。ノズル数を確認するか、再度グループ化してください。"
 
@@ -11392,6 +11388,42 @@ msgstr "ワイプタワー冷却"
 msgid "Temperature drop before entering filament tower"
 msgstr "フィラメントタワーに入る前に温度を下げる"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "軟化温度"
 
@@ -11719,6 +11751,9 @@ msgstr "このオプションは、マシンがチャンバー温度の制御を
 
 msgid "Apply top surface compensation"
 msgstr "トップサーフェス補正を適用する"
+
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "空気清浄強化"
@@ -12443,9 +12478,6 @@ msgstr "スパース インフィルの下閾値"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "しきい値より小さいスパースインフィル領域は、内部ソリッドインフィルに置き換えられます。"
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "ソリッドインフィル用フィラメント"
@@ -15134,18 +15166,20 @@ msgid "(Sync with printer)"
 msgstr "(プリンタと同期)"
 
 #, c-format, boost-format
-msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
-msgstr "エラー：%s 押出機に使用可能な %s ノズルがありません。現在のグループ設定は無効です。"
-
-#, c-format, boost-format
-msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
-msgstr "グループ設定を調整するか、「準備」ページ左上の %s 押出機設定を変更し、直径 %s mm のノズルが少なくとも 1 つ含まれるようにしてください。"
+msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
+msgstr "エラー：%s押出機には利用可能な%sノズルがなく、現在のグループ構成は無効です。"
 
 msgid "We will slice according to this grouping method:"
 msgstr "このグループ化方法に従ってスライスします。"
 
 msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "ヒント:フィラメントをドラッグして、別のノズルに再割り当てできます。"
+
+msgid "Please adjust your grouping or click "
+msgstr "グループ設定を調整するか、以下をクリックして"
+
+msgid " to set nozzle count"
+msgstr "ノズル数を設定してください。"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15308,6 +15342,12 @@ msgstr ""
 msgid "Rotate spool when drying"
 msgstr ""
 
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
 msgid " maximum drying temperature is "
 msgstr ""
 
@@ -15335,6 +15375,51 @@ msgid "Minimum time value cannot be less than 1.\n"
 msgstr ""
 
 msgid "Maximum time value cannot be greater than 24.\n"
+msgstr ""
+
+msgid "*Insufficient power\n"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgstr ""
+
+msgid "*AMS is busy\n"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
+msgstr ""
+
+msgid "*Consumable at AMS outlet\n"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgstr ""
+
+msgid "*Initiating AMS drying\n"
+msgstr ""
+
+msgid "*Not supported in 2D mode\n"
+msgstr ""
+
+msgid "*Task in progress\n"
+msgstr ""
+
+msgid "  The AMS might be in use during Task.\n"
+msgstr ""
+
+msgid "*Upgrading\n"
+msgstr ""
+
+msgid "  Firmware update in progress, please wait...\n"
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function.\n"
+msgstr ""
+
+msgid "*System is busy\n"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds...\n"
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
@@ -15703,6 +15788,44 @@ msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
 
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "ABS / ASA / PETG HF を右側の押出機で使用する場合、サポート材としてのみ使用できます。"
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "CF/GFフィラメントは硬くて脆いので、AMSの中で折れたり引っかかったりしやすいので、注意して使用してください。"
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4スロットAMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "1スロットAMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "この AMS を取り外す"
+
+#~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+#~ msgstr "現在の直径に対応するノズルがありません。切り替えを続行すると、すべてのノズルの直径が自動的に変更されます。"
+
+#~ msgid "Confirm Diameter Switch"
+#~ msgstr "ノズル径の切り替えを確認"
+
+#~ msgid "(Unavailable for right extruder)"
+#~ msgstr "（右側の押出機では使用できません）"
+
+#~ msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+#~ msgstr "TPU ハイフローノズルは自動フィラメント切り替えに対応していないため、1種類のフィラメントしか割り当てできません。\n"
+
+#~ msgid " filaments are assigned to the TPU High Flow nozzle"
+#~ msgstr "TPU ハイフローノズルに複数のフィラメントが割り当てられています。"
+
+#, c-format, boost-format
+#~ msgid "Error: %s extruder has no available %s nozzle, current grouping is invalid."
+#~ msgstr "エラー：%s 押出機に使用可能な %s ノズルがありません。現在のグループ設定は無効です。"
+
+#, c-format, boost-format
+#~ msgid "Please adjust your grouping or modify your %s extruder on top left of the Prepare page to ensure it includes at least one nozzle with a diameter of %s mm"
+#~ msgstr "グループ設定を調整するか、「準備」ページ左上の %s 押出機設定を変更し、直径 %s mm のノズルが少なくとも 1 つ含まれるようにしてください。"
+
 #~ msgid "1. Filaments of different types cannot be matched."
 #~ msgstr "1. 異なる種類のフィラメントは組み合わせできません。"
 
@@ -15735,16 +15858,6 @@ msgstr ""
 #~ "手動で調整することができます。"
 
 #, c-format, boost-format
-#~ msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-#~ msgstr "エラー：%s押出機には利用可能な%sノズルがなく、現在のグループ構成は無効です。"
-
-#~ msgid "Please adjust your grouping or click "
-#~ msgstr "グループ設定を調整するか、以下をクリックして"
-
-#~ msgid " to set nozzle count"
-#~ msgstr "ノズル数を設定してください。"
-
-#, c-format, boost-format
 #~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 #~ msgstr "注意：現在のフィラメントタイプ（%s）は、スライスファイル内のフィラメントタイプ（%s）と一致しません。このスロットを使用する場合は、%sを%sに交換し、「デバイス」ページでスロット情報を変更してください。"
 
@@ -15754,26 +15867,6 @@ msgstr ""
 
 #~ msgid "Note: Only filament-loaded slots can be selected."
 #~ msgstr "注: フィラメントがロードされているスロットのみ選択できます。"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "ソフトウェアでは、1回の印刷で異なる直径のノズルを使用することはできません。\n"
-#~ "左右のノズルが不一致の場合、単一ヘッドでしか印刷を進めることができません。\n"
-#~ "ご希望のノズルをご確認ください。"
-
-#~ msgid "Switch diameter"
-#~ msgstr "直径を切り替え"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "左ノズル：%s mm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "右ノズル:%smm"
 
 #~ msgid "Surround projection by char"
 #~ msgstr "文字ごとに囲み投影を適用"
@@ -18946,9 +19039,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "You can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+↑↓←→"
