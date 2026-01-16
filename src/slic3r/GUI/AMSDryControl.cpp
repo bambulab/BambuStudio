@@ -564,7 +564,7 @@ wxBoxSizer* AMSDryCtrWin::create_drying_error_panel(wxPanel* parent)
     description_label->SetFont(Label::Body_14); // Wrap text to fit within panel
     err_sizer->Add(description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
-    Label* additional_description_label = new Label(parent, _L("Please check the Assistant for troubleshooting>"));
+    Label* additional_description_label = new Label(parent, _L("Please check the Assistant for troubleshooting"));
     additional_description_label->SetForegroundColour(*wxBLACK);
     additional_description_label->SetFont(Label::Body_14); // Wrap text to fit within panel
     err_sizer->Add(additional_description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
@@ -1242,8 +1242,8 @@ wxString get_cannot_reason_text(DevAms::CannotDryReason reason)
         cannot_reason_text += _L("  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n");
         break;
     case DevAms::CannotDryReason::ConsumableAtAmsOutlet:
-        cannot_reason_text = _L("*Consumable at AMS outlet\n");
-        cannot_reason_text += _L("  The high drying temperature may cause AMS blockage; please unload first.");
+        cannot_reason_text = _L("*Filament in AMS outlet\n");
+        cannot_reason_text += _L("  The high drying temperature may cause AMS blockage, please unload first.");
         break;
     case DevAms::CannotDryReason::InitiatingAmsDrying:
         cannot_reason_text = _L("*Initiating AMS drying\n");
