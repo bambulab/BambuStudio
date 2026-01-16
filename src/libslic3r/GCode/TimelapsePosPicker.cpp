@@ -502,7 +502,7 @@ namespace Slic3r {
             rod_limit_areas = collect_limit_areas_for_rod(object_list, ctx);
         }
         ExPolygons unplacable_area = union_ex(union_ex(layer_slices, camera_limit_areas), rod_limit_areas);
-        ExPolygons extruder_printable_area = m_extruder_printable_area[ctx.picture_extruder_id];
+        ExPolygons extruder_printable_area = m_extruder_printable_area[ctx.curr_extruder_id];
 
         ExPolygons safe_area = diff_ex(extruder_printable_area, unplacable_area);
         safe_area = opening_ex(safe_area, scale_(FILTER_THRESHOLD));
