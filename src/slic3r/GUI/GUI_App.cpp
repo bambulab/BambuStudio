@@ -2681,7 +2681,7 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
         {
             MachineObject* obj = dev_manager->get_selected_machine();
             last_selected_machine = obj ? obj->get_dev_id() : "";
-            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack save selected machine:" << last_selected_machine;
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack save selected machine:" << BBLCrossTalk::Crosstalk_DevId(last_selected_machine);
         }
 
         IOAllowPowerChange(service, (long) messageArgument);
@@ -2691,7 +2691,7 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
         if (dev_manager && !last_selected_machine.empty())
         {
             dev_manager->set_selected_machine(last_selected_machine);
-            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << last_selected_machine;
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << BBLCrossTalk::Crosstalk_DevId(last_selected_machine);
         }
     };
 }
