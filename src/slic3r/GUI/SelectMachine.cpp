@@ -3308,10 +3308,14 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         m_check_ext_change_assist->Enable(false);
     }
 
-    if (is_selected_ams_drying(obj_)) {
-        m_warn_when_drying_sizer->Show(true);
-    } else {
-        m_warn_when_drying_sizer->Show(false);
+    {
+        const bool show_warn_when_drying = is_selected_ams_drying(obj_);
+        const bool is_currently_shown = (m_txt_warn_when_drying != nullptr) ? m_txt_warn_when_drying->IsShown() : false;
+        if (is_currently_shown != show_warn_when_drying) {
+            m_warn_when_drying_sizer->Show(show_warn_when_drying);
+            Layout();
+            Fit();
+        }
     }
 
 
@@ -3805,6 +3809,10 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         m_filaments_map = wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_real_filament_maps(project_config);
     }
 
+    bool          selected_any      = false;
+    MaterialItem *first_enabled     = nullptr;
+    int           first_enabled_id  = -1;
+
     for (auto i = 0; i < extruders.size(); i++) {
         auto          extruder = extruders[i] - 1;
         auto          colour   = wxGetApp().preset_bundle->project_config.opt_string("filament_colour", (unsigned int) extruder);
@@ -3834,7 +3842,20 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             item = new MaterialItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
+
+        if (!item) continue;
+
         item->SetToolTip(m_ams_tooltip);
+
+        if (!selected_any && extruder == m_current_filament_id && item->m_enable) {
+            item->on_selected();
+            selected_any = true;
+        }
+        if (!first_enabled && item->m_enable) {
+            first_enabled    = item;
+            first_enabled_id = extruder;
+        }
+
         item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
         item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
             if (!item->m_enable) {return;}
@@ -3907,6 +3928,11 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             info.color       = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
             m_filaments.push_back(info);
         }
+    }
+
+    if (!selected_any && first_enabled) {
+        m_current_filament_id = first_enabled_id;
+        first_enabled->on_selected();
     }
 
     if (use_double_extruder)
@@ -4326,6 +4352,10 @@ void SelectMachineDialog::set_default_from_sdcard()
     m_materialList.clear();
     m_filaments.clear();
 
+    bool          selected_any      = false;
+    MaterialItem *first_enabled     = nullptr;
+    int           first_enabled_id  = -1;
+
     for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
         FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
 
@@ -4346,6 +4376,17 @@ void SelectMachineDialog::set_default_from_sdcard()
         } else {
             item = new MaterialItem(m_filament_panel, wxColour(fo.color), fo.get_display_filament_type(), fo.filament_id);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
+        }
+
+        if (!item) continue;
+
+        if (!selected_any && fo.id == m_current_filament_id && item->m_enable) {
+            item->on_selected();
+            selected_any = true;
+        }
+        if (!first_enabled && item->m_enable) {
+            first_enabled    = item;
+            first_enabled_id = fo.id;
         }
 
         item->Bind(wxEVT_LEFT_UP, [this, item, materials](wxMouseEvent& e) {});
@@ -4420,6 +4461,11 @@ void SelectMachineDialog::set_default_from_sdcard()
 
     wxSize screenSize = wxGetDisplaySize();
     auto dialogSize = this->GetSize();
+
+    if (!selected_any && first_enabled) {
+        m_current_filament_id = first_enabled_id;
+        first_enabled->on_selected();
+    }
 
     reset_ams_material();
 
