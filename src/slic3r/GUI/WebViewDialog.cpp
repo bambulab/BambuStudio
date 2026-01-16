@@ -404,6 +404,10 @@ void WebViewPanel::ResetWholePage()
     //MakerLab
     m_MakerLabFirst = false;
     SetMakerlabUrl("");
+
+    //Wiki
+    m_WikiFirst = false;
+    m_Wiki_LastUrl.Clear();
 }
 
 wxString WebViewPanel::MakeDisconnectUrl(std::string MenuName)
@@ -872,15 +876,12 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
     }).perform();
 }
 
-void WebViewPanel::get_academy_list(bool is_oversea)
+void WebViewPanel::get_academy_list()
 {
-    std::string url = "https://bambulab.cn/api/v1/hub-service/academy/client/course/printerList";
-    if(is_oversea) {
-        url = "https://bambulab.com/api/v1/hub-service/academy/client/course/printerList";
-    }
+    std::string query_params = "v1/hub-service/academy/client/course/printerList";
+    std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), query_params);
     Http http = Http::get(url);
     http.header("accept", "application/json")
-        .header("Content-Type", "application/json")
         .on_complete([this](std::string body, unsigned status) {
             if (status != 200) {
                 BOOST_LOG_TRIVIAL(error) << "get academy list failed, status: " << status;
@@ -2092,14 +2093,16 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
         SetWebviewShow("wiki", false);
 
     } else if (modelname.compare("manual") == 0){
-        auto host = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
+        wxString wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
+        if (strlang != "")
+            wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
 
-        wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
-
-        // wxString wikiUrl = (boost::format("%1%%2%/studio/wiki?from=bambustudio") % host % language_code.mb_str()).str();
-
-        // if (m_browserWiki != nullptr)
-        //     m_browserWiki->LoadURL(wikiUrl);
+        if (!m_WikiFirst || m_Wiki_LastUrl != wikiUrl) {
+            if (m_browserWiki != nullptr)
+                m_browserWiki->LoadURL(wikiUrl);
+            m_Wiki_LastUrl = wikiUrl;
+            m_WikiFirst = true;
+        }
 
         SetWebviewShow("wiki", true);
         SetWebviewShow("online", false);
