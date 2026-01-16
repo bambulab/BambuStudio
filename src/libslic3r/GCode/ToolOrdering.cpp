@@ -1267,6 +1267,27 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
         context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
 
+        // add_volume_type_limits, only for o1d
+        if (!has_multiple_nozzle) {
+            std::vector<std::set<int>> ext_unprintable_filaments_with_volume = ext_unprintable_filaments;
+
+            for (auto &nozzle : context.nozzle_info.nozzle_list) {
+                for (auto fil_id : used_filaments) {
+                    auto unprintable_volumes = context.model_info.unprintable_volumes[fil_id];
+                    if (unprintable_volumes.count(nozzle.volume_type))
+                        ext_unprintable_filaments_with_volume[nozzle.extruder_id].insert(fil_id);
+                }
+            }
+
+            for (auto fil_id : used_filaments) {
+                if (ext_unprintable_filaments_with_volume[0].count(fil_id) && ext_unprintable_filaments_with_volume[1].count(fil_id)) {
+                    ext_unprintable_filaments_with_volume[0].erase(fil_id);
+                    ext_unprintable_filaments_with_volume[1].erase(fil_id);
+                }
+            }
+            context.model_info.unprintable_filaments = ext_unprintable_filaments_with_volume;
+        }
+
         if (has_multiple_nozzle) {
             if(mode == FilamentMapMode::fmmManual){
                 auto manual_filament_map = print_config.filament_map.values;
