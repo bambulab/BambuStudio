@@ -353,12 +353,6 @@ function getAcademyData() {
   var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="get_academy_list";
-  tSend['data']={};
-  if(IsChinese()) {
-    tSend['data']['region'] = "mainland";
-  }else {
-    tSend['data']['region'] = "oversea";
-  }
 	SendWXMessage( JSON.stringify(tSend) );
 }
 
@@ -595,7 +589,7 @@ function get_image_url(printer_type) {
     { keywords: ['suite'], src: 'img/suite.png', useRaw: false },
     { keywords: ['handy'], src: 'img/handy.png', useRaw: false },
     { keywords: ['拓竹耗材'], src: 'img/filament.png', useRaw: true },
-    { keywords: ['Bambu Filament'], src: 'img/filament.png', useRaw: true },
+    { keywords: ['filament'], src: 'img/filament.png', useRaw: false },
   ];
 
   for (const item of mappings) {
