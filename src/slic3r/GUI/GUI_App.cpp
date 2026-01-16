@@ -4635,11 +4635,9 @@ std::string GUI_App::handle_web_request(std::string cmd)
                 }
             }
             else if (command_str.compare("get_academy_list") == 0){
-                if (mainframe && root.get_child_optional("data") != boost::none) {
-                    pt::ptree data_node = root.get_child("data");
-                    boost::optional<std::string> region = data_node.get_optional<std::string>("region");
+                if (mainframe) {
                     if (mainframe->m_webview) {
-                        mainframe->m_webview->get_academy_list(region.value()=="oversea" ? true : false);
+                        mainframe->m_webview->get_academy_list();
                     }
                 }
             }
