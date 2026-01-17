@@ -32,6 +32,10 @@
     "fan_min_speed": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"

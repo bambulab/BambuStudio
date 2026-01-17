@@ -26,26 +26,14 @@
     "filament_deretraction_speed": [
         "50"
     ],
-    "filament_extruder_variant": [
-        "Direct Drive TPU High Flow"
-    ],
     "filament_flow_ratio": [
         "1.1"
     ],
     "filament_long_retractions_when_cut": [
         "0"
     ],
-    "filament_overhang_2_4_speed": [
-        "25"
-    ],
-    "filament_overhang_3_4_speed": [
-        "25"
-    ],
-    "filament_overhang_4_4_speed": [
-        "20"
-    ],
-    "filament_overhang_totally_speed": [
-        "25"
+    "filament_max_volumetric_speed": [
+        "2.5"
     ],
     "filament_ramming_volumetric_speed": [
         "0.55"
@@ -57,12 +45,6 @@
         "2.3"
     ],
     "filament_retraction_speed": [
-        "20"
-    ],
-    "filament_pre_cooling_temperature": [
-        "195"
-    ],
-    "filament_ramming_travel_time": [
         "20"
     ],
     "filament_wipe": [
@@ -77,8 +59,26 @@
     "filament_z_hop_types": [
         "Spiral Lift"
     ],
-    "filament_max_volumetric_speed": [
-        "2.5"
+    "filament_extruder_variant": [
+        "Direct Drive TPU High Flow"
+    ],
+    "filament_pre_cooling_temperature": [
+        "195"
+    ],
+    "filament_ramming_travel_time": [
+        "20"
+    ],
+    "filament_overhang_2_4_speed": [
+        "25"
+    ],
+    "filament_overhang_3_4_speed": [
+        "25"
+    ],
+    "filament_overhang_4_4_speed": [
+        "20"
+    ],
+    "filament_overhang_totally_speed": [
+        "25"
     ],
     "impact_strength_z": [
         "88.7"
@@ -98,17 +98,11 @@
     "override_process_overhang_speed": [
         "1"
     ],
-    "retraction_distances_when_ec": [
-        "0"
-    ],
     "slow_down_layer_time": [
         "14"
     ],
     "slow_down_min_speed": [
         "30"
-    ],
-    "volumetric_speed_coefficients": [
-        "0 0 0 0 0 0"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"

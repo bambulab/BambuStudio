@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFL50_10",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_long_retractions_when_cut": [
         "1",
         "1"

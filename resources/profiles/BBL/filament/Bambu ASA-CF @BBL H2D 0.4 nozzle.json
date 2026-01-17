@@ -11,6 +11,10 @@
     "eng_plate_temp": [
         "90"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.9",
         "0.9"

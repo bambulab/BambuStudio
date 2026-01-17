@@ -20,6 +20,10 @@
     "eng_plate_temp_initial_layer": [
         "100"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"

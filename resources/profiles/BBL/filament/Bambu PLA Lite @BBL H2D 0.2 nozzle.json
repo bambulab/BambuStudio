@@ -20,6 +20,10 @@
     "fan_min_speed": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_cost": [
         "24.99"
     ],

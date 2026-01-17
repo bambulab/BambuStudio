@@ -23,6 +23,13 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "filament_max_volumetric_speed": [
         "25",
         "40"
@@ -46,9 +53,6 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "filament_tower_ironing_area": [
-        "8"
     ],
     "hole_coef_2": [
         "-0.006"

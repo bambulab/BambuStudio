@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG01_12",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "1",
         "1"
@@ -27,14 +31,14 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "slow_down_layer_time": [
-        "8"
-    ],
     "supertack_plate_temp": [
         "60"
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

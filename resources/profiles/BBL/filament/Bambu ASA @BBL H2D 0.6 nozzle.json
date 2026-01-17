@@ -8,6 +8,10 @@
     "chamber_temperatures": [
         "65"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "25",
         "35"

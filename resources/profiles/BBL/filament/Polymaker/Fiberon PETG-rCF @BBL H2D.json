@@ -8,6 +8,10 @@
     "fan_cooling_layer_time": [
         "15"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_cost": [
         "29.99"
     ],

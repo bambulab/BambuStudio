@@ -11,6 +11,13 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "filament_max_volumetric_speed": [
         "30",
         "40"
@@ -38,9 +45,6 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "filament_tower_ironing_area": [
-        "8"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
