@@ -49,7 +49,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     m_selected_mode               = mode;
 
     // Standard option
-    m_standard_panel = new PurgeModeBtnPanel(options_panel, _L("Standard Mode"), _L("Performs full purging for the best print quality. Requires more material and time."),
+    m_standard_panel = new PurgeModeBtnPanel(options_panel, _L("Standard Mode"), _L("Performs full priming for the best print quality. Requires more material and time."),
                                              "shield");
     m_standard_panel->SetMinSize(wxSize(FromDIP(200), FromDIP(150)));
     m_standard_panel->Select(mode == pvmDefault);
@@ -57,8 +57,8 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     panels_sizer->Add(m_standard_panel, 1, wxEXPAND | wxRIGHT, FromDIP(12));
 
     // Purge Saving option
-    m_saving_panel = new PurgeModeBtnPanel(options_panel, _L("Purge Saving"),
-                                           _L("Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."), "leaf");
+    m_saving_panel = new PurgeModeBtnPanel(options_panel, _L("Prime Saving"),
+                                           _L("Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."), "leaf");
     m_saving_panel->SetMinSize(wxSize(FromDIP(200), FromDIP(150)));
     m_saving_panel->Select(mode == pvmSaving);
     m_saving_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { select_option(pvmSaving); });
@@ -68,7 +68,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
 
     // Learn more text
     auto wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto learn_more_text = new wxStaticText(options_panel, wxID_ANY, _L("Learn more about purge mode"));
+    auto learn_more_text = new wxStaticText(options_panel, wxID_ANY, _L("Learn more about prime mode"));
     learn_more_text->SetFont(Label::Body_12);
     learn_more_text->SetForegroundColour(wxColour("#6B6B6A"));
     wiki_sizer->Add(learn_more_text, 0, wxALIGN_CENTER_VERTICAL);
