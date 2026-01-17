@@ -1310,6 +1310,8 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     m_cb_open_door = new CheckBox(parent);
     text_open_door = new Label(parent, _L("Open Door Detection"));
     text_open_door->SetFont(Label::Body_14);
+    text_open_door_caption = new Label(parent, _L("Choose the behavior when the door is opened during tasks."));
+    text_open_door_caption->SetFont(Label::Body_12);
     open_door_switch_board = new SwitchBoard(parent, _L("Notification"), _L("Pause printing"), wxSize(FromDIP(200), FromDIP(26)));
     open_door_switch_board->Disable();
     line_sizer->Add(FromDIP(5), 0, 0, 0);
@@ -1317,6 +1319,7 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(text_open_door, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    sizer->Add(text_open_door_caption, 0, wxLEFT, FromDIP(58));
     sizer->Add(open_door_switch_board, 0, wxLEFT, FromDIP(58));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
