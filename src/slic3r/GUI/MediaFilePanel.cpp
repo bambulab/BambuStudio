@@ -300,6 +300,11 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
             m_image_grid->ShowDownload(download_support);
             if (fs->GetCount() == 0)
                 SetSelecting(false, false);
+            int delete_count = e.GetInt();
+            if (delete_count > 0)
+            {
+               fs->ListAllFiles();
+            }
         });
         fs->Bind(EVT_SELECT_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             e.Skip();
