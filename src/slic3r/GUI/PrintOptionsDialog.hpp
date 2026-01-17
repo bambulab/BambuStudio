@@ -140,6 +140,7 @@ protected:
     Label* text_nozzle_blob;
     Label* text_nozzle_blob_caption;
     Label* text_open_door;
+    Label* text_open_door_caption;
     Label* text_purify_air;
     Label* text_purify_air_context;
     StaticLine* line1;
