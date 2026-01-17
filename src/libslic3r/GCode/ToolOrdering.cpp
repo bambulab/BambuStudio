@@ -1267,6 +1267,8 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
         context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
         context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
 
+        if(context.nozzle_info.nozzle_list.empty())
+            throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
         // add_volume_type_limits, only for o1d
         if (!has_multiple_nozzle) {
             std::vector<std::set<int>> ext_unprintable_filaments_with_volume = ext_unprintable_filaments;

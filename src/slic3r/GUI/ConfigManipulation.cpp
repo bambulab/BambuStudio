@@ -421,7 +421,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                      config->opt_int("top_shell_layers") != 0 || sparse_infill_density != 0 ||
                                      config->opt_bool("enable_support") ||
                                      config->opt_int("enforce_support_layers") != 0 ||
-                                     config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") != EnsureVerticalThicknessLevel::evtEnabled ||
                                      config->opt_bool("detect_thin_wall"));
 
         if (!is_global_config && !adjust_spiral_mode_params) {

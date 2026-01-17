@@ -695,7 +695,7 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
 }
 
 
-Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::weak_ptr<DevNozzleRack> rack) : DPIDialog(parent, wxID_ANY, "Sync Nozzle status",wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE)
+Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::weak_ptr<DevNozzleRack> rack) : DPIDialog(parent, wxID_ANY, _L("Sync Nozzle status"),wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE)
 {
     m_nozzle_rack = rack;
     wxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -806,7 +806,7 @@ void MultiNozzleSyncDialog::OnRefreshTimer(wxTimerEvent& evt){
     int reading_count = nozzle_rack->GetReadingCount();
     int reading_idx = nozzle_rack->GetReadingIdx();
 
-    wxString tip = wxString::Format("Refresh %d/%d...", reading_idx, reading_count);
+    wxString tip = wxString::Format(_L("Refresh %d/%d..."), reading_idx, reading_count);
     m_confirm_btn->SetLabel(tip);
     m_confirm_btn->Fit();
     if (m_confirm_btn->GetParent())
