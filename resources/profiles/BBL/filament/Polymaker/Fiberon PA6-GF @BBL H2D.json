@@ -8,6 +8,10 @@
     "fan_cooling_layer_time": [
         "12"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_long_retractions_when_cut": [
         "1",
         "1"

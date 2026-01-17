@@ -15,9 +15,9 @@
         "35"
     ],
     "filament_cooling_before_tower": [
-        "0",
-        "0",
-        "0"
+        "10",
+        "10",
+        "10"
     ],
     "filament_deretraction_speed": [
         "10",

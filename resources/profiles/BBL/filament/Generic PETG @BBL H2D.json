@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG99_05",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "12",
         "12"

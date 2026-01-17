@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG60_09",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "1",
         "1"

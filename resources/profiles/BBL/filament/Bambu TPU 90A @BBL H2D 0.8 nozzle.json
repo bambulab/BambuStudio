@@ -33,14 +33,6 @@
         "2.8",
         "2.8"
     ],
-    "filament_pre_cooling_temperature": [
-        "195",
-        "195"
-    ],
-    "filament_ramming_travel_time": [
-        "20",
-        "20"
-    ],
     "filament_ramming_volumetric_speed": [
         "0.7",
         "0.7"
@@ -57,11 +49,22 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
+    "filament_pre_cooling_temperature": [
+        "195",
+        "195"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20"
+    ],
     "impact_strength_z": [
         "88.7"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
+    ],
+    "nozzle_temperature_range_high": [
+        "250"
     ],
     "nozzle_temperature": [
         "220",
@@ -70,9 +73,6 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
-    ],
-    "nozzle_temperature_range_high": [
-        "250"
     ],
     "retraction_distances_when_ec": [
         "0",
