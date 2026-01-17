@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFL06_10",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_cost": [
         "29.99"
     ],

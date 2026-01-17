@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFST97_01",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
