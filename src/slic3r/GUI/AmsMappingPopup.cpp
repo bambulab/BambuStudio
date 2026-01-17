@@ -1166,8 +1166,10 @@ void AmsMapingPopup::update_title(MachineObject* obj)
         }
     }
 
+
     if (nozzle_nums > 1)
     {
+        m_split_line_panel->Show();
         if (m_show_type == ShowType::LEFT)
         {
             m_title_text->SetLabelText(_L("Please select the filament installed on the left nozzle."));
@@ -1178,6 +1180,10 @@ void AmsMapingPopup::update_title(MachineObject* obj)
             m_title_text->SetLabelText(_L("Please select the filament installed on the right nozzle."));
             return;
         }
+    }
+    else if (nozzle_nums == 1)
+    {
+        m_split_line_panel->Hide();
     }
 
     m_title_text->SetLabelText(_L("Nozzle"));
