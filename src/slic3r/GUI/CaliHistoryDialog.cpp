@@ -1027,7 +1027,7 @@ void NewCalibrationHistoryDialog::on_select_nozzle_pos(wxCommandEvent &event)
         auto nozzle_flow = nozzle.GetNozzleFlowType();
         m_comboBox_nozzle_type->SetSelection(-1);
         for(unsigned int i=0; i < m_comboBox_nozzle_type->GetCount(); i++) {
-            if(nozzle_flow == NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(i))) {
+            if(DevNozzle::ToNozzleVolumeType(nozzle_flow) == NozzleVolumeType(*(int*)m_comboBox_nozzle_type->GetClientData(i))) {
                 m_comboBox_nozzle_type->SetSelection(i);
             }
         }
@@ -1115,7 +1115,7 @@ void NewCalibrationHistoryDialog::on_ok(wxCommandEvent &event)
         }
         auto sel = m_comboBox_nozzle_type->GetSelection();
         if (sel != wxNOT_FOUND) {
-            m_new_result.nozzle_volume_type = DevNozzle::ToNozzleVolumeType(NozzleFlowType(*(int*)m_comboBox_nozzle_type->GetClientData(sel)));
+            m_new_result.nozzle_volume_type = NozzleVolumeType(*(int*)m_comboBox_nozzle_type->GetClientData(sel));
         } else {
             m_new_result.nozzle_volume_type = NozzleVolumeType::nvtStandard;
             BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid nozzle flow type sel";
