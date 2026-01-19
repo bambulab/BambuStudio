@@ -1544,8 +1544,10 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
             std::string extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
             if (filament_variants_set.count(extruder_variant) == 0) {
-                wxString variant_name = extruder_variant;
-                error_message         = wxString::Format(_L("The %s nozzle can not print %s."), variant_name, fil_name);
+                NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+                auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+                std::string      volume       = volume_names.at(variant_name);
+                error_message                 = GUI::format(_L("The %s nozzle can not print %s."), volume, fil_name);
                 return false;
             }
         }
