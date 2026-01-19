@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3331,7 +3331,7 @@ msgid "Right AMS"
 msgstr "右侧AMS"
 
 msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
+msgstr "注意：如果想要不可选择的材料，详细说明请查看Wiki->"
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "请选择安装在左喷嘴上的耗材丝。"
@@ -5834,7 +5834,7 @@ msgid "Printing Progress"
 msgstr "打印进度"
 
 msgid "Pausing"
-msgstr ""
+msgstr "暂停"
 
 msgid "Stopping"
 msgstr "停止中"
@@ -6523,6 +6523,9 @@ msgstr "检查喷嘴是否被耗材或其他异物堵塞。"
 msgid "Open Door Detection"
 msgstr "开门检测"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr "选择打印过程中门打开时的行为。"
+
 msgid "Notification"
 msgstr "通知"
 
@@ -6706,7 +6709,7 @@ msgid ""
 "Please confirm which nozzle you would like to use for this project."
 msgstr ""
 "软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
-"由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。 \n"
+"由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。\n"
 "请确认使用哪个喷嘴打印当前项目。"
 
 msgid "Switch diameter"
@@ -6818,7 +6821,7 @@ msgid "Restore"
 msgstr "恢复"
 
 msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
+msgstr "当前 3mf 文件中存在 G-code 脚本，请核实脚本内容。"
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "当前热床温度相对较高。在封闭式外壳中打印这种丝可能会导致喷嘴堵塞。请打开前门和/或取下上部玻璃。"
@@ -10134,6 +10137,9 @@ msgstr " 喷嘴. "
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "请更换喷嘴类型或重新分配耗材，然后重试。"
 
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr "未找到有效的喷嘴。请检查喷嘴数量。"
+
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "自定义模式分组错误。请检查喷嘴数量或重新分组。"
 
@@ -11362,10 +11368,10 @@ msgid "Interface layer pre-extrusion distance"
 msgstr ""
 
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "擦拭塔接触层（不同材料交界处）的预挤出距离。"
 
 msgid "Interface layer pre-extrusion length"
-msgstr ""
+msgstr "接触层预挤出长度"
 
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
 msgstr ""
@@ -11389,7 +11395,7 @@ msgid "Interface layer print temperature"
 msgstr ""
 
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
-msgstr ""
+msgstr "料塔接触层（不同材料交界处）的打印温度。如果设置为-1，使用最大推荐喷嘴打印温度。"
 
 msgid "°C"
 msgstr "°C"
@@ -11723,7 +11729,7 @@ msgid "Apply top surface compensation"
 msgstr "应用顶面补偿"
 
 msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr ""
+msgstr "启用此选项以延长顶面线之间的移动距离，从而提升顶面填充与墙体之间的粘附性。"
 
 msgid "Air filtration enhancement"
 msgstr "支持空气过滤增强"
@@ -15130,7 +15136,7 @@ msgid "Please adjust your grouping or click "
 msgstr "请调整您的分组或点击 "
 
 msgid " to set nozzle count"
-msgstr " 设置喷嘴数量"
+msgstr "设置喷嘴数量"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15230,8 +15236,15 @@ msgstr "喷嘴选择"
 msgid "Available Nozzles"
 msgstr "可用喷嘴"
 
+msgid "Sync Nozzle status"
+msgstr "同步喷嘴状态"
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "注意：不支持在打印中混用不同直径的喷嘴。如果所选尺寸仅存在于一个挤出机上，将强制使用单挤出机打印。"
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr "刷新 %d/%d..."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "检测到未知喷嘴。请刷新以更新信息（未刷新的喷嘴将在切片时被排除）。请核对喷嘴直径和流量是否与显示值一致。"
@@ -15251,16 +15264,16 @@ msgstr "冲刷模式"
 msgid "Standard Mode"
 msgstr "标准模式"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
+msgid "Performs full priming for the best print quality. Requires more material and time."
 msgstr "执行完整的冲刷流程以获得最佳打印质量，需要更多材料和时间。"
 
-msgid "Purge Saving"
+msgid "Prime Saving"
 msgstr "省料模式"
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
 msgstr "减少冲刷量，加快打印速度，但可能出现轻微的颜色混合或表面瑕疵。"
 
-msgid "Learn more about purge mode"
+msgid "Learn more about prime mode"
 msgstr "了解更多冲刷模式信息"
 
 msgid "AMS Dryness Control"
@@ -15279,10 +15292,10 @@ msgid "Unable to dry temporarily due to ..."
 msgstr "暂时无法烘干，由于 ..."
 
 msgid "Drying Error"
-msgstr ""
+msgstr "烘干错误"
 
-msgid "Please check the Assistant for troubleshooting>"
-msgstr ""
+msgid "Please check the Assistant for troubleshooting"
+msgstr "请查看助手以进行故障排除"
 
 msgid "Please remove and store the filament (as shown)."
 msgstr "请拔出并收起耗材（如图）"
@@ -15291,105 +15304,108 @@ msgid "The AMS can rotate the filament which is properly stored, providing bette
 msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
 
 msgid "Rotate spool when drying"
-msgstr ""
+msgstr "烘干时旋转料盘"
 
 msgid "Drying-Heating"
-msgstr ""
+msgstr "烘干-加热中"
 
 msgid "Drying-Dehumidifying"
-msgstr ""
+msgstr "烘干-除湿中"
 
 msgid " maximum drying temperature is "
-msgstr ""
+msgstr " 最大烘干温度是 "
 
 msgid "°C;\n"
 msgstr ""
 
 msgid " minimum drying temperature is "
-msgstr ""
+msgstr " 最低烘干温度是 "
 
 msgid ""
 "This filament may not be completely dried.\n"
 "\n"
 msgstr ""
+"该耗材可能无法完全烘干。\n"
+"\n"
+""
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
-msgstr ""
+msgstr "此AMS当前正在打印。为确保打印质量，烘干温度不得超过推荐的烘干温度。\n"
 
 msgid "The temperature shall not exceed the heat distortion temperature("
-msgstr ""
+msgstr "温度不得超过耗材的压溃温度（"
 
 msgid "°C) of the filament.\n"
-msgstr ""
+msgstr "°C)。\n"
 
 msgid "Minimum time value cannot be less than 1.\n"
-msgstr ""
+msgstr "时间最小值不能小于 1。\n"
 
 msgid "Maximum time value cannot be greater than 24.\n"
-msgstr ""
+msgstr "时间最大值不能大于 24。\n"
 
 msgid "*Insufficient power\n"
-msgstr ""
+msgstr "*功率不足\n"
 
 msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
-msgstr ""
+msgstr "  同时烘干的机器过多，您可以插上电源，或者停止其他烘干后再开始。\n"
 
 msgid "*AMS is busy\n"
-msgstr ""
+msgstr "*AMS正忙\n"
 
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
-msgstr ""
+msgstr "  AMS正在校准｜读取RFID｜进退料，请稍等。\n"
 
-msgid "*Consumable at AMS outlet\n"
-msgstr ""
+msgid "*Filament in AMS outlet\n"
+msgstr "*耗材在AMS出料口中\n"
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
-msgstr ""
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
+msgstr "烘干的高温可能造成AMS堵塞，请先退料。"
 
 msgid "*Initiating AMS drying\n"
-msgstr ""
+msgstr "*启动AMS烘干\n"
 
 msgid "*Not supported in 2D mode\n"
-msgstr ""
+msgstr "*不支持 2D 模式\n"
 
 msgid "*Task in progress\n"
-msgstr ""
+msgstr "*任务占用\n"
 
 msgid "  The AMS might be in use during Task.\n"
-msgstr ""
+msgstr "  任务中可能会使用到该台AMS。\n"
 
 msgid "*Upgrading\n"
-msgstr ""
+msgstr "*正在升级\n"
 
 msgid "  Firmware update in progress, please wait...\n"
-msgstr ""
+msgstr "  固件更新正在进行中，请稍候……\n"
 
 msgid "  Please plug in the power and then use the drying function.\n"
-msgstr ""
+msgstr "  请插上电源后使用烘干功能。\n"
 
 msgid "*System is busy\n"
-msgstr ""
+msgstr "*系统正忙\n"
 
 msgid "  Initiating other drying processes, please wait a few seconds...\n"
-msgstr ""
+msgstr "  正在开启其他烘干，请稍等几秒...\n"
 
 msgid "Starting: Checking adapter connection"
-msgstr ""
+msgstr "正在启动：检查适配器连接"
 
 msgid "Starting: Checking filament status"
-msgstr ""
+msgstr "正在启动：检查耗材状态"
 
-msgid "Starting: Checking drying preseets"
-msgstr ""
+msgid "Starting: Checking drying presets"
+msgstr "正在启动：检查烘干参数"
 
 msgid "Starting: Checking filament location"
-msgstr ""
+msgstr "正在启动：检查耗材位置"
 
 msgid "Starting: Checking air intake"
-msgstr ""
+msgstr "正在启动：检查进气口"
 
 msgid "Starting: Checking air vent"
-msgstr ""
+msgstr "正在启动：检查出气口"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15739,6 +15755,18 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "执行完整的冲刷流程以获得最佳打印质量，需要更多材料和时间。"
+
+#~ msgid "Purge Saving"
+#~ msgstr "省料模式"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "减少冲刷量，加快打印速度，但可能出现轻微的颜色混合或表面瑕疵。"
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "了解更多冲刷模式信息"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "ABS/ASA/PETG HF在右挤出机打印时，仅能作为支撑材料使用。"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6576,6 +6576,9 @@ msgstr "Überprüft, ob die Düse durch Filament oder andere Fremdkörper verklu
 msgid "Open Door Detection"
 msgstr "Erkennung offener Tür"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "Benachrichtigung"
 
@@ -10206,6 +10209,9 @@ msgstr " Düse. "
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Bitte ändern Sie den Düsentyp oder weisen Sie das Filament neu zu und versuchen Sie es erneut."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Gruppierungsfehler im manuellen Modus. Bitte überprüfen Sie die Anzahl der Düsen oder gruppieren Sie neu."
@@ -15329,8 +15335,15 @@ msgstr "Düsenauswahl"
 msgid "Available Nozzles"
 msgstr "Verfügbare Düsen"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Achtung: Das Mischen von Düsendurchmessern in einem Druck wird nicht unterstützt. Wenn die ausgewählte Größe nur auf einem Extruder verfügbar ist, wird der Druck mit einem einzigen Extruder durchgeführt."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Unbekannte Düse erkannt. Aktualisieren Sie, um die Informationen zu erfassen (nicht aktualisierte Düsen werden beim Slicen ausgeschlossen). Überprüfen Sie den Düsendurchmesser und die Durchflussrate anhand der angezeigten Werte."
@@ -15350,17 +15363,17 @@ msgstr "Einstellungen für den Spülmodus"
 msgid "Standard Mode"
 msgstr "Standardmodus"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "Führt eine vollständige Spülung durch, um die beste Druckqualität zu erzielen. Erfordert mehr Material und Zeit."
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "Sparsame Spülung"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Reduziert den Spülabfall und druckt schneller. Kann zu leichten Farbmischungen oder kleinen Oberflächenfehlern führen."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "Erfahren Sie mehr über den Spülmodus"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15380,7 +15393,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15439,10 +15452,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15478,7 +15491,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15838,6 +15851,18 @@ msgid ""
 msgstr ""
 "Schrumpfung, Verzug und Spannung\n"
 "Durch die Kontrolle des Wärmeindexes können Sie die durch Hitze verursachten Faktoren für Verzug und Spannung beseitigen."
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "Führt eine vollständige Spülung durch, um die beste Druckqualität zu erzielen. Erfordert mehr Material und Zeit."
+
+#~ msgid "Purge Saving"
+#~ msgstr "Sparsame Spülung"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Reduziert den Spülabfall und druckt schneller. Kann zu leichten Farbmischungen oder kleinen Oberflächenfehlern führen."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "Erfahren Sie mehr über den Spülmodus"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "Bei Verwendung von ABS/ASA/PETG HF mit dem rechten Extruder kann es nur als Stützmaterial verwendet werden."

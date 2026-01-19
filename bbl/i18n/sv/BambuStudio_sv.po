@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -6569,6 +6569,9 @@ msgstr "Kontrollerar om det finns nozzle klumpar av filament eller andra främma
 msgid "Open Door Detection"
 msgstr "Detektering av öppen dörr"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "Avisering"
 
@@ -10196,6 +10199,9 @@ msgstr ""
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Gruppfel i manuellt läge. Kontrollera nozzle antal eller gruppera om."
@@ -15326,8 +15332,15 @@ msgstr "Val av nozzle"
 msgid "Available Nozzles"
 msgstr "Tillgängliga nozzle"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Varning: Blandning av nozzle diametrar i en utskrift stöds inte. Om den valda storleken bara är på en extruder kommer singel extruder utskrift att utföras."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Okänd nozzle upptäckt. Uppdatera för att uppdatera info (ej uppdaterad nozzle kommer att uteslutas under beredning). Verifiera nozzle diameter och flödes hastighet mot visade värden."
@@ -15347,17 +15360,17 @@ msgstr "Inställningar för rensnings läge"
 msgid "Standard Mode"
 msgstr "Standard läge"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "Rensnings besparing"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Minskar rensnings avfall och printar snabbare. Kan orsaka liten färgblandning eller små yteffekter."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "Läs mer om rensnings läge"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15377,7 +15390,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15436,10 +15449,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15475,7 +15488,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15835,6 +15848,18 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
+
+#~ msgid "Purge Saving"
+#~ msgstr "Rensnings besparing"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Minskar rensnings avfall och printar snabbare. Kan orsaka liten färgblandning eller små yteffekter."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "Läs mer om rensnings läge"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "Vid användning av ABS/ASA/PETG HF på höger extruder kan det endast användas som support material."

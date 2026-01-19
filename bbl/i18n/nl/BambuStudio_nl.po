@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6572,6 +6572,9 @@ msgstr "Controleert of de nozzle verstopt raakt door filament of andere vreemde 
 msgid "Open Door Detection"
 msgstr "Detectie van open deuren"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "Melding"
 
@@ -10199,6 +10202,9 @@ msgstr ""
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Wijzig het type nozzle of wijs het filament opnieuw toe en probeer het opnieuw."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Groepsfout in handmatige modus. Controleer het aantal sproeiers of hergroepeer."
@@ -15326,8 +15332,15 @@ msgstr "Nozzle selectie"
 msgid "Available Nozzles"
 msgstr "Beschikbare nozzles"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Waarschuwing: Het combineren van nozzle-diameters in één print wordt niet ondersteund. Als de geselecteerde maat slechts op één extruder aanwezig is, wordt het printen met een enkele extruder afgedwongen."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Onbekende nozzle gedetecteerd. Vernieuw om informatie bij te werken (niet-vernieuwde nozzles worden tijdens het slicen uitgesloten). Controleer nozzle diameter en debiet tegen de weergegeven waarden."
@@ -15347,17 +15360,17 @@ msgstr "Instellingen voor spoelmodus"
 msgid "Standard Mode"
 msgstr "Standaardmodus"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "Voert een volledige reiniging uit voor de beste afdrukkwaliteit. Vereist meer materiaal en tijd."
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "Afvalbesparing"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Vermindert het afval bij spoelen en drukt sneller af. Kan lichte kleurvermenging of kleine oppervlaktefouten veroorzaken."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "Meer informatie over de reinigingsmodus"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15377,7 +15390,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15436,10 +15449,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15475,7 +15488,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15835,6 +15848,18 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "Voert een volledige reiniging uit voor de beste afdrukkwaliteit. Vereist meer materiaal en tijd."
+
+#~ msgid "Purge Saving"
+#~ msgstr "Afvalbesparing"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Vermindert het afval bij spoelen en drukt sneller af. Kan lichte kleurvermenging of kleine oppervlaktefouten veroorzaken."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "Meer informatie over de reinigingsmodus"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "Bij gebruik van ABS/ASA/PETG HF op de rechter extruder, kan deze alleen als ondersteunend materiaal worden gebruikt."

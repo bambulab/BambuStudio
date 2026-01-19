@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6571,6 +6571,9 @@ msgstr "Verifica se o bocal está obstruído por filamento ou outros objetos est
 msgid "Open Door Detection"
 msgstr "Detecção de porta aberta"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "Notificação"
 
@@ -10200,6 +10203,9 @@ msgstr " bico. "
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Por favor, altere o tipo de bico ou reatribua o filamento e tente novamente."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Erro de agrupamento no modo manual. Verifique a quantidade de bicos ou reagrupe."
@@ -15313,8 +15319,15 @@ msgstr "Seleção de Bocal"
 msgid "Available Nozzles"
 msgstr "Bicos Disponíveis"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Atenção: A combinação de diâmetros de bico em uma única impressão não é suportada. Se o tamanho selecionado estiver disponível apenas em um extrusor, a impressão com extrusão única será aplicada."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Bico desconhecido detectado. Atualize para atualizar as informações (bicos não atualizados serão excluídos durante o fatiamento). Verifique o diâmetro do bico e a taxa de fluxo em relação aos valores exibidos."
@@ -15334,17 +15347,17 @@ msgstr "Configurações do Modo de Purga"
 msgid "Standard Mode"
 msgstr "Modo Padrão"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "Realiza purga completa para a melhor qualidade de impressão. Requer mais material e tempo."
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "Economia de Purga"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Reduz o desperdício de purga e imprime mais rapidamente. Pode causar leve mistura de cores ou pequenos defeitos na superfície."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "Saiba mais sobre o modo de purga"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15364,7 +15377,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15423,10 +15436,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15462,7 +15475,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15822,6 +15835,18 @@ msgid ""
 msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "Realiza purga completa para a melhor qualidade de impressão. Requer mais material e tempo."
+
+#~ msgid "Purge Saving"
+#~ msgstr "Economia de Purga"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Reduz o desperdício de purga e imprime mais rapidamente. Pode causar leve mistura de cores ou pequenos defeitos na superfície."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "Saiba mais sobre o modo de purga"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "Ao usar ABS/ASA/PETG HF na extrusora direita, ele só pode ser usado como material de suporte."
