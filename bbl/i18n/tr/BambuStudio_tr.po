@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -6562,6 +6562,9 @@ msgstr ""
 msgid "Open Door Detection"
 msgstr "Açık Kapı Algılama"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "Bildirim"
 
@@ -10177,6 +10180,9 @@ msgid " nozzle. "
 msgstr ""
 
 msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr ""
+
+msgid "No valid nozzle found. Please check nozzle count."
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -15286,7 +15292,14 @@ msgstr ""
 msgid "Available Nozzles"
 msgstr ""
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
 msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
@@ -15307,16 +15320,16 @@ msgstr ""
 msgid "Standard Mode"
 msgstr ""
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
+msgid "Performs full priming for the best print quality. Requires more material and time."
 msgstr ""
 
-msgid "Purge Saving"
+msgid "Prime Saving"
 msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
 msgstr ""
 
-msgid "Learn more about purge mode"
+msgid "Learn more about prime mode"
 msgstr ""
 
 msgid "AMS Dryness Control"
@@ -15337,7 +15350,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15396,10 +15409,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15435,7 +15448,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"

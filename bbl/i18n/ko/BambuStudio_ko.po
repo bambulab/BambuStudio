@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6560,6 +6560,9 @@ msgstr "필라멘트나 기타 이물질로 인해 노즐이 뭉치는지 확인
 msgid "Open Door Detection"
 msgstr "문 열림 감지"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "알림"
 
@@ -10182,6 +10185,9 @@ msgstr " 노즐. "
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "노즐 종류를 변경하거나 필라멘트를 다시 지정한 후 다시 시도해 주세요."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "수동 모드에서 그룹 오류가 발생했습니다. 노즐 수를 확인하거나 그룹을 다시 설정해주세요."
@@ -15310,8 +15316,15 @@ msgstr "노즐 선택"
 msgid "Available Nozzles"
 msgstr "사용 가능한 노즐"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "주의: 한 번에 여러 노즐 직경을 혼합하여 출력하는 것은 지원되지 않습니다. 선택한 크기가 압출기 하나에만 있는 경우, 단일 압출기 출력이 적용됩니다."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "알 수 없는 노즐이 감지되었습니다. 정보를 업데이트하려면 새로 고침하세요(새로 고침되지 않은 노즐은 슬라이싱 과정에서 제외됩니다). 표시된 값과 노즐 직경 및 유량을 확인하세요."
@@ -15331,17 +15344,17 @@ msgstr "퍼지 모드 설정"
 msgid "Standard Mode"
 msgstr "표준 모드"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "최상의 출력 품질을 위해 전체 퍼징을 수행합니다. 더 많은 재료와 시간이 필요합니다."
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "퍼지 절약"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "퍼지 폐기물을 줄이고 출력 속도를 높입니다. 약간의 색상 혼입이나 작은 표면 결함이 발생할 수 있습니다."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "퍼지 모드에 대해 자세히 알아보기"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15361,7 +15374,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15420,10 +15433,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15459,7 +15472,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15819,6 +15832,18 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "최상의 출력 품질을 위해 전체 퍼징을 수행합니다. 더 많은 재료와 시간이 필요합니다."
+
+#~ msgid "Purge Saving"
+#~ msgstr "퍼지 절약"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "퍼지 폐기물을 줄이고 출력 속도를 높입니다. 약간의 색상 혼입이나 작은 표면 결함이 발생할 수 있습니다."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "퍼지 모드에 대해 자세히 알아보기"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "오른쪽 압출기에서 ABS/ASA/PETG HF를 사용하는 경우, 지지대 재료로만 사용할 수 있습니다."
