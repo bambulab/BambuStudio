@@ -5200,9 +5200,15 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
 
         bool firmware_support_print_tpu_left = obj_->m_firmware_support_print_tpu_left.value_or(false);
         if (has_tpu_left && !firmware_support_print_tpu_left) {
+#ifndef __APPLE__
             show_status(PrintDialogStatus::PrintStatusFirmwareNotSupportTpuAtLeft,
                         { _L("Your current firmware version cannot start this print job. Please update to the latest version and try again.") },
                         wxEmptyString, prePrintInfoStyle::BtnJumpToUpgrade);
+#else
+            show_status(PrintDialogStatus::PrintStatusFirmwareNotSupportTpuAtLeft,
+                        { _L("Your current firmware version cannot start this print job. Please update to the latest version and try again.") },
+                        wxEmptyString);
+#endif
             return false;
         }
     }
