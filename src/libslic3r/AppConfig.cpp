@@ -770,7 +770,7 @@ void AppConfig::save()
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();
-    std::string path_pid = (boost::format("%1%.%2%") % PathSanitizer::sanitize(path) % get_current_pid()).str();
+    std::string path_pid = (boost::format("%1%.%2%") % path % get_current_pid()).str();
 
     json j;
 
@@ -905,7 +905,7 @@ void AppConfig::save()
     std::string backup_path = (boost::format("%1%.bak") % path).str();
     // Copy configuration file with PID suffix into the configuration file with "bak" suffix.
     if (copy_file(path_pid, backup_path, error_message, false) != SUCCESS)
-        BOOST_LOG_TRIVIAL(error) << "Copying from " << path_pid << " to " << PathSanitizer::sanitize(backup_path) << " failed. Failed to create a backup configuration.";
+        BOOST_LOG_TRIVIAL(error) << "Copying from " << PathSanitizer::sanitize(path_pid) << " to " << PathSanitizer::sanitize(backup_path) << " failed. Failed to create a backup configuration.";
 #endif
 
     // Rename the config atomically.
