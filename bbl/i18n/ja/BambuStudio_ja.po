@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6532,6 +6532,9 @@ msgstr "ノズルにフィラメントや異物が付着していないかを確
 msgid "Open Door Detection"
 msgstr "ドア開閉検出"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr "通知"
 
@@ -10150,6 +10153,9 @@ msgstr "ノズル。"
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "ノズルタイプを変更するか、フィラメントの割り当てを変更してから、再度お試しください。"
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "手動モードでグループエラーが発生しました。ノズル数を確認するか、再度グループ化してください。"
@@ -13797,9 +13803,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始温度：350度以下\n"
-"	•	終了温度：180度 以上\n"
-"	•	開始温度は終了温度より5 度以上高くしてください"
+"\t•\t開始温度：350度以下\n"
+"\t•\t終了温度：180度 以上\n"
+"\t•\t開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -13819,9 +13825,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 0\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 0\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -13838,9 +13844,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"	•	開始値（start） > 10\n"
-"	•	ステップサイズ（step） ≥ 0\n"
-"	•	終了値（end） ≥ 開始値 + ステップサイズ"
+"\t•\t開始値（start） > 10\n"
+"\t•\tステップサイズ（step） ≥ 0\n"
+"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -15279,8 +15285,15 @@ msgstr "ノズル選択"
 msgid "Available Nozzles"
 msgstr "利用可能なノズル"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "注意：1つの造形でノズル径の混在はサポートされていません。選択したサイズが片方の押出機にしかない場合は、単一押出機での造形が強制されます。"
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "不明なノズルが検出されました。情報を更新してください（更新されていないノズルはスライス時に除外されます）。ノズル径と流量が表示と一致しているかご確認ください。"
@@ -15300,17 +15313,17 @@ msgstr "パージモード設定"
 msgid "Standard Mode"
 msgstr "標準モード"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "最高の造形品質を得るために、完全なパージを実行します。材料と時間を多く消費します。"
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "パージ節約モード"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "パージによる廃材を削減し、造形時間を短縮します。ただし、若干の色混ざりや表面に小さな欠陥が生じる場合があります。"
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "パージモードの詳細を見る"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15330,7 +15343,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15389,10 +15402,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15428,7 +15441,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15787,6 +15800,18 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "最高の造形品質を得るために、完全なパージを実行します。材料と時間を多く消費します。"
+
+#~ msgid "Purge Saving"
+#~ msgstr "パージ節約モード"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "パージによる廃材を削減し、造形時間を短縮します。ただし、若干の色混ざりや表面に小さな欠陥が生じる場合があります。"
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "パージモードの詳細を見る"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "ABS / ASA / PETG HF を右側の押出機で使用する場合、サポート材としてのみ使用できます。"

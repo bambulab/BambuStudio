@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-16 11:59+0800\n"
+"POT-Creation-Date: 2026-01-19 16:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6559,6 +6559,9 @@ msgstr "Vérifie si la buse est obstruée par du filament ou d'autres corps étr
 msgid "Open Door Detection"
 msgstr "Détection de Porte Ouverte"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr ""
 
@@ -9938,7 +9941,7 @@ msgid "Monthly quota remaining: "
 msgstr "Quota mensuel restant : "
 
 msgid "Add-ons available: "
-msgstr "Add-ons disponibles : "
+msgstr "Add-ons disponibles"
 
 msgid "Optimise Outer Walls"
 msgstr "Optimiser les Parois Extérieures"
@@ -10180,6 +10183,9 @@ msgstr " buse. "
 
 msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Veuillez changer le type de buse ou réaffecter le filament, puis réessayer."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Erreur de groupe en mode manuel. Veuillez vérifier le nombre de buses ou regrouper à nouveau."
@@ -13458,10 +13464,10 @@ msgid ""
 "4. Weak Structural Integrity: Prints break easily or don't seem as sturdy as they should be."
 msgstr ""
 "Après avoir utilisé la calibration de la dynamique du débit, certains problèmes d’extrusion peuvent encore apparaître, tels que :\n"
-"	1. Sur-extrusion : excès de matière sur l’objet imprimé, formation de blobs ou de bourrelets, ou encore couches plus épaisses que prévu et non uniformes.\n"
-"	2. Sous-extrusion : couches très fines, remplissage fragile, ou trous dans la couche supérieure du modèle, même lors d’une impression lente.\n"
-"	3. Mauvaise qualité de surface : la surface des impressions paraît rugueuse ou irrégulière.\n"
-"	4. Faible intégrité structurelle : les pièces se cassent facilement ou ne semblent pas aussi solides qu’elles devraient l’être."
+"\t1. Sur-extrusion : excès de matière sur l’objet imprimé, formation de blobs ou de bourrelets, ou encore couches plus épaisses que prévu et non uniformes.\n"
+"\t2. Sous-extrusion : couches très fines, remplissage fragile, ou trous dans la couche supérieure du modèle, même lors d’une impression lente.\n"
+"\t3. Mauvaise qualité de surface : la surface des impressions paraît rugueuse ou irrégulière.\n"
+"\t4. Faible intégrité structurelle : les pièces se cassent facilement ou ne semblent pas aussi solides qu’elles devraient l’être."
 
 msgid "In addition, Flow Rate Calibration is crucial for foaming materials like LW-PLA used in RC planes. These materials expand greatly when heated, and calibration provides a useful reference flow rate."
 msgstr "En outre, l'étalonnage du débit est crucial pour les matériaux expansifs tels que le LW-PLA utilisé dans le modélisme. Ces matériaux se dilatent considérablement lorsqu'ils sont chauffés et l'étalonnage fournit un débit de référence utile."
@@ -15309,8 +15315,15 @@ msgstr "Sélection de Buse"
 msgid "Available Nozzles"
 msgstr "Buses Disponibles"
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Attention : Le mélange de diamètres de buses dans une même impression n'est pas pris en charge. Si la taille sélectionnée se trouve uniquement sur un extrudeur, l'impression mono-extrudeur sera appliquée."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Buse inconnue détectée. Actualisez pour mettre à jour les informations (les buses non actualisées seront exclues lors du découpage). Vérifiez le diamètre de la buse et le débit par rapport aux valeurs affichées."
@@ -15330,17 +15343,17 @@ msgstr "Paramètres du Mode de Purge"
 msgid "Standard Mode"
 msgstr "Mode Standard"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
-msgstr "Effectue une purge complète pour une meilleure qualité d'impression. Exige plus de matériau et de temps."
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr ""
 
-msgid "Purge Saving"
-msgstr "Économie de Purge"
+msgid "Prime Saving"
+msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr "Réduit les déchets de purge et imprime plus rapidement. Peut entraîner un léger mélange des couleurs ou de petits défauts de surface."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
+msgstr ""
 
-msgid "Learn more about purge mode"
-msgstr "En savoir plus sur le mode purge"
+msgid "Learn more about prime mode"
+msgstr ""
 
 msgid "AMS Dryness Control"
 msgstr ""
@@ -15360,7 +15373,7 @@ msgstr ""
 msgid "Drying Error"
 msgstr ""
 
-msgid "Please check the Assistant for troubleshooting>"
+msgid "Please check the Assistant for troubleshooting"
 msgstr ""
 
 msgid "Please remove and store the filament (as shown)."
@@ -15419,10 +15432,10 @@ msgstr ""
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
 msgstr ""
 
-msgid "*Consumable at AMS outlet\n"
+msgid "*Filament in AMS outlet\n"
 msgstr ""
 
-msgid "  The high drying temperature may cause AMS blockage; please unload first."
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
 msgid "*Initiating AMS drying\n"
@@ -15458,7 +15471,7 @@ msgstr ""
 msgid "Starting: Checking filament status"
 msgstr ""
 
-msgid "Starting: Checking drying preseets"
+msgid "Starting: Checking drying presets"
 msgstr ""
 
 msgid "Starting: Checking filament location"
@@ -15820,6 +15833,18 @@ msgid ""
 msgstr ""
 "Retrait, Warping et Contraintes\n"
 "En contrôlant l'indice thermique, vous pouvez éliminer les causes thermiques du soulèvement et des contraintes."
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "Effectue une purge complète pour une meilleure qualité d'impression. Exige plus de matériau et de temps."
+
+#~ msgid "Purge Saving"
+#~ msgstr "Économie de Purge"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Réduit les déchets de purge et imprime plus rapidement. Peut entraîner un léger mélange des couleurs ou de petits défauts de surface."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "En savoir plus sur le mode purge"
 
 #~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 #~ msgstr "Lors de l'utilisation d'ABS/ASA/PETG HF sur l'extrudeuse droite, cette buse ne pourra être utilisé que comme matériau de support."
