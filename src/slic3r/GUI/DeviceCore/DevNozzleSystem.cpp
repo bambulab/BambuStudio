@@ -212,13 +212,21 @@ NozzleDiameterType DevNozzle::GetNozzleDiameterType() const
         return NozzleDiameterType::NONE_DIAMETER_TYPE;
 }
 
+template<typename T>
+std::string to_string_with_precision(T num, int decimal_places = 2)
+{
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(decimal_places) << num;
+    return oss.str();
+}
+
 wxString DevNozzle::ToNozzleDiameterStr(const NozzleDiameterType& type)
 {
     switch (type) {
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return std::to_string(0.2) + " mm";
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return std::to_string(0.4) + " mm";
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return std::to_string(0.6) + " mm";
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return std::to_string(0.8) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return to_string_with_precision(0.2f) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return to_string_with_precision(0.4f) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return to_string_with_precision(0.6f) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return to_string_with_precision(0.8f) + " mm";
     default: return _L("Unknown");
     }
 }
