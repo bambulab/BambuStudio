@@ -760,6 +760,7 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
     if (!obj || !obj->support_door_open_check()) {
         m_cb_open_door->Hide();
         text_open_door->Hide();
+        text_open_door_caption->Hide();
         open_door_switch_board->Hide();
         return;
     }
@@ -771,6 +772,7 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
     // Hide door open check for printers that support safety options
     if (supports_safety) {
         m_cb_open_door->Hide();
+        text_open_door_caption->Hide();
         text_open_door->Hide();
         open_door_switch_board->Hide();
         return;
@@ -795,6 +797,7 @@ void PrintOptionsDialog::UpdateOptionOpenDoorCheck(MachineObject *obj)
 
     m_cb_open_door->Show();
     text_open_door->Show();
+    text_open_door_caption->Show();
     open_door_switch_board->Show();
 }
 
