@@ -690,7 +690,7 @@ wxBoxSizer* AMSDryCtrWin::create_guide_right_section(wxPanel* parent)
 
     m_back_button = create_button(
         parent,
-        _CTX("Back", "DryControl"),
+        _L("Back"),
         wxColour("#F8F8F8"),       // Background color - light gray
         wxColour("#D0D0D0"),       // Border color - gray
         *wxBLACK                   // Text color - black
@@ -1437,7 +1437,7 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
         }
         m_ams_filament_panel->AddFilamentItem(filament_type, icon_path);
     }
-    if (slot_count > 0 && slot_count == empty_count) {
+    if (slot_count == 0) {
         can_start = false;
     }
 
