@@ -334,7 +334,7 @@ function updateSearchResult(result) {
   $('#search_result_area').empty();
   if (data["totalHits"] > 0) {
     data["results"].forEach(element => {
-      if (IsChinese()) {
+      if (isMainland() || IsChinese()){
         if (element["locale"] != "zh")
           return;
       }else {
@@ -402,7 +402,7 @@ function scrollByStep(dir) {
 function openAcademyUrl(id)
 {
   let open_url = "";
-  if (IsChinese()){
+  if (isMainland()){
     open_url = "https://bambulab.cn/zh-cn/support/academy/";
   }else{
     let strLang=langStringTransfer();
@@ -415,11 +415,11 @@ function openAcademyUrl(id)
 function openWebsiteUrl(id)
 {
   let open_url = "";
-  if (IsChinese()){
+  if (isMainland()){
     open_url = "https://bambulab.cn/zh-cn/";
   }else{
     let strLang=langStringTransfer();
-    open_url = "https://bambulab.com/" + strLang;
+    open_url = "https://bambulab.com/" + strLang + "/";
   }
   open_url += id;
   OpenUrlInLocalBrowser(open_url);
@@ -539,6 +539,11 @@ function IsChinese()
 		return strLang.includes('zh')
 	else
 		return false;
+}
+
+function isMainland(){
+  let strRegion=GetQueryString("region");
+  return strRegion=="CN";
 }
 
 function langStringTransfer()

@@ -66,14 +66,22 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     wxString UrlLeft  = wxString::Format("file://%s/web/homepage3/left.html", from_u8(resources_dir()));
     wxString UrlRight = wxString::Format("file://%s/web/homepage3/home.html", from_u8(resources_dir()));
-    wxString UrlWiki   = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
+    wxString UrlWiki  = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
+    wxString wiki_region_param;
+    if (!m_Region.empty())
+        wiki_region_param = wxString::Format("region=%s", from_u8(m_Region));
+    if (!wiki_region_param.empty())
+        UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?%s", from_u8(resources_dir()), wiki_region_param);
 
     wxString strlang = GetStudioLanguage();
     if (strlang != "")
     {
         UrlLeft = wxString::Format("file://%s/web/homepage3/left.html?lang=%s", from_u8(resources_dir()), strlang);
         UrlRight = wxString::Format("file://%s/web/homepage3/home.html?lang=%s", from_u8(resources_dir()), strlang);
-        UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
+        if (!wiki_region_param.empty())
+            UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s&%s", from_u8(resources_dir()), strlang, wiki_region_param);
+        else
+            UrlWiki = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
     }
 
     topsizer = new wxBoxSizer(wxVERTICAL);
@@ -2094,8 +2102,17 @@ void WebViewPanel::SwitchWebContent(std::string modelname, int refresh)
 
     } else if (modelname.compare("manual") == 0){
         wxString wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html", from_u8(resources_dir()));
-        if (strlang != "")
-            wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
+        wxString wiki_region_param;
+        if (!m_Region.empty())
+            wiki_region_param = wxString::Format("region=%s", from_u8(m_Region));
+        if (!wiki_region_param.empty())
+            wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html?%s", from_u8(resources_dir()), wiki_region_param);
+        if (strlang != "") {
+            if (!wiki_region_param.empty())
+                wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s&%s", from_u8(resources_dir()), strlang, wiki_region_param);
+            else
+                wikiUrl = wxString::Format("file://%s/web/homepage3/wiki.html?lang=%s", from_u8(resources_dir()), strlang);
+        }
 
         if (!m_WikiFirst || m_Wiki_LastUrl != wikiUrl) {
             if (m_browserWiki != nullptr)
