@@ -2777,10 +2777,12 @@ std::map<int, CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
         if (fcb->get_tray_id() >= 0)
         {
             Preset* preset = const_cast<Preset*>(fcb->GetComboBox()->get_selected_preset());
-            if(fcb->GetExtuderRole() == ExtruderRole::MAIN_EXTRUDER || fcb->GetExtuderRole() == ExtruderRole::SINGLE_EXTRUDER)
-                nozzle_pos_id = MAIN_EXTRUDER_ID;
-            else if(fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER)
-                nozzle_pos_id = DEPUTY_EXTRUDER_ID;
+            if (nozzle_pos_id == -1) {//non-O1C printer pos_id == extruder_id
+                if(fcb->GetExtuderRole() == ExtruderRole::MAIN_EXTRUDER || fcb->GetExtuderRole() == ExtruderRole::SINGLE_EXTRUDER)
+                    nozzle_pos_id = MAIN_EXTRUDER_ID;
+                else if(fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER)
+                    nozzle_pos_id = DEPUTY_EXTRUDER_ID;
+            }
             out.emplace(std::make_pair(fcb->get_tray_id(), CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn)));
         }
     }
