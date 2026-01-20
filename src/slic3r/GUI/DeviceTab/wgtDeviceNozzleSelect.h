@@ -35,7 +35,7 @@ public:
 
 public:
     int  GetSelectedNozzlePosID() const { return m_selected_nozzle.GetNozzlePosId();}
-    void UpdateRackSelect(std::shared_ptr<DevNozzleRack> rack, int selected_nozzle_pos_id = -1);
+    void UpdatSelectedNozzles(std::shared_ptr<DevNozzleRack> rack, std::vector<int> selected_nozzle_pos_vec, bool use_dynamic_switch);// for slicing with dynamic switch
     void Rescale();
 
 private:
@@ -43,12 +43,18 @@ private:
 
     void ClearSelection();
     void SetSelectedNozzle(const DevNozzle &nozzle);
+    void UpdatSelectedNozzle(std::shared_ptr<DevNozzleRack> rack, int selected_nozzle_pos_id = -1); // for slicing without dynamic switch
+
+    void UpdateNozzleInfos(std::shared_ptr<DevNozzleRack> rack);
 
     void OnNozzleItemSelected(wxCommandEvent& evt);
 
 private:
     DevNozzle                    m_selected_nozzle;
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
+
+    // pick
+    bool m_enable_manual_nozzle_pick = true;
 
     // GUI
     wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle{nullptr};

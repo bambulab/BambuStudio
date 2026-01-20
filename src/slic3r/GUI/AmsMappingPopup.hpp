@@ -257,7 +257,6 @@ private:
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
-    bool m_ams_remain_detect_flag = false;
     bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
 
@@ -323,9 +322,9 @@ public:
     void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
-    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result);
+    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch = false);
     void         update_title(MachineObject* obj);
-    void         update_rack_select(MachineObject* obj);
+    void         update_rack_select(MachineObject* obj, bool use_dynamic_switch);
     void         update_amsmappping_tips(bool show);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();

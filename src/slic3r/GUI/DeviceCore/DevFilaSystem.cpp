@@ -283,7 +283,7 @@ int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
     }
 
     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": ams_id " << ams_id << " not found";
-    return 0; // not found
+    return -1; // not found
 }
 
 std::string DevFilaSystem::GetNozzleFlowStringByAmsId(const std::string& ams_id) const

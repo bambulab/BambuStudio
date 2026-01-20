@@ -25,6 +25,7 @@
 #include "BindDialog.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevMappingNozzle.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
 
@@ -1063,8 +1064,6 @@ void AmsMapingPopup::update_ams_data_multi_machines()
         tray_datas.push_back(td);
     }
 
-    m_ams_remain_detect_flag = false;
-
     for (auto& ams_container : m_amsmapping_container_list) {
         ams_container->Destroy();
     }
@@ -1229,14 +1228,13 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
     }
 }
 
-void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result)
+void AmsMapingPopup::update(MachineObject* obj,
+                            const std::vector<FilamentInfo>& ams_mapping_result,
+                            bool use_dynamic_switch)
 {
-    //BOOST_LOG_TRIVIAL(info) << "ams_mapping nozzle count  " << obj->get_extder_system()->nozzle.size();
     BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->GetFilaSystem()->GetAmsCount();
 
-
-    if (!obj) {return;}
-    m_ams_remain_detect_flag = obj->GetFilaSystem()->IsDetectRemainEnabled();
+    if (!obj) { return; }
 
     for (auto& ams_container : m_amsmapping_container_list) {
         ams_container->Destroy();
@@ -1250,7 +1248,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
     update_title(obj);
 
     /*rack*/
-    update_rack_select(obj);
+    update_rack_select(obj, use_dynamic_switch);
     update_flush_waste(obj);
 
     if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
@@ -1261,13 +1259,9 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
         m_reset_btn->SetName("erase");
         m_reset_btn->SetBitmap(ScalableBitmap(m_right_first_text_panel, "erase", 14).bmp());
     }
-    /*ext*/
-    //const auto& full_config = wxGetApp().preset_bundle->full_config();
-    //size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
-    size_t nozzle_nums = obj->GetExtderSystem()->GetTotalExtderCount();
-
-    if (nozzle_nums == 1) {
+    size_t extruder_num = obj->GetExtderSystem()->GetTotalExtderCount();
+    if (extruder_num == 1) {
         m_left_marea_panel->Hide();
         m_left_extra_slot->Hide();
         //m_left_marea_panel->Show();
@@ -1278,7 +1272,7 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
         m_right_extra_slot->Show();
         m_right_extra_slot->Enable(true);
     }
-    else if (nozzle_nums > 1) {
+    else if (extruder_num > 1) {
         m_left_marea_panel->Show();
         m_left_extra_slot->Show();
         m_left_marea_panel->Enable(false);
@@ -1311,16 +1305,18 @@ void AmsMapingPopup::update(MachineObject* obj, const std::vector<FilamentInfo>&
             m_left_marea_panel->Show();
             m_left_extra_slot->Show();
             m_right_marea_panel->Show();
+            m_right_extra_slot->Show();
+
+            m_left_marea_panel->Enable(true);
+            m_left_extra_slot->Enable(true);
+            m_right_marea_panel->Enable(true);
+            m_right_extra_slot->Enable(true);
+
             set_sizer_title(m_right_split_ams_sizer, _L("Right AMS"));
             if (m_use_in_sync_dialog) {
                 m_left_tips->SetLabel(m_single_tip_text);
                 m_right_tips->SetLabel("");
             }
-            m_right_extra_slot->Show();
-            m_left_marea_panel->Enable(true);
-            m_left_extra_slot->Enable(true);
-            m_right_marea_panel->Enable(true);
-            m_right_extra_slot->Enable(true);
         }
         // 无论哪个喷嘴被选中，tips 面板始终保持启用状态
      /*   if (m_ams_tips_panel) {
@@ -1601,21 +1597,16 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
 }
 
-void AmsMapingPopup::update_rack_select(MachineObject *obj)
+void AmsMapingPopup::update_rack_select(MachineObject *obj, bool use_dynamic_switch)
 {
     m_rack = obj ? obj->GetNozzleRack() : nullptr;
 
     bool show_rack_select_area = false;
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
-        obj && obj->GetNozzleRack()->IsSupported() && !obj->get_nozzle_mapping_result().GetNozzleMapping().empty()) {
-        int mapped_nozzle_pos_id =  obj->get_nozzle_mapping_result().GetMappedNozzlePosIdByFilaId(obj, m_current_filament_id);
-        if (mapped_nozzle_pos_id != DEPUTY_EXTRUDER_ID)
-        {
-            m_rack_nozzle_select->UpdateRackSelect(obj->GetNozzleRack(), mapped_nozzle_pos_id);
-
-            show_rack_select_area = true;
-        }
-
+        obj && obj->GetNozzleRack()->IsSupported()) {
+        const auto& nozzle_pos_vec = obj->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(m_current_filament_id);
+        m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch);
+        show_rack_select_area = true;
     }
 
     if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
@@ -1631,7 +1622,7 @@ void AmsMapingPopup::OnNozzleMappingSelected(wxCommandEvent& evt)
 {
     if (auto ptr = m_rack.lock()) {
         MachineObject* obj = ptr->GetNozzleSystem()->GetOwner();
-        obj->set_manual_nozzle_mapping(m_current_filament_id, m_rack_nozzle_select->GetSelectedNozzlePosID());
+        obj->get_nozzle_mapping_result()->SetManualNozzleMappingByFila(m_current_filament_id, m_rack_nozzle_select->GetSelectedNozzlePosID());
         update_flush_waste(obj);
     }
 
@@ -1646,8 +1637,8 @@ void AmsMapingPopup::update_flush_waste(MachineObject* obj)
         return;
     };
 
-    float flush_waste_base = obj->get_nozzle_mapping_result().GetFlushWeightBase();
-    float flush_waste_current = obj->get_nozzle_mapping_result().GetFlushWeightCurrent();
+    float flush_waste_base = obj->get_nozzle_mapping_result()->GetFlushWeightBase();
+    float flush_waste_current = obj->get_nozzle_mapping_result()->GetFlushWeightCurrent();
     if ((flush_waste_base != -1) && (flush_waste_current != -1) && flush_waste_current > flush_waste_base){
         m_flush_warning_panel->SetLabel(wxString::Format(_L("Printing with the current nozzle may produce an extra %0.2f g of waste."), flush_waste_current - flush_waste_base));
         m_flush_warning_panel->Show();

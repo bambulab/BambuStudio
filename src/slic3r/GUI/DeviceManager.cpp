@@ -40,6 +40,7 @@
 #include "DeviceCore/DevExtensionTool.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevMappingNozzle.h"
 #include "DeviceCore/DevBed.h"
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevFan.h"
@@ -606,6 +607,8 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
         m_ctrl = new DevCtrl(this);
         m_print_options = new DevPrintOptions(this);
         m_calib = new DevCalib(this);
+
+        m_nozzle_mapping_ptr = std::make_shared<DevNozzleMappingCtrl>(this);
     }
 }
 
@@ -2727,7 +2730,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             }
 
             if (jj.contains("command")) {
-                m_auto_nozzle_mapping.ParseAutoNozzleMapping(this, jj);
+                m_nozzle_mapping_ptr->ParseAutoNozzleMapping(jj);
 
                 if (jj["command"].get<std::string>() == "ams_change_filament") {
                     if (jj.contains("errno")) {
@@ -4735,6 +4738,7 @@ std::string MachineObject::get_dev_id() const {
 void MachineObject::set_dev_id(std::string val) {
     m_dev_info->SetDevId(val);
 }
+
 
 void change_the_opacity(wxColour& colour)
 {

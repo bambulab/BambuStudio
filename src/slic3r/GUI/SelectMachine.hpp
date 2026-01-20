@@ -284,6 +284,14 @@ private:
     ScalableBitmap m_img_unselected_tag;
 };
 
+struct pPresetFilaInfo
+{
+    std::string filament_id;
+    std::string filament_type;
+    std::string filament_display_type;
+    std::string filament_vendor;
+};
+
 class PrinterInfoBox;
 class SelectMachineDialog : public DPIDialog
 {
@@ -315,7 +323,6 @@ private:
     std::list<PrintOption*>                  m_checkbox_list_order;
 
     std::shared_ptr<int>                m_token = std::make_shared<int>(0);
-    wxString                             m_ams_tooltip;
     std::vector<wxString>               m_bedtype_list;
     std::vector<MachineObject*>         m_list;
     std::vector<FilamentInfo>           m_filaments;
@@ -462,6 +469,7 @@ public:
     bool CheckErrorRackStatus(MachineObject* obj_);//return true if no errors
     bool CheckErrorExtruderNozzleWithSlicing(MachineObject* obj_);//return true if no errors
     bool CheckErrorSyncNozzleMappingResult(MachineObject* obj);// return true if no errors
+    bool CheckErrorDynamicSwitchNozzle(MachineObject* obj);// return true if no errors
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);
@@ -517,7 +525,7 @@ public:
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
     bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info) const;
     bool build_nozzles_info(std::string& nozzles_info);
-    bool can_hybrid_mapping(DevExtderSystem data);
+    bool can_hybrid_mapping(MachineObject *obj_) const;
     void auto_supply_with_ext(std::vector<DevAmsTray> slots);
 
     bool is_ams_drying(MachineObject* obj);
@@ -552,7 +560,14 @@ private:
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
 
-    // events
+    // material items
+    void clear_material_infos();
+    void on_material_item_clicked(MaterialItem* item,
+                                  const std::vector<pPresetFilaInfo>& preset_fila_infos,
+                                  int used_filament_idx,
+                                  wxMouseEvent &e);
+
+    // option events
     void on_flow_pa_caliation_option_changed(wxCommandEvent& event);
     void on_nozzle_offset_option_changed(wxCommandEvent& event);
     void on_pa_value_switch_changed(wxCommandEvent &event);

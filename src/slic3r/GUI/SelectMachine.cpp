@@ -3858,84 +3858,32 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
         item->SetToolTip(m_ams_tooltip);
 
-        if (!selected_any && extruder == m_current_filament_id && item->m_enable) {
+        if (!selected_any && used_filament == m_current_filament_id && item->m_enable) {
             item->on_selected();
             selected_any = true;
         }
         if (!first_enabled && item->m_enable) {
             first_enabled    = item;
-            first_enabled_id = extruder;
+            first_enabled_id = used_filament;
         }
 
-        item->Bind(wxEVT_LEFT_UP, [this, item, materials, extruder](wxMouseEvent &e) {});
-        item->Bind(wxEVT_LEFT_DOWN, [this, item, materials, extruder](wxMouseEvent &e) {
-            if (!item->m_enable) {return;}
-            if (!m_check_flag || m_print_status == PrintDialogStatus::PrintStatusUnsupportedPrinter) { return; } /*STUDIO-11301*/
-
-            MaterialHash::iterator iter = m_materialList.begin();
-            while (iter != m_materialList.end()) {
-                int           id   = iter->first;
-                Material *    item = iter->second;
-                MaterialItem *m    = item->item;
-                m->on_normal();
-                iter++;
-            }
-
-            m_current_filament_id = extruder;
-            item->on_selected();
-
-            auto    mouse_pos = ClientToScreen(e.GetPosition());
-            wxPoint rect      = item->ClientToScreen(wxPoint(0, 0));
-
-            // update ams data
-            DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
-            if (!dev_manager) return;
-            MachineObject *obj_ = dev_manager->get_selected_machine();
-            const auto& full_config = wxGetApp().preset_bundle->full_config();
-            size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-            if (nozzle_nums > 1)
-            {
-                if (obj_ && can_hybrid_mapping(*obj_->GetExtderSystem()))
-                {
-                m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
-                }
-                else if (m_filaments_map[extruder] == 1)
-                {
-                    m_mapping_popup.set_show_type(ShowType::LEFT);
-                }
-                else if(m_filaments_map[extruder] == 2)
-                {
-                    m_mapping_popup.set_show_type(ShowType::RIGHT);
-                }
-            } else {
-                m_mapping_popup.set_show_type(ShowType::RIGHT);
-            }
-            if (obj_) {
-                if (m_mapping_popup.IsShown()) return;
-                if (obj_ && obj_->get_dev_id() == m_printer_last_select) {
-                    m_mapping_popup.set_parent_item(item);
-                    m_mapping_popup.set_only_show_ext_spool(false);
-                    m_mapping_popup.set_current_filament_id(extruder);
-                    m_mapping_popup.set_tag_texture(materials[extruder]);
-                    m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
-                    m_mapping_popup.update(obj_, m_ams_mapping_result);
-                    m_mapping_popup.Popup();
-                }
-            }
-        });
+        item->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent &e) {});
+        item->Bind(wxEVT_LEFT_DOWN, [this, item, used_filament, preset_filament_vec](wxMouseEvent &e) {
+            on_material_item_clicked(item, preset_filament_vec, used_filament, e);}
+        );
 
         Material *material_item = new Material();
-        material_item->id       = extruder;
+        material_item->id       = used_filament;
         material_item->item     = item;
         m_materialList[i]       = material_item;
 
         // build for ams mapping
-        if (extruder < materials.size() && extruder >= 0) {
+        if (used_filament < materials.size() && used_filament >= 0) {
             FilamentInfo info;
-            info.id          = extruder;
-            info.type        = materials[extruder];
-            info.brand       = brands[extruder];
-            info.filament_id = m_filaments_id[extruder];
+            info.id          = used_filament;
+            info.type        = materials[used_filament];
+            info.brand       = brands[used_filament];
+            info.filament_id = m_filaments_id[used_filament];
             info.color       = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
             m_filaments.push_back(info);
         }
@@ -4650,7 +4598,7 @@ void SelectMachineDialog::CheckWarningRackStatus(MachineObject* obj_)
         return;// there are no slicing data when print from sdcard
     }
 
-    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID);
+    const std::vector<Slic3r::MultiNozzleUtils::NozzleInfo>& nozzle_vec = nozzle_group_res->get_nozzle_vec(LOGIC_R_EXTRUDER_ID);
     if (nozzle_vec.empty()) {
         return;// no need to check if no right nozzles used in slicing
     }
@@ -4755,7 +4703,7 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
                 auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
                 assert(nozzle_group_res.has_value());
                 if (nozzle_group_res) {
-                    const auto &nozzle_infos = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), logic_extruder_idx);
+                    const auto& nozzle_infos = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), logic_extruder_idx);
                     for (const auto& nozzle_info : nozzle_infos) {
                         nozzle_data.nozzle_flow_type = nozzle_info.first.nozzle_flow_type;
                         used_extuder_nozzles.insert({ physical_idx, nozzle_data });
@@ -4897,7 +4845,7 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
     MachineObject* obj_ = dev_ ? dev_->get_my_machine(m_printer_last_select) : nullptr;
     if (obj_ && m_plater && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
         auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
-        if (nozzle_group_res && !nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
+        if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) != 0) {
 
             if (event.GetString() == "off") {
                 MessageDialog dlg(this, S_RACK_FLOW_DYNAMICS_CALI_WARNING, _L("Info"), wxYES | wxCANCEL | wxICON_INFORMATION);
@@ -5069,11 +5017,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         return wxEmptyString;// there are no nozzle group result from slicing
     }
 
-    // TODO(青松):可能会有多个挤出机被使用
-    auto nozzle_list = nozzle_group_res->get_nozzles_for_filament(fila_id);
-    int  extruder_id = nozzle_list.front().extruder_id;
-
-    if (extruder_id != LOGIC_R_EXTRUDER_ID) {
+    if (nozzle_group_res->get_extruder_id(fila_id) != LOGIC_R_EXTRUDER_ID) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": LOGIC_R_EXTRUDER_ID not used";
         return wxEmptyString;// the filament is not used at right extruder in slicing
     }
@@ -5117,7 +5061,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResult(MachineObject* obj_)
     }
 
     auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);;
-    if (nozzle_group_res && !nozzle_group_res->get_used_nozzles_in_extruder(LOGIC_R_EXTRUDER_ID).empty()) {
+    if (nozzle_group_res && nozzle_group_res->get_nozzle_count(LOGIC_R_EXTRUDER_ID) == 0) {
         return true;// no need to check if no right nozzles used in slicing
     }
 
@@ -6199,8 +6143,8 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
         if (nozzle_group_res && (nozzle_sys->GetNozzleRack()->IsSupported() || ext_sys->GetTotalExtderCount() == 2)) {
 
             ExtruderNozzleInfos slicing_nozzle_infos;
-            slicing_nozzle_infos[MAIN_EXTRUDER_ID]   = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), LOGIC_R_EXTRUDER_ID);
-            slicing_nozzle_infos[DEPUTY_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), LOGIC_L_EXTRUDER_ID);
+            slicing_nozzle_infos[MAIN_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), LOGIC_R_EXTRUDER_ID);
+            slicing_nozzle_infos[DEPUTY_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), LOGIC_L_EXTRUDER_ID);
             UpdateInfo(slicing_nozzle_infos, nozzle_sys->GetExtruderNozzleInfo());
             return;
         }
