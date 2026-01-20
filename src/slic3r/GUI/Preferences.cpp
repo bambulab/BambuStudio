@@ -5,6 +5,7 @@
 #include "Plater.hpp"
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
+#include "UxProgramTermsDialog.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include <wx/notebook.h>
 #include "Notebook.hpp"
@@ -1439,8 +1440,15 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
     auto item_priv_policy = create_item_checkbox(_L("Join Customer Experience Improvement Program."), page, "", 50, "privacyuse");
-    wxHyperlinkCtrl* hyperlink = new wxHyperlinkCtrl(page, wxID_ANY, _L("What data would be collected?"), "https://bambulab.com/en/policies/privacy");
+    auto* hyperlink = new Label(page, _CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences").c_str());
     hyperlink->SetFont(Label::Head_13);
+    hyperlink->SetForegroundColour(wxColour("#0078D4"));
+    hyperlink->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+    hyperlink->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+    hyperlink->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
+        UxProgramTermsDialog dlg(this);
+        dlg.ShowModal();
+    });
     item_priv_policy->Add(hyperlink, 0, wxALIGN_CENTER, 0);
 
 #ifdef _WIN32
