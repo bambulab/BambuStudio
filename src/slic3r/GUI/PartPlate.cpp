@@ -1767,15 +1767,7 @@ bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig
     error_msg.clear();
     std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow};
 
-<<<<<<< HEAD   (bd31c9 FIX: H2C nozzle pos id parse bug)
-    std::vector<int> used_filaments;
-    if (m_slice_result_valid && m_gcode_result)
-        used_filaments = get_used_filaments(); // 1 base
-    else
-        used_filaments = get_extruders(true); // 1 base
-=======
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
->>>>>>> CHANGE (569437 FIX: The frontend fetched old slicing cache data, leading to)
 
     std::unordered_map<NozzleVolumeType, int> nozzle_fils;
     if (!used_filaments.empty()) {
