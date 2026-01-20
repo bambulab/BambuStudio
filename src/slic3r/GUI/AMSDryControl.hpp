@@ -179,6 +179,7 @@ private:
 
     struct {
         std::unordered_map<std::string, std::string> m_filament_names;
+        std::unordered_map<std::string, std::string> m_filament_type;
         std::unordered_map<std::string, int> m_dry_temp;
         std::unordered_map<std::string, int> m_dry_time;
     } m_dry_setting;
