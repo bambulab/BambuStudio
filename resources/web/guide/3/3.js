@@ -4,12 +4,27 @@ m_Region='US';
 function OnInit()
 {
 	TranslatePage();
+	BindUxProgramPopup();
 	
 	//SendPrivacySelect();
 	
 	let strRegion=GetQueryString('region');
 	if( strRegion!=null )
 		m_Region=strRegion.toLowerCase();
+}
+
+function BindUxProgramPopup()
+{
+	$(".HyperLink[tid='t55']").off('click').on('click', function (e) {
+		e.preventDefault();
+		if (IsInSlicer() == null)
+			return false;
+		var tSend={};
+		tSend['sequence_id']=Math.round(new Date() / 1000);
+		tSend['command']="show_ux_program_terms";
+		SendWXMessage( JSON.stringify(tSend) );
+		return false;
+	});
 }
 
 //function SendPrivacySelect()
