@@ -922,13 +922,15 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
         wxCoord label_actual_v_pos = v_pos;
         if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
             wxString label = og_line.label;
+            wxColour blink_color = StateColor::darkModeColorFor("#00AE42");
 
             dc.SetFont(ctrl->m_font);
             wxString multiline_text;
             auto     label_size = Label::split_lines(dc, ctrl->opt_group->label_width * ctrl->m_em_unit, label, multiline_text);
             label_actual_v_pos  = v_pos + lround((height - label_size.y) / 2);
+            const wxColour *label_color = field->blink() ? &blink_color : field->label_color();
             h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, 
-                            field ? field->label_color() : nullptr, 
+                            label_color,
                             ctrl->opt_group->label_width * ctrl->m_em_unit, 
                             false, true);
         }

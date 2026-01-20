@@ -2310,11 +2310,32 @@ void Tab::activate_option(const std::string& opt_key, const wxString& category)
 
     // focused selected field
     if (field) {
-        set_focus(field->getWindow());
-        if (!field->getWindow()->HasFocus()) {
-            wxScrollEvent evt(wxEVT_SCROLL_CHANGED);
-            evt.SetEventObject(field->getWindow());
-            wxPostEvent(m_page_view, evt);
+        auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
+        if (multi_variant) {
+            // For MultiVariantTextCtrl, focus the first text control
+            if (!multi_variant->m_text_ctrls.empty()) {
+                auto size = multi_variant->m_text_ctrls.size();
+                auto &first_ctrl = multi_variant->m_text_ctrls[size - 1];
+                if (first_ctrl.text_ctrl && first_ctrl.text_ctrl->getWindow()) {
+                    set_focus(first_ctrl.text_ctrl->getWindow());
+                    if (!first_ctrl.text_ctrl->getWindow()->HasFocus()) {
+                        wxScrollEvent evt(wxEVT_SCROLL_CHANGED);
+                        evt.SetEventObject(first_ctrl.text_ctrl->getWindow());
+                        wxPostEvent(m_page_view, evt);
+                    }
+                }
+            }
+        } else {
+            // Regular field handling
+            wxWindow *win = field->getWindow();
+            if (win) {
+                set_focus(win);
+                if (!win->HasFocus()) {
+                    wxScrollEvent evt(wxEVT_SCROLL_CHANGED);
+                    evt.SetEventObject(win);
+                    wxPostEvent(m_page_view, evt);
+                }
+            }
         }
     }
     //else if (category == "Single extruder MM setup") {
