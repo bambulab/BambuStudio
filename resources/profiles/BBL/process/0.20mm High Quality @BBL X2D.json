@@ -43,10 +43,16 @@
         "1000"
     ],
     "outer_wall_speed": [
-        "50",
-        "50",
+        "60",
+        "60",
         "50",
         "50"
+    ],
+    "overhang_1_4_speed": [
+        "60",
+        "0",
+        "0",
+        "0"
     ],
     "overhang_2_4_speed": [
         "30",
@@ -60,12 +66,6 @@
         "30",
         "10"
     ],
-    "overhang_1_4_speed": [
-        "60",
-        "0",
-        "0",
-        "0"
-    ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
     "print_extruder_variant": [
@@ -74,13 +74,13 @@
         "Bowden Standard",
         "Bowden High Flow"
     ],
+    "sparse_infill_pattern": "gyroid",
     "sparse_infill_speed": [
         "200",
         "200",
         "100",
         "100"
     ],
-    "sparse_infill_pattern": "gyroid",
     "top_surface_speed": [
         "150",
         "150",
