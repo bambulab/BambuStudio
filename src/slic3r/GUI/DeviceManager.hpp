@@ -87,6 +87,7 @@ class DevPrintOptions;
 class DevHMS;
 class DevInfo;
 class DevLamp;
+class DevNozzleMappingCtrl;
 class DevNozzleSystem;
 class DevNozzleRack;
 class DeviceManager;
@@ -115,7 +116,7 @@ private:
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
 
     // the latest nozzle mapping
-    DevNozzleMappingResult m_auto_nozzle_mapping;
+    std::shared_ptr<DevNozzleMappingCtrl> m_nozzle_mapping_ptr;;
 
     /*parts*/
     std::shared_ptr<DevAxis>    m_axis;
@@ -312,10 +313,8 @@ public:
     DevNozzle get_nozzle_by_sn(const std::string& sn) const;
 
     // auto nozzle mapping
-    DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
-    void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id) { m_auto_nozzle_mapping.SetManualNozzleMapping(this, fila_id, nozzle_pos_id); };// nozzle_pos_id is O\0x10\0x20\0x30...
-    void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
-    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    std::shared_ptr<DevNozzleMappingCtrl> get_nozzle_mapping_result() const { return m_nozzle_mapping_ptr;; }
+    void clear_auto_nozzle_mapping();
 
     /* ams settings*/
     std::optional<bool> IsDetectOnInsertEnabled() const;
@@ -352,7 +351,8 @@ public:
     DevNozzleSystem*               GetNozzleSystem() const { return m_nozzle_system;}
     std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
-    std::shared_ptr<DevFilaSystem>   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSystem> GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSwitch> GetFilaSwitch() const { return m_fila_switch; }
     bool             HasAms() const;
 
     std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }

@@ -131,6 +131,7 @@ namespace Slic3r
        bool                            ContainsExtNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
        DevNozzle                       GetExtNozzle(int id) const;
        const std::map<int, DevNozzle>& GetExtNozzles() const { return m_ext_nozzles;}
+       int                             GetExtNozzleCount() const { return m_ext_nozzles.size();}
 
        // nozzles on rack
        void  SetSupportNozzleRack(bool supported);

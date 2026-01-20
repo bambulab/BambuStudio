@@ -55,6 +55,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceCore/DevManager.cpp
     GUI/DeviceCore/DevMapping.h
     GUI/DeviceCore/DevMapping.cpp
+    GUI/DeviceCore/DevMappingNozzle.h
     GUI/DeviceCore/DevMappingNozzle.cpp
     GUI/DeviceCore/DevNozzleRack.h
     GUI/DeviceCore/DevNozzleRack.cpp

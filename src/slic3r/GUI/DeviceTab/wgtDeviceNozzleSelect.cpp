@@ -78,30 +78,54 @@ void wgtDeviceNozzleRackSelect::CreateGui()
     Fit();
 }
 
-static void s_update_item(wgtDeviceNozzleRackNozzleItem* item, std::shared_ptr<DevNozzleRack> rack, const DevNozzle& nozzle_info, const DevNozzle& selected_nozzle)
+void wgtDeviceNozzleRackSelect::UpdateNozzleInfos(std::shared_ptr<DevNozzleRack> rack)
 {
-    if (item) {
-        item->Update(rack, nozzle_info.IsOnRack());
-        if (!nozzle_info.IsEmpty() && !nozzle_info.IsAbnormal() && !nozzle_info.IsUnknown() &&
-            nozzle_info.GetNozzleType() == selected_nozzle.GetNozzleType() && 
-            nozzle_info.GetNozzleDiameter() == selected_nozzle.GetNozzleDiameter() &&
-            nozzle_info.GetNozzleFlowType() == selected_nozzle.GetNozzleFlowType()){
-            item->SetDisable(false);
-        } else{
-            item->SetDisable(true);
+    m_nozzle_rack = rack;
+    if (rack) {
+        {
+            const auto& toolhead_info = rack->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
+            m_toolhead_nozzle->Update(rack, toolhead_info.IsOnRack());
+            if (toolhead_info.IsUnknown()) {
+                if (m_toolhead_nozzle->GetToolTipText() != _L("Nozzle information needs to be read")) {
+                    m_toolhead_nozzle->SetToolTip(_L("Nozzle information needs to be read"));
+                }
+            } else {
+                m_toolhead_nozzle->SetToolTip(wxEmptyString);
+            }
         }
 
-        if (nozzle_info.IsUnknown()) {
-            if(item->GetToolTipText() != _L("Nozzle information needs to be read")) {
-                item->SetToolTip(_L("Nozzle information needs to be read"));
+        for (const auto& item : m_nozzle_items) {
+            const auto& nozzle_info = rack->GetNozzleSystem()->GetRackNozzle(item.first);
+            item.second->Update(rack, nozzle_info.IsOnRack());
+
+            if (nozzle_info.IsUnknown()) {
+                if (item.second->GetToolTipText() != _L("Nozzle information needs to be read")) {
+                    item.second->SetToolTip(_L("Nozzle information needs to be read"));
+                }
+            } else {
+                item.second->SetToolTip(wxEmptyString);
             }
-        } else {
-            item->SetToolTip(wxEmptyString);
         }
     }
 }
 
-void wgtDeviceNozzleRackSelect::UpdateRackSelect(std::shared_ptr<DevNozzleRack> rack, int selected_nozzle_pos_id)
+static void s_enable_item_if_match(wgtDeviceNozzleRackNozzleItem* item, 
+                                   const DevNozzle& nozzle_info,
+                                   const DevNozzle& selected_nozzle)
+{
+    if (item) {
+        if (!nozzle_info.IsEmpty() && !nozzle_info.IsAbnormal() && !nozzle_info.IsUnknown() &&
+            nozzle_info.GetNozzleType() == selected_nozzle.GetNozzleType() &&
+            nozzle_info.GetNozzleDiameter() == selected_nozzle.GetNozzleDiameter() &&
+            nozzle_info.GetNozzleFlowType() == selected_nozzle.GetNozzleFlowType()) {
+            item->SetDisable(false);
+        } else {
+            item->SetDisable(true);
+        }
+    }
+}
+
+void wgtDeviceNozzleRackSelect::UpdatSelectedNozzle(std::shared_ptr<DevNozzleRack> rack, int selected_nozzle_pos_id)
 {
     m_nozzle_rack = rack;
     if (rack) {
@@ -113,9 +137,51 @@ void wgtDeviceNozzleRackSelect::UpdateRackSelect(std::shared_ptr<DevNozzleRack> 
             SetSelectedNozzle(rack->GetNozzle(selected_nozzle_pos_id - 0x10));
         }
 
-        s_update_item(m_toolhead_nozzle, rack, rack->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID), m_selected_nozzle);
-        for (auto& item : m_nozzle_items) {
-            s_update_item(item.second, rack, rack->GetNozzleSystem()->GetRackNozzle(item.first), m_selected_nozzle);
+        if (m_enable_manual_nozzle_pick) {
+            s_enable_item_if_match(m_toolhead_nozzle, rack->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID), m_selected_nozzle);
+            for (auto& item : m_nozzle_items) {
+                s_enable_item_if_match(item.second, rack->GetNozzleSystem()->GetRackNozzle(item.first), m_selected_nozzle);
+            }
+        }
+    }
+}
+
+void wgtDeviceNozzleRackSelect::UpdatSelectedNozzles(std::shared_ptr<DevNozzleRack> rack,
+                                                     std::vector<int> selected_nozzle_pos_vec,
+                                                     bool use_dynamic_switch)
+{
+    m_nozzle_rack = rack;
+    m_enable_manual_nozzle_pick = !use_dynamic_switch;
+
+    UpdateNozzleInfos(rack);
+    if (!use_dynamic_switch) {
+        if (selected_nozzle_pos_vec.size() > 0) {
+            return UpdatSelectedNozzle(rack, selected_nozzle_pos_vec.at(0));
+        } else {
+            return ClearSelection();
+        }
+    }
+
+    if (rack) {
+        ClearSelection();
+        for (const auto& pos_id : selected_nozzle_pos_vec) {
+            if (pos_id == MAIN_EXTRUDER_ID) {
+                m_toolhead_nozzle->SetSelected(true);
+            } else {
+                if (auto it = m_nozzle_items.find(pos_id - 0x10); it != m_nozzle_items.end()) {
+                    it->second->SetSelected(true);
+                }
+            }
+        }
+
+        if (!m_toolhead_nozzle->IsSelected()) {
+            m_toolhead_nozzle->SetDisable(true);
+        }
+
+        for (const auto& item : m_nozzle_items) {
+            if (!item.second->IsSelected()) {
+                item.second->SetDisable(true);
+            }
         }
     }
 }
@@ -146,6 +212,10 @@ void wgtDeviceNozzleRackSelect::SetSelectedNozzle(const DevNozzle &nozzle)
 
 void wgtDeviceNozzleRackSelect::OnNozzleItemSelected(wxCommandEvent &evt)
 {
+    if (!m_enable_manual_nozzle_pick) {
+        return;
+    }
+
     auto *item = dynamic_cast<wgtDeviceNozzleRackNozzleItem *>(evt.GetEventObject());
     if (item; auto ptr = m_nozzle_rack.lock()) {
         if (item == m_toolhead_nozzle) {

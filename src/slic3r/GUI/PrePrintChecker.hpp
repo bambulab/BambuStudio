@@ -113,6 +113,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusRackNozzleMappingWaiting,
     PrintStatusRackNozzleMappingError,
     PrintStatusInvalidMapping,
+    PrintStatusFilaSwitcherError,
     PrintStatusPrinterErrorEnd,
 
     // Errors for filament, Block Print
