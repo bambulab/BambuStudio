@@ -514,8 +514,8 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
             curr_ams->m_dry_sub_status = (DevAms::DrySubStatus)DevUtil::get_flag_bits(info, 22, 4);
         }
 
-        if (j_ams.contains("dry_settings")) {
-            const auto& j_dry_settings = j_ams["dry_settings"];
+        if (j_ams.contains("dry_setting")) {
+            const auto& j_dry_settings = j_ams["dry_setting"];
             DevAms::DrySettings dry_settings;
             DevJsonValParser::ParseVal(j_dry_settings, "dry_filament", dry_settings.dry_filament);
             DevJsonValParser::ParseVal(j_dry_settings, "dry_temperature", dry_settings.dry_temp);

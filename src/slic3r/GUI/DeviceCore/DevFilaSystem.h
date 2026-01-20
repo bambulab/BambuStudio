@@ -204,7 +204,7 @@ public:
     std::optional<DryFanStatus> GetFan1Status() const { return m_dry_fan1_status; }
     std::optional<DryFanStatus> GetFan2Status() const { return m_dry_fan2_status; }
     std::optional<std::vector<CannotDryReason>> GetCannotDryReason() const { return m_dry_cannot_reasons; }
-    std::optional<DrySettings> GetDrySettings() const;
+    std::optional<DrySettings> GetDrySettings() const { return m_dry_settings; };
 
     bool AmsIsDrying();
 
