@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 
 #include "MainFrame.hpp"
+#include "UxProgramTermsDialog.hpp"
 #include <boost/dll.hpp>
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include <slic3r/Utils/Http.hpp>
@@ -515,6 +516,13 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
             std::string strUrl = j["url"];
 
             wxLaunchDefaultBrowser(strUrl);
+        }
+        else if (strCmd == "show_ux_program_terms")
+        {
+            wxGetApp().CallAfter([this] {
+                UxProgramTermsDialog dlg(this);
+                dlg.ShowModal();
+            });
         }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
