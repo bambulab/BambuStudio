@@ -1546,6 +1546,11 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)); // NOTE: to be fixed
         check_info.fila_name = preset->alias;
 
+        if (!curr_obj->GetNozzleRack()->IsSupported()) {
+            int extruder_id = curr_obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
+            check_info.nozzle_diameter = curr_obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
+        }
+
         if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)
             check_info.calib_mode = "auto_pa";
 
