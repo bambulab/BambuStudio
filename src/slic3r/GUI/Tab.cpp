@@ -7056,16 +7056,34 @@ std::vector<wxString> Tab::generate_extruder_options()
         auto variants = m_config->option<ConfigOptionStrings>("filament_extruder_variant");
         for (auto &v : variants->values) {
             std::string drive, nozzle;
-            size_t pos = v.rfind(' ');
-            if (pos != std::string::npos) {
-                drive = v.substr(0, pos);
-                nozzle = v.substr(pos + 1);
-                if (nozzle == "Flow") {
-                    size_t pos2 = drive.rfind(' ');
-                    if (pos2 != std::string ::npos) {
-                        nozzle = drive.substr(pos2 + 1) + " " + nozzle;
-                        drive  = drive.substr(0, pos2);
-                    }
+
+            static std::vector<std::string> known_nozzle_types;
+            if (known_nozzle_types.empty()) {
+                for (auto nvt : get_valid_nozzle_volume_type()) {
+                    known_nozzle_types.push_back(get_nozzle_volume_type_string(nvt));
+                }
+                std::sort(known_nozzle_types.begin(), known_nozzle_types.end(),
+                    [](const std::string& a, const std::string& b) { return a.size() > b.size(); });
+            }
+            bool found = false;
+            for (const auto& nozzle_type : known_nozzle_types) {
+                if (v.size() > nozzle_type.size() && 
+                    v.substr(v.size() - nozzle_type.size()) == nozzle_type &&
+                    v[v.size() - nozzle_type.size() - 1] == ' ') {
+                    drive = v.substr(0, v.size() - nozzle_type.size() - 1);
+                    nozzle = nozzle_type;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                size_t pos = v.rfind(' ');
+                if (pos != std::string::npos) {
+                    drive = v.substr(0, pos);
+                    nozzle = v.substr(pos + 1);
+                } else {
+                    drive = v;
+                    nozzle = "";
                 }
             }
             options.push_back(wxString::Format(_L("%s: %s"), _L(drive), _L(nozzle)));
