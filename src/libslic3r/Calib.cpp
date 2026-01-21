@@ -687,7 +687,7 @@ void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Mod
 
     const unsigned int extruder_id = model.objects.front()->volumes.front()->extruder_id();
     m_writer.set_extruders({extruder_id});
-    m_writer.set_extruder(extruder_id);
+    m_writer.set_extruder(extruder_id,0);
 }
 
 double CalibPressureAdvancePattern::object_size_x() const

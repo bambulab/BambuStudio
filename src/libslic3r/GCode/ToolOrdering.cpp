@@ -379,6 +379,8 @@ void ToolOrdering::sort_and_build_data(const Print& print, unsigned int first_ex
     this->collect_extruder_statistics(prime_multi_material);
 
     this->fill_wipe_tower_partitions(print.config(), object_bottom_z, max_layer_height);
+
+    this->calc_most_used_extruder(print.config());
 }
 
 void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int first_extruder, bool prime_multi_material)
@@ -395,6 +397,8 @@ void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int 
     this->collect_extruder_statistics(prime_multi_material);
 
     this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height, max_layer_height);
+
+    this->calc_most_used_extruder(object.print()->config());
 }
 
 
@@ -952,18 +956,21 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
     }
 }
 
-void ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
+void ToolOrdering::calc_most_used_extruder(const PrintConfig &config)
 {
     // record
     std::vector<int> extruder_count;
     extruder_count.resize(config.nozzle_diameter.size(), 0);
+    auto group_result = m_print->get_nozzle_group_result().value();
+    int  layer_idx    = 0;
     for (LayerTools &layer_tools : m_layer_tools) {
         std::vector<unsigned int> filaments = layer_tools.extruders;
         std::set<int> layer_extruder_count;
         //count once only
         for (unsigned int &filament : filaments) {
-            layer_extruder_count.insert(config.filament_map.values[filament] - 1);
+            layer_extruder_count.insert(group_result.get_extruder_id(filament,layer_idx));
         }
+        layer_idx++;
 
         //record
         for (int extruder_id : layer_extruder_count) {
@@ -973,11 +980,13 @@ void ToolOrdering::cal_most_used_extruder(const PrintConfig &config)
 
     // set key for most used extruder
     // count most used extruder
-    most_used_extruder = 0;
+    int most_used_extruder = 0;
     for (int extruder_id = 1; extruder_id < extruder_count.size(); extruder_id++) {
         if (extruder_count[extruder_id] >= extruder_count[most_used_extruder])
             most_used_extruder = extruder_id;
     }
+
+    m_most_used_extruder = most_used_extruder;
 }
 
 float ToolOrdering::cal_max_additional_fan(const PrintConfig &config)
@@ -1139,6 +1148,8 @@ FilamentGroupContext build_filament_group_context(
     const auto& print_config = print->config();
     const size_t filament_nums = print_config.filament_colour.values.size();
     const size_t extruder_nums = print_config.nozzle_diameter.values.size();
+    bool         has_multiple_nozzle = std::any_of(print_config.extruder_max_nozzle_count.values.begin(), print_config.extruder_max_nozzle_count.values.end(),
+                                                   [](int v) { return v > 1; });
 
     auto nozzle_flush_mtx = prepare_flush_matrices(print_config);
 
@@ -1209,6 +1220,8 @@ FilamentGroupContext build_filament_group_context(
 
     if(context.nozzle_info.nozzle_list.empty())
         throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
+
+    auto used_filaments = collect_sorted_used_filaments(layer_filaments);
 
         // add_volume_type_limits, only for o1d
     if (!has_multiple_nozzle) {
@@ -1353,7 +1366,7 @@ MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::get_recommended_filament_
     return result;
 }
 
-FilamentChangeStats ToolOrdering::get_filament_change_stats(FilamentChangeMode mode)
+FilamentChangeStats ToolOrdering::get_filament_change_stats(FilamentChangeMode mode) const
 {
     switch (mode)
     {
@@ -1438,40 +1451,6 @@ ToolOrdering::LayerData ToolOrdering::collect_layer_and_unprintable_data()
     return data;
 }
 
-MultiNozzleUtils::MultiNozzleGroupResult ToolOrdering::perform_filament_group(const PrintConfig& print_config,const LayerData& layer_data)
-{
-    MultiNozzleUtils::MultiNozzleGroupResult group_result;
-    // 逐层打印情况下，才在ToolOrdering里计算
-    if(print_config.print_sequence != PrintSequence::ByObject || m_print->objects().size() == 1){
-        const PrintConfig* config = m_print_config_ptr;
-        if(!config && m_print_object_ptr){
-            config = &(m_print_object_ptr->print()->config());
-        }
-        group_result = ToolOrdering::get_recommended_filament_maps(
-            m_print,
-            layer_data.layer_filaments,
-            config->filament_map_mode.value,
-            layer_data.physical_unprintables,
-            layer_data.geometric_unprintables,
-            layer_data.filament_unprintable_volumes
-        );
-
-        if (group_result.get_extruder_map().empty())
-            return group_result;
-
-        m_print->set_nozzle_group_result(group_result);
-        m_print->update_filament_maps_to_config(
-            FilamentGroupUtils::update_used_filament_values(config->filament_map.values,group_result.get_extruder_map(false), layer_data.used_filaments),
-            FilamentGroupUtils::update_used_filament_values(config->filament_volume_map.values,group_result.get_volume_map(), layer_data.used_filaments),
-            group_result.get_nozzle_map()
-        );
-    }
-    else{
-        
-    }
-
-    return group_result;
-}
 
 
 ToolOrdering::OrderingContext ToolOrdering::prepare_ordering_context(const PrintConfig& print_config, bool reorder_first_layer){
@@ -1546,31 +1525,35 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     std::vector<std::vector<unsigned int>> filament_sequences;
 
+    MultiNozzleUtils::MultiNozzleGroupResult grouping_result;
+
     // Stage 1: 准备冲刷矩阵
     auto nozzle_flush_mtx = prepare_flush_matrices(*print_config);
-
     // Stage 2: 准备层信息与不可打印限制
     auto layer_data = collect_layer_and_unprintable_data();
-
     // Stage 3: 生成排序所需的context
     auto ordering_context = prepare_ordering_context(*print_config, reorder_first_layer);
-
     // 临时开启
     ordering_context.support_dynamic_map = true;
 
-    MultiNozzleUtils::MultiNozzleGroupResult grouping_result;
-
+    // 不支持选料器
     if(!ordering_context.support_dynamic_map){
-        // 先计算分组
-        grouping_result = ToolOrdering::get_recommended_filament_maps(
-            m_print,
-            layer_data.layer_filaments,
-            print_config->filament_map_mode.value,
-            layer_data.physical_unprintables,
-            layer_data.geometric_unprintables,
-            layer_data.filament_unprintable_volumes
-        );
-
+        // 逐层打印时，在生成toolodering时分组，统计相关信息并写回
+        if(!m_print->is_sequential_print()){
+            // Stage 4: 计算分组
+            grouping_result = ToolOrdering::get_recommended_filament_maps(
+                m_print,
+                layer_data.layer_filaments,
+                print_config->filament_map_mode.value,
+                layer_data.physical_unprintables,
+                layer_data.geometric_unprintables,
+                layer_data.filament_unprintable_volumes
+            );
+        }
+        else{
+            // 逐件打印时，分组已经被调用过了，直接从print获取结果
+            grouping_result = m_print->get_nozzle_group_result().value();
+        }
         // 计算排序
         filament_sequences = execute_filament_ordering(
             print_config,
@@ -1580,7 +1563,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             nozzle_flush_mtx
         );
     }
-    else{
+
+    // 支持选料器
+    if(ordering_context.support_dynamic_map){
         auto grouping_context =build_filament_group_context(
             m_print,
             layer_data.layer_filaments,
@@ -1589,31 +1574,33 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             layer_data.filament_unprintable_volumes
         );
 
-        #if 0
+        // TODO(山苍)：逐件打印后面要考虑喷嘴状态
         auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order(grouping_context);
 
         std::vector<std::vector<int>> nozzle_map_per_layer;
-     
-        for (auto &res : dynamic_plan_res) {
+        std::vector<int> filament_nozzle_map(grouping_context.group_info.total_filament_num, 0);
+        for (auto &res : dynamic_plan_res){
             filament_sequences.emplace_back(cast<unsigned int>(res.fil_order));
-            std::vector<int> filament_nozzle_map(grouping_context.group_info.total_filament_num, 0);
-            for (auto [fidx,nidx]:res.fil_nozzle_match)
-                filament_nozzle_map[fidx]=nidx;
-            nozzle_map_per_layer.emplace_back(std::move(filament_nozzle_map));
+            for (auto [fidx, nidx] : res.fil_nozzle_match)
+                filament_nozzle_map[fidx] = nidx;
+            nozzle_map_per_layer.emplace_back(filament_nozzle_map);
         }
-         grouping_result = MultiNozzleUtils::MultiNozzleGroupResult(nozzle_map_per_layer,grouping_context.nozzle_info.nozzle_list,layer_data.used_filaments);
-        #else
-        // TODO: 调用接口，拿到打印序列，先造个假数据
-        std::vector<std::vector<int>> nozzle_map_per_layer(layer_data.layer_filaments.size());
-        for (size_t layer_idx = 0; layer_idx < layer_data.layer_filaments.size(); ++layer_idx) {
-            size_t layer_filament_num = layer_data.layer_filaments[layer_idx].size();
-            for (size_t fidx = 0; fidx < layer_filament_num; ++fidx) { nozzle_map_per_layer[layer_idx].emplace_back(rand() % layer_filament_num); } /*  */
-        }
-        grouping_result    = MultiNozzleUtils::MultiNozzleGroupResult(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments);
-        filament_sequences = layer_data.layer_filaments;
-        #endif
-       
+
+        grouping_result = MultiNozzleUtils::MultiNozzleGroupResult(nozzle_map_per_layer,grouping_context.nozzle_info.nozzle_list,layer_data.used_filaments);
     }
+
+    if (!m_print->is_sequential_print()) {
+        m_print->set_nozzle_group_result(grouping_result);
+        if constexpr (0) {
+            m_print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values, grouping_result.get_extruder_map(false),
+                                                                                                    layer_data.used_filaments),
+                                                    FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values, grouping_result.get_volume_map(),
+                                                                                                    layer_data.used_filaments),
+                                                    grouping_result.get_nozzle_map());
+        }
+    }
+
+    m_nozzle_group_result = grouping_result;
 
     // Stage 6: 统计其它模式的信息
     calculate_and_store_statistics(
@@ -1624,15 +1611,6 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         nozzle_flush_mtx,
         filament_sequences
     );
-
-    m_print->set_nozzle_group_result(grouping_result);
-    if constexpr (0){
-        m_print->update_filament_maps_to_config(
-            FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values,grouping_result.get_extruder_map(false), layer_data.used_filaments),
-            FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values,grouping_result.get_volume_map(), layer_data.used_filaments),
-            grouping_result.get_nozzle_map()
-        );
-    }
 
     // Stage 7: 应用排序结果
     for (size_t i = 0; i < filament_sequences.size(); ++i)

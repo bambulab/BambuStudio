@@ -8,6 +8,7 @@
 #include "Point.hpp"
 #include "PrintConfig.hpp"
 #include "GCode/CoolingBuffer.hpp"
+#include "MultiNozzleUtils.hpp"
 
 namespace Slic3r {
 
@@ -21,6 +22,7 @@ class GCodeWriter {
 public:
     GCodeConfig config;
     bool multiple_extruders;
+    MultiNozzleUtils::MultiNozzleGroupResult m_group_result;
 
     GCodeWriter() :
         multiple_extruders(false), m_curr_filament_extruder{ nullptr,nullptr },
@@ -38,6 +40,10 @@ public:
     Extruder* filament() { if (m_curr_extruder_id == -1) return nullptr; return m_curr_filament_extruder[m_curr_extruder_id]; }
     const Extruder* filament() const { if(m_curr_extruder_id==-1) return nullptr; return m_curr_filament_extruder[m_curr_extruder_id]; }
 
+    int get_curr_extruder_id() const  { return m_curr_extruder_id; }
+
+    void set_group_result(const MultiNozzleUtils::MultiNozzleGroupResult& group_result) { this->m_group_result = group_result; }
+    
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
     void                 set_extruders(std::vector<unsigned int> extruder_ids);
@@ -68,12 +74,12 @@ public:
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;
     // return false if this extruder was already selected
     bool        need_toolchange(unsigned int filament_id) const;
-    std::string set_extruder(unsigned int filament_id);
-    void init_extruder(unsigned int filament_id);
+    std::string set_extruder(unsigned int filament_id, unsigned int nozzle_id);
+    void init_extruder(unsigned int filament_id, unsigned int nozzle_id);
     // Prefix of the toolchange G-code line, to be used by the CoolingBuffer to separate sections of the G-code
     // printed with the same extruder.
     std::string toolchange_prefix() const;
-    std::string toolchange(unsigned int filament_id);
+    std::string toolchange(unsigned int filament_id,unsigned int nozzle_id);
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     double      get_current_speed() { return m_current_speed; };
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());

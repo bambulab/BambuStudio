@@ -35,7 +35,7 @@ void GCodeWriter::set_extruders(std::vector<unsigned int> extruder_ids)
     m_filament_extruders.clear();
     m_filament_extruders.reserve(extruder_ids.size());
     for (unsigned int extruder_id : extruder_ids)
-        m_filament_extruders.emplace_back(Extruder(extruder_id, &this->config, config.single_extruder_multi_material.value));
+        m_filament_extruders.emplace_back(Extruder(extruder_id, &this->config, config.single_extruder_multi_material.value,this->config.filament_map.values[extruder_id]));
 
     /*  we enable support for multiple extruder if any extruder greater than 0 is used
         (even if prints only uses that one) since we need to output Tx commands
@@ -356,7 +356,7 @@ std::string GCodeWriter::toolchange_prefix() const
            FLAVOR_IS(gcfSailfish)  ? "M108 T" : "T";
 }
 
-std::string GCodeWriter::toolchange(unsigned int filament_id)
+std::string GCodeWriter::toolchange(unsigned int filament_id, unsigned int nozzle_id)
 {
     // set the new extruder
     auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
@@ -945,21 +945,21 @@ void GCodeWriter::add_object_change_labels(std::string& gcode)
     add_object_start_labels(gcode);
 }
 
-std::string GCodeWriter::set_extruder(unsigned int filament_id)
+std::string GCodeWriter::set_extruder(unsigned int filament_id, unsigned int nozzle_id)
 {
     auto filament_ext_it = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
-    unsigned int extruder_id = filament_ext_it->extruder_id();
+    unsigned int extruder_id = nozzle_id>0;
     assert(filament_ext_it != m_filament_extruders.end() && filament_ext_it->id() == filament_id);
     //TODO: optmize here, pass extruder_id to toolchange
-    return this->need_toolchange(filament_id) ? this->toolchange(filament_id) : "";
+    return this->need_toolchange(filament_id) ? this->toolchange(filament_id,nozzle_id) : "";
 }
 
-void GCodeWriter::init_extruder(unsigned int filament_id)
+void GCodeWriter::init_extruder(unsigned int filament_id,unsigned int nozzle_id)
 {
     if (m_curr_extruder_id == -1 && filament_id != -1) {
         auto filament_extruder_iter = Slic3r::lower_bound_by_predicate(m_filament_extruders.begin(), m_filament_extruders.end(), [filament_id](const Extruder &e) { return e.id() < filament_id; });
         assert(filament_extruder_iter != m_filament_extruders.end() && filament_extruder_iter->id() == filament_id);
-        m_curr_extruder_id = filament_extruder_iter->extruder_id();
+        m_curr_extruder_id = nozzle_id>0;
         m_curr_filament_extruder[m_curr_extruder_id] = &*filament_extruder_iter;
     }
 }

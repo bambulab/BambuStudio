@@ -6,10 +6,11 @@ namespace Slic3r {
 std::vector<double> Extruder::m_share_E = {0.,0.};
 std::vector<double> Extruder::m_share_retracted = {0.,0.};
 
-Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
+Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder, unsigned int extruder_id) :
     m_id(id),
     m_config(config),
-    m_share_extruder(share_extruder)
+    m_share_extruder(share_extruder),
+    m_extruder_id(extruder_id)
 {
     reset();
     // cache values that are going to be called often
@@ -19,11 +20,7 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
 
 unsigned int Extruder::extruder_id() const
 {
-    assert(m_config);
-    if (m_id < m_config->filament_map.size()) {
-        return m_config->filament_map.get_at(m_id) - 1;
-    }
-    return 0;
+    return m_extruder_id;
 }
 
 double Extruder::extrude(double dE)
