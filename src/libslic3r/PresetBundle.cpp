@@ -540,6 +540,8 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(Ap
 
     // Load filament combination rules from JSON
     this->load_filament_combinations();
+    // Load support recommended params from JSON
+    this->load_support_recommended_params();
 
     //BBS: add config related logs
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, returned substitutions %1%")%substitutions.size();
@@ -5254,6 +5256,95 @@ void PresetBundle::load_filament_combinations()
     catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << "Error loading filament combinations JSON: " << e.what();
     }
+}
+
+void PresetBundle::load_support_recommended_params()
+{
+    support_recommended_params_map.clear();
+    boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "support_recommended_params.json").make_preferred();
+
+    if (!boost::filesystem::exists(json_path)) {
+        BOOST_LOG_TRIVIAL(warning) << "Support recommended params JSON file not found: " << json_path.string();
+        return;
+    }
+
+    try {
+        boost::nowide::ifstream ifs(json_path.string());
+        if (!ifs.is_open()) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to open support recommended params JSON file";
+            return;
+        }
+
+        nlohmann::json j;
+        ifs >> j;
+
+        if (j.contains("combinations") && j["combinations"].is_array()) {
+            for (const auto &combo : j["combinations"]) {
+                SupportRecommendedParams rec_params;
+
+                // Load model_material (single string)
+                if (combo.contains("model_material") && combo["model_material"].is_string()) {
+                    rec_params.model_material = combo["model_material"].get<std::string>();
+                }
+
+                // Load support_material_list (array)
+                if (combo.contains("support_material_list") && combo["support_material_list"].is_array()) {
+                    for (const auto &mat : combo["support_material_list"]) {
+                        if (mat.is_string()) {
+                            rec_params.support_material_list.push_back(mat.get<std::string>());
+                        }
+                    }
+                }
+
+                if (rec_params.model_material.empty() || rec_params.support_material_list.empty()) {
+                    continue;
+                }
+
+                // Load recommended params
+                if (combo.contains("recommended_params") && combo["recommended_params"].is_object()) {
+                    const auto &params = combo["recommended_params"];
+
+                    for (auto it = params.begin(); it != params.end(); ++it) {
+                        const std::string &key = it.key();
+                        const auto &value = it.value();
+
+                        if (key == "use_same_filament_for_support_base" && value.is_boolean()) {
+                            rec_params.params.use_same_filament_for_support_base = value.get<bool>();
+                        } else {
+                            if (value.is_number_float() || value.is_number_integer()) {
+                                rec_params.params.params[key] = value.get<double>();
+                            } else if (value.is_boolean()) {
+                                rec_params.params.params[key] = value.get<bool>();
+                            } else if (value.is_string()) {
+                                rec_params.params.params[key] = value.get<std::string>();
+                            }
+                        }
+                    }
+                }
+
+                // Create key for each support_material: "support_material|model_material"
+                for (const auto &support_mat : rec_params.support_material_list) {
+                    std::string map_key = support_mat + "|" + rec_params.model_material;
+                    support_recommended_params_map[map_key] = rec_params;
+                }
+            }
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Loaded " << support_recommended_params_map.size() << " support recommended params from JSON";
+    }
+    catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << "Error loading support recommended params JSON: " << e.what();
+    }
+}
+
+std::optional<SupportRecommendedParams> PresetBundle::get_support_recommended_params(const std::string& support_material, const std::string& model_material) const
+{
+    std::string key = support_material + "|" + model_material;
+    auto it = support_recommended_params_map.find(key);
+    if (it != support_recommended_params_map.end()) {
+        return it->second;
+    }
+    return std::nullopt;
 }
 
 } // namespace Slic3r

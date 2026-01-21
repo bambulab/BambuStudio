@@ -8,6 +8,8 @@
 #include "MsgDialog.hpp"
 
 #include <wx/msgdlg.h>
+#include <variant>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 namespace GUI {
@@ -902,8 +904,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
-    toggle_line("avoid_crossing_wall_includes_support", have_avoid_crossing_perimeters);    
-    
+    toggle_line("avoid_crossing_wall_includes_support", have_avoid_crossing_perimeters);
+
     bool has_overhang_speed = config->opt_bool_nullable("enable_overhang_speed", variant_index);
     for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed, variant_index);
@@ -1080,13 +1082,16 @@ bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &
     return range_low_exist && range_high_exist;
 }
 
-int has_filament_combination()
+// 查找最佳匹配的耗材组合，返回匹配的支撑耗材索引和材料类型
+SupportFilamentRecommendation has_filament_combination()
 {
+    SupportFilamentRecommendation result;
+
     auto       &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
     auto       &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
     const auto &combinations     = Slic3r::GUI::wxGetApp().preset_bundle->get_filament_combinations();
 
-    if (combinations.empty()) { return -1; }
+    if (combinations.empty()) { return result; }
 
     // get filaments that models are using (types and names)
     std::set<std::string> model_filament_types;
@@ -1118,30 +1123,31 @@ int has_filament_combination()
             }
         }
     } catch (...) {
-        // Failed, return -1
-        return -1;
+        return result;
     }
 
-    // no model filaments, return -1
-    if (model_filament_types.empty() && model_filament_names.empty()) { return -1; }
+    if (model_filament_types.empty() && model_filament_names.empty()) { return result; }
 
     for (const auto &combination : combinations) {
         // get all matched combinations, stored with <priority, filament_index> to sort
         std::vector<std::pair<int, int>> matched_combinations;
         // check if model filaments are in material_b_lists
         bool model_uses_b_material = false;
+        std::string matched_b_material, matched_a_material;
 
         for (const auto &b_material : combination.material_b_list) {
             if (combination.material_b_type == "name") {
                 // name check
                 if (model_filament_names.find(b_material) != model_filament_names.end()) {
                     model_uses_b_material = true;
+                    matched_b_material = b_material;
                     break;
                 }
             } else if (combination.material_b_type == "type") {
                 // type check
                 if (model_filament_types.find(b_material) != model_filament_types.end()) {
                     model_uses_b_material = true;
+                    matched_b_material = b_material;
                     break;
                 }
             }
@@ -1171,18 +1177,23 @@ int has_filament_combination()
 
             if (matches_a) {
                 // combination found, store id of material_a
+                matched_a_material = combination.material_a;
                 matched_combinations.push_back(std::make_pair(combination.priority, i));
             }
         }
 
         if (matched_combinations.empty()) continue;
-
         std::sort(matched_combinations.begin(), matched_combinations.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.first > b.first; });
 
-        return matched_combinations[0].second;
+        result.has_combination = true;
+        result.matched_filament_index = matched_combinations[0].second;
+        result.support_material = matched_a_material;
+        result.model_material = matched_b_material;
+
+        return result;  // Found a match, return immediately
     }
 
-    return -1;
+    return result;
 }
 
 bool is_filament_combination(int extruder_id)
@@ -1271,6 +1282,81 @@ bool is_filament_combination(int extruder_id)
     }
 
     return false;
+}
+
+// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
+bool build_support_recommended_config(
+    const std::string& support_material,
+    const std::string& model_material,
+    int support_filament_index,
+    DynamicPrintConfig& out_config,
+    bool& out_use_same_for_base)
+{
+    out_use_same_for_base = false;
+
+    auto rec_params_opt = Slic3r::GUI::wxGetApp().preset_bundle->get_support_recommended_params(support_material, model_material);
+    if (!rec_params_opt.has_value() || !rec_params_opt->params.hasRecommendedParams()) {
+        return false;
+    }
+
+    const auto& rec_params = rec_params_opt.value();
+    out_use_same_for_base = rec_params.params.use_same_filament_for_support_base;
+
+    if (out_use_same_for_base) {
+        out_config.set_key_value("support_filament", new ConfigOptionInt(support_filament_index + 1));
+    }
+
+    // Iterate all recommended params and set to config
+    for (const auto &[key, value] : rec_params.params.params) {
+        // Copy key to local variable for lambda capture (required for some compilers)
+        const std::string param_key = key;
+
+        auto opt_def_it = print_config_def.options.find(param_key);
+        if (opt_def_it == print_config_def.options.end()) {
+            BOOST_LOG_TRIVIAL(warning) << "Unknown config option in support recommended params: " << param_key;
+            continue;
+        }
+
+        const ConfigOptionDef &opt_def = opt_def_it->second;
+
+        std::visit([&](auto &&val) {
+            using T = std::decay_t<decltype(val)>;
+
+            if constexpr (std::is_same_v<T, double>) {
+                if (opt_def.type == coFloat || opt_def.type == coFloatOrPercent) {
+                    out_config.set_key_value(param_key, new ConfigOptionFloat(val));
+                } else if (opt_def.type == coPercent) {
+                    out_config.set_key_value(param_key, new ConfigOptionPercent(val));
+                } else if (opt_def.type == coInt) {
+                    out_config.set_key_value(param_key, new ConfigOptionInt(static_cast<int>(val)));
+                }
+            } else if constexpr (std::is_same_v<T, bool>) {
+                if (opt_def.type == coBool) {
+                    out_config.set_key_value(param_key, new ConfigOptionBool(val));
+                }
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                if (opt_def.type == coString) {
+                    out_config.set_key_value(param_key, new ConfigOptionString(val));
+                } else if (opt_def.type == coEnum) {
+                    ConfigOption *opt = opt_def.create_default_option();
+                    if (opt && opt->deserialize(val)) {
+                        out_config.set_key_value(param_key, opt);
+                    } else {
+                        delete opt;
+                        BOOST_LOG_TRIVIAL(warning) << "Failed to deserialize enum value for " << param_key << ": " << val;
+                    }
+                }
+            } else if constexpr (std::is_same_v<T, int>) {
+                if (opt_def.type == coInt) {
+                    out_config.set_key_value(param_key, new ConfigOptionInt(val));
+                } else if (opt_def.type == coFloat) {
+                    out_config.set_key_value(param_key, new ConfigOptionFloat(static_cast<double>(val)));
+                }
+            }
+        }, value);
+    }
+
+    return true;
 }
 
 } // GUI

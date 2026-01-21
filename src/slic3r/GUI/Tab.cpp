@@ -1972,72 +1972,185 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     // BBS popup a message to ask the user to set optimum parameters for support interface if support materials are used
     if (opt_key == "support_interface_filament") {
+
         int filament_id           = m_config->opt_int("support_filament") - 1;
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
-        
-        // check if there is support filament combination but not used
-        int supp_fila_ind = has_filament_combination();
-        if (supp_fila_ind >= 0 && !is_filament_combination(interface_filament_id)) {
-            wxString msg_text = _L("A compatible support filament combination that can support each other is detected among your filaments");
-            msg_text += "\n\n" + _L("Do you want to use support filament for the support interface?\n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(supp_fila_ind + 1));
-                m_config_manipulation.apply(m_config, &new_conf);
+
+        // 1、检测是否有可用的耗材组合但用户未使用，提示用户切换
+        SupportFilamentRecommendation combination;
+
+        const Preset &current_printer = m_preset_bundle->printers.get_edited_preset();
+        std::string printer_model = current_printer.config.opt_string("printer_model");
+        if (printer_model == "Bambu Lab X2D") { // 只有N6支持：支撑料参数推荐
+            combination = has_filament_combination();
+
+            if (combination.has_combination && interface_filament_id != combination.matched_filament_index) {
+                wxString msg_text = _L("A compatible support filament combination that can support each other is detected among your filaments");
+                msg_text += "\n\n" + _L("Do you want to use support filament for the support interface?\n"
+                                        "Yes - Change these settings automatically\n"
+                                        "No  - Do not change these settings for me");
+                MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+                DynamicPrintConfig new_conf = *m_config;
+                if (dialog.ShowModal() == wxID_YES) {
+                    new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(combination.matched_filament_index + 1));
+                    m_config_manipulation.apply(m_config, &new_conf);
+                    // update interface_filament_id after user accepts
+                    interface_filament_id = combination.matched_filament_index;
+                }
+                wxGetApp().plater()->update();
             }
-            wxGetApp().plater()->update();
         }
 
-        interface_filament_id                 = m_config->opt_int("support_interface_filament") - 1;
-        auto           &filament_presets      = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-        auto           &filaments             = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
-        bool            support_TPU = false;
+        // 2、根据当前支撑接口耗材，构建推荐配置
+        DynamicPrintConfig new_conf;  // 推荐配置
+        wxString msg_header;          // msg_text 的第一句话（根据情况类型定义）
+        wxString support_material_name;  // 支撑材料名称（用于生成 msg_text）
+        bool use_same_for_base = false;  // 是否使用相同材料作为支撑基座
+
+        // 2.1、获取当前耗材的类型信息
+        auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+        auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+        std::string interface_filament_type;
         if (interface_filament_id >= 0 && interface_filament_id < filament_presets.size()) {
-            Slic3r::Preset *filament      = filaments.find_preset(filament_presets[interface_filament_id]);
+            Slic3r::Preset *filament = filaments.find_preset(filament_presets[interface_filament_id]);
             if (filament) {
-                std::string filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
-                support_TPU               = filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
+                interface_filament_type = filament->config.option<ConfigOptionStrings>("filament_type")->values[0];
             }
         }
 
-        if ((is_support_filament(interface_filament_id, false) &&
-             !(m_config->opt_float("support_top_z_distance") == 0 && m_config->opt_float("support_interface_spacing") == 0 /*&& m_config->opt_bool("top_z_overrides_xy_distance")*/ &&
-               m_config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipRectilinearInterlaced &&
-               (support_TPU ? m_config->opt_float("support_object_xy_distance") == 0 : -1))) ||
-            (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
-            wxString msg_text;
-            if (support_TPU) {
-                msg_text = _L("When using PLA to support TPU, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use PLA for both support interface and support base");
-            } else if (!is_soluble_filament(interface_filament_id)) {
-                msg_text = _L("When using support material for the support interface, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height");
-            } else {
-                msg_text = _L("When using soluble material for the support interface, We recommend the following settings:\n"
-                              "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-                              "independent support layer height and use soluble materials for both support interface and support base");
+        // 2.2、尝试从 JSON 获取推荐参数（通过 support_material + model_material 查询）
+        bool found_json_params = false;
+        if (combination.has_combination && combination.matched_filament_index == interface_filament_id) {
+            // 当前选择的耗材匹配组合，使用组合中的材料类型查询推荐参数
+            found_json_params = build_support_recommended_config(
+                combination.support_material,
+                combination.model_material,
+                interface_filament_id,
+                new_conf,
+                use_same_for_base);
+
+            if (found_json_params) {
+                support_material_name = wxString::FromUTF8(combination.support_material);
+                wxString model_name = wxString::FromUTF8(combination.model_material);
+                msg_header = wxString::Format(_L("When using %s to support %s, We recommend the following settings:"), support_material_name, model_name);
             }
-            msg_text += "\n\n" + _L("Change these settings automatically? \n"
-                                    "Yes - Change these settings automatically\n"
-                                    "No  - Do not change these settings for me");
-            MessageDialog      dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
-            DynamicPrintConfig new_conf = *m_config;
-            if (dialog.ShowModal() == wxID_YES) {
+        }
+
+        // 2.3、如果没有找到 JSON 推荐参数，使用原有的三种情况判断
+        if (!found_json_params) {
+            bool support_TPU = interface_filament_type == "PLA" && has_filaments({"TPU", "TPU-AMS"});
+            bool soluble_interface = is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id);
+            bool is_support_material = is_support_filament(interface_filament_id, false);
+
+            if (support_TPU) {
+                msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
+                support_material_name = "PLA";
+                use_same_for_base = true;
                 new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
-                new_conf.set_key_value("support_interface_pattern",
-                                       new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
-                //new_conf.set_key_value("top_z_overrides_xy_distance", new ConfigOptionBool(true));
+                new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
+                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
                 new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
-                if (support_TPU || (is_soluble_filament(interface_filament_id) && !is_soluble_filament(filament_id))) {
-                    new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
-                    new_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
+                new_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
+            } else if (soluble_interface) {
+                msg_header = _L("When using soluble material for the support interface, We recommend the following settings:");
+                support_material_name = _L("soluble material");
+                use_same_for_base = true;
+                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
+                new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
+                new_conf.set_key_value("support_object_xy_distance", new ConfigOptionFloat(0));
+                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
+                new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+                new_conf.set_key_value("support_filament", new ConfigOptionInt(interface_filament_id + 1));
+            } else if (is_support_material) {
+                msg_header = _L("When using support material for the support interface, We recommend the following settings:");
+                support_material_name = wxString::FromUTF8(interface_filament_type);
+                use_same_for_base = false;
+                new_conf.set_key_value("support_top_z_distance", new ConfigOptionFloat(0));
+                new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0));
+                new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipRectilinearInterlaced));
+                new_conf.set_key_value("independent_support_layer_height", new ConfigOptionBool(false));
+            }
+        }
+
+        // 3、检查当前配置是否已经是推荐值，过滤掉不需要修改的参数
+        DynamicPrintConfig filtered_conf;
+        for (const auto &key : new_conf.keys()) {
+            const ConfigOption *current_opt = m_config->option(key);
+            const ConfigOption *new_opt = new_conf.option(key);
+            if (current_opt && new_opt && current_opt->serialize() != new_opt->serialize()) {
+                filtered_conf.set_key_value(key, new_opt->clone());
+            }
+        }
+
+        // 4、如果有需要修改的参数，统一生成 msg_text 并弹窗询问用户
+        if (!filtered_conf.empty()) {
+
+            auto generate_param_description = [&](const std::string &key, const ConfigOption *opt) -> wxString {
+                if (key == "support_filament" && use_same_for_base) {
+                    return wxString::Format(_L("Use %s for both interface and base"), support_material_name);
                 }
-                m_config_manipulation.apply(m_config, &new_conf);
+
+                const ConfigOptionDef *def = print_config_def.get(key);
+                if (!def) return wxString();
+
+                wxString label = def->label.empty() ? wxString::FromUTF8(key) : _L(def->label);
+                wxString value_str;
+
+                switch (def->type) {
+                    case coBool: {
+                        auto *bool_opt = dynamic_cast<const ConfigOptionBool*>(opt);
+                        value_str = (bool_opt && bool_opt->value) ? _L("On") : _L("Off");
+                        break;
+                    }
+                    case coEnum: {
+                        // 查找 enum_label
+                        std::string serialized = opt->serialize();
+                        value_str = wxString::FromUTF8(serialized);
+                        if (!def->enum_values.empty() && !def->enum_labels.empty()) {
+                            for (size_t i = 0; i < def->enum_values.size(); ++i) {
+                                if (def->enum_values[i] == serialized && i < def->enum_labels.size()) {
+                                    value_str = _L(def->enum_labels[i]);
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        value_str = wxString::FromUTF8(opt->serialize());
+                        break;
+                    }
+                }
+
+                wxString unit_str;
+                if (!def->sidetext.empty()) {
+                    unit_str = " " + _L(def->sidetext);
+                }
+
+                return wxString::Format("%s: %s%s", label, value_str, unit_str);
+            };
+
+            // 构建 msg_text
+            wxString msg_text = msg_header + "\n\n";
+            for (const auto &key : filtered_conf.keys()) {
+                const ConfigOption *opt = filtered_conf.option(key);
+                if (!opt) continue;
+                wxString desc = generate_param_description(key, opt);
+                if (!desc.empty()) {
+                    msg_text += "  • " + desc + "\n";
+                }
+            }
+
+            msg_text += "\n" + _L("Do you want to apply these settings?");
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "Suggestion", wxICON_WARNING | wxYES | wxNO);
+
+            if (dialog.ShowModal() == wxID_YES) {
+                DynamicPrintConfig config_to_apply = *m_config;
+                for (const auto &key : filtered_conf.keys()) {
+                    config_to_apply.set_key_value(key, filtered_conf.option(key)->clone());
+                }
+                m_config_manipulation.apply(m_config, &config_to_apply);
             }
             wxGetApp().plater()->update();
         }
