@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "filament_id": "GFT01",
+    "setting_id": "GFST01_Qidi_37",
+    "name": "HATCHBOX PETG @Qidi 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "HATCHBOX PETG @Qidi",
+    "filament_max_volumetric_speed": [
+        "1"
+    ],
+    "compatible_printers": [
+        "Qidi X-CF Pro 0.2 nozzle",
+		"Qidi X-Smart 3 0.2 nozzle",
+		"Qidi X-Plus 3 0.2 nozzle",
+		"Qidi X-Max 3 0.2 nozzle"
+    ]
+}
