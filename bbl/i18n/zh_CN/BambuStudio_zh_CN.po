@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-19 16:15+0800\n"
+"POT-Creation-Date: 2026-01-21 14:29+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3131,7 +3131,7 @@ msgid "There many parts of the software that come from community contributions, 
 msgstr "软件中有很多部分来自于社区贡献，因此我们不便逐一列出他们，作为替代，他们将在相应的代码注释中被介绍。"
 
 msgid "AMS Materials Setting"
-msgstr "AMS 材料设置"
+msgstr "材料设置"
 
 msgid "Confirm"
 msgstr "确定"
@@ -6488,10 +6488,10 @@ msgid "Pauses printing when the detected build plate type does not match the sel
 msgstr "检测到的打印板类型与所选类型不匹配时暂停打印。"
 
 msgid "Alignment Detection"
-msgstr "对齐检测"
+msgstr "偏移检测"
 
 msgid "Pauses printing when build plate misalignment is detected."
-msgstr "检测到打印板未对齐时，暂停打印。"
+msgstr "若检测到打印板偏移，则暂停打印。"
 
 msgid "First Layer Inspection"
 msgstr "首层扫描"
@@ -6536,7 +6536,7 @@ msgid "Print Status Snapshot"
 msgstr "打印状态快照"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
-msgstr "自动拍摄并上传打印照片，显示打印过程中的缺陷和最终结果，以便远程查看。"
+msgstr "自动拍摄打印件照片并上传云端，包括打印过程中检测到的缺陷和任务结束时的打印件状态，便于远程查看。"
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -7391,7 +7391,7 @@ msgid "Not available"
 msgstr "不可用"
 
 msgid "Top front"
-msgstr " 前上方"
+msgstr "前上方"
 
 msgid "The current project has unsaved changes, save it before continuing?"
 msgstr "当前项目有未保存的更改，是否保存后再继续？"
@@ -8117,7 +8117,7 @@ msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "切片文件中的材料分组不是最优结果。"
 
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
-msgstr "为确保打印质量，打印过程中将降低干燥温度。"
+msgstr "为保证打印质量，打印过程中会适当降低烘干温度。"
 
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
@@ -10398,7 +10398,7 @@ msgid "Plate %d: %s does not support filament %s"
 msgstr "盘%d：%s不支持耗材丝 %s"
 
 msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
-msgstr ""
+msgstr "除非墙体顺序设置为内部/外部，否则精准外墙将被忽略"
 
 msgid "Generating skirt & brim"
 msgstr "正在生成skirt和brim"
@@ -10829,7 +10829,7 @@ msgid "The acceleration of travel except initial layer"
 msgstr ""
 
 msgid "Short travel"
-msgstr ""
+msgstr "短程移动"
 
 msgid ""
 "Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
@@ -10882,7 +10882,7 @@ msgid "layers"
 msgstr "层"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
-msgstr ""
+msgstr "该值仅用于辅助散热风扇，在前x层生效。"
 
 msgid "Don't support bridges"
 msgstr "不支撑桥接"
@@ -11353,7 +11353,7 @@ msgid "Filament change"
 msgstr "耗材丝更换"
 
 msgid "The volume of material required to prime the extruder on the tower, excluding a hotend change."
-msgstr "除了换热端外的擦料塔的清理量。"
+msgstr "除了换热端外的擦拭塔上的清理量。"
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "换热端所需的擦料塔上的清理量。"
@@ -11365,7 +11365,7 @@ msgid "Temperature drop before entering filament tower"
 msgstr "进入擦料塔前的降温量"
 
 msgid "Interface layer pre-extrusion distance"
-msgstr ""
+msgstr "接触层预挤出距离"
 
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
 msgstr "擦拭塔接触层（不同材料交界处）的预挤出距离。"
@@ -11374,25 +11374,25 @@ msgid "Interface layer pre-extrusion length"
 msgstr "接触层预挤出长度"
 
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "擦拭塔接触层（不同材料交界处）的预挤出长度。"
 
 msgid "Tower ironing area"
-msgstr ""
+msgstr "擦拭塔熨烫面积"
 
 msgid "Ironing area for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "擦拭塔的起始点熨烫面积"
 
 msgid "mm²"
 msgstr "mm²"
 
 msgid "Interface layer purge length"
-msgstr ""
+msgstr "擦拭塔冲刷长度"
 
 msgid "Purge length for prime tower interface layer (where different materials meet)."
 msgstr ""
 
 msgid "Interface layer print temperature"
-msgstr ""
+msgstr "接触层打印温度"
 
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
 msgstr "料塔接触层（不同材料交界处）的打印温度。如果设置为-1，使用最大推荐喷嘴打印温度。"
@@ -11413,7 +11413,7 @@ msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. 
 msgstr "为了防止溢料，预冲刷时会降低喷嘴温度。因此，预冲刷时间必须大于冷却时间。0 表示禁用。"
 
 msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled."
-msgstr "为防止漏料，喷嘴温度将在预冲刷过程中被冷却。注意：此过程仅会触发降温指令和风扇启动，但不保证能达到目标温度。设置为 0 表示禁用。"
+msgstr "为防止溢料，预冲刷过程中喷嘴温度会降低。注意：仅触发冷却指令并启动风扇，不保证达到目标温度。0 表示禁用。"
 
 msgid "Price"
 msgstr "价格"
@@ -15327,7 +15327,6 @@ msgid ""
 msgstr ""
 "该耗材可能无法完全烘干。\n"
 "\n"
-""
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
 msgstr "此AMS当前正在打印。为确保打印质量，烘干温度不得超过推荐的烘干温度。\n"
