@@ -65,6 +65,14 @@
       "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
     },
     {
+      "name_suffix": "Bambu TPU 85A",
+      "nozzle_flows": ["Standard", "High Flow"],
+      "nozzle_diameters": [0.4],
+      "model_id": ["O1D", "O1E"],
+      "action": "prohibition",
+      "description": "Dynamic flow calibration is not supported for TPU 85A filament."
+    },
+    {
       "types": ["TPU", "TPU-AMS"],
       "action": "warning",
       "model_id":["N7"],
