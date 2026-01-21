@@ -5695,7 +5695,7 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         int new_filament_in_nozzle = id;
         
         int old_extruder_id = prev_extruder_id;
-        int old_nozzle_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(old_extruder_id);
+        int old_nozzle_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(new_extruder_id);
         int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_in_extruder);
 
         bool is_extruder_change = (old_extruder_id != new_extruder_id);

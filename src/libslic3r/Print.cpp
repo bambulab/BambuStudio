@@ -1104,7 +1104,7 @@ int Print::get_nozzle_config_index(const PrintObject *print_object, int filament
 
 int Print::get_config_index(const PrintObject *print_object, int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map)
 {
-    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_layer_filament(print_object, filament_id, layer_id);
+    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_id, print_object); 
     if (!nozzle_info.has_value()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                  << boost::format(", Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
@@ -2109,19 +2109,18 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
+        m_sequential_print_data.reset();
 
         if (this->has_wipe_tower()) {
             m_nozzle_group_result.reset();
             this->_make_wipe_tower();
-        } else if (this->config().print_sequence != PrintSequence::ByObject
-            || (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() == 1)) {
-            // Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
+        } else if (!is_sequential_print()) {
+            // Non-sequential print (by-layer) or single object: use global tool ordering
             m_nozzle_group_result.reset();
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
                 throw Slic3r::SlicingError("The print is empty. The model is not printable with current print settings.");
-
         }
         this->set_done(psWipeTower);
     }
@@ -2152,57 +2151,33 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
         //BBS: get the objects' indices when GCodes are generated
         ToolOrdering tool_ordering;
-        unsigned int initial_extruder_id = (unsigned int)-1;
-        unsigned int final_extruder_id = (unsigned int)-1;
         bool         has_wipe_tower = false;
-        std::vector<const PrintInstance*> 					print_object_instances_ordering;
-        std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
+        std::vector<const PrintInstance*> print_object_instances_ordering;
         std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
+        // 表示首层使用的耗材
         std::vector<unsigned int> printExtruders;
-        if (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1) {
-            // Order object instances for sequential print.
-            print_object_instances_ordering = sort_object_instances_by_model_order(*this);
-            std::vector<unsigned int> first_layer_used_filaments;
-            std::vector<std::vector<unsigned int>> all_filaments;
-            for (print_object_instance_sequential_active = print_object_instances_ordering.begin(); print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
-                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                for (size_t idx = 0; idx < tool_ordering.layer_tools().size(); ++idx) {
-                    auto& layer_filament = tool_ordering.layer_tools()[idx].extruders;
-                    all_filaments.emplace_back(layer_filament);
-                    if (idx == 0)
-                        first_layer_used_filaments.insert(first_layer_used_filaments.end(), layer_filament.begin(), layer_filament.end());
-                }
-            }
-            sort_remove_duplicates(first_layer_used_filaments);
-            auto used_filaments = collect_sorted_used_filaments(all_filaments);
-            this->set_slice_used_filaments(first_layer_used_filaments,used_filaments);
+        
+        if (is_sequential_print()) {
+            m_sequential_print_data = ByObjectPrintData::build(this);
+            
+            std::vector<unsigned int> first_layer_filaments;
+            std::vector<unsigned int> used_filaments;
 
-            auto physical_unprintables = this->get_physical_unprintable_filaments(used_filaments);
-            auto geometric_unprintables = this->get_geometric_unprintable_filaments();
-            auto filament_unprintable_volumes = this->get_filament_unprintable_flow(used_filaments);
-            // get recommended filament map
-            {
-                this->m_nozzle_group_result.reset();
-                auto map_mode     = get_filament_map_mode();
-                auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables,
-                                                                                filament_unprintable_volumes);
-                set_nozzle_group_result(group_result);
-                update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(this->config().filament_map.values, group_result.get_extruder_map(false),
-                                                                                               used_filaments),
-                                               FilamentGroupUtils::update_used_filament_values(this->config().filament_volume_map.values, group_result.get_volume_map(),
-                                                                                               used_filaments),
-                                               group_result.get_nozzle_map());
+            for(auto [object,ordering] : m_sequential_print_data->object_tool_ordering_map){
+                auto& layer_tools = ordering.layer_tools();
+                if(layer_tools.empty())
+                    continue;
+                
+                auto object_first_layer_filaments = layer_tools.front().extruders;
+                first_layer_filaments.insert(first_layer_filaments.end(),object_first_layer_filaments.begin(),object_first_layer_filaments.end());
+                used_filaments.insert(used_filaments.end(), ordering.all_extruders().begin(), ordering.all_extruders().end());
             }
+            sort_remove_duplicates(first_layer_filaments);
+            sort_remove_duplicates(used_filaments);
 
-            //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
-            print_object_instance_sequential_active = print_object_instances_ordering.begin();
-            for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
-                tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                tool_ordering.sort_and_build_data(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
-                if ((initial_extruder_id = tool_ordering.first_extruder()) != static_cast<unsigned int>(-1)) {
-                    append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
-                }
-            }
+            printExtruders = first_layer_filaments;
+
+            this->set_slice_used_filaments(first_layer_filaments, used_filaments);
         }
         else {
             tool_ordering = this->tool_ordering();
@@ -2214,15 +2189,6 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
             this->set_slice_used_filaments(first_layer_used_filaments, tool_ordering.all_extruders());
             has_wipe_tower = this->has_wipe_tower() && tool_ordering.has_wipe_tower();
-            //BBS: have no single_extruder_multi_material_priming
-#if 0
-            initial_extruder_id = (has_wipe_tower && !this->config().single_extruder_multi_material_priming) ?
-                // The priming towers will be skipped.
-                tool_ordering.all_extruders().back() :
-                // Don't skip the priming towers.
-                tool_ordering.first_extruder();
-#endif
-            initial_extruder_id = tool_ordering.first_extruder();
             print_object_instances_ordering = chain_print_object_instances(*this);
             append(printExtruders, tool_ordering.tools_for_layer(layers_to_print.front().first).extruders);
         }
@@ -2432,7 +2398,7 @@ void Print::_make_skirt()
         extruders_e_per_mm.reserve(set_extruders.size());
         for (auto &extruder_id : set_extruders) {
             extruders.push_back(extruder_id);
-            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material).e_per_mm(mm3_per_mm));
+            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material,0).e_per_mm(mm3_per_mm));
         }
     }
 
@@ -3168,7 +3134,6 @@ void Print::_make_wipe_tower()
             multi_extruder_flush.emplace_back(wipe_volumes);
         }
 
-        std::vector<int>filament_maps = get_filament_maps();
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
         assert(m_nozzle_group_result.has_value());
@@ -3188,8 +3153,10 @@ void Print::_make_wipe_tower()
                 if (filament_id == old_filament_id)
                     continue;
 
-                int extruder_id = filament_maps[filament_id] - 1;
-                int nozzle_id = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_idx)->group_id;
+                auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_idx);
+
+                int extruder_id = nozzle_info->extruder_id;
+                int nozzle_id = nozzle_info->group_id;
                 int prev_nozzle_filament = nozzle_recorder.get_filament_in_nozzle(nozzle_id);
 
                 float volume_to_purge = 0;

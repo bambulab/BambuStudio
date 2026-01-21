@@ -20,6 +20,7 @@
 #include "MultiNozzleUtils.hpp"
 
 #include "libslic3r.h"
+#include "ByObjectPrintData.hpp"
 
 #include <Eigen/Geometry>
 
@@ -924,6 +925,12 @@ public:
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
+    
+    // Sequential print support.
+    bool                        is_sequential_print() const {
+        return config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1;
+    }
+    const std::optional<ByObjectPrintData>& sequential_print_data() const { return m_sequential_print_data; }
 
     void update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps = std::vector<int>{}, std::vector<int> f_nozzle_maps = std::vector<int>{});
     void update_to_config_by_nozzle_group_result();
@@ -1116,6 +1123,8 @@ private:
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;
     WipeTowerData                           m_wipe_tower_data {m_tool_ordering};
+    
+    std::optional<ByObjectPrintData>        m_sequential_print_data;
 
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;

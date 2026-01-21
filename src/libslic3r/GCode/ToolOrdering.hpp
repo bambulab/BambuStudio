@@ -269,9 +269,11 @@ public:
     std::vector<LayerTools>::const_iterator end()   const { return m_layer_tools.end(); }
     bool 				empty()       const { return m_layer_tools.empty(); }
     std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
+    const std::vector<LayerTools>          &layer_tools() const { return m_layer_tools; }
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
 
-    int                 get_most_used_extruder() const { return most_used_extruder; }
+    int                 get_most_used_extruder() const { return m_most_used_extruder; }
+    const MultiNozzleUtils::MultiNozzleGroupResult& get_nozzle_group_result() const { return m_nozzle_group_result; }
     /*
     * called in single extruder mode, the value in map are all 0
     * called in dual extruder mode, the value in map will be 0 or 1
@@ -301,7 +303,6 @@ public:
     };
 
     LayerData collect_layer_and_unprintable_data();
-    MultiNozzleUtils::MultiNozzleGroupResult perform_filament_group(const PrintConfig &print_config, const LayerData &layer_data);
     OrderingContext prepare_ordering_context(const PrintConfig& print_config, bool reorder_first_layer);
 
     std::vector<std::vector<unsigned int>> execute_filament_ordering(
@@ -322,8 +323,7 @@ public:
 
 
     // should be called after doing reorder
-    FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
-    void                cal_most_used_extruder(const PrintConfig &config);
+    FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode) const;
     float               cal_max_additional_fan(const PrintConfig &config);
     bool                cal_non_support_filaments(const PrintConfig &config,
                                                   unsigned int &     first_non_support_filament,
@@ -333,6 +333,7 @@ public:
     bool                has_non_support_filament(const PrintConfig &config);
 
 private:
+    void                calc_most_used_extruder(const PrintConfig &config);
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
@@ -359,8 +360,9 @@ private:
     FilamentChangeStats        m_stats_by_single_extruder;
     FilamentChangeStats        m_stats_by_multi_extruder_curr;
     FilamentChangeStats        m_stats_by_multi_extruder_best;
+    MultiNozzleUtils::MultiNozzleGroupResult m_nozzle_group_result;
 
-    int                        most_used_extruder;
+    int               m_most_used_extruder;
 };
 
 } // namespace SLic3r

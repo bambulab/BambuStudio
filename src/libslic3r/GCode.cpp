@@ -644,10 +644,14 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
     {
         gcodegen.reset_last_acceleration();
+        auto group_result = gcodegen.m_print->get_nozzle_group_result();
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
+        if(!group_result)
+            throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr group_result is null.");
 
-        int new_extruder_id = get_extruder_index(*m_print_config, new_filament_id);
+        auto new_nozzle_info = group_result->get_nozzle_for_filament(new_filament_id, gcodegen.m_layer_index);
+        int new_extruder_id = new_nozzle_info->extruder_id;
 
         bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1);
         std::string gcode;
@@ -781,7 +785,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
             config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
             config.set_key_value("next_extruder", new ConfigOptionInt(new_filament_id));
-            config.set_key_value("next_hotend_id", new ConfigOptionInt(next_nozzle_id));
+            config.set_key_value("next_hotend", new ConfigOptionInt(next_nozzle_id));
             config.set_key_value("layer_num", new ConfigOptionInt(gcodegen.m_layer_index));
             config.set_key_value("layer_z", new ConfigOptionFloat(tcr.print_z));
             config.set_key_value("toolchange_z", new ConfigOptionFloat(z));
@@ -944,7 +948,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         std::string toolchange_command;
         if (tcr.priming || (new_filament_id >= 0 && gcodegen.writer().need_toolchange(new_filament_id)))
-            toolchange_command = gcodegen.writer().toolchange(new_filament_id);
+            toolchange_command = gcodegen.writer().toolchange(new_filament_id, group_result->get_nozzle_id(new_filament_id));
         if (!custom_gcode_changes_tool(toolchange_gcode_str, gcodegen.writer().toolchange_prefix(), new_filament_id))
             toolchange_gcode_str += toolchange_command;
         else {
@@ -1010,6 +1014,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string toolchange_unretract_str = (tcr.is_contact && gcodegen.m_config.enable_tower_interface_features) ? gcodegen.unretract(filament_tower_interface_pre_extrusion_length) : gcodegen.unretract();
         // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
+        gcodegen.placeholder_parser().set("current_hotend", group_result->get_nozzle_id(new_filament_id, m_layer_idx));
         gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_filament_id));
         gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(new_filament_id));
         gcodegen.placeholder_parser().set("retraction_distance_when_ec", gcodegen.m_config.retraction_distances_when_ec.get_at(new_filament_id));
@@ -1578,6 +1583,7 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     // BBS
     m_curr_print = print;
+    m_writer.set_group_result(m_curr_print->get_nozzle_group_result().value());
 
     CNumericLocalesSetter locales_setter;
 
@@ -2030,6 +2036,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     m_print = &print;
     m_timelapse_pos_picker.init(&print,m_writer.get_xy_offset().cast<coord_t>());
+    // init as filament map
+    update_layer_filament_map(0);
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled, m_writer.extruders());
@@ -2272,35 +2280,30 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     std::vector<int>                                    first_filaments;
     std::vector<int>                                    first_non_support_filaments;
     std::vector<const PrintInstance*> 					print_object_instances_ordering;
-    std::vector<const PrintInstance*>::const_iterator 	print_object_instance_sequential_active;
-    std::vector<const PrintInstance *>::const_iterator  first_has_extrude_print_object;
     //resize
     first_non_support_filaments.resize(print.config().nozzle_diameter.size(), -1);
     first_filaments.resize(print.config().nozzle_diameter.size(), -1);
     float max_additional_fan = 0.f;
-    if (print.config().print_sequence == PrintSequence::ByObject && print.objects().size()>1) {
-        // Order object instances for sequential print.
-        print_object_instances_ordering = sort_object_instances_by_model_order(print);
-//        print_object_instances_ordering = sort_object_instances_by_max_z(print);
-        // Find the 1st printing object, find its tool ordering and the initial extruder ID.
-        print_object_instance_sequential_active = print_object_instances_ordering.begin();
-        first_has_extrude_print_object          = print_object_instance_sequential_active;
-        bool find_fist_non_support_filament = false;
-        for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++ print_object_instance_sequential_active) {
-            tool_ordering = ToolOrdering(*(*print_object_instance_sequential_active)->print_object, initial_extruder_id);
+    if (print.is_sequential_print()) {
+        const auto by_obj_print_data = print.sequential_print_data().value();
+        print_object_instances_ordering = by_obj_print_data.print_instance_order;
 
-            tool_ordering.sort_and_build_data(*(*print_object_instance_sequential_active)->print_object,initial_extruder_id);
+        bool find_first_non_support_filament = false;
+
+        for(auto iter = by_obj_print_data.print_object_order.begin(); iter != by_obj_print_data.print_object_order.end(); ++iter){
+            auto& obj = (*iter);
+            auto tool_ordering = by_obj_print_data.object_tool_ordering_map.at(obj);
+
             float temp_max_additional_fan = tool_ordering.cal_max_additional_fan(print.config());
             if(temp_max_additional_fan > max_additional_fan )
-                        max_additional_fan = temp_max_additional_fan;
-            if (!find_fist_non_support_filament && tool_ordering.first_extruder() != (unsigned int) -1) {
-                //BBS: try to find the non-support filament extruder if is multi color and initial_extruder is support filament
-                if (initial_extruder_id == (unsigned int) -1) {
+                max_additional_fan = temp_max_additional_fan;
+        
+            if(!find_first_non_support_filament && tool_ordering.first_extruder() != (unsigned int) -1){
+                if(initial_extruder_id == (unsigned int)-1){
                     initial_extruder_id = tool_ordering.first_extruder();
-                    first_has_extrude_print_object = print_object_instance_sequential_active;
                 }
 
-                find_fist_non_support_filament = tool_ordering.cal_non_support_filaments(print.config(), initial_non_support_extruder_id, first_non_support_filaments, first_filaments);
+                find_first_non_support_filament = tool_ordering.cal_non_support_filaments(print.config(), initial_non_support_extruder_id, first_non_support_filaments, first_filaments);
             }
         }
         if (initial_extruder_id == static_cast<unsigned int>(-1))
@@ -2397,6 +2400,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
     m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
+    m_placeholder_parser.set("current_hotend", m_print->get_nozzle_group_result()->get_nozzle_for_filament(initial_extruder_id, 0)->group_id);
+
     //set the key for compatibilty
     m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(initial_extruder_id));
     m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(initial_extruder_id));
@@ -2671,7 +2676,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_writer.set_current_position_clear(false);
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
-    m_writer.init_extruder(initial_non_support_extruder_id);
+    m_writer.init_extruder(initial_non_support_extruder_id,0);
     // add the missing filament start gcode in machine start gcode
     {
         DynamicConfig config;
@@ -2784,27 +2789,27 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // if (print.config().spaghetti_detector.value)
         if (print.is_BBL_Printer()) file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
-        // Do all objects for each layer.
-        if (print.config().print_sequence == PrintSequence::ByObject && !has_wipe_tower && print.objects().size() > 1) {
-            size_t             finished_objects = 0;
-            print_object_instance_sequential_active = first_has_extrude_print_object;
-            const PrintObject *prev_object      = (*print_object_instance_sequential_active)->print_object;
-            tool_ordering.clear();
-            for (; print_object_instance_sequential_active != print_object_instances_ordering.end(); ++print_object_instance_sequential_active) {
-                const PrintObject &object = *(*print_object_instance_sequential_active)->print_object;
-                if (&object != prev_object || tool_ordering.empty()) {
-                    tool_ordering                = ToolOrdering(object, final_extruder_id);
-                    tool_ordering.sort_and_build_data(object, final_extruder_id);
-                    unsigned int new_extruder_id = tool_ordering.first_extruder();
-                    if (new_extruder_id == (unsigned int) -1)
-                        // Skip this object.
-                        continue;
-                    initial_extruder_id = new_extruder_id;
-                    final_extruder_id   = tool_ordering.last_extruder();
-                    assert(final_extruder_id != (unsigned int) -1);
-                }
+        
+        if (print.is_sequential_print() && !has_wipe_tower){
+            const auto& by_obj_print_data = print.sequential_print_data().value();
+
+            const PrintObject * prev_object = nullptr;
+            size_t finished_objects = 0;
+
+            for(auto instance : by_obj_print_data.print_instance_order){
+                const PrintObject* object = instance->print_object;
+                const auto tool_ordering = by_obj_print_data.object_tool_ordering_map.at(object);
+                if(object == prev_object)
+                    continue;
+
+                unsigned int new_extruder_id = tool_ordering.first_extruder();
+                if (new_extruder_id == (unsigned int) -1)
+                    // Skip this object.
+                    continue;
+                initial_extruder_id = new_extruder_id;
+                final_extruder_id   = tool_ordering.last_extruder();
                 print.throw_if_canceled();
-                this->set_origin(unscale((*print_object_instance_sequential_active)->shift));
+                this->set_origin(unscale(instance->shift));
 
                 // BBS: prime extruder if extruder change happens before this object instance
                 bool prime_extruder = false;
@@ -2815,7 +2820,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                     m_avoid_crossing_perimeters.use_external_mp_once();
                     // BBS. change tool before moving to origin point.
                     if (m_writer.need_toolchange(initial_extruder_id)) {
-                        const PrintObjectConfig &object_config              = object.config();
+                        const PrintObjectConfig &object_config              = object->config();
                         coordf_t                 initial_layer_print_height = print.config().initial_layer_print_height.value;
 
                         if (m_enable_label_object && print.config().support_object_skip_flush.value) {
@@ -2849,10 +2854,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Process all layers of a single object instance (sequential mode) with a parallel pipeline:
                 // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
                 // and export G-code into file.
-                tool_ordering.cal_most_used_extruder(print.config());
-                m_printed_objects.emplace_back(&object);
-                m_cur_print_object = &object;
-                this->process_layers(print, tool_ordering, collect_layers_to_print(object), *print_object_instance_sequential_active - object.instances().data(), file,
+                m_printed_objects.emplace_back(object);
+                m_cur_print_object = object;
+                this->process_layers(print, tool_ordering, collect_layers_to_print(*object), instance - object->instances().data(), file,
                                      prime_extruder);
                 {
                     // save the flush statitics stored in tool ordering by object
@@ -2879,7 +2883,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 // Flag indicating whether the nozzle temperature changes from 1st to 2nd layer were performed.
                 // Reset it when starting another object from 1st layer.
                 m_second_layer_things_done = false;
-                prev_object                = &object;
+                prev_object                = object;
             }
         } else {
             // Sort layers by Z.
@@ -2935,8 +2939,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 #endif
                 print.throw_if_canceled();
             }
-
-            tool_ordering.cal_most_used_extruder(print.config());
 
             // Process all layers of all objects (non-sequential mode) with a parallel pipeline:
             // Generate G-code, run the filters (vase mode, cooling buffer), run the G-code analyser
@@ -3990,6 +3992,7 @@ GCode::LayerResult GCode::process_layer(
 
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
+    update_layer_filament_map(m_layer_index);
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -6746,6 +6749,19 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     return gcode;
 }
 
+void GCode::update_layer_filament_map(int layer_id){
+    auto group_result = m_print->get_nozzle_group_result();
+    if(!group_result)
+        return;
+
+    auto extruder_map = group_result->get_extruder_map(false,layer_id);
+
+    m_config.filament_map.values = extruder_map;
+    m_writer.config.filament_map.values = extruder_map;
+
+}
+
+
 std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bool by_object)
 {
     int new_extruder_id = get_extruder_id(new_filament_id);
@@ -6782,7 +6798,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         if (!this->is_BBL_Printer() && m_config.enable_pressure_advance.get_at(new_filament_id))
             gcode += m_writer.set_pressure_advance(m_config.pressure_advance.get_at(new_filament_id));
 
-        gcode += m_writer.toolchange(new_filament_id);
+        gcode += m_writer.toolchange(new_filament_id,new_nozzle_id);
         return gcode;
     }
 
@@ -6852,8 +6868,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             assert(m_start_gcode_filament < number_of_extruders);
 
         old_filament_id = m_writer.filament() != nullptr ? m_writer.filament()->id() : m_start_gcode_filament;
-        old_extruder_id = m_writer.filament() != nullptr ? m_writer.filament()->extruder_id() : get_extruder_id(m_start_gcode_filament);
-
+        old_extruder_id = m_writer.get_curr_extruder_id();
         old_retract_length = m_config.retraction_length.get_at(old_filament_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(old_filament_id);
         old_filament_retract_length_nc = m_config.filament_retract_length_nc.get_at(old_filament_id);
@@ -7026,7 +7041,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
     //BBS: don't add T[next extruder] if there is no T cmd on filament change
      //We inform the writer about what is happening, but we may not use the resulting gcode.
-    std::string toolchange_command = m_writer.toolchange(new_filament_id);
+    std::string toolchange_command = m_writer.toolchange(new_filament_id,new_nozzle_id);
     if (!custom_gcode_changes_tool(toolchange_gcode_parsed, m_writer.toolchange_prefix(), new_filament_id))
         gcode += toolchange_command;
     else {
@@ -7041,6 +7056,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     }
 
     m_placeholder_parser.set("current_extruder", new_filament_id);
+    m_placeholder_parser.set("current_hotend", new_nozzle_id);
+
     m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(new_filament_id));
     m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(new_filament_id));
     m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(new_filament_id));

@@ -46,6 +46,8 @@ set(lisbslic3r_sources
     BoundingBox.hpp
     BridgeDetector.cpp
     BridgeDetector.hpp
+    ByObjectPrintData.hpp
+    ByObjectPrintData.cpp
     FaceDetector.cpp
     FaceDetector.hpp
     Brim.cpp

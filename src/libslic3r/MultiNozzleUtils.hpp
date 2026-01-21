@@ -94,6 +94,8 @@ public:
                                                                                 const std::vector<NozzleInfo> &nozzle_list,
                                                                                 const std::vector<unsigned int>& used_filament);
 
+    const std::vector<std::vector<int>>& get_layer_filament_nozzle_maps() const { return layer_filament_nozzle_maps; }
+
     bool                                         are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id = -1, const PrintObject* obj = nullptr) const;    // 判断两个材料是否处于同一个挤出机
     bool                                         are_filaments_same_nozzle(int filament_id1, int filament_id2, int layer_id = -1, const PrintObject* obj = nullptr) const;      // 判断两个材料是否处于同一个喷嘴
     int                                          get_extruder_count() const;                                               // 获取挤出机数量
