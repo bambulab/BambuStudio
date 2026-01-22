@@ -278,6 +278,7 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             L("When using %s on the right extruder, it can only be used as support material.")
             L("The current filament doesn't support the TPU high-flow nozzle and can't be used.");
             L("Auto dynamic flow calibration is not supported for TPU filament.");
+            L("Dynamic flow calibration is not supported for TPU 85A filament.");
 
             // Warning in description
             L("How to feed TPU filament.");
