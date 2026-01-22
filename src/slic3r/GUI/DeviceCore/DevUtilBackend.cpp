@@ -23,8 +23,7 @@ Slic3r::MultiNozzleUtils::NozzleInfo DevUtilBackend::GetNozzleInfo(const DevNozz
     return info;
 }
 
-std::optional<Slic3r::MultiNozzleUtils::MultiNozzleGroupResult>
-DevUtilBackend::GetNozzleGroupResult(Slic3r::GUI::Plater* plater)
+std::optional<Slic3r::MultiNozzleUtils::StaticNozzleGroupResult> DevUtilBackend::GetNozzleGroupResult(Slic3r::GUI::Plater* plater)
 {
     if (plater && plater->background_process().get_current_gcode_result()) {
         return plater->background_process().get_current_gcode_result()->nozzle_group_result;
@@ -33,8 +32,7 @@ DevUtilBackend::GetNozzleGroupResult(Slic3r::GUI::Plater* plater)
     return std::nullopt;
 }
 
-std::unordered_map<NozzleDef, int>
-DevUtilBackend::CollectNozzleInfo(MultiNozzleUtils::MultiNozzleGroupResult* nozzle_group_res, int logic_ext_id)
+std::unordered_map<NozzleDef, int> DevUtilBackend::CollectNozzleInfo(MultiNozzleUtils::StaticNozzleGroupResult *nozzle_group_res, int logic_ext_id)
 {
     std::unordered_map<NozzleDef, int> need_nozzle_map;
     if (!nozzle_group_res) {
@@ -67,7 +65,7 @@ std::optional<Slic3r::DevFilamentDryingPreset> DevUtilBackend::GetFilamentDrying
     if (fila_id.empty() || !GUI::wxGetApp().preset_bundle) {
         return std::nullopt;
     }
-    
+
     for (auto iter = GUI::wxGetApp().preset_bundle->filaments.begin(); iter != GUI::wxGetApp().preset_bundle->filaments.end(); ++iter) {
         const Preset& filament_preset = *iter;
         const auto& config = filament_preset.config;

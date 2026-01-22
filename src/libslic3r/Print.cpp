@@ -1104,7 +1104,7 @@ int Print::get_nozzle_config_index(int filament_id, int layer_id)
 
 int Print::get_config_index(int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map)
 {
-    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_id); 
+    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_id);
     if (!nozzle_info.has_value()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                  << boost::format(", Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
@@ -2156,10 +2156,10 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         std::vector<std::pair<coordf_t, std::vector<GCode::LayerToPrint>>> layers_to_print = GCode::collect_layers_to_print(*this);
         // 表示首层使用的耗材
         std::vector<unsigned int> printExtruders;
-        
+
         if (is_sequential_print()) {
             m_sequential_print_data = ByObjectPrintData::build(this);
-            
+
             std::vector<unsigned int> first_layer_filaments;
             std::vector<unsigned int> used_filaments;
 
@@ -2167,7 +2167,7 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                 auto& layer_tools = ordering.layer_tools();
                 if(layer_tools.empty())
                     continue;
-                
+
                 auto object_first_layer_filaments = layer_tools.front().extruders;
                 first_layer_filaments.insert(first_layer_filaments.end(),object_first_layer_filaments.begin(),object_first_layer_filaments.end());
                 used_filaments.insert(used_filaments.end(), ordering.all_extruders().begin(), ordering.all_extruders().end());
@@ -2310,7 +2310,9 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     //BBS
     if (result != nullptr){
         result->conflict_result = m_conflict_result;
-        result->nozzle_group_result = this->get_nozzle_group_result();
+        auto group_result_ptr   = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(this->get_nozzle_group_result());
+        if (group_result_ptr)
+            result->nozzle_group_result = *group_result_ptr;
     }
     return path.c_str();
 }
@@ -3106,7 +3108,7 @@ void Print::_make_wipe_tower()
     wipe_tower.set_first_layer_flow_ratio(m_default_region_config.initial_layer_flow_ratio);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
-    wipe_tower.set_nozzle_group_result(m_nozzle_group_result.value());
+    wipe_tower.set_nozzle_group_result(m_nozzle_group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
@@ -3136,7 +3138,7 @@ void Print::_make_wipe_tower()
 
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
-        assert(m_nozzle_group_result.has_value());
+        assert(m_nozzle_group_result);
         int layer_idx = 0;
 
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();

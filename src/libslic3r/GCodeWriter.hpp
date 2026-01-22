@@ -22,7 +22,7 @@ class GCodeWriter {
 public:
     GCodeConfig config;
     bool multiple_extruders;
-    MultiNozzleUtils::MultiNozzleGroupResult m_group_result;
+    MultiNozzleUtils::LayeredNozzleGroupResult m_group_result;
 
     GCodeWriter() :
         multiple_extruders(false), m_curr_filament_extruder{ nullptr,nullptr },
@@ -42,8 +42,8 @@ public:
 
     int get_curr_extruder_id() const  { return m_curr_extruder_id; }
 
-    void set_group_result(const MultiNozzleUtils::MultiNozzleGroupResult& group_result) { this->m_group_result = group_result; }
-    
+    void set_group_result(const MultiNozzleUtils::LayeredNozzleGroupResult &group_result) { this->m_group_result = group_result; }
+
     void                 apply_print_config(const PrintConfig &print_config);
     // Extruders are expected to be sorted in an increasing order.
     void                 set_extruders(std::vector<unsigned int> extruder_ids);

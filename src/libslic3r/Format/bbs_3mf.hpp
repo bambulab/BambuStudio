@@ -102,7 +102,7 @@ struct PlateData
     using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
     LayerFilaments layer_filaments;
     std::vector<unsigned int> filament_change_sequence;
-    std::optional<MultiNozzleUtils::MultiNozzleGroupResult> nozzle_group_result;
+    std::optional<MultiNozzleUtils::LayeredNozzleGroupResult> nozzle_group_result;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1
     // the 1th digit corresponds to extruder 2
@@ -111,6 +111,9 @@ struct PlateData
     std::vector<int>          limit_filament_maps;
 
     std::vector<GCodeProcessorResult::SliceWarning> warnings;
+
+    // 喷嘴信息列表，用于多喷嘴打印
+    std::vector<MultiNozzleUtils::NozzleInfo> nozzles_info;
 
     std::string get_gcode_prediction_str() {
         return gcode_prediction;

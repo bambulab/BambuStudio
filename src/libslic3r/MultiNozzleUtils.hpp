@@ -16,8 +16,8 @@ struct NozzleInfo
 {
     std::string      diameter;
     NozzleVolumeType volume_type;
-    int              extruder_id{ -1 }; // 逻辑挤出机id
-    int              group_id{ -1 };    // 对应逻辑喷嘴id
+    int              extruder_id{-1}; // 逻辑挤出机id
+    int              group_id{-1};   // 对应逻辑喷嘴id
 
     std::string serialize() const;
     static std::optional<NozzleInfo> deserialize(const std::string& str);
@@ -59,52 +59,88 @@ struct NozzleGroupInfo
     static std::optional<NozzleGroupInfo> deserialize(const std::string& str);
 };
 
-// 分组后的结果，GCodeProcessor，发起打印页面需要
-class MultiNozzleGroupResult
+/**
+ * @brief 喷嘴分组结果的虚基类
+ */
+class NozzleGroupResultBase
+{
+protected:
+    bool support_dynamic_nozzle_map{false}; // 是否支撑动态映射(选料器)
+
+public:
+    NozzleGroupResultBase() = default;
+    virtual ~NozzleGroupResultBase() = default;
+
+    virtual std::optional<NozzleInfo> get_nozzle_from_id(int nozzle_id) const = 0; // 根据喷嘴id获取NozzleInfo
+
+    virtual std::vector<NozzleInfo> get_nozzles_for_filament(int filament_id) const = 0; // 获取耗材可能使用的所有喷嘴（跨所有层）
+
+    virtual bool is_support_dynamic_nozzle_map() const = 0;
+};
+
+/**
+ * @brief 有layer信息的喷嘴分组结果
+ * 用于后端切片代码，支持逐层的喷嘴映射。
+ */
+class LayeredNozzleGroupResult : public NozzleGroupResultBase
 {
 private:
-    std::vector<std::vector<int>> layer_filament_nozzle_maps;  // 每一层的filament_nozzle_map
-    std::vector<int> default_filament_nozzle_map;  // 默认的filament_nozzle_map
-    std::vector<NozzleInfo> nozzle_list;      // 可用的逻辑喷嘴信息
-    std::vector<unsigned int> used_filaments; // 所有使用的材料idx
-    bool support_dynamic_nozzle_map {false};  // 是否支持动态喷嘴映射
+    std::vector<std::vector<int>>                      _layer_filament_nozzle_maps; // 每一层的 filament -> nozzle 映射
+    std::vector<int>                                   _default_filament_nozzle_map; // 默认映射，全局材料
+    std::vector<unsigned int>                          _used_filaments; // 所有使用的材料idx
+    std::unordered_map<PrintObject*, ObjectLayerRange> _object_layer_range; // 每个对象到全局的layer range
+    std::vector<NozzleInfo>                            _nozzle_list; // 全局的喷嘴列表
+
 public:
-    MultiNozzleGroupResult() = default;
-    MultiNozzleGroupResult(const std::vector<int> &filament_nozzle_map, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filament);
-    MultiNozzleGroupResult(const std::vector<std::vector<int>> &layer_filament_nozzle_maps, const std::vector<NozzleInfo> &nozzle_list, const std::vector<unsigned int>& used_filament);
-    // 根据extruder_map构建group_result，场景：studio无选料器模式构建
-    static std::optional<MultiNozzleGroupResult> init_from_slice_filament(const std::vector<int>          &filament_map,
-                                                                          const std::vector<FilamentInfo> &filament_info); // 1 based filament_map
+    LayeredNozzleGroupResult() = default;
 
-    // 根据nozzle_map,volume_map,extruder_map构建group_result，场景：H2C+无选料器模式+cli切片
-    static std::optional<MultiNozzleGroupResult> init_from_cli_config(const std::vector<unsigned int>& used_filaments,
-                                                                      const std::vector<int>& filament_map,
-                                                                      const std::vector<int>& filament_volume_map,
-                                                                      const std::vector<int>& filament_nozzle_map,
-                                                                      const std::vector<std::map<NozzleVolumeType,int>>& nozzle_count,
-                                                                      float diameter);
+    // 无选料器：全局使用一份 filament->nozzle
+    static std::optional<LayeredNozzleGroupResult> create(
+        const std::vector<int>&          filament_nozzle_map,
+        const std::vector<NozzleInfo>&   nozzle_list,
+        const std::vector<unsigned int>& used_filaments);
 
-    // 构建支持动态喷嘴分配情况下的group_result，场景：H2C+选料器自动模式切片得到的切片文件
-    static std::optional<MultiNozzleGroupResult> init_from_layer_filament_maps(const std::vector<std::vector<int>> &layer_filament_nozzle_maps,
-                                                                                const std::vector<NozzleInfo> &nozzle_list,
-                                                                                const std::vector<unsigned int>& used_filament);
+    // 有选料器：从逐层映射构建（每层可能不同）
+    static std::optional<LayeredNozzleGroupResult> create(
+        const std::vector<std::vector<int>>& layer_filament_nozzle_maps,
+        const std::vector<NozzleInfo>&       nozzle_list,
+        const std::vector<unsigned int>&     used_filaments);
 
-    const std::vector<std::vector<int>>& get_layer_filament_nozzle_maps() const { return layer_filament_nozzle_maps; }
+    // O1C + 无选料器 + 命令行切片
+    static std::optional<LayeredNozzleGroupResult> create(
+        const std::vector<unsigned int>&                    used_filaments,
+        const std::vector<int>&                             filament_map,
+        const std::vector<int>&                             filament_volume_map,
+        const std::vector<int>&                             filament_nozzle_map,
+        const std::vector<std::map<NozzleVolumeType, int>>& nozzle_count,
+        float                                               diameter);
 
-    bool                                         are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id = -1) const;    // 判断两个材料是否处于同一个挤出机
-    bool                                         are_filaments_same_nozzle(int filament_id1, int filament_id2, int layer_id = -1) const;      // 判断两个材料是否处于同一个喷嘴
-    int                                          get_extruder_count() const;                                               // 获取挤出机数量
+    bool are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id = -1) const; // 判断两个材料是否处于同一个挤出机
+    bool are_filaments_same_nozzle(int filament_id1, int filament_id2, int layer_id = -1) const; // 判断两个材料是否处于同一个喷嘴
+    int get_extruder_count() const; // 获取挤出机数量
 
-    std::vector<NozzleInfo> get_used_nozzles_in_extruder(int target_extruder_id = -1, int layer_id = -1) const; // 获取指定挤出机使用的喷嘴，layer_id=-1时使用默认映射
-    std::vector<int>        get_used_extruders(int layer_id = -1) const;                            // 获取使用的挤出机列表，layer_id=-1时返回全局挤出机
+    std::vector<NozzleInfo> get_used_nozzles_in_extruder(int target_extruder_id, int layer_id = -1) const; // 获取指定挤出机使用的喷嘴，layer_id=-1时使用默认映射
+    std::vector<int> get_used_extruders(int layer_id = -1) const; // 获取使用的挤出机列表，layer_id=-1时返回全局挤出机
 
-    std::vector<int>        get_extruder_map(bool zero_based = true, int layer_id = -1) const; // 获取指定层的挤出机映射
-    std::vector<int>        get_nozzle_map(int layer_id = -1) const; // 获取指定层的喷嘴映射
-    std::vector<int>        get_volume_map(int layer_id = -1) const; // 获取指定层的体积类型映射
-    std::vector<unsigned int> get_used_filaments() const { return used_filaments;}
-    std::vector<unsigned int> get_used_filaments(int layer_id = -1) const; // 获取指定层使用的耗材列表
+    std::vector<int> get_extruder_map(bool zero_based = true, int layer_id = -1) const; // 获取指定层的挤出机映射
+    std::vector<int> get_nozzle_map(int layer_id = -1) const; // 获取耗材使用的所有逻辑喷嘴信息
+    std::vector<int> get_volume_map(int layer_id = -1) const; // 获取指定层的体积类型映射
 
-    bool   is_support_dynamic_nozzle_map() const { return support_dynamic_nozzle_map; }
+    std::vector<unsigned int> get_used_filaments() const { return _used_filaments; }
+    std::vector<unsigned int> get_used_filaments(int layer_id) const; // 获取指定层使用的耗材列表
+
+    std::optional<NozzleInfo> get_nozzle_for_filament(int filament_id, int layer_id = -1) const; // 获取指定层、特定耗材使用的逻辑喷嘴
+    std::vector<NozzleInfo> get_nozzles_for_filament(int filament_id) const override; // 获取耗材可能使用的所有喷嘴（跨所有层）
+
+    std::optional<NozzleInfo> get_nozzle_from_id(int nozzle_id) const override; // 根据喷嘴id获取NozzleInfo
+    int get_extruder_id(int filament_id, int layer_id = -1) const;
+    int get_nozzle_id(int filament_id, int layer_id = -1) const;
+
+    bool is_support_dynamic_nozzle_map() const override { return support_dynamic_nozzle_map; }
+
+    size_t get_layer_count() const { return _layer_filament_nozzle_maps.size(); }
+    const std::vector<int>& get_layer_filament_nozzle_map(int layer_id) const;
+    const std::vector<std::vector<int>> &get_layer_filament_nozzle_maps() const { return _layer_filament_nozzle_maps; }
 
     /**
      * @brief 预估给定序列的冲刷重量
@@ -114,19 +150,31 @@ public:
      * @return int 冲刷重量
      */
     int estimate_seq_flush_weight(const std::vector<std::vector<std::vector<float>>>& flush_matrix, const std::vector<int>& filament_change_seq) const;
+};
 
-
-    std::vector<NozzleInfo>   get_nozzles_for_filament(int filament_id) const; // 获取耗材使用的所有逻辑喷嘴信息
-    std::optional<NozzleInfo> get_nozzle_for_filament(int filament_id, int layer_id = -1) const; // 获取指定层、特定耗材使用的逻辑喷嘴
-    std::optional<NozzleInfo> get_nozzle_by_id(int nozzle_id) const;
-
-    int get_extruder_id(int filament_id, int layer_id = -1) const;
-    int get_nozzle_id(int filament_id, int layer_id = -1) const;
-
-    std::unordered_map<const PrintConfig*, std::vector<int>> config_idx_map;
-
+/**
+ * @brief 无layer信息的喷嘴分组结果
+ * 用于设备端，只有静态的喷嘴映射。
+ */
+class StaticNozzleGroupResult : public NozzleGroupResultBase
+{
 private:
-    const std::vector<int>& get_filament_nozzle_map(int layer_id) const;
+    std::map<int, std::set<int>> _filament_to_nozzles; // 每个材料可能映射到的所有喷嘴
+    std::map<int, NozzleInfo>    _nozzle_list_map; // 使用的喷嘴
+
+public:
+    StaticNozzleGroupResult() = default;
+
+    // 从3mf加载，不需要层信息
+    static std::optional<StaticNozzleGroupResult> create(
+        const std::vector<FilamentInfo>& filaments_info,
+        const std::vector<NozzleInfo>&   nozzles_info);
+
+    std::optional<NozzleInfo> get_nozzle_from_id(int nozzle_id) const override; // 根据喷嘴id获取NozzleInfo
+
+    std::vector<NozzleInfo> get_nozzles_for_filament(int filament_id) const override; // 获取耗材可能使用的所有喷嘴（跨所有层）
+
+    bool is_support_dynamic_nozzle_map() const override { return support_dynamic_nozzle_map; }
 };
 
 class NozzleStatusRecorder
@@ -142,17 +190,17 @@ public:
     int  get_nozzle_in_extruder(int extruder_id) const;
 
     void clear_nozzle_status(int nozzle_id);
-    
+
     // Update the status of a nozzle with new filament and extruder information
     void set_nozzle_status(int nozzle_id, int filament_id, int extruder_id = -1);
 };
 
-
+// ==================== 工具函数 ====================
 std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> info);
-std::vector<NozzleInfo> build_nozzle_list(double diameter,const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map);
-
+std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int>& filament_nozzle_map,
+                                          const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map);
 
 } // namespace MultiNozzleUtils
 } // namespace Slic3r
 
-#endif
+#endif // MULTI_NOZZLE_UTILS_HPP

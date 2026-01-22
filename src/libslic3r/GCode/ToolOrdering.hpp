@@ -273,14 +273,14 @@ public:
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
 
     int                 get_most_used_extruder() const { return m_most_used_extruder; }
-    const MultiNozzleUtils::MultiNozzleGroupResult& get_nozzle_group_result() const { return m_nozzle_group_result; }
+    const MultiNozzleUtils::LayeredNozzleGroupResult &get_nozzle_group_result() const { return m_nozzle_group_result; }
     /*
     * called in single extruder mode, the value in map are all 0
     * called in dual extruder mode, the value in map will be 0 or 1
     * 0 based group id
     */
 
-    static MultiNozzleUtils::MultiNozzleGroupResult get_recommended_filament_maps(Print                                           *print,
+    static MultiNozzleUtils::LayeredNozzleGroupResult get_recommended_filament_maps(Print                                           *print,
                                                                                   const std::vector<std::vector<unsigned int>>    &layer_filaments,
                                                                                   const FilamentMapMode                            mode,
                                                                                   const std::vector<std::set<int>>                &physical_unprintables,
@@ -307,7 +307,7 @@ public:
 
     std::vector<std::vector<unsigned int>> execute_filament_ordering(
         const PrintConfig* print_config,
-        const MultiNozzleUtils::MultiNozzleGroupResult& grouping_result,
+        const MultiNozzleUtils::LayeredNozzleGroupResult& grouping_result,
         const LayerData& layer_data,
         const OrderingContext& ordering_contex,
         const std::vector<FlushMatrix>& nozzle_flush_mtx
@@ -315,7 +315,7 @@ public:
 
     void calculate_and_store_statistics(
         const PrintConfig& print_config,
-        const MultiNozzleUtils::MultiNozzleGroupResult& grouping_result,
+        const MultiNozzleUtils::LayeredNozzleGroupResult& grouping_result,
         const LayerData& layer_data,
         const OrderingContext& ordering_context,
         const std::vector<FlushMatrix>& nozzle_flush_mtx,
@@ -360,7 +360,7 @@ private:
     FilamentChangeStats        m_stats_by_single_extruder;
     FilamentChangeStats        m_stats_by_multi_extruder_curr;
     FilamentChangeStats        m_stats_by_multi_extruder_best;
-    MultiNozzleUtils::MultiNozzleGroupResult m_nozzle_group_result;
+    MultiNozzleUtils::LayeredNozzleGroupResult m_nozzle_group_result;
 
     int               m_most_used_extruder;
 };
