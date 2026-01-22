@@ -275,7 +275,7 @@ namespace FilamentGroupUtils
         }
         return true;
     }
-    int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info)
+    int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>> &layer_filaments, const MultiNozzleUtils::LayeredNozzleGroupResult &extruder_nozzle_info)
     {
         return 0;
         //int ret = 0;
@@ -287,7 +287,7 @@ namespace FilamentGroupUtils
         //return ret;
     }
 
-    int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info)
+    int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>> &layer_filaments, const MultiNozzleUtils::LayeredNozzleGroupResult &extruder_nozzle_info)
     {
         return 0;
         //int ret = 0;
@@ -302,7 +302,8 @@ namespace FilamentGroupUtils
         //return ret;
     }
 
-    std::pair<int, int> get_estimate_extruder_filament_change_count(const std::vector<std::vector<unsigned int>> &layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult &extruder_nozzle_info)
+    std::pair<int, int> get_estimate_extruder_filament_change_count(const std::vector<std::vector<unsigned int>>     &layer_filaments,
+                                                                    const MultiNozzleUtils::LayeredNozzleGroupResult &extruder_nozzle_info)
     {
         return {};
         //std::pair<int, int> ret{0,0};

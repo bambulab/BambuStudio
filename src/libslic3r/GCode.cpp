@@ -14,6 +14,7 @@
 #include "libslic3r.h"
 #include "LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
+#include "MultiNozzleUtils.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -644,7 +645,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
     {
         gcodegen.reset_last_acceleration();
-        auto group_result = gcodegen.m_print->get_nozzle_group_result();
+        auto group_result_ptr = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(gcodegen.m_print->get_nozzle_group_result());
+        auto group_result          = group_result_ptr ? *group_result_ptr : MultiNozzleUtils::LayeredNozzleGroupResult();
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
         if(!group_result)
@@ -2297,7 +2299,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             float temp_max_additional_fan = tool_ordering.cal_max_additional_fan(print.config());
             if(temp_max_additional_fan > max_additional_fan )
                 max_additional_fan = temp_max_additional_fan;
-        
+
             if(!find_first_non_support_filament && tool_ordering.first_extruder() != (unsigned int) -1){
                 if(initial_extruder_id == (unsigned int)-1){
                     initial_extruder_id = tool_ordering.first_extruder();
@@ -2789,7 +2791,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         // if (print.config().spaghetti_detector.value)
         if (print.is_BBL_Printer()) file.write("M981 S1 P20000 ;open spaghetti detector\n");
 
-        
+
         if (print.is_sequential_print() && !has_wipe_tower){
             const auto& by_obj_print_data = print.sequential_print_data().value();
 

@@ -1314,6 +1314,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_warning();
 
+        bool _handle_start_config_nozzle(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_nozzle();
+
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_plater();
@@ -3506,6 +3509,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_filament(attributes, num_attributes);
         else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
             res = _handle_start_config_warning(attributes, num_attributes);
+        else if (::strcmp(NOZZLE_TAG, name) == 0)
+            res = _handle_start_config_nozzle(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -3543,6 +3548,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_end_config_plater();
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_end_config_filament();
+        else if (::strcmp(NOZZLE_TAG, name) == 0)
+            res = _handle_end_config_nozzle();
         else if (::strcmp(INSTANCE_TAG, name) == 0)
             res = _handle_end_config_plater_instance();
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
@@ -4667,6 +4674,35 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     bool _BBS_3MF_Importer::_handle_end_config_warning()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_nozzle(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            // id="0" extruder_id="0" nozzle_diameter="0.4" volume_type="nvtNormal"
+            std::string id_str = bbs_get_attribute_value_string(attributes, num_attributes, "id");
+            std::string extruder_id_str = bbs_get_attribute_value_string(attributes, num_attributes, "extruder_id");
+            std::string nozzle_diameter_str = bbs_get_attribute_value_string(attributes, num_attributes, "nozzle_diameter");
+            std::string volume_type_str = bbs_get_attribute_value_string(attributes, num_attributes, "volume_type");
+
+            std::ostringstream oss;
+            oss << "id=\"" << id_str << "\" "
+                << "extruder_id=\"" << extruder_id_str << "\" "
+                << "nozzle_diameter=\"" << nozzle_diameter_str << "\" "
+                << "volume_type=\"" << volume_type_str << "\"";
+
+            auto nozzle_info = MultiNozzleUtils::NozzleInfo::deserialize(oss.str());
+            if (nozzle_info) {
+                m_curr_plater->nozzles_info.push_back(*nozzle_info);
+            }
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_config_nozzle()
     {
         // do nothing
         return true;

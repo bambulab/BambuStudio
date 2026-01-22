@@ -989,7 +989,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         if (context.handle_hotend_as_extruder)
             extruder_id = nozzle_id;
         else
-            extruder_id = context.nozzle_group_result.get_nozzle_by_id(nozzle_id)->extruder_id;
+            extruder_id = context.nozzle_group_result.get_nozzle_from_id(nozzle_id)->extruder_id;
 
         filament_blocks.emplace_back(filament_id, extruder_id, line_id, -1);
         };
@@ -2557,7 +2557,7 @@ void GCodeProcessor::initialize(const std::string& filename)
 }
 
 
-void GCodeProcessor::initialize_from_context(const MultiNozzleUtils::MultiNozzleGroupResult& nozzle_group_result)
+void GCodeProcessor::initialize_from_context(const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result)
 {
     m_nozzle_group_result = nozzle_group_result;
 }
@@ -5623,7 +5623,7 @@ void GCodeProcessor::process_M1020(const GCodeReader::GCodeLine &line)
     else {
         if (eid >= m_result.filaments_count)
             BOOST_LOG_TRIVIAL(error) << "Invalid M1020 command (" << line.raw() << ").";
-        
+
         int nozzle_id = -1;
         if (line.has_value('H', val)) {
             nozzle_id = static_cast<int>(val);
@@ -5693,7 +5693,7 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         int new_extruder_id = target_nozzle_info->extruder_id;
         int new_nozzle_in_extruder = target_nozzle_info->group_id;
         int new_filament_in_nozzle = id;
-        
+
         int old_extruder_id = prev_extruder_id;
         int old_nozzle_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(new_extruder_id);
         int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_in_extruder);
@@ -5737,10 +5737,10 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
             m_filament_id[new_extruder_id] = new_filament_in_nozzle;
         }
         m_extruder_id = new_extruder_id;
-        
+
         // 3. Ensure all state changes are recorded via NozzleStatusRecorder
         m_nozzle_status_recorder.set_nozzle_status(new_nozzle_in_extruder, new_filament_in_nozzle, new_extruder_id);
-    
+
 
     m_cp_color.current = m_extruder_colors[new_filament_in_nozzle];
     // store tool change move
@@ -6264,7 +6264,7 @@ void GCodeProcessor::PreCoolingInjector::build_extruder_free_blocks(const std::v
 void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProcessor::InsertedLinesMap& inserted_operation_lines, const ExtruderFreeBlock& block, float curr_temp, float target_temp, bool pre_cooling, bool pre_heating)
 {
     unsigned int layer_id = 1;
-  
+
     //assert(block.last_filament_id == -1 || block.next_filament_id == -1 || nozzle_group_result.get_extruder_id(block.last_filament_id, layer_id) == nozzle_group_result.get_extruder_id(block.next_filament_id, layer_id));
 
     auto get_valid_extruder_id = [&](int filament_idx1, int filament_idx2) {

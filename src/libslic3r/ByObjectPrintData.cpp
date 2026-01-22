@@ -3,6 +3,7 @@
 #include "FilamentGroupUtils.hpp"
 #include "GCode.hpp"
 #include "GCode/ToolOrdering.hpp"
+#include "MultiNozzleUtils.hpp"
 
 namespace Slic3r {
 
@@ -52,8 +53,6 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
     //bool support_dynamic_map = print->config().support_dynamic_map;
     bool support_dynamic_map = true;
 
-    MultiNozzleUtils::MultiNozzleGroupResult group_result;
-
     auto all_filaments = collect_filament_data(print,data.print_object_order);
     auto used_filaments = collect_sorted_used_filaments(all_filaments);
     auto physical_unprintables = print->get_physical_unprintable_filaments(used_filaments);
@@ -63,7 +62,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
     if(!support_dynamic_map){
         // 按照Object打印顺序，收集所有用到的耗材序列
         auto map_mode = print->get_filament_map_mode();
-        group_result = ToolOrdering::get_recommended_filament_maps(
+        auto group_result = ToolOrdering::get_recommended_filament_maps(
             print,
             all_filaments,
             map_mode,
@@ -72,7 +71,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
             filament_unprintable_volumes
         );
         // 不带选料器时，要先将结果写入到print
-        print->set_nozzle_group_result(group_result);
+        print->set_nozzle_group_result(std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(group_result));
     }
 
     prev_object = nullptr;
@@ -111,12 +110,16 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
             filament_unprintable_volumes
         );
 
-        group_result = MultiNozzleUtils::MultiNozzleGroupResult(
+        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(
             nozzle_map_per_layer,
             grouping_context.nozzle_info.nozzle_list,
             used_filaments
         );
-        print->set_nozzle_group_result(group_result);
+
+        print->set_nozzle_group_result(
+            result ? std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(*result) :
+                     std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>()
+        );
     }
 
     return data;

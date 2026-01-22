@@ -1398,7 +1398,7 @@ namespace Slic3r
 #endif
 
     int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
-        const MultiNozzleUtils::MultiNozzleGroupResult& nozzle_group_result,
+        const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result,
         const std::vector<std::vector<unsigned int>>& layer_filaments,
         const std::vector<FlushMatrix>& flush_matrix,
         const std::function<bool(int, std::vector<int>&)> get_custom_seq,
@@ -1408,7 +1408,7 @@ namespace Slic3r
         std::map<int,std::set<int>> extruder_to_nozzle;
 
         for(auto filament_idx : filament_lists){
-            auto nozzle_info = nozzle_group_result.get_nozzle_for_filament(filament_idx);
+            auto nozzle_info = nozzle_group_result.get_nozzle_for_filament(filament_idx, -1);
             if (!nozzle_info)
                 continue;
             nozzle_filament_groups[nozzle_info->group_id].insert(filament_idx);
@@ -1478,14 +1478,14 @@ namespace Slic3r
         filament_sequences->resize(layer_filaments.size());
 
         auto get_extruder_for_filament = [nozzle_group_result](unsigned int filament_idx) {
-            auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament_idx);
+            auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament_idx, -1);
             if (!nozzle)
                 return -1;
             return nozzle->extruder_id;
             };
 
         auto get_nozzle_idx_for_filament = [nozzles_per_extruder, nozzle_group_result](unsigned int filament_idx)->int {
-            auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament_idx);
+            auto nozzle = nozzle_group_result.get_nozzle_for_filament(filament_idx, -1);
             if (!nozzle)
                 return -1;
             return std::find(nozzles_per_extruder.at(nozzle->extruder_id).begin(), nozzles_per_extruder.at(nozzle->extruder_id).end(), nozzle->group_id) - nozzles_per_extruder.at(nozzle->extruder_id).begin();

@@ -37,8 +37,8 @@ public:
     static MultiNozzleUtils::NozzleInfo GetNozzleInfo(const DevNozzle& dev_nozzle);
 
     // for rack
-    static std::optional<MultiNozzleUtils::MultiNozzleGroupResult> GetNozzleGroupResult(Slic3r::GUI::Plater* plater);
-    static std::unordered_map<NozzleDef, int> CollectNozzleInfo(MultiNozzleUtils::MultiNozzleGroupResult* nozzle_group_res, int logic_ext_id);
+    static std::optional<MultiNozzleUtils::StaticNozzleGroupResult> GetNozzleGroupResult(Slic3r::GUI::Plater *plater);
+    static std::unordered_map<NozzleDef, int> CollectNozzleInfo(MultiNozzleUtils::StaticNozzleGroupResult *nozzle_group_res, int logic_ext_id);
 
     // for filament preset
     static std::optional<DevFilamentDryingPreset> GetFilamentDryingPreset(const std::string& fila_id);

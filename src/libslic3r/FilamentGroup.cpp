@@ -601,8 +601,8 @@ namespace Slic3r
             group_set.insert(group_hashs);
 
             //6.Evaluate group scores
-            MultiNozzleUtils::MultiNozzleGroupResult group_res(labels, context.nozzle_info.nozzle_list, used_filaments);
-            auto change_count = get_estimate_extruder_filament_change_count(context.model_info.layer_filaments, group_res);
+            auto group_res = MultiNozzleUtils::LayeredNozzleGroupResult::create(labels, context.nozzle_info.nozzle_list, used_filaments);
+            auto change_count = get_estimate_extruder_filament_change_count(context.model_info.layer_filaments, *group_res);
             auto flush_volume = calc_cost(used_labels,std::vector<int>(m_k,0),-1);
             double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.filament_change_time;
             double score = evaluate_score(flush_volume, time, true);
