@@ -595,6 +595,8 @@ function get_image_url(printer_type) {
     { keywords: ['handy'], src: 'img/handy.png', useRaw: false },
     { keywords: ['拓竹耗材'], src: 'img/filament.png', useRaw: true },
     { keywords: ['filament'], src: 'img/filament.png', useRaw: false },
+    { keywords: ['canvas'], src: 'img/canvas.png', useRaw: false },
+    { keywords: ['彩色版画生成器'], src: 'img/canvas.png', useRaw: true },
   ];
 
   for (const item of mappings) {
