@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-21 14:29+0800\n"
+"POT-Creation-Date: 2026-01-22 16:51+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -59,8 +59,11 @@ msgstr "Nuvarande filament stöder inte TPU högflödes nozzle och kan inte anv�
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Automatisk dynamisk flödeskalibrering stöds inte för TPU filament."
 
-msgid "How to feed TPU filament."
+msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 msgstr ""
+
+msgid "How to feed TPU filament."
+msgstr "Hur man matar TPU filament."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Användning av icke bambu filament kan ha problem med utskriftskvaliteten."
@@ -3343,7 +3346,7 @@ msgid "Right AMS"
 msgstr "Höger AMS"
 
 msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
+msgstr "Tips: För att lära dig om reglerna för filament kompatibilitet, se Wiki före användning->"
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "Välj det filament som är installerat på vänster nozzle."
@@ -3369,7 +3372,7 @@ msgstr "Utskrift med det aktuell nozzle kan ge extra %0.2fg avfall."
 
 #, c-format, boost-format
 msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Tips: filament typen (%s) matchar inte filament typen (%s) i berednings filen. Om du vill använda den här platsen kan du installera %s istället för %s och ändra plats informationen på sidan \"Enhet\"."
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4855,25 +4858,25 @@ msgid "Calibration step selection"
 msgstr "Val av kalibreringssteg"
 
 msgid "Micro Lidar Calibration"
-msgstr ""
+msgstr "Mikro Lidar kalibrering"
 
 msgid "Auto Bed Leveling"
 msgstr "Automatisk bäddutjämning"
 
 msgid "Vibration Compensation"
-msgstr ""
+msgstr "Vibrations kompensation"
 
 msgid "Motor Noise Cancellation"
-msgstr ""
+msgstr "Brusreducering av motorer"
 
 msgid "Nozzle Offset Calibration"
 msgstr "Kalibrering av nozzle offset"
 
 msgid "High-temperature Bed Leveling"
-msgstr ""
+msgstr "Bäddutjämning vid hög temperatur"
 
 msgid "Nozzle Clumping Detection Calibration"
-msgstr ""
+msgstr "Kalibrering för detektering av nozzle klumpar"
 
 msgid "Calibration program"
 msgstr "Kalibrerings program"
@@ -6570,7 +6573,7 @@ msgid "Open Door Detection"
 msgstr "Detektering av öppen dörr"
 
 msgid "Choose the behavior when the door is opened during tasks."
-msgstr ""
+msgstr "Välj beteende när dörren öppnas under uppdrag."
 
 msgid "Notification"
 msgstr "Avisering"
@@ -6754,12 +6757,12 @@ msgid ""
 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
 "Please confirm which nozzle you would like to use for this project."
 msgstr ""
-"Programvaran stöder inte användning av olika diameter på nozzle i samma utskrift. \n"
-"Om vänster och höger nozzle är inkonsekventa kan vi bara fortsätta med singel huvuds utskrift. \n"
-"Vänligen bekräfta vilken nozzle du vill använda för det här projektet."
+"Programvaran stöder inte användning av olika diameter på nozzle för en utskrift.\n"
+"Om vänster och höger nozzle är inkonsekventa kan vi bara fortsätta utskriften med en nozzle.\n"
+"Bekräfta vilken nozzle du vill använda för detta projekt."
 
 msgid "Switch diameter"
-msgstr ""
+msgstr "Byt diameter"
 
 #, c-format, boost-format
 msgid "Left nozzle: %smm"
@@ -6863,7 +6866,7 @@ msgid "Restore"
 msgstr "Återställ"
 
 msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
+msgstr "Det finns ett G-kod skript i den aktuella 3mf filen, verifiera innehållet i skriptet."
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -10201,7 +10204,7 @@ msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 
 msgid "No valid nozzle found. Please check nozzle count."
-msgstr ""
+msgstr "Ingen giltig nozzle hittades. Kontrollera antalet nozzle."
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Gruppfel i manuellt läge. Kontrollera nozzle antal eller gruppera om."
@@ -11439,37 +11442,37 @@ msgid "Temperature drop before entering filament tower"
 msgstr "Temperaturen sjunker innan ankomst till filament tornet"
 
 msgid "Interface layer pre-extrusion distance"
-msgstr ""
+msgstr "Gränssnitt lager för-extruderings avstånd"
 
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "För-extruderings avstånd för gränssnitts lagret av prime tower (där olika material möts)."
 
 msgid "Interface layer pre-extrusion length"
-msgstr ""
+msgstr "Gränssnitt lager för-extruderings längd"
 
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "För-extruderings längd för gränssnitts lagret av prime tower (där olika material möts)."
 
 msgid "Tower ironing area"
-msgstr ""
+msgstr "Prime Tower stryknings område"
 
 msgid "Ironing area for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "Stryknings område för prime tower gränssnitts lager (där olika material träffas)."
 
 msgid "mm²"
 msgstr "mm²"
 
 msgid "Interface layer purge length"
-msgstr ""
+msgstr "Gränssnitts lagrets rensnings längd"
 
 msgid "Purge length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "Rensnings längd för gränssnitts lagret av prime tower (där olika material möts)."
 
 msgid "Interface layer print temperature"
-msgstr ""
+msgstr "Gränssnitts lagrets utskriftstemperatur"
 
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
-msgstr ""
+msgstr "Utskriftstemperatur för prime tower gränssnitts lager (där olika material träffas). Om satt till -1, använd max rekommenderad nozzle temperatur."
 
 msgid "°C"
 msgstr "° C"
@@ -11803,7 +11806,7 @@ msgid "Apply top surface compensation"
 msgstr "Tillämpa kompensation på topp ytan"
 
 msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr ""
+msgstr "Aktivera detta alternativ för att förlänga färdavståndet mellan övre ytlinjer, förbättra vidhäftningen mellan den övre ytans utfyllnad och väggarna."
 
 msgid "Air filtration enhancement"
 msgstr "Förbättrad luftfiltrering"
@@ -15333,14 +15336,14 @@ msgid "Available Nozzles"
 msgstr "Tillgängliga nozzle"
 
 msgid "Sync Nozzle status"
-msgstr ""
+msgstr "Synkronisera nozzle status"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Varning: Blandning av nozzle diametrar i en utskrift stöds inte. Om den valda storleken bara är på en extruder kommer singel extruder utskrift att utföras."
 
 #, c-format, boost-format
 msgid "Refresh %d/%d..."
-msgstr ""
+msgstr "Uppdatera %d/%d..."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Okänd nozzle upptäckt. Uppdatera för att uppdatera info (ej uppdaterad nozzle kommer att uteslutas under beredning). Verifiera nozzle diameter och flödes hastighet mot visade värden."
@@ -15361,144 +15364,148 @@ msgid "Standard Mode"
 msgstr "Standard läge"
 
 msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr ""
+msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
 
 msgid "Prime Saving"
-msgstr ""
+msgstr "Rensnings besparing"
 
 msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
+msgstr "Minskar rensnings avfall och printar snabbare. Kan orsaka liten färgblandning eller små yteffekter."
 
 msgid "Learn more about prime mode"
-msgstr ""
+msgstr "Läs mer om rensnings läge"
 
 msgid "AMS Dryness Control"
-msgstr ""
+msgstr "AMS Torrhets kontroll"
 
 msgid "Filament Drying Settings"
-msgstr ""
-
-msgid "H"
-msgstr ""
+msgstr "Inställningar för filament torkning"
 
 msgid "Start"
 msgstr "Starta"
 
 msgid "Unable to dry temporarily due to ..."
-msgstr ""
+msgstr "Kan inte torka tillfälligt på grund av ..."
 
 msgid "Drying Error"
-msgstr ""
+msgstr "Torknings fel"
 
 msgid "Please check the Assistant for troubleshooting"
-msgstr ""
+msgstr "Kontrollera assistenten för felsökning"
 
 msgid "Please remove and store the filament (as shown)."
-msgstr ""
+msgstr "Ta bort och förvara filament (enligt bilden)."
 
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr ""
+msgstr "AMS kan rotera filament som lagras korrekt, vilket ger bättre torkresultat."
 
 msgid "Rotate spool when drying"
-msgstr ""
+msgstr "Rotera spolen vid torkning"
 
 msgid "Drying-Heating"
-msgstr ""
+msgstr "Torkning-Uppvärmning"
 
 msgid "Drying-Dehumidifying"
-msgstr ""
+msgstr "Torkning-Avfuktning"
 
 msgid " maximum drying temperature is "
-msgstr ""
-
-msgid "°C;\n"
-msgstr ""
+msgstr " maximal tork temperatur är "
 
 msgid " minimum drying temperature is "
+msgstr " minsta tork temperatur är "
+
+msgid "This filament may not be completely dried."
 msgstr ""
 
-msgid ""
-"This filament may not be completely dried.\n"
-"\n"
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
 msgstr ""
 
-msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr ""
 
-msgid "The temperature shall not exceed the heat distortion temperature("
+msgid "Minimum time value cannot be less than 1."
 msgstr ""
 
-msgid "°C) of the filament.\n"
+msgid "Maximum time value cannot be greater than 24."
 msgstr ""
 
-msgid "Minimum time value cannot be less than 1.\n"
+msgid "Insufficient power"
 msgstr ""
 
-msgid "Maximum time value cannot be greater than 24.\n"
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
 msgstr ""
 
-msgid "*Insufficient power\n"
+msgid "AMS is busy"
 msgstr ""
 
-msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
 msgstr ""
 
-msgid "*AMS is busy\n"
-msgstr ""
-
-msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
-msgstr ""
-
-msgid "*Filament in AMS outlet\n"
+msgid "Filament in AMS outlet"
 msgstr ""
 
 msgid "  The high drying temperature may cause AMS blockage, please unload first."
+msgstr "  Den höga torknings temperaturen kan orsaka AMS blockering; vänligen lossa först."
+
+msgid "Initiating AMS drying"
 msgstr ""
 
-msgid "*Initiating AMS drying\n"
+msgid "Not supported in 2D mode"
 msgstr ""
 
-msgid "*Not supported in 2D mode\n"
+msgid "Task in progress"
 msgstr ""
 
-msgid "*Task in progress\n"
+msgid "  The AMS might be in use during Task."
 msgstr ""
 
-msgid "  The AMS might be in use during Task.\n"
+msgid "  Firmware update in progress, please wait..."
 msgstr ""
 
-msgid "*Upgrading\n"
+msgid "  Please plug in the power and then use the drying function."
 msgstr ""
 
-msgid "  Firmware update in progress, please wait...\n"
+msgid "System is busy"
 msgstr ""
 
-msgid "  Please plug in the power and then use the drying function.\n"
+msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr ""
 
-msgid "*System is busy\n"
+msgid "For better drying results, remove the filament and allow it to rotate."
 msgstr ""
 
-msgid "  Initiating other drying processes, please wait a few seconds...\n"
+msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgstr ""
+
+msgid "Alternatively, you can dry the filament without removing it."
+msgstr ""
+
+msgid "Unknown filaments will be treated as PLA."
+msgstr ""
+
+msgid "Please store the filament marked with an exclamation mark."
+msgstr ""
+
+msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
-msgstr ""
+msgstr "Startar: Kontrollerar adapter anslutningen"
 
 msgid "Starting: Checking filament status"
-msgstr ""
+msgstr "Startar: Kontrollerar filament status"
 
 msgid "Starting: Checking drying presets"
-msgstr ""
+msgstr "Startar: Kontrollerar tork inställningar"
 
 msgid "Starting: Checking filament location"
-msgstr ""
+msgstr "Startar: Kontrollerar filament placering"
 
 msgid "Starting: Checking air intake"
-msgstr ""
+msgstr "Start: Kontrollerar luft intaget"
 
 msgid "Starting: Checking air vent"
-msgstr ""
+msgstr "Startar: Kontrollerar luft ventilen"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

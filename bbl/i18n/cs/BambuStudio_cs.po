@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-21 14:29+0800\n"
+"POT-Creation-Date: 2026-01-22 16:51+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -65,6 +65,9 @@ msgid "The current filament doesn't support the TPU high-flow nozzle and can't b
 msgstr ""
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
+msgstr ""
+
+msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 msgstr ""
 
 msgid "How to feed TPU filament."
@@ -15121,9 +15124,6 @@ msgstr ""
 msgid "Filament Drying Settings"
 msgstr ""
 
-msgid "H"
-msgstr ""
-
 msgid "Start"
 msgstr ""
 
@@ -15154,75 +15154,82 @@ msgstr ""
 msgid " maximum drying temperature is "
 msgstr ""
 
-msgid "°C;\n"
-msgstr ""
-
 msgid " minimum drying temperature is "
 msgstr ""
 
-msgid ""
-"This filament may not be completely dried.\n"
-"\n"
+msgid "This filament may not be completely dried."
 msgstr ""
 
-msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
 msgstr ""
 
-msgid "The temperature shall not exceed the heat distortion temperature("
+msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr ""
 
-msgid "°C) of the filament.\n"
+msgid "Minimum time value cannot be less than 1."
 msgstr ""
 
-msgid "Minimum time value cannot be less than 1.\n"
+msgid "Maximum time value cannot be greater than 24."
 msgstr ""
 
-msgid "Maximum time value cannot be greater than 24.\n"
+msgid "Insufficient power"
 msgstr ""
 
-msgid "*Insufficient power\n"
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
 msgstr ""
 
-msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgid "AMS is busy"
 msgstr ""
 
-msgid "*AMS is busy\n"
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
 msgstr ""
 
-msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
-msgstr ""
-
-msgid "*Filament in AMS outlet\n"
+msgid "Filament in AMS outlet"
 msgstr ""
 
 msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr ""
 
-msgid "*Initiating AMS drying\n"
+msgid "Initiating AMS drying"
 msgstr ""
 
-msgid "*Not supported in 2D mode\n"
+msgid "Not supported in 2D mode"
 msgstr ""
 
-msgid "*Task in progress\n"
+msgid "Task in progress"
 msgstr ""
 
-msgid "  The AMS might be in use during Task.\n"
+msgid "  The AMS might be in use during Task."
 msgstr ""
 
-msgid "*Upgrading\n"
+msgid "  Firmware update in progress, please wait..."
 msgstr ""
 
-msgid "  Firmware update in progress, please wait...\n"
+msgid "  Please plug in the power and then use the drying function."
 msgstr ""
 
-msgid "  Please plug in the power and then use the drying function.\n"
+msgid "System is busy"
 msgstr ""
 
-msgid "*System is busy\n"
+msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr ""
 
-msgid "  Initiating other drying processes, please wait a few seconds...\n"
+msgid "For better drying results, remove the filament and allow it to rotate."
+msgstr ""
+
+msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgstr ""
+
+msgid "Alternatively, you can dry the filament without removing it."
+msgstr ""
+
+msgid "Unknown filaments will be treated as PLA."
+msgstr ""
+
+msgid "Please store the filament marked with an exclamation mark."
+msgstr ""
+
+msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
