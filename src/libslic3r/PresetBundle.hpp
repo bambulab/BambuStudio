@@ -68,7 +68,8 @@ struct FilamentBaseInfo
 // Recommended parameters for support filament combination
 struct FilamentCombinationParams
 {
-    using ParamValue = std::variant<double, bool, std::string, int>;    // 使用 variant 支持多种类型: double, bool, string, int
+    // 山苍: 使用 variant 支持多种类型: double, bool, string, int, vector<double>
+    using ParamValue = std::variant<double, bool, std::string, int, std::vector<double>>;
     std::map<std::string, ParamValue> params;  // 通用参数存储
     bool use_same_filament_for_support_base{false}; // 特殊标记：支撑基座使用相同材料
 

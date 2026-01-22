@@ -4,8 +4,9 @@
     "combinations": [
         {
             "model_material": "PLA",
-            "support_material_list": ["PETG", "Bambu Support For PLA", "Bambu Support For PLA/PETG"],
+            "support_material_list": ["PETG", "Bambu Support For PLA", "Bambu Support For PLA-PETG"],
             "recommended_params": {
+				"enable_support": true,
 				"support_style": "tree_hybrid",
 				"support_threshold_angle": 40,
 				"raft_first_layer_expansion": 5.0,
@@ -15,13 +16,15 @@
                 "independent_support_layer_height": false,
 				"tree_support_branch_diameter": 3.0,
 				"tree_support_branch_diameter_angle": 7.0,
-                "use_same_filament_for_support_base": false
+                "use_same_filament_for_support_base": false,
+				"support_interface_speed": [50.0,50.0,50.0,50.0]
             }
         },
         {
             "model_material": "PETG",
-            "support_material_list": ["PLA", "Bambu Support For PLA/PETG"],
+            "support_material_list": ["PLA", "Bambu Support For PLA-PETG"],
             "recommended_params": {
+				"enable_support": true,
                 "support_style": "tree_hybrid",
 				"support_threshold_angle": 40,
 				"raft_first_layer_expansion": 5.0,
@@ -31,13 +34,15 @@
                 "independent_support_layer_height": false,
 				"tree_support_branch_diameter": 3.0,
 				"tree_support_branch_diameter_angle": 7.0,
-                "use_same_filament_for_support_base": false
+                "use_same_filament_for_support_base": false,
+				"support_interface_speed": [50.0,50.0,50.0,50.0]
             }
         },
         {
             "model_material": "ABS",
-            "support_material_list": ["Bambu Support For ABS"],
+            "support_material_list": ["Bambu Support for ABS"],
             "recommended_params": {
+				"enable_support": true,
                 "support_top_z_distance": 0.0,
 				"support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
@@ -47,8 +52,9 @@
         },
         {
             "model_material": "PA",
-            "support_material_list": ["Bambu Support For PA/PET", "ASA", "ABS"],
+            "support_material_list": ["Bambu Support For PA PET", "ASA", "ABS"],
             "recommended_params": {
+				"enable_support": true,
 				"support_style": "tree_hybrid",
                 "support_top_z_distance": 0.0,
 				"support_interface_pattern": "rectilinear_interlaced",
@@ -61,6 +67,7 @@
             "model_material": "TPU",
             "support_material_list": ["PLA"],
             "recommended_params": {
+				"enable_support": true,
                 "support_top_z_distance": 0.0,
 				"support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
@@ -73,6 +80,7 @@
             "model_material": "PLA",
             "support_material_list": ["PVA"],
             "recommended_params": {
+				"enable_support": true,
 				"support_type": "normal(auto)",
                 "support_top_z_distance": 0.0,
 				"support_bottom_z_distance": 0.0,

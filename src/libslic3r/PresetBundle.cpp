@@ -5317,6 +5317,22 @@ void PresetBundle::load_support_recommended_params()
                                 rec_params.params.params[key] = value.get<bool>();
                             } else if (value.is_string()) {
                                 rec_params.params.params[key] = value.get<std::string>();
+                            } else if (value.is_array()) {
+                                std::vector<double> vec;
+                                for (const auto& elem : value) {
+                                    if (elem.is_number()) {
+                                        vec.push_back(elem.get<double>());
+                                    } else if (elem.is_string()) {
+                                        try {
+                                            vec.push_back(std::stod(elem.get<std::string>()));
+                                        } catch (...) {
+                                            BOOST_LOG_TRIVIAL(warning) << "Failed to parse array element as double for " << key;
+                                        }
+                                    }
+                                }
+                                if (!vec.empty()) {
+                                    rec_params.params.params[key] = vec;
+                                }
                             }
                         }
                     }

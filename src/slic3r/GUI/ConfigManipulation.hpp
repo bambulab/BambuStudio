@@ -104,11 +104,17 @@ struct SupportFilamentRecommendation
     bool has_combination{false};        // 是否找到匹配的耗材组合
     int  matched_filament_index{-1};    // 匹配的支撑耗材索引 (0-based)
 
-    std::string support_material;       // 支撑材料类型（如 "PLA", "PVA", "Support for PLA"）
-    std::string model_material;         // 主体材料类型（如 "TPU", "PETG"）
+    std::string support_material;       // 支撑材料（用于查询推荐参数，可能是类型或名称）
+    std::string model_material;         // 主体材料（用于查询推荐参数，可能是类型或名称）
+
+    std::string support_material_name;  // 支撑材料名称（用于显示，如 "Bambu PLA Basic"）
+    std::string model_material_name;    // 主体材料名称（用于显示，如 "Bambu TPU 95A"）
 };
 
 SupportFilamentRecommendation has_filament_combination();
+
+// 为单个对象查找匹配的耗材组合（仅处理单色模型）
+SupportFilamentRecommendation has_filament_combination_for_object(const ModelObject* obj);
 
 bool is_filament_combination(int extruder_id);
 

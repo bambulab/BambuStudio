@@ -1,7 +1,7 @@
 {
     "combinations": [
         {
-            "material_a": "Bambu Support For PLA/PETG",
+            "material_a": "Bambu Support For PLA-PETG",
             "material_a_type": "name",
             "material_b_list": [ "PLA", "PETG" ],
             "material_b_type": "type",
@@ -15,7 +15,7 @@
             "priority": 3
         },
         {
-            "material_a": "Bambu Support For ABS",
+            "material_a": "Bambu Support for ABS",
             "material_a_type": "name",
             "material_b_list": [ "ABS" ],
             "material_b_type": "type",

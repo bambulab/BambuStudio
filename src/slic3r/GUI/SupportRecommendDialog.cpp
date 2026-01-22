@@ -7,7 +7,7 @@
 
 #define BODY_ITEM_WIDTH 200
 #define SUPPORT_ITEM_WIDTH 200
-#define PARAM_ITEM_WIDTH 250
+#define PARAM_ITEM_WIDTH 350
 
 namespace Slic3r {
 namespace GUI {
@@ -34,25 +34,21 @@ void SupportComboCard::create_ui(const wxString& mainMat,
     mat1Panel->SetBackgroundColour(wxColour("#EEE"));
     wxBoxSizer* mat1Sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxStaticText* text1 = new wxStaticText(mat1Panel, wxID_ANY, "Bambu PLA basic");
+    wxStaticText* text1 = new wxStaticText(mat1Panel, wxID_ANY, mainMat);
     mat1Sizer->Add(text1, 1, wxALL | wxALIGN_CENTER_VERTICAL, 8);
     mat1Panel->SetSizer(mat1Sizer);
-    mat1Panel->SetMinSize(wxSize(FromDIP(BODY_ITEM_WIDTH), 50));
-    mat1Panel->SetMaxSize(wxSize(FromDIP(BODY_ITEM_WIDTH), 50));
-    mat1Panel->SetSize(wxSize(FromDIP(BODY_ITEM_WIDTH), 50));
+    mat1Panel->SetMinSize(wxSize(FromDIP(BODY_ITEM_WIDTH), -1));
     mainSizer->Add(mat1Panel, 0, wxEXPAND | wxALL);
 
     wxPanel* mat2Panel = new wxPanel(this, wxID_ANY);
     mat2Panel->SetBackgroundColour(wxColour("#EEE"));
     wxBoxSizer* mat2Sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxStaticText* text2 = new wxStaticText(mat2Panel, wxID_ANY, "Bambu PLA basic");
+    wxStaticText* text2 = new wxStaticText(mat2Panel, wxID_ANY, supportMat);
 
     mat2Sizer->Add(text2, 1, wxALL | wxALIGN_CENTER_VERTICAL, 8);
     mat2Panel->SetSizer(mat2Sizer);
-    mat2Panel->SetMinSize(wxSize(FromDIP(BODY_ITEM_WIDTH), 50));
-    mat2Panel->SetMaxSize(wxSize(FromDIP(BODY_ITEM_WIDTH), 50));
-    mat2Panel->SetSize(wxSize(FromDIP(BODY_ITEM_WIDTH), 50));
+    mat2Panel->SetMinSize(wxSize(FromDIP(SUPPORT_ITEM_WIDTH), -1));
     mainSizer->Add(mat2Panel, 0, wxEXPAND | wxALL);
 
     wxPanel* rightPanel = new wxPanel(this, wxID_ANY);
@@ -104,10 +100,9 @@ void SupportRecommendDialog::create_ui()
     m_main_sizer->Add(m_combo_title, 0, wxLEFT | wxBOTTOM, 30);
 
     // filament area
+    int scroll_width = FromDIP(BODY_ITEM_WIDTH + SUPPORT_ITEM_WIDTH + PARAM_ITEM_WIDTH);
     m_scroll_panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
-    m_scroll_panel->SetMaxSize(wxSize(BODY_ITEM_WIDTH + SUPPORT_ITEM_WIDTH + PARAM_ITEM_WIDTH, 350));
-    m_scroll_panel->SetMinSize(wxSize(BODY_ITEM_WIDTH + SUPPORT_ITEM_WIDTH + PARAM_ITEM_WIDTH, 350));
-    m_scroll_panel->SetSize(wxSize(BODY_ITEM_WIDTH + SUPPORT_ITEM_WIDTH + PARAM_ITEM_WIDTH, 350));
+    m_scroll_panel->SetMinSize(wxSize(scroll_width, FromDIP(200)));
     m_scroll_panel->SetScrollRate(0, 20);
     m_scroll_sizer = new wxBoxSizer(wxVERTICAL);
     m_scroll_panel->SetSizer(m_scroll_sizer);
@@ -156,12 +151,11 @@ void SupportRecommendDialog::create_ui()
     btnSizer->Add(m_apply_btn);
     m_main_sizer->Add(btnSizer, 0, wxALL | wxALIGN_RIGHT, 15);
 
-    SetMaxSize(wxSize(680, 400));
-    SetMinSize(wxSize(680, 400));
-    SetSize(wxSize(680, 400));
-
+    SetMinSize(wxSize(FromDIP(720), FromDIP(350)));
     SetBackgroundColour(*wxWHITE);
+    Fit();
     Layout();
+    CenterOnParent();
 }
 
 void SupportRecommendDialog::AddSupportComboCard(const wxString& mainMat,
