@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-21 14:29+0800\n"
+"POT-Creation-Date: 2026-01-22 16:51+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,13 +57,16 @@ msgid "When using %s on the right extruder, it can only be used as support mater
 msgstr "Bei Verwendung von %s mit dem rechten Extruder kann es nur als Stützmaterial verwendet werden."
 
 msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
-msgstr ""
+msgstr "Das aktuelle Filament unterstützt die TPU High-Flow-Düse nicht und kann nicht verwendet werden."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Die automatische dynamische Flusskalibrierung wird für TPU-Filament nicht unterstützt."
 
-msgid "How to feed TPU filament."
+msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 msgstr ""
+
+msgid "How to feed TPU filament."
+msgstr "So laden Sie TPU-Filament."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Die Verwendung von Filamenten, die nicht von Bambu stammen, kann zu Problemen bei der Druckqualität führen."
@@ -3346,7 +3349,7 @@ msgid "Right AMS"
 msgstr "Rechtes AMS"
 
 msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
+msgstr "Tipp: Bitte lesen Sie vor der Verwendung das Wiki, um mehr über die Regeln zur Filament-Kompatibilität zu erfahren->"
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "Bitte wählen Sie das an der linken Düse installierte Filament aus."
@@ -3372,7 +3375,7 @@ msgstr "Drucken mit der aktuellen Düse kann zu %0.2f g zusätzlichem Abfall fü
 
 #, c-format, boost-format
 msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "Tipp: Der Filamenttyp (%s) stimmt nicht mit dem Filamenttyp (%s) in der Slicing-Datei überein. Wenn Sie diesen Slot verwenden möchten, können Sie %s anstelle von %s installieren und die Slot-Informationen auf der Seite „Gerät“ ändern."
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4032,7 +4035,7 @@ msgid "Heating chamber"
 msgstr "Kammer heizen"
 
 msgid "Adjusting heatbed temperature"
-msgstr ""
+msgstr "Heizbett-Temperatur anpassen"
 
 msgid "Printing calibration lines"
 msgstr "Drucken von Kalibrierungslinien"
@@ -4080,7 +4083,7 @@ msgid "Purifying the chamber air"
 msgstr "Reinigung der Kammerluft"
 
 msgid "Preparing AMS"
-msgstr ""
+msgstr "AMS vorbereiten"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Zeitraffer wird von diesem Drucker nicht unterstützt."
@@ -4862,25 +4865,25 @@ msgid "Calibration step selection"
 msgstr "Auswahl des Kalibrierungsschritts"
 
 msgid "Micro Lidar Calibration"
-msgstr ""
+msgstr "Mikro-Lidar Kalibrierung"
 
 msgid "Auto Bed Leveling"
 msgstr "Automatische Bettnivellierung"
 
 msgid "Vibration Compensation"
-msgstr ""
+msgstr "Vibrationskompensation"
 
 msgid "Motor Noise Cancellation"
-msgstr ""
+msgstr "Motorgeräuschunterdrückung"
 
 msgid "Nozzle Offset Calibration"
 msgstr "Düsenversatzkalibrierung"
 
 msgid "High-temperature Bed Leveling"
-msgstr ""
+msgstr "Hochtemperatur-Bettnivellierung"
 
 msgid "Nozzle Clumping Detection Calibration"
-msgstr ""
+msgstr "Kalibrierung der Düsenverklumpungserkennung"
 
 msgid "Calibration program"
 msgstr "Kalibrationsprogramm"
@@ -6577,7 +6580,7 @@ msgid "Open Door Detection"
 msgstr "Erkennung offener Tür"
 
 msgid "Choose the behavior when the door is opened during tasks."
-msgstr ""
+msgstr "Wählen Sie das Verhalten beim Öffnen der Tür während laufender Aufgaben."
 
 msgid "Notification"
 msgstr "Benachrichtigung"
@@ -6673,7 +6676,7 @@ msgid "Unlock current plate"
 msgstr "Aktuelle Platte entsperren"
 
 msgid "Lock current plate"
-msgstr ""
+msgstr "Aktuelle Platte sperren"
 
 msgid "Edit filament grouping"
 msgstr "Filamentgruppierung bearbeiten"
@@ -6760,10 +6763,7 @@ msgid ""
 "The software does not support using different diameter of nozzles for one print.\n"
 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
 "Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"Die Software unterstützt nicht die Verwendung unterschiedlicher Düsendurchmesser für einen Druck.\n"
-"Wenn die linke und rechte Düse nicht übereinstimmen, kann nur mit einem Druckkopf gedruckt werden.\n"
-"Bitte geben Sie an, welche Düse Sie für dieses Projekt verwenden möchten."
+msgstr "Die Software unterstützt die Verwendung unterschiedlicher Düsendurchmesser in einem Druck nicht. Wenn die linke und rechte Düse unterschiedlich sind, ist nur der Einzelkopf-Druck möglich. Bitte bestätigen Sie, welche Düse Sie für dieses Projekt verwenden möchten."
 
 msgid "Switch diameter"
 msgstr "Durchmesser wechseln"
@@ -6872,7 +6872,7 @@ msgid "Restore"
 msgstr "Wiederherstellen"
 
 msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
+msgstr "In der aktuellen 3mf-Datei ist ein G-Code-Skript vorhanden. Bitte überprüfen Sie den Inhalt des Skripts."
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -9373,19 +9373,19 @@ msgid "Quick set"
 msgstr "Schnelleinstellung"
 
 msgid "There are color input errors."
-msgstr ""
+msgstr "Es liegen Fehler bei der Farbeingabe vor."
 
 msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr ""
+msgstr "Der Texturimport ist vorübergehend nicht verfügbar, die teilweise Färbung wird automatisch durch die Standardfarbe ersetzt."
 
 msgid " And "
-msgstr ""
+msgstr " Und "
 
 msgid "Note"
 msgstr "Anmerkung"
 
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr ""
+msgstr "Die Farbe wurde ausgewählt. Sie können OK wählen, um fortzufahren, oder sie manuell anpassen."
 
 msgctxt "ObjImport"
 msgid "Original"
@@ -10211,7 +10211,7 @@ msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "Bitte ändern Sie den Düsentyp oder weisen Sie das Filament neu zu und versuchen Sie es erneut."
 
 msgid "No valid nozzle found. Please check nozzle count."
-msgstr ""
+msgstr "Keine gültige Düse gefunden. Bitte überprüfen Sie die Anzahl der Düsen."
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "Gruppierungsfehler im manuellen Modus. Bitte überprüfen Sie die Anzahl der Düsen oder gruppieren Sie neu."
@@ -11449,37 +11449,37 @@ msgid "Temperature drop before entering filament tower"
 msgstr "Temperaturabsenkung vor dem Eintreten in den Filamentturm"
 
 msgid "Interface layer pre-extrusion distance"
-msgstr ""
+msgstr "Vorextrusionsabstand der Schnittstellenschicht"
 
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "Vorextrusionsabstand für die Schnittstellenschicht des Reinigungsturms (wo verschiedene Materialien aufeinandertreffen)."
 
 msgid "Interface layer pre-extrusion length"
-msgstr ""
+msgstr "Vorextrusionslänge der Schnittstellenschicht"
 
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "Vorextrusionslänge für die Schnittstellenschicht des Reinigungsturms (wo verschiedene Materialien aufeinandertreffen)."
 
 msgid "Tower ironing area"
-msgstr ""
+msgstr "Glättungsbereich des Turms"
 
 msgid "Ironing area for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "Glättungsbereich für die Schnittstellenschicht des Reinigungsturms (wo verschiedene Materialien aufeinandertreffen)."
 
 msgid "mm²"
 msgstr "mm²"
 
 msgid "Interface layer purge length"
-msgstr ""
+msgstr "Spüllänge der Schnittstellenschicht"
 
 msgid "Purge length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "Spüllänge für die Schnittstellenschicht des Reinigungsturms (wo verschiedene Materialien aufeinandertreffen)."
 
 msgid "Interface layer print temperature"
-msgstr ""
+msgstr "Drucktemperatur der Schnittstellenschicht"
 
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
-msgstr ""
+msgstr "Drucktemperatur für die Schnittstellenschicht des Reinigungsturms (wo verschiedene Materialien aufeinandertreffen). Wenn auf -1 eingestellt, wird die maximal empfohlene Düsentemperatur verwendet."
 
 msgid "°C"
 msgstr "°C"
@@ -11813,7 +11813,7 @@ msgid "Apply top surface compensation"
 msgstr "Oberflächenkompensation anwenden"
 
 msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr ""
+msgstr "Aktivieren Sie diese Option, um den Fahrweg zwischen den Linien der oberen Fläche zu verlängern und die Haftung zwischen der Füllung der oberen Fläche und den Wänden zu verbessern."
 
 msgid "Air filtration enhancement"
 msgstr "Verbesserung der Luftfilterung"
@@ -15223,7 +15223,7 @@ msgstr "(Mit dem Drucker synchronisieren)"
 
 #, c-format, boost-format
 msgid "Error: %s extruder has no available %s nozzle, current group result is invalid."
-msgstr "Fehler: Der Extruder %s hat keine verfügbare Düse %s, das aktuelle Gruppierungsergebnis ist ungültig."
+msgstr "Fehler: Extruder %s verfügt über keine verfügbare %s-Düse. Das aktuelle Gruppierungsergebnis ist ungültig."
 
 msgid "We will slice according to this grouping method:"
 msgstr "Wir werden nach dieser Gruppierungsmethode slicen:"
@@ -15235,7 +15235,7 @@ msgid "Please adjust your grouping or click "
 msgstr "Bitte passen Sie Ihre Gruppierung an oder klicken Sie "
 
 msgid " to set nozzle count"
-msgstr " um die Düsenanzahl einzustellen"
+msgstr " um die Düsenanzahl festzulegen"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15336,14 +15336,14 @@ msgid "Available Nozzles"
 msgstr "Verfügbare Düsen"
 
 msgid "Sync Nozzle status"
-msgstr ""
+msgstr "Düsenstatus synchronisieren"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Achtung: Das Mischen von Düsendurchmessern in einem Druck wird nicht unterstützt. Wenn die ausgewählte Größe nur auf einem Extruder verfügbar ist, wird der Druck mit einem einzigen Extruder durchgeführt."
 
 #, c-format, boost-format
 msgid "Refresh %d/%d..."
-msgstr ""
+msgstr "Aktualisiere %d/%d..."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Unbekannte Düse erkannt. Aktualisieren Sie, um die Informationen zu erfassen (nicht aktualisierte Düsen werden beim Slicen ausgeschlossen). Überprüfen Sie den Düsendurchmesser und die Durchflussrate anhand der angezeigten Werte."
@@ -15364,144 +15364,148 @@ msgid "Standard Mode"
 msgstr "Standardmodus"
 
 msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr ""
+msgstr "Führt eine vollständige Spülung durch, um die beste Druckqualität zu erzielen. Erfordert mehr Material und Zeit."
 
 msgid "Prime Saving"
-msgstr ""
+msgstr "Spül-Einsparung"
 
 msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
+msgstr "Reduziert den Spülabfall und druckt schneller. Kann zu leichter Farbvermischung oder kleinen Oberflächendefekten führen."
 
 msgid "Learn more about prime mode"
-msgstr ""
+msgstr "Mehr über den Spülmodus erfahren"
 
 msgid "AMS Dryness Control"
-msgstr ""
+msgstr "AMS-Trocknungssteuerung"
 
 msgid "Filament Drying Settings"
-msgstr ""
-
-msgid "H"
-msgstr ""
+msgstr "Filament-Trocknungseinstellungen"
 
 msgid "Start"
 msgstr "Starten"
 
 msgid "Unable to dry temporarily due to ..."
-msgstr ""
+msgstr "Trocknen vorübergehend nicht möglich aufgrund von ..."
 
 msgid "Drying Error"
-msgstr ""
+msgstr "Trocknungsfehler"
 
 msgid "Please check the Assistant for troubleshooting"
-msgstr ""
+msgstr "Bitte überprüfen Sie den Assistenten zur Fehlerbehebung"
 
 msgid "Please remove and store the filament (as shown)."
-msgstr ""
+msgstr "Bitte entfernen und lagern Sie das Filament (wie abgebildet)."
 
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr ""
+msgstr "Das AMS kann das ordnungsgemäß gelagerte Filament drehen, was für bessere Trocknungsergebnisse sorgt."
 
 msgid "Rotate spool when drying"
-msgstr ""
+msgstr "Spule beim Trocknen drehen"
 
 msgid "Drying-Heating"
-msgstr ""
+msgstr "Trocknen-Heizen"
 
 msgid "Drying-Dehumidifying"
-msgstr ""
+msgstr "Trocknen-Entfeuchten"
 
 msgid " maximum drying temperature is "
-msgstr ""
-
-msgid "°C;\n"
-msgstr ""
+msgstr " maximale Trocknungstemperatur ist "
 
 msgid " minimum drying temperature is "
+msgstr " minimale Trocknungstemperatur ist "
+
+msgid "This filament may not be completely dried."
 msgstr ""
 
-msgid ""
-"This filament may not be completely dried.\n"
-"\n"
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
 msgstr ""
 
-msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n"
+msgid "The temperature shall not exceed the filament's heat distortion temperature"
 msgstr ""
 
-msgid "The temperature shall not exceed the heat distortion temperature("
+msgid "Minimum time value cannot be less than 1."
 msgstr ""
 
-msgid "°C) of the filament.\n"
+msgid "Maximum time value cannot be greater than 24."
 msgstr ""
 
-msgid "Minimum time value cannot be less than 1.\n"
+msgid "Insufficient power"
 msgstr ""
 
-msgid "Maximum time value cannot be greater than 24.\n"
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
 msgstr ""
 
-msgid "*Insufficient power\n"
+msgid "AMS is busy"
 msgstr ""
 
-msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n"
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
 msgstr ""
 
-msgid "*AMS is busy\n"
-msgstr ""
-
-msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n"
-msgstr ""
-
-msgid "*Filament in AMS outlet\n"
+msgid "Filament in AMS outlet"
 msgstr ""
 
 msgid "  The high drying temperature may cause AMS blockage, please unload first."
+msgstr "  Die hohe Trocknungstemperatur kann zu einer Verstopfung des AMS führen, bitte entladen Sie zuerst."
+
+msgid "Initiating AMS drying"
 msgstr ""
 
-msgid "*Initiating AMS drying\n"
+msgid "Not supported in 2D mode"
 msgstr ""
 
-msgid "*Not supported in 2D mode\n"
+msgid "Task in progress"
 msgstr ""
 
-msgid "*Task in progress\n"
+msgid "  The AMS might be in use during Task."
 msgstr ""
 
-msgid "  The AMS might be in use during Task.\n"
+msgid "  Firmware update in progress, please wait..."
 msgstr ""
 
-msgid "*Upgrading\n"
+msgid "  Please plug in the power and then use the drying function."
 msgstr ""
 
-msgid "  Firmware update in progress, please wait...\n"
+msgid "System is busy"
 msgstr ""
 
-msgid "  Please plug in the power and then use the drying function.\n"
+msgid "  Initiating other drying processes, please wait a few seconds..."
 msgstr ""
 
-msgid "*System is busy\n"
+msgid "For better drying results, remove the filament and allow it to rotate."
 msgstr ""
 
-msgid "  Initiating other drying processes, please wait a few seconds...\n"
+msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgstr ""
+
+msgid "Alternatively, you can dry the filament without removing it."
+msgstr ""
+
+msgid "Unknown filaments will be treated as PLA."
+msgstr ""
+
+msgid "Please store the filament marked with an exclamation mark."
+msgstr ""
+
+msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
 msgstr ""
 
 msgid "Starting: Checking adapter connection"
-msgstr ""
+msgstr "Starten: Adapterverbindung prüfen"
 
 msgid "Starting: Checking filament status"
-msgstr ""
+msgstr "Starten: Filamentstatus prüfen"
 
 msgid "Starting: Checking drying presets"
-msgstr ""
+msgstr "Starten: Trocknungsprofile prüfen"
 
 msgid "Starting: Checking filament location"
-msgstr ""
+msgstr "Starten: Filamentposition prüfen"
 
 msgid "Starting: Checking air intake"
-msgstr ""
+msgstr "Starten: Lufteinlass prüfen"
 
 msgid "Starting: Checking air vent"
-msgstr ""
+msgstr "Starten: Luftauslass prüfen"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
