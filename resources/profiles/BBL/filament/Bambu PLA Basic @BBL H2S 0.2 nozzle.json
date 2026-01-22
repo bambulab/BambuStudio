@@ -33,6 +33,9 @@
         "0",
         "0"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
