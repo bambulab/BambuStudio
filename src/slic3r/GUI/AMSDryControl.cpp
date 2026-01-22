@@ -467,7 +467,7 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
     m_time_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     m_time_input->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 
-    Label* time_unit_label = new Label(parent, _L("H"));
+    Label* time_unit_label = new Label(parent, "H");
     time_unit_label->SetForegroundColour(*wxBLACK);
     time_sizer->Add(m_time_input, 1, wxRIGHT, FromDIP(1));
     time_sizer->Add(time_unit_label, 0, wxALIGN_CENTER_VERTICAL);
@@ -630,10 +630,10 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     wxBoxSizer* info_section = new wxBoxSizer(wxVERTICAL);
     
     // Part 1: Title
-    Label* title_label = new Label(parent, _L("Please remove and store the filament (as shown)."));
-    title_label->SetForegroundColour(*wxBLACK);
-    title_label->SetFont(Label::Head_18);
-    info_section->Add(title_label, 0, wxEXPAND | wxALL, FromDIP(5));
+    m_guide_title_label = new Label(parent, _L("Please remove and store the filament (as shown)."));
+    m_guide_title_label->SetForegroundColour(*wxBLACK);
+    m_guide_title_label->SetFont(Label::Head_18);
+    info_section->Add(m_guide_title_label, 0, wxEXPAND | wxALL, FromDIP(5));
     
     // Part 2: Description
     m_guide_description_label = new Label(parent, _L("The AMS can rotate the filament which is properly stored, providing better drying results."));
@@ -660,10 +660,10 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     toggle_section->Add(m_rotate_spool_toggle, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
 
     // Toggle description
-    Label* toggle_description = new Label(parent, _L("Rotate spool when drying"));
+    Label* toggle_description = new Label(parent, _L("Rotate spool when drying"), LB_AUTO_WRAP);
     toggle_description->SetForegroundColour(*wxBLACK);
     toggle_description->SetFont(Label::Body_12);
-    toggle_section->Add(toggle_description, 0, wxALIGN_CENTER_VERTICAL, 0);
+    toggle_section->Add(toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
     
     info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
@@ -1114,39 +1114,38 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     for (const auto& lim : ams_limits) {
         if (dev_ams->GetAmsType() == lim.type) {
             if (temp_val > lim.max_temp) {
-                wxString msg = wxString(lim.name) + _L(" maximum drying temperature is ") + wxString::Format(wxT("%d"), lim.max_temp) + _L("°C;\n");
-                warning_text += msg;
+                wxString msg = wxString(lim.name) + _L(" maximum drying temperature is ") + wxString::Format(wxT("%d"), lim.max_temp) + wxString::FromUTF8("°C.");
+                warning_text += msg + "\n";
                 can_enable_button = false;
             } else if (temp_val < lim.min_temp) {
-                wxString msg = wxString(lim.name) + _L(" minimum drying temperature is ") + wxString::Format(wxT("%d"), lim.min_temp) + _L("°C;\n");
-                warning_text += msg;
+                wxString msg = wxString(lim.name) + _L(" minimum drying temperature is ") + wxString::Format(wxT("%d"), lim.min_temp) + wxString::FromUTF8("°C.");
+                warning_text += msg + "\n";
                 can_enable_button = false;
             }
             if (total_dry.find(lim.type) == total_dry.end()) {
-                warning_text += _L("This filament may not be completely dried.\n\n");
+                warning_text += _L("This filament may not be completely dried.") + "\n\n";
             }
             break;
         }
     }
 
     if (m_printer_status.m_is_printing && temp_val  > m_ams_info.m_recommand_dry_temp) {
-        warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.\n");
+        warning_text += _L("This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature.") + "\n";
         can_enable_button = false;
     } else if (preset.has_value()) {
         auto limit_temperature = preset.value().filament_dev_ams_drying_heat_distortion_temperature;
         if (temp_val > limit_temperature) {
-            wxString warning_text_temp = _L("The temperature shall not exceed the heat distortion temperature(") +
-                wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + _L("°C) of the filament.\n");
-            warning_text += warning_text_temp;
+            warning_text += _L("The temperature shall not exceed the filament's heat distortion temperature") + "(" +
+                wxString::Format(wxT("%d"), static_cast<int>(limit_temperature)) + wxString::FromUTF8("°C)\n");
             can_enable_button = false;
         }
     }
 
     if (time_val < 1) {
-        warning_text += _L("Minimum time value cannot be less than 1.\n");
+        warning_text += _L("Minimum time value cannot be less than 1.") + "\n";
         can_enable_button = false;
     } else if (time_val > 24) {
-        warning_text += _L("Maximum time value cannot be greater than 24.\n");
+        warning_text += _L("Maximum time value cannot be greater than 24.") + "\n";
         can_enable_button = false;
     }
 
@@ -1235,38 +1234,38 @@ wxString get_cannot_reason_text(DevAms::CannotDryReason reason)
     switch (reason)
     {
     case DevAms::CannotDryReason::InsufficientPower:
-        cannot_reason_text = _L("*Insufficient power\n");
-        cannot_reason_text += _L("  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.\n");
+        cannot_reason_text = "*" + _L("Insufficient power") + "\n";
+        cannot_reason_text += _L("  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting.") + "\n";
         break;
     case DevAms::CannotDryReason::AmsBusy:
-        cannot_reason_text = _L("*AMS is busy\n");
-        cannot_reason_text += _L("  AMS is calibrating | reading RFID | loading/unloading material, please wait.\n");
+        cannot_reason_text = "*" + _L("AMS is busy") + "\n";
+        cannot_reason_text += _L("  AMS is calibrating | reading RFID | loading/unloading material, please wait.") + "\n";
         break;
     case DevAms::CannotDryReason::ConsumableAtAmsOutlet:
-        cannot_reason_text = _L("*Filament in AMS outlet\n");
+        cannot_reason_text = "*" + _L("Filament in AMS outlet") + "\n";
         cannot_reason_text += _L("  The high drying temperature may cause AMS blockage, please unload first.");
         break;
     case DevAms::CannotDryReason::InitiatingAmsDrying:
-        cannot_reason_text = _L("*Initiating AMS drying\n");
+        cannot_reason_text = "*" + _L("Initiating AMS drying") + "\n";
         break;
     case DevAms::CannotDryReason::NotSupportedIn2dMode:
-        cannot_reason_text = _L("*Not supported in 2D mode\n");
+        cannot_reason_text = "*" + _L("Not supported in 2D mode") + "\n";
         break;
     case DevAms::CannotDryReason::DryingInProgress:
-        cannot_reason_text = _L("*Task in progress\n");
-        cannot_reason_text += _L("  The AMS might be in use during Task.\n");
+        cannot_reason_text = "*" + _L("Task in progress") + "\n";
+        cannot_reason_text += _L("  The AMS might be in use during Task.") + "\n";
         break;
     case DevAms::CannotDryReason::Upgrading:
-        cannot_reason_text = _L("*Upgrading\n");
-        cannot_reason_text += _L("  Firmware update in progress, please wait...\n");
+        cannot_reason_text = "*" + _L("Upgrading") + "\n";
+        cannot_reason_text += _L("  Firmware update in progress, please wait...") + "\n";
         break;
     case DevAms::CannotDryReason::InsufficientPowerNeedPluginPower:
-        cannot_reason_text = _L("*Insufficient power\n");
-        cannot_reason_text += _L("  Please plug in the power and then use the drying function.\n");
+        cannot_reason_text = "*" + _L("Insufficient power") + "\n";
+        cannot_reason_text += _L("  Please plug in the power and then use the drying function.") + "\n";
         break;
     default:
-        cannot_reason_text = _L("*System is busy\n");
-        cannot_reason_text += _L("  Initiating other drying processes, please wait a few seconds...\n");
+        cannot_reason_text = "*" + _L("System is busy") + "\n";
+        cannot_reason_text += _L("  Initiating other drying processes, please wait a few seconds...") + "\n";
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": unknown cannot dry reason";
         break;
     }
@@ -1301,8 +1300,8 @@ wxString organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reas
     }
 
     if (cannot_reasons_text.empty()) {
-        cannot_reasons_text += _L("*System is busy\n");
-        cannot_reasons_text += _L("  Initiating other drying processes, please wait a few seconds...\n");
+        cannot_reasons_text += "*" + _L("System is busy") + "\n";
+        cannot_reasons_text += _L("  Initiating other drying processes, please wait a few seconds...") + "\n";
     }
 
     return cannot_reasons_text;
@@ -1423,7 +1422,7 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
         if (filament_type.IsEmpty()) {
             auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
             preset = fallback_preset.value();
-            filament_type = "PLA";
+            filament_type = "?";
         } else if (preset_opt.has_value()) {
             preset = preset_opt.value();
         } else {
@@ -1431,8 +1430,8 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
             preset = fallback_preset.value();
         }
         std::string icon_path = "dev_ams_dry_ctr_enable";
-        int heat_distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature);
-        if (valid_temp && heat_distortion_temp < input_temp) {
+        int soften_temp = static_cast<int>(preset.filament_dev_drying_softening_temperature);
+        if (valid_temp && soften_temp < input_temp) {
             icon_path = "dev_ams_dry_ctr_disable";
             can_start = false;
         }
@@ -1443,12 +1442,15 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
     }
 
     if (can_start) {
-        m_guide_description_label->SetLabel(_L("The AMS can rotate the filament which is properly stored, providing better drying results.\n"
-            "*Unknown filaments will be treated as PLA."));
+        m_guide_title_label->SetLabel(_L("For better drying results, remove the filament and allow it to rotate."));
+        m_guide_description_label->SetLabel(_L("The AMS will automatically rotate the stored filament slots to enhance the drying performance.") +
+            "\n" + _L("Alternatively, you can dry the filament without removing it.") +
+            "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
         m_guide_description_label->Wrap(FromDIP(300));
     } else {
-        m_guide_description_label->SetLabel(_L("Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU.\n"
-            "*Unknown filaments will be treated as PLA."));
+        m_guide_title_label->SetLabel(_L("Please store the filament marked with an exclamation mark."));
+        m_guide_description_label->SetLabel(_L("Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU.") +
+            "\n" + "*" + _L("Unknown filaments will be treated as PLA."));
         m_guide_description_label->Wrap(FromDIP(300));
     }
 
