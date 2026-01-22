@@ -68,6 +68,12 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "hole_coef_2": [
         "-0.0081"
     ],
