@@ -1624,7 +1624,8 @@ std::shared_ptr<DevFilaSystem> AMSDryCtrWin::get_fila_system() const
 
 void AMSDryCtrWin::update_printer_state(MachineObject* obj)
 {
-    m_printer_status.m_is_printing = obj->is_in_printing();
+    m_printer_status.m_is_printing = obj->is_in_printing()
+        && obj->GetExtderSystem()->GetCurrentAmsId() == m_ams_info.m_ams_id;
 }
 
 void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj)
