@@ -134,6 +134,7 @@ private:
     Button* m_back_button{nullptr};
 
     // guide page description
+    Label* m_guide_title_label{nullptr};
     Label* m_guide_description_label{nullptr};
 
     wxCheckBox* m_rotate_spool_toggle{nullptr};
