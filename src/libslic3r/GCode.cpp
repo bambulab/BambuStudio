@@ -2037,7 +2037,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_print = &print;
     m_timelapse_pos_picker.init(&print,m_writer.get_xy_offset().cast<coord_t>());
     // init as filament map
-    update_layer_filament_map(0);
+    update_layer_related_config(0);
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled, m_writer.extruders());
@@ -3163,7 +3163,7 @@ size_t GCode::get_extruder_id(unsigned int filament_id) const
 size_t GCode::get_filament_config_index(int filament_id) const
 {
     if (m_print) {
-        return m_print->get_filament_config_indx(m_cur_print_object, filament_id, m_cur_layer_idx);
+        return m_print->get_filament_config_indx(filament_id, m_cur_layer_idx);
     }
     return 0;
 }
@@ -3171,7 +3171,7 @@ size_t GCode::get_filament_config_index(int filament_id) const
 size_t GCode::get_nozzle_config_index(int filament_id) const
 {
     if (m_print) {
-        return m_print->get_nozzle_config_index(m_cur_print_object, filament_id, m_cur_layer_idx);
+        return m_print->get_nozzle_config_index(filament_id, m_cur_layer_idx);
     }
     return 0;
 }
@@ -3992,7 +3992,7 @@ GCode::LayerResult GCode::process_layer(
 
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
-    update_layer_filament_map(m_layer_index);
+    update_layer_related_config(m_layer_index);
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -6749,15 +6749,22 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     return gcode;
 }
 
-void GCode::update_layer_filament_map(int layer_id){
+void GCode::update_layer_related_config(int layer_id){
     auto group_result = m_print->get_nozzle_group_result();
     if(!group_result)
         return;
 
     auto extruder_map = group_result->get_extruder_map(false,layer_id);
+    auto volume_map = group_result->get_volume_map(layer_id);
+    auto nozzle_map = group_result->get_nozzle_map(layer_id);
 
     m_config.filament_map.values = extruder_map;
+    m_config.filament_volume_map.values = volume_map;
+    m_config.filament_nozzle_map.values = nozzle_map;
+
     m_writer.config.filament_map.values = extruder_map;
+    m_writer.config.filament_volume_map.values = volume_map;
+    m_writer.config.filament_nozzle_map.values = nozzle_map;
 
 }
 

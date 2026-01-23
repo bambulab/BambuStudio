@@ -1092,19 +1092,19 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
     return HighLowCompatible;
 }
 
-int Print::get_filament_config_indx(const PrintObject *print_object, int filament_id, int layer_id)
+int Print::get_filament_config_indx(int filament_id, int layer_id)
 {
-    return get_config_index(print_object, filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_index_map);
+    return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_index_map);
 }
 
-int Print::get_nozzle_config_index(const PrintObject *print_object, int filament_id, int layer_id)
+int Print::get_nozzle_config_index(int filament_id, int layer_id)
 {
-    return get_config_index(print_object, filament_id, layer_id, m_config.printer_extruder_variant.values, m_nozzle_index_map);
+    return get_config_index(filament_id, layer_id, m_config.printer_extruder_variant.values, m_nozzle_index_map);
 }
 
-int Print::get_config_index(const PrintObject *print_object, int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map)
+int Print::get_config_index(int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map)
 {
-    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_id, print_object); 
+    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_id); 
     if (!nozzle_info.has_value()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                  << boost::format(", Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
@@ -2398,7 +2398,7 @@ void Print::_make_skirt()
         extruders_e_per_mm.reserve(set_extruders.size());
         for (auto &extruder_id : set_extruders) {
             extruders.push_back(extruder_id);
-            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material,0).e_per_mm(mm3_per_mm));
+            extruders_e_per_mm.push_back(Extruder((unsigned int)extruder_id, &m_config, m_config.single_extruder_multi_material).e_per_mm(mm3_per_mm));
         }
     }
 

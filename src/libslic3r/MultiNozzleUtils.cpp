@@ -225,30 +225,9 @@ const std::vector<int>& MultiNozzleGroupResult::get_filament_nozzle_map(int laye
     return default_filament_nozzle_map;
 }
 
-const std::vector<int>& MultiNozzleGroupResult::get_filament_nozzle_map(int layer_id, const PrintObject* obj) const
+std::optional<NozzleInfo> MultiNozzleGroupResult::get_nozzle_for_filament(int filament_id, int layer_id) const
 {
-    int global_layer_id = convert_to_global_layer_id(layer_id, obj);
-    return get_filament_nozzle_map(global_layer_id);
-}
-
-int MultiNozzleGroupResult::convert_to_global_layer_id(int layer_id, const PrintObject* obj) const
-{
-    if (!support_dynamic_nozzle_map || !is_by_object || obj == nullptr || layer_id < 0) {
-        return layer_id;
-    }
-    
-    auto iter = object_layer_range.find(const_cast<PrintObject*>(obj));
-    if (iter == object_layer_range.end()) {
-        return layer_id;
-    }
-    
-    const ObjectLayerRange& range = iter->second;
-    return range.first + layer_id;
-}
-
-std::optional<NozzleInfo> MultiNozzleGroupResult::get_nozzle_for_filament(int filament_id, int layer_id, const PrintObject* obj) const
-{
-    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id, obj);
+    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id);
     if (filament_id < 0 || filament_id >= static_cast<int>(filament_nozzle_map.size())) {
         return std::nullopt;
     }
@@ -267,20 +246,20 @@ std::optional<NozzleInfo> MultiNozzleGroupResult::get_nozzle_by_id(int nozzle_id
     return nozzle_list[nozzle_id];
 }
 
-bool MultiNozzleGroupResult::are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id, const PrintObject* obj) const
+bool MultiNozzleGroupResult::are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id) const
 {
-    std::optional<NozzleInfo> nozzle_info1 = get_nozzle_for_filament(filament_id1, layer_id, obj);
-    std::optional<NozzleInfo> nozzle_info2 = get_nozzle_for_filament(filament_id2, layer_id, obj);
+    std::optional<NozzleInfo> nozzle_info1 = get_nozzle_for_filament(filament_id1, layer_id);
+    std::optional<NozzleInfo> nozzle_info2 = get_nozzle_for_filament(filament_id2, layer_id);
 
     if (!nozzle_info1 || !nozzle_info2) return false;
 
     return nozzle_info1->extruder_id == nozzle_info2->extruder_id;
 }
 
-bool MultiNozzleGroupResult::are_filaments_same_nozzle(int filament_id1, int filament_id2, int layer_id, const PrintObject* obj) const
+bool MultiNozzleGroupResult::are_filaments_same_nozzle(int filament_id1, int filament_id2, int layer_id) const
 {
-    std::optional<NozzleInfo> nozzle_info1 = get_nozzle_for_filament(filament_id1, layer_id, obj);
-    std::optional<NozzleInfo> nozzle_info2 = get_nozzle_for_filament(filament_id2, layer_id, obj);
+    std::optional<NozzleInfo> nozzle_info1 = get_nozzle_for_filament(filament_id1, layer_id);
+    std::optional<NozzleInfo> nozzle_info2 = get_nozzle_for_filament(filament_id2, layer_id);
     if (!nozzle_info1 || !nozzle_info2) return false;
 
     return nozzle_info1->group_id == nozzle_info2->group_id;
@@ -295,23 +274,23 @@ int MultiNozzleGroupResult::get_extruder_count() const
     return static_cast<int>(extruder_ids.size());
 }
 
-std::vector<NozzleInfo> MultiNozzleGroupResult::get_used_nozzles_in_extruder(int target_extruder_id, int layer_id, const PrintObject* obj) const
+std::vector<NozzleInfo> MultiNozzleGroupResult::get_used_nozzles_in_extruder(int target_extruder_id, int layer_id) const
 {
     std::set<int> nozzle_ids;
     std::vector<NozzleInfo> result;
 
-    std::vector<unsigned int> target_filaments = get_used_filaments(layer_id, obj);
+    std::vector<unsigned int> target_filaments = get_used_filaments(layer_id);
 
     for (unsigned int filament_id : target_filaments) {
         if (layer_id != -1) {
-            auto nozzle_opt = get_nozzle_for_filament(static_cast<int>(filament_id), layer_id, obj);
+            auto nozzle_opt = get_nozzle_for_filament(static_cast<int>(filament_id), layer_id);
             if (nozzle_opt) {
                 if (target_extruder_id == -1 || nozzle_opt->extruder_id == target_extruder_id) {
                     nozzle_ids.insert(nozzle_opt->group_id);
                 }
             }
         } else {
-            auto nozzles = get_nozzles_for_filament(static_cast<int>(filament_id), obj);
+            auto nozzles = get_nozzles_for_filament(static_cast<int>(filament_id));
             for (const auto& nozzle : nozzles) {
                 if (target_extruder_id == -1 || nozzle.extruder_id == target_extruder_id) {
                     nozzle_ids.insert(nozzle.group_id);
@@ -325,22 +304,22 @@ std::vector<NozzleInfo> MultiNozzleGroupResult::get_used_nozzles_in_extruder(int
     return result;
 }
 
-std::vector<int> MultiNozzleGroupResult::get_used_extruders(int layer_id, const PrintObject* obj) const
+std::vector<int> MultiNozzleGroupResult::get_used_extruders(int layer_id) const
 {
     std::set<int> used_extruders;
     // 获取指定层（或全局）使用的耗材列表
-    std::vector<unsigned int> target_filaments = get_used_filaments(layer_id, obj);
+    std::vector<unsigned int> target_filaments = get_used_filaments(layer_id);
     
     for (auto filament_id : target_filaments) {
         if (layer_id != -1) {
             // 单层模式：获取该层特定耗材对应的喷嘴
-            auto nozzle_opt = get_nozzle_for_filament(static_cast<int>(filament_id), layer_id, obj);
+            auto nozzle_opt = get_nozzle_for_filament(static_cast<int>(filament_id), layer_id);
             if (nozzle_opt) {
                 used_extruders.insert(nozzle_opt->extruder_id);
             }
         } else {
             // 全局模式：获取该耗材在所有层使用的所有喷嘴
-            auto nozzles = get_nozzles_for_filament(static_cast<int>(filament_id), obj);
+            auto nozzles = get_nozzles_for_filament(static_cast<int>(filament_id));
             for (const auto& nozzle : nozzles) {
                 used_extruders.insert(nozzle.extruder_id);
             }
@@ -349,19 +328,17 @@ std::vector<int> MultiNozzleGroupResult::get_used_extruders(int layer_id, const 
     return std::vector<int>(used_extruders.begin(), used_extruders.end());
 }
 
-std::vector<unsigned int> MultiNozzleGroupResult::get_used_filaments(int layer_id, const PrintObject* obj) const
+std::vector<unsigned int> MultiNozzleGroupResult::get_used_filaments(int layer_id) const
 {
     if (!support_dynamic_nozzle_map || layer_id < 0) {
         return used_filaments;
     }
-    
-    int global_layer_id = convert_to_global_layer_id(layer_id, obj);
-    
-    if (global_layer_id >= static_cast<int>(layer_filament_nozzle_maps.size())) {
+
+    if (layer_id >= static_cast<int>(layer_filament_nozzle_maps.size())) {
         return used_filaments;
     }
     
-    const std::vector<int>& filament_nozzle_map = layer_filament_nozzle_maps[global_layer_id];
+    const std::vector<int>& filament_nozzle_map = layer_filament_nozzle_maps[layer_id];
     std::set<unsigned int> layer_used_filaments;
     
     for (size_t idx = 0; idx < filament_nozzle_map.size(); ++idx) {
@@ -508,9 +485,9 @@ std::optional<NozzleGroupInfo> NozzleGroupInfo::deserialize(const std::string &s
     }
 }
 
-std::vector<int> MultiNozzleGroupResult::get_extruder_map(bool zero_based, int layer_id, const PrintObject* obj) const
+std::vector<int> MultiNozzleGroupResult::get_extruder_map(bool zero_based, int layer_id) const
 {
-    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id, obj);
+    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id);
     std::vector<int> extruder_map(filament_nozzle_map.size());
     for (size_t idx = 0; idx < filament_nozzle_map.size(); ++idx) {
         int nozzle_id = filament_nozzle_map[idx];
@@ -529,9 +506,9 @@ std::vector<int> MultiNozzleGroupResult::get_extruder_map(bool zero_based, int l
     return new_filament_map;
 }
 
-std::vector<int> MultiNozzleGroupResult::get_nozzle_map(int layer_id, const PrintObject* obj) const
+std::vector<int> MultiNozzleGroupResult::get_nozzle_map(int layer_id) const
 {
-    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id, obj);
+    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id);
     std::vector<int> nozzle_map(filament_nozzle_map.size());
     for (size_t idx = 0; idx < filament_nozzle_map.size(); ++idx) {
         int nozzle_id = filament_nozzle_map[idx];
@@ -544,9 +521,9 @@ std::vector<int> MultiNozzleGroupResult::get_nozzle_map(int layer_id, const Prin
     return nozzle_map;
 }
 
-std::vector<int> MultiNozzleGroupResult::get_volume_map(int layer_id, const PrintObject* obj) const
+std::vector<int> MultiNozzleGroupResult::get_volume_map(int layer_id) const
 {
-    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id, obj);
+    const std::vector<int>& filament_nozzle_map = get_filament_nozzle_map(layer_id);
     std::vector<int> volume_map(filament_nozzle_map.size());
     for (size_t idx = 0; idx < filament_nozzle_map.size(); ++idx) {
         int nozzle_id = filament_nozzle_map[idx];
@@ -588,7 +565,7 @@ int MultiNozzleGroupResult::estimate_seq_flush_weight(const std::vector<std::vec
     return get_weight_from_volume(total_flush_volume);
 }
 
-std::vector<NozzleInfo> MultiNozzleGroupResult::get_nozzles_for_filament(int filament_id, const PrintObject* obj) const
+std::vector<NozzleInfo> MultiNozzleGroupResult::get_nozzles_for_filament(int filament_id) const
 {
     std::set<int> nozzle_ids;
 
@@ -617,15 +594,15 @@ std::vector<NozzleInfo> MultiNozzleGroupResult::get_nozzles_for_filament(int fil
     return result;
 }
 
-int MultiNozzleGroupResult::get_extruder_id(int filament_id, int layer_id, const PrintObject* obj) const
+int MultiNozzleGroupResult::get_extruder_id(int filament_id, int layer_id) const
 {
-    auto nozzle_info = get_nozzle_for_filament(filament_id, layer_id, obj);
+    auto nozzle_info = get_nozzle_for_filament(filament_id, layer_id);
     return nozzle_info ? nozzle_info->extruder_id : -1;
 }
 
-int MultiNozzleGroupResult::get_nozzle_id(int filament_id, int layer_id, const PrintObject* obj) const
+int MultiNozzleGroupResult::get_nozzle_id(int filament_id, int layer_id) const
 {
-    auto nozzle_info = get_nozzle_for_filament(filament_id, layer_id, obj);
+    auto nozzle_info = get_nozzle_for_filament(filament_id, layer_id);
     return nozzle_info ? nozzle_info->group_id : -1;
 }
 

@@ -3,6 +3,8 @@
 
 #include "libslic3r.h"
 #include "Point.hpp"
+#include "PrintConfig.hpp"
+
 
 namespace Slic3r {
 
@@ -11,7 +13,7 @@ class GCodeConfig;
 class Extruder
 {
 public:
-    Extruder(unsigned int id, GCodeConfig *config, bool share_extruder, unsigned int extruder_id);
+    Extruder(unsigned int id, GCodeConfig *config, bool share_extruder);
     virtual ~Extruder() {}
 
     void   reset() {
@@ -29,7 +31,11 @@ public:
 
     unsigned int id() const { return m_id; }
 
+    NozzleVolumeType volume_type() const;
+    ExtruderType  extruder_type() const;
+
     unsigned int extruder_id() const;
+    unsigned int nozzle_id() const;
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();
@@ -68,8 +74,6 @@ private:
     GCodeConfig *m_config;
     // Print-wide global ID of this extruder.
     unsigned int m_id;
-    // extruder id
-    unsigned int m_extruder_id;
     // Current state of the extruder axis, may be resetted if use_relative_e_distance.
     double       m_E;
     // Current state of the extruder tachometer, used to output the extruded_volume() and used_filament() statistics.
