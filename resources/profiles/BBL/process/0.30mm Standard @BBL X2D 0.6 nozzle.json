@@ -48,6 +48,7 @@
         "Bowden Standard",
         "Bowden High Flow"
     ],
+    "prime_tower_brim_width": "-1",
     "sparse_infill_speed": [
         "270",
         "100",
