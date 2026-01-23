@@ -1,16 +1,17 @@
 #include "Extruder.hpp"
-#include "PrintConfig.hpp"
 
 namespace Slic3r {
 
 std::vector<double> Extruder::m_share_E = {0.,0.};
 std::vector<double> Extruder::m_share_retracted = {0.,0.};
 
-Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder, unsigned int extruder_id) :
+
+// TODO(米粒)：后续增加通过 (GCodeConfig, volume_type, extruder_type) 取参数的接口
+
+Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder) :
     m_id(id),
     m_config(config),
-    m_share_extruder(share_extruder),
-    m_extruder_id(extruder_id)
+    m_share_extruder(share_extruder)
 {
     reset();
     // cache values that are going to be called often
@@ -20,8 +21,42 @@ Extruder::Extruder(unsigned int id, GCodeConfig *config, bool share_extruder, un
 
 unsigned int Extruder::extruder_id() const
 {
-    return m_extruder_id;
+    assert(m_config);
+    if (m_id < m_config->filament_map.size()) {
+        return m_config->filament_map.get_at(m_id) - 1;
+    }
+    return 0;
 }
+
+unsigned int Extruder::nozzle_id() const
+{
+    assert(m_config);
+    if (m_id < m_config->filament_nozzle_map.size()) {
+        return m_config->filament_nozzle_map.get_at(m_id) - 1;
+    }
+    return 0;
+}
+
+NozzleVolumeType Extruder::volume_type() const
+{
+    assert(m_config);
+    if(m_id < m_config->nozzle_volume_type.size()) {
+        return NozzleVolumeType(m_config->nozzle_volume_type.get_at(m_id));
+    }
+
+    return NozzleVolumeType::nvtStandard;
+}
+
+ExtruderType Extruder::extruder_type() const
+{
+    assert(m_config);
+    unsigned int ext_id = this->extruder_id();
+    if (ext_id < m_config->extruder_type.size()) {
+        return ExtruderType(m_config->extruder_type.get_at(ext_id));
+    }
+    return ExtruderType::etDirectDrive;
+}
+
 
 double Extruder::extrude(double dE)
 {

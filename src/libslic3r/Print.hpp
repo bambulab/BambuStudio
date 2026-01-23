@@ -1052,8 +1052,8 @@ public:
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
     }
 
-    int get_filament_config_indx(const PrintObject* print_object, int filament_id, int layer_id);
-    int get_nozzle_config_index(const PrintObject *print_object, int filament_id, int layer_id);
+    int get_filament_config_indx(int filament_id, int layer_id);
+    int get_nozzle_config_index(int filament_id, int layer_id);
 
 protected:
     struct FilamentIndexKey
@@ -1079,7 +1079,7 @@ protected:
         }
     };
     using FilamentIndexMap = std::unordered_map<FilamentIndexKey, int, FilamentIndexKeyHash>;
-    int get_config_index(const PrintObject *print_object, int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map);
+    int get_config_index(int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map);
 
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
