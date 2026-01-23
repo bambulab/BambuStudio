@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-19 16:19+0800\n"
+"POT-Creation-Date: 2026-01-23 11:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -6393,10 +6393,6 @@ msgstr ""
 msgid "The %s nozzle can not print %s."
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "The %s nozzle (0.2mm) can not work with Bowden extruder."
-msgstr ""
-
 #, possible-boost-format
 msgid "Mixing %1% with %2% in printing is not recommended.\n"
 msgstr ""
@@ -6526,9 +6522,6 @@ msgid "Set filaments to use"
 msgstr ""
 
 msgid "Search plate, object and part."
-msgstr ""
-
-msgid "(Unavailable for right extruder)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -8167,6 +8160,15 @@ msgstr ""
 msgid "View all Daily tips"
 msgstr ""
 
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Parameters"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr ""
 
@@ -8339,15 +8341,26 @@ msgid ""
 "No  - Do not change these settings for me"
 msgstr ""
 
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#, possible-c-format, possible-boost-format
+msgid "Use %s for both interface and base"
 msgstr ""
 
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+msgid "A compatible support filament combination is detected. We recommend using this filament for support interface with the recommended parameters."
+msgstr ""
+
+msgid "Recommended combinations:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
 msgstr ""
 
 msgid ""
@@ -9775,7 +9788,7 @@ msgstr ""
 msgid "Exporting G-code"
 msgstr ""
 
-msgid "Grouping error: "
+msgid "Grouping error: filament "
 msgstr ""
 
 msgid " can not be placed in the "
@@ -10938,6 +10951,12 @@ msgid "Filament printable"
 msgstr ""
 
 msgid "The filament is printable in extruder"
+msgstr ""
+
+msgid "Filament support printable"
+msgstr ""
+
+msgid "The filament is printable in extruder when used as support."
 msgstr ""
 
 msgid "Filament change"
