@@ -1979,7 +1979,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1; // the displayed id is based from 1, while internal id is based from 0
         bool enable_support       = m_config->opt_bool("enable_support");
 
-        if (interface_filament_id == -1 && enable_support) return;
+        if (!enable_support) return;
 
         TabPrintModel* tab_model = dynamic_cast<TabPrintModel*>(this);
         bool is_object_config = (tab_model != nullptr && tab_model->has_model_config()); // 判断是否为对象参数
@@ -2094,6 +2094,13 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                         use_same_for_base);
 
                     if (found && !new_conf.empty()) {
+                        // 添加支撑接口耗材参数（索引从1开始）
+                        new_conf.set_key_value("support_interface_filament", new ConfigOptionInt(combination.matched_filament_index + 1));
+                        // 如果需要同时用于支撑基座，添加支撑基座耗材参数
+                        if (use_same_for_base) {
+                            new_conf.set_key_value("support_filament", new ConfigOptionInt(combination.matched_filament_index + 1));
+                        }
+
                         // 使用材料名称而不是类型用于显示
                         rec.model_material = combination.model_material_name;
                         rec.support_material = combination.support_material_name;
