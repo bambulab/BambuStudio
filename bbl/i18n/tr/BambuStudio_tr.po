@@ -9697,8 +9697,17 @@ msgstr "Kalan aylık kota: "
 msgid "Add-ons available: "
 msgstr "Eklentiler mevcut: "
 
-msgid "Optimise Outer Walls"
-msgstr "Dış Duvarları Optimize Edin"
+msgid "Print Priority"
+msgstr ""
+
+msgid "Preserve Surface Finish"
+msgstr ""
+
+msgid "Speed & Strength"
+msgstr ""
+
+msgid "Speed & Strength: Optimizes outer walls for improved performance.\n(Formerly 'Optimise Outer Walls: Yes')\n\nPreserve Surface Finish: Maintains outer wall quality and visual finish.\n(Formerly 'Optimise Outer Walls: No')"
+msgstr ""
 
 msgid "Helio default (recommended)"
 msgstr ""

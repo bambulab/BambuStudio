@@ -17,6 +17,7 @@
 #include "../GUI/Event.hpp"
 #include "../GUI/Plater.hpp"
 #include "../GUI/NotificationManager.hpp"
+#include "../GUI/HelioReleaseNote.hpp"
 #include "wx/app.h"
 #include "cstdio"
 
@@ -96,9 +97,10 @@ double HelioQuery::convert_volume_speed(float mm3_per_second) {
     return std::round(value * 1e20) / 1e20;
 }
 
-void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, std::function<void(int, int)> func) {
+void HelioQuery::request_remaining_optimizations(const std::string & helio_api_url, const std::string & helio_api_key, 
+    std::function<void(int, int, const std::string&, bool, bool, bool)> func) {
     std::string query_body = R"( {
-        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations} }",
+        "query": "query GetUserRemainingOpts { user { remainingOptsThisMonth addOnOptimizations isFreeTrialActive isFreeTrialClaimed subscription { name } } freeTrialEligibility }",
         "variables": {}
     } )";
 
@@ -109,8 +111,8 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -125,6 +127,10 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 
                 int global_remaining_opt_count = 0;
                 int global_remaining_addon_opt_count = 0;
+                std::string subscription_name = "";
+                bool free_trial_eligible = false;
+                bool is_free_trial_active = false;
+                bool is_free_trial_claimed = false;
 
                 if (parsed_obj["data"]["user"]["remainingOptsThisMonth"].is_number()) {
                     global_remaining_opt_count = parsed_obj["data"]["user"]["remainingOptsThisMonth"].get<int>();
@@ -134,18 +140,43 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
                     global_remaining_addon_opt_count = parsed_obj["data"]["user"]["addOnOptimizations"].get<int>();
                 }
 
-                func(global_remaining_opt_count, global_remaining_addon_opt_count);
+                // Parse subscription name
+                if (parsed_obj["data"]["user"].contains("subscription") 
+                    && parsed_obj["data"]["user"]["subscription"].contains("name")
+                    && parsed_obj["data"]["user"]["subscription"]["name"].is_string()) {
+                    subscription_name = parsed_obj["data"]["user"]["subscription"]["name"].get<std::string>();
+                }
+
+                // Parse free trial eligibility
+                if (parsed_obj["data"].contains("freeTrialEligibility") 
+                    && parsed_obj["data"]["freeTrialEligibility"].is_boolean()) {
+                    free_trial_eligible = parsed_obj["data"]["freeTrialEligibility"].get<bool>();
+                }
+
+                // Parse isFreeTrialActive
+                if (parsed_obj["data"]["user"].contains("isFreeTrialActive") 
+                    && parsed_obj["data"]["user"]["isFreeTrialActive"].is_boolean()) {
+                    is_free_trial_active = parsed_obj["data"]["user"]["isFreeTrialActive"].get<bool>();
+                }
+
+                // Parse isFreeTrialClaimed
+                if (parsed_obj["data"]["user"].contains("isFreeTrialClaimed") 
+                    && parsed_obj["data"]["user"]["isFreeTrialClaimed"].is_boolean()) {
+                    is_free_trial_claimed = parsed_obj["data"]["user"]["isFreeTrialClaimed"].get<bool>();
+                }
+
+                func(global_remaining_opt_count, global_remaining_addon_opt_count, subscription_name, free_trial_eligible, is_free_trial_active, is_free_trial_claimed);
             }
             else {
-                func(0, 0);
+                func(0, 0, "", false, false, false);
             }
         }
         catch (...) {
-            func(0, 0);
+            func(0, 0, "", false, false, false);
         }
             })
         .on_error([func](std::string body, std::string error, unsigned status) {
-            func(0, 0);
+            func(0, 0, "", false, false, false);
             BOOST_LOG_TRIVIAL(error) << "Failed to obtain remaining optimization attempts: " << error << ", status: " << status;
         })
         .perform();
@@ -169,8 +200,8 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -209,7 +240,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
             } catch (...) {}
         })
         .on_error([](std::string body, std::string error, unsigned status) {
-            // BOOST_LOG_TRIVIAL(info) << (boost::format("error: %1%, message: %2%") % error % body).str()
+            BOOST_LOG_TRIVIAL(error) << "request_support_machine error: " << error << ", status: " << status << ", body: " << body;
         })
         .perform();
 }
@@ -217,7 +248,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
 void HelioQuery::request_support_material(const std::string helio_api_url, const std::string helio_api_key, int page)
 {
     std::string query_body = R"( {
-			"query": "query GetMaterias($page: Int) { materials(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Material  { id name alternativeNames { bambustudio } } } } }",
+			"query": "query GetMaterias($page: Int) { materials(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Material  { id name feedstock alternativeNames { bambustudio } } } } }",
             "variables": {"page": %1%}
 		} )";
 
@@ -231,8 +262,8 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -250,6 +281,7 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
                             HelioQuery::SupportedData sp;
                             if (pobj.contains("id") && !pobj["id"].is_null()) { sp.id = pobj["id"].get<std::string>(); }
                             if (pobj.contains("name") && !pobj["id"].is_null()) { sp.name = pobj["name"].get<std::string>(); }
+                            if (pobj.contains("feedstock") && !pobj["feedstock"].is_null()) { sp.feedstock = pobj["feedstock"].get<std::string>(); }
                             if (pobj.contains("alternativeNames") && pobj["alternativeNames"].is_object()) {
                                 auto alternativeNames = pobj["alternativeNames"];
 
@@ -262,7 +294,10 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
                                     if (pobj.contains("name") && !pobj["id"].is_null()) { sp.native_name = pobj["name"].get<std::string>(); }
                                 }
                             }
-                            supported_materials.push_back(sp);
+                            // Only include materials with feedstock type FILAMENT
+                            if (sp.feedstock == "FILAMENT") {
+                                supported_materials.push_back(sp);
+                            }
                         }
                     }
 
@@ -275,7 +310,7 @@ void HelioQuery::request_support_material(const std::string helio_api_url, const
             } catch (...) {}
         })
         .on_error([](std::string body, std::string error, unsigned status) {
-            // BOOST_LOG_TRIVIAL(info) << (boost::format("error: %1%, message: %2%") % error % body).str()
+            BOOST_LOG_TRIVIAL(error) << "request_support_material error: " << error << ", status: " << status << ", body: " << body;
         })
         .perform();
 }
@@ -376,8 +411,8 @@ void HelioQuery::optimization_feedback(const std::string helio_api_url, const st
 
     http.header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -404,8 +439,8 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -450,8 +485,8 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
 
     Http http = Http::put(upload_url);
     http.header("Content-Type", "application/octet-stream")
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION));
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION));
 
     boost::filesystem::path file_path(file_path_string);
 
@@ -499,7 +534,7 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
     result.success = false;
 
     std::string poll_query = R"( {
-        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress } }",
+        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress errors errorsV2 { line type } } }",
         "variables": { "id": "%1%" }
     } )";
     std::string poll_body = (boost::format(poll_query) % gcode_id).str();
@@ -515,10 +550,46 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
                 json poll_obj = json::parse(poll_body);
                 if (!poll_obj["data"]["gcodeV2"].is_null()) {
                     auto gcode_data = poll_obj["data"]["gcodeV2"];
-                    result.status_str = gcode_data["status"];
-                    result.progress = gcode_data["progress"];
-                    result.sizeKb = gcode_data["sizeKb"];
-                    result.success = true;
+                    
+                    // Verify status field exists and is valid before considering the response successful
+                    if (gcode_data.contains("status") && gcode_data["status"].is_string()) {
+                        result.status_str = gcode_data["status"];
+                        result.progress = gcode_data["progress"];
+                        result.sizeKb = gcode_data["sizeKb"];
+                        
+                        // Parse errors if present
+                        if (gcode_data.contains("errors") && !gcode_data["errors"].is_null()) {
+                            auto errors_data = gcode_data["errors"];
+                            if (errors_data.is_array()) {
+                                for (const auto& error : errors_data) {
+                                    if (error.is_string()) {
+                                        result.errors.push_back(error.get<std::string>());
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Parse errorsV2 for more detailed error info
+                        if (gcode_data.contains("errorsV2") && !gcode_data["errorsV2"].is_null()) {
+                            auto errors_v2 = gcode_data["errorsV2"];
+                            if (errors_v2.is_array()) {
+                                for (const auto& err : errors_v2) {
+                                    std::string detailed_error;
+                                    if (err.contains("type") && err["type"].is_string()) {
+                                        detailed_error = err["type"].get<std::string>();
+                                    }
+                                    if (err.contains("line") && !err["line"].is_null()) {
+                                        detailed_error += " (line " + std::to_string(err["line"].get<int>()) + ")";
+                                    }
+                                    if (!detailed_error.empty()) {
+                                        result.errors.push_back(detailed_error);
+                                    }
+                                }
+                            }
+                        }
+                        
+                        result.success = true;
+                    }
                 }
             }
             catch (...) {
@@ -564,8 +635,8 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -609,8 +680,32 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
             res.status_str = gcode["status"];
             res.progress = gcode["progress"];
 
+            // Check for errors in initial response
+            if (gcode.contains("errors") && !gcode["errors"].is_null()) {
+                auto errors_data = gcode["errors"];
+                if (errors_data.is_array() && !errors_data.empty()) {
+                    std::string error_message;
+                    for (size_t i = 0; i < errors_data.size(); ++i) {
+                        if (errors_data[i].is_string()) {
+                            std::string current_error = errors_data[i].get<std::string>();
+                            if (errors_data.size() > 1) {
+                                error_message += std::to_string(i + 1) + ". " + current_error;
+                                if (i != errors_data.size() - 1) {
+                                    error_message += "\n";
+                                }
+                            } else {
+                                error_message = current_error;
+                            }
+                        }
+                    }
+                    res.success = false;
+                    res.error = error_message;
+                    return;
+                }
+            }
+
             int poll_count = 0;
-            while (res.status_str != "READY" && poll_count < 60) {
+            while (res.status_str != "READY" && res.status_str != "ERROR" && poll_count < 60) {
                 std::this_thread::sleep_for(std::chrono::seconds(2));
 
                 PollResult poll_res = poll_gcode_status(helio_api_url, helio_api_key, res.id);
@@ -619,6 +714,31 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
                     res.status_str = poll_res.status_str;
                     res.progress = poll_res.progress;
                     res.sizeKb = poll_res.sizeKb;
+                    
+                    // Check for errors during polling
+                    if (!poll_res.errors.empty()) {
+                        std::string error_message;
+                        for (size_t i = 0; i < poll_res.errors.size(); ++i) {
+                            if (poll_res.errors.size() > 1) {
+                                error_message += std::to_string(i + 1) + ". " + poll_res.errors[i];
+                                if (i != poll_res.errors.size() - 1) {
+                                    error_message += "\n";
+                                }
+                            } else {
+                                error_message = poll_res.errors[i];
+                            }
+                        }
+                        res.success = false;
+                        res.error = error_message;
+                        return;
+                    }
+                    
+                    // Handle ERROR status even if errors array is empty
+                    if (res.status_str == "ERROR") {
+                        res.success = false;
+                        res.error = _u8L("Something went wrong while creating GCode. Please check your custom GCodes");
+                        return;
+                    }
                 }
 
                 poll_count++;
@@ -785,8 +905,8 @@ std::string HelioQuery::create_optimization_default_get(const std::string helio_
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     std::string response_headers;
@@ -839,8 +959,8 @@ HelioQuery::CreateSimulationResult HelioQuery::create_simulation(const std::stri
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -896,8 +1016,8 @@ void HelioQuery::stop_simulation(const std::string helio_api_url, const std::str
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -927,7 +1047,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 {
     HelioQuery::CheckSimulationProgressResult res;
     std::string                               query_body_template = R"( {
-							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl } }",
+							"query": "query Simulation($id: ID!) { simulation(id: $id) { id name progress status thermalIndexGcodeUrl printInfo { printOutcome printOutcomeDescription temperatureDirection temperatureDirectionDescription caveats { caveatType description } } speedFactor suggestedFixes { category extraDetails fix orderIndex } } }",
 							"variables": {
 								"id": "%1%"
 							}
@@ -939,8 +1059,8 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -976,6 +1096,62 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
                 res.is_finished = parsed_obj["data"]["simulation"]["status"] == "FINISHED";
                 if (res.is_finished) {
                     res.url = parsed_obj["data"]["simulation"]["thermalIndexGcodeUrl"];
+                    
+                    // Parse printInfo if present
+                    if (parsed_obj["data"]["simulation"].contains("printInfo") && 
+                        !parsed_obj["data"]["simulation"]["printInfo"].is_null()) {
+                        auto printInfo = parsed_obj["data"]["simulation"]["printInfo"];
+                        PrintInfo info;
+                        info.printOutcome = printInfo["printOutcome"];
+                        if (printInfo.contains("printOutcomeDescription") && printInfo["printOutcomeDescription"].is_string()) {
+                            info.printOutcomeDescription = printInfo["printOutcomeDescription"];
+                        }
+                        info.temperatureDirection = printInfo["temperatureDirection"];
+                        if (printInfo.contains("temperatureDirectionDescription") && printInfo["temperatureDirectionDescription"].is_string()) {
+                            info.temperatureDirectionDescription = printInfo["temperatureDirectionDescription"];
+                        }
+                        
+                        if (printInfo.contains("caveats") && printInfo["caveats"].is_array()) {
+                            for (const auto& caveat : printInfo["caveats"]) {
+                                Caveat c;
+                                c.caveatType = caveat["caveatType"];
+                                c.description = caveat["description"];
+                                info.caveats.push_back(c);
+                            }
+                        }
+                        res.simulationResult.printInfo = info;
+                    }
+                    
+                    // Parse speedFactor if present
+                    if (parsed_obj["data"]["simulation"].contains("speedFactor") && 
+                        !parsed_obj["data"]["simulation"]["speedFactor"].is_null()) {
+                        res.simulationResult.speedFactor = parsed_obj["data"]["simulation"]["speedFactor"];
+                    }
+                    
+                    // Parse suggestedFixes if present
+                    if (parsed_obj["data"]["simulation"].contains("suggestedFixes") && 
+                        parsed_obj["data"]["simulation"]["suggestedFixes"].is_array()) {
+                        for (const auto& fixJson : parsed_obj["data"]["simulation"]["suggestedFixes"]) {
+                            SuggestedFix fix;
+                            if (fixJson.contains("category") && fixJson["category"].is_string()) {
+                                fix.category = fixJson["category"];
+                            }
+                            if (fixJson.contains("fix") && fixJson["fix"].is_string()) {
+                                fix.fix = fixJson["fix"];
+                            }
+                            if (fixJson.contains("orderIndex") && !fixJson["orderIndex"].is_null()) {
+                                fix.orderIndex = fixJson["orderIndex"].get<int>();
+                            }
+                            if (fixJson.contains("extraDetails") && fixJson["extraDetails"].is_array()) {
+                                for (const auto& detail : fixJson["extraDetails"]) {
+                                    if (detail.is_string()) {
+                                        fix.extraDetails.push_back(detail.get<std::string>());
+                                    }
+                                }
+                            }
+                            res.simulationResult.suggestedFixes.push_back(fix);
+                        }
+                    }
                 }
             }
         })
@@ -1054,8 +1230,8 @@ Slic3r::HelioQuery::CreateOptimizationResult HelioQuery::create_optimization(con
     auto http = Http::post(helio_api_url);
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -1111,8 +1287,8 @@ void HelioQuery::stop_optimization(const std::string helio_api_url, const std::s
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     http.timeout_connect(20)
@@ -1154,8 +1330,8 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
 
     http.header("Content-Type", "application/json")
         .header("Authorization", helio_api_key)
-        .header("X-Version-Type", "Official")
-        .header("X-BambuStudio-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
+        .header("HelioAdditive-Client-Name", SLIC3R_APP_NAME)
+        .header("HelioAdditive-Client-Version", GUI::VersionInfo::convert_full_version(SLIC3R_VERSION))
         .set_post_body(query_body);
 
     if (GUI::wxGetApp().app_config->get("language") == "zh_CN") {
@@ -1375,6 +1551,8 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
         HelioQuery::CreateSimulationResult create_simulation_res = HelioQuery::create_simulation(helio_api_url, helio_api_key, gcode_id, simulation_input_data);
         current_simulation_result = create_simulation_res;
         current_optimization_result.reset();
+        // Clear previous stored result since we're starting a new simulation
+        clear_last_simulation_result();
 
         if (!create_simulation_res.trace_id.empty()) {
             HelioQuery::last_simulation_trace_id = create_simulation_res.trace_id;  
@@ -1407,21 +1585,42 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
                         evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         if (check_simulation_progress_res.is_finished) {
-                            // notification_manager->push_notification((boost::format("Helio: Simulation finished.")).str());
-                            std::string simulated_gcode_path = HelioBackgroundProcess::create_path_for_simulated_gcode(
-                                m_gcode_result->filename);
-
+                            // Start loading preview in background immediately (don't wait for dialog)
+                            int original_time_seconds = static_cast<int>(m_gcode_result->print_statistics.modes[0].time);
+                            std::string url = check_simulation_progress_res.url;
+                            std::string filename = m_gcode_result->filename;
+                            HelioQuery::SimulationResult sim_result = check_simulation_progress_res.simulationResult;
+                            
+                            // Store simulation result for later access (e.g., "View Summary" button)
+                            last_simulation_result = sim_result;
+                            last_original_print_time_seconds = original_time_seconds;
+                            last_action = 0;  // Simulation
+                            
+                            // Start preview loading in background thread immediately
+                            std::string simulated_gcode_path = create_path_for_simulated_gcode(filename);
                             HelioQuery::RatingData rating_data;
-                            HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(check_simulation_progress_res.url,
-                                                                                           simulated_gcode_path, m_gcode_result->filename,
-                                                                                           notification_manager, rating_data);
+                            save_downloaded_gcode_and_load_preview(url,
+                                                                   simulated_gcode_path, filename,
+                                                                   notification_manager, rating_data);
+                            
+                            // Show simulation results dialog on main thread (non-blocking for preview)
+                            // Capture roles_times for calculating optimizable sections
+                            auto roles_times = m_gcode_result->print_statistics.modes[0].roles_times;
+                            GUI::wxGetApp().plater()->CallAfter([sim_result, original_time_seconds, roles_times]() {
+                                // This runs on the main thread
+                                GUI::HelioSimulationResultsDialog results_dlg(nullptr, sim_result, original_time_seconds, roles_times);
+                                results_dlg.ShowModal();
+                            });
                             break;
                         }
                     } else {
                         set_state(STATE_CANCELED);
 
+                        BOOST_LOG_TRIVIAL(error) << "Helio simulation progress check returned error: " << check_simulation_progress_res.error;
+                        
+                        std::string error_msg = _u8L("Helio: simulation failed") + "\n" + check_simulation_progress_res.error;
                         Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "",
-                                                                                             false, _u8L("Helio: simulation failed"));
+                                                                                             false, error_msg);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         break;
                     }
@@ -1478,6 +1677,8 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
         HelioQuery::CreateOptimizationResult create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
         current_optimization_result = create_optimization_res;
         current_simulation_result.reset();
+        // Clear previous stored result since we're starting a new optimization
+        clear_last_simulation_result();
 
         if (!create_optimization_res.trace_id.empty()) {
             HelioQuery::last_optimization_trace_id = create_optimization_res.trace_id;
@@ -1528,9 +1729,12 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
                     }
                     else {
                         set_state(STATE_CANCELED);
-
+                        
+                        BOOST_LOG_TRIVIAL(error) << "Helio optimization progress check returned error: " << check_optimzaion_progress_res.error;
+                        
+                        std::string error_msg = _u8L("Helio: optimization failed") + "\n" + check_optimzaion_progress_res.error;
                         Slic3r::HelioCompletionEvent* evt = new Slic3r::HelioCompletionEvent(GUI::EVT_HELIO_PROCESSING_COMPLETED, 0, "", "",
-                            false, "Helio: optimization failed");
+                            false, error_msg);
                         wxQueueEvent(GUI::wxGetApp().plater(), evt);
                         break;
                     }
