@@ -882,263 +882,234 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     if (!upgrade_ptr) {
         return;
     }
-
-    const auto &new_version_list = upgrade_ptr->GetNewVersionList();
-
     bool has_hub_model = false;
-
+    const auto &new_version_list = upgrade_ptr->GetNewVersionList();
     bool is_o_series = obj->is_series_o();
 
     //ams
-    if (obj->ams_exist_bits != 0)
+    std::string extra_ams_str = "ams_f1";
+    auto extra_ams_it = obj->module_vers.end();
+
+    for (auto it = obj->module_vers.begin(); it != obj->module_vers.end(); it++)
     {
-        std::string extra_ams_str = "ams_f1";
-        auto extra_ams_it = obj->module_vers.end();
-
-        for (auto it = obj->module_vers.begin(); it != obj->module_vers.end(); it++)
+        const std::string ams_if_key = it->first;
+        if (ams_if_key.find(extra_ams_str) != std::string::npos)
         {
-            const std::string ams_if_key = it->first;
-            if (ams_if_key.find(extra_ams_str) != std::string::npos)
-            {
-                extra_ams_it = it;
-                break;
-            }
+            extra_ams_it = it;
+            break;
         }
+    }
 
-        if (extra_ams_it != obj->module_vers.end()) {
-            wxString sn_text = extra_ams_it->second.sn;
-            sn_text = sn_text.MakeUpper();
+    if (extra_ams_it != obj->module_vers.end())
+    {
+        wxString sn_text = extra_ams_it->second.sn;
+        sn_text = sn_text.MakeUpper();
 
-            wxString ver_text = extra_ams_it->second.sw_ver;
+        wxString ver_text = extra_ams_it->second.sw_ver;
 
-            bool has_new_version = false;
-            auto new_extra_ams_ver = new_version_list.find(extra_ams_str);
-            if (new_extra_ams_ver != new_version_list.end())
-                has_new_version = true;
+        bool has_new_version = false;
+        auto new_extra_ams_ver = new_version_list.find(extra_ams_str);
+        if (new_extra_ams_ver != new_version_list.end())
+            has_new_version = true;
 
-            extra_ams_it->second.sw_new_ver;
-            if (has_new_version) {
-                m_extra_ams_panel->m_ams_new_version_img->Show();
-                ver_text = new_extra_ams_ver->second.sw_ver;
-                if ((extra_ams_it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
-                    ver_text += wxString::Format("(%s)", _L("Beta version"));
-                }
-                ver_text += wxString::Format("->%s", new_extra_ams_ver->second.sw_new_ver);
-                if (((extra_ams_it->second.firmware_flag >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
-                    ver_text += wxString::Format("(%s)", _L("Beta version"));
-                }
+        extra_ams_it->second.sw_new_ver;
+        if (has_new_version) {
+            m_extra_ams_panel->m_ams_new_version_img->Show();
+            ver_text = new_extra_ams_ver->second.sw_ver;
+            if ((extra_ams_it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
+                ver_text += wxString::Format("(%s)", _L("Beta version"));
             }
-            else {
-                m_extra_ams_panel->m_ams_new_version_img->Hide();
-                ver_text = wxString::Format("%s(%s)", extra_ams_it->second.sw_ver, _L("Latest version"));
-                if ((extra_ams_it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
-                    m_extra_ams_panel->m_staticText_beta_version->Show();
-                }
-                else {
-                    m_extra_ams_panel->m_staticText_beta_version->Hide();
-                }
+            ver_text += wxString::Format("->%s", new_extra_ams_ver->second.sw_new_ver);
+            if (((extra_ams_it->second.firmware_flag >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
+                ver_text += wxString::Format("(%s)", _L("Beta version"));
             }
-            wxString name_text = "-";
-            if (!extra_ams_it->second.product_name.empty())
-                name_text = extra_ams_it->second.product_name;
-            else
-                name_text = "AMS Lite";
-
-            m_extra_ams_panel->m_staticText_ams->SetLabel(name_text);
-            m_extra_ams_panel->m_staticText_ams_sn_val->SetLabelText(sn_text);
-            m_extra_ams_panel->m_staticText_ams_ver_val->SetLabelText(ver_text);
-            show_ams(false);
-            show_extra_ams(true);
         }
         else {
-            show_extra_ams(false);
-            show_ams(true);
-            std::map<int, DevFirmwareVersionInfo> ver_list = obj->get_ams_version();
+            m_extra_ams_panel->m_ams_new_version_img->Hide();
+            ver_text = wxString::Format("%s(%s)", extra_ams_it->second.sw_ver, _L("Latest version"));
+            if ((extra_ams_it->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
+                m_extra_ams_panel->m_staticText_beta_version->Show();
+            }
+            else {
+                m_extra_ams_panel->m_staticText_beta_version->Hide();
+            }
+        }
+        wxString name_text = "-";
+        if (!extra_ams_it->second.product_name.empty())
+            name_text = extra_ams_it->second.product_name;
+        else
+            name_text = "AMS Lite";
 
-            if (ver_list.size() != m_amspanel_list.size()) {
-                int add_count = ver_list.size() - m_amspanel_list.size();
-                if (add_count > 0) {
-                    for (int i = 0; i < add_count; i++) {
-                        auto amspanel = new AmsPanel(this, wxID_ANY);
-                        wxGetApp().UpdateDarkUIWin(amspanel);
-                        m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
-                        m_amspanel_list.Add(amspanel);
-                    }
-                }
-                if (add_count < 0) {
-                    for (int i = 0; i < -add_count; i++) {
-                        m_amspanel_list.back()->Destroy();
-                        m_amspanel_list.pop_back();
-                    }
+        m_extra_ams_panel->m_staticText_ams->SetLabel(name_text);
+        m_extra_ams_panel->m_staticText_ams_sn_val->SetLabelText(sn_text);
+        m_extra_ams_panel->m_staticText_ams_ver_val->SetLabelText(ver_text);
+        //show_ams(false);
+        show_extra_ams(true);
+    }
+    else
+    {
+        show_extra_ams(false);
+    }
+
+    // process ams
+    std::map<int, DevFirmwareVersionInfo> ver_list = obj->get_ams_version();
+
+    if (ver_list.size() > 0) {
+        if (ver_list.size() != m_amspanel_list.size()) {
+            int add_count = ver_list.size() - m_amspanel_list.size();
+            if (add_count > 0) {
+                for (int i = 0; i < add_count; i++) {
+                    auto amspanel = new AmsPanel(this, wxID_ANY);
+                    wxGetApp().UpdateDarkUIWin(amspanel);
+                    m_ams_info_sizer->Add(amspanel, 1, wxEXPAND, 5);
+                    m_amspanel_list.Add(amspanel);
                 }
             }
+            if (add_count < 0) {
+                for (int i = 0; i < -add_count; i++) {
+                    m_amspanel_list.back()->Destroy();
+                    m_amspanel_list.pop_back();
+                }
+            }
+        }
 
-            for (auto i = 0; i < m_amspanel_list.GetCount(); i++) {
-                AmsPanel* amspanel = m_amspanel_list[i];
-                amspanel->Hide();
+        for (auto i = 0; i < m_amspanel_list.GetCount(); i++) {
+            AmsPanel *amspanel = m_amspanel_list[i];
+            amspanel->Hide();
+        }
+
+        auto        ams_index = 0;
+        const auto &ams_list  = obj->GetFilaSystem()->GetAmsList();
+        const int   ams_size  = ver_list.size();
+        //  for (int i = 0; i <= ver_list.size(); i++)
+        for (auto iter_ams = ver_list.cbegin(); iter_ams != ver_list.cend(); iter_ams++) {
+            wxString ams_name;
+            wxString ams_sn;
+            wxString ams_ver;
+
+            AmsPanel *amspanel = m_amspanel_list[ams_index];
+            amspanel->Show();
+
+            auto ams_id = iter_ams->first;
+            ams_id -= ams_id >= 128 ? 128 : 0;
+
+            if (!iter_ams->second.product_name.empty()) {
+                ams_name = iter_ams->second.product_name;
+            } else {
+                size_t   pos             = iter_ams->second.name.find('/');
+                wxString ams_device_name = "AMS-%s";
+
+                if (pos != std::string::npos) {
+                    wxString result = iter_ams->second.name.substr(0, pos);
+                    result.MakeUpper();
+                    if (auto str_it = ACCESSORY_DISPLAY_STR.find(result); str_it != ACCESSORY_DISPLAY_STR.end()) result = str_it->second;
+                    ams_device_name = result + "-%s";
+                }
+
+                wxString ams_text = wxString::Format(ams_device_name, std::to_string(ams_id + 1));
+                ams_name          = ams_text;
             }
 
-            auto ams_index = 0;
-            const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
-            const int   ams_size  = ver_list.size();
-          //  for (int i = 0; i <= ver_list.size(); i++)
-           for (auto iter_ams = ver_list.cbegin(); iter_ams != ver_list.cend(); iter_ams++) {
-                wxString ams_name;
-                wxString ams_sn;
-                wxString ams_ver;
-
-                AmsPanel* amspanel = m_amspanel_list[ams_index];
-                amspanel->Show();
-
-              /*  auto it = ver_list.find(atoi(iter->first.c_str()));
-
-                  if (it == ver_list.end()) {
-                      continue;
-                  }*/
-
-                auto ams_id = iter_ams->first;
-                ams_id -= ams_id >= 128 ? 128 : 0;
-
-                if (!iter_ams->second.product_name.empty())
-                {
-                    ams_name = iter_ams->second.product_name;
-                }
-                else
-                {
-                     size_t pos = iter_ams->second.name.find('/');
-                     wxString ams_device_name = "AMS-%s";
-
-                     if (pos != std::string::npos) {
-                         wxString result = iter_ams->second.name.substr(0, pos);
-                         result.MakeUpper();
-                         if (auto str_it = ACCESSORY_DISPLAY_STR.find(result); str_it != ACCESSORY_DISPLAY_STR.end())
-                             result = str_it->second;
-                         ams_device_name = result + "-%s";
-                     }
-
-                     wxString ams_text = wxString::Format(ams_device_name, std::to_string(ams_id + 1));
-                     ams_name = ams_text;
-                }
-
-                if (iter_ams == ver_list.end()) {
-                    // hide this ams
-                    ams_sn = "-";
+            if (iter_ams == ver_list.end()) {
+                // hide this ams
+                ams_sn  = "-";
+                ams_ver = "-";
+            } else {
+                // update ams img
+                if (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingInProgress) {
                     ams_ver = "-";
-                }
-                else {
-                    // update ams img
-                    if (upgrade_ptr->GetUpgradeState() == DevFirmwareUpgradeState::UpgradingInProgress) {
-                        ams_ver = "-";
-                        amspanel->m_ams_new_version_img->Hide();
-                    }
-                    else {
-                        if (new_version_list.empty()) {
-                            if (upgrade_ptr->HasNewVersion() && !obj->ams_new_version_number.empty() && obj->ams_new_version_number.compare(iter_ams->second.sw_ver) != 0) {
-                                amspanel->m_ams_new_version_img->Show();
-
-                                if (obj->ams_new_version_number.empty()) {
-                                    ams_ver = wxString::Format("%s", iter_ams->second.sw_ver);
-                                    if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        amspanel->m_staticText_beta_version->Show();
-                                    }
-                                    else {
-                                        amspanel->m_staticText_beta_version->Hide();
-                                    }
-
-                                }
-                                else {
-                                    //ams_ver = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
-                                    ams_ver = iter_ams->second.sw_ver;
-                                    if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        ams_ver += wxString::Format("(%s)", _L("Beta version"));
-                                    }
-                                    ams_ver += wxString::Format("->%s", obj->ams_new_version_number);
-
-                                }
-                            }
-                            else {
-                                amspanel->m_ams_new_version_img->Hide();
-                                wxString ver_text = wxString::Format("%s", iter_ams->second.sw_ver, _L("Latest version"));
-                                if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA)
-                                {
-                                    amspanel->m_staticText_beta_version->Show();
-                                }
-                                else
-                                {
-                                    amspanel->m_staticText_beta_version->Hide();
-                                }
-                                ams_ver = ver_text;
-                            }
-                        } else if (!iter_ams->second.sw_new_ver.empty() && (iter_ams->second.sw_new_ver != iter_ams->second.sw_ver)) {
+                    amspanel->m_ams_new_version_img->Hide();
+                } else {
+                    if (new_version_list.empty()) {
+                        if (upgrade_ptr->HasNewVersion() && !obj->ams_new_version_number.empty() && obj->ams_new_version_number.compare(iter_ams->second.sw_ver) != 0) {
                             amspanel->m_ams_new_version_img->Show();
-                            ams_ver = wxString::Format("%s->%s", iter_ams->second.sw_ver, iter_ams->second.sw_new_ver);
-                        }
-                        else {
-                            std::string ams_idx = (boost::format("ams/%1%") % ams_id).str();
-                            auto        ver_item = new_version_list.find(ams_idx);
 
-                            if (ver_item == new_version_list.end()) {
-                                amspanel->m_ams_new_version_img->Hide();
-                                wxString ver_text = wxString::Format("%s(%s)", iter_ams->second.sw_ver, _L("Latest version"));
+                            if (obj->ams_new_version_number.empty()) {
+                                ams_ver = wxString::Format("%s", iter_ams->second.sw_ver);
                                 if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
                                     amspanel->m_staticText_beta_version->Show();
+                                } else {
+                                    amspanel->m_staticText_beta_version->Hide();
                                 }
-                                else {
+
+                            } else {
+                                // ams_ver = wxString::Format("%s->%s", it->second.sw_ver, obj->ams_new_version_number);
+                                ams_ver = iter_ams->second.sw_ver;
+                                if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) { ams_ver += wxString::Format("(%s)", _L("Beta version")); }
+                                ams_ver += wxString::Format("->%s", obj->ams_new_version_number);
+                            }
+                        } else {
+                            amspanel->m_ams_new_version_img->Hide();
+                            wxString ver_text = wxString::Format("%s", iter_ams->second.sw_ver, _L("Latest version"));
+                            if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
+                                amspanel->m_staticText_beta_version->Show();
+                            } else {
+                                amspanel->m_staticText_beta_version->Hide();
+                            }
+                            ams_ver = ver_text;
+                        }
+                    } else if (!iter_ams->second.sw_new_ver.empty() && (iter_ams->second.sw_new_ver != iter_ams->second.sw_ver)) {
+                        amspanel->m_ams_new_version_img->Show();
+                        ams_ver = wxString::Format("%s->%s", iter_ams->second.sw_ver, iter_ams->second.sw_new_ver);
+                    } else {
+                        std::string ams_idx  = (boost::format("ams/%1%") % ams_id).str();
+                        auto        ver_item = new_version_list.find(ams_idx);
+
+                        if (ver_item == new_version_list.end()) {
+                            amspanel->m_ams_new_version_img->Hide();
+                            wxString ver_text = wxString::Format("%s(%s)", iter_ams->second.sw_ver, _L("Latest version"));
+                            if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
+                                amspanel->m_staticText_beta_version->Show();
+                            } else {
+                                amspanel->m_staticText_beta_version->Hide();
+                            }
+                            ams_ver = ver_text;
+                        } else {
+                            if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
+                                amspanel->m_ams_new_version_img->Show();
+                                // wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
+                                wxString ver_text = ver_item->second.sw_ver;
+                                if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) { ver_text += wxString::Format("(%s)", _L("Beta version")); }
+                                ver_text += wxString::Format("->%s", ver_item->second.sw_new_ver);
+                                if (((iter_ams->second.firmware_flag >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
+                                    amspanel->m_staticText_beta_version->Show();
+                                } else {
+                                    amspanel->m_staticText_beta_version->Hide();
+                                }
+                                ams_ver = ver_text;
+                            } else {
+                                amspanel->m_ams_new_version_img->Hide();
+                                wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
+                                if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
+                                    amspanel->m_staticText_beta_version->Show();
+                                } else {
                                     amspanel->m_staticText_beta_version->Hide();
                                 }
                                 ams_ver = ver_text;
                             }
-                            else {
-                                if (ver_item->second.sw_new_ver != ver_item->second.sw_ver) {
-                                    amspanel->m_ams_new_version_img->Show();
-                                    //wxString ver_text = wxString::Format("%s->%s", ver_item->second.sw_ver, ver_item->second.sw_new_ver);
-                                    wxString ver_text = ver_item->second.sw_ver;
-                                    if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        ver_text += wxString::Format("(%s)", _L("Beta version"));
-                                    }
-                                    ver_text += wxString::Format("->%s", ver_item->second.sw_new_ver);
-                                    if (((iter_ams->second.firmware_flag >> 2) & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        amspanel->m_staticText_beta_version->Show();
-                                    }
-                                    else {
-                                        amspanel->m_staticText_beta_version->Hide();
-                                    }
-                                    ams_ver = ver_text;
-                                }
-                                else {
-                                    amspanel->m_ams_new_version_img->Hide();
-                                    wxString ver_text = wxString::Format("%s(%s)", ver_item->second.sw_ver, _L("Latest version"));
-                                    if ((iter_ams->second.firmware_flag & 0x3) == FIRMWARE_STASUS::BETA) {
-                                        amspanel->m_staticText_beta_version->Show();
-                                    }
-                                    else {
-                                        amspanel->m_staticText_beta_version->Hide();
-                                    }
-                                    ams_ver = ver_text;
-                                }
-                            }
                         }
-                    }
-
-                    // update ams sn
-                    if (iter_ams->second.sn.empty()) {
-                        ams_sn = "-";
-                    }
-                    else {
-                        wxString sn_text = iter_ams->second.sn;
-                        ams_sn = sn_text.MakeUpper();
                     }
                 }
 
-                amspanel->m_staticText_ams->SetLabelText(ams_name);
-                amspanel->m_staticText_ams_sn_val->SetLabelText(ams_sn);
-                amspanel->m_staticText_ams_ver_val->SetLabelText(ams_ver);
-                ams_index++;
-           }
+                // update ams sn
+                if (iter_ams->second.sn.empty()) {
+                    ams_sn = "-";
+                } else {
+                    wxString sn_text = iter_ams->second.sn;
+                    ams_sn           = sn_text.MakeUpper();
+                }
+            }
+
+            amspanel->m_staticText_ams->SetLabelText(ams_name);
+            amspanel->m_staticText_ams_sn_val->SetLabelText(ams_sn);
+            amspanel->m_staticText_ams_ver_val->SetLabelText(ams_ver);
+            ams_index++;
         }
-    } else {
+        show_ams(true);
+    }
+    else
+    {
         show_ams(false);
-        show_extra_ams(false);
     }
 
     //ext
