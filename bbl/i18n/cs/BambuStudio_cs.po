@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -7434,6 +7434,12 @@ msgstr "Imperiální"
 msgid "Units"
 msgstr "Jednotky"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
@@ -7671,7 +7677,8 @@ msgstr ""
 msgid "Join Customer Experience Improvement Program."
 msgstr ""
 
-msgid "What data would be collected?"
+msgctxt "Preferences"
+msgid "Learn more"
 msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."

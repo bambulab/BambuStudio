@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -7348,6 +7348,12 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
@@ -7585,7 +7591,8 @@ msgstr ""
 msgid "Join Customer Experience Improvement Program."
 msgstr ""
 
-msgid "What data would be collected?"
+msgctxt "Preferences"
+msgid "Learn more"
 msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."

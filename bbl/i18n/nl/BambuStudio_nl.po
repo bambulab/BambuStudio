@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7541,6 +7541,12 @@ msgstr "Imperiaal"
 msgid "Units"
 msgstr "Eenheden"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Bewaar slechts één Bambu Studio-exemplaar"
 
@@ -7778,8 +7784,9 @@ msgstr "Gebruikerservaring"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Doe mee aan het Customer Experience Improvement Program."
 
-msgid "What data would be collected?"
-msgstr "Welke gegevens worden verzameld?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Auto-invullen van eerder ingelogde accounts."
@@ -15855,6 +15862,9 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "Welke gegevens worden verzameld?"
 
 #~ msgid "Performs full purging for the best print quality. Requires more material and time."
 #~ msgstr "Voert een volledige reiniging uit voor de beste afdrukkwaliteit. Vereist meer materiaal en tijd."
