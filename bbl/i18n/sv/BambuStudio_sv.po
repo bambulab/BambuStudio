@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7536,6 +7536,12 @@ msgstr "Brittisk standard"
 msgid "Units"
 msgstr "Enheter"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Behåll endast en Bambu Studio instans"
 
@@ -7773,8 +7779,9 @@ msgstr "Användarupplevelse"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Gå med i programmet för Förbättring av Kundupplevelsen."
 
-msgid "What data would be collected?"
-msgstr "Vilka uppgifter skulle samlas in?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Fyll automatiskt i tidigare inloggade konton."
@@ -15855,6 +15862,9 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "Vilka uppgifter skulle samlas in?"
 
 #~ msgid "Performs full purging for the best print quality. Requires more material and time."
 #~ msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."

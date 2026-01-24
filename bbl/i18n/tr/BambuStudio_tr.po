@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -7533,6 +7533,12 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Birimler"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Yalnızca bir Bambu Studio örneği bulundurun"
 
@@ -7770,8 +7776,9 @@ msgstr "Kullanıcı Deneyimi"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Müşteri Deneyimi İyileştirme Programına katılın."
 
-msgid "What data would be collected?"
-msgstr "Hangi veriler toplanacaktır?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Önceden oturum açılmış hesapları otomatik olarak doldur."
@@ -15815,6 +15822,9 @@ msgid ""
 msgstr ""
 "Büzülme, Çarpılma ve Gerilim\n"
 "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "Hangi veriler toplanacaktır?"
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF filamentleri sert ve kırılgandır. AMS'de kırılması veya sıkışması kolaydır, lütfen dikkatli kullanın."

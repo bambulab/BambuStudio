@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7538,6 +7538,12 @@ msgstr "Imperiale"
 msgid "Units"
 msgstr "Unità"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Mantieni una sola istanza di Bambu Studio"
 
@@ -7775,8 +7781,9 @@ msgstr "Esperienza utente"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Partecipa al programma di miglioramento dell'esperienza utenti."
 
-msgid "What data would be collected?"
-msgstr "Quali dati verrebbero raccolti?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Compila automaticamente gli account connessi in precedenza."
@@ -15855,6 +15862,9 @@ msgid ""
 msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "Quali dati verrebbero raccolti?"
 
 #~ msgid "Performs full purging for the best print quality. Requires more material and time."
 #~ msgstr "Esegue uno spurgo completo per garantire la migliore qualità di stampa. Richiede più materiale e tempo."

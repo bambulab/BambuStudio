@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-22 17:07+0800\n"
+"POT-Creation-Date: 2026-01-24 17:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7538,6 +7538,12 @@ msgstr "Angolszász"
 msgid "Units"
 msgstr "Mértékegység"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Csak egy Bambu Studio-példány megtartása"
 
@@ -7775,8 +7781,9 @@ msgstr "Felhasználói élmény"
 msgid "Join Customer Experience Improvement Program."
 msgstr "Csatlakozz a felhasználói élmény javítását célzó programhoz."
 
-msgid "What data would be collected?"
-msgstr "Milyen adatokat gyűjtünk?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Korábban már bejelentkezett fiókok adatainak automatikus kitöltése."
@@ -15849,6 +15856,9 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "Milyen adatokat gyűjtünk?"
 
 #~ msgid "Performs full purging for the best print quality. Requires more material and time."
 #~ msgstr "Teljes átöblítést végez a legjobb nyomtatási minőség érdekében. Több anyagot és időt igényel."
