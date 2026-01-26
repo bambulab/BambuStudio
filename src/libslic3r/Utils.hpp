@@ -800,43 +800,19 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     return buffer;
 }
 
-// Centralized function to format time from a std::tm structure
-// This is the single source of truth for time formatting throughout the application
-inline std::string format_time_hm(const std::tm* tm, bool use_12h_format = false)
-{
-    std::ostringstream formattedTime;
-
-    if (use_12h_format) {
-        int hour = tm->tm_hour;
-        std::string suffix = (hour >= 12) ? "PM" : "AM";
-        int display_hour = hour % 12;
-        if (display_hour == 0) display_hour = 12; // Midnight = 12AM, Noon = 12PM
-        formattedTime << std::setw(2) << std::setfill('0') << display_hour << ":"
-                      << std::setw(2) << std::setfill('0') << tm->tm_min << suffix;
-    } else {
-        // 24-hour format
-        formattedTime << std::setw(2) << std::setfill('0') << tm->tm_hour << ":"
-                      << std::setw(2) << std::setfill('0') << tm->tm_min;
-    }
-
-    return formattedTime.str();
-}
-
-inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_format = false)
+inline std::string get_bbl_finish_time_dhm(float time_in_secs)
 {
     if (time_in_secs < 1) return "Finished";
-
-    // Get current time first
+    time_t   finish_time    = std::time(nullptr) + static_cast<time_t>(time_in_secs);
+    std::tm *finish_tm      = std::localtime(&finish_time);
+    int      finish_hour    = finish_tm->tm_hour;
+    int      finish_minute  = finish_tm->tm_min;
+    int      finish_day     = finish_tm->tm_yday;
+    int      finish_year    = finish_tm->tm_year + 1900;
     time_t   current_time   = std::time(nullptr);
     std::tm *current_tm     = std::localtime(&current_time);
     int      current_day    = current_tm->tm_yday;
     int      current_year   = current_tm->tm_year + 1900;
-
-    // Calculate finish time and get its local time
-    time_t   finish_time    = current_time + static_cast<time_t>(time_in_secs);
-    std::tm  finish_tm = *std::localtime(&finish_time);  // Copy to avoid overwrite
-    int      finish_day     = finish_tm.tm_yday;
-    int      finish_year    = finish_tm.tm_year + 1900;
 
     int diff_day = 0;
     if (current_year != finish_year) {
@@ -855,7 +831,9 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_form
         diff_day = finish_day - current_day;
     }
 
-    std::string finish_time_str = format_time_hm(&finish_tm, use_12h_format);
+    std::ostringstream formattedTime;
+    formattedTime << std::setw(2) << std::setfill('0') << finish_hour << ":" << std::setw(2) << std::setfill('0') << finish_minute;
+    std::string finish_time_str = formattedTime.str();
     if (diff_day != 0) finish_time_str += "+" + std::to_string(diff_day);
 
     return finish_time_str;
