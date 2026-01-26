@@ -82,7 +82,10 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
         std::string extruder_variant = print_config->option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
         std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id].begin(), filament_variants[filament_id].end());
         if (filament_variants_set.count(extruder_variant) == 0){
-            std::string error_msg = _L("Filament Grouping Error: Filament ") + std::to_string(filament_id + 1) + _L(" is not supported by the ") + extruder_variant +
+            NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+            auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+            std::string      volume       = volume_names.at(variant_name);
+            std::string error_msg = _L("Filament Grouping Error: Filament ") + std::to_string(filament_id + 1) + _L(" is not supported by the ") + _L(volume) +
                                     _L(" nozzle. ") + _L("Please change the nozzle type or reassign the filament and try again.");
 
             throw Slic3r::RuntimeError(error_msg);
