@@ -6804,30 +6804,7 @@
             "fila_color": [
                 "#4f2c1dFF"
             ]
-        },
-        {
-            "fila_color_code": "11502",
-            "fila_id": "GFA01",
-            "fila_color_type": "单色",
-            "fila_type": "PLA Matte",
-            "fila_color_name": {
-                "de": "Apfelgrün",
-                "sv": "Äppelgrön",
-                "pt": "Maçã-Verde",
-                "ko": "애플 그린",
-                "ja": "アップル グリーン",
-                "en": "Apple Green",
-                "it": "Verde mela",
-                "fr": "Vert pomme",
-                "hu": "Almazöld",
-                "zh": "果绿色",
-                "nl": "Appelgroen",
-                "es": "Verde manzana"
-            },
-            "fila_color": [
-                "#C2E189FF"
-            ]
         }
     ],
-    "total": 296
+    "total": 295
 }
