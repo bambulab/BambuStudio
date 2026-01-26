@@ -6697,7 +6697,6 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
         // so we put it into an inner scope
         PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
         dlg.ShowModal();
-
         // BBS
         //app_layout_changed = dlg.settings_layout_changed();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -6722,15 +6721,6 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"gcode");
         }
 #endif // _WIN32
-
-        // Refresh the recent projects list if time format changed
-        if (dlg.use_12h_time_format_changed() && mainframe && mainframe->m_webview) {
-            CallAfter([mainframe = this->mainframe]() {
-                if (mainframe && mainframe->m_webview) {
-                    mainframe->m_webview->SendRecentList(-1);
-                }
-            });
-        }
     }
 
     // BBS

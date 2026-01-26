@@ -1260,9 +1260,8 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
     wxString    left_time_text = NA_STR;
 
     try {
-        bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
         left_time  = get_bbl_time_dhms(mc_left_time);
-        right_time = get_bbl_finish_time_dhm(mc_left_time, use_12h_format);
+        right_time = get_bbl_finish_time_dhm(mc_left_time);
     } catch (...) {
         ;
     }
