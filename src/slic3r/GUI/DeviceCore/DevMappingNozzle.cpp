@@ -135,19 +135,21 @@ int MachineObject::ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, con
     json filament_info_jj;
     for (int fila_id = 0; fila_id < ams_mapping.size(); fila_id++) {
         const auto& fila = ams_mapping[fila_id];
-        const auto& nozzle_info = result->get_nozzle_for_filament(fila.id);
-        if (!nozzle_info) {
-            assert(false && "nozzle_info should not be nullptr");
+        // TODO(青松)：选料器适配，先选了第一个喷嘴
+        auto nozzle_list = result->get_nozzles_for_filament(fila.id);
+        if (nozzle_list.empty()) {
+            assert(false && "nozzle_info should not be empty");
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "nozzle_info should not be nullptr";
             continue;
         }
+        const auto &nozzle_info = nozzle_list.front();
 
         json fila_item_jj;
         fila_item_jj["id"] = (fila.id + 1);
-        fila_item_jj["direction"] = (nozzle_info->extruder_id == LOGIC_L_EXTRUDER_ID ? 1 : 2);
-        fila_item_jj["group"] = nozzle_info->group_id;
-        fila_item_jj["nozzle_d"] = s_get_diameter_str(nozzle_info->diameter);
-        fila_item_jj["nozzle_v"] = (nozzle_info->volume_type == NozzleVolumeType::nvtHighFlow) ? "High Flow" : "Standard";
+        fila_item_jj["direction"] = (nozzle_info.extruder_id == LOGIC_L_EXTRUDER_ID ? 1 : 2);
+        fila_item_jj["group"] = nozzle_info.group_id;
+        fila_item_jj["nozzle_d"] = s_get_diameter_str(nozzle_info.diameter);
+        fila_item_jj["nozzle_v"] = (nozzle_info.volume_type == NozzleVolumeType::nvtHighFlow) ? "High Flow" : "Standard";
         fila_item_jj["cate"] = fila.filament_id;
         fila_item_jj["color"] = fila.color;
         filament_info_jj.push_back(fila_item_jj);

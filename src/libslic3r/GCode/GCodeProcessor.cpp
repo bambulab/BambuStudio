@@ -1530,6 +1530,7 @@ void GCodeProcessorResult::reset() {
     layer_filaments.clear();
     filament_change_count_map.clear();
     filament_change_sequence.clear();
+    nozzle_change_sequence.clear();
     skippable_part_time.clear();
     warnings.clear();
 
@@ -2557,7 +2558,7 @@ void GCodeProcessor::initialize(const std::string& filename)
 }
 
 
-void GCodeProcessor::initialize_from_context(const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result)
+void GCodeProcessor::initialize_from_context(const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase>& nozzle_group_result)
 {
     m_nozzle_group_result = nozzle_group_result;
 }
@@ -2611,10 +2612,11 @@ void GCodeProcessor::finalize(bool post_process)
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process){
         constexpr float inject_time_threshold = 30.f;
+        MultiNozzleUtils::LayeredNozzleGroupResult result = *std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
         TimeProcessContext context(
             m_used_filaments,
             m_filament_lists,
-            m_filament_maps,
+            result,
             m_filament_types,
             m_filament_nozzle_temp,
             m_physical_extruder_map,
@@ -5682,10 +5684,14 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         std::optional<MultiNozzleUtils::NozzleInfo> target_nozzle_info;
         // If nozzle_id is specified, try to get the nozzle info by nozzle_id
         if(nozzle_id != -1)
-            target_nozzle_info = m_nozzle_group_result->get_nozzle_by_id(nozzle_id);
+            target_nozzle_info = m_nozzle_group_result->get_nozzle_from_id(nozzle_id);
         // If nozzle_id is not specified or not found, try to get the nozzle info for the filament
-        if(!target_nozzle_info)
-            target_nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(id);
+        if (!target_nozzle_info) {
+            auto used_nozzles     = m_nozzle_group_result->get_nozzles_for_filament(id);
+            if (used_nozzles.empty())
+                return;
+            target_nozzle_info   = used_nozzles.front();
+        }
 
         if(!target_nozzle_info)
             return;

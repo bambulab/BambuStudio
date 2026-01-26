@@ -6477,8 +6477,9 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					plate_data_item->is_label_object_enabled = m_plate_list[i]->m_gcode_result->label_object_enabled;
                     plate_data_item->limit_filament_maps = m_plate_list[i]->m_gcode_result->limit_filament_maps;
                     plate_data_item->layer_filaments  = m_plate_list[i]->m_gcode_result->layer_filaments;
-                    plate_data_item->first_layer_time = std::to_string(m_plate_list[i]->cali_bboxes_data.first_layer_time);
  					plate_data_item->filament_change_sequence = m_plate_list[i]->m_gcode_result->filament_change_sequence;
+                    plate_data_item->nozzle_change_sequence = m_plate_list[i]->m_gcode_result->nozzle_change_sequence;
+                    plate_data_item->first_layer_time = std::to_string(m_plate_list[i]->cali_bboxes_data.first_layer_time);
 					Print *print                      = nullptr;
 					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
 					if (print) {
@@ -6509,6 +6510,26 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 
 int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int filament_count)
 {
+	auto parse_values = [](const std::string& value, const char* seps, auto to_value) {
+		using T = decltype(to_value(std::string()));
+		std::vector<T> result;
+		if (value.empty()) {
+			return result;
+		}
+		std::vector<std::string> tokens;
+		boost::split(tokens, value, boost::is_any_of(seps), boost::token_compress_on);
+		for (const auto& token : tokens) {
+			if (token.empty()) {
+				continue;
+			}
+			try {
+				result.emplace_back(to_value(token));
+			} catch (...) {
+			}
+		}
+		return result;
+	};
+
 	int ret = 0;
 
 	if (plate_data_list.size() <= 0)
@@ -6543,7 +6564,6 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->get_print(&fff_print, &gcode_result, nullptr);
 		PrintStatistics& ps = (dynamic_cast<Print*>(fff_print))->print_statistics();
 		gcode_result->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time = atoi(plate_data_list[i]->gcode_prediction.c_str());
-        gcode_result->nozzle_group_result = *(MultiNozzleUtils::LayeredNozzleGroupResult::create(plate_data_list[i]->slice_filaments_info, plate_data_list[i]->nozzles_info));
 		ps.total_weight = atof(plate_data_list[i]->gcode_weight.c_str());
 		ps.total_used_filament = 0.f;
 		for (auto filament_item: plate_data_list[i]->slice_filaments_info)
@@ -6559,6 +6579,52 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
         gcode_result->filament_maps = plate_data_list[i]->filament_maps;
+
+		std::vector<int> nozzle_volume_type_values = parse_values(
+			plate_data_list[i]->nozzle_volume_types,
+			" ",
+			[](const std::string& token) { return std::stoi(token); }
+		);
+
+		std::vector<double> nozzle_diameter_values = parse_values(
+			plate_data_list[i]->nozzle_diameters,
+			" ,",
+			[](const std::string& token) { return std::stod(token); }
+		);
+
+		std::vector<NozzleVolumeType> extruder_volume_types(nozzle_volume_type_values.size(), NozzleVolumeType::nvtStandard);
+		std::vector<double> nozzle_diameters(nozzle_diameter_values.size(), 0.0);
+
+		if (!nozzle_volume_type_values.empty()) {
+			for (size_t idx = 0; idx < nozzle_volume_type_values.size(); ++idx) {
+				if (nozzle_volume_type_values[idx] >= 0) {
+					extruder_volume_types[idx] = static_cast<NozzleVolumeType>(nozzle_volume_type_values[idx]);
+				}
+			}
+		}
+		if (!nozzle_diameter_values.empty()) {
+			for (size_t idx = 0; idx < nozzle_diameter_values.size(); ++idx) {
+				if (nozzle_diameter_values[idx] > 0) {
+					nozzle_diameters[idx] = nozzle_diameter_values[idx];
+				}
+			}
+		}
+
+		auto nozzle_infos = MultiNozzleUtils::load_nozzle_infos_with_compatibility(
+			plate_data_list[i]->nozzles_info,
+			plate_data_list[i]->slice_filaments_info,
+			plate_data_list[i]->filament_maps,
+			extruder_volume_types,
+			nozzle_diameter_values
+		);
+
+		auto group_result = MultiNozzleUtils::StaticNozzleGroupResult::create(plate_data_list[i]->slice_filaments_info, nozzle_infos);
+        if (group_result)
+            gcode_result->nozzle_group_result = std::make_shared<MultiNozzleUtils::StaticNozzleGroupResult>(group_result.value());
+        else
+            gcode_result->nozzle_group_result = nullptr;
+
+
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load thumbnail from %2%.") % (i + 1) % PathSanitizer::sanitize(plate_data_list[i]->thumbnail_file);
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {

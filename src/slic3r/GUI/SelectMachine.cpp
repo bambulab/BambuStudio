@@ -4755,7 +4755,7 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
                 auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
                 assert(nozzle_group_res.has_value());
                 if (nozzle_group_res) {
-                    const auto& nozzle_infos = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), logic_extruder_idx);
+                    const auto &nozzle_infos = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), logic_extruder_idx);
                     for (const auto& nozzle_info : nozzle_infos) {
                         nozzle_data.nozzle_flow_type = nozzle_info.first.nozzle_flow_type;
                         used_extuder_nozzles.insert({ physical_idx, nozzle_data });
@@ -5069,7 +5069,11 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         return wxEmptyString;// there are no nozzle group result from slicing
     }
 
-    if (nozzle_group_res->get_extruder_id(fila_id) != LOGIC_R_EXTRUDER_ID) {
+    // TODO(青松):可能会有多个挤出机被使用
+    auto nozzle_list = nozzle_group_res->get_nozzles_for_filament(fila_id);
+    int  extruder_id = nozzle_list.front().extruder_id;
+
+    if (extruder_id != LOGIC_R_EXTRUDER_ID) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": LOGIC_R_EXTRUDER_ID not used";
         return wxEmptyString;// the filament is not used at right extruder in slicing
     }
@@ -6195,8 +6199,8 @@ void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
         if (nozzle_group_res && (nozzle_sys->GetNozzleRack()->IsSupported() || ext_sys->GetTotalExtderCount() == 2)) {
 
             ExtruderNozzleInfos slicing_nozzle_infos;
-            slicing_nozzle_infos[MAIN_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), LOGIC_R_EXTRUDER_ID);
-            slicing_nozzle_infos[DEPUTY_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(&nozzle_group_res.value(), LOGIC_L_EXTRUDER_ID);
+            slicing_nozzle_infos[MAIN_EXTRUDER_ID]   = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), LOGIC_R_EXTRUDER_ID);
+            slicing_nozzle_infos[DEPUTY_EXTRUDER_ID] = DevUtilBackend::CollectNozzleInfo(nozzle_group_res.get(), LOGIC_L_EXTRUDER_ID);
             UpdateInfo(slicing_nozzle_infos, nozzle_sys->GetExtruderNozzleInfo());
             return;
         }
