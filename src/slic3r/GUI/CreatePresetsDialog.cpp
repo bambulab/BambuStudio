@@ -194,17 +194,9 @@ static std::string get_curr_time()
 
     std::time_t time = std::chrono::system_clock::to_time_t(now);
 
-    std::tm local_time = *std::localtime(&time);
+    std::tm            local_time = *std::localtime(&time);
     std::ostringstream time_stream;
-
-    bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
-
-    std::string hm_formatted = Slic3r::format_time_hm(&local_time, use_12h_format);
-    // Replace colons with underscores for filename compatibility
-    std::replace(hm_formatted.begin(), hm_formatted.end(), ':', '_');
-
-    time_stream << std::put_time(&local_time, "%Y_%m_%d_") << hm_formatted << "_"
-                << std::put_time(&local_time, "%S");
+    time_stream << std::put_time(&local_time, "%Y_%m_%d_%H_%M_%S");
 
     std::string current_time = time_stream.str();
     return current_time;
