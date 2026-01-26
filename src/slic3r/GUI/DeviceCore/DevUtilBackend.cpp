@@ -23,16 +23,16 @@ Slic3r::MultiNozzleUtils::NozzleInfo DevUtilBackend::GetNozzleInfo(const DevNozz
     return info;
 }
 
-std::optional<Slic3r::MultiNozzleUtils::StaticNozzleGroupResult> DevUtilBackend::GetNozzleGroupResult(Slic3r::GUI::Plater* plater)
+std::shared_ptr<Slic3r::MultiNozzleUtils::NozzleGroupResultBase> DevUtilBackend::GetNozzleGroupResult(Slic3r::GUI::Plater *plater)
 {
     if (plater && plater->background_process().get_current_gcode_result()) {
         return plater->background_process().get_current_gcode_result()->nozzle_group_result;
     }
 
-    return std::nullopt;
+    return nullptr;
 }
 
-std::unordered_map<NozzleDef, int> DevUtilBackend::CollectNozzleInfo(MultiNozzleUtils::StaticNozzleGroupResult *nozzle_group_res, int logic_ext_id)
+std::unordered_map<NozzleDef, int> DevUtilBackend::CollectNozzleInfo(MultiNozzleUtils::NozzleGroupResultBase *nozzle_group_res, int logic_ext_id)
 {
     std::unordered_map<NozzleDef, int> need_nozzle_map;
     if (!nozzle_group_res) {

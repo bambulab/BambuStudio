@@ -958,6 +958,10 @@ public:
 
     void set_nozzle_group_result(const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> result) { m_nozzle_group_result = result; }
     const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> get_nozzle_group_result() { return m_nozzle_group_result; }
+    std::shared_ptr<MultiNozzleUtils::LayeredNozzleGroupResult> get_layered_nozzle_group_result()
+    {
+        return std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
+    }
 
     void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
         m_slice_used_filaments_first_layer = first_layer_used_filaments;

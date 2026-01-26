@@ -88,7 +88,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
             curr_ordering.sort_and_build_data(*object, last_filament_id);
 
             if(support_dynamic_map){
-                auto obj_nozzle_map_per_layer = curr_ordering.get_nozzle_group_result().get_layer_filament_nozzle_maps();
+                auto obj_nozzle_map_per_layer = curr_ordering.get_layered_nozzle_group_result().get_layer_filament_nozzle_maps();
                 nozzle_map_per_layer.insert(nozzle_map_per_layer.end(), obj_nozzle_map_per_layer.begin(), obj_nozzle_map_per_layer.end());
             }
 

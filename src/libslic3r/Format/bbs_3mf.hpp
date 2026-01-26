@@ -76,6 +76,7 @@ struct PlateData
     std::map<int, std::pair<int, int>> obj_inst_map;
     std::string     printer_model_id;
     std::string     nozzle_diameters;
+    std::string     nozzle_volume_types;
     std::string     gcode_file;
     std::string     gcode_file_md5;
     std::string     thumbnail_file;
@@ -102,6 +103,7 @@ struct PlateData
     using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
     LayerFilaments layer_filaments;
     std::vector<unsigned int> filament_change_sequence;
+    std::vector<unsigned int> nozzle_change_sequence;
     std::optional<MultiNozzleUtils::LayeredNozzleGroupResult> nozzle_group_result;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1

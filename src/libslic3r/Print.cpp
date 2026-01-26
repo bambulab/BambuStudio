@@ -1104,7 +1104,8 @@ int Print::get_nozzle_config_index(int filament_id, int layer_id)
 
 int Print::get_config_index(int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map)
 {
-    auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_id);
+    auto group_result = get_layered_nozzle_group_result();
+    auto nozzle_info  = group_result->get_nozzle_for_filament(filament_id, layer_id);
     if (!nozzle_info.has_value()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                                  << boost::format(", Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
@@ -2308,11 +2309,9 @@ std::string Print::export_gcode(const std::string& path_template, GCodeProcessor
     gcode.do_export(this, path.c_str(), result, thumbnail_cb);
     gcode.export_layer_filaments(result);
     //BBS
-    if (result != nullptr){
-        result->conflict_result = m_conflict_result;
-        auto group_result_ptr   = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(this->get_nozzle_group_result());
-        if (group_result_ptr)
-            result->nozzle_group_result = *group_result_ptr;
+    if (result != nullptr) {
+        result->conflict_result     = m_conflict_result;
+        result->nozzle_group_result = this->get_layered_nozzle_group_result();
     }
     return path.c_str();
 }
@@ -3101,6 +3100,8 @@ void Print::_make_wipe_tower()
     }
     this->throw_if_canceled();
 
+    auto group_result = get_layered_nozzle_group_result();
+    assert(m_nozzle_group_result);
     // Initialize the wipe tower.
     // BBS: in BBL machine, wipe tower is only use to prime extruder. So just use a global wipe volume.
     WipeTower wipe_tower(m_config, m_plate_index, m_origin, m_wipe_tower_data.tool_ordering.first_extruder(),
@@ -3108,7 +3109,7 @@ void Print::_make_wipe_tower()
     wipe_tower.set_first_layer_flow_ratio(m_default_region_config.initial_layer_flow_ratio);
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
-    wipe_tower.set_nozzle_group_result(m_nozzle_group_result);
+    wipe_tower.set_nozzle_group_result(*group_result);
     wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
@@ -3138,11 +3139,10 @@ void Print::_make_wipe_tower()
 
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
-        assert(m_nozzle_group_result);
         int layer_idx = 0;
 
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
-        nozzle_recorder.set_nozzle_status(m_nozzle_group_result->get_nozzle_for_filament(old_filament_id, layer_idx)->group_id, old_filament_id);
+        nozzle_recorder.set_nozzle_status(group_result->get_nozzle_for_filament(old_filament_id, layer_idx)->group_id, old_filament_id);
 
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
@@ -3155,7 +3155,7 @@ void Print::_make_wipe_tower()
                 if (filament_id == old_filament_id)
                     continue;
 
-                auto nozzle_info = m_nozzle_group_result->get_nozzle_for_filament(filament_id, layer_idx);
+                auto nozzle_info = group_result->get_nozzle_for_filament(filament_id, layer_idx);
 
                 int extruder_id = nozzle_info->extruder_id;
                 int nozzle_id = nozzle_info->group_id;
@@ -3279,16 +3279,18 @@ void Print::export_gcode_from_previous_file(const std::string& file, GCodeProces
     try {
         GCodeProcessor processor;
         if (result && result->nozzle_group_result)
-            processor.initialize_from_context(*result->nozzle_group_result);
+            processor.initialize_from_context(result->nozzle_group_result);
         const Vec3d origin = this->get_plate_origin();
         processor.set_xy_offset(origin(0), origin(1));
         //processor.enable_producers(true);
         processor.process_file(file);
 
         // filament seq is loaded from file, processor result will override the value
-        auto seq_loaded = result->filament_change_sequence;
+        auto filament_seq_loaded = result->filament_change_sequence;
+        auto nozzle_seq_loaded = result->nozzle_change_sequence;
         *result = std::move(processor.extract_result());
-        result->filament_change_sequence = seq_loaded;
+        result->filament_change_sequence = filament_seq_loaded;
+        result->nozzle_change_sequence = nozzle_seq_loaded;
     } catch (std::exception & /* ex */) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ <<  boost::format(": found errors when process gcode file %1%") %file.c_str();
         throw Slic3r::RuntimeError(

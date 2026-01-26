@@ -962,18 +962,17 @@ void ToolOrdering::calc_most_used_extruder(const PrintConfig &config)
     // record
     std::vector<int> extruder_count;
     extruder_count.resize(config.nozzle_diameter.size(), 0);
-    auto group_result_ptr = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_print->get_nozzle_group_result());
-    if (!group_result_ptr) {
+    auto group_result = m_print->get_layered_nozzle_group_result();
+    if (!group_result) {
         return;
     }
-    const auto& group_result = *group_result_ptr;
     int  layer_idx    = 0;
     for (LayerTools &layer_tools : m_layer_tools) {
         std::vector<unsigned int> filaments = layer_tools.extruders;
         std::set<int> layer_extruder_count;
         //count once only
         for (unsigned int &filament : filaments) {
-            layer_extruder_count.insert(group_result.get_extruder_id(filament,layer_idx));
+            layer_extruder_count.insert(group_result->get_extruder_id(filament,layer_idx));
         }
         layer_idx++;
 
@@ -1498,7 +1497,7 @@ std::vector<std::vector<unsigned int>> ToolOrdering::execute_filament_ordering(
 {
     std::vector<std::vector<unsigned int>> filament_sequences;
     if(ordering_context.support_multi_nozzle){
-        assert(m_print->get_nozzle_group_result());
+        assert(m_print->get_layered_nozzle_group_result());
         reorder_filaments_for_multi_nozzle_extruder(
             ordering_context.filament_lists,
             grouping_result,
@@ -1563,8 +1562,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         }
         else{
             // 逐件打印时，分组已经被调用过了，直接从print获取结果
-            auto group_result_ptr = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_print->get_nozzle_group_result());
-            grouping_result = group_result_ptr ? *group_result_ptr : MultiNozzleUtils::LayeredNozzleGroupResult();
+            grouping_result = *(m_print->get_layered_nozzle_group_result());
         }
         // 计算排序
         filament_sequences = execute_filament_ordering(
@@ -1603,7 +1601,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     }
 
     if (!m_print->is_sequential_print()) {
-        m_print->set_nozzle_group_result(grouping_result);
+        m_print->set_nozzle_group_result(std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(grouping_result));
         if constexpr (0) {
             m_print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values, grouping_result.get_extruder_map(false),
                                                                                                     layer_data.used_filaments),

@@ -273,7 +273,7 @@ public:
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
 
     int                 get_most_used_extruder() const { return m_most_used_extruder; }
-    const MultiNozzleUtils::LayeredNozzleGroupResult &get_nozzle_group_result() const { return m_nozzle_group_result; }
+    const MultiNozzleUtils::LayeredNozzleGroupResult &get_layered_nozzle_group_result() const { return m_nozzle_group_result; }
     /*
     * called in single extruder mode, the value in map are all 0
     * called in dual extruder mode, the value in map will be 0 or 1

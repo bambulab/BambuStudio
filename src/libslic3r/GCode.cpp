@@ -645,12 +645,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
     {
         gcodegen.reset_last_acceleration();
-        auto group_result_ptr = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(gcodegen.m_print->get_nozzle_group_result());
-        auto group_result          = group_result_ptr ? *group_result_ptr : MultiNozzleUtils::LayeredNozzleGroupResult();
+        auto group_result = gcodegen.m_print->get_layered_nozzle_group_result();
+        if (!group_result)
+            throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr group_result is null.");
         if (new_filament_id != -1 && new_filament_id != tcr.new_tool)
             throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr was asked to do a toolchange it didn't expect.");
-        if(!group_result)
-            throw Slic3r::InvalidArgument("Error: WipeTowerIntegration::append_tcr group_result is null.");
 
         auto new_nozzle_info = group_result->get_nozzle_for_filament(new_filament_id, gcodegen.m_layer_index);
         int new_extruder_id = new_nozzle_info->extruder_id;
@@ -783,7 +782,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             DynamicConfig config;
             int old_filament_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
             int old_extruder_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->extruder_id() : -1;
-            int next_nozzle_id = gcodegen.m_print->get_nozzle_group_result()->get_nozzle_for_filament(new_filament_id, m_layer_idx)->group_id;
+            int next_nozzle_id = gcodegen.m_print->get_layered_nozzle_group_result()->get_nozzle_for_filament(new_filament_id, m_layer_idx)->group_id;
 
             config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
             config.set_key_value("next_extruder", new ConfigOptionInt(new_filament_id));
@@ -1585,7 +1584,6 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
 
     // BBS
     m_curr_print = print;
-    m_writer.set_group_result(m_curr_print->get_nozzle_group_result().value());
 
     CNumericLocalesSetter locales_setter;
 
@@ -1631,8 +1629,8 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     path_tmp += ".tmp";
 
     m_processor.initialize(path_tmp);
-    if(print->get_nozzle_group_result().has_value())
-        m_processor.initialize_from_context(print->get_nozzle_group_result().value());
+    if(print->get_layered_nozzle_group_result())
+        m_processor.initialize_from_context(print->get_nozzle_group_result());
     GCodeOutputStream file(boost::nowide::fopen(path_tmp.c_str(), "wb"), m_processor);
     if (! file.is_open()) {
         BOOST_LOG_TRIVIAL(error) << std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed.\nCannot open the file for writing.\n" << std::endl;
@@ -2402,7 +2400,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
     m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
-    m_placeholder_parser.set("current_hotend", m_print->get_nozzle_group_result()->get_nozzle_for_filament(initial_extruder_id, 0)->group_id);
+    m_placeholder_parser.set("current_hotend", m_print->get_layered_nozzle_group_result()->get_nozzle_for_filament(initial_extruder_id, 0)->group_id);
 
     //set the key for compatibilty
     m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(initial_extruder_id));
@@ -3102,12 +3100,21 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
 
     {
         result->filament_change_sequence.clear();
+        result->nozzle_change_sequence.clear();
+
         std::optional<unsigned int> prev_filament;
-        for(auto& layer : m_sorted_layer_filaments){
-            for(auto fidx : layer){
-                if(!prev_filament || prev_filament != fidx)
+        std::optional<unsigned int> prev_nozzle;
+        auto group_result = m_print->get_layered_nozzle_group_result();
+
+        for(size_t layer_idx = 0; layer_idx < m_sorted_layer_filaments.size(); ++layer_idx){
+            for(auto fidx : m_sorted_layer_filaments[layer_idx]){
+                int nozzle_idx = group_result->get_nozzle_id(fidx, layer_idx);
+                if(!prev_nozzle || ! prev_filament || prev_nozzle != nozzle_idx || prev_filament != fidx){
+                    result->nozzle_change_sequence.emplace_back(nozzle_idx);
                     result->filament_change_sequence.emplace_back(fidx);
-                prev_filament = fidx;
+                    prev_nozzle = nozzle_idx;
+                    prev_filament = fidx;
+                }
             }
         }
     }
@@ -6752,7 +6759,7 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
 }
 
 void GCode::update_layer_related_config(int layer_id){
-    auto group_result = m_print->get_nozzle_group_result();
+    auto group_result = m_print->get_layered_nozzle_group_result();
     if(!group_result)
         return;
 
@@ -6774,7 +6781,7 @@ void GCode::update_layer_related_config(int layer_id){
 std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bool by_object)
 {
     int new_extruder_id = get_extruder_id(new_filament_id);
-    auto group_result = m_print->get_nozzle_group_result();
+    auto group_result = m_print->get_layered_nozzle_group_result();
     if (!m_writer.need_toolchange(new_filament_id) || !group_result)
         return "";
 
@@ -6898,11 +6905,11 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             return wipe_volume;
         };
 
-        assert(m_print->get_nozzle_group_result().has_value());
+        assert(m_print->get_layered_nozzle_group_result().has_value());
 
-        int new_nozzle_id = m_print->get_nozzle_group_result()->get_nozzle_for_filament(new_filament_id, m_layer_index)->group_id;
+        int new_nozzle_id = m_print->get_layered_nozzle_group_result()->get_nozzle_for_filament(new_filament_id, m_layer_index)->group_id;
 
-        if (old_extruder_id != new_extruder_id || !m_print->get_nozzle_group_result()->are_filaments_same_nozzle(old_filament_id,new_filament_id, m_layer_index)) {
+        if (old_extruder_id != new_extruder_id || !m_print->get_layered_nozzle_group_result()->are_filaments_same_nozzle(old_filament_id,new_filament_id, m_layer_index)) {
             wipe_volume = switch_to_nozzle(new_filament_id, new_nozzle_id);
         }
         else {

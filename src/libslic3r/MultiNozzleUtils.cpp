@@ -45,6 +45,66 @@ std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int
     return ret;
 }
 
+std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
+    const std::vector<NozzleInfo>& nozzle_infos,
+    const std::vector<FilamentInfo>& filament_infos,
+    const std::vector<int>& filament_map,
+    const std::vector<NozzleVolumeType>& extruder_volume_types,
+    const std::vector<double>& nozzle_diameter
+)
+{
+    bool has_nozzle_info = !nozzle_infos.empty();
+    bool has_valid_filament_info = !filament_infos.empty() && std::all_of(filament_infos.begin(), filament_infos.end(), [](const FilamentInfo& info){
+        return info.group_id.size() == 1;
+    });
+
+    if(!has_nozzle_info && !has_valid_filament_info){
+        BOOST_LOG_TRIVIAL(warning)<<__FUNCTION__ << ": building nozzle list from filament map and volume types";
+
+        std::vector<NozzleInfo> result(extruder_volume_types.size());
+        return result;
+    }
+
+    if(!has_nozzle_info){
+        BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << ": building nozzle list from filament info";
+        std::map<int, NozzleInfo> nozzle_map; // group_id->NozzleInfo
+        for(auto& filament : filament_infos){
+            int group_id = filament.group_id.front();
+            if(group_id < 0 || nozzle_map.find(group_id) != nozzle_map.end()){
+                continue;
+            }
+
+            auto volume_type_str_to_enum = ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
+
+            NozzleInfo info;
+            info.diameter = format_diameter_to_str(filament.nozzle_diameter);
+            info.group_id = group_id;
+            info.extruder_id = filament_map[filament.id] -1; // 转成0-based;
+
+            if (volume_type_str_to_enum.count(filament.nozzle_volume_type))
+                info.volume_type = NozzleVolumeType(volume_type_str_to_enum.at(filament.nozzle_volume_type));
+            else {
+                info.volume_type = NozzleVolumeType::nvtStandard;
+            }
+
+            nozzle_map[group_id] = std::move(info);
+        }
+
+        std::vector<NozzleInfo> ret;
+        for(auto& elem : nozzle_map){
+            ret.emplace_back(elem.second);
+        }
+        return ret;
+
+    }
+
+    auto result = nozzle_infos;
+    std::sort(result.begin(), result.end());
+    BOOST_LOG_TRIVIAL(info)<<__FUNCTION__ << ": using new 3mf format with " << result.size() << " nozzle infos.";
+    return result;
+}
+
+
 // ==================== LayeredNozzleGroupResult 实现 ====================
 std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     const std::vector<int>& filament_nozzle_map,
@@ -167,6 +227,11 @@ int LayeredNozzleGroupResult::get_extruder_count() const
     return static_cast<int>(extruder_ids.size());
 }
 
+std::vector<NozzleInfo> LayeredNozzleGroupResult::get_used_nozzles_in_extruder(int target_extruder_id) const
+{
+    return get_used_nozzles_in_extruder(target_extruder_id, -1);
+}
+
 std::vector<NozzleInfo> LayeredNozzleGroupResult::get_used_nozzles_in_extruder(int target_extruder_id, int layer_id) const
 {
     std::set<int>           nozzle_ids;
@@ -191,6 +256,11 @@ std::vector<NozzleInfo> LayeredNozzleGroupResult::get_used_nozzles_in_extruder(i
         if (nozzle_id >= 0 && nozzle_id < static_cast<int>(_nozzle_list.size())) { result.push_back(_nozzle_list[nozzle_id]); }
     }
     return result;
+}
+
+std::vector<int> LayeredNozzleGroupResult::get_used_extruders() const
+{
+    return get_used_extruders(-1);
 }
 
 std::vector<int> LayeredNozzleGroupResult::get_used_extruders(int layer_id) const
@@ -410,6 +480,44 @@ std::optional<NozzleInfo> StaticNozzleGroupResult::get_nozzle_from_id(int nozzle
     return iter->second;
 }
 
+int StaticNozzleGroupResult::get_extruder_count() const
+{
+    std::set<int> extruder_ids;
+    for (const auto &elem : _nozzle_list_map) { extruder_ids.insert(elem.second.extruder_id); }
+    return static_cast<int>(extruder_ids.size());
+}
+
+std::vector<NozzleInfo> StaticNozzleGroupResult::get_used_nozzles_in_extruder(int target_extruder_id) const
+{
+    std::vector<NozzleInfo> result;
+    for (const auto &elem : _nozzle_list_map) {
+        const auto &nozzle = elem.second;
+        if (target_extruder_id == -1 || nozzle.extruder_id == target_extruder_id) {
+            result.push_back(nozzle);
+        }
+    }
+    return result;
+}
+
+std::vector<int> StaticNozzleGroupResult::get_used_extruders() const
+{
+    std::set<int> used_extruders;
+    for (const auto &elem : _nozzle_list_map) { used_extruders.insert(elem.second.extruder_id); }
+    return std::vector<int>(used_extruders.begin(), used_extruders.end());
+}
+
+std::vector<unsigned int> StaticNozzleGroupResult::get_used_filaments() const
+{
+    std::vector<unsigned int> used_filaments;
+    used_filaments.reserve(_filament_to_nozzles.size());
+    for (const auto &elem : _filament_to_nozzles) {
+        if (elem.first >= 0) {
+            used_filaments.push_back(static_cast<unsigned int>(elem.first));
+        }
+    }
+    return used_filaments;
+}
+
 std::vector<NozzleInfo> StaticNozzleGroupResult::get_nozzles_for_filament(int filament_id) const
 {
     auto iter = _filament_to_nozzles.find(filament_id);
@@ -467,7 +575,7 @@ void NozzleStatusRecorder::clear_nozzle_status(int nozzle_id)
 
 // ==================== NozzleInfo 序列化 ====================
 
-std::string NozzleInfo::serialize(int id) const
+std::string NozzleInfo::serialize() const
 {
     std::ostringstream oss;
     oss << "id=\"" << group_id << "\" "
@@ -477,60 +585,6 @@ std::string NozzleInfo::serialize(int id) const
     return oss.str();
 }
 
-std::optional<NozzleInfo> NozzleInfo::deserialize(const std::string& str)
-{
-    NozzleInfo result;
-    std::string remaining = str;
-
-    while (!remaining.empty()) {
-        size_t key_end = remaining.find('=');
-        if (key_end == std::string::npos) break;
-
-        std::string key = remaining.substr(0, key_end);
-        remaining = remaining.substr(key_end + 1);
-
-        if (remaining.empty() || remaining[0] != '\"') break;
-        remaining = remaining.substr(1);
-
-        size_t value_end = remaining.find('\"');
-        if (value_end == std::string::npos) break;
-
-        std::string value = remaining.substr(0, value_end);
-        remaining = remaining.substr(value_end + 1);
-
-        while (!remaining.empty() && (remaining[0] == ' ' || remaining[0] == '\t')) {
-            remaining = remaining.substr(1);
-        }
-
-        if (key == "id") {
-            try {
-                result.group_id = std::stoi(value);
-            } catch (...) {
-                return std::nullopt;
-            }
-        } else if (key == "extruder_id") {
-            try {
-                result.extruder_id = std::stoi(value);
-            } catch (...) {
-                return std::nullopt;
-            }
-        } else if (key == "nozzle_diameter") {
-            result.diameter = value;
-        } else if (key == "volume_type") {
-            try {
-                result.volume_type = NozzleVolumeType(ConfigOptionEnum<NozzleVolumeType>::get_enum_values().at(value));
-            } catch (...) {
-                return std::nullopt;
-            }
-        }
-    }
-
-    if (result.diameter.empty() || result.extruder_id == -1) {
-        return std::nullopt;
-    }
-
-    return result;
-}
 
 // ==================== NozzleGroupInfo 实现 ====================
 
