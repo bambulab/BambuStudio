@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-24 17:56+0800\n"
+"POT-Creation-Date: 2026-01-26 14:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7778,8 +7778,8 @@ msgstr "Finestra popup per selezionare la modalità di raggruppamento dei filame
 msgid "User Experience"
 msgstr "Esperienza utente"
 
-msgid "Join Customer Experience Improvement Program."
-msgstr "Partecipa al programma di miglioramento dell'esperienza utenti."
+msgid "Join the User Experience Improvement Program."
+msgstr ""
 
 msgctxt "Preferences"
 msgid "Learn more"
@@ -15514,6 +15514,9 @@ msgstr "Avvio: Controllo Ingresso aria"
 msgid "Starting: Checking air vent"
 msgstr "Avvio: Controllo apertura aerazione"
 
+msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15862,6 +15865,9 @@ msgid ""
 msgstr ""
 "Ritiro, Warping e Tensioni\n"
 "Controllando l’indice termico è possibile eliminare le cause termiche che generano deformazioni e tensioni."
+
+#~ msgid "Join Customer Experience Improvement Program."
+#~ msgstr "Partecipa al programma di miglioramento dell'esperienza utenti."
 
 #~ msgid "What data would be collected?"
 #~ msgstr "Quali dati verrebbero raccolti?"

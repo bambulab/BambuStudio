@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-24 17:56+0800\n"
+"POT-Creation-Date: 2026-01-26 14:14+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7732,8 +7732,8 @@ msgstr "フィラメントグループ化モードを選択するためのポッ
 msgid "User Experience"
 msgstr "ユーザー体験"
 
-msgid "Join Customer Experience Improvement Program."
-msgstr "ユーザー体験向上プログラムに参加する"
+msgid "Join the User Experience Improvement Program."
+msgstr ""
 
 msgctxt "Preferences"
 msgid "Learn more"
@@ -15464,6 +15464,9 @@ msgstr "開始：吸気口を確認中"
 msgid "Starting: Checking air vent"
 msgstr "開始：排気口を確認中"
 
+msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -15811,6 +15814,9 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#~ msgid "Join Customer Experience Improvement Program."
+#~ msgstr "ユーザー体験向上プログラムに参加する"
 
 #~ msgid "What data would be collected?"
 #~ msgstr "どのようなデータが収集されますか?"
