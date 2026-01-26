@@ -21,10 +21,10 @@ namespace Slic3r {
 #define BAMBU_SOURCE_LIBRARY "BambuSource"
 
 #if defined(_MSC_VER) || defined(_WIN32)
-static HMODULE netwoking_module = NULL;
+static HMODULE networking_module = NULL;
 static HMODULE source_module = NULL;
 #else
-static void* netwoking_module = NULL;
+static void* networking_module = NULL;
 static void* source_module = NULL;
 #endif
 
@@ -204,15 +204,15 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
         module_cert_summary = SummarizeModule(library);
         if (module_cert_summary) {
             if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                netwoking_module = LoadLibrary(lib_wstr);
+                networking_module = LoadLibrary(lib_wstr);
             else
                 BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
         }
         else
             BOOST_LOG_TRIVIAL(info) << "module_cert is null";
     } else
-        netwoking_module = LoadLibrary(lib_wstr);
-    if (!netwoking_module) {
+        networking_module = LoadLibrary(lib_wstr);
+    if (!networking_module) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", try load library directly from current directory");
 
         std::string library_path = get_libpath_in_current_directory(std::string(BAMBU_NETWORK_LIBRARY));
@@ -226,7 +226,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
             module_cert_summary = SummarizeModule(library_path);
             if (module_cert_summary) {
                 if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                    netwoking_module = LoadLibrary(lib_wstr);
+                    networking_module = LoadLibrary(lib_wstr);
                 else
                     BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
             }
@@ -234,7 +234,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
                 BOOST_LOG_TRIVIAL(info) << "module_cert is null";
         }
         else
-            netwoking_module = LoadLibrary(lib_wstr);
+            networking_module = LoadLibrary(lib_wstr);
     }
 #else
     #if defined(__WXMAC__)
@@ -248,7 +248,7 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
         module_cert_summary = SummarizeModule(library);
         if (module_cert_summary) {
             if (IsSamePublisher(*self_cert_summary, *module_cert_summary))
-                netwoking_module = dlopen(library.c_str(), RTLD_LAZY);
+                networking_module = dlopen(library.c_str(), RTLD_LAZY);
             else
                 BOOST_LOG_TRIVIAL(info) << "module is from another publisher:" << module_cert_summary->as_print();
         }
@@ -256,23 +256,23 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
             BOOST_LOG_TRIVIAL(info) << "module_cert is null";
     }
     else
-        netwoking_module = dlopen( library.c_str(), RTLD_LAZY);
-    if (!netwoking_module) {
+        networking_module = dlopen( library.c_str(), RTLD_LAZY);
+    if (!networking_module) {
         char* dll_error = dlerror();
         std::string err       = dll_error ? std::string(dll_error) : std::string("(null)");
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", error, dlerror is %1%") % err;
     }
-    printf("after dlopen, network_module is %p\n", netwoking_module);
+    BOOST_LOG_TRIVIAL(info) << boost::format("after dlopen, network_module is %1%") % networking_module;
 #endif
 
-    if (!netwoking_module) {
+    if (!networking_module) {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", line %1%, can not Load Library, using_backup %2%\n")%__LINE__ %using_backup;
         return -1;
     }
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%,  successfully loaded library, using_backup %2%, module %3%")%__LINE__ %using_backup %netwoking_module;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", line %1%,  successfully loaded library, using_backup %2%, module %3%")%__LINE__ %using_backup %networking_module;
 
     // load file transfer interface
-    InitFTModule(netwoking_module);
+    InitFTModule(networking_module);
 
     //load the functions
     check_debug_consistent_ptr        =  reinterpret_cast<func_check_debug_consistent>(get_network_function("bambu_network_check_debug_consistent"));
@@ -384,21 +384,21 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
 
 int NetworkAgent::unload_network_module()
 {
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", network module %1%")%netwoking_module;
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", network module %1%")%networking_module;
     UnloadFTModule();
 #if defined(_MSC_VER) || defined(_WIN32)
-    if (netwoking_module) {
-        FreeLibrary(netwoking_module);
-        netwoking_module = NULL;
+    if (networking_module) {
+        FreeLibrary(networking_module);
+        networking_module = NULL;
     }
     if (source_module) {
         FreeLibrary(source_module);
         source_module = NULL;
     }
 #else
-    if (netwoking_module) {
-        dlclose(netwoking_module);
-        netwoking_module = NULL;
+    if (networking_module) {
+        dlclose(networking_module);
+        networking_module = NULL;
     }
     if (source_module) {
         dlclose(source_module);
@@ -511,7 +511,7 @@ HMODULE NetworkAgent::get_bambu_source_entry()
 void* NetworkAgent::get_bambu_source_entry()
 #endif
 {
-    if ((source_module) || (!netwoking_module))
+    if ((source_module) || (!networking_module))
         return source_module;
 
     //int ret = -1;
@@ -563,13 +563,13 @@ void* NetworkAgent::get_network_function(const char* name)
 {
     void* function = nullptr;
 
-    if (!netwoking_module)
+    if (!networking_module)
         return function;
 
 #if defined(_MSC_VER) || defined(_WIN32)
-    function = GetProcAddress(netwoking_module, name);
+    function = GetProcAddress(networking_module, name);
 #else
-    function = dlsym(netwoking_module, name);
+    function = dlsym(networking_module, name);
 #endif
 
     if (!function) {
