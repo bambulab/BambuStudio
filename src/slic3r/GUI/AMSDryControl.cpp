@@ -1479,10 +1479,10 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 
         std::set<std::string> filament_id_set;
         for (const auto& fila : preset_bundle->filaments) {
-            auto opt_info = preset_bundle->get_filament_by_filament_id(fila.filament_id, printer_preset->name);
+            auto opt_info = preset_bundle->get_filament_by_filament_id(fila.filament_id, printer_preset->name, true);
             if (opt_info && !opt_info->filament_name.empty() && filament_id_set.insert(opt_info->filament_id).second) {
                 m_tray_ids.push_back(*opt_info);
-                m_trays_combo->Append(opt_info->filament_name);
+                m_trays_combo->Append(wxString::FromUTF8(opt_info->filament_name));
             }
         }
 
@@ -1521,7 +1521,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
                 return tray.filament_type == filament_type;
             });
             if (it != m_tray_ids.end()) {
-                m_trays_combo->SetLabel(it->filament_name);
+                m_trays_combo->SetLabel(wxString::FromUTF8(it->filament_name));
             }
         };
 
