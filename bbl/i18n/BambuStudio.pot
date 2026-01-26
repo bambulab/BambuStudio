@@ -11095,6 +11095,12 @@ msgstr ""
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr ""
 
+msgid "Disable Power Loss Recovery"
+msgstr ""
+
+msgid "Enable this to disable power loss recovery commands in generated G-code"
+msgstr ""
+
 msgid "Enable clumping detection"
 msgstr ""
 
