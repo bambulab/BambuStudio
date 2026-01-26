@@ -1439,8 +1439,8 @@ wxWindow* PreferencesDialog::create_general_page()
 #endif
 
     auto title_user_experience = create_item_title(_L("User Experience"), page, _L("User Experience"));
-    auto item_priv_policy = create_item_checkbox(_L("Join Customer Experience Improvement Program."), page, "", 50, "privacyuse");
-    auto* hyperlink = new Label(page, _CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences").c_str());
+    auto item_priv_policy = create_item_checkbox(_L("Join the User Experience Improvement Program."), page, "", 50, "privacyuse");
+    auto* hyperlink = new Label(page, wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Learn more", "Preferences"), "Preferences")));
     hyperlink->SetFont(Label::Head_13);
     hyperlink->SetForegroundColour(wxColour("#0078D4"));
     hyperlink->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
