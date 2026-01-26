@@ -617,7 +617,7 @@ Semver PresetBundle::get_vendor_profile_version(std::string vendor_name)
     return result_ver;
 }
 
-std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
+std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name, bool only_system) const
 {
     if (filament_id.empty())
         return std::nullopt;
@@ -629,6 +629,8 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
         const Preset& filament_preset = *iter;
         const auto& config = filament_preset.config;
         if (filament_preset.filament_id == filament_id) {
+            if (only_system && !filament_preset.is_system)
+                continue;
             FilamentBaseInfo info;
             info.filament_id = filament_id;
             info.is_system = filament_preset.is_system;
