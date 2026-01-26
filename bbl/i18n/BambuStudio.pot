@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-24 17:56+0800\n"
+"POT-Creation-Date: 2026-01-26 14:14+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -7588,7 +7588,7 @@ msgstr ""
 msgid "User Experience"
 msgstr ""
 
-msgid "Join Customer Experience Improvement Program."
+msgid "Join the User Experience Improvement Program."
 msgstr ""
 
 msgctxt "Preferences"
@@ -15121,6 +15121,9 @@ msgid "Starting: Checking air intake"
 msgstr ""
 
 msgid "Starting: Checking air vent"
+msgstr ""
+
+msgid "Terms of Bambu Lab User Experience Improvement Program"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
