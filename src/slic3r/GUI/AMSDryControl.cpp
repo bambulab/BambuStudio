@@ -1478,11 +1478,30 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         }
 
         std::set<std::string> filament_id_set;
-        for (const auto& fila : preset_bundle->filaments) {
-            auto opt_info = preset_bundle->get_filament_by_filament_id(fila.filament_id, printer_preset->name, true);
-            if (opt_info && !opt_info->filament_name.empty() && filament_id_set.insert(opt_info->filament_id).second) {
+        auto & filaments = preset_bundle->filaments;
+
+        for (auto& fila : preset_bundle->filaments) {
+            auto opt_info = preset_bundle->get_filament_by_filament_id(fila.filament_id, printer_preset->name);
+
+            if (!opt_info.has_value()) {
+                BOOST_LOG_TRIVIAL(warning) << "AMSDryCtrWin::update_filament_list: No preset found for filament_id " << fila.filament_id;
+                continue;
+            }
+
+            std::string filament_alias;
+            auto preset_info = opt_info.value();
+            filament_alias = preset_info.filament_name;
+            if (filament_alias.empty()) {
+                filament_alias = filaments.get_preset_alias(fila, true);
+            }
+
+            if (filament_alias.empty()) {
+                BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update_filament_list: No alias found for filament_id " << fila.filament_id;
+            }
+
+            if (!filament_alias.empty() && filament_id_set.insert(opt_info->filament_id).second) {
                 m_tray_ids.push_back(*opt_info);
-                m_trays_combo->Append(wxString::FromUTF8(opt_info->filament_name));
+                m_trays_combo->Append(wxString::FromUTF8(filament_alias));
             }
         }
 
