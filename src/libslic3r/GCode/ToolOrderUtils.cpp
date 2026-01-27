@@ -879,7 +879,8 @@ namespace Slic3r
         const std::vector<std::vector<unsigned int>>& layer_filaments,
         const FlushMatrix& flush_matrix,
         const std::function<bool(int, std::vector<int>&)> get_custom_seq,
-        std::vector<std::vector<unsigned int>>* filament_sequences)
+        std::vector<std::vector<unsigned int>>* filament_sequences,
+        std::optional<unsigned int> initial_filament_id = std::nullopt)
     {
         constexpr int max_n_with_forcast = 5;
         using uint128_t = boost::multiprecision::uint128_t;
@@ -907,6 +908,10 @@ namespace Slic3r
         std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
         std::unordered_set<unsigned int> filament_sets(filament_lists.begin(), filament_lists.end());
         std::optional<unsigned int>      curr_filament_id;
+        // 如果传入了有效的初始材料ID，则使用它作为初始状态
+        if (initial_filament_id.has_value() && *initial_filament_id < flush_matrix.size()) {
+            curr_filament_id = initial_filament_id;
+        }
 
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer){
             const auto& curr_lf = layer_filaments[layer];
@@ -983,7 +988,8 @@ namespace Slic3r
         const std::vector<std::vector<unsigned int>>& layer_filaments,
         const std::vector<FlushMatrix>& flush_matrix,
         std::optional<std::function<bool(int, std::vector<int>&)>> get_custom_seq,
-        std::vector<std::vector<unsigned int>>* filament_sequences)
+        std::vector<std::vector<unsigned int>>* filament_sequences,
+        std::optional<std::vector<unsigned int>> initial_filaments_id)
     {
         //only when layer filament num <= 5,we do forcast
         constexpr int max_n_with_forcast = 5;
@@ -1046,6 +1052,8 @@ namespace Slic3r
             if (groups[idx].empty())
                 continue;
             std::optional<unsigned int>current_extruder_id;
+            if (initial_filaments_id && (*initial_filaments_id)[idx] < flush_matrix[idx].size())
+                current_extruder_id = (*initial_filaments_id)[idx];
 
             std::unordered_map<uint128_t, std::pair<float, std::vector<unsigned int>>> caches;
 
@@ -1402,7 +1410,8 @@ namespace Slic3r
         const std::vector<std::vector<unsigned int>>& layer_filaments,
         const std::vector<FlushMatrix>& flush_matrix,
         const std::function<bool(int, std::vector<int>&)> get_custom_seq,
-        std::vector<std::vector<unsigned int>>* filament_sequences)
+        std::vector<std::vector<unsigned int>>* filament_sequences,
+        const std::optional<std::vector<unsigned int>> nozzles_stats)
     {
         std::map<int,std::set<unsigned int>> nozzle_filament_groups;
         std::map<int,std::set<int>> extruder_to_nozzle;
@@ -1455,8 +1464,14 @@ namespace Slic3r
 
             std::vector<unsigned int> filament_vec_in_nozzle(filament_in_nozzle.begin(), filament_in_nozzle.end());
 
+            std::optional<unsigned int> initial_fil_id = std::nullopt;
+            if (nozzles_stats.has_value() && (*nozzles_stats)[nozzle_id] < flush_matrix.size()) {
+                initial_fil_id = (*nozzles_stats)[nozzle_id];
+            }
+
             std::vector<std::vector<unsigned int>> filament_seq;
-            cost += reorder_filaments_for_minimum_flush_volume_base(filament_vec_in_nozzle, layer_filaments, flush_matrix[extruder_id], get_custom_seq, store_sequence ? &filament_seq : nullptr);
+            cost += reorder_filaments_for_minimum_flush_volume_base(filament_vec_in_nozzle, layer_filaments, flush_matrix[extruder_id], get_custom_seq,
+                                                                    store_sequence ? &filament_seq : nullptr, initial_fil_id);
             if(store_sequence)
                 nozzle_filament_sequences.emplace(nozzle_id, std::move(filament_seq));
 

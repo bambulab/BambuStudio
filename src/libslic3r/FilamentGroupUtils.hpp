@@ -94,7 +94,7 @@ namespace Slic3r
 
         int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::LayeredNozzleGroupResult& extruder_nozzle_info);
 
-        std::pair<int, int> get_estimate_extruder_filament_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::LayeredNozzleGroupResult& extruder_nozzle_info);
+        std::pair<int, int> get_estimate_extruder_filament_change_count(const MultiNozzleUtils::LayeredNozzleGroupResult& extruder_nozzle_info);
 
         std::map<int, std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list);
 

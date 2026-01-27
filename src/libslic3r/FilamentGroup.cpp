@@ -602,7 +602,7 @@ namespace Slic3r
 
             //6.Evaluate group scores
             auto group_res = MultiNozzleUtils::LayeredNozzleGroupResult::create(labels, context.nozzle_info.nozzle_list, used_filaments);
-            auto change_count = get_estimate_extruder_filament_change_count(context.model_info.layer_filaments, *group_res);
+            auto change_count = get_estimate_extruder_filament_change_count(*group_res);
             auto flush_volume = calc_cost(used_labels,std::vector<int>(m_k,0),-1);
             double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.filament_change_time;
             double score = evaluate_score(flush_volume, time, true);
@@ -1289,7 +1289,8 @@ namespace Slic3r
                 ctx.model_info.layer_filaments,
                 ctx.model_info.flush_matrix,
                 get_custom_seq,
-                nullptr
+                nullptr,
+                ctx.nozzle_info.nozzle_stats
             );
 
             if (groups[ctx.machine_info.master_extruder_id].size() < (used_filaments.size() + 1) / 2)
@@ -1540,6 +1541,8 @@ namespace Slic3r
         int  prev_layer_last_nozzle_id   = -1;
         bool used_prev_layer_last_nozzle = false;
 
+        // 每一层，材料到喷嘴的匹配 filament->nozzle
+        std::vector<int> layer_fil_nozzle_match(ctx.model_info.filament_info.size(), 0);
         for (int i = 0; i < layer_nums; i++) {
             // 左节点：材料 - 使用 set 直接去重，避免 sort + unique
             const auto      &layer_filaments = ctx.model_info.layer_filaments[i];
@@ -1552,9 +1555,6 @@ namespace Slic3r
                 continue;
             }
 
-            // 每一层，材料到喷嘴的匹配 filament->nozzle
-            std::unordered_map<int, int> layer_fil_nozzle_match;
-            layer_fil_nozzle_match.reserve(l_nodes.size());
             // 每一层，喷嘴内使用的材料队列
             std::vector<std::deque<int>> nozzle_fil_deq(r_nodes.size());
 

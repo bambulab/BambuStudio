@@ -23,9 +23,18 @@
 #include <limits>
 #include <algorithm>
 #include <unordered_map>
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <stdexcept>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 #include <libslic3r.h>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
 
 namespace Slic3r {
 
@@ -195,6 +204,8 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
     MultiNozzleUtils::NozzleStatusRecorder recorder;
     int total_filament_change_count = 0;
     float total_filament_flush_weight = 0;
+    int total_nozzle_change_count = 0;
+    int last_nozzle_id = -1;
     for(size_t layer_idx = 0; layer_idx< layer_sequences.size(); ++layer_idx){
         const auto& ls = layer_sequences[layer_idx];
         for (const auto& filament : ls) {
@@ -205,6 +216,9 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
             int extruder_id = nozzle->extruder_id;
             int nozzle_id = nozzle->group_id;
             int last_filament = recorder.get_filament_in_nozzle(nozzle_id);
+            if (last_nozzle_id != -1 && last_nozzle_id != nozzle_id)
+                total_nozzle_change_count += 1;
+            last_nozzle_id = nozzle_id;
 
             if (last_filament != -1 && last_filament != filament) {
                 int flush_volume = flush_matrix[extruder_id][last_filament][filament];
@@ -222,6 +236,7 @@ static FilamentChangeStats calc_filament_change_info_by_toolorder(const PrintCon
 
     ret.filament_change_count = total_filament_change_count;
     ret.filament_flush_weight = (int)total_filament_flush_weight;
+    ret.nozzle_change_count = total_nozzle_change_count;
 
     return ret;
 }
@@ -1142,7 +1157,8 @@ FilamentGroupContext build_filament_group_context(
     const std::vector<std::vector<unsigned int>>& layer_filaments,
     const std::vector<std::set<int>>& physical_unprintables,
     const std::vector<std::set<int>>& geometric_unprintables,
-    const std::map<int, std::set<NozzleVolumeType>>& unprintable_volumes)
+    const std::map<int, std::set<NozzleVolumeType>>& unprintable_volumes,
+    const std::optional<std::vector<unsigned int>> initial_nozzle_stats)
 {
     using namespace MultiNozzleUtils;
     using namespace FilamentGroupUtils;
@@ -1225,6 +1241,9 @@ FilamentGroupContext build_filament_group_context(
     if(context.nozzle_info.nozzle_list.empty())
         throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
 
+    if (initial_nozzle_stats)
+        context.nozzle_info.nozzle_stats = initial_nozzle_stats;
+
     auto used_filaments = collect_sorted_used_filaments(layer_filaments);
 
         // add_volume_type_limits, only for o1d
@@ -1280,13 +1299,209 @@ std::vector<FlushMatrix> prepare_flush_matrices(const PrintConfig& print_config)
 
 }
 
+MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const FilamentGroupContext& ctx,
+                                                                         const MultiNozzleUtils::LayeredNozzleGroupResult& group,
+                                                                         const std::vector<unsigned int>& nozzles_stats)
+{
+    std::vector<std::vector<int>> nozzle_fils(ctx.nozzle_info.nozzle_list.size());
+    auto fils        = group.get_used_filaments(0);
+    auto fil_noz_map = group.get_layer_filament_nozzle_map(0);
 
-MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print                                        *print,
+    for (auto fil : fils)
+        nozzle_fils[fil_noz_map[fil]].emplace_back(fil);
+
+    // 1、构建左头节点 u_nodes v_nodes
+    std::vector<int> u_nodes(ctx.nozzle_info.nozzle_list.size());
+    std::iota(u_nodes.begin(), u_nodes.end(), 0);
+    std::vector<int> v_nodes = u_nodes;
+
+    // 2、收集每个材料不可使用的喷嘴
+    std::map<int, std::set<int>> fil_unplaceable_nozs;
+    for (auto fil : fils) {
+        auto unprintable_volumes = ctx.model_info.unprintable_volumes.at(fil);
+        auto expected_volume     = ctx.group_info.filament_volume_map[fil];
+
+        for (int noz = 0; noz < ctx.nozzle_info.nozzle_list.size(); noz++) {
+            auto noz_info             = ctx.nozzle_info.nozzle_list[noz];
+            int  ext_id               = noz_info.extruder_id;
+            auto ext_unprintable_fils = ctx.model_info.unprintable_filaments[ext_id];
+            if (std::find(ext_unprintable_fils.begin(), ext_unprintable_fils.end(), ext_id) != ext_unprintable_fils.end() ||
+                (expected_volume != nvtHybrid && expected_volume != noz_info.volume_type) || (unprintable_volumes.count(noz_info.volume_type) != 0))
+                fil_unplaceable_nozs[fil].insert(noz);
+        }
+    }
+
+
+    std::vector<std::vector<float>>           cost_matrix(u_nodes.size(), std::vector<float>(v_nodes.size(), std::numeric_limits<float>::max()));
+    std::unordered_map<int, std::vector<int>> uv_unlink_limits;
+
+    // 3、构建左头节点不可连接的限制
+    for (auto u_node : u_nodes) {
+        std::set<int> unlink_v;
+        auto          u_fils = nozzle_fils[u_node];
+        for (auto fil : u_fils)
+            unlink_v.insert(fil_unplaceable_nozs[fil].begin(), fil_unplaceable_nozs[fil].end());
+
+        uv_unlink_limits[u_node].assign(unlink_v.begin(), unlink_v.end());
+
+        // 4、计算左头节点的费用
+        for (auto v_node : v_nodes) {
+            float cost = 0;
+            if (unlink_v.count(v_node)) continue;
+            auto v_fil = nozzles_stats[v_node];
+            if (v_fil < 0 || v_fil >= ctx.model_info.filament_info.size()) continue;
+
+            if (std::find(u_fils.begin(), u_fils.end(), v_fil) != u_fils.end())
+                cost = 1;
+            else {
+                int u_ext = ctx.nozzle_info.nozzle_list[u_node].extruder_id;
+                int v_ext = ctx.nozzle_info.nozzle_list[v_node].extruder_id;
+                for (auto u_fil : u_fils) cost += (ctx.model_info.flush_matrix[u_ext][u_fil][v_fil] + ctx.model_info.flush_matrix[v_ext][u_fil][v_fil]) / 2;
+                cost /= u_fils.size();
+            }
+            cost_matrix[u_node][v_node] = cost;
+        }
+    }
+
+    // 5、使用费用流，计算左头节点的匹配
+    MinFlushFlowSolver solver(cost_matrix, u_nodes, v_nodes, {}, uv_unlink_limits);
+    auto               uv_match = solver.solve();
+
+    // 6、构建新的group_result
+    std::vector<std::vector<int>> new_layer_filament_nozzle_maps = group.get_layer_filament_nozzle_maps();
+    std::set<int>                 used_fils(fils.begin(), fils.end());
+    for (auto &layer_fils : new_layer_filament_nozzle_maps) {
+        for (auto fil : fils) {
+            int ori_noz     = layer_fils[fil];
+            layer_fils[fil] = uv_match[ori_noz];
+        }
+    }
+
+    auto new_group = MultiNozzleUtils::LayeredNozzleGroupResult::create(new_layer_filament_nozzle_maps, ctx.nozzle_info.nozzle_list, fils,
+                                                                               group.get_layer_filament_sequences());
+    if (!new_group.has_value()) new_group = group;
+
+    return *new_group;
+}
+
+// 用于 std::vector<unsigned int> 作为 unordered_map 的 key
+struct VectorHash {
+    size_t operator()(const std::vector<unsigned int>& v) const {
+        size_t seed = v.size();
+        for (auto& elem : v) {
+            seed ^= std::hash<unsigned int>()(elem) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        return seed;
+    }
+};
+
+std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order2(
+    Print*                                             print,
+    const FilamentGroupContext&                        ctx,
+    const ToolOrdering::OrderingContext&               order_ctx,
+    const FilamentMapMode                              mode,
+    const std::vector<std::set<int>>&                  physical_unprintables,
+    const std::vector<std::set<int>>&                  geometric_unprintables,
+    const std::map<int, std::set<NozzleVolumeType>>&   unprintable_volumes)
+{
+    std::vector<FilamentPlanRes> results;
+
+    const auto& layer_fils = ctx.model_info.layer_filaments;
+    if (layer_fils.empty()) {
+        return results;
+    }
+
+    results.resize(layer_fils.size());
+
+    // key: 某一层使用的所有材料id组合 (排序后的vector)
+    // value: 具有相同材料组合的连续层区间列表 [(start, end), ...]
+    std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, VectorHash> filament_combo_ranges;
+    for (int layer_idx = 0; layer_idx < static_cast<int>(layer_fils.size()); ++layer_idx) {
+        std::vector<unsigned int> cur_combo = layer_fils[layer_idx];
+        std::sort(cur_combo.begin(), cur_combo.end());
+        cur_combo.erase(std::unique(cur_combo.begin(), cur_combo.end()), cur_combo.end());
+        if (cur_combo.empty())
+            continue;
+
+        auto& ranges = filament_combo_ranges[cur_combo];
+        if (ranges.empty() || ranges.back().second != layer_idx - 1) {
+            ranges.emplace_back(layer_idx, layer_idx);
+        } else {
+            ranges.back().second = layer_idx;
+        }
+    }
+
+    // 对每个材料组合的每个连续区间，构建新的 layer_filaments 并调用 get_recommended_filament_maps
+    std::vector<unsigned int> range_nozzles_stats(ctx.nozzle_info.nozzle_list.size(), std::numeric_limits<unsigned int>::max());
+    std::vector<int> fil_noz_map(ctx.group_info.total_filament_num, 0);
+    for ( auto& [combo, ranges] : filament_combo_ranges) {
+        for ( auto& [start_layer, end_layer] : ranges) {
+            // 1、构建区间的 layer_filaments
+            std::vector<std::vector<unsigned int>> range_layer_fils;
+            range_layer_fils.reserve(end_layer - start_layer + 1);
+            for (int layer_idx = start_layer; layer_idx <= end_layer; ++layer_idx) {
+                range_layer_fils.push_back(layer_fils[layer_idx]);
+            }
+
+            if (range_layer_fils.front().empty())
+                throw std::to_string(start_layer++);
+
+            // 2、生成区间分组结果
+            auto group_result = ToolOrdering::get_recommended_filament_maps(print, range_layer_fils, mode, physical_unprintables, geometric_unprintables, unprintable_volumes, range_nozzles_stats);
+
+            // 3、动态调整分组id
+            auto new_group_result = refine_groups_by_Nozzle_State(ctx, group_result, range_nozzles_stats);
+
+            auto range_seq_function = [&order_ctx, &start_layer, &end_layer](int layer_idx, std::vector<int> &out_seq) -> bool {
+                if (layer_idx <= end_layer - start_layer ) {
+                    int global_idx = start_layer + layer_idx;
+                    return order_ctx.get_custom_seq(global_idx, out_seq);
+                }
+                return false;
+            };
+
+            // 4、区间分组排序
+            std::vector<std::vector<unsigned int>> fils_sequences;
+            reorder_filaments_for_multi_nozzle_extruder(
+                range_layer_fils.front(),
+                new_group_result,
+                range_layer_fils,
+                ctx.model_info.flush_matrix,
+                range_seq_function,
+                &fils_sequences,
+                range_nozzles_stats);
+
+            // 5、存储区间结果
+            for (auto fil_id : layer_fils[start_layer]) {
+                auto noz = new_group_result.get_nozzle_for_filament(fil_id);
+                if (noz.has_value()) {
+                    fil_noz_map[fil_id] = noz->group_id;
+                    range_nozzles_stats[noz->group_id] = fil_id;
+                }
+            }
+
+            assert(fils_sequences.size() == range_layer_fils.size());
+            for (size_t layer_id = 0; layer_id < fils_sequences.size(); ++layer_id) {
+                int g_layer_id = start_layer + static_cast<int>(layer_id);
+                results[g_layer_id].fil_nozzle_match = fil_noz_map;
+                results[g_layer_id].fil_order        = std::vector<int>(fils_sequences[layer_id].begin(), fils_sequences[layer_id].end());
+            }
+
+        }
+    }
+
+    return results;
+}
+
+
+
+MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filament_maps(Print                                           *print,
                                                                                      const std::vector<std::vector<unsigned int>> &layer_filaments,
                                                                                      const FilamentMapMode                         mode,
                                                                                      const std::vector<std::set<int>>             &physical_unprintables,
                                                                                      const std::vector<std::set<int>>             &geometric_unprintables,
-                                                                                     const std::map<int, std::set<NozzleVolumeType>>   &unprintable_volumes)
+                                                                                     const std::map<int, std::set<NozzleVolumeType>>   &unprintable_volumes,
+                                                                                     const std::optional<std::vector<unsigned int>>              nozzle_stats)
 {
     using namespace FilamentGroupUtils;
     using namespace MultiNozzleUtils;
@@ -1333,8 +1548,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
 
     if(has_multiple_extruder || has_multiple_nozzle){
         auto context = build_filament_group_context(
-            print,layer_filaments,physical_unprintables,geometric_unprintables,
-            unprintable_volumes);
+            print,layer_filaments,physical_unprintables,geometric_unprintables, unprintable_volumes, nozzle_stats);
 
         if (has_multiple_nozzle) {
             if(mode == FilamentMapMode::fmmManual){
@@ -1402,6 +1616,40 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
 
     auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, grouping_result, nozzle_flush_mtx, filament_sequences);
 
+    // 将统计信息输出到可执行文件所在目录的 filament_stats.txt 文件
+    {
+        try {
+            // 获取可执行文件所在目录
+            boost::filesystem::path exe_path = boost::dll::program_location();
+            boost::filesystem::path stats_file = exe_path.parent_path() / "filament_stats_ori.txt";
+
+            // 获取当前时间戳
+            auto now = std::chrono::system_clock::now();
+            auto time_t_now = std::chrono::system_clock::to_time_t(now);
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
+            std::ostringstream timestamp;
+            timestamp << std::put_time(std::localtime(&time_t_now), "%Y-%m-%d %H:%M:%S");
+            timestamp << "." << std::setfill('0') << std::setw(3) << ms.count();
+
+            // 以追加模式打开文件
+            std::ofstream ofs(stats_file.string(), std::ios::app);
+            if (ofs.is_open()) {
+                ofs << "[" << timestamp.str() << "] "
+                    << "filament_flush_weight=" << curr_flush_info.filament_flush_weight << " "
+                    << "filament_change_count=" << curr_flush_info.filament_change_count
+                    << std::endl;
+                ofs.close();
+                BOOST_LOG_TRIVIAL(info) << "Filament stats written to: " << stats_file.string();
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "Failed to open stats file: " << stats_file.string();
+            }
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "Error writing filament stats: " << e.what();
+        }
+        //throw std::runtime_error("Filament stats collected, stopping slice.");
+    }
+
     if (extruder_num <= 1) {
         m_stats_by_single_extruder = curr_flush_info;
     } else {
@@ -1432,13 +1680,36 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
 
         if (print_config.filament_map_mode != fmmAutoForFlush) {
             std::vector<std::vector<unsigned int>> best_seq;
-            auto group_result_auto = get_recommended_filament_maps(m_print, layer_data.layer_filaments, fmmAutoForFlush, layer_data.physical_unprintables,
-                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
 
-            reorder_filaments_for_multi_nozzle_extruder(ordering_context.filament_lists, group_result_auto, layer_data.layer_filaments, nozzle_flush_mtx,
-                                                        ordering_context.get_custom_seq, &best_seq);
+            // 如果支持选料器
+            if (m_print->is_dynamic_group_reorder()) {
+                auto grouping_context = GroupReorder::build_filament_group_context(m_print, layer_data.layer_filaments, layer_data.physical_unprintables,
+                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
 
-            m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, group_result_auto, nozzle_flush_mtx, best_seq);
+                auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order2(m_print, grouping_context, ordering_context, FilamentMapMode::fmmAutoForFlush,
+                                                                                layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
+
+                std::vector<std::vector<int>> nozzle_map_per_layer;
+                for (auto &res : dynamic_plan_res) {
+                    best_seq.emplace_back(cast<unsigned int>(res.fil_order));
+                    nozzle_map_per_layer.emplace_back(res.fil_nozzle_match);
+                }
+
+                auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);
+
+                if (result)
+                    m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, *result, nozzle_flush_mtx, best_seq);
+            }
+            else {
+                auto group_result_auto = get_recommended_filament_maps(m_print, layer_data.layer_filaments, fmmAutoForFlush, layer_data.physical_unprintables,
+                                                                       layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
+
+                reorder_filaments_for_multi_nozzle_extruder(ordering_context.filament_lists, group_result_auto, layer_data.layer_filaments, nozzle_flush_mtx,
+                                                            ordering_context.get_custom_seq, &best_seq);
+
+                m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, group_result_auto, nozzle_flush_mtx, best_seq);
+            }
+
         }
     }
 }
@@ -1583,15 +1854,18 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         );
 
         // TODO(山苍)：逐件打印后面要考虑喷嘴状态
-        auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order(grouping_context);
+        auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order2(m_print,
+                                                                       grouping_context,
+                                                                       ordering_context,
+                                                                       FilamentMapMode::fmmAutoForFlush,
+                                                                       layer_data.physical_unprintables,
+                                                                       layer_data.geometric_unprintables,
+                                                                       layer_data.filament_unprintable_volumes);
 
         std::vector<std::vector<int>> nozzle_map_per_layer;
-        std::vector<int> filament_nozzle_map(grouping_context.group_info.total_filament_num, 0);
         for (auto &res : dynamic_plan_res){
             filament_sequences.emplace_back(cast<unsigned int>(res.fil_order));
-            for (auto [fidx, nidx] : res.fil_nozzle_match)
-                filament_nozzle_map[fidx] = nidx;
-            nozzle_map_per_layer.emplace_back(filament_nozzle_map);
+            nozzle_map_per_layer.emplace_back(res.fil_nozzle_match);
         }
 
         auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);

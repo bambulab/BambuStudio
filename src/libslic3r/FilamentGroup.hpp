@@ -106,6 +106,7 @@ namespace Slic3r
         struct NozzleInfo {
             std::map<int, std::vector<int>> extruder_nozzle_list;
             std::vector<MultiNozzleUtils::NozzleInfo> nozzle_list;
+            std::optional<std::vector<unsigned int>> nozzle_stats = std::nullopt;
         } nozzle_info;
     };
 
@@ -195,7 +196,7 @@ namespace Slic3r
     struct FilamentPlanRes
     {
         std::vector<int> fil_order;
-        std::unordered_map<int, int> fil_nozzle_match;
+        std::vector<int> fil_nozzle_match;
     };
 
     std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order(const FilamentGroupContext& ctx);
