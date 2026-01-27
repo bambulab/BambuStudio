@@ -9,6 +9,7 @@
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
@@ -40,7 +41,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     SetBackgroundColour(*wxWHITE);
     // normal mode
     //Freeze();
-    wxBoxSizer *m_sizer_body = new wxBoxSizer(wxVERTICAL);
+    m_sizer_body = new wxBoxSizer(wxVERTICAL);
     m_amswin                 = new wxWindow(this, wxID_ANY);
     m_amswin->SetBackgroundColour(*wxWHITE);
     m_amswin->SetSize(wxSize(FromDIP(578), -1));
@@ -377,6 +378,32 @@ bool AMSControl::IsAmsInRightPanel(std::string ams_id) {
         }
         return false;
     }
+}
+
+bool AMSControl::IsAmsMixed(const std::vector<AMSinfo> &ams_info)
+{
+    std::set<AMSModel> ams_kind;
+
+    for (auto info : ams_info) {
+        ams_kind.insert(info.ams_type);
+    }
+
+    return ams_kind.size() > 1  && ams_kind.find(AMSModel::AMS_LITE) != ams_kind.end();
+}
+
+std::tuple<bool, bool> AMSControl::isFilaSwitchReady()
+{
+    // return false;
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return {false, false};
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj) return {false, false};
+    std::shared_ptr<Slic3r::DevFilaSwitch> filaSwitch = obj->GetFilaSwitch();
+    if (filaSwitch)
+    {
+        return {filaSwitch->IsInstalled(), filaSwitch->IsReady()};
+    }
+    return {false, false};
 }
 
 void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
@@ -856,6 +883,36 @@ void AMSControl::show_noams_mode()
     EnterGenericAMSMode();
 }
 
+void AMSControl::show_switcher_status(bool show)
+{
+    if (tipPanel == nullptr)
+    {
+        m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(5));
+        tipPanel = new wxPanel(m_amswin);
+        tipPanel->SetBackgroundColour(wxColour(255, 153, 0));
+        tipSizer = new wxBoxSizer(wxHORIZONTAL);
+        tipPanel->SetSizer(tipSizer);
+        icon = new wxStaticBitmap(tipPanel, wxID_ANY,
+            wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_MESSAGE_BOX, wxSize(FromDIP(16), FromDIP(16))));
+        tipSizer->Add(icon, 0, wxALL, FromDIP(8));
+        tipText = new wxStaticText(tipPanel, wxID_ANY,
+            _L("The consumables changer has not been calibrated. \nPlease calibrate it on the printer before using."));
+        tipText->SetForegroundColour(wxColour(255, 255, 255));
+        tipText->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
+        tipText->Wrap(-1);
+        tipText->SetMinSize(wxSize(-1, -1));
+        tipSizer->Add(tipText, 0, wxALL | wxALIGN_CENTER_VERTICAL | wxEXPAND, FromDIP(8));
+        m_sizer_body->Add(tipPanel, 1, wxEXPAND, 0);
+    }
+    if (tipPanel->IsShown() == show)
+    {
+        return;
+    }
+    tipPanel->Show(show);
+    m_amswin->Layout();
+    m_amswin->Fit();
+}
+
 void AMSControl::show_auto_refill(bool show)
 {
     if (m_button_auto_refill->IsShown() == show)
@@ -1057,6 +1114,10 @@ void AMSControl::UpdateAms(const std::string   &series_name,
     {
         m_amswin->Layout();
     }
+
+    /*update switch status*/
+    const auto[install, ready] = isFilaSwitchReady();
+    show_switcher_status(install && (!ready));
 }
 
 void AMSControl::AddAmsPreview(AMSinfo info, AMSModel type)

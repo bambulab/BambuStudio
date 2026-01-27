@@ -3746,4 +3746,252 @@ void AmsItem::show_sn_value(bool show)
     }
 }
 
+DevExtruderImage::DevExtruderImage(wxWindow *parent, wxWindowID id, int extruder_num, const wxPoint &pos, const wxSize &size) : wxWindow(parent, id, pos, wxDefaultSize), m_extruder_num(extruder_num)
+{
+    // wxWindow::Create(parent, id, pos, wxSize(FromDIP(45), FromDIP(112)));
+    SetBackgroundColour(*wxWHITE);
+    SetSize(wxSize(FromDIP(48), FromDIP(112)));
+    SetMinSize(wxSize(FromDIP(48), FromDIP(112)));
+    SetMaxSize(wxSize(FromDIP(48), FromDIP(112)));
+
+
+    m_left_extruder_active_filled    = new ScalableBitmap(this, "left_extruder_active_filled", 62);
+    m_left_extruder_active_empty     = new ScalableBitmap(this, "left_extruder_active_empty", 62);
+    m_left_extruder_unactive_filled  = new ScalableBitmap(this, "left_extruder_unactive_filled", 62);
+    m_left_extruder_unactive_empty   = new ScalableBitmap(this, "left_extruder_unactive_empty", 62);
+    m_right_extruder_active_filled   = new ScalableBitmap(this, "right_extruder_active_filled", 62);
+    m_right_extruder_active_empty    = new ScalableBitmap(this, "right_extruder_active_empty", 62);
+    m_right_extruder_unactive_filled = new ScalableBitmap(this, "right_extruder_unactive_filled", 62);
+    m_right_extruder_unactive_empty  = new ScalableBitmap(this, "right_extruder_unactive_empty", 62);
+
+    m_extruder_single_nozzle_empty_load    = new ScalableBitmap(this, "monitor_extruder_empty_load", 106);
+    m_extruder_single_nozzle_empty_unload  = new ScalableBitmap(this, "monitor_extruder_empty_unload", 106);
+    m_extruder_single_nozzle_filled_load   = new ScalableBitmap(this, "monitor_extruder_filled_load", 106);
+    m_extruder_single_nozzle_filled_unload = new ScalableBitmap(this, "monitor_extruder_filled_unload", 106);
+
+    Bind(wxEVT_PAINT, &DevExtruderImage::paintEvent, this);
+}
+
+void DevExtruderImage::msw_rescale()
+{
+    m_left_extruder_active_filled->msw_rescale();
+    m_left_extruder_active_empty->msw_rescale();
+    m_left_extruder_unactive_filled->msw_rescale();
+    m_left_extruder_unactive_empty->msw_rescale();
+    m_right_extruder_active_filled->msw_rescale();
+    m_right_extruder_active_empty->msw_rescale();
+    m_right_extruder_unactive_filled->msw_rescale();
+    m_right_extruder_unactive_empty->msw_rescale();
+
+    m_extruder_single_nozzle_empty_load->msw_rescale();
+    m_extruder_single_nozzle_empty_unload->msw_rescale();
+    m_extruder_single_nozzle_filled_load->msw_rescale();
+    m_extruder_single_nozzle_filled_unload->msw_rescale();
+    Layout();
+    Refresh();
+}
+
+void DevExtruderImage::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void DevExtruderImage::doRender(wxDC &dc)
+{
+    auto size = GetSize();
+    auto pot = wxPoint(size.x / 2, (size.y - m_left_extruder_active_filled->GetBmpSize().y) / 2);
+
+    if (m_extruder_num >= 2)
+    {
+        ScalableBitmap *left_extruder_bmp{nullptr};
+        ScalableBitmap *right_extruder_bmp{nullptr};
+
+        switch (m_right_ext_state)
+        {
+            case DevExtruderState::FILLED_LOAD:
+                right_extruder_bmp = current_extruder_loc == "right" ? m_right_extruder_active_filled : m_right_extruder_unactive_filled;
+                break;
+            case DevExtruderState::FILLED_UNLOAD:
+                right_extruder_bmp = current_extruder_loc == "right" ? m_right_extruder_active_filled : m_right_extruder_unactive_filled;
+                break;
+            case DevExtruderState::EMPTY_LOAD:
+                if (current_extruder_loc.empty())
+                {
+                    right_extruder_bmp = m_right_extruder_active_empty;
+                }
+                else
+                {
+                    right_extruder_bmp = current_extruder_loc == "right" ? m_right_extruder_active_empty : m_right_extruder_unactive_empty;
+                }
+                break;
+            case DevExtruderState::EMPTY_UNLOAD:
+                right_extruder_bmp = current_extruder_loc == "right" ? m_right_extruder_active_empty : m_right_extruder_unactive_empty;
+                break;
+            default: break;
+        }
+
+        switch (m_left_ext_state)
+        {
+            case DevExtruderState::FILLED_LOAD:
+                left_extruder_bmp = current_extruder_loc == "left" ? m_left_extruder_active_filled : m_left_extruder_unactive_filled;
+                break;
+            case DevExtruderState::FILLED_UNLOAD:
+                left_extruder_bmp = current_extruder_loc == "left" ? m_left_extruder_active_filled : m_left_extruder_unactive_filled;
+                break;
+            case DevExtruderState::EMPTY_LOAD:
+                if (current_extruder_loc.empty())
+                {
+                    left_extruder_bmp = m_left_extruder_active_empty;
+                }
+                else
+                {
+                    left_extruder_bmp = current_extruder_loc == "left" ? m_left_extruder_active_empty : m_left_extruder_unactive_empty;
+                }
+                break;
+            case DevExtruderState::EMPTY_UNLOAD:
+                left_extruder_bmp = current_extruder_loc == "left" ? m_left_extruder_active_empty : m_left_extruder_unactive_empty;
+                break;
+            default: break;
+        }
+
+        auto lw = left_extruder_bmp->GetBmpWidth();
+        auto lh = left_extruder_bmp->GetBmpHeight();
+        auto rw = right_extruder_bmp->GetBmpWidth();
+        auto rh = right_extruder_bmp->GetBmpHeight();
+        if (left_extruder_bmp) { dc.DrawBitmap(left_extruder_bmp->bmp(), pot.x - left_extruder_bmp->GetBmpWidth(), pot.y); }
+        if (right_extruder_bmp) { dc.DrawBitmap(right_extruder_bmp->bmp(), pot.x, pot.y); }
+    }
+    else
+    {
+        ScalableBitmap *extruder_bmp = nullptr;
+        switch (m_single_ext_state)
+        {
+            case DevExtruderState::FILLED_LOAD:
+                extruder_bmp = m_extruder_single_nozzle_filled_load;
+                break;
+            case DevExtruderState::FILLED_UNLOAD:
+                extruder_bmp = m_extruder_single_nozzle_filled_unload;
+                break;
+            case DevExtruderState::EMPTY_LOAD:
+                extruder_bmp = m_extruder_single_nozzle_empty_load;
+                break;
+            case DevExtruderState::EMPTY_UNLOAD:
+                extruder_bmp = m_extruder_single_nozzle_empty_unload;
+                break;
+            default: break;
+        }
+
+        if (extruder_bmp) { dc.DrawBitmap(extruder_bmp->bmp(), pot.x - extruder_bmp->GetBmpWidth() / 2, (size.y - extruder_bmp->GetBmpHeight()) / 2); }
+    }
+}
+
+
+FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
+                                        const int extruderNum,
+                                        const wxString& title,
+                                        const wxFont& customFont,
+                                        const wxColour& bgColor,
+                                        const wxSize& dialogSize)
+    : wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize),
+    m_extruder_num(extruderNum), m_title(title), m_customFont(customFont)
+{
+    SetBackgroundColour(bgColor);
+
+    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxGridSizer* topSizer = new wxGridSizer (1, 3, FromDIP(5), 0);
+
+    m_radioHelper = new wxRadioButton(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    m_leftRadio = new wxRadioButton(this, wxID_ANY, _L("left side"));
+    m_rightRadio = new wxRadioButton(this, wxID_ANY, _L("right side"));
+    m_radioHelper->Show(false);
+    m_radioHelper->SetCanFocus(false);
+
+    m_leftRadio->SetFont(customFont);
+    m_rightRadio->SetFont(customFont);
+
+    topSizer->Add(m_leftRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    m_extruderImage = new DevExtruderImage(this, wxID_ANY, m_extruder_num);
+    topSizer->Add(m_extruderImage, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    topSizer->Add(m_rightRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+
+    mainSizer->AddStretchSpacer(1);
+    mainSizer->Add(topSizer, 1, wxEXPAND);
+    mainSizer->AddStretchSpacer(1);
+
+    wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
+    m_confirmBtn = new Button(this, _L("confirm"));
+    m_confirmBtn->Enable(false);
+    m_confirmBtn->SetFont(customFont);
+    bottomSizer->Add(m_confirmBtn, 0, wxALIGN_RIGHT);
+
+    mainSizer->Add(bottomSizer, 0, wxALIGN_RIGHT | wxBOTTOM | wxRIGHT, FromDIP(10));
+
+    SetSizer(mainSizer);
+    Layout();
+    Centre(wxBOTH);
+
+    m_lastChecked = m_radioHelper;
+    m_confirmBtn->Bind(wxEVT_BUTTON, &FeedDirectionDialog::OnConfirm, this);
+    m_leftRadio->Bind(wxEVT_RADIOBUTTON, &FeedDirectionDialog::OnRadioClicked, this);
+    m_rightRadio->Bind(wxEVT_RADIOBUTTON, &FeedDirectionDialog::OnRadioClicked, this);
+}
+
+void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
+{
+    auto clicked = static_cast<wxRadioButton*>(evt.GetEventObject());
+    extruder_id = std::nullopt;
+    if (clicked == m_lastChecked)
+    {
+        m_radioHelper->SetValue(true);
+        m_lastChecked = m_radioHelper;
+        m_confirmBtn->Enable(false);
+        m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+        m_extruderImage->setExtruderUsed("");
+
+    }
+    else
+    {
+        clicked->SetValue(true);
+        m_lastChecked = clicked;
+        m_confirmBtn->Enable(true);
+        if (m_extruder_num >= 2)
+        {
+            if (clicked == m_leftRadio)
+            {
+                m_extruderImage->update(DevExtruderState::FILLED_LOAD, DevExtruderState::EMPTY_LOAD);
+                m_extruderImage->setExtruderUsed("left");
+                extruder_id = 1;
+                SetDialogTitle(_L(m_title) + _L(" to left extruder"));
+            }
+            else if (clicked == m_rightRadio)
+            {
+                m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::FILLED_LOAD);
+                m_extruderImage->setExtruderUsed("right");
+                extruder_id = 0;
+                SetDialogTitle(_L(m_title) + _L(" to right extruder"));
+            }
+        }
+        // m_extImage->Refresh();
+    }
+    m_leftRadio->Refresh();
+    m_rightRadio->Refresh();
+    Update();
+}
 }} // namespace Slic3r::GUI

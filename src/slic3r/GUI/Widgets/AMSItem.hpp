@@ -833,6 +833,144 @@ private:
     AMSExtText* m_ext_text = { nullptr };       //the ext text upon the ext ams
 };
 
+enum class DevExtruderState {
+    FILLED_LOAD,
+    FILLED_UNLOAD,
+    EMPTY_LOAD,
+    EMPTY_UNLOAD
+};
+
+class DevExtruderImage : public wxWindow
+{
+    ScalableBitmap *m_left_extruder_active_filled;
+    ScalableBitmap *m_left_extruder_active_empty;
+    ScalableBitmap *m_left_extruder_unactive_filled;
+    ScalableBitmap *m_left_extruder_unactive_empty;
+    ScalableBitmap *m_right_extruder_active_filled;
+    ScalableBitmap *m_right_extruder_active_empty;
+    ScalableBitmap *m_right_extruder_unactive_filled;
+    ScalableBitmap *m_right_extruder_unactive_empty;
+
+    ScalableBitmap *m_extruder_single_nozzle_empty_load;
+    ScalableBitmap *m_extruder_single_nozzle_empty_unload;
+    ScalableBitmap *m_extruder_single_nozzle_filled_load;
+    ScalableBitmap *m_extruder_single_nozzle_filled_unload;
+
+    DevExtruderState m_left_ext_state   = {DevExtruderState::EMPTY_LOAD};
+    DevExtruderState m_right_ext_state  = {DevExtruderState::EMPTY_LOAD};
+    DevExtruderState m_single_ext_state = {DevExtruderState::EMPTY_LOAD};
+
+public:
+    DevExtruderImage(wxWindow *parent, wxWindowID id,
+                     int extruder_num,
+                     const wxPoint &pos = wxDefaultPosition,
+                     const wxSize &size = wxDefaultSize);
+    ~DevExtruderImage()
+    {
+
+    }
+    void update(DevExtruderState single_state)
+    {
+        m_single_ext_state = single_state;
+    }
+    void update(DevExtruderState left_state, DevExtruderState right_state)
+    {
+        m_left_ext_state  = left_state;
+        m_right_ext_state = right_state;
+    }
+
+    void msw_rescale();
+    void setExtruderCount(int extruder_num)
+    {
+        m_extruder_num = extruder_num;
+    }
+    void setExtruderUsed(const std::string& loc)
+    {
+        if (current_extruder_loc == loc) { return; }
+        current_extruder_loc = loc;
+        Refresh();
+    }
+private:
+    void paintEvent(wxPaintEvent &evt)
+    {
+        wxPaintDC dc(this);
+        render(dc);
+    }
+    void render(wxDC &dc);
+    void   doRender(wxDC &dc);
+    int m_extruder_num = 1;
+    std::string current_extruder_loc = "";
+
+};
+
+class FeedDirectionDialog : public wxDialog
+{
+public:
+    FeedDirectionDialog(wxWindow* parent,
+                        const int extruderNum,
+                        const wxString& title,
+                        const wxFont& customFont = wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL),
+                        const wxColour& bgColor = wxColour(255, 255, 255),
+                        const wxSize& dialogSize = wxSize(300, 200));
+
+    wxString GetSelectedDirection() const
+    {
+        return m_leftRadio->GetValue() ? "left side" : "right side";
+    }
+
+    void SetDialogTitle(const wxString& newTitle)
+    {
+        SetTitle(newTitle);
+    }
+
+    void SetDialogBgColor(const wxColour& newColor)
+    {
+        SetBackgroundColour(newColor);
+        Refresh();
+    }
+
+    void SetDialogFont(const wxFont& newFont)
+    {
+        m_customFont = newFont;
+        m_leftRadio->SetFont(newFont);
+        m_rightRadio->SetFont(newFont);
+        m_confirmBtn->SetFont(newFont);
+        Refresh();
+    }
+
+    void SetDialogSize(const wxSize& newSize)
+    {
+        SetSize(newSize);
+        Layout();
+    }
+
+    std::optional<int> GetExtruderID()
+    {
+        if (m_extruderImage)
+        {
+            return extruder_id;
+        }
+        return std::nullopt;
+    }
+private:
+    int m_extruder_num{};
+    wxString m_title;
+    wxRadioButton* m_radioHelper{nullptr};
+    wxRadioButton* m_leftRadio{nullptr};
+    wxRadioButton* m_rightRadio{nullptr};
+    wxRadioButton* m_lastChecked{nullptr};
+    DevExtruderImage* m_extruderImage{nullptr};
+    Button* m_confirmBtn{nullptr};
+    wxFont m_customFont;
+    std::optional<int> extruder_id = std::nullopt;
+    void OnConfirm(wxCommandEvent& event)
+    {
+        EndModal(wxID_OK);
+    }
+    void OnRadioClicked(wxCommandEvent& evt);
+
+};
+
 wxDECLARE_EVENT(EVT_AMS_EXTRUSION_CALI, wxCommandEvent);
 wxDECLARE_EVENT(EVT_AMS_LOAD, SimpleEvent);
 wxDECLARE_EVENT(EVT_AMS_UNLOAD, SimpleEvent);

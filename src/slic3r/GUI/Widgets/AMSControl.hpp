@@ -54,6 +54,11 @@ protected:
     AMSextruder *m_extruder{nullptr};
     AMSRoadDownPart* m_down_road{ nullptr };
 
+    /*tips text*/
+    wxPanel *tipPanel{nullptr};
+    wxBoxSizer *tipSizer{nullptr};
+    wxStaticBitmap *icon{nullptr};
+    wxStaticText *tipText{nullptr};
     /*items*/
     wxBoxSizer* m_sizer_ams_items{nullptr};
     wxScrolledWindow* m_panel_prv_left {nullptr};
@@ -88,6 +93,7 @@ protected:
     wxStaticText *m_tip_right_top{nullptr};
     Label        *m_tip_load_info{nullptr};
     wxWindow *    m_amswin{nullptr};
+    wxBoxSizer   *m_sizer_body{nullptr};
     wxBoxSizer*   m_vams_sizer{nullptr};
     wxBoxSizer*   m_sizer_vams_tips{nullptr};
 
@@ -193,6 +199,8 @@ public:
     void on_clibration_cancel_click(wxMouseEvent &event);
     void Reset();
 
+    std::tuple<bool, bool> isFilaSwitchReady();
+    void show_switcher_status(bool show);
     void show_noams_mode();
     void show_auto_refill(bool show);
     void enable_ams_setting(bool en);
