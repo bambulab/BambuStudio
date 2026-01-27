@@ -533,6 +533,108 @@ std::vector<NozzleInfo> StaticNozzleGroupResult::get_nozzles_for_filament(int fi
     return result;
 }
 
+float calc_filament_change_gap_for_assignment(
+    const std::vector<int>&           logical_filaments,
+    const std::vector<NozzleInfo>&    nozzle_list,
+    const std::vector<int>&           filament_change_seq,
+    const std::vector<int>&           nozzle_change_seq,
+    const std::vector<int>&           group_of_filament,
+    const FilamentChangeTimeParams&   time_params)
+{
+    if (logical_filaments.empty() || nozzle_list.empty() || filament_change_seq.empty() || nozzle_change_seq.empty()) return 0.0f;
+
+    const auto build_nozzle_id_map = [](const std::vector<NozzleInfo>& nozzle_list) {
+        std::map<int, NozzleInfo> result;
+        for (const auto& nozzle : nozzle_list) {
+            result[nozzle.group_id] = nozzle;
+        }
+        return result;
+    };
+    const auto get_filament_index = [](const std::vector<int>& logical_filaments, int filament_id) {
+        auto it = std::find(logical_filaments.begin(), logical_filaments.end(), filament_id);
+        if (it == logical_filaments.end()) return -1;
+        return static_cast<int>(std::distance(logical_filaments.begin(), it));
+    };
+    const auto nozzle_id_map = build_nozzle_id_map(nozzle_list);
+    const size_t seq_len = std::min(filament_change_seq.size(), nozzle_change_seq.size());
+
+    float gap = 0.0f;
+    float standard_total = time_params.standard_unload_time + time_params.standard_load_time;
+    float selector_total = time_params.selector_unload_time + time_params.selector_load_time;
+    int last_extruder_id = -1;
+    NozzleStatusRecorder recorder;
+
+    for (size_t i = 0; i < seq_len; ++i) {
+        int filament_id = filament_change_seq[i];
+        int nozzle_id = nozzle_change_seq[i];
+        auto nozzle_iter = nozzle_id_map.find(nozzle_id);
+        if (nozzle_iter == nozzle_id_map.end()) continue;
+
+        int new_extruder_id = nozzle_iter->second.extruder_id;
+        int new_nozzle_id = nozzle_iter->second.group_id;
+
+        int old_extruder_id = last_extruder_id;
+        int old_nozzle_in_extruder = recorder.get_nozzle_in_extruder(new_extruder_id);
+        int old_filament_in_nozzle = recorder.get_filament_in_nozzle(old_nozzle_in_extruder);
+
+        bool is_extruder_change = (old_extruder_id != new_extruder_id);
+        bool is_nozzle_change = (old_nozzle_in_extruder != new_nozzle_id);
+        bool is_flush_change = (old_filament_in_nozzle != filament_id);
+
+        if (!is_extruder_change && (is_nozzle_change || is_flush_change)) {
+            // 挤出机切换差异为0，仅统计冲刷/热端切换差异
+            int old_index = get_filament_index(logical_filaments, old_filament_in_nozzle);
+            int new_index = get_filament_index(logical_filaments, filament_id);
+            bool same_group = (old_index >= 0 && new_index >= 0 &&
+                               group_of_filament[static_cast<size_t>(old_index)] == group_of_filament[static_cast<size_t>(new_index)]);
+            float actual_time = same_group ? standard_total : selector_total;
+            float sliced_time = standard_total;
+            gap += (actual_time - sliced_time);
+        }
+
+        recorder.set_nozzle_status(new_nozzle_id, filament_id, new_extruder_id);
+        last_extruder_id = new_extruder_id;
+    }
+
+    return gap;
+}
+
+std::vector<int> find_optimal_physical_assignment(
+    const std::vector<int>&           logical_filaments,
+    const std::vector<NozzleInfo>&    nozzle_list,
+    const std::vector<int>&           filament_change_seq,
+    const std::vector<int>&           nozzle_change_seq,
+    int                               group_count,
+    const FilamentChangeTimeParams&   time_params)
+{
+    size_t count = logical_filaments.size();
+    if (count == 0 || group_count <= 0) return {};
+
+    std::vector<int> assignment(count, 0);
+    std::vector<int> best_assignment = assignment;
+    float best_gap = calc_filament_change_gap_for_assignment(logical_filaments, nozzle_list, filament_change_seq, nozzle_change_seq, assignment, time_params);
+
+    bool done = false;
+    while (!done) {
+        if (assignment[0] == 0) {
+            // 对称性剪枝：固定首个耗材在组0
+            float gap = calc_filament_change_gap_for_assignment(logical_filaments, nozzle_list, filament_change_seq, nozzle_change_seq, assignment, time_params);
+            if (gap < best_gap) {
+                best_gap = gap;
+                best_assignment = assignment;
+            }
+        }
+        for (size_t pos = 0; pos < count; ++pos) {
+            assignment[pos] += 1;
+            if (assignment[pos] < group_count) break;
+            assignment[pos] = 0;
+            if (pos == count - 1) done = true;
+        }
+    }
+
+    return best_assignment;
+}
+
 // ==================== NozzleStatusRecorder 实现 ====================
 
 bool NozzleStatusRecorder::is_nozzle_empty(int nozzle_id) const

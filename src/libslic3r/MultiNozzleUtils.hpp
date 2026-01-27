@@ -66,6 +66,14 @@ struct NozzleGroupInfo
     static std::optional<NozzleGroupInfo> deserialize(const std::string& str);
 };
 
+struct FilamentChangeTimeParams
+{
+    float selector_load_time{0.0f};
+    float selector_unload_time{0.0f};
+    float standard_load_time{0.0f};
+    float standard_unload_time{0.0f};
+};
+
 /**
  * @brief 喷嘴分组结果的虚基类
  */
@@ -209,6 +217,22 @@ public:
     // Update the status of a nozzle with new filament and extruder information
     void set_nozzle_status(int nozzle_id, int filament_id, int extruder_id = -1);
 };
+
+float calc_filament_change_gap_for_assignment(
+    const std::vector<int>&           logical_filaments,
+    const std::vector<NozzleInfo>&    nozzle_list,
+    const std::vector<int>&           filament_change_seq,
+    const std::vector<int>&           nozzle_change_seq,
+    const std::vector<int>&           group_of_filament,
+    const FilamentChangeTimeParams&   time_params);
+
+std::vector<int> find_optimal_physical_assignment(
+    const std::vector<int>&           logical_filaments,
+    const std::vector<NozzleInfo>&    nozzle_list,
+    const std::vector<int>&           filament_change_seq,
+    const std::vector<int>&           nozzle_change_seq,
+    int                               group_count,
+    const FilamentChangeTimeParams&   time_params);
 
 // ==================== 工具函数 ====================
 std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> info);
