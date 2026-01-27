@@ -13,6 +13,8 @@
 #include <nlohmann/json.hpp>
 #include <openssl/aes.h>
 
+#include <fstream>
+
 //#define DEBUG_LOG_ENC
 
 #define HEADER_BEGIN_MARKER "BEGIN_HEADER\n"
