@@ -7694,6 +7694,22 @@
         {
             "name": "0.56mm Standard @BBL X1C 0.8 nozzle",
             "sub_path": "process/0.56mm Standard @BBL X1C 0.8 nozzle.json"
+        },
+        {
+            "name": "Eolas Prints PLA Premium base",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Premium @base.json"
+        },
+        {
+            "name": "Eolas Prints PLA Premium 0.2 nozzle",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Premium @0.2 nozzle.json"
+        },
+        {
+            "name": "Eolas Prints PLA Premium 0.4 nozzle",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Premium @0.4 nozzle.json"
+        },
+        {
+            "name": "Eolas Prints PLA Premium 0.6 nozzle",
+            "sub_path": "filament/Eolas Prints/Eolas Prints PLA Premium @0.6 nozzle.json"
         }
     ]
 }
