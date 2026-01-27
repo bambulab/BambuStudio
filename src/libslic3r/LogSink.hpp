@@ -2,6 +2,7 @@
 
 #include <string>
 #include <ctime>
+#include <unordered_set>
 
 #include <boost/log/sinks/basic_sink_backend.hpp>
 #include <boost/log/sinks/sync_frontend.hpp>

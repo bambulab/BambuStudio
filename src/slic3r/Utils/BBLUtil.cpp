@@ -1,6 +1,8 @@
 #include "BBLUtil.hpp"
 #include "libslic3r_version.h"
 
+#include <random>
+
 #include <boost/log/trivial.hpp>
 
 #include <openssl/aes.h>

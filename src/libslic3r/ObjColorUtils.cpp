@@ -1,3 +1,5 @@
+#include <boost/log/trivial.hpp>
+
 #include "ObjColorUtils.hpp"
 #include "Model.hpp"
 #include "admesh/stl.h"

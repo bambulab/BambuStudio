@@ -5,6 +5,7 @@
 #include "slic3r/Utils/BBLUtil.hpp"
 #include "slic3r/Utils/Http.hpp"
 
+#include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -12,7 +13,7 @@
 #include <nlohmann/json.hpp>
 #include <openssl/aes.h>
 
-#include <unordered_set>
+#include <fstream>
 
 //#define DEBUG_LOG_ENC
 
