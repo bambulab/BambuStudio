@@ -2478,7 +2478,7 @@ void TreeSupport::draw_circles()
                         max_layers_above_roof1 = std::max(max_layers_above_roof1, node.dist_mm_to_top);
                     } else if (m_support_params.num_top_interface_layers > 0 && obj_layer_nr > 0 && node.support_roof_layers_below > 0) {
                         append(roof_areas, area);
-                        max_layers_above_roof = top_z_distance == 0 ? node.height : std::max(max_layers_above_roof, node.dist_mm_to_top);
+                        max_layers_above_roof = std::max(max_layers_above_roof, node.dist_mm_to_top);
                         interface_id          = node.obj_layer_nr % top_interface_layers;
                     }
                     else
@@ -2494,7 +2494,6 @@ void TreeSupport::draw_circles()
                 // join roof segments
                 roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_collision(z_overrides));
                 roof_areas     = intersection_ex(roof_areas, m_machine_border);
-                roof_areas     = union_ex(roof_areas);
                 roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
                                               z_overrides ? offset_ex(get_collision(z_overrides), line_width_scaled / 2) : get_collision(false));
 
@@ -2555,18 +2554,8 @@ void TreeSupport::draw_circles()
                     area_groups.back().need_extra_wall = need_extra_wall && !area_groups.back().need_infill;
                     area_groups.back().need_cooling = overlaps({ expoly }, cooldown_area);
                 }
-                ExPolygons new_roofs;
-                for (auto &expoly : ts_layer->roof_areas) {
-                    if (area(expoly) < SQ(scale_(1))) {
-                        if (max_layers_above_roof > EPSILON) { 
-                            ts_layer->roof_1st_layer.push_back(expoly); 
-                        }
-                        continue;
-                    }
-                    new_roofs.push_back(expoly);
-                }
-                roof_areas = std::move(new_roofs);
                 for (auto& expoly : ts_layer->roof_areas) {
+                    //if (area(expoly) < SQ(scale_(1))) continue;
                     area_groups.emplace_back(&expoly, SupportLayer::RoofType, max_layers_above_roof);
                     area_groups.back().interface_id = interface_id;
                 }
@@ -3107,7 +3096,6 @@ void TreeSupport::drop_nodes()
                                                                                           true, p_node, print_z_next, height_next);
                                         next_node->max_move_dist = 0;
                                         next_node->overhang      = std::move(tmp[0]);
-                                        next_node->target_radius = std::max(p_node->target_radius, neighbour_node->target_radius);
                                         next_node->origin_area   = next_node->overhang.area();
                                         m_ts_data->m_mutex.lock();
                                         contact_nodes[layer_nr_next].emplace_back(next_node);
@@ -3124,15 +3112,11 @@ void TreeSupport::drop_nodes()
                                   pt_west = neighbour - Point(neighbour_radius, 0), pt_east = neighbour + Point(neighbour_radius, 0);
                             can_merge = is_inside_ex(node.overhang, neighbour) && is_inside_ex(node.overhang, pt_north) && is_inside_ex(node.overhang, pt_south) &&
                                 is_inside_ex(node.overhang, pt_west) && is_inside_ex(node.overhang, pt_east);
-                            const auto circle_area = M_PI * SQ(neighbour_radius);
                             if (!can_merge && is_inside_ex(node.overhang, neighbour)) {
                                 //ExPolygon neighbor_circle(make_circle(neighbour_radius, scale_(0.1)));
                                 //neighbor_circle.translate(neighbour);
                                 //node.overhang = union_ex({node.overhang}, {neighbor_circle})[0];
                                 neighbour_node->fading = true;
-                                if (node.overhang.contour.bounding_box().radius() < neighbour_radius) {
-                                    node.target_radius = neighbour_node->radius;
-                                }
                             }
                         }
                         if (p_node->valid && can_merge) {
@@ -3167,9 +3151,6 @@ void TreeSupport::drop_nodes()
                     const bool to_buildplate = !is_inside_ex(get_collision(0, obj_layer_nr_next), next_position);
                     SupportNode* next_node = m_ts_data->create_node(next_position, node_parent->distance_to_top + 1, obj_layer_nr_next, node_parent->support_roof_layers_below - 1, to_buildplate, node_parent,
                         print_z_next, height_next);
-                    auto dist_xy_to_node     = (next_position - node.position).cast<double>().norm();
-                    auto dist_xy_to_neighbor = (next_position - neighbour->position).cast<double>().norm();
-                    next_node->orig_pos      = dist_xy_to_neighbor < dist_xy_to_node ? node.orig_pos : neighbour->orig_pos;
                     get_max_move_dist(next_node);
                     m_ts_data->m_mutex.lock();
                     contact_nodes[layer_nr_next].push_back(next_node);
@@ -3232,15 +3213,8 @@ void TreeSupport::drop_nodes()
                         return;
                     }
                     const bool to_buildplate = true;
-                    ExPolygons overhangs_next{node.overhang};
-                    auto       poly_radius   = node.overhang.contour.bounding_box().radius();
-                    bool       offseted    = false;
-                    if ((node.print_z < DO_NOT_MOVER_UNDER_MM) || poly_radius < scale_(node.target_radius) || node.overhang.area() < 3. * SQ(scale_(node.target_radius))) {
-                        overhangs_next = offset_ex({node.overhang}, scale_(max_move_distance / 2.));
-                        offseted       = true;
-                    }
                     // keep only the part that won't be removed by the next layer
-                    overhangs_next = diff_clipped(overhangs_next, get_collision(0, obj_layer_nr_next));
+                    ExPolygons overhangs_next = diff_clipped({ node.overhang }, get_collision(0, obj_layer_nr_next));
                     if (node.distance_to_top == 0) {
                         overhangs_next      = offset2_ex(overhangs_next, scale_(max_move_distance), -scale_(max_move_distance));
                         p_node->origin_area = node.overhang.area();
@@ -3262,7 +3236,7 @@ void TreeSupport::drop_nodes()
                             }
                         }
                         // if the part would fall straight to th buildplate, shrink it a little
-                        if (!offseted && node.support_roof_layers_below<0 && overhang.area() > node.origin_area / 2. &&
+                        if (node.support_roof_layers_below<0 && overhang.area() > node.origin_area / 2. &&
                             overhang.area() > double(SQ(scale_(10.)))) {
                             ExPolygons shrink_overhangs = union_ex(shrink_ex(safe_union({overhang}), double(scale_(max_move_distance / 2.))));
                             if (shrink_overhangs.size() == 1 && shrink_overhangs[0].area() > double(SQ(scale_(10.))) &&
@@ -3275,7 +3249,6 @@ void TreeSupport::drop_nodes()
                                                                               to_buildplate, p_node, print_z_next, height_next);
                             next_node->max_move_dist = 0;
                             next_node->overhang      = std::move(overhang);
-                            next_node->target_radius = p_node->target_radius;
                             next_node->origin_area   = node.origin_area;
                             m_ts_data->m_mutex.lock();
                             contact_nodes[layer_nr_next].emplace_back(next_node);
@@ -3286,7 +3259,6 @@ void TreeSupport::drop_nodes()
                             SupportNode *next_node   = m_ts_data->create_node(next_pt, p_node->distance_to_top + 1, obj_layer_nr_next, p_node->support_roof_layers_below - 1,
                                                                               to_buildplate, p_node, print_z_next, height_next);
                             next_node->max_move_dist = 0;
-                            next_node->target_radius = p_node->target_radius;
                             next_node->overhang      = std::move(overhang);
                             next_node->origin_area   = node.origin_area;
                             m_ts_data->m_mutex.lock();
@@ -3450,8 +3422,7 @@ void TreeSupport::drop_nodes()
                 to_outside             = projection_onto(next_collision, next_node->position);
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
-                next_node->radius      = next_node->print_z < DO_NOT_MOVER_UNDER_MM ? node.radius + max_move_distance :
-                                                                                      std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
+                next_node->radius      = std::max(node.radius, std::min(next_node->radius, dist_to_outer));
                 get_max_move_dist(next_node);
                 m_ts_data->m_mutex.lock();
                 contact_nodes[layer_nr_next].push_back(next_node);
@@ -3522,20 +3493,6 @@ void TreeSupport::drop_nodes()
             if (!layer_contact_nodes.empty())
                 layer_contact_nodes.erase(std::remove_if(layer_contact_nodes.begin(), layer_contact_nodes.end(), [](SupportNode *node) { return node->is_processed; }),
                                           layer_contact_nodes.end());
-        }
-
-        if (!contact_nodes.empty()) {
-            // make sure r[i - 1] - r[i] <= line_width
-            const double radius_stable_threshold = (max_move_distance + max_move_distance) / (SQ(max_move_distance + MIN_BRANCH_RADIUS) - SQ(MIN_BRANCH_RADIUS));
-            tbb::parallel_for_each(contact_nodes[0].begin(), contact_nodes[0].end(), [&radius_stable_threshold](SupportNode *node) {
-                double stable_radius = sqrt((node->dist_mm_to_top + unscale_((node->position - node->orig_pos).cast<double>().norm())) / radius_stable_threshold);
-                while (node->radius < stable_radius) {
-                    node->radius = stable_radius;
-                    if (!node->parent || node->parents.size() > 1) break;
-                    node          = node->parent;
-                    stable_radius = sqrt((node->dist_mm_to_top + unscale_((node->position - node->orig_pos).cast<double>().norm())) / radius_stable_threshold);
-                }
-            });
         }
     }
 
