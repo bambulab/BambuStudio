@@ -154,7 +154,8 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int> &
                                                const std::vector<std::vector<unsigned int>> &layer_filaments,
                                                const std::vector<FlushMatrix> &flush_matrix,
                                                std::optional<std::function<bool(int, std::vector<int> &)>> get_custom_seq,
-                                               std::vector<std::vector<unsigned int>> *filament_sequences);
+                                               std::vector<std::vector<unsigned int>> *filament_sequences,
+                                               std::optional<std::vector<unsigned int>> initial_filaments_id = std::nullopt);
 
 #if DEBUG_MULTI_NOZZLE_MCMF
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
@@ -182,7 +183,8 @@ int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>&
                                                 const std::vector<std::vector<unsigned int>>& layer_filaments,
                                                 const std::vector<FlushMatrix>& flush_matrix,
                                                 const std::function<bool(int,std::vector<int>&)> get_custom_seq,
-                                                std::vector<std::vector<unsigned int>> * filament_sequences);
+                                                std::vector<std::vector<unsigned int>> * filament_sequences,
+                                                const std::optional<std::vector<unsigned int>> nozzles_stats = std::nullopt);
 
 }
 #endif // !TOOL_ORDER_UTILS_HPP
