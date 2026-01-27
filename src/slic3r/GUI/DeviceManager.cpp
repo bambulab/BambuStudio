@@ -1466,7 +1466,7 @@ int MachineObject::check_resume_condition()
     return 0;
 }
 
-int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp)
+int MachineObject::command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
 {
     json j;
     try {
@@ -1493,6 +1493,11 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
             }
 
             j["print"]["slot_id"] = atoi(slot_id.c_str());
+        }
+
+        if (extruder_id.has_value())
+        {
+            j["print"]["extruder"] = *extruder_id;
         }
 
     } catch (const std::exception &) {}

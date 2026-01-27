@@ -29,6 +29,7 @@
 #include "DeviceCore/DevCtrl.h"
 #include "DeviceCore/DevFan.h"
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevStorage.h"
@@ -4219,6 +4220,25 @@ void StatusPanel::update_load_with_temp()
 void StatusPanel::on_ams_load_curr()
 {
     if (obj) {
+        std::optional<int> extruder_id = std::nullopt;
+        if (obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled())
+        {
+            if (!obj->GetFilaSwitch()->IsReady())
+            {
+                MessageDialog msg_dlg(nullptr, _L("The filament switcher has not been setup. Please setup on printer."), wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                return;
+            }
+            FeedDirectionDialog dialog = FeedDirectionDialog(nullptr, 2, _L("Ax input material: "));
+            auto rtn = dialog.ShowModal();
+            if (rtn != wxID_OK)
+            {
+                return;
+            }
+            extruder_id = dialog.GetExtruderID();
+
+        }
+
         std::string curr_ams_id = m_ams_control->GetCurentAms();
         std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
@@ -4245,10 +4265,10 @@ void StatusPanel::on_ams_load_curr()
 
             if (obj->is_enable_np || obj->is_enable_ams_np) {
                 try {
-                    if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp); }
+                    if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp, extruder_id); }
                 } catch (...) {}
             } else {
-                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp);
+                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp, extruder_id);
             }
         }
 
@@ -4283,10 +4303,10 @@ void StatusPanel::on_ams_load_curr()
 
         if (obj->is_enable_np) {
             try {
-                if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp); }
+                if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp, extruder_id); }
             } catch (...) {}
         } else {
-            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
+            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp, extruder_id);
         }
     }
 }
