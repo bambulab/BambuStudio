@@ -17,6 +17,10 @@
     "counter_limit_max": [
         "0.1"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "20",
         "35"
@@ -41,6 +45,12 @@
         "0",
         "0"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "hole_coef_2": [
         "-0.006"
     ],
@@ -63,6 +73,10 @@
     "nozzle_temperature_initial_layer": [
         "270",
         "270"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"

@@ -68,6 +68,7 @@
         "1000",
         "1000"
     ],
+    "top_shell_layers": "4",
     "compatible_printers": [
         "Bambu Lab H2C 0.6 nozzle"
     ]

@@ -103,7 +103,9 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
                     {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},
-                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
+                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"sparse_infill_lattice_angle_1", "",1},{"sparse_infill_lattice_angle_2", "",1},
+                    {"top_surface_pattern", "",1},{"top_surface_density", "",1},
+                    {"bottom_surface_pattern", "",1}, {"bottom_surface_density", "",1}, {"internal_solid_infill_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
@@ -936,8 +938,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
 void MenuFactory::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Scale to build volume"), _L("Scale an object to fit the build volume"),
-        [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu);
+    append_menu_item(menu, wxID_ANY, _L("Scale to print volume"), _L("Scale the selected object to fit the print volume"),
+        [](wxCommandEvent &) { plater()->scale_selection_to_fit_print_volume(); }, "", menu, []() { return plater()->can_scale_to_print_volume(); }, m_parent);
 }
 
 void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
@@ -1241,8 +1243,11 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    append_menu_item_smooth_mesh(&m_object_menu);
     // merge to single part
     append_menu_item_merge_parts_to_single_part(&m_object_menu);
+    //scale_selection_to_fit_print_volume
+    append_menu_item_scale_selection_to_fit_print_volume(&m_object_menu);
     // Object Center
     append_menu_item_center(&m_object_menu);
     // Object Align/Distribute
@@ -1290,6 +1295,7 @@ void MenuFactory::create_bbl_assemble_object_menu()
     append_menu_item_fix_through_netfabb(&m_assemble_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_assemble_object_menu);
+    append_menu_item_smooth_mesh(&m_assemble_object_menu);
     m_assemble_object_menu.AppendSeparator();
 }
 
@@ -1373,6 +1379,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_smooth_mesh(menu);
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
     append_menu_items_mirror(menu);
@@ -1403,6 +1410,7 @@ void MenuFactory::create_bbl_assemble_part_menu()
 
     append_menu_item_delete(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_smooth_mesh(menu);
     menu->AppendSeparator();
 }
 
@@ -1874,6 +1882,13 @@ void MenuFactory::append_menu_item_simplify(wxMenu* menu)
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_smooth_mesh(wxMenu *menu)
+{
+    wxMenuItem *menu_item = append_menu_item(
+        menu, wxID_ANY, _L("Subdivision mesh") + _L("(Lost color)"), "", [](wxCommandEvent &) { obj_list()->smooth_mesh(); }, "", menu, []() { return plater()->can_smooth_mesh(); },
+        m_parent);
 }
 
 void MenuFactory::append_menu_item_center(wxMenu* menu)

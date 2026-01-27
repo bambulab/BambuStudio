@@ -40,6 +40,7 @@ public:
     bool isAirPump() const { return product_name.Contains("Air Pump"); }
     bool isLaszer() const { return product_name.Contains("Laser"); }
     bool isCuttingModule() const { return product_name.Contains("Cutting Module"); }
+    bool isRotary() const { return product_name.Contains("Rotary"); }// Rotary Attachment
     bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }// Auto Fire Extinguishing System
     bool isWTM() const { return name.find("wtm") != string::npos; } // nozzle
 };

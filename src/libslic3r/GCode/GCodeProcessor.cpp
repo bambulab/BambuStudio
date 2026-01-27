@@ -68,7 +68,8 @@ const std::vector<std::string> GCodeProcessor::ReservedTags = {
     " MACHINE_START_GCODE_END",
     " MACHINE_END_GCODE_START",
     " NOZZLE_CHANGE_START",
-    " NOZZLE_CHANGE_END"
+    " NOZZLE_CHANGE_END",
+    " CP_TOOLCHANGE_WIPE"
 };
 
 const std::vector<std::string> GCodeProcessor::CustomTags = {
@@ -937,6 +938,15 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         extruder_id = filament_maps[next_filament];
         return true;
     };
+    auto handle_toolchange_wipe_line = [&](const std::string &line, bool& is_contact) -> bool {
+        std::regex  re(R"(CT(\d))");
+        std::smatch match;
+
+        if (!std::regex_search(line, match, re)) return false;
+
+        is_contact    = std::stoi(match[1]);
+        return true;
+    };
 
     constexpr int buffer_size_in_KB = 64;
     std::vector<FilamentUsageBlock> filament_blocks;
@@ -957,7 +967,9 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         filament_blocks.emplace_back(filament_id, line_id, -1);
         };
 
-    auto gcode_time_handler = [&temp_construct_block,&filament_blocks, &extruder_blocks, &offsets, &handle_nozzle_change_line , & process_placeholders, &is_temporary_decoration, & process_line_move, & g1_lines_counter, & machine_start_gcode_end_line_id, & machine_end_gcode_start_line_id,handle_filament_change](std::string& gcode_line, std::string& gcode_buffer, int line_id) {
+    auto gcode_time_handler = [&temp_construct_block, &filament_blocks, &extruder_blocks, &offsets, &handle_toolchange_wipe_line, & handle_nozzle_change_line, &process_placeholders,
+                               &is_temporary_decoration, &process_line_move, &g1_lines_counter, &machine_start_gcode_end_line_id, &machine_end_gcode_start_line_id,
+                               handle_filament_change](std::string &gcode_line, std::string &gcode_buffer, int line_id) {
         auto [processed, lines_added_count] = process_placeholders(gcode_line,line_id);
         if (processed && lines_added_count > 0)
             offsets.push_back({ line_id, lines_added_count });
@@ -1017,6 +1029,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 temp_construct_block.initialize_step_1(extruder_id, line_id, next_filament);
                 extruder_blocks.emplace_back(temp_construct_block);
                 temp_construct_block.reset();
+            } else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::CP_TOOLCHANGE_WIPE)).c_str())) {
+                bool is_contact = false;
+                handle_toolchange_wipe_line(gcode_line, is_contact);
+                if (!extruder_blocks.empty()) { extruder_blocks.back().ignore_cooling_before_tower = is_contact; }
             }
         }
         };
@@ -6077,44 +6093,44 @@ void GCodeProcessor::update_slice_warnings()
         m_result.warnings.push_back(warning);
     }
 
-    //bbs:HRC checker
-    warning.params.clear();
-    warning.level=1;
+    //bbs:HRC checker // remove the checker
+    //warning.params.clear();
+    //warning.level=1;
 
-    std::vector<int> nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
-    // store the nozzle hrc of each extruder
-    for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
-        nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
+    //std::vector<int> nozzle_hrc_lists(m_result.nozzle_type.size(), 0);
+    //// store the nozzle hrc of each extruder
+    //for (size_t idx = 0; idx < m_result.nozzle_type.size(); ++idx)
+    //    nozzle_hrc_lists[idx] = Print::get_hrc_by_nozzle_type(m_result.nozzle_type[idx]);
 
-    for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
-        int filament_hrc = 0;
+    //for (size_t idx = 0; idx < used_filaments.size(); ++idx) {
+    //    int filament_hrc = 0;
 
-        if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
-            filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
+    //    if (used_filaments[idx] < m_result.required_nozzle_HRC.size())
+    //        filament_hrc = m_result.required_nozzle_HRC[used_filaments[idx]];
 
-        int extruder_hrc = 0;
-        int filament_extruder_id = 0;
-        if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
-            filament_extruder_id = m_filament_maps[used_filaments[idx]];
-            if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
-                extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
-            }
-        }
+    //    int extruder_hrc = 0;
+    //    int filament_extruder_id = 0;
+    //    if (used_filaments[idx] >= 0 && used_filaments[idx] < m_filament_maps.size()) {
+    //        filament_extruder_id = m_filament_maps[used_filaments[idx]];
+    //        if (filament_extruder_id >= 0 && filament_extruder_id < nozzle_hrc_lists.size()) {
+    //            extruder_hrc = nozzle_hrc_lists[filament_extruder_id];
+    //        }
+    //    }
 
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
+    //    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": Check HRC: filament:%1%, hrc=%2%, extruder:%3%, hrc:%4%") % used_filaments[idx] % filament_hrc % filament_extruder_id % extruder_hrc;
 
-        if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
-            warning.params.push_back(std::to_string(used_filaments[idx]));
-    }
+    //    if (extruder_hrc!=0 && extruder_hrc < filament_hrc)
+    //        warning.params.push_back(std::to_string(used_filaments[idx]));
+    //}
 
-    if (!warning.params.empty()) {
-        warning.level      = 3;
-        warning.msg = NOZZLE_HRC_CHECKER;
-        warning.error_code = "1000C002";
-        m_result.warnings.push_back(warning);
-    }
+    //if (!warning.params.empty()) {
+    //    warning.level      = 3;
+    //    warning.msg = NOZZLE_HRC_CHECKER;
+    //    warning.error_code = "1000C002";
+    //    m_result.warnings.push_back(warning);
+    //}
 
-    // bbs:HRC checker
+    // bbs:timelapse checker
     warning.params.clear();
     warning.level = 1;
     if (!m_result.support_traditional_timelapse) {
@@ -6199,8 +6215,8 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
         if (filament_id == -1)
             return from_or_to ? 140 : 0; // default temp
         double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);
-        if(consider_cooling_before_tower)
-            return (int)(temp - filament_cooling_before_tower[filament_id]);
+        if (consider_cooling_before_tower)
+            return (int) (temp - filament_cooling_before_tower[filament_id]);
         else
             return (int)(temp);
         };
@@ -6218,7 +6234,7 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool apply_pre_cooling = true;
             bool apply_pre_heating = is_end ? false : true;
             float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true,false);
-            float target_temp = get_nozzle_temp(iter->next_filament_id,false, false,true);
+            float target_temp       = get_nozzle_temp(iter->next_filament_id, false, false, !iter->ignore_cooling_before_tower);
             inject_cooling_heating_command(inserted_operation_lines, *iter, curr_temp, target_temp, apply_pre_cooling, apply_pre_heating);
         }
     }
@@ -6463,7 +6479,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
             m_extruder_free_blocks.emplace_back(block);
         }
     }
-
+    std::for_each(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](ExtruderFreeBlock &block) { block.ignore_cooling_before_tower = true;});
     sort(m_extruder_free_blocks.begin(), m_extruder_free_blocks.end(), [](const auto& a, const auto& b) {
         return a.free_lower_gcode_id < b.free_lower_gcode_id || (a.free_lower_gcode_id == b.free_lower_gcode_id && a.free_upper_gcode_id < b.free_upper_gcode_id);
         });
@@ -6506,6 +6522,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
             block.extruder_id = extruder_id;
             block.partial_free_lower_id = iter->post_extrusion_start_id;
             block.partial_free_upper_id = iter->post_extrusion_end_id;
+            block.ignore_cooling_before_tower = niter->ignore_cooling_before_tower;
             m_extruder_free_blocks.emplace_back(block);
         }
     }

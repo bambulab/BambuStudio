@@ -20,6 +20,12 @@
         "0",
         "0"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -44,6 +50,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.2 nozzle"

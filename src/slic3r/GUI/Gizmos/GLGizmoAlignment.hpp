@@ -43,18 +43,16 @@ public:
     explicit GLGizmoAlignment(GLCanvas3D& canvas);
     ~GLGizmoAlignment() = default;
 
-    bool align_objects(AlignType type);
+    bool align_objects(AlignType type,bool align_parent = false);
     bool distribute_objects(AlignType type);
 
-    bool align_to_center_x();
-    bool align_to_center_y();
-    bool align_to_center_z();
-    bool align_to_y_max();
-    bool align_to_y_min();
-    bool align_to_x_max();
-    bool align_to_x_min();
-    bool align_to_z_max();
-    bool align_to_z_min();
+    bool align_to_center(AlignType type,bool align_parent = false);
+    bool align_to_y_max(bool align_parent = false);
+    bool align_to_y_min(bool align_parent = false);
+    bool align_to_x_max(bool align_parent = false);
+    bool align_to_x_min(bool align_parent = false);
+    bool align_to_z_max(bool align_parent = false);
+    bool align_to_z_min(bool align_parent = false);
 
     bool distribute_x();
     bool distribute_y();
@@ -63,14 +61,17 @@ public:
     bool can_align(AlignType type) const;
     bool can_distribute(AlignType type) const;
 
-    std::vector<ObjectInfo> get_selected_objects_info() const;
+    std::vector<ObjectInfo> get_selected_objects_info(BoundingBoxf3 &big_bb) const;
+    double                  get_current_coord(std::string operation_name, BoundingBoxf3 &bbox);
+    Vec3d                   generate_displacement(std::string operation_name, double offset);
+    bool                    is_part_align_parent();
+    void                    set_parent_box(const BoundingBoxf3 &bb);
 
 private:
     GLCanvas3D& m_canvas;
 
     template<typename GetCoordFunc, typename SetCoordFunc>
-    bool align_objects_generic(GetCoordFunc get_coord, SetCoordFunc set_coord,
-                             const std::string& operation_name);
+    bool align_objects_generic(GetCoordFunc get_coord, SetCoordFunc set_coord, const std::string &operation_name, bool align_parent = false);
 
     template<typename GetCoordFunc>
     bool distribute_objects_generic(GetCoordFunc get_coord, int axis,
@@ -83,6 +84,9 @@ private:
 
     bool validate_selection_for_align() const;
     bool validate_selection_for_distribute() const;
+
+private:
+    BoundingBoxf3 m_parent_box;
 };
 
 } // namespace GUI

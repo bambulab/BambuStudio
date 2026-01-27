@@ -317,53 +317,130 @@ std::vector<std::set<int>> PrintObject::detect_extruder_geometric_unprintables()
 
 
 
-std::unordered_map<int, std::unordered_map<int,double>>  PrintObject::calc_estimated_filament_print_time() const
+std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estimated_filament_print_time() const
 {
+    auto                     full_print_config             = this->print()->m_ori_full_print_config;
+    std::vector<std::string> extruder_variant_list         = this->print()->config().printer_extruder_variant.values;
+    std::vector<std::string> filament_variant_list         = full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+    std::vector<int>         filament_self_idx             = full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+    std::vector<double>      filament_max_volumetric_speed = full_print_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->values;
+    std::vector<double>      filament_flow_ratio           = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio")->values;
+
     auto get_limit_from_volumetric_speed = [&](int filament_idx, int extruder_idx, double width, double height) {
-        double max_volumetric_speed = print()->config().filament_max_volumetric_speed.values[filament_idx];
-        double flow_ratio = print()->config().filament_flow_ratio.values[filament_idx];
+        std::string extruder_variant = extruder_variant_list[extruder_idx];
+
+        int idx_for_filament = 0;
+        for (size_t idx = 0; idx < filament_self_idx.size(); ++idx) {
+            if (filament_self_idx[idx] - 1 == filament_idx && extruder_variant == filament_variant_list[idx]) {
+                idx_for_filament = idx;
+                break;
+            }
+        }
+
+        double max_volumetric_speed = filament_max_volumetric_speed[idx_for_filament];
+        double flow_ratio           = filament_flow_ratio[idx_for_filament];
 
         double mm3_per_mm = height * (width - height * (1 - PI / 4)) * flow_ratio;
         return max_volumetric_speed / mm3_per_mm;
-        };
+    };
 
-    std::unordered_map<int, std::unordered_map<int,double>> filament_print_time;
+    auto get_speed_from_role_with_filament = [](ExtrusionRole role, int filament_id, const PrintRegionConfig &region_config, const PrintConfig &print_config, int extruder_id) -> double {
+        switch (role) {
+        case erPerimeter: return region_config.inner_wall_speed.values[extruder_id];
+        case erExternalPerimeter: return region_config.outer_wall_speed.values[extruder_id];
+        case erOverhangPerimeter:
+        case erBridgeInfill:
+        case erSupportTransition: {
+            bool use_filament_bridge_speed = print_config.filament_enable_overhang_speed.get_at(filament_id);
+
+            if (use_filament_bridge_speed)
+                return print_config.filament_bridge_speed.values[filament_id];
+            else
+                return region_config.bridge_speed.values[extruder_id];
+        }
+        case erInternalInfill: return region_config.sparse_infill_speed.values[extruder_id];
+        case erFloatingVerticalShell:
+        case erSolidInfill: return region_config.internal_solid_infill_speed.values[extruder_id];
+        case erTopSolidInfill: return region_config.top_surface_speed.values[extruder_id];
+        case erBottomSurface: return print_config.initial_layer_speed.values[extruder_id];
+        case erGapFill: return region_config.gap_infill_speed.values[extruder_id];
+        }
+        return region_config.internal_solid_infill_speed.values[extruder_id];
+    };
+
+    std::unordered_map<int, std::unordered_map<int, double>> filament_print_time;
+
+    auto process_epath = [&](int filament, int eidx, ExtrusionPath *path, double speed_from_config) {
+        double speed_from_filament = get_limit_from_volumetric_speed(filament, eidx, path->width, path->height);
+        double speed_applied       = std::min(speed_from_filament, speed_from_config);
+        filament_print_time[filament][eidx] += unscale_(path->length()) / speed_applied;
+    };
+
+    auto process_eloop = [&](int filament, int eidx, ExtrusionLoop *eloop, double speed_from_config) {
+        for (auto &path : eloop->paths) {
+            double speed_from_filament = get_limit_from_volumetric_speed(filament, eidx, path.width, path.height);
+            double speed_applied       = std::min(speed_from_filament, speed_from_config);
+            filament_print_time[filament][eidx] += unscale_(path.length()) / speed_applied;
+        }
+    };
+
+    auto process_empath = [&](int filament, int eidx, ExtrusionMultiPath *empath, double speed_from_config) {
+        for (auto &path : empath->paths) {
+            double speed_from_filament = get_limit_from_volumetric_speed(filament, eidx, path.width, path.height);
+            double speed_applied       = std::min(speed_from_filament, speed_from_config);
+            filament_print_time[filament][eidx] += unscale_(path.length()) / speed_applied;
+        }
+    };
+
+    std::function<void(int, int, ExtrusionEntity *, double)> process_entity = [&](int filament, int eidx, ExtrusionEntity *entity, double speed_from_config) {
+        if (entity->is_collection()) {
+            // 如果是集合类型，则递归处理其子entity
+            auto *collection = dynamic_cast<ExtrusionEntityCollection *>(entity);
+            if (collection) {
+                for (auto &sub_entity : collection->entities) { process_entity(filament, eidx, sub_entity, speed_from_config); }
+            }
+        } else if (auto path_ptr = dynamic_cast<ExtrusionPath *>(entity)) {
+            process_epath(filament, eidx, path_ptr, speed_from_config);
+        } else if (auto loop_ptr = dynamic_cast<ExtrusionLoop *>(entity)) {
+            process_eloop(filament, eidx, loop_ptr, speed_from_config);
+        } else if (auto empath_ptr = dynamic_cast<ExtrusionMultiPath *>(entity)) {
+            process_empath(filament, eidx, empath_ptr, speed_from_config);
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << "Unknown extrusion entity type encountered during filament print time estimation.";
+        }
+    };
+
     // Iterate through all layers and regions to calculate the print area for each filament.
     int extruder_num = this->print()->config().nozzle_diameter.size();
     for (size_t idx = 0; idx < m_layers.size(); ++idx) {
         auto layer = m_layers[idx];
 
         for (auto layerm : layer->regions()) {
-            const auto& region = layerm->region();
-            double sparse_width = region.config().sparse_infill_line_width;
-            double solid_width = region.config().internal_solid_infill_line_width;
-            double wall_width = (region.config().outer_wall_line_width + region.config().inner_wall_line_width) / 2.f;
+            const auto &region       = layerm->region();
 
-            int wall_filament = region.config().wall_filament - 1;
-            int solid_infill_filament = region.config().solid_infill_filament - 1;
+            int wall_filament          = region.config().wall_filament - 1;
+            int solid_infill_filament  = region.config().solid_infill_filament - 1;
             int sparse_infill_filament = region.config().sparse_infill_filament - 1;
 
-            auto sparse_infill_surfaces = layerm->fill_surfaces.filter_by_type(stInternal);
-            double sparse_area = unscale_(unscale_(std::accumulate(sparse_infill_surfaces.begin(), sparse_infill_surfaces.end(), 0.0,
-                [](double val, const Surface* surface) { return val + surface->area(); })));
-            double full_area = unscale_(unscale_(get_expolygons_area(layerm->raw_slices)));
-            double infill_area = unscale_(unscale_(get_expolygons_area(layerm->fill_expolygons)));
-            double solid_area = infill_area - sparse_area;
-            double wall_area = full_area - infill_area;
-            sparse_area *= region.config().sparse_infill_density.value / 100.0;
-
+            std::vector<ExtrusionEntitiesPtr> entity_list{layerm->fills.entities, layerm->thin_fills.entities, layerm->perimeters.entities};
             for (int eidx = 0; eidx < extruder_num; ++eidx) {
-                double sparse_speed = std::min(region.config().sparse_infill_speed.values[eidx], get_limit_from_volumetric_speed(sparse_infill_filament, eidx, sparse_width, layer->height));
-                double solid_speed = std::min(region.config().internal_solid_infill_speed.values[eidx], get_limit_from_volumetric_speed(solid_infill_filament, eidx, solid_width, layer->height));
-                double wall_speed = std::min((region.config().inner_wall_speed.values[eidx] + region.config().outer_wall_speed.values[eidx]) / 2.0, get_limit_from_volumetric_speed(wall_filament, eidx, wall_width, layer->height));
+                for (auto &entities : entity_list) {
+                    for (auto &entity : entities) {
+                        auto   role              = entity->role();
+                        int    filament          = 0;
+                        if (is_perimeter(role))
+                            filament = region.config().wall_filament - 1;
+                        else if (is_solid_infill(role))
+                            filament = region.config().solid_infill_filament - 1;
+                        else if (is_infill(role))
+                            filament = region.config().sparse_infill_filament - 1;
+                        else
+                            continue;
 
-                double sparse_time = sparse_area / (sparse_speed * sparse_width);
-                double solid_time = solid_area / (solid_speed * solid_width);
-                double wall_time = wall_area / (wall_speed * wall_width);
-
-                filament_print_time[solid_infill_filament][eidx] += solid_time;
-                filament_print_time[sparse_infill_filament][eidx] += sparse_time;
-                filament_print_time[wall_filament][eidx] += wall_time;
+                        double speed_from_config = get_speed_from_role_with_filament(role, filament, region.config(), this->print()->config(), eidx);
+                        process_entity(filament, eidx, entity, speed_from_config);
+                    }
+                }
             }
         }
     }
@@ -391,10 +468,6 @@ void PrintObject::make_perimeters()
             m_print->throw_if_canceled();
         }
         m_typed_slices = false;
-    }
-    if (this->config().enable_circle_compensation) { // we need the circle_compensation information
-        for (Layer *layer : m_layers) layer->apply_auto_circle_compensation();
-        m_typed_slices = true;
     }
 
     // compare each layer to the one below, and mark those slices needing
@@ -1115,6 +1188,13 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "support_expansion"
             //|| opt_key == "independent_support_layer_height" // BBS
             || opt_key == "support_threshold_angle"
+            || opt_key == "enable_support_ironing"
+            || opt_key == "support_ironing_pattern"
+            || opt_key == "support_ironing_flow"
+            || opt_key == "support_ironing_spacing"
+            || opt_key == "support_ironing_inset"
+            || opt_key == "support_ironing_direction"
+            || opt_key == "support_ironing_speed"
             || opt_key == "raft_expansion"
             || opt_key == "raft_first_layer_density"
             || opt_key == "raft_first_layer_expansion"
@@ -1172,7 +1252,9 @@ bool PrintObject::invalidate_state_by_config_options(
             steps.emplace_back(posPrepareInfill);
         } else if (
                opt_key == "top_surface_pattern"
+            || opt_key == "top_surface_density"
             || opt_key == "bottom_surface_pattern"
+            || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
             || opt_key == "external_fill_link_max_length"
             || opt_key == "sparse_infill_anchor"
@@ -1184,6 +1266,8 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (opt_key == "sparse_infill_pattern"
                    || opt_key == "symmetric_infill_y_axis"
                    || opt_key == "infill_shift_step"
+                   || opt_key == "sparse_infill_lattice_angle_1"
+                   || opt_key == "sparse_infill_lattice_angle_2"
                    || opt_key == "infill_rotate_step"
                    || opt_key == "skeleton_infill_density"
                    || opt_key == "skin_infill_density"
@@ -3566,6 +3650,7 @@ void PrintObject::combine_infill()
                 ((region.config().sparse_infill_pattern == ipRectilinear   ||
                   region.config().sparse_infill_pattern == ipMonotonic     ||
                   region.config().sparse_infill_pattern == ipGrid          ||
+                  region.config().sparse_infill_pattern == ip2DLattice     ||
                   region.config().sparse_infill_pattern == ipLine          ||
                   region.config().sparse_infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();

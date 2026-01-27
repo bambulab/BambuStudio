@@ -432,6 +432,30 @@ public:
     bool m_show_again{false};
 };
 
+struct FilamentWarningInfo
+{
+   wxString info_msg;
+   wxString wiki_url;
+
+};
+
+class FilamentWarningDialog : public MsgDialog
+{
+public:
+    FilamentWarningDialog(wxWindow *parent, const wxString &title, std::vector<FilamentWarningInfo> infos);
+    FilamentWarningDialog(FilamentWarningDialog &&)                 = delete;
+    FilamentWarningDialog(const FilamentWarningDialog &)            = delete;
+    FilamentWarningDialog &operator=(FilamentWarningDialog &&)      = delete;
+    FilamentWarningDialog &operator=(const FilamentWarningDialog &) = delete;
+    virtual ~FilamentWarningDialog()                                = default;
+
+private:
+    void BuildContent();
+
+private:
+    std::vector<FilamentWarningInfo> m_messages;
+};
+
 }
 }
 

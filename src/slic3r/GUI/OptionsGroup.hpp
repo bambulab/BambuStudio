@@ -27,6 +27,7 @@ namespace Slic3r { namespace GUI {
 // Thrown if the building of a parameter page is canceled.
 class UIBuildCanceled : public std::exception {};
 class OG_CustomCtrl;
+class MultiVariantTextCtrl;
 
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
@@ -162,6 +163,30 @@ public:
 							m_fields.at(id)->set_value(value, change_event);
 							return true;
     }
+    bool			set_value_variant(const t_config_option_key &id, const boost::any &value, bool change_event = false)
+    {
+						auto   opt_key   = id.substr(0, id.find("#"));
+						int    opt_index = std::stoi(id.substr(id.find("#") + 1));
+						Field *field     = get_field(opt_key);
+						if (!field) {
+							return false;
+						}
+						auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
+						if (!multi_variant) {
+							return set_value(id, value, change_event);
+						}
+						for (auto &variant_ctrl : multi_variant->m_text_ctrls) {
+							if (variant_ctrl.opt_index == opt_index) {
+								Field *text_field = variant_ctrl.text_ctrl.get();
+								if (text_field) {
+									text_field->set_value(value, change_event);
+									return true;
+								}
+								break;
+							}
+						}
+						return false;
+    }
 	boost::any		get_value(const t_config_option_key& id) {
 							boost::any out;
     						if (m_fields.find(id) == m_fields.end()) ;
@@ -169,6 +194,29 @@ public:
 								out = m_fields.at(id)->get_value();
 							return out;
     }
+	boost::any      get_value_variant(const t_config_option_key& id) {
+							boost::any out;
+							auto       opt_key  = id.substr(0, id.find("#"));
+							int        opt_index = std::stoi(id.substr(id.find("#") + 1));
+							Field     *field     = get_field(opt_key);
+							if (!field) {
+								return out;
+							}
+							auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
+							if (!multi_variant) {
+								return get_value(id);
+							}
+							for (auto& variant_ctrl : multi_variant->m_text_ctrls) {
+								if (variant_ctrl.opt_index == opt_index) {
+									Field* text_field = variant_ctrl.text_ctrl.get();
+									if (text_field) {
+										out = text_field->get_value();
+									}
+									break;
+								}
+							}
+							return out;
+	}
 
 	void			show_field(const t_config_option_key& opt_key, bool show = true);
 	void			hide_field(const t_config_option_key& opt_key) {  show_field(opt_key, false);  }

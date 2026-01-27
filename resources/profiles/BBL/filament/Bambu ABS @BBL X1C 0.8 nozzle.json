@@ -50,9 +50,6 @@
     "slow_down_layer_time": [
         "12"
     ],
-    "slow_down_min_speed": [
-        "10"
-    ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.8 nozzle",
         "Bambu Lab X1 0.8 nozzle",

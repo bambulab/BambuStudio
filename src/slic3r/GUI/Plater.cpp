@@ -1565,7 +1565,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             }
             // hack code, only use standard flow for 0.2
             if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
-                target_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) - 1);
+                target_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id));
         }
         if (select_type)
             target_type = *select_type;
@@ -1592,9 +1592,19 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
     int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
+    auto find_string = [](ComboBox *combo, const wxString& str) {
+        for (int i = 0; i < combo->GetCount(); ++i) {
+            wxString text = combo->GetString(i);
+            if (text.StartsWith(str)) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
     if (extruder_nums > 1) {
-        int left_index  = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
-        int right_index = left_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[1]));
+        int left_index  = find_string(left_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
+        int right_index = find_string(right_extruder->combo_diameter, get_diameter_string(nozzle_diameters[1]));
         assert(left_index != -1 && right_index != -1);
         left_extruder->combo_diameter->SetSelection(left_index);
         right_extruder->combo_diameter->SetSelection(right_index);
@@ -1606,7 +1616,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     } else {
-        int index = single_extruder->combo_diameter->FindString(get_diameter_string(nozzle_diameters[0]));
+        int index = find_string(single_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
         assert(index != -1);
         single_extruder->combo_diameter->SetSelection(index);
         is_switching_diameter = true;
@@ -2690,6 +2700,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         // Update dual extrudes
         auto extruder_variants = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
+        std::string printer_model = printer_preset.config.option<ConfigOptionString>("printer_model")->value;
 
         bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
         bool is_dual_extruder = extruder_variants->size() == 2;
@@ -2701,14 +2712,16 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
         auto extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
+        bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
+        auto update_extruder_variant = [printer_model, extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i]) ||
                     extruder_max_nozzle_count->values[index] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == nvtHybrid) {
-                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                    if (nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow &&(diameter == "0.2" ||
+                        is_skip_high_flow_printer(printer_model)))
                         continue;
                     if (nozzle_volumes->values[index] == i)
                         select = extruder.combo_flow->GetCount();
@@ -4739,6 +4752,7 @@ public:
     bool can_layers_editing() const;
     bool can_fix_through_netfabb() const;
     bool can_simplify() const;
+    bool can_smooth_mesh() const;
     bool can_set_instance_to_object() const;
     bool can_mirror() const;
     bool can_reload_from_disk() const;
@@ -5463,6 +5477,28 @@ void Plater::priv::select_view(const std::string& direction)
     }
 }
 
+bool Plater::check_include_gcode()
+{
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    const DynamicPrintConfig& config = preset_bundle.prints.get_edited_preset().config;
+
+    if (config.has("post_process")) {
+        auto* opt = config.opt<ConfigOptionStrings>("post_process");
+        if (opt && !opt->values.empty()) {
+            std::string first_script = opt->values.front();
+            std::string all_scripts = boost::algorithm::join(opt->values, "; ");
+            if (!first_script.empty()) {
+                MessageDialog msg(wxGetApp().mainframe, _L("There is a G-code script present in the current 3mf file, please verify the content of the script."), _L("Warning"), wxOK | wxICON_WARNING);
+                if (msg.ShowModal() == wxID_OK) {
+                    wxGetApp().sidebar().jump_to_option("post_process", Preset::TYPE_PRINT, L"");
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 const VendorProfile::PrinterModel *Plater::get_curr_printer_model()
 {
     auto bundle = wxGetApp().preset_bundle;
@@ -5972,6 +6008,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
+                    // Used to store color group mapping information in standard 3MF files
+                    std::unordered_map<int, std::vector<std::string>> color_group_map;
+                    VolumeColorInfoMap volume_color_data;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
                                                              [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i,
@@ -5985,7 +6024,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
-                                                             });
+                                                             }, nullptr, &color_group_map, &volume_color_data);
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
@@ -6098,11 +6137,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     else if (load_config && config_loaded.empty()) {
                         load_config = false;
                         if (wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true) {
-                            TipsDialog dlg(q, _L("Load 3mf"),
-                                           file_version.maj() == 0 && file_version.min() == 0 && file_version.patch() == 0
-                                               ? _L("The 3mf is not from Bambu Lab, load geometry data only.")
-                                               : _L("The 3mf is generated by old Bambu Studio, load geometry data only."),
-                                           "skip_non_bambu_3mf_warning", wxOK);
+                            TipsDialog dlg(q,
+                                _L("Load 3mf"),
+                                file_version.maj() == 0 && file_version.min() == 0 && file_version.patch() == 0
+                                    ? _L("The 3mf is not from Bambu Lab, load geometry data and color data only.")
+                                    : _L("The 3mf is generated by old Bambu Studio, load geometry data only."),
+                                "skip_non_bambu_3mf_warning",
+                                wxOK);
                             dlg.ShowModal();
                         }
                     }
@@ -6219,6 +6260,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         this->model.design_info = model.design_info;
                         this->model.model_info = model.model_info;
                     }
+
+                    // Process color information in standard 3MF files(similar to color processing in OBJ files).
+                    if (load_model && !color_group_map.empty() && !volume_color_data.empty() && en_3mf_file_type != En3mfType::From_BBS) {
+                        // Only process external standard 3MF files; the BBS's own 3MF files already have complete color processing logic
+                        ObjDialogInOut color_dialog_in_out;
+                        if (extract_colors_to_obj_dialog(&model, color_group_map, volume_color_data, color_dialog_in_out)) {
+                            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                            color_dialog_in_out.model = &model;
+                            color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
+                            color_dialog_in_out.volume_colors = volume_color_data;
+                            ObjColorDialog color_dlg(nullptr, color_dialog_in_out, extruder_colours);
+                            if (color_dlg.ShowModal() == wxID_OK) {
+                                color_dialog_in_out.filament_ids.clear();
+                            }
+                        }
+                    }
                 }
 
                 if (load_config) {
@@ -6327,6 +6384,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                         //always load config
                         {
+                            // 避免在导入gcode的过程中触发各类流量切换的逻辑
+                            preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
+                            auto old_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // BBS: save the wipe tower pos in file here, will be used later
                             ConfigOptionFloats* wipe_tower_x_opt = config.opt<ConfigOptionFloats>("wipe_tower_x");
                             ConfigOptionFloats* wipe_tower_y_opt = config.opt<ConfigOptionFloats>("wipe_tower_y");
@@ -6339,7 +6399,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             // BBS: do not change extruder nozzle stat when loading 3mf
-                            preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
 
                             ConfigOption* bed_type_opt = preset_bundle->project_config.option("curr_bed_type");
                             if (bed_type_opt != nullptr) {
@@ -6419,9 +6478,26 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             is_project_file = true;
 
                             DynamicConfig& proj_cfg = preset_bundle->project_config;
+                            auto new_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // do some post process after loading config
                             {
+                                // 导入结束后，允许流量切换的逻辑生效
                                 preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
+
+                                // 导入的配置中存在有效nozzle_stats，则复用
+                                if (auto nozzle_stats_ptr = proj_cfg.option<ConfigOptionStrings>("extruder_nozzle_stats");
+                                    nozzle_stats_ptr && !(nozzle_stats_ptr->values.empty() || std::any_of(nozzle_stats_ptr->values.begin(), nozzle_stats_ptr->values.end(),
+                                                                                                          [](const std::string &elem) { return elem.empty(); }))) {
+                                    preset_bundle->extruder_nozzle_stat = ExtruderNozzleStat(get_extruder_nozzle_stats(nozzle_stats_ptr->values));
+                                } else {
+                                    // 打印机型切换或数据无效，则读取默认值
+                                    auto nozzle_volume_opt = proj_cfg.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+                                    if (old_printer_model!=new_printer_model)
+                                        preset_bundle->extruder_nozzle_stat.on_printer_model_change(preset_bundle);
+                                    for (size_t idx = 0; idx < nozzle_volume_opt->size(); ++idx) {
+                                        preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, NozzleVolumeType(nozzle_volume_opt->values[idx]));
+                                    }
+                                }
                                 //BBS: rewrite wipe tower pos stored in 3mf file , the code above should be seriously reconsidered
                                  ConfigOptionFloats* wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
                                 ConfigOptionFloats* wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
@@ -9742,6 +9818,19 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
         Model::setExtruderParams(config, filament_count);
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
+
+        auto agent      = wxGetApp().getAgent();
+        auto curr_plate = q->get_partplate_list().get_curr_plate();
+        if (agent && curr_plate){
+            auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
+            auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+            json j;
+            j["mode"] = mode_name;
+            j["is_connected"] = q->get_machine_sync_status();
+            j["slice_type"]   = "single_plate";
+            agent->track_event("slice_group_mode", j.dump());
+        }
+
         q->reslice();
         q->select_view_3D("Preview");
     }
@@ -10068,6 +10157,17 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
             q->select_view_3D("Preview");
         //BBS: wish to select all plates stats item
         preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+
+        auto agent      = wxGetApp().getAgent();
+        auto curr_plate = q->get_partplate_list().get_curr_plate();
+        if (!agent || !curr_plate) return;
+        auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
+        auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+        json j;
+        j["mode"] = mode_name;
+        j["is_connected"] = q->get_machine_sync_status();
+        j["slice_type"]   = "all_plate";
+        agent->track_event("slice_group_mode", j.dump());
     }
 }
 
@@ -11614,6 +11714,24 @@ bool Plater::priv::can_simplify() const
     return true;
 }
 
+bool Plater::priv::can_smooth_mesh() const
+{
+    std::vector<int> obj_idxs, vol_idxs;
+    sidebar->obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
+    if (vol_idxs.empty()) {
+        for (auto obj_idx : obj_idxs)
+            if (model.objects[obj_idx]->get_object_stl_stats().open_edges > 0)
+                return false;
+        return true;
+    }
+
+    int obj_idx = obj_idxs.front();
+    for (auto vol_idx : vol_idxs)
+        if (model.objects[obj_idx]->get_object_stl_stats().open_edges > 0)
+            return false;
+    return true;
+}
+
 bool Plater::priv::can_increase_instances() const
 {
     if (m_ui_jobs.is_any_running()
@@ -12595,6 +12713,8 @@ int Plater::load_project(wxString const &filename2,
 
     std::vector<size_t> res = load_files(input_paths, strategy);
 
+    check_include_gcode();
+
     reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -13295,11 +13415,14 @@ void Plater::calib_flowrate(int pass)
         _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloatsNullable(internal_solid_speeds));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloatsNullable(top_surface_speeds));
+
+        auto config_opt = dynamic_cast<const ConfigOptionFloatsNullable *>(_obj->config.option("top_solid_infill_flow_ratio"));
+        if (config_opt)
+            _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloatsNullable(config_opt->size(), 1.0f));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
@@ -13778,14 +13901,32 @@ void Plater::update_all_plate_thumbnails(bool force_update)
     }
 }
 
-void Plater::update_obj_preview_thumbnail(ModelObject *mo, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+void Plater::update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+{
+    PartPlate *        plate            = get_partplate_list().get_plate(0);
+    ThumbnailsParams   thumbnail_params = {{}, false, true, true, true, 0, false};
+    GLVolumeCollection cur_volumes;
+    for (int i = 0; i < model_objects.size(); i++) {
+        auto &mo = model_objects[i];
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            cur_volumes.load_object_volume(mo, i, j, 0, "volume", true, false, false, false);
+        }
+    }
+    get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_origin_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
+                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false, GLCanvas3D::ThumbnailRenderRype::CustomMeshOrVertexColors);
+}
+
+void Plater::update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
 {
     PartPlate *      plate            = get_partplate_list().get_plate(0);
     ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0, false};
     GLVolumeCollection cur_volumes;
-    cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
-    ModelObjectPtrs model_objects;
-    model_objects.emplace_back(mo);
+    for (int i = 0; i < model_objects.size(); i++) {
+        auto& mo = model_objects[i];
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            cur_volumes.load_object_volume(mo, i, j, 0, "volume", true, false, false, false);
+        }
+    }
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                             model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false);
 }
@@ -17486,6 +17627,7 @@ wxString Plater::get_selected_printer_name_in_combox() {
 void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title)
 {
     printer_name.Replace("Bambu Lab", "", false);
+    printer_name.Trim(true).Trim(false);
     wxString content;
     if (type == PrinterWarningType::NOT_CONNECTED) {
         content = wxString::Format(_L("Printer not connected. Please go to the device page to connect %s before syncing."), printer_name);
@@ -18927,6 +19069,7 @@ bool Plater::can_decrease_instances() const { return p->can_decrease_instances()
 bool Plater::can_set_instance_to_object() const { return p->can_set_instance_to_object(); }
 bool Plater::can_fix_through_netfabb() const { return p->can_fix_through_netfabb(); }
 bool Plater::can_simplify() const { return p->can_simplify(); }
+bool Plater::can_smooth_mesh() const { return p->can_smooth_mesh(); }
 bool Plater::can_split_to_objects() const { return p->can_split_to_objects(); }
 bool Plater::can_split_to_volumes() const { return p->can_split_to_volumes(); }
 bool Plater::can_do_ui_job() const { return p->can_do_ui_job(); }

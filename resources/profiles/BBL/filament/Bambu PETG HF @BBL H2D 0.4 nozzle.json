@@ -17,8 +17,18 @@
     "fan_cooling_layer_time": [
         "20"
     ],
+    "fan_max_speed": [
+        "30"
+    ],
     "fan_min_speed": [
         "20"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_max_volumetric_speed": [
         "25",
@@ -44,8 +54,8 @@
         "0",
         "0"
     ],
-    "fan_max_speed": [
-        "30"
+    "filament_change_length": [
+        "4"
     ],
     "hole_coef_2": [
         "-0.006"
@@ -73,10 +83,17 @@
     "pre_start_fan_time": [
         "2"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "slow_down_layer_time": [
         "10"
     ],
     "slow_down_min_speed": [
+        "20",
         "20"
     ],
     "compatible_printers": [

@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSS98_06",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -27,6 +31,10 @@
     "nozzle_temperature_initial_layer": [
         "240",
         "240"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

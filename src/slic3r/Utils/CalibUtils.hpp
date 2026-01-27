@@ -85,6 +85,8 @@ public:
     static bool check_printable_status_before_cali(const MachineObject *obj, const CalibInfo &cali_info, wxString &error_message);
     static bool check_printable_status_before_cali(const MachineObject *obj, const std::vector<CalibInfo> &cali_infos, wxString &error_message);
 
+    static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message);
+
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
@@ -100,9 +102,5 @@ extern bool     is_pa_params_valid(const Calib_Params &params);
 extern void update_speed_parameter(const std::string &key);
 extern std::vector<double> generate_max_speed_parameter_value(const std::string &key);
 
-float to_nozzle_diameter_float(const NozzleDiameterType &type);
-NozzleFlowType to_nozzle_flow_type(const std::string &type);
-extern NozzleFlowType to_nozzle_flow_type(const NozzleVolumeType &type);
-extern NozzleVolumeType to_nozzle_volume_type(const NozzleFlowType &type);
 }
 }

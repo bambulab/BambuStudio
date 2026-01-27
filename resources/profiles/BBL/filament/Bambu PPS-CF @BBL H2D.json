@@ -17,6 +17,10 @@
     "counter_limit_max": [
         "0.03"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
@@ -31,6 +35,12 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

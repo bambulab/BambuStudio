@@ -203,6 +203,10 @@ void AppConfig::set_defaults()
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
+    if (get("3d_middle_tooltip_offset_x").empty())
+        set("3d_middle_tooltip_offset_x", "0.0");
+    if (get("3d_middle_tooltip_offset_y").empty())
+        set("3d_middle_tooltip_offset_y", "0.0");
     if (get("cancel_glmultidraw").empty())
         set_bool("cancel_glmultidraw", false);
 //#ifdef SUPPORT_SHOW_HINTS
@@ -478,10 +482,6 @@ void AppConfig::set_defaults()
 
     if (get("prompt_for_brittle_filaments").empty()){
         set_bool("prompt_for_brittle_filaments", true);
-    }
-
-    if (get("use_12h_time_format").empty()) {
-        set_bool("use_12h_time_format", false);
     }
 
     // Remove legacy window positions/sizes
@@ -1442,14 +1442,14 @@ void AppConfig::reset_selections()
     }
 }
 
-std::string AppConfig::config_path()
+std::string AppConfig::config_path(EAppMode mode)
 {
 #ifdef USE_JSON_CONFIG
-    std::string path = (m_mode == EAppMode::Editor) ?
+    std::string path = (mode == EAppMode::Editor) ?
         (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".conf")).make_preferred().string() :
         (boost::filesystem::path(Slic3r::data_dir()) / (GCODEVIEWER_APP_KEY ".conf")).make_preferred().string();
 #else
-    std::string path = (m_mode == EAppMode::Editor) ?
+    std::string path = (mode == EAppMode::Editor) ?
         (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string() :
         (boost::filesystem::path(Slic3r::data_dir()) / (GCODEVIEWER_APP_KEY ".ini")).make_preferred().string();
 #endif

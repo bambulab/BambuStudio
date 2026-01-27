@@ -8,6 +8,10 @@
     "chamber_temperatures": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.52",
         "0.52"
@@ -42,9 +46,6 @@
         "Normal Lift",
         "Normal Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "filament_pre_cooling_temperature_nc": [
         "230",
         "230"
@@ -60,6 +61,9 @@
     "filament_change_length": [
         "4"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "filament_change_length_nc": [
         "4"
     ],
@@ -73,6 +77,10 @@
     "nozzle_temperature_initial_layer": [
         "270",
         "270"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "temperature_vitrification": [
         "70"

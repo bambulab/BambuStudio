@@ -17,6 +17,10 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -30,9 +34,6 @@
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "first_x_layer_fan_speed": [
-        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
         "180",
@@ -53,6 +54,9 @@
     "filament_change_length": [
         "4"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "filament_change_length_nc": [
         "4"
     ],
@@ -66,6 +70,16 @@
     "nozzle_temperature_initial_layer": [
         "220",
         "220"
+    ],
+    "supertack_plate_temp": [
+        "40"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "40"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"

@@ -140,6 +140,7 @@ bool FileTransferJob::get_result(int &ec, int &resp_ec, std::string &json, std::
 void FileTransferJob::start_on(FileTransferTunnel &t)
 {
     if (!h_) throw std::runtime_error("job handle invalid");
+    if (!t.native()) throw std::runtime_error("tunnel handle invalid");
     if (m_->ft_tunnel_start_job(t.native(), h_) == ft_err::FT_EXCEPTION) { throw std::runtime_error("ft_tunnel_start_job failed"); }
 }
 

@@ -11,6 +11,10 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.97",
         "0.97"
@@ -38,9 +42,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "filament_pre_cooling_temperature_nc": [
         "205",
         "205"
@@ -60,8 +61,14 @@
     "filament_change_length": [
         "4"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "filament_change_length_nc": [
         "4"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -80,10 +87,17 @@
     "pre_start_fan_time": [
         "2"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "slow_down_layer_time": [
         "10"
     ],
     "slow_down_min_speed": [
+        "20",
         "20"
     ],
     "temperature_vitrification": [

@@ -45,6 +45,7 @@ enum AmsStatusMain
     AMS_STATUS_MAIN_RFID_IDENTIFYING = 0x02,
     AMS_STATUS_MAIN_ASSIST = 0x03,
     AMS_STATUS_MAIN_CALIBRATION = 0x04,
+    AMS_STATUS_MAIN_COLD_PULL = 0x07,
     AMS_STATUS_MAIN_SELF_CHECK = 0x10,
     AMS_STATUS_MAIN_DEBUG = 0x20,
     AMS_STATUS_MAIN_UNKNOWN = 0xFF,
@@ -75,7 +76,8 @@ enum NozzleFlowType : int
 {
     NONE_FLOWTYPE,
     S_FLOW,
-    H_FLOW
+    H_FLOW,
+    U_FLOW, // TPU 1.75 High Flow
 };
 /* 0.2mm  0.4mm  0.6mm 0.8mm */
 enum NozzleDiameterType : int

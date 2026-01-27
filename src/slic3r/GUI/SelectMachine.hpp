@@ -26,6 +26,7 @@
 
 #include <unordered_map>
 
+#include "GUI_ObjectLayers.hpp"
 #include "boost/bimap/bimap.hpp"
 #include "AmsMappingPopup.hpp"
 #include "ReleaseNote.hpp"
@@ -294,7 +295,6 @@ private:
     int                                 m_print_error_code{0};
     bool                                m_is_in_sending_mode{ false };
     bool                                m_ams_mapping_res{ false };
-    bool                                m_ams_mapping_valid{ false };
     bool                                m_export_3mf_cancel{ false };
     bool                                m_is_canceled{ false };
     bool                                m_is_rename_mode{ false };
@@ -353,6 +353,7 @@ protected:
     wxBoxSizer*                         m_sizer_autorefill{ nullptr };
     wxBoxSizer*                         m_mapping_sugs_sizer{ nullptr };
     wxBoxSizer*                         m_change_filament_times_sizer{ nullptr };
+    wxBoxSizer*                         m_warn_when_drying_sizer{ nullptr };
     Button*                             m_button_ensure{ nullptr };
     wxStaticBitmap *                    m_rename_button{nullptr};
     wxStaticBitmap*                     m_staticbitmap{ nullptr };
@@ -385,6 +386,8 @@ protected:
     Label*                              m_txt_change_filament_times{ nullptr };
     CheckBox*                           m_check_ext_change_assist{ nullptr };
     Label*                              m_label_ext_change_assist{ nullptr };
+
+    Label*                              m_txt_warn_when_drying{ nullptr };
 
     PrinterInfoBox*                     m_printer_box { nullptr};
     PrinterMsgPanel *                   m_text_printer_msg{nullptr};
@@ -444,7 +447,7 @@ public:
     void prepare_mode(bool refresh_button = true);
     void sending_mode();
     void finish_mode();
-	void sync_ams_mapping_result(std::vector<FilamentInfo>& result);
+	void sync_ams_mapping_result(const std::vector<FilamentInfo>& result);
     void prepare(int print_plate_idx);
     void show_status(PrintDialogStatus status,
                      std::vector<wxString> params = std::vector<wxString>(),
@@ -462,6 +465,8 @@ public:
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
     void CheckWarningRackStatus(MachineObject* obj_);
+
+    bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
 
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
@@ -503,19 +508,20 @@ public:
     bool can_support_pa_auto_cali();
     bool is_same_printer_model();
     bool is_blocking_printing(MachineObject* obj_);
-    bool is_nozzle_hrc_matched(const NozzleType& nozzle_type, std::string& filament_type) const;
+    bool is_nozzle_hrc_matched(const NozzleType& nozzle_type, const std::string& filament_id) const;
     bool check_sdcard_for_timelpase(MachineObject* obj);
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
     bool Show(bool show);
-    void show_init();
     bool do_ams_mapping(MachineObject *obj_,bool use_ams);
-    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info);
+    bool get_ams_mapping_result(std::string& mapping_array_str, std::string& mapping_array_str2, std::string& ams_mapping_info) const;
     bool build_nozzles_info(std::string& nozzles_info);
     bool can_hybrid_mapping(DevExtderSystem data);
     void auto_supply_with_ext(std::vector<DevAmsTray> slots);
-    int  convert_filament_map_nozzle_id_to_task_nozzle_id(int nozzle_id);
+
+    bool is_ams_drying(MachineObject* obj);
+    bool is_selected_ams_drying(MachineObject* obj);
 
     PrintFromType get_print_type() {return m_print_type;};
     wxString    format_steel_name(NozzleType type);
@@ -526,6 +532,10 @@ public:
 
 private:
     void EnableEditing(bool enable);
+
+    // filament mapping
+    std::optional<FilamentInfo> get_slicing_filament_info(int fila_logic_id) const;
+    std::optional<FilamentInfo> get_mapped_filament_info(int fila_logic_id) const;
 
     /* update ams backup*/
     void update_ams_backup(MachineObject* obj_);
@@ -547,8 +557,11 @@ private:
     void on_nozzle_offset_option_changed(wxCommandEvent& event);
     void on_pa_value_switch_changed(wxCommandEvent &event);
 
-    // get mapping nozzle display string
+    // get mapping nozzle display string for rack
     wxString get_mapped_nozzle_str(int fila_id);
+
+    // get mapping nozzle for all
+    std::optional<DevNozzle> get_mapped_nozzle(int fila_id) const;
 
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);

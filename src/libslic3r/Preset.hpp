@@ -98,7 +98,7 @@ extern int get_values_from_json(std::string file_path, std::vector<std::string>&
 
 extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
 
-extern void extend_default_config_length(DynamicPrintConfig& config, const bool set_nil_to_default, const DynamicPrintConfig& defaults);
+extern void extend_default_config_length(DynamicPrintConfig &config, const DynamicPrintConfig &inherit_config, const bool set_nil_to_default, const DynamicPrintConfig &defaults);
 
 class VendorProfile
 {
@@ -708,7 +708,7 @@ public:
     // Select a profile by its name. Return true if the selection changed.
     // Without force, the selection is only updated if the index changes.
     // With force, the changes are reverted if the new index is the same as the old index.
-    bool            select_preset_by_name(const std::string &name, bool force);
+    bool            select_preset_by_name(const std::string &name, bool force, bool select_invisible = false);
     bool is_base_preset(const Preset &preset) const { return preset.is_system || (preset.is_user() && preset.inherits().empty()); }
 
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.

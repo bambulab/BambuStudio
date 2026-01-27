@@ -283,6 +283,43 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+    if (config->opt_float("support_ironing_spacing") < 0.05) {
+        const wxString     msg_text = _(L("Too small support ironing spacing.\nReset to 0.1"));
+        MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("support_ironing_spacing", new ConfigOptionFloat(0.1));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
+    // the ironing only works with solid interface
+    bool has_ironing_support = config->opt_int("raft_layers") > 1 || (config->opt_bool("enable_support") && config->opt_int("support_interface_top_layers") > 0);
+    bool can_ironing_support = config->opt_float("support_interface_spacing") < EPSILON;
+    can_ironing_support &= // where the grid alwasy was sparse, not works with ironing!
+        config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern")
+        != SupportMaterialInterfacePattern::smipGrid;
+    if (has_ironing_support)
+        if (!can_ironing_support && config->opt_bool("enable_support_ironing")) {
+            const wxString     msg_text = _(L("Support ironing will not work with sparse support interface.\n"
+                                                  "Do you want to adjust the support interface config to use ironing?\n"
+                                                  "Yes: make the support interface solid.\n"
+                                                  "No: disable the support ironing."));
+            MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxYES_NO);
+            DynamicPrintConfig new_conf = *config;
+            is_msg_dlg_already_exist    = true;
+            if (dialog.ShowModal() == wxID_YES) {
+                new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0.0f));
+                if (config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipGrid)
+                    new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipAuto));
+            } else {
+                new_conf.set_key_value("enable_support_ironing", new ConfigOptionBool(false));
+            }
+
+            apply(config, &new_conf);
+            is_msg_dlg_already_exist = false;
+        }
 
     if (config->option<ConfigOptionFloat>("initial_layer_print_height")->value < EPSILON)
     {
@@ -384,7 +421,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                      config->opt_int("top_shell_layers") != 0 || sparse_infill_density != 0 ||
                                      config->opt_bool("enable_support") ||
                                      config->opt_int("enforce_support_layers") != 0 ||
-                                     config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") != EnsureVerticalThicknessLevel::evtEnabled ||
                                      config->opt_bool("detect_thin_wall"));
 
         if (!is_global_config && !adjust_spiral_mode_params) {
@@ -694,7 +730,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step", "infill_rotate_step", "symmetric_infill_y_axis"})
+    for (auto el : {"sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step",
+                    "infill_rotate_step", "symmetric_infill_y_axis", "sparse_infill_lattice_angle_1", "sparse_infill_lattice_angle_2"})
         toggle_line(el, have_infill);
 
     // Determine if the selected infill pattern supports multiline infill.
@@ -705,27 +742,25 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
                                     pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
 
     toggle_line("fill_multiline", have_infill && support_multiline_infill);
-    if (support_multiline_infill == false) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
-        apply(config, &new_conf);
-    }
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);
 
     //cross zag
-    bool is_cross_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
-    bool is_locked_zig = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
+    bool is_cross_zag  = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
+    bool is_locked_zig = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
 
-    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
     for (auto el : {"infill_instead_top_bottom_surfaces","skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_line_width", "skeleton_infill_line_width", "locked_skin_infill_pattern", "locked_skeleton_infill_pattern"})
         toggle_line(el, is_locked_zig);
 
-    bool is_zig_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
+    bool is_zig_zag = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
 
     toggle_line("infill_rotate_step", is_zig_zag);
+    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
     toggle_line("symmetric_infill_y_axis", is_zig_zag || is_cross_zag || is_locked_zig);
+
+    bool lattice_options = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ip2DLattice;
+    for (auto el : {"sparse_infill_lattice_angle_1", "sparse_infill_lattice_angle_2"}) toggle_line(el, lattice_options);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
@@ -735,7 +770,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool has_bottom_solid_infill = config->opt_int("bottom_shell_layers") > 0;
     bool has_solid_infill 		 = has_top_solid_infill || has_bottom_solid_infill;
     // solid_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "top_surface_pattern", "bottom_surface_pattern", "internal_solid_infill_pattern", "solid_infill_filament"})
+    for (auto el : {"top_surface_pattern", "bottom_surface_pattern", "top_surface_density", "bottom_surface_density", "internal_solid_infill_pattern", "solid_infill_filament"})
         toggle_field(el, has_solid_infill);
 
     for (auto el : { "infill_direction", "sparse_infill_line_width", "bridge_angle",
@@ -837,6 +872,12 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     for (auto el : {
         "ironing_pattern","ironing_speed", "ironing_flow", "ironing_spacing", "ironing_direction", "ironing_inset"})
         toggle_line(el, has_ironing);
+
+    // has ironingable support interface
+    bool has_ironing_support = config->opt_int("raft_layers") > 1 || (config->opt_bool("enable_support") && config->opt_int("support_interface_top_layers") > 0);
+    toggle_field("enable_support_ironing", has_ironing_support);
+    for (auto el : {"support_ironing_pattern", "support_ironing_speed", "support_ironing_flow", "support_ironing_spacing", "support_ironing_direction", "support_ironing_inset"})
+        toggle_line(el, config->opt_bool("enable_support_ironing") && has_ironing_support);
 
     // bool have_sequential_printing = (config->opt_enum<PrintSequence>("print_sequence") == PrintSequence::ByObject);
     // for (auto el : { "extruder_clearance_dist_to_rod", "extruder_clearance_height_to_rod", "extruder_clearance_height_to_lid" })

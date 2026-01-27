@@ -40,6 +40,8 @@ set(lisbslic3r_sources
     Algorithm/LineSegmentation/LineSegmentation.hpp
     AnyPtr.hpp
     AStar.hpp
+    LogSink.hpp
+    LogSink.cpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -340,6 +342,8 @@ set(lisbslic3r_sources
     Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
+    TriangleMeshDeal.cpp
+    TriangleMeshDeal.hpp
     TriangleMeshSlicer.cpp
     TriangleMeshSlicer.hpp
     MeshSplitImpl.hpp

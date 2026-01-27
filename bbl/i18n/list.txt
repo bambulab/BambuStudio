@@ -273,3 +273,7 @@ src/slic3r/GUI/Widgets/MultiNozzleSync.cpp
 src/slic3r/GUI/Widgets/MultiNozzleSync.hpp
 src/slic3r/GUI/PurgeModeDialog.cpp
 src/slic3r/GUI/PurgeModeDialog.hpp
+src/slic3r/GUI/AMSDryControl.cpp
+src/slic3r/GUI/AMSDryControl.hpp
+src/slic3r/GUI/UxProgramTermsDialog.cpp
+src/slic3r/GUI/UxProgramTermsDialog.hpp

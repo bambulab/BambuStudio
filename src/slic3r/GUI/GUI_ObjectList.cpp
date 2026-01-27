@@ -27,6 +27,7 @@
 #include <boost/algorithm/string.hpp>
 #include <wx/progdlg.h>
 #include <libslic3r/Orient.hpp>
+#include <unordered_set>
 #include <wx/listbook.h>
 #include <wx/numformatter.h>
 #include <wx/headerctrl.h>
@@ -41,7 +42,7 @@
 #endif /* __WXMSW__ */
 #include "Gizmos/GLGizmoScale.hpp"
 #include "Gizmos/GLGizmoMeshBoolean.hpp"
-
+#include "libslic3r/TriangleMeshDeal.hpp"
 namespace Slic3r
 {
 namespace GUI
@@ -154,8 +155,14 @@ ObjectList::ObjectList(wxWindow* parent) :
                  ) &&
             gizmos_mgr.is_gizmo_activable_when_single_full_instance()) {
             // selection will not be single_full_instance after shift_pressed,Caused exe crashed
+            wxDataViewItemArray sels;
+            GetSelections(sels);
             UnselectAll();
+            m_last_selected_item = event.GetItem();
             Select(m_last_selected_item);
+            if (sels.Count() >= 2) {
+                selection_changed();
+            }
             return;
         }
         if (wxGetKeyState(WXK_SHIFT)) {
@@ -694,6 +701,7 @@ void ObjectList::update_filament_values_for_items(const size_t filaments_count)
                 if (!object->volumes[id]->config.has("extruder") ||
                     size_t(object->volumes[id]->config.extruder()) > filaments_count) {
                     extruder = wxString::Format("%d", object->config.extruder());
+                    object->volumes[id]->config.erase("extruder");
                 }
                 else {
                     extruder = wxString::Format("%d", object->volumes[id]->config.extruder());
@@ -762,7 +770,7 @@ void ObjectList::update_filament_values_for_items_when_delete_filament(const siz
                         else {
                             int new_value = object->volumes[id]->config.opt_int(key) > filament_id ? object->volumes[id]->config.opt_int(key) - 1 :
                                                                                                      object->volumes[id]->config.opt_int(key);
-                            object->config.set_key_value(key, new ConfigOptionInt(new_value));
+                            object->volumes[id]->config.set_key_value(key, new ConfigOptionInt(new_value));
                         }
                     }
                 }
@@ -2530,7 +2538,10 @@ void ObjectList::load_shape_object(const std::string &type_name)
     TriangleMesh mesh = create_mesh(type_name, bb);
     const Slic3r::DynamicPrintConfig& full_config = wxGetApp().preset_bundle->full_config();
     // rotate the overhang faces to the machine cooling fan
-    if (full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
+    // Blacklist: skip cooling orientation for shapes that don't benefit from it
+    static const std::unordered_set<std::string> cooling_orientation_blacklist = {"Bambu Cube", "Bambu Cube V2", "ksr FDMTest"};
+    bool skip_cooling_orientation = cooling_orientation_blacklist.find(type_name) != cooling_orientation_blacklist.end();
+    if (!skip_cooling_orientation && full_config.has("fan_direction") && full_config.has("auxiliary_fan"))
     {
         int fan_config_idx = full_config.option<ConfigOptionEnum<FanDirection>>("fan_direction")->value;
         FanDirection config_dir = static_cast<FanDirection>(fan_config_idx);
@@ -3434,7 +3445,11 @@ bool ObjectList::get_volume_by_item(const wxDataViewItem& item, ModelVolume*& vo
     if (volume_id < 0) {
         if ( split_part || (*m_objects)[obj_idx]->volumes.size() > 1 )
             return false;
-        volume = (*m_objects)[obj_idx]->volumes[0];
+        if ((*m_objects)[obj_idx]->volumes.size() >=1) {
+            volume = (*m_objects)[obj_idx]->volumes[0];
+        } else {
+            return false;
+        }
     }
     // volume is selected
     else
@@ -3462,7 +3477,9 @@ bool ObjectList::is_splittable(bool to_objects)
             }
             if ((*m_objects)[obj_idx]->volumes.size() > 1)
                 return true;
-            return (*m_objects)[obj_idx]->volumes[0]->is_splittable();
+            if ((*m_objects)[obj_idx]->volumes.size() >= 1) {
+                return (*m_objects)[obj_idx]->volumes[0]->is_splittable();
+            }
         }
         return false;
     }
@@ -6157,6 +6174,92 @@ void ObjectList::simplify()
         gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
     }
     gizmos_mgr.open_gizmo(GLGizmosManager::EType::Simplify);
+}
+
+void GUI::ObjectList::smooth_mesh()
+{
+    wxBusyCursor cursor;
+    auto plater = wxGetApp().plater();
+    if (!plater) { return; }
+    plater->take_snapshot("smooth_mesh");
+    std::vector<int> obj_idxs, vol_idxs;
+    get_selection_indexes(obj_idxs, vol_idxs);
+    auto object_idx = obj_idxs.front();
+    ModelObject *obj{nullptr};
+    auto show_warning_dlg = [this](int cur_face_count,std::string name,bool is_part) {
+        int limit_face_count = 1000000;
+        if (cur_face_count > limit_face_count) {
+            auto name_str = wxString::FromUTF8(name);
+            auto content = wxString::Format(_L("\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"), name_str);
+            WarningDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), (is_part ? _L("Part") : _L("Object")) + " " + content, _L("BambuStudio warning"), wxYES_NO);
+            if (dlg.ShowModal() == wxID_NO) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    };
+    auto show_smooth_mesh_error_dlg = [this](std::string name) {
+        auto name_str = wxString::FromUTF8(name);
+        auto content  = wxString::Format(_L("\"%s\" part's mesh contains errors. Please repair it first."), name_str);
+        WarningDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), content, _L("BambuStudio warning"), wxOK);
+        dlg.ShowModal();
+    };
+    bool has_show_smooth_mesh_error_dlg = false;
+    if (vol_idxs.empty()) {
+        obj        = object(object_idx);
+        auto             future_face_count = static_cast<int>(obj->facets_count()) * 4;
+        if (show_warning_dlg(future_face_count, obj->name,false)) {
+            return;
+        }
+        for (auto mv : obj->volumes) {
+            bool ok;
+            auto result_mesh = TriangleMeshDeal::smooth_triangle_mesh(mv->mesh(), ok);
+            if (ok) {
+                mv->set_mesh(result_mesh);
+                mv->reset_extra_facets(); // reset paint color
+                mv->calculate_convex_hull();
+                mv->invalidate_convex_hull_2d();
+                mv->set_new_unique_id();
+            } else {
+                if (!has_show_smooth_mesh_error_dlg) {
+                    show_smooth_mesh_error_dlg(mv->name);
+                    has_show_smooth_mesh_error_dlg = true;
+                }
+            }
+        }
+        obj->invalidate_bounding_box();
+        obj->ensure_on_bed();
+        plater->changed_mesh(object_idx);
+    } else {
+        obj = object(obj_idxs.front());
+        for (int vol_idx : vol_idxs) {
+            auto mv = obj->volumes[vol_idx];
+            auto future_face_count = static_cast<int>(mv->mesh().facets_count()) * 4;
+            if (show_warning_dlg(future_face_count, mv->name,true)) {
+                return;
+            }
+            bool ok;
+            auto result_mesh = TriangleMeshDeal::smooth_triangle_mesh(mv->mesh(),ok);
+            if (ok) {
+                mv->set_mesh(result_mesh);
+                mv->reset_extra_facets(); // reset paint color
+                mv->calculate_convex_hull();
+                mv->invalidate_convex_hull_2d();
+                mv->set_new_unique_id();
+            } else {
+                if (!has_show_smooth_mesh_error_dlg) {
+                    show_smooth_mesh_error_dlg(mv->name);
+                    has_show_smooth_mesh_error_dlg = true;
+                }
+            }
+        }
+    }
+    if (obj) {
+        obj->invalidate_bounding_box();
+        obj->ensure_on_bed();
+        plater->changed_mesh(object_idx);
+    }
 }
 
 void ObjectList::update_item_error_icon(const int obj_idx, const int vol_idx) const

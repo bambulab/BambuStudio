@@ -35,6 +35,9 @@
         "0",
         "0"
     ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -48,6 +51,12 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.4 nozzle"

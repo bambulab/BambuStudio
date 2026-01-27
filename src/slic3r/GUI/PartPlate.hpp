@@ -261,6 +261,7 @@ public:
     //static const double plate_x_gap = 0.2;
     ThumbnailData thumbnail_data;
     ThumbnailData no_light_thumbnail_data;
+    ThumbnailData obj_preview_origin_thumbnail_data;
     ThumbnailData obj_preview_thumbnail_data;
     static const int plate_thumbnail_width = 512;
     static const int plate_thumbnail_height = 512;
@@ -333,8 +334,11 @@ public:
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
     bool check_mixture_of_pla_and_petg(const DynamicPrintConfig & config);
+    bool check_multi_filament_without_prime_tower(const DynamicPrintConfig &config);
     bool check_mixture_filament_compatible(const DynamicPrintConfig& config, std::string &error_msg);
     bool check_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
+    bool check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
+    bool check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg);
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not

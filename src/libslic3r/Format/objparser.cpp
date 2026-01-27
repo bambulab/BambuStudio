@@ -546,7 +546,7 @@ static bool        mtl_parseline(const char *line, MtlData &data)
                 char * endptr = 0;
                 double tr     = strtod(line, &endptr);
                 if (data.new_mtl_unmap.find(cur_mtl_name) != data.new_mtl_unmap.end()) {
-                    data.new_mtl_unmap[cur_mtl_name]->Tr = (float) tr;
+                    data.new_mtl_unmap[cur_mtl_name]->Tr = ( tr > 0.f && tr<= 1.0f) ? (float) tr : 1.0;
                 }
                 break;
             } else if (cur_char == 'f') {

@@ -313,6 +313,8 @@ private:
     int             m_plate_index { -1 };
     wxStaticBitmap* m_bitmap_static_use_time;
     wxStaticBitmap* m_bitmap_static_use_weight;
+    AnimaIcon*      m_pausing_icon;
+    AnimaIcon*      m_stopping_icon;
     ScalableButton* m_button_pause_resume;
     ScalableButton* m_button_abort;
     Button*         m_button_partskip;
@@ -349,6 +351,8 @@ public:
 
 public:
     void enable_partskip_button(MachineObject* obj, bool enable);
+    void update_pausing_state(bool enter);
+    void update_stopping_state(bool enter);
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
     void update_subtask_name(wxString name);
@@ -357,7 +361,6 @@ public:
     void on_stage_clicked(wxMouseEvent& event);
 
     // Public interface to update remaining time text in the thermal dialog
-    void update_thermal_remaining_time(MachineObject* obj);
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
     void update_finish_time(wxString finish_time);
@@ -391,6 +394,8 @@ public:
     int get_part_skipped_dirty() { return m_part_skipped_dirty; }
     void set_part_skipped_dirty(int dirty) { m_part_skipped_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
+
+private:
     void paint(wxPaintEvent&);
 };
 
@@ -566,6 +571,7 @@ protected:
     wxStaticBitmap *m_filament_load_img;
 
     Button *m_button_retry {nullptr};
+    Button *m_fila_change_abort {nullptr};
     StaticBox* m_filament_load_box;
 
     // Virtual event handlers, override them in your derived class

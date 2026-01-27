@@ -280,7 +280,10 @@ public:
     int         m_current_filament_id;
     ShowType    m_show_type{ShowType::RIGHT};
     std::string m_tag_material;
+    wxScrolledWindow *m_scrolled_window{nullptr};
     wxBoxSizer *m_sizer_main{nullptr};
+    wxBoxSizer *m_sizer_main_h{nullptr};
+    wxBoxSizer *m_sizer_ams_v{nullptr};
     wxBoxSizer *m_sizer_ams{nullptr};
     wxBoxSizer *m_sizer_ams_left{nullptr};
     wxBoxSizer *m_sizer_ams_right{nullptr};
@@ -293,18 +296,23 @@ public:
     MappingItem* m_left_extra_slot{nullptr};
     MappingItem* m_right_extra_slot{nullptr};
 
+    wxPanel *    m_main_panel{nullptr};
     wxPanel *    m_left_marea_panel{nullptr};
     wxPanel *    m_right_marea_panel{nullptr};
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
+    wxPanel *    m_ams_tips_panel{nullptr};
+    wxPanel *    m_split_line_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
     Label *      m_left_tips{nullptr};
     Label *      m_right_tips{nullptr};
+
     ScalableButton* m_reset_btn{nullptr};
     wxString     m_single_tip_text;
     wxString     m_left_tip_text;
     wxString     m_right_tip_text;
+    wxString     m_ams_tips_panel_text;
     wxBoxSizer* m_sizer_split_ams_left;
     wxBoxSizer* m_sizer_split_ams_right;
     bool        m_mapping_from_multi_machines {false};
@@ -318,6 +326,7 @@ public:
     void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_title(MachineObject* obj);
     void         update_rack_select(MachineObject* obj);
+    void         update_amsmappping_tips(bool show);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
@@ -331,7 +340,6 @@ public:
     void         paintEvent(wxPaintEvent &evt);
     void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
-    std::vector<TrayData> parse_ams_mapping(const std::map<std::string, DevAms*, NumericStrCompare>& amsList);
 
     using ResetCallback = std::function<void(const std::string&)>;
     void reset_ams_info();

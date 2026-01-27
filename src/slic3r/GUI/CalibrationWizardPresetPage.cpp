@@ -28,6 +28,8 @@ namespace Slic3r { namespace GUI {
 static int PA_LINE = 0;
 static int PA_PATTERN = 1;
 
+static std::vector<NozzleVolumeType> volumes = { nvtStandard, nvtHighFlow, nvtTPUHighFlow, nvtHybrid};
+
 CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
     wxWindow* parent,
     wxWindowID id,
@@ -85,14 +87,14 @@ void CaliPresetCaliStagePanel::create_panel(wxWindow* parent)
     m_top_sizer->AddSpacer(PRESET_GAP);
     // events
     m_complete_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
-        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = COMPLETE_CALIBRATION;
+        m_stage_panel_parent->get_current_object()->GetCalib()->SetFlowRatioCalibType(COMPLETE_CALIBRATION);
         input_panel->Show(false);
         m_stage = CALI_MANUAL_STAGE_1;
         GetParent()->Layout();
         GetParent()->Fit();
         });
     m_fine_radioBox->Bind(wxEVT_RADIOBUTTON, [this](auto& e) {
-        m_stage_panel_parent->get_current_object()->flow_ratio_calibration_type = FINE_CALIBRATION;
+        m_stage_panel_parent->get_current_object()->GetCalib()->SetFlowRatioCalibType(FINE_CALIBRATION);
         input_panel->Show();
         m_stage = CALI_MANUAL_STAGE_2;
         GetParent()->Layout();
@@ -593,13 +595,13 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
                                 << " dev_id = " << BBLCrossTalk::Crosstalk_DevId(curr_obj->get_dev_id())
                                 << ", print_type = " << curr_obj->printer_type
                                 << ", printer_status = " << curr_obj->print_status
-                                << ", cali_finished = " << curr_obj->cali_finished
-                                << ", cali_version = " << curr_obj->cali_version
-                                << ", cache_flow_ratio = " << curr_obj->cache_flow_ratio
+                                << ", cali_finished = " << curr_obj->GetCalib()->GetStashCalibFinished()
+                                << ", cali_version = " << curr_obj->GetCalib()->GetCalibVersion()
+                                << ", cache_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio()
                                 << ", sub_task_name = " << curr_obj->subtask_name
                                 << ", gcode_file_name = " << curr_obj->m_gcode_file;
 
-        for (const CaliPresetInfo &preset_info : curr_obj->selected_cali_preset) {
+        for (const CaliPresetInfo &preset_info : curr_obj->GetCalib()->GetSelectedCalibPreset()) {
             BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: sync_nozzle_info - selected preset: "
                                     << "tray_id = " << preset_info.tray_id
                                     << ", nozzle_diameter = " << preset_info.nozzle_diameter
@@ -813,29 +815,50 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
     m_comboBox_bed_type->Bind(wxEVT_COMBOBOX, &CalibrationPresetPage::on_select_plate_type, this);
 }
 
-#define NOZZLE_LIST_COUNT       4
-#define NOZZLE_LIST_DEFAULT     1
-float nozzle_diameter_list[NOZZLE_LIST_COUNT] = {0.2, 0.4, 0.6, 0.8 };
+static std::vector<NozzleDiameterType> nozzle_diameters = {
+    NozzleDiameterType::NOZZLE_DIAMETER_0_2,
+    NozzleDiameterType::NOZZLE_DIAMETER_0_4,
+    NozzleDiameterType::NOZZLE_DIAMETER_0_6,
+    NozzleDiameterType::NOZZLE_DIAMETER_0_8,
+};
+
+template<typename T>
+bool switch_combox_to_target(ComboBox* combox, const T& target)
+{
+    for(unsigned int i=0; i < combox->GetCount(); i++) {
+        if(target == T(*(int*)combox->GetClientData(i))) {
+            combox->SetSelection(i);
+            return true;
+        }
+    }
+    combox->SetSelection(-1);
+    return false;
+}
 
 void CalibrationPresetPage::init_selection_values()
 {
     // init nozzle diameter and nozzle volume
     {
         m_comboBox_nozzle_dia->Clear();
-        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-            m_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        for (auto diameter : nozzle_diameters) {
+            m_comboBox_nozzle_dia->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});
         }
-        m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+        switch_combox_to_target(m_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
 
         m_comboBox_nozzle_volume->Clear();
-        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
-        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
-            for (auto item : nozzle_volume_type_def->enum_labels) {
-                m_comboBox_nozzle_volume->AppendString(_L(item));
-            }
+        auto volume_set = get_valid_nozzle_volume_type();
+        for(const auto & volume_type : volumes)
+        {
+            if(volume_set.find(volume_type) != volume_set.end() || volume_type == NozzleVolumeType::nvtHybrid)
+                m_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
 
-        m_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
+        for(unsigned int i=0; i < m_comboBox_nozzle_volume->GetCount(); i++) {
+            if(NozzleVolumeType::nvtStandard == NozzleVolumeType(*(int*)m_comboBox_nozzle_volume->GetClientData(i))) {
+                m_comboBox_nozzle_volume->SetSelection(i);
+                break;
+            }
+        }
     }
 
     Preset* cur_printer_preset = get_printer_preset(curr_obj, 0.4);
@@ -875,10 +898,10 @@ void CalibrationPresetPage::init_selection_values()
     // left
     {
         m_left_comboBox_nozzle_dia->Clear();
-        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-            m_left_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        for (auto diameter : nozzle_diameters) {
+            m_left_comboBox_nozzle_dia->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});
         }
-        m_left_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+        switch_combox_to_target(m_left_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
 
         m_left_comboBox_nozzle_volume->Clear();
         const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
@@ -894,20 +917,24 @@ void CalibrationPresetPage::init_selection_values()
     // right
     {
         m_right_comboBox_nozzle_dia->Clear();
-        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-            m_right_comboBox_nozzle_dia->AppendString(wxString::Format("%1.1f mm", nozzle_diameter_list[i]));
+        for (auto diameter : nozzle_diameters) {
+            m_right_comboBox_nozzle_dia->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});
         }
-        m_right_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+        switch_combox_to_target(m_right_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
 
         m_right_comboBox_nozzle_volume->Clear();
-        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
-        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
-            for (auto item : nozzle_volume_type_def->enum_labels) {
-                m_right_comboBox_nozzle_volume->AppendString(_L(item));
-            }
+        auto volume_set = get_valid_nozzle_volume_type();
+        for(const auto & volume_type : volumes) {
+            if(volume_set.find(volume_type) != volume_set.end() || volume_type == NozzleVolumeType::nvtHybrid)
+                m_right_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
 
-        m_right_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
+        for(unsigned int i=0; i < m_right_comboBox_nozzle_volume->GetCount(); i++) {
+            if(NozzleVolumeType::nvtStandard == NozzleVolumeType(*(int*)m_right_comboBox_nozzle_volume->GetClientData(i))) {
+                m_right_comboBox_nozzle_volume->SetSelection(i);
+                break;
+            }
+        }
     }
 }
 
@@ -964,17 +991,23 @@ float CalibrationPresetPage::get_nozzle_diameter(int extruder_id) const
 
     if (curr_obj->is_multi_extruders()) {
         if (extruder_id == LEFT_EXTRUDER_ID) {
-            if (m_left_comboBox_nozzle_dia->GetSelection() >= 0 && m_left_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
-                nozzle_dia = nozzle_diameter_list[m_left_comboBox_nozzle_dia->GetSelection()];
+            auto sel = m_left_comboBox_nozzle_dia->GetSelection();
+            if(sel != wxNOT_FOUND) {
+                NozzleDiameterType diameter = NozzleDiameterType(*(int*)m_left_comboBox_nozzle_dia->GetClientData(sel));
+                nozzle_dia = DevNozzle::ToNozzleDiameterFloat(diameter);
             }
         } else if (extruder_id == RIGHT_EXTRUDER_ID) {
-            if (m_right_comboBox_nozzle_dia->GetSelection() >= 0 && m_right_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
-                nozzle_dia = nozzle_diameter_list[m_right_comboBox_nozzle_dia->GetSelection()];
+            auto sel = m_right_comboBox_nozzle_dia->GetSelection();
+            if(sel != wxNOT_FOUND) {
+                NozzleDiameterType diameter = NozzleDiameterType(*(int*)m_right_comboBox_nozzle_dia->GetClientData(sel));
+                nozzle_dia = DevNozzle::ToNozzleDiameterFloat(diameter);
             }
         }
     }
-    else if (m_comboBox_nozzle_dia->GetSelection() >= 0 && m_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
-        nozzle_dia = nozzle_diameter_list[m_comboBox_nozzle_dia->GetSelection()];
+    else if (m_comboBox_nozzle_dia->GetSelection() != wxNOT_FOUND) {
+        auto sel = m_comboBox_nozzle_dia->GetSelection();
+        NozzleDiameterType diameter = NozzleDiameterType(*(int*)m_comboBox_nozzle_dia->GetClientData(sel));
+        nozzle_dia = DevNozzle::ToNozzleDiameterFloat(diameter);
     }
 
     return nozzle_dia;
@@ -984,7 +1017,7 @@ NozzleVolumeType CalibrationPresetPage::get_nozzle_volume_type(int nozzle_pos_id
 {
     if (curr_obj) {
         auto nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
-        return to_nozzle_volume_type(nozzle.GetNozzleFlowType());
+        return DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType());
     }
     return NozzleVolumeType::nvtStandard;
 }
@@ -1502,33 +1535,52 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
     get_tray_ams_and_slot_id(curr_obj, tray_id, ams_id, slot_id, out_tray_id);
 
     if (wxGetApp().app_config->get("skip_ams_blacklist_check") != "true") {
-        bool in_blacklist = false;
-        std::string action;
-        wxString info;
-        std::string filamnt_type;
-        preset->get_filament_type(filamnt_type);
+        DevFilaBlacklist::CheckResult result;
+        DevFilaBlacklist::CheckFilamentInfo check_info;
+        check_info.dev_id = curr_obj->get_dev_id();
+        check_info.model_id = curr_obj->printer_type;
+        check_info.fila_id = preset->filament_id;
+        preset->get_filament_type(check_info.fila_type);
+        check_info.ams_id = ams_id;
+        check_info.slot_id = slot_id;
+        check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)); // NOTE: to be fixed
+        check_info.fila_name = preset->alias;
+
+        if (!curr_obj->GetNozzleRack()->IsSupported()) {
+            int extruder_id = curr_obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
+            check_info.nozzle_diameter = curr_obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
+        }
+
+        if (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)
+            check_info.calib_mode = "auto_pa";
 
         auto vendor = dynamic_cast<ConfigOptionStrings*> (preset->config.option("filament_vendor"));
         if (vendor && (vendor->values.size() > 0)) {
-            std::string vendor_name = vendor->values[0];
-            std::string nozzle_flow = curr_obj->GetFilaSystem() ? curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)) : std::string();
+            check_info.fila_vendor = vendor->values[0];
+        }
+        result = DevFilaBlacklist::check_filaments_in_blacklist(check_info);
 
-            DevFilaBlacklist::check_filaments_in_blacklist(curr_obj->printer_type, vendor_name, filamnt_type, preset->filament_id, ams_id, slot_id, "", nozzle_flow, in_blacklist, action, info);
+        if (const auto& prohibition_items = result.get_items_by_action("prohibition"); !prohibition_items.empty()) {
+            wxString combined_msg;
+            for (auto item : prohibition_items) {
+                combined_msg += item.info_msg + "\n";
+            }
+
+            error_tips = combined_msg.ToUTF8().data();
+            return false;
         }
 
-        if (in_blacklist) {
-            error_tips = info.ToUTF8().data();
-            if (action == "prohibition") {
-                return false;
+        if (const auto& warning_items = result.get_items_by_action("warning"); !warning_items.empty()) {
+            wxString combined_msg;
+            for (auto item : warning_items) {
+                combined_msg += item.info_msg + "\n";
             }
-            else if (action == "warning") {
-                return true;
-            }
-        }
-        else {
-            error_tips = "";
+
+            error_tips = combined_msg.ToUTF8().data();
             return true;
         }
+
+        return true;
     }
     if (devPrinterUtil::IsVirtualSlot(ams_id)) {
         if (m_cali_mode == CalibMode::Calib_PA_Line && (m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO)) {
@@ -1657,7 +1709,7 @@ void CalibrationPresetPage::update_combobox_filaments(MachineObject* obj)
 
     //step 1: update combobox filament list
     float nozzle_value = get_nozzle_value();
-    obj->cali_selected_nozzle_dia = nozzle_value;
+    obj->GetCalib()->SetSelectedNozzleDiameter(DevNozzle::ToNozzleDiameterType(nozzle_value));
     if (nozzle_value < 1e-3) {
         return;
     }
@@ -1909,8 +1961,9 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         return;
 
     if (m_page_status != status)
-        //BOOST_LOG_TRIVIAL(info) << "CalibrationPresetPage: show_status = " << status << "(" << get_print_status_info(status) << ")";
-    m_page_status = status;
+        m_page_status = status;
+    else
+        return;
 
     // other
     if (status == CaliPresetPageStatus::CaliPresetStatusInit) {
@@ -2003,12 +2056,11 @@ void CalibrationPresetPage::Enable_Send_Button(bool enable)
 float CalibrationPresetPage::get_nozzle_value()
 {
     double nozzle_value = 0.0;
-    wxString nozzle_value_str = m_comboBox_nozzle_dia->GetValue();
-    try {
-        nozzle_value_str.ToDouble(&nozzle_value);
-    }
-    catch (...) {
-        ;
+
+    auto sel = m_comboBox_nozzle_dia->GetSelection();
+    if (sel != wxNOT_FOUND) {
+        auto diameter = NozzleDiameterType(*(int*)m_comboBox_nozzle_dia->GetClientData(sel));
+        nozzle_value = DevNozzle::ToNozzleDiameterFloat(diameter);
     }
 
     return nozzle_value;
@@ -2188,8 +2240,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     if (!obj) return;
 
     auto get_nozzle_diameter_list_index = [&obj](int extruder_id) -> int {
-        for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-            if (abs(obj->GetExtderSystem()->GetNozzleDiameter(extruder_id) - nozzle_diameter_list[i]) < 1e-3) {
+        for (int i = 0; i < nozzle_diameters.size(); i++) {
+            if (obj->GetExtderSystem()->GetNozzleDiameterType(extruder_id) == nozzle_diameters[i]) {
                 return i;
             }
         }
@@ -2197,17 +2249,10 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     };
 
     //set flow ratio calibration type
-    m_cali_stage_panel->set_flow_ratio_calibration_type(obj->flow_ratio_calibration_type);
+    m_cali_stage_panel->set_flow_ratio_calibration_type(obj->GetCalib()->GetFlowRatioCalibType());
     // set nozzle value from machine
-    bool nozzle_is_set = false;
-    for (int i = 0; i < NOZZLE_LIST_COUNT; i++) {
-        if (abs(obj->GetExtderSystem()->GetNozzleDiameter(0) - nozzle_diameter_list[i]) < 1e-3) {
-            if (m_comboBox_nozzle_dia->GetCount() > i) {
-                m_comboBox_nozzle_dia->SetSelection(i);
-                nozzle_is_set = true;
-            }
-        }
-    }
+    auto diameter = obj->GetExtderSystem()->GetNozzleDiameterType(0);
+    bool nozzle_is_set = switch_combox_to_target(m_comboBox_nozzle_dia, diameter);
 
     if (nozzle_is_set) {
         wxCommandEvent event(wxEVT_COMBOBOX);
@@ -2217,8 +2262,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     } else {
         m_comboBox_nozzle_dia->SetToolTip(wxEmptyString);
         // set default to 0.4
-        if (m_comboBox_nozzle_dia->GetCount() > NOZZLE_LIST_DEFAULT)
-            m_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+        switch_combox_to_target(m_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
     }
 
     if (obj->is_multi_extruders()) {
@@ -2234,12 +2278,12 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
                 }
                 else {
                     m_left_comboBox_nozzle_dia->SetToolTip(wxEmptyString);
-                    if (m_left_comboBox_nozzle_dia->GetCount() > NOZZLE_LIST_DEFAULT)
-                        m_left_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+                    switch_combox_to_target(m_left_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
                 }
 
                 if (obj->GetExtderSystem()->GetNozzleFlowType(i) != NozzleFlowType::NONE_FLOWTYPE) {
-                    m_left_comboBox_nozzle_volume->SetSelection(obj->GetExtderSystem()->GetNozzleFlowType(i) - 1);
+                    auto volume_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(i));
+                    m_left_comboBox_nozzle_volume->SetSelection(int(volume_type));
                 } else {
                     m_left_comboBox_nozzle_volume->SetSelection(0);
                 }
@@ -2254,12 +2298,18 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
                     m_right_comboBox_nozzle_dia->SetToolTip(_L("The nozzle diameter has been synchronized from the printer Settings"));
                 } else {
                     m_right_comboBox_nozzle_dia->SetToolTip(wxEmptyString);
-                    if (m_right_comboBox_nozzle_dia->GetCount() > NOZZLE_LIST_DEFAULT)
-                        m_right_comboBox_nozzle_dia->SetSelection(NOZZLE_LIST_DEFAULT);
+                    switch_combox_to_target(m_right_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
                 }
 
                 if (obj->GetExtderSystem()->GetNozzleFlowType(i) != NozzleFlowType::NONE_FLOWTYPE) {
-                    m_right_comboBox_nozzle_volume->SetSelection(obj->GetExtderSystem()->GetNozzleFlowType(i) - 1);
+                    auto nozzle_flow = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(i));
+
+                    for(unsigned int i=0; i < m_right_comboBox_nozzle_volume->GetCount(); i++) {
+                        if(nozzle_flow == NozzleVolumeType(*(int*)m_right_comboBox_nozzle_volume->GetClientData(i))) {
+                            m_right_comboBox_nozzle_volume->SetSelection(i);
+                            break;
+                        }
+                    }
                 } else {
                     m_right_comboBox_nozzle_volume->SetSelection(0);
                 }
@@ -2298,7 +2348,13 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 
         if ((obj->GetExtderSystem()->GetTotalExtderCount() > 0) && (obj->GetExtderSystem()->GetNozzleFlowType(0) != NozzleFlowType::NONE_FLOWTYPE))
         {
-            m_comboBox_nozzle_volume->SetSelection(obj->GetExtderSystem()->GetNozzleFlowType(0) - 1);
+            auto volume_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(0));
+            for(unsigned int i=0; i < m_comboBox_nozzle_volume->GetCount(); i++) {
+                if(volume_type == NozzleVolumeType(*(int*)m_comboBox_nozzle_volume->GetClientData(i))) {
+                    m_comboBox_nozzle_volume->SetSelection(i);
+                    break;
+                }
+            }
         } else {
             m_comboBox_nozzle_volume->SetSelection(0);
         }
@@ -2483,20 +2539,26 @@ void CalibrationPresetPage::update_nozzle_id_combox()
     bool has_rack = rack->IsSupported();
     if (has_rack) {
         NozzleDiameterType nozzle_diameter;
-        switch (m_right_comboBox_nozzle_dia->GetSelection()) {
-            case 0: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_2; break;
-            case 1: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_4; break;
-            case 2: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_6; break;
-            case 3: nozzle_diameter = NozzleDiameterType::NOZZLE_DIAMETER_0_8; break;
-            default: nozzle_diameter = NozzleDiameterType::NONE_DIAMETER_TYPE; break;
+        auto dia_sel = m_right_comboBox_nozzle_dia->GetSelection();
+        if (dia_sel != wxNOT_FOUND) {
+            nozzle_diameter = NozzleDiameterType(*(int*)m_right_comboBox_nozzle_dia->GetClientData(dia_sel));
+        } else {
+            nozzle_diameter = NozzleDiameterType::NONE_DIAMETER_TYPE;
         }
         std::vector<NozzleFlowType> nozzle_flows;
-        switch (m_right_comboBox_nozzle_volume->GetSelection()) {
-            case 0: nozzle_flows.emplace_back(NozzleFlowType::S_FLOW); break;
-            case 1: nozzle_flows.emplace_back(NozzleFlowType::H_FLOW); break;
-            case 2: nozzle_flows.emplace_back(NozzleFlowType::S_FLOW);
-                    nozzle_flows.emplace_back(NozzleFlowType::H_FLOW); break;
-            default: nozzle_flows.emplace_back(NozzleFlowType::NONE_FLOWTYPE); break;
+        auto sel = m_right_comboBox_nozzle_volume->GetSelection();
+        if(sel != wxNOT_FOUND) {
+            auto volume_type = NozzleVolumeType(*(int*)m_right_comboBox_nozzle_volume->GetClientData(sel));
+            if (volume_type != NozzleVolumeType::nvtHybrid)
+                nozzle_flows.emplace_back(DevNozzle::ToNozzleFlowType(volume_type));
+            else {
+                for (auto volume : volumes) {
+                    if (volume != NozzleVolumeType::nvtHybrid)
+                        nozzle_flows.emplace_back(DevNozzle::ToNozzleFlowType(volume));
+                }
+            }
+        } else {
+            nozzle_flows.emplace_back(NozzleFlowType::NONE_FLOWTYPE);
         }
 
         int  r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
@@ -2720,6 +2782,12 @@ std::map<int, CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
         if (fcb->get_tray_id() >= 0)
         {
             Preset* preset = const_cast<Preset*>(fcb->GetComboBox()->get_selected_preset());
+            if (nozzle_pos_id == -1) {//non-O1C printer pos_id == extruder_id
+                if(fcb->GetExtuderRole() == ExtruderRole::MAIN_EXTRUDER || fcb->GetExtuderRole() == ExtruderRole::SINGLE_EXTRUDER)
+                    nozzle_pos_id = MAIN_EXTRUDER_ID;
+                else if(fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER)
+                    nozzle_pos_id = DEPUTY_EXTRUDER_ID;
+            }
             out.emplace(std::make_pair(fcb->get_tray_id(), CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn)));
         }
     }
@@ -2729,8 +2797,10 @@ std::map<int, CaliFilamentInfo> CalibrationPresetPage::get_selected_filaments()
 
 void CalibrationPresetPage::get_preset_info(float& nozzle_dia, BedType& plate_type)
 {
-    if (m_comboBox_nozzle_dia->GetSelection() >=0 && m_comboBox_nozzle_dia->GetSelection() < NOZZLE_LIST_COUNT) {
-        nozzle_dia = nozzle_diameter_list[m_comboBox_nozzle_dia->GetSelection()];
+    auto sel = m_comboBox_nozzle_dia->GetSelection();
+    if (sel != wxNOT_FOUND) {
+        auto diameter = NozzleDiameterType(*(int*)m_comboBox_nozzle_dia->GetClientData(sel));
+        nozzle_dia = DevNozzle::ToNozzleDiameterFloat(diameter);
     } else {
         nozzle_dia = -1.0f;
     }

@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.04.00.01",
+    "version": "02.05.00.04",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -5836,8 +5836,16 @@
             "sub_path": "filament/Bambu TPU 85A @BBL H2D.json"
         },
         {
+            "name": "Bambu TPU 85A @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL H2D 0.4 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 85A @BBL H2DP",
             "sub_path": "filament/Bambu TPU 85A @BBL H2DP.json"
+        },
+        {
+            "name": "Bambu TPU 85A @BBL H2DP 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL H2DP 0.4 nozzle.json"
         },
         {
             "name": "Bambu TPU 85A @BBL H2S",
@@ -5892,8 +5900,24 @@
             "sub_path": "filament/Bambu TPU 90A @BBL H2D.json"
         },
         {
+            "name": "Bambu TPU 90A @BBL H2D 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2D 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL H2D 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2D 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 90A @BBL H2DP",
             "sub_path": "filament/Bambu TPU 90A @BBL H2DP.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL H2DP 0.6 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2DP 0.6 nozzle.json"
+        },
+        {
+            "name": "Bambu TPU 90A @BBL H2DP 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 90A @BBL H2DP 0.8 nozzle.json"
         },
         {
             "name": "Bambu TPU 90A @BBL H2S",
@@ -6000,8 +6024,16 @@
             "sub_path": "filament/Bambu TPU 95A HF @BBL H2D.json"
         },
         {
+            "name": "Bambu TPU 95A HF @BBL H2D 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL H2D 0.4 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 95A HF @BBL H2DP",
             "sub_path": "filament/Bambu TPU 95A HF @BBL H2DP.json"
+        },
+        {
+            "name": "Bambu TPU 95A HF @BBL H2DP 0.4 nozzle",
+            "sub_path": "filament/Bambu TPU 95A HF @BBL H2DP 0.4 nozzle.json"
         },
         {
             "name": "Bambu TPU 95A HF @BBL H2S",
@@ -6173,6 +6205,318 @@
         }
     ],
     "machine_list": [
+        {
+            "name": "Bambu Lab A1 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab A1 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab A1 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab A1 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab A1 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab A1 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 mini 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 mini 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 mini 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 mini 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab A1 mini 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab A1 mini 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2C 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab H2C 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2C 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab H2C 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2C 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab H2C 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2C 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab H2C 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2C 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab H2C 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2C 0.4 nozzle template wrapping_detection_gcode",
+            "sub_path": "machine/Bambu Lab H2C 0.4 nozzle template wrapping_detection_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab H2D 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab H2D 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab H2D 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab H2D 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab H2D 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D 0.4 nozzle template wrapping_detection_gcode",
+            "sub_path": "machine/Bambu Lab H2D 0.4 nozzle template wrapping_detection_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D Pro 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab H2D Pro 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D Pro 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab H2D Pro 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D Pro 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab H2D Pro 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D Pro 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab H2D Pro 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D Pro 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab H2D Pro 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2D Pro 0.4 nozzle template wrapping_detection_gcode",
+            "sub_path": "machine/Bambu Lab H2D Pro 0.4 nozzle template wrapping_detection_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2S 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2S 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2S 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2S 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2S 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.2 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.2 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.6 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.6 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1P 0.8 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1P 0.8 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.2 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.2 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.6 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.6 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P1S 0.8 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P1S 0.8 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P2S 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab P2S 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P2S 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab P2S 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P2S 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab P2S 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P2S 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab P2S 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P2S 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab P2S 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab P2S 0.4 nozzle template wrapping_detection_gcode",
+            "sub_path": "machine/Bambu Lab P2S 0.4 nozzle template wrapping_detection_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.2 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.2 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.6 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.6 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 0.8 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 0.8 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.2 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.2 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.6 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.6 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1 Carbon 0.8 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1 Carbon 0.8 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.2 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.2 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.4 nozzle template change_filament_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle template change_filament_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.4 nozzle template layer_change_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle template layer_change_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.4 nozzle template machine_end_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle template machine_end_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.4 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.4 nozzle template time_lapse_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.6 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.6 nozzle template machine_start_gcode.json"
+        },
+        {
+            "name": "Bambu Lab X1E 0.8 nozzle template machine_start_gcode",
+            "sub_path": "machine/Bambu Lab X1E 0.8 nozzle template machine_start_gcode.json"
+        },
         {
             "name": "fdm_machine_common",
             "sub_path": "machine/fdm_machine_common.json"

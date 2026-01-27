@@ -767,11 +767,13 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
             render_icon_texture(m_partplate_list->m_arrange_icon, m_partplate_list->m_arrange_texture);
 
         if (hover_id == 4) {
-            if (this->is_locked())
+            if (this->is_locked()) {
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_hovered_texture);
-            else
+                show_tooltip(_u8L("Unlock current plate"));
+            } else {
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_lockopen_hovered_texture);
-            show_tooltip(_u8L("Unlock current plate"));
+                show_tooltip(_u8L("Lock current plate"));
+            }
         } else {
             if (this->is_locked())
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_texture);
@@ -1513,6 +1515,9 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
         return true;
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
+    std::unordered_map<std::string, int> nozzle_fils;
+    auto fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
             int filament_id = filament_idx - 1;
@@ -1520,9 +1525,29 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
             std::vector<int> filament_map  = get_real_filament_maps(config);
             int extruder_idx = filament_map[filament_id] - 1;
+
+            auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
+            std::string fil_name = fil_preset->alias;
+
             if (!(filament_printable_status >> extruder_idx & 1)) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message  = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, filament_type);
+                error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name); // todo：显示耗材名字更好，因为部分TPU可以左头打印
+                return false;
+            }
+
+            std::vector<std::string> filament_variants;
+            if (fil_preset->config.has("filament_extruder_variant"))
+                filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+            else
+                filament_variants = {"Direct Drive Standard"};
+
+            std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
+            std::string extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
+            if (filament_variants_set.count(extruder_variant) == 0) {
+                NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+                auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+                std::string      volume       = volume_names.at(variant_name);
+                error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
                 return false;
             }
         }
@@ -1534,6 +1559,23 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
 {
 	// do not limit the num of tpu filament in slicing
 	return true;
+}
+
+bool PartPlate::check_multi_filament_without_prime_tower(const DynamicPrintConfig &config)
+{
+    int  filament_used_count = get_used_filaments().size();
+    if (filament_used_count == 0) { filament_used_count = get_extruders(true).size(); }
+    auto prime_tower_enabled = config.option<ConfigOptionBool>("enable_prime_tower");
+    auto by_object_plate        = m_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+    bool is_by_object        = false;
+    if (by_object_plate)
+        is_by_object = by_object_plate->value == PrintSequence::ByObject;
+    else
+        is_by_object = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value == PrintSequence::ByObject;
+    int object_count = get_obj_and_inst_set().size();
+    is_by_object     = is_by_object && (object_count > 1);
+    if ((!is_by_object) && (filament_used_count > 1) && prime_tower_enabled && (!(prime_tower_enabled->value))) { return false; }
+    return true;
 }
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
@@ -1684,6 +1726,68 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
             warning_msg += GUI::format(_L("%1% with %2%\n"),get_nozzle_msg(nozzle_diameter, volume_type), get_incompatible_filament_msg(incompatible_selected));
         }
         error_msg = warning_msg;
+    }
+    return false;
+}
+
+bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig &config, const std::vector<std::string> &filament_presets, std::string &error_msg)
+{
+    std::vector<int> used_filaments = get_extruders(true);
+    auto extruder_variants = config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
+    if (extruder_variants.size() != 1 || used_filaments.empty()) return true;
+
+    std::string extruder_variant = extruder_variants[0];
+    for (auto fil_idx : used_filaments){
+        int fil_id = fil_idx - 1;
+
+        auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[fil_id]);
+        std::string fil_name = fil_preset->alias;
+
+        std::vector<std::string> filament_variants;
+        if (fil_preset->config.has("filament_extruder_variant"))
+            filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+        else
+            filament_variants = {"Direct Drive Standard"};
+
+        std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
+        if (filament_variants_set.find(extruder_variant) == filament_variants_set.end()){
+            NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+            auto volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+            std::string volume = volume_names.at(variant_name);
+            error_msg = GUI::format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg)
+{
+    error_msg.clear();
+    std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow};
+
+    std::vector<int> used_filaments = get_extruders(true);  // 1 base
+
+    std::unordered_map<NozzleVolumeType, int> nozzle_fils;
+    if (!used_filaments.empty()) {
+        for (auto filament_idx : used_filaments) {
+            int              filament_id  = filament_idx - 1;
+            std::vector<int> filament_map = get_real_filament_maps(config);
+            int              extruder_idx = filament_map[filament_id] - 1;
+
+            NozzleVolumeType volume_type = (NozzleVolumeType) config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values.at(extruder_idx);
+            nozzle_fils[volume_type]++;
+        }
+
+        for (auto tpu_volume : tpu_nozzle_volume_type) {
+            if (nozzle_fils[tpu_volume] > 1) {
+                std::string volume_name = ConfigOptionEnum<NozzleVolumeType>::get_enum_names()[tpu_volume];
+                error_msg = GUI::format(_L("The %s nozzle does not support automatic filament switching.\n"), volume_name) +
+                            GUI::format(_L("Please change the nozzle type or reassign the filaments and try again."));
+                return true;
+            }
+        }
     }
     return false;
 }

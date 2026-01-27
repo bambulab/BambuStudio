@@ -8,6 +8,10 @@
     "chamber_temperatures": [
         "65"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "2",
         "2"
@@ -17,9 +21,6 @@
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "first_x_layer_fan_speed": [
-        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
         "230",
@@ -35,6 +36,9 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_change_length_nc": [
         "4"
@@ -52,6 +56,10 @@
     ],
     "overhang_fan_speed": [
         "100"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "temperature_vitrification": [
         "85"

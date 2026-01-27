@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2026-01-26 14:14+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,6 +49,25 @@ msgstr ""
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
+
+msgid "Auto dynamic flow calibration is not supported for TPU filament."
+msgstr ""
+
+msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+msgstr ""
+
+msgid "How to feed TPU filament."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr ""
 
@@ -58,19 +77,28 @@ msgstr "Damp PVA will become flexible and get stuck inside the AMS; please take 
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "Damp PVA is flexible and may get stuck in the extruder. Please dry it before use."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr ""
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "CF/GF filaments are hard and brittle, so they can easily break or get stuck in an AMS; please use with caution."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPS-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "PPA-CF is brittle and could break in a bent PTFE tube above the Toolhead."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -107,8 +135,14 @@ msgstr ""
 msgid "Standard"
 msgstr "Standard"
 
+msgid "TPU High Flow"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Unknown"
+
+msgid "Hybrid"
+msgstr ""
 
 msgid "Hardened Steel"
 msgstr "Hardened Steel"
@@ -543,19 +577,28 @@ msgstr ""
 msgid "World coordinates"
 msgstr "World coordinates"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr ""
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
 msgid "Align"
 msgstr ""
 
 msgid "Distribute"
-msgstr ""
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
 msgid "Align left"
@@ -1207,7 +1250,7 @@ msgstr "Modifier"
 msgid "Click to change part type into modifier."
 msgstr ""
 
-msgid "Surround projection by char"
+msgid "Surround projection by character"
 msgstr ""
 
 msgid "Not surround"
@@ -1217,9 +1260,6 @@ msgid "Surround surface"
 msgstr ""
 
 msgid "Surround"
-msgstr ""
-
-msgid "Horizonal"
 msgstr ""
 
 msgid "Reset rotation"
@@ -1245,7 +1285,7 @@ msgstr "Input text"
 msgid "Advanced"
 msgstr "Advanced"
 
-msgid "Embeded depth"
+msgid "Embedded depth"
 msgstr ""
 
 msgid "Text Gap"
@@ -1844,7 +1884,7 @@ msgid "Support"
 msgstr "Support"
 
 msgid "Flush options"
-msgstr "Flush options"
+msgstr "Purge options"
 
 msgid "Speed"
 msgstr "Speed"
@@ -2024,23 +2064,23 @@ msgstr "Filament %d"
 msgid "current"
 msgstr "current"
 
-msgid "Scale to build volume"
-msgstr "Scale to build volume"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "Scale an object to fit the build volume"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
-msgstr "Flush Options"
+msgstr "Purge Options"
 
 msgid "Flush into objects' infill"
-msgstr "Flush into objects' infill"
+msgstr "Purge into objects' infill"
 
 msgid "Flush into this object"
-msgstr "Flush into this object"
+msgstr "Purge into this object"
 
 msgid "Flush into objects' support"
-msgstr "Flush into objects' support"
+msgstr "Purge into objects' support"
 
 msgid "Edit in Parameter Table"
 msgstr "Edit in Parameter Table"
@@ -2165,6 +2205,18 @@ msgstr "Auto Rotate"
 msgid "auto rotate current plate"
 msgstr "auto rotate current plate"
 
+msgid "Expand all"
+msgstr ""
+
+msgid "Expand all objects on this plate"
+msgstr ""
+
+msgid "Collapse all"
+msgstr ""
+
+msgid "Collapse all objects on this plate"
+msgstr ""
+
 msgid "Delete Plate"
 msgstr "Delete Plate"
 
@@ -2179,6 +2231,12 @@ msgstr "Clone"
 
 msgid "Simplify Model"
 msgstr "Simplify Model"
+
+msgid "Subdivision mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "Center"
@@ -2380,9 +2438,6 @@ msgstr "If the first selected item is an object, the second one should also be a
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "If the first selected item is a part, the second one should be part of the same object."
 
-msgid "The type of the last solid object part is not to be changed."
-msgstr "The type of the last solid object part is not to be changed."
-
 msgid "Negative Part"
 msgstr "Negative Part"
 
@@ -2397,6 +2452,9 @@ msgstr "Type:"
 
 msgid "Choose part type"
 msgstr "Choose part type"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "The type of the last solid object part is not to be changed."
 
 msgid "Enter new name"
 msgstr "Enter new name"
@@ -2416,6 +2474,17 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "Repairing was canceled"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "Additional process preset"
@@ -2518,6 +2587,9 @@ msgstr "Custom Template:"
 
 msgid "Custom G-code:"
 msgstr "Custom G-code:"
+
+msgid "Toggle path view to current layer/all layers"
+msgstr ""
 
 msgid "Custom G-code"
 msgstr "Custom G-code"
@@ -2676,7 +2748,12 @@ msgstr ""
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr ""
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
 msgctxt "air_duct"
@@ -2689,6 +2766,10 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Chamber"
 msgstr ""
 
 msgid "Hotend"
@@ -3104,6 +3185,12 @@ msgstr "Setting Virtual slot information while printing is not supported"
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Are you sure you want to clear the filament information?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "You need to select the material type and color first."
 
@@ -3113,9 +3200,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
-msgstr ""
-
-msgid "Standard Flow"
 msgstr ""
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
@@ -3239,10 +3323,13 @@ msgstr ""
 msgid "Right AMS"
 msgstr ""
 
-msgid "Left Nozzle"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
 msgstr ""
 
-msgid "Right Nozzle"
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
 msgstr ""
 
 msgid "Nozzle"
@@ -3262,15 +3349,19 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Note: Only slots with filament loaded can be selected."
+#, c-format, boost-format
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
+
+msgid "Cannot select: No filament loaded in current slot."
+msgstr ""
 
 msgid "Enable AMS"
 msgstr "Enable AMS"
@@ -3409,7 +3500,13 @@ msgstr ""
 msgid "Arrange AMS Order"
 msgstr ""
 
-msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr ""
+
+msgid "Are you sure to reset the ID sequence of the connected AMS?"
+msgstr ""
+
+msgid "Reset AMS Sequence"
 msgstr ""
 
 msgid "File"
@@ -3626,6 +3723,18 @@ msgid ""
 msgstr ""
 "Ironing spacing too small\n"
 "It has been reset to 0.1"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to adjust the support interface config to use ironing?\n"
+"Yes: make the support interface solid.\n"
+"No: disable the support ironing."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -3888,7 +3997,7 @@ msgstr ""
 msgid "Heating chamber"
 msgstr ""
 
-msgid "Cooling heatbed"
+msgid "Adjusting heatbed temperature"
 msgstr ""
 
 msgid "Printing calibration lines"
@@ -3927,13 +4036,16 @@ msgstr ""
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr ""
 
-msgid " Preparing Hotend"
+msgid "Preparing Hotend"
 msgstr ""
 
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
 msgid "Purifying the chamber air"
+msgstr ""
+
+msgid "Preparing AMS"
 msgstr ""
 
 msgid "Timelapse is not supported on this printer."
@@ -3970,21 +4082,6 @@ msgstr "When you set the chamber temperature below 40℃, the chamber temperatur
 
 msgid "Failed to start printing job"
 msgstr "Failed to start printing job"
-
-msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "This calibration does not support the currently selected nozzle diameter"
-
-msgid "Current flowrate cali param is invalid"
-msgstr "Current flowrate cali param is invalid"
-
-msgid "Selected diameter and machine diameter do not match"
-msgstr "Selected diameter and machine diameter do not match"
-
-msgid "Failed to generate cali gcode"
-msgstr "Failed to generate cali gcode"
-
-msgid "Calibration error"
-msgstr "Calibration error"
 
 msgid "Resume Printing"
 msgstr "Resume Printing"
@@ -4061,6 +4158,12 @@ msgstr "Resume"
 msgid "Unknown error."
 msgstr ""
 
+msgid "Loading ..."
+msgstr ""
+
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "default"
 
@@ -4103,6 +4206,28 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Invalid format. Expected vector format: \"%1%\""
 
 msgid "Clear color"
+msgstr ""
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -4151,7 +4276,7 @@ msgid "Display"
 msgstr "Display"
 
 msgid "Flushed"
-msgstr "Flushed"
+msgstr "Purged"
 
 msgid "Tower"
 msgstr "Tower"
@@ -4676,34 +4801,49 @@ msgstr ""
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
+msgid "The prime tower improves multi-color print quality and is recommended."
+msgstr ""
+
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
 msgid "Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings."
-msgstr ""
+msgstr "Partial purging volume set to 0. Multi-color printing may cause color mixing in models. Please redjust purging settings."
 
 msgid "Click Wiki for help."
+msgstr ""
+
+msgid "Jump to: Prime tower"
 msgstr ""
 
 msgid "Click here to regroup"
 msgstr ""
 
 msgid "Flushing Volume"
-msgstr ""
+msgstr "Purging Volume"
 
 msgid "Calibration step selection"
 msgstr "Calibration step selection"
 
-msgid "Micro lidar calibration"
-msgstr "Micro lidar calibration"
-
-msgid "Bed leveling"
-msgstr "Bed leveling"
-
-msgid "High-temperature Heatbed Calibration"
+msgid "Micro Lidar Calibration"
 msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
+msgid "Auto Bed Leveling"
+msgstr ""
+
+msgid "Vibration Compensation"
+msgstr ""
+
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
 msgstr ""
 
 msgid "Calibration program"
@@ -5686,6 +5826,12 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Printing Progress"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr ""
 
@@ -5724,6 +5870,22 @@ msgstr "(The model has already been rated. Your rating will overwrite the previo
 
 msgid "Rate"
 msgstr "Rate"
+
+#, c-format, boost-format
+msgid "%dday%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%ds"
+msgstr ""
 
 msgid "Finished"
 msgstr "Finished"
@@ -5789,6 +5951,12 @@ msgid "Current slot has alread been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
+msgstr ""
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
 msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
@@ -6253,6 +6421,21 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bottom"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
+msgid "Unavailable during the task"
+msgstr ""
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr ""
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr ""
+
 msgid "Enable detection of build plate position"
 msgstr "Enable detection of build plate position"
 
@@ -6316,6 +6499,12 @@ msgstr ""
 msgid "First Layer Inspection"
 msgstr "First Layer Inspection"
 
+msgid "Purify Air at Print End"
+msgstr ""
+
+msgid "Internal Circulation"
+msgstr ""
+
 msgid "Auto-recovery from step loss"
 msgstr "Auto-recover from step loss"
 
@@ -6325,8 +6514,8 @@ msgstr ""
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr ""
 
-msgid "Allow Prompt Sound"
-msgstr "Allow Prompt Sound"
+msgid "Enable notification sounds"
+msgstr ""
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
@@ -6337,10 +6526,19 @@ msgstr ""
 msgid "Open Door Detection"
 msgstr ""
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr ""
 
 msgid "Pause printing"
+msgstr ""
+
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
 msgstr ""
 
 msgctxt "Nozzle Type"
@@ -6361,10 +6559,19 @@ msgstr ""
 msgid "View wiki"
 msgstr ""
 
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
 msgid "Brass"
 msgstr "Brass"
 
 msgid "High flow"
+msgstr ""
+
+msgid "TPU High flow"
 msgstr ""
 
 msgid "No wiki link available for this printer."
@@ -6415,6 +6622,9 @@ msgstr ""
 msgid "Unlock current plate"
 msgstr ""
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr ""
 
@@ -6444,6 +6654,13 @@ msgstr ""
 
 #, boost-format
 msgid "%1% with %2%\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle does not support automatic filament switching.\n"
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
 #, boost-format
@@ -6542,7 +6759,7 @@ msgid "Purge mode"
 msgstr ""
 
 msgid "Flushing volumes"
-msgstr "Flushing volumes"
+msgstr "Purging volumes"
 
 msgid "Add one filament"
 msgstr "Add one filament"
@@ -6597,6 +6814,9 @@ msgstr ""
 msgid "Restore"
 msgstr "Restore"
 
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
+
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
@@ -6639,6 +6859,9 @@ msgstr ""
 
 msgid "Found following keys unrecognized:\n"
 msgstr "The following unrecognized keys have been found:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "The 3mf was generated by an old version of Bambu Studio, loading geometry data only."
@@ -7249,6 +7472,12 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Units"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Keep only one Bambu Studio instance"
 
@@ -7277,10 +7506,10 @@ msgid "Disabled"
 msgstr ""
 
 msgid "Auto Flush"
-msgstr ""
+msgstr "Auto Purge"
 
 msgid "Auto calculate flush volumes"
-msgstr ""
+msgstr "Auto calculate purge volumes"
 
 msgid "Multi-device Management(Take effect after restarting Studio)."
 msgstr "Multi-device Management(Take effect after restarting Studio)."
@@ -7376,6 +7605,12 @@ msgid "Set grabber size for move,rotate,scale tool."
 msgstr ""
 
 msgid "Value range"
+msgstr ""
+
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
 msgstr ""
 
 msgid "Presets"
@@ -7477,11 +7712,12 @@ msgstr ""
 msgid "User Experience"
 msgstr "User Experience"
 
-msgid "Join Customer Experience Improvement Program."
-msgstr "Join Customer Experience Improvement Program."
+msgid "Join the User Experience Improvement Program."
+msgstr ""
 
-msgid "What data would be collected?"
-msgstr "What data would be collected?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr ""
@@ -7871,7 +8107,7 @@ msgstr ""
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr ""
 
-msgid "Auto Bed Leveling"
+msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
 msgid ""
@@ -7885,9 +8121,6 @@ msgstr "Flow Dynamics Calibration"
 msgid ""
 "This process determines the dynamic flow values to improve overall print quality.\n"
 "*Automatic mode: Skip if the filament was calibrated recently."
-msgstr ""
-
-msgid "Nozzle Offset Calibration"
 msgstr ""
 
 msgid ""
@@ -7976,7 +8209,7 @@ msgid "both extruders"
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
 msgstr ""
 
 #, c-format, boost-format
@@ -8030,10 +8263,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr ""
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
 
@@ -8050,6 +8279,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
+msgstr ""
+
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
 
 msgid "Cool"
@@ -8133,9 +8369,6 @@ msgstr "This printer does not support printing all plates"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr ""
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
 
@@ -8143,6 +8376,9 @@ msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "How to install"
+msgstr ""
+
+msgid "Upgrade"
 msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
@@ -8248,8 +8484,11 @@ msgstr "Binding..."
 msgid "Please confirm on the printer screen"
 msgstr "Please confirm on the printer screen"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "Log in failed. Please check the Pin Code."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Log in printer"
@@ -8407,10 +8646,10 @@ msgid "Ignore"
 msgstr "Ignore"
 
 msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."
-msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. Although it can notably reduce flush,  it may also elevate the risk of nozzle clogs or other printing complications."
+msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize purge. Although it can notably reduce purge,  it may also elevate the risk of nozzle clogs or other printing complications."
 
 msgid "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush.Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications.Please use with the latest printer firmware."
-msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize flush. Although it can notably reduce flush, it may also elevate the risk of nozzle clogs or other printing complications. Please use with the latest printer firmware."
+msgstr "Experimental feature: Retracting and cutting off the filament at a greater distance during filament changes to minimize purge. Although it can notably reduce purge, it may also elevate the risk of nozzle clogs or other printing complications. Please use with the latest printer firmware."
 
 msgid ""
 "When recording timelapse without toolhead, it is recommended to add a \"Timelapse Wipe Tower\" \n"
@@ -8472,6 +8711,9 @@ msgstr "Raft"
 
 msgid "Support filament"
 msgstr "Filament for Supports"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr ""
@@ -9003,6 +9245,9 @@ msgstr ""
 msgid "Obj file Import color"
 msgstr "Obj file Import color"
 
+msgid "Standard 3mf Import color"
+msgstr ""
+
 msgid "Some faces don't have color defined."
 msgstr ""
 
@@ -9033,6 +9278,28 @@ msgstr ""
 msgid "Quick set"
 msgstr ""
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
+msgctxt "ObjImport"
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
 msgid "Color match"
 msgstr "Color match"
 
@@ -9048,14 +9315,6 @@ msgstr ""
 msgid "Reset mapped extruders."
 msgstr "Reset mapped extruders."
 
-msgid "Note"
-msgstr ""
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-
 msgid "—> "
 msgstr ""
 
@@ -9066,9 +9325,6 @@ msgstr ""
 
 msgctxt "Sync_AMS"
 msgid "Original"
-msgstr ""
-
-msgid "After mapping"
 msgstr ""
 
 msgid "After overwriting"
@@ -9191,14 +9447,14 @@ msgid "OK"
 msgstr ""
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
-msgstr "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
+msgstr "Studio would re-calculate your purging volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 
 msgid "Flushing volume (mm³) for each filament pair."
-msgstr "Flushing volume (mm³) for each filament pair."
+msgstr "Purging volume (mm³) for each filament pair."
 
 #, c-format, boost-format
 msgid "Suggestion: Flushing Volume in range [%d, %d]"
-msgstr "Suggestion: Flushing Volume in range [%d, %d]"
+msgstr "Suggestion: Purging Volume in range [%d, %d]"
 
 #, c-format, boost-format
 msgid "The multiplier should be in range [%.2f, %.2f]."
@@ -9217,7 +9473,7 @@ msgid "Multiplier"
 msgstr "Multiplier"
 
 msgid "Flushing volumes for filament change"
-msgstr "Flushing volumes for filament change"
+msgstr "Purging volumes for filament change"
 
 msgid "Please choose the filament colour"
 msgstr "Please choose the filament colour"
@@ -9681,6 +9937,9 @@ msgstr ""
 msgid "Cutting Module"
 msgstr ""
 
+msgid "Rotary Attachment"
+msgstr ""
+
 msgid "Auto Fire Extinguishing System"
 msgstr ""
 
@@ -9795,7 +10054,7 @@ msgid "Maybe parts of the object at these height are too thin, or the object has
 msgstr "Parts of the object at these heights may be too thin or the object may have a faulty mesh."
 
 msgid "Flush volumes matrix do not match to the correct size!"
-msgstr ""
+msgstr "Purge volumes matrix do not match to the correct size!"
 
 msgid "No object can be printed. Maybe too small"
 msgstr "No object can be printed. Maybe too small"
@@ -9829,10 +10088,25 @@ msgstr ""
 msgid "Exporting G-code"
 msgstr "Exporting G-code"
 
-msgid "Grouping error: "
+msgid "Grouping error: filament"
 msgstr ""
 
 msgid " can not be placed in the "
+msgstr ""
+
+msgid "Filament Grouping Error: Filament "
+msgstr ""
+
+msgid " is not supported by the "
+msgstr ""
+
+msgid " nozzle. "
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr ""
+
+msgid "No valid nozzle found. Please check nozzle count."
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -9875,7 +10149,7 @@ msgid "Multiple"
 msgstr "Multiple"
 
 msgid "Flush"
-msgstr ""
+msgstr "Purge"
 
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
@@ -9999,7 +10273,7 @@ msgid " is too close to others, and collisions may be caused.\n"
 msgstr " is too close to others, and collisions may be caused.\n"
 
 msgid " is too close to exclusion area, and collisions will be caused.\n"
-msgstr " is too close to an exclusion area, and collisions will be caused.\n"
+msgstr " is too close to exclusion area, there may be collisions when printing.\n"
 
 msgid " is too close to clumping detection area, and collisions will be caused.\n"
 msgstr " is too close to probing area of clumping detection, and collisions will be caused.\n"
@@ -10091,6 +10365,9 @@ msgstr "Layer height cannot exceed nozzle diameter"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Plate %d: %s does not support filament %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Generating skirt & brim"
@@ -10480,6 +10757,33 @@ msgid ""
 "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls"
 msgstr ""
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Normal printing"
 
@@ -10487,6 +10791,17 @@ msgid "The default acceleration of both normal printing and travel except initia
 msgstr "This is the default acceleration for both normal printing and travel after the first layer."
 
 msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
 
 msgid "Initial layer travel"
@@ -10525,13 +10840,13 @@ msgstr "Speed of exhuast fan after printing completes"
 msgid "For the first"
 msgstr ""
 
-msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "Set the additional cooling fan for the first certain layers. The additional cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function. Simultaneously, the part cooling fan will be set to 0"
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "layers"
 msgstr "layers"
 
-msgid "Special cooling fan speed for the first certain layers"
+msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr ""
 
 msgid "Don't support bridges"
@@ -10630,11 +10945,24 @@ msgstr "Archimedean Chords"
 msgid "Octagram Spiral"
 msgstr "Octagram Spiral"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Bottom surface pattern"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "This is the line pattern of bottom surface infill, not including bridge infill."
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "Internal solid infill pattern"
@@ -10796,7 +11124,7 @@ msgid "filament mapping mode"
 msgstr ""
 
 msgid "Auto For Flush"
-msgstr ""
+msgstr "Auto For Purge"
 
 msgid "Auto For Match"
 msgstr ""
@@ -10808,16 +11136,16 @@ msgid "Nozzle Manual"
 msgstr ""
 
 msgid "Flush temperature"
-msgstr ""
+msgstr "Purge temperature"
 
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
-msgstr ""
+msgstr "temperature when purging filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 
 msgid "Flush volumetric speed"
-msgstr ""
+msgstr "Purge volumetric speed"
 
 msgid "Volumetric speed when flushing filament. 0 indicates the max volumetric speed"
-msgstr ""
+msgstr "Volumetric speed when purging filament. 0 indicates the max volumetric speed"
 
 msgid "mm³/s"
 msgstr "mm³/s"
@@ -10996,6 +11324,42 @@ msgstr ""
 msgid "Temperature drop before entering filament tower"
 msgstr ""
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr "Ironing area at the prime tower starting point."
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Softening temperature"
 
@@ -11094,6 +11458,9 @@ msgid "Cross Zag"
 msgstr ""
 
 msgid "Locked Zag"
+msgstr ""
+
+msgid "2D Lattice"
 msgstr ""
 
 msgid "Skin infill pattern"
@@ -11321,6 +11688,9 @@ msgstr "This option is enabled if machine support controlling chamber temperatur
 msgid "Apply top surface compensation"
 msgstr ""
 
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Air filtration enhancement"
 
@@ -11331,9 +11701,6 @@ msgid "Use cooling filter"
 msgstr ""
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
-
-msgid "Auto turn off filter on overheat"
 msgstr ""
 
 msgid "G-code flavor"
@@ -11406,6 +11773,18 @@ msgid "Symmetric infill y axis"
 msgstr ""
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
+msgstr ""
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -11838,7 +12217,7 @@ msgid "Long retraction when cut(experimental)"
 msgstr "Long retraction when cut (experimental)"
 
 msgid "Experimental feature.Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems."
-msgstr "Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces flush significantly, it may also raise the risk of nozzle clogs or other printing problems."
+msgstr "Experimental feature: Retracting and cutting off the filament at a longer distance during changes to minimize purge.While this reduces purge significantly, it may also raise the risk of nozzle clogs or other printing problems."
 
 msgid "Retraction distance when cut"
 msgstr "Retraction distance when cut"
@@ -11886,9 +12265,6 @@ msgid "Bowden"
 msgstr "Bowden"
 
 msgid "Nozzle Volume Type"
-msgstr ""
-
-msgid "Hybrid"
 msgstr ""
 
 msgid "Default Nozzle Volume Type"
@@ -12036,9 +12412,6 @@ msgstr "Minimum sparse infill threshold"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "Sparse infill areas which are smaller than this threshold value are replaced by internal solid infill."
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr ""
@@ -12220,8 +12593,32 @@ msgstr "Same as top"
 msgid "Top interface spacing"
 msgstr "Top interface spacing"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Spacing of interface lines. Zero means solid interface"
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "Bottom interface spacing"
@@ -12387,7 +12784,7 @@ msgstr ""
 msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers of top bottom penetration."
+msgid "This is the number of layers of bottom paint penetration."
 msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
@@ -12442,7 +12839,7 @@ msgid "User Customized Offset"
 msgstr ""
 
 msgid "If you want to have tighter or looser assemble, you can set this value. When it is positive, it indicates tightening, otherwise, it indicates loosening"
-msgstr "If you want to have tighter or looser assembly, you can set this value. When it is positive, it indicates a tighter fit, otherwise, it indicates a looser fit."
+msgstr "If you want to have tighter or looser assembly, you can set this value. When it is positive, it indicates a looser fit, otherwise, it indicates a tighter fit."
 
 msgid "Scarf Seam On Compensation Circles"
 msgstr ""
@@ -12526,10 +12923,10 @@ msgid "Purging volumes"
 msgstr "Purging volumes"
 
 msgid "Flush multiplier"
-msgstr "Flush multiplier"
+msgstr "Purge multiplier"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
-msgstr "The actual flushing volumes is equal to the flush multiplier value multiplied by the flushing volumes in the table."
+msgstr "The actual purging volumes is equal to the purge multiplier value multiplied by the purging volumes in the table."
 
 msgid "Width of prime tower"
 msgstr "Width of prime tower"
@@ -13016,6 +13413,9 @@ msgstr "The name cannot exceed 40 characters."
 msgid "Nozzle ID"
 msgstr ""
 
+msgid "Standard Flow"
+msgstr ""
+
 msgid "Please find the best line on your plate"
 msgstr "Please find the best line on your plate"
 
@@ -13206,6 +13606,9 @@ msgid "To Volumetric Speed"
 msgstr "To Volumetric Speed"
 
 msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "0min"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -14700,9 +15103,6 @@ msgstr ""
 msgid "Load skipping objects information failed. Please try again."
 msgstr ""
 
-msgid "Loading ..."
-msgstr ""
-
 #, c-format, boost-format
 msgid "%d%%"
 msgstr ""
@@ -14771,7 +15171,14 @@ msgstr ""
 msgid "Available Nozzles"
 msgstr ""
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
 msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
@@ -14792,16 +15199,151 @@ msgstr ""
 msgid "Standard Mode"
 msgstr "Standard"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
+msgid "Performs full priming for the best print quality. Requires more material and time."
 msgstr ""
 
-msgid "Purge Saving"
+msgid "Prime Saving"
 msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
 msgstr ""
 
-msgid "Learn more about purge mode"
+msgid "Learn more about prime mode"
+msgstr ""
+
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid "This filament may not be completely dried."
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
+msgstr ""
+
+msgid "The temperature shall not exceed the filament's heat distortion temperature"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1."
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24."
+msgstr ""
+
+msgid "Insufficient power"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
+msgstr ""
+
+msgid "AMS is busy"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
+msgstr ""
+
+msgid "Filament in AMS outlet"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
+msgstr ""
+
+msgid "Initiating AMS drying"
+msgstr ""
+
+msgid "Not supported in 2D mode"
+msgstr ""
+
+msgid "Task in progress"
+msgstr ""
+
+msgid "  The AMS might be in use during Task."
+msgstr ""
+
+msgid "  Firmware update in progress, please wait..."
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function."
+msgstr ""
+
+msgid "System is busy"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds..."
+msgstr ""
+
+msgid "For better drying results, remove the filament and allow it to rotate."
+msgstr ""
+
+msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgstr ""
+
+msgid "Alternatively, you can dry the filament without removing it."
+msgstr ""
+
+msgid "Unknown filaments will be treated as PLA."
+msgstr ""
+
+msgid "Please store the filament marked with an exclamation mark."
+msgstr ""
+
+msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying presets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
+msgid "Terms of Bambu Lab User Experience Improvement Program"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -14996,8 +15538,8 @@ msgid ""
 "Flush into support/objects/infill\n"
 "Did you know that you can save the wasted filament by flushing them into support/objects/infill during filament change?"
 msgstr ""
-"Flush into support/objects/infill\n"
-"Did you know that you can reduce wasted filament by flushing it into support/objects/infill during filament changes?"
+"Purge into support/objects/infill\n"
+"Did you know that you can reduce wasted filament by purging it into support/objects/infill during filament changes?"
 
 #: resources/data/hints.ini: [hint:Improve strength]
 msgid ""
@@ -15120,6 +15662,57 @@ msgid ""
 "Shrinkage, Warping & Stress\n"
 "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
 msgstr ""
+
+#~ msgid "Join Customer Experience Improvement Program."
+#~ msgstr "Join Customer Experience Improvement Program."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "What data would be collected?"
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "CF/GF filaments are hard and brittle, so they can easily break or get stuck in an AMS; please use with caution."
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Micro lidar calibration"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Bed leveling"
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Note: Only slots with filament loaded can be selected."
+
+#~ msgid "This calibration does not support the currently selected nozzle diameter"
+#~ msgstr "This calibration does not support the currently selected nozzle diameter"
+
+#~ msgid "Current flowrate cali param is invalid"
+#~ msgstr "Current flowrate cali param is invalid"
+
+#~ msgid "Selected diameter and machine diameter do not match"
+#~ msgstr "Selected diameter and machine diameter do not match"
+
+#~ msgid "Failed to generate cali gcode"
+#~ msgstr "Failed to generate cali gcode"
+
+#~ msgid "Calibration error"
+#~ msgstr "Calibration error"
+
+#~ msgid "Allow Prompt Sound"
+#~ msgstr "Allow Prompt Sound"
+
+#~ msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+#~ msgstr "Set the additional cooling fan for the first certain layers. The additional cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function. Simultaneously, the part cooling fan will be set to 0"
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Scale to build volume"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Scale an object to fit the build volume"
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "Log in failed. Please check the Pin Code."
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Spacing of interface lines. Zero means solid interface"
 
 #~ msgid "Pauses printing when the detected build plate type does not mhatch the selected one."
 #~ msgstr "Pauses printing when the detected build plate type does not match the selected one."
@@ -17305,9 +17898,6 @@ msgstr ""
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "Split the selected object into mutiple parts"
 
-#~ msgid "Start"
-#~ msgstr "Start"
-
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 
@@ -17883,9 +18473,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "You can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+Any arrow"

@@ -30,10 +30,6 @@
         "18",
         "nil"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "filament_retraction_length": [
         "nil",
         "0.4"
@@ -41,6 +37,10 @@
     "filament_z_hop": [
         "nil",
         "0.6"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "hot_plate_temp": [
         "65"
@@ -66,6 +66,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "textured_plate_temp": [
         "65"

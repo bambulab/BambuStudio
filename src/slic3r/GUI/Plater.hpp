@@ -332,6 +332,7 @@ public:
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
+    bool check_include_gcode();
 
     bool open_3mf_file(const fs::path &file_path);
     int  get_3mf_file_count(std::vector<fs::path> paths);
@@ -372,7 +373,8 @@ public:
     bool is_new_project_and_check_state() { return m_new_project_and_check_state; }
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
-    void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
+    void update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
+    void update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
 
@@ -672,6 +674,7 @@ public:
     bool can_set_instance_to_object() const;
     bool can_fix_through_netfabb() const;
     bool can_simplify() const;
+    bool can_smooth_mesh() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
     bool can_do_ui_job() const;
