@@ -407,10 +407,10 @@ public:
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
-    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id = -1);
-    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id = -1);
-    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id = -1);
-
+    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id);
+    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id );
+    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id);
+    int                get_nozzle_id(int filament_id, int layer_id);
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -601,7 +601,7 @@ private:
     // ot -1 if there is no such toolchange.
     int first_toolchange_to_nonsoluble_nonsupport(
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
-    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume);
+    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume,int layer_id);
 	void toolchange_Unload(
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,
