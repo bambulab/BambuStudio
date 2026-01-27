@@ -1532,7 +1532,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
             auto it_type = m_dry_setting.m_filament_type.find(ams_id);
             if (it_name != m_dry_setting.m_filament_names.end() && it_type != m_dry_setting.m_filament_type.end()
                 && it_type->second == filament_type) {
-                m_trays_combo->SetLabel(it_name->second);
+                m_trays_combo->SetLabel(wxString::FromUTF8(it_name->second));
                 return;
             }
 
@@ -1552,7 +1552,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         } else {
             auto it_name = m_dry_setting.m_filament_names.find(ams_id);
             if (it_name != m_dry_setting.m_filament_names.end()) {
-                m_trays_combo->SetLabel(it_name->second);
+                m_trays_combo->SetLabel(wxString::FromUTF8(it_name->second));
                 m_temperature_input->SetValue(std::to_string(m_dry_setting.m_dry_temp[ams_id]));
                 m_time_input->SetValue(std::to_string(m_dry_setting.m_dry_time[ams_id]));
             }
