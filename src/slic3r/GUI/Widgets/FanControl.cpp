@@ -456,12 +456,15 @@ void FanControlNew::command_control_fan()
 
     BOOST_LOG_TRIVIAL(info) << "Functions Need to be supplemented! :FanControlNew::command_control_fan. the speed may change";
     if (m_obj) {
-        if (!m_obj->is_enable_np){
+        if (!m_obj->is_enable_np || (!m_obj->GetFan()->GetSupportAirduct())) {
             int speed = floor(m_current_speed * float(25.5));
             m_obj->GetFan()->command_control_fan(m_part_id, speed);
-        } else {
+        }
+        else
+        {
             m_obj->GetFan()->command_control_fan_new(m_part_id, m_current_speed * 10);
         }
+
         post_event();
     }
 }
