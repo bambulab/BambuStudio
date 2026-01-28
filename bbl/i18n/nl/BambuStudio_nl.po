@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7541,12 +7541,6 @@ msgstr "Imperiaal"
 msgid "Units"
 msgstr "Eenheden"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Bewaar slechts één Bambu Studio-exemplaar"
 
@@ -8368,8 +8362,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Jouw huidige firmwareversie kan deze printtaak niet starten. Update naar de nieuwste versie en probeer het opnieuw."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "De hardheid van het huidige materiaal (%s) overschrijdt de hardheid van %s(%s). Dit kan leiden tot nozzle-slijtage, wat materiaallekkage en een onstabiele doorstroming kan veroorzaken. Wees voorzichtig bij het gebruik ervan."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr "Koel"
@@ -15865,6 +15859,10 @@ msgid ""
 msgstr ""
 "Krimp, kromtrekken en spanning\n"
 "Door de thermische index te regelen, kunt u de door warmte veroorzaakte oorzaken van kromtrekken en spanning verwijderen."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "De hardheid van het huidige materiaal (%s) overschrijdt de hardheid van %s(%s). Dit kan leiden tot nozzle-slijtage, wat materiaallekkage en een onstabiele doorstroming kan veroorzaken. Wees voorzichtig bij het gebruik ervan."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Doe mee aan het Customer Experience Improvement Program."

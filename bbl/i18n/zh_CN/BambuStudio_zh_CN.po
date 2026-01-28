@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7487,12 +7487,6 @@ msgstr "英制"
 msgid "Units"
 msgstr "单位"
 
-msgid "Use 12-hour time format"
-msgstr "使用12小时制时间格式"
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr "以12小时制(AM/PM)显示时间，而不是24小时制"
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "只保留一个Bambu Studio实例"
 
@@ -8312,8 +8306,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "您当前的固件版本无法启动此打印作业。请更新至最新版本并重试。"
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "当前材料（%s）的硬度高于 %s（%s）的硬度，可能导致喷嘴磨损，进而造成材料泄漏和流动不稳定。使用时请务必小心。"
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -12377,7 +12371,7 @@ msgid "Aligned"
 msgstr "对齐"
 
 msgid "Back"
-msgstr "返回"
+msgstr "背面"
 
 msgid "Random"
 msgstr "随机"
@@ -15783,6 +15777,16 @@ msgid ""
 msgstr ""
 "收缩、翘曲与应力\n"
 "通过控制热指数，可以消除由热引起的翘曲和应力根源。"
+
+#~ msgid "Use 12-hour time format"
+#~ msgstr "使用12小时制时间格式"
+
+#~ msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+#~ msgstr "以12小时制(AM/PM)显示时间，而不是24小时制"
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "当前材料（%s）的硬度高于 %s（%s）的硬度，可能导致喷嘴磨损，进而造成材料泄漏和流动不稳定。使用时请务必小心。"
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "加入用户体验改进计划。"
