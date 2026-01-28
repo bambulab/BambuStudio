@@ -1258,7 +1258,7 @@ std::vector<FlushMatrix> prepare_flush_matrices(const PrintConfig& print_config)
     size_t filament_nums = print_config.filament_colour.values.size();
     std::vector<FlushMatrix> nozzle_flush_mtx;
     for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
-        std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(print_config.flush_volumes_matrix.values, nozzle_id, filament_nums)));
+        std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(print_config.flush_volumes_matrix.values, nozzle_id, extruder_nums)));
         std::vector<std::vector<float>> wipe_volumes;
         for (unsigned int i = 0; i < filament_nums; ++i)
             wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * filament_nums, flush_matrix.begin() + (i + 1) * filament_nums));
@@ -1543,11 +1543,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     auto layer_data = collect_layer_and_unprintable_data();
     // Stage 3: 生成排序所需的context
     auto ordering_context = prepare_ordering_context(*print_config, reorder_first_layer);
-    // 临时开启
-    ordering_context.support_dynamic_map = true;
 
-    // 不支持选料器
-    if(!ordering_context.support_dynamic_map){
+    // 不支持选料器或手动模式
+    if(!m_print->is_dynamic_group_reorder()){
         // 逐层打印时，在生成toolodering时分组，统计相关信息并写回
         if(!m_print->is_sequential_print()){
             // Stage 4: 计算分组
@@ -1574,8 +1572,8 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         );
     }
 
-    // 支持选料器
-    if(ordering_context.support_dynamic_map){
+    // 支持选料器且为自动模式
+    if (m_print->is_dynamic_group_reorder()) {
         auto grouping_context =build_filament_group_context(
             m_print,
             layer_data.layer_filaments,
@@ -1596,19 +1594,20 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             nozzle_map_per_layer.emplace_back(filament_nozzle_map);
         }
 
-        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments);
+        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);
         grouping_result = result ? *result : MultiNozzleUtils::LayeredNozzleGroupResult();
     }
 
     if (!m_print->is_sequential_print()) {
         m_print->set_nozzle_group_result(std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(grouping_result));
-        if constexpr (0) {
+        if (!m_print->is_dynamic_group_reorder()) {
             m_print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values, grouping_result.get_extruder_map(false),
                                                                                                     layer_data.used_filaments),
                                                     FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values, grouping_result.get_volume_map(),
                                                                                                     layer_data.used_filaments),
                                                     grouping_result.get_nozzle_map());
         }
+        m_print->update_to_config_by_nozzle_group_result(grouping_result);
     }
 
     m_nozzle_group_result = grouping_result;

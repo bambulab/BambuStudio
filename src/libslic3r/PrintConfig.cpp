@@ -4203,6 +4203,8 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionStrings { });
 
     def = this->add("enable_filament_dynamic_map", coBool);
+    def->label = "Enable filament dynamic map";
+    def->tooltip = "Support filament map to different nozzle";
     def->set_default_value(new ConfigOptionBool{ false });
 
     def = this->add("prime_volume_mode", coEnum);

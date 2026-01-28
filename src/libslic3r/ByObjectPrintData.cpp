@@ -50,16 +50,13 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
         }
     }
 
-    //bool support_dynamic_map = print->config().support_dynamic_map;
-    bool support_dynamic_map = true;
-
     auto all_filaments = collect_filament_data(print,data.print_object_order);
     auto used_filaments = collect_sorted_used_filaments(all_filaments);
     auto physical_unprintables = print->get_physical_unprintable_filaments(used_filaments);
     auto geometric_unprintables = print->get_geometric_unprintable_filaments();
     auto filament_unprintable_volumes = print->get_filament_unprintable_flow(used_filaments);
 
-    if(!support_dynamic_map){
+    if (!print->is_dynamic_group_reorder()) {
         // 按照Object打印顺序，收集所有用到的耗材序列
         auto map_mode = print->get_filament_map_mode();
         auto group_result = ToolOrdering::get_recommended_filament_maps(
@@ -87,7 +84,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
             auto & curr_ordering = data.object_tool_ordering_map[object];
             curr_ordering.sort_and_build_data(*object, last_filament_id);
 
-            if(support_dynamic_map){
+            if (print->is_dynamic_group_reorder()) {
                 auto obj_nozzle_map_per_layer = curr_ordering.get_layered_nozzle_group_result().get_layer_filament_nozzle_maps();
                 nozzle_map_per_layer.insert(nozzle_map_per_layer.end(), obj_nozzle_map_per_layer.begin(), obj_nozzle_map_per_layer.end());
             }
@@ -101,7 +98,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
     }
 
     // 支持选料器时，需要根据nozzle_map_per_layer，重新构造group result，并写入到print中
-    if(support_dynamic_map){
+    if (print->is_dynamic_group_reorder()) {
         auto grouping_context = GroupReorder::build_filament_group_context(
             print,
             all_filaments,
@@ -113,7 +110,8 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
         auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(
             nozzle_map_per_layer,
             grouping_context.nozzle_info.nozzle_list,
-            used_filaments
+            used_filaments,
+            all_filaments
         );
 
         print->set_nozzle_group_result(
@@ -121,6 +119,16 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
                      std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>()
         );
     }
+
+    auto grouping_result = print->get_layered_nozzle_group_result();
+    if (!print->is_dynamic_group_reorder()) {
+        print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print->config().filament_map.values, grouping_result->get_extruder_map(false),
+                                                                                              grouping_result->get_used_filaments()),
+                                              FilamentGroupUtils::update_used_filament_values(print->config().filament_volume_map.values, grouping_result->get_volume_map(),
+                                                                                              grouping_result->get_used_filaments()),
+                                              grouping_result->get_nozzle_map());
+    }
+    print->update_to_config_by_nozzle_group_result(*grouping_result);
 
     return data;
 }

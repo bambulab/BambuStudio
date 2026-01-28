@@ -930,10 +930,16 @@ public:
     bool                        is_sequential_print() const {
         return config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1;
     }
+
+    // 判断是否会出现耗材动态映射
+    bool  is_dynamic_group_reorder() const{
+        return config().enable_filament_dynamic_map && config().filament_map_mode == FilamentMapMode::fmmAutoForFlush;
+    }
+
     const std::optional<ByObjectPrintData>& sequential_print_data() const { return m_sequential_print_data; }
 
     void update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps = std::vector<int>{}, std::vector<int> f_nozzle_maps = std::vector<int>{});
-    void update_to_config_by_nozzle_group_result();
+    void update_to_config_by_nozzle_group_result(const MultiNozzleUtils::NozzleGroupResultBase& result);
     void apply_config_for_render(const DynamicConfig &config);
 
     // 1 based group ids

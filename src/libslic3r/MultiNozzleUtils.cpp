@@ -115,29 +115,29 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
         return std::nullopt;
     }
 
-    LayeredNozzleGroupResult result;
+    LayeredNozzleGroupResult result(false);
     result._default_filament_nozzle_map = filament_nozzle_map;
     result._nozzle_list = nozzle_list;
     result._used_filaments = used_filaments;
-    result.support_dynamic_nozzle_map = false;
 
     return result;
 }
 
 std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
-    const std::vector<std::vector<int>>& layer_filament_nozzle_maps,
-    const std::vector<NozzleInfo>&       nozzle_list,
-    const std::vector<unsigned int>&     used_filaments)
+    const std::vector<std::vector<int>>&          layer_filament_nozzle_maps,
+    const std::vector<NozzleInfo>&                nozzle_list,
+    const std::vector<unsigned int>&              used_filaments,
+    const std::vector<std::vector<unsigned int>>& layer_filament_sequences)
 {
     if (layer_filament_nozzle_maps.empty() || nozzle_list.empty()) {
         return std::nullopt;
     }
 
-    LayeredNozzleGroupResult result;
+    LayeredNozzleGroupResult result(true);
     result._layer_filament_nozzle_maps = layer_filament_nozzle_maps;
+    result._layer_filament_sequences   = layer_filament_sequences;
     result._nozzle_list                = nozzle_list;
     result._used_filaments             = used_filaments;
-    result.support_dynamic_nozzle_map = true;
 
     if (!layer_filament_nozzle_maps.empty()) {
         result._default_filament_nozzle_map = layer_filament_nozzle_maps[0];
@@ -335,19 +335,12 @@ std::vector<int> LayeredNozzleGroupResult::get_volume_map(int layer_id) const
 std::vector<unsigned int> LayeredNozzleGroupResult::get_used_filaments(int layer_id) const
 {
     if (layer_id < 0) { return _used_filaments; }
-
     if (layer_id >= static_cast<int>(_layer_filament_nozzle_maps.size())) { return _used_filaments; }
 
-    const std::vector<int> &filament_nozzle_map = _layer_filament_nozzle_maps[layer_id];
-    std::set<unsigned int>  layer_used_filaments;
-
-    for (size_t idx = 0; idx < filament_nozzle_map.size(); ++idx) {
-        if (std::find(_used_filaments.begin(), _used_filaments.end(), static_cast<unsigned int>(idx)) != _used_filaments.end()) {
-            layer_used_filaments.insert(static_cast<unsigned int>(idx));
-        }
+    if (!_layer_filament_sequences.empty() && layer_id < static_cast<int>(_layer_filament_sequences.size())) {
+        return _layer_filament_sequences[layer_id];
     }
-
-    return std::vector<unsigned int>(layer_used_filaments.begin(), layer_used_filaments.end());
+    return {};
 }
 
 std::optional<NozzleInfo> LayeredNozzleGroupResult::get_nozzle_for_filament(int filament_id, int layer_id) const
@@ -385,6 +378,31 @@ std::vector<NozzleInfo> LayeredNozzleGroupResult::get_nozzles_for_filament(int f
         if (id >= 0 && id < static_cast<int>(_nozzle_list.size())) { result.push_back(_nozzle_list[id]); }
     }
     return result;
+}
+
+std::optional<NozzleInfo> LayeredNozzleGroupResult::get_first_nozzle_for_filament(int filament_id) const
+{
+    if (filament_id < 0) return std::nullopt;
+
+    if (!support_dynamic_nozzle_map) {
+        if (filament_id >= static_cast<int>(_default_filament_nozzle_map.size())) return std::nullopt;
+        return get_nozzle_from_id(_default_filament_nozzle_map[filament_id]);
+    }
+
+    for (size_t layer = 0; layer < _layer_filament_nozzle_maps.size(); ++layer) {
+        auto layer_used_filaments = get_used_filaments(layer);
+        if (std::find(layer_used_filaments.begin(), layer_used_filaments.end(), static_cast<unsigned int>(filament_id)) == layer_used_filaments.end()){
+            continue;
+        }
+        const auto &map = _layer_filament_nozzle_maps[layer];
+        if (filament_id >= 0 && filament_id < static_cast<int>(map.size())) {
+            int nozzle_id = map[filament_id];
+            auto nozzle = get_nozzle_from_id(nozzle_id);
+            if (nozzle) return nozzle;
+        }
+    }
+
+    return std::nullopt;
 }
 
 std::optional<NozzleInfo> LayeredNozzleGroupResult::get_nozzle_from_id(int nozzle_id) const
@@ -447,13 +465,15 @@ int LayeredNozzleGroupResult::estimate_seq_flush_weight(const std::vector<std::v
 
 std::optional<StaticNozzleGroupResult> StaticNozzleGroupResult::create(
     const std::vector<FilamentInfo>& filaments_info,
-    const std::vector<NozzleInfo>&   nozzles_info)
+    const std::vector<NozzleInfo>&   nozzles_info,
+    const std::vector<int>&          filament_change_seq,
+    const std::vector<int>&          nozzle_change_seq,
+    bool support_dynamic_nozzle_map)
 {
     if (filaments_info.empty() || nozzles_info.empty()) return std::nullopt;
 
     std::map<int, NozzleInfo>    nozzle_list_map;
     std::map<int, std::set<int>> filament_to_nozzles;
-    bool multi_nozzle = false;
 
     for (auto nozzle_info : nozzles_info)
         nozzle_list_map[nozzle_info.group_id] = nozzle_info;
@@ -463,12 +483,13 @@ std::optional<StaticNozzleGroupResult> StaticNozzleGroupResult::create(
         auto nozzles_id     = filament_info.group_id;
         std::set<int> nozzles_set(nozzles_id.begin(), nozzles_id.end());
         filament_to_nozzles[fil_id] = nozzles_set;
-        multi_nozzle |= nozzles_id.size() > 1;
     }
 
-    StaticNozzleGroupResult result;
+    StaticNozzleGroupResult result(support_dynamic_nozzle_map);
     result._filament_to_nozzles = filament_to_nozzles;
     result._nozzle_list_map     = nozzle_list_map;
+    result._filament_change_seq = filament_change_seq;
+    result._nozzle_change_seq   = nozzle_change_seq;
 
     return result;
 }
@@ -531,6 +552,31 @@ std::vector<NozzleInfo> StaticNozzleGroupResult::get_nozzles_for_filament(int fi
         }
     }
     return result;
+}
+
+std::optional<NozzleInfo> StaticNozzleGroupResult::get_first_nozzle_for_filament(int filament_id) const
+{
+    if (filament_id < 0) return std::nullopt;
+
+    if (!_filament_change_seq.empty() && _filament_change_seq.size() == _nozzle_change_seq.size()) {
+        for (size_t idx = 0; idx < _filament_change_seq.size(); ++idx) {
+            if (_filament_change_seq[idx] == filament_id) {
+                int nozzle_id = _nozzle_change_seq[idx];
+                auto nozzle = get_nozzle_from_id(nozzle_id);
+                if (nozzle) return nozzle;
+            }
+        }
+    }
+
+    auto iter = _filament_to_nozzles.find(filament_id);
+    if (iter == _filament_to_nozzles.end()) return std::nullopt;
+
+    for (int nozzle_id : iter->second) {
+        auto nozzle = get_nozzle_from_id(nozzle_id);
+        if (nozzle) return nozzle;
+    }
+
+    return std::nullopt;
 }
 
 float calc_filament_change_gap_for_assignment(
