@@ -1882,7 +1882,7 @@ Vec2f WipeTower::get_next_pos(const WipeTower::box_coordinates &cleaning_box, fl
         Vec2f        stop_pos                                    = res;
         float        filament_tower_interface_pre_extrusion_dist = m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_dist;
         BoundingBoxf printer_bbx                                 = unscaled(get_extents(m_shared_print_bed));
-        printer_bbx.translate((-m_wipe_tower_pos - m_rib_offset - m_origin).cast<double>()); // first layer never be contact
+        printer_bbx.translate((-m_wipe_tower_pos - m_rib_offset).cast<double>()); // first layer never be contact
         if (stop_pos.x() < m_wipe_tower_width / 2.f)
             stop_pos = Vec2f(stop_pos.x() - filament_tower_interface_pre_extrusion_dist, stop_pos.y());
         else
@@ -3750,7 +3750,7 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
             Vec2f        stop_pos                                    = initial_pos;
             float        filament_tower_interface_pre_extrusion_dist = m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_dist;
             BoundingBoxf printer_bbx                                 = unscaled(get_extents(m_shared_print_bed));
-            printer_bbx.translate((- m_wipe_tower_pos - m_rib_offset - m_origin).cast<double>()); // first layer never be contact
+            printer_bbx.translate((- m_wipe_tower_pos - m_rib_offset).cast<double>()); // first layer never be contact
             if (stop_pos.x() < m_wipe_tower_width/2.f)
                 stop_pos = Vec2f(stop_pos.x() - filament_tower_interface_pre_extrusion_dist, stop_pos.y());
             else
