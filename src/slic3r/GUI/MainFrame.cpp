@@ -1715,6 +1715,11 @@ wxBoxSizer* MainFrame::create_side_tools()
         expand_program_holder->ShowExpandButton(expand_helio_id, false);
     }
 
+    // Set tooltip for Helio expand button
+    expand_program_holder->SetExpandButtonRichTooltip(expand_helio_id, "monitor_speed", _L("Unlock faster, more reliable, warp-free prints with Helio Additive."));
+    // Set tooltip for program expand button (same tooltip as Helio for consistency)
+    expand_program_holder->SetExpandButtonRichTooltip(expand_program_id, "monitor_speed", _L("Unlock faster, more reliable, warp-free prints with Helio Additive."));
+
     /*slice*/
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
