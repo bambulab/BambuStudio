@@ -68,6 +68,8 @@ bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
 
 bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, std::unordered_map<int, std::vector<std::string>>& filament_variants, const PrintConfig *print_config)
 {
+    // TODO(shancang): Generic filament of XP printers
+    auto diameters = print_config->nozzle_diameter;
     std::unordered_map<std::string, int> nozzle_fils;
     for (unsigned int filament_id : used_filaments) {
         std::string filament_type = print_config->filament_type.get_at(filament_id);
@@ -78,6 +80,9 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
             std::string error_msg     = _L("Grouping error: filament") + std::to_string(filament_id + 1) + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
             throw Slic3r::RuntimeError(error_msg);
         }
+
+        if (diameters.size() < 2)
+            continue;
 
         std::string extruder_variant = print_config->option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
         std::unordered_set<std::string> filament_variants_set(filament_variants[filament_id].begin(), filament_variants[filament_id].end());
