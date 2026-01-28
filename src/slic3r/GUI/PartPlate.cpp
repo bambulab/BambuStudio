@@ -1732,6 +1732,11 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
 
 bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig &config, const std::vector<std::string> &filament_presets, std::string &error_msg)
 {
+    // TODO(shancang): Generic filament of XP printers
+    auto diameters = config.option<ConfigOptionFloats>("nozzle_diameter")->values;
+    if (diameters.size() < 2)
+        return true;
+
     std::vector<int> used_filaments = get_extruders(true);
     auto extruder_variants = config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
     if (extruder_variants.size() != 1 || used_filaments.empty()) return true;
