@@ -507,6 +507,12 @@ struct ExtruderNozleInfo
 {
     ExtruderType extruder_type;
     NozzleVolumeType nozzle_volume_type;
+    bool operator<(const ExtruderNozleInfo& other) const
+    {
+        if(extruder_type != other.extruder_type)
+            return extruder_type < other.extruder_type;
+        return nozzle_volume_type < other.nozzle_volume_type;
+    }
 };
 
 // Minimum object distance for arrangement, based on printer technology.

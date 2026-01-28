@@ -80,13 +80,14 @@ struct FilamentChangeTimeParams
 class NozzleGroupResultBase
 {
 protected:
-    bool support_dynamic_nozzle_map{false}; // 是否支撑动态映射(选料器)
+    bool support_dynamic_nozzle_map{false}; // 是否支持动态映射(选料器)
 
 public:
-    NozzleGroupResultBase() = default;
+    NozzleGroupResultBase(bool support_dynamic_map = false) : support_dynamic_nozzle_map(support_dynamic_map) {}
     virtual ~NozzleGroupResultBase() = default;
 
     virtual std::optional<NozzleInfo> get_nozzle_from_id(int nozzle_id) const = 0; // 根据喷嘴id获取NozzleInfo
+    virtual std::optional<NozzleInfo> get_first_nozzle_for_filament(int filament_id) const = 0; // 指定耗材首次使用的逻辑喷嘴信息
 
     virtual std::vector<NozzleInfo> get_nozzles_for_filament(int filament_id) const = 0; // 获取耗材可能使用的所有喷嘴（跨所有层）
 
@@ -107,12 +108,13 @@ class LayeredNozzleGroupResult : public NozzleGroupResultBase
 {
 private:
     std::vector<std::vector<int>>                      _layer_filament_nozzle_maps; // 每一层的 filament -> nozzle 映射
+    std::vector<std::vector<unsigned int>>             _layer_filament_sequences; // 每一层使用耗材的顺序
     std::vector<int>                                   _default_filament_nozzle_map; // 默认映射，全局材料
     std::vector<unsigned int>                          _used_filaments; // 所有使用的材料idx
     std::vector<NozzleInfo>                            _nozzle_list; // 全局的喷嘴列表
 
 public:
-    LayeredNozzleGroupResult() = default;
+    LayeredNozzleGroupResult(bool support_dynamic_map = false) : NozzleGroupResultBase(support_dynamic_map) {}
 
     // 无选料器：全局使用一份 filament->nozzle
     static std::optional<LayeredNozzleGroupResult> create(
@@ -122,9 +124,10 @@ public:
 
     // 有选料器：从逐层映射构建（每层可能不同）
     static std::optional<LayeredNozzleGroupResult> create(
-        const std::vector<std::vector<int>>& layer_filament_nozzle_maps,
-        const std::vector<NozzleInfo>&       nozzle_list,
-        const std::vector<unsigned int>&     used_filaments);
+        const std::vector<std::vector<int>>&          layer_filament_nozzle_maps,
+        const std::vector<NozzleInfo>&                nozzle_list,
+        const std::vector<unsigned int>&              used_filaments,
+        const std::vector<std::vector<unsigned int>>& layer_filament_sequences);
 
     // O1C + 无选料器 + 命令行切片
     static std::optional<LayeredNozzleGroupResult> create(
@@ -155,12 +158,14 @@ public:
     std::vector<NozzleInfo> get_nozzles_for_filament(int filament_id) const override; // 获取耗材可能使用的所有喷嘴（跨所有层）
 
     std::optional<NozzleInfo> get_nozzle_from_id(int nozzle_id) const override; // 根据喷嘴id获取NozzleInfo
+    std::optional<NozzleInfo> get_first_nozzle_for_filament(int filament_id) const override;
     int get_extruder_id(int filament_id, int layer_id = -1) const;
     int get_nozzle_id(int filament_id, int layer_id = -1) const;
 
     size_t get_layer_count() const { return _layer_filament_nozzle_maps.size(); }
     const std::vector<int>& get_layer_filament_nozzle_map(int layer_id) const;
     const std::vector<std::vector<int>> &get_layer_filament_nozzle_maps() const { return _layer_filament_nozzle_maps; }
+    const std::vector<std::vector<unsigned int>>& get_layer_filament_sequences() const { return _layer_filament_sequences; }
 
     /**
      * @brief 预估给定序列的冲刷重量
@@ -181,14 +186,18 @@ class StaticNozzleGroupResult : public NozzleGroupResultBase
 private:
     std::map<int, std::set<int>> _filament_to_nozzles; // 每个材料可能映射到的所有喷嘴
     std::map<int, NozzleInfo>    _nozzle_list_map; // 使用的喷嘴
+    std::vector<int>             _filament_change_seq; // 首次使用计算需要的耗材序列
+    std::vector<int>             _nozzle_change_seq;   // 与耗材序列配对的逻辑喷嘴序列
 
 public:
-    StaticNozzleGroupResult() = default;
-
-    // 从3mf加载，不需要层信息
+    StaticNozzleGroupResult(bool support_dynamic_map) : NozzleGroupResultBase(support_dynamic_map) {}
+    // 从3mf加载，附带换料/换喷嘴序列
     static std::optional<StaticNozzleGroupResult> create(
         const std::vector<FilamentInfo>& filaments_info,
-        const std::vector<NozzleInfo>&   nozzles_info);
+        const std::vector<NozzleInfo>&   nozzles_info,
+        const std::vector<int>&          filament_change_seq,
+        const std::vector<int>&          nozzle_change_seq,
+        bool support_dynamic_map);
 
     int get_extruder_count() const override;
     std::vector<NozzleInfo> get_used_nozzles_in_extruder(int extruder_id = -1) const override;
@@ -198,6 +207,7 @@ public:
     std::optional<NozzleInfo> get_nozzle_from_id(int nozzle_id) const override; // 根据喷嘴id获取NozzleInfo
 
     std::vector<NozzleInfo> get_nozzles_for_filament(int filament_id) const override; // 获取耗材可能使用的所有喷嘴（跨所有层）
+    std::optional<NozzleInfo> get_first_nozzle_for_filament(int filament_id) const override;
 };
 
 class NozzleStatusRecorder

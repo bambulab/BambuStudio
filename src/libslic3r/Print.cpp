@@ -2748,19 +2748,31 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
     m_has_auto_filament_map_result = true;
 }
 
-void Print::update_to_config_by_nozzle_group_result()
+void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::NozzleGroupResultBase& group_result)
 {
-    //if (m_nozzle_group_result->extruder_to_filament_nozzles.empty()) {
-    //    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-    //                            << boost::format(", Line %1%:  no nozzle group result, should not call this function") % __LINE__;
-    //    return;
-    //}
     int  extruder_count, extruder_volume_type_count;
     bool support_multi = m_ori_full_print_config.support_different_extruders(extruder_count);
     std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
     extruder_volume_type_count = m_ori_full_print_config.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
 
     std::unordered_map<int, std::vector<ExtruderNozleInfo>> filament_extruder_map;
+
+    auto filament_count = m_config.option<ConfigOptionStrings>("filament_type")->size();
+    auto extruder_type  = m_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+
+    for (int fidx = 0; fidx < filament_count; ++fidx) {
+        auto used_nozzles = group_result.get_nozzles_for_filament(fidx);
+        std::set<ExtruderNozleInfo> extruder_nozzle_set;
+        for (auto nozzle : used_nozzles) {
+            ExtruderNozleInfo tmp;
+            tmp.extruder_type = ExtruderType(extruder_type[nozzle.extruder_id]);
+            tmp.nozzle_volume_type = nozzle.volume_type;
+            extruder_nozzle_set.insert(tmp);
+        }
+        filament_extruder_map[fidx] = std::vector<ExtruderNozleInfo>(extruder_nozzle_set.begin(), extruder_nozzle_set.end());
+    }
+
+
     m_full_print_config.update_filament_config_values_for_multiple_extruders(m_full_print_config, filament_extruder_map, extruder_count, extruder_volume_type_count,
                                                                              filament_options_with_variant, "filament_self_index", "filament_extruder_variant");
 

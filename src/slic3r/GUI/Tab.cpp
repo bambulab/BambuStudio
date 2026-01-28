@@ -4547,6 +4547,7 @@ void TabPrinter::build_fff()
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
         optgroup->append_single_option_line("apply_top_surface_compensation");
+        optgroup->append_single_option_line("enable_filament_dynamic_map");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;

@@ -536,19 +536,6 @@ void GCodeProcessor::TimeProcessor::reset()
     machines[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].enabled = true;
 }
 
-static unsigned int get_layer_id_from_gcode_id(const std::vector<GCodeProcessorResult::MoveVertex> &moves, size_t gcode_id)
-{
-    auto move_iter = std::lower_bound(moves.begin(), moves.end(), gcode_id,
-                                      [](const GCodeProcessorResult::MoveVertex &a, unsigned int gcode_id) { return a.gcode_id < gcode_id; });
-    // 在gcode解析的最后一步,layer_duration才会转换
-    if (move_iter != moves.end()) {
-        return static_cast<unsigned int>(move_iter->layer_duration);
-    } else if (!moves.empty()) {
-        return static_cast<unsigned int>(moves.back().layer_duration);
-    }
-    return 0;
-}
-
 void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, std::vector<GCodeProcessorResult::MoveVertex>& moves, std::vector<size_t>& lines_ends, const TimeProcessContext& context)
 {
     using namespace ExtruderPreHeating;
@@ -942,7 +929,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         };
 
     auto handle_nozzle_change_line = [&](const std::string& line, int& old_filament, int& next_filament, int& extruder_id, int gcode_id)->bool {
-        std::regex re(R"(OF(\d+)\s+NF(\d+))");
+        std::regex re(R"(OF(\d+)\s+NF(\d+)\s+ON(\d+)\s+NN(\d+))");
         std::smatch match;
 
         if (!std::regex_search(line, match, re))
@@ -950,9 +937,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
         old_filament = std::stoi(match[1]);
         next_filament = std::stoi(match[2]);
+        int old_nozzle_id = std::stoi(match[3]);
+        int new_nozzle_id = std::stoi(match[4]);
 
-        unsigned int layer_id = get_layer_id_from_gcode_id(moves,gcode_id);
-        extruder_id = context.nozzle_group_result.get_extruder_id(next_filament, layer_id);
+        auto nozzle_info = context.nozzle_group_result.get_nozzle_from_id(new_nozzle_id);
+        extruder_id = nozzle_info ? nozzle_info->extruder_id : -1;
         return true;
     };
     auto handle_toolchange_wipe_line = [&](const std::string &line, bool& is_contact) -> bool {
@@ -1137,7 +1126,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             last_filament = filament_blocks.back().filament_id;
         }
         unsigned int first_layer_id = 0;
-        extruder_blocks.front().initialize_step_1(context.nozzle_group_result.get_extruder_id(first_filament, first_layer_id), machine_start_gcode_end_line_id, first_filament);
+        {
+            int extruder_id = -1;
+            auto nozzle_info = context.nozzle_group_result.get_first_nozzle_for_filament(first_filament);
+            if (nozzle_info) extruder_id = nozzle_info->extruder_id;
+            extruder_blocks.front().initialize_step_1(extruder_id, machine_start_gcode_end_line_id, first_filament);
+        }
         extruder_blocks.back().initialize_step_2(machine_end_gcode_start_line_id);
         extruder_blocks.back().initialize_step_3(machine_end_gcode_start_line_id,last_filament,machine_end_gcode_start_line_id);
     }
