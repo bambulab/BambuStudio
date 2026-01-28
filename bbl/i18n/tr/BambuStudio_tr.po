@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-28 20:43+0800\n"
+"POT-Creation-Date: 2026-01-28 21:37+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -15361,6 +15361,10 @@ msgid "The AMS can rotate the filament which is properly stored, providing bette
 msgstr ""
 
 msgid "Rotate spool when drying"
+msgstr ""
+
+msgctxt "amsdrying"
+msgid "Back"
 msgstr ""
 
 msgid "Drying-Heating"
