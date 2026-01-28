@@ -59,9 +59,9 @@
     "internal_solid_infill_speed": [
         "250",
         "300",
-        "300",
         "250",
-        "250"
+        "300",
+        "300"
     ],
     "initial_layer_travel_acceleration": [
         "6000",
