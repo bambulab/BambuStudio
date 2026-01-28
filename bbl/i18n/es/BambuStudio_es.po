@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7543,12 +7543,6 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Unidades"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Mantenga solo una instancia de Bambu Studio"
 
@@ -8370,8 +8364,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Su versión actual de firmware no puede iniciar este trabajo de impresión. Actualice a la última versión y vuelva a intentarlo."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "La dureza del material actual (%s) supera la dureza de %s(%s). Esto podría causar desgaste en la boquilla, lo que provocaría fugas de material y un flujo inestable. Tenga cuidado al usarlo."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr "Genial"
@@ -15871,6 +15865,10 @@ msgid ""
 msgstr ""
 "Disminución, deformación y estrés\n"
 "Al controlar el índice térmico puedes remover las causas de calor de la deformación y el estrés."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "La dureza del material actual (%s) supera la dureza de %s(%s). Esto podría causar desgaste en la boquilla, lo que provocaría fugas de material y un flujo inestable. Tenga cuidado al usarlo."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Únase al Programa de Mejora de la Experiencia del Cliente."
