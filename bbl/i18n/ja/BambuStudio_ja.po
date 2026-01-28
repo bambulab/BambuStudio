@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7492,12 +7492,6 @@ msgstr "インチ"
 msgid "Units"
 msgstr "単位"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Bambu Studioのインスタンスを1つのみ維持"
 
@@ -8317,8 +8311,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "現在のファームウェアバージョンでは、この造形ジョブを開始できません。最新バージョンに更新してから、再度お試しください。"
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "現在の材料（%s）の硬度は、%s（%s）の硬度を上回っています。そのため、ノズルの摩耗が発生し、材料漏れや流量の不安定化を引き起こす可能性があります。使用時は十分ご注意ください。"
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr "クール"
@@ -15814,6 +15808,10 @@ msgid ""
 msgstr ""
 "収縮・反り・内部応力\n"
 "サーマルインデックスを適切に管理することで、熱による反りや応力の原因を取り除くことができます。"
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "現在の材料（%s）の硬度は、%s（%s）の硬度を上回っています。そのため、ノズルの摩耗が発生し、材料漏れや流量の不安定化を引き起こす可能性があります。使用時は十分ご注意ください。"
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "ユーザー体験向上プログラムに参加する"

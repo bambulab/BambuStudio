@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -7536,12 +7536,6 @@ msgstr "Brittisk standard"
 msgid "Units"
 msgstr "Enheter"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Behåll endast en Bambu Studio instans"
 
@@ -8363,8 +8357,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Din nuvarande firmwareversion kan inte starta den här utskriften. Uppdatera till den senaste versionen och försök igen."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -15865,6 +15859,10 @@ msgid ""
 msgstr ""
 "Krympning, Warping & Stress\n"
 "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Gå med i programmet för Förbättring av Kundupplevelsen."

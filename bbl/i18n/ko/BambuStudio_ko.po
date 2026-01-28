@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7529,12 +7529,6 @@ msgstr "인치법"
 msgid "Units"
 msgstr "단위"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Bambu Studio 인스턴스를 하나만 유지하세요"
 
@@ -8356,8 +8350,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "현재 펌웨어 버전으로는 이 츌력 작업을 시작할 수 없습니다. 최신 버전으로 업데이트한 후 다시 시도해 주세요."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "현재 재료(%s)의 경도가 %s(%s)의 경도를 초과합니다. 이는 노즐 마모를 유발하여 재료 누출 및 흐름 불안정을 초래할 수 있습니다. 사용 시 주의해 주십시오."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr "쿨한"
@@ -15849,6 +15843,10 @@ msgid ""
 msgstr ""
 "수축, 뒤틀림 및 응력\n"
 "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "현재 재료(%s)의 경도가 %s(%s)의 경도를 초과합니다. 이는 노즐 마모를 유발하여 재료 누출 및 흐름 불안정을 초래할 수 있습니다. 사용 시 주의해 주십시오."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "고객 경험 개선 프로그램에 참여하세요."

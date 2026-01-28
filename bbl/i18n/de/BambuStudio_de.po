@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7541,12 +7541,6 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Einheiten"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Nur eine Bambu Studio Instanz behalten"
 
@@ -8368,8 +8362,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Ihre aktuelle Firmware-Version kann diesen Druckauftrag nicht starten. Bitte aktualisieren Sie auf die neueste Version und versuchen Sie es erneut."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "Die Härte des aktuellen Materials (%s) übersteigt die Härte von %s(%s). Dies kann zu Verschleiß an der Düse führen, was Materialverluste und einen instabilen Fluss zur Folge haben kann. Bitte seien Sie bei der Verwendung vorsichtig."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -15865,6 +15859,10 @@ msgid ""
 msgstr ""
 "Schrumpfung, Verzug und Spannung\n"
 "Durch die Kontrolle des Wärmeindexes können Sie die durch Hitze verursachten Faktoren für Verzug und Spannung beseitigen."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "Die Härte des aktuellen Materials (%s) übersteigt die Härte von %s(%s). Dies kann zu Verschleiß an der Düse führen, was Materialverluste und einen instabilen Fluss zur Folge haben kann. Bitte seien Sie bei der Verwendung vorsichtig."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Nehmen Sie am Programm zur Verbesserung des Kundenerlebnisses teil."

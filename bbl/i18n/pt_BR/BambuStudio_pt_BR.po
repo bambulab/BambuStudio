@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7540,12 +7540,6 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Unidades"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Mantenha apenas uma instância do Bambu Studio"
 
@@ -8365,8 +8359,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr ""
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "A dureza do material atual (%s) excede a dureza do %s(%s). Isto pode causar uso de nozzle, levando a vazamento de materiais e fluxo instável. Por favor, tenha cuidado ao usá-lo."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr "Frio"
@@ -15852,6 +15846,10 @@ msgid ""
 msgstr ""
 "Encolhimento, empenamento e tensão\n"
 "Ao controlar o índice térmico, você pode remover as causas de empenamento e tensão causadas pelo calor."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "A dureza do material atual (%s) excede a dureza do %s(%s). Isto pode causar uso de nozzle, levando a vazamento de materiais e fluxo instável. Por favor, tenha cuidado ao usá-lo."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Ingresse no programa de aprimoramento da experiência do usuário"
