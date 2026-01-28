@@ -2324,13 +2324,17 @@ wxBoxSizer* HelioInputDialog::create_input_item(wxWindow* parent, std::string ke
     inout_title->SetFont(::Label::Body_14);
     inout_title->SetForegroundColour(theme.text);
 
-    TextInput *m_input_item = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), wxTE_PROCESS_ENTER, unit);
-    
+    // Pass unit as the 3rd 'label' parameter instead of the 8th 'unit' parameter
+    // The 'unit' parameter has an upstream sizing bug where unit_space is calculated but not subtracted from text width
+    TextInput *m_input_item = new TextInput(parent, wxEmptyString, unit, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(120), -1), wxTE_PROCESS_ENTER);
+
     // Use theme colors for input background (dark mode only for now)
     wxColour input_bg_color = theme.card2;
     wxColour disabled_bg = wxColour(30, 35, 45);
     StateColor input_bg(std::pair<wxColour, int>(disabled_bg, StateColor::Disabled), std::pair<wxColour, int>(input_bg_color, StateColor::Enabled));
     m_input_item->SetBackgroundColor(input_bg);
+    // Set unit label color to match theme
+    m_input_item->SetLabelColor(StateColor(std::pair<wxColour, int>(theme.muted, StateColor::Normal)));
     wxTextValidator validator(wxFILTER_NUMERIC);
 
     m_input_item->GetTextCtrl()->SetBackgroundColour(input_bg_color);
