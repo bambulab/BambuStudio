@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7524,12 +7524,6 @@ msgstr "Impérial"
 msgid "Units"
 msgstr "Unités"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Ne conserver qu'une seule instance de Bambu Studio"
 
@@ -8351,8 +8345,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Votre version actuelle du firmware ne peut pas démarrer cette tâche d'impression. Veuillez mettre à jour vers la dernière version et réessayer."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "La dureté du matériau actuel (%s) dépasse celle de %s (%s). Cela peut entraîner une usure de la buse, provoquant des fuites de matériau et un débit instable. Veuillez faire preuve de prudence lors de son utilisation."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -15850,6 +15844,10 @@ msgid ""
 msgstr ""
 "Retrait, Warping et Contraintes\n"
 "En contrôlant l'indice thermique, vous pouvez éliminer les causes thermiques du soulèvement et des contraintes."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "La dureté du matériau actuel (%s) dépasse celle de %s (%s). Cela peut entraîner une usure de la buse, provoquant des fuites de matériau et un débit instable. Veuillez faire preuve de prudence lors de son utilisation."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Rejoignez le Programme d'Amélioration de l'Expérience Client."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-26 14:14+0800\n"
+"POT-Creation-Date: 2026-01-28 20:43+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7538,12 +7538,6 @@ msgstr "Angolszász"
 msgid "Units"
 msgstr "Mértékegység"
 
-msgid "Use 12-hour time format"
-msgstr ""
-
-msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
-
 msgid "Keep only one Bambu Studio instance"
 msgstr "Csak egy Bambu Studio-példány megtartása"
 
@@ -8365,8 +8359,8 @@ msgid "Your current firmware version cannot start this print job. Please update 
 msgstr "Az aktuális firmware-verzióval nem indítható el a nyomtatási feladat. Kérjük, frissíts a legújabb verzióra, majd próbáld újra."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr "A jelenlegi anyag keménysége (%s) meghaladja a(z) %s(%s) keménységét. Ez fúvókakopást okozhat, ami anyagszivárgáshoz és instabil anyagáramláshoz vezethet."
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -15859,6 +15853,10 @@ msgid ""
 msgstr ""
 "Zsugorodás, vetemedés és feszültség\n"
 "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "A jelenlegi anyag keménysége (%s) meghaladja a(z) %s(%s) keménységét. Ez fúvókakopást okozhat, ami anyagszivárgáshoz és instabil anyagáramláshoz vezethet."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Csatlakozz a felhasználói élmény javítását célzó programhoz."
