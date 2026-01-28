@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-28 20:43+0800\n"
+"POT-Creation-Date: 2026-01-28 21:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -15352,6 +15352,10 @@ msgstr "正しく保管されたフィラメントは AMS が回転させるこ�
 
 msgid "Rotate spool when drying"
 msgstr "乾燥中にスプールを回転"
+
+msgctxt "amsdrying"
+msgid "Back"
+msgstr ""
 
 msgid "Drying-Heating"
 msgstr "乾燥 - 加熱"
