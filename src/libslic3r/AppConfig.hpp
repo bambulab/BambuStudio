@@ -172,6 +172,34 @@ public:
 	void 				set_vendors(VendorMap &&vendors) { m_vendors = std::move(vendors); m_dirty = true; }
 	const VendorMap&    vendors() const { return m_vendors; }
 
+	// Printer-specific settings (remembers presets per printer)
+	typedef std::map<std::string, nlohmann::json> MachineSettingMap;
+	bool has_printer_settings(const std::string &printer) const {
+		return m_printer_settings.find(printer) != m_printer_settings.end();
+	}
+	void clear_printer_settings(const std::string &printer) {
+		m_printer_settings.erase(printer);
+		m_dirty = true;
+	}
+	bool has_printer_setting(const std::string &printer, const std::string &name) const {
+		auto it = m_printer_settings.find(printer);
+		if (it == m_printer_settings.end())
+			return false;
+		if (!it->second.contains(name))
+			return false;
+		return true;
+	}
+	std::string get_printer_setting(const std::string &printer, const std::string &name) const {
+		if (!has_printer_setting(printer, name))
+			return "";
+		return m_printer_settings.at(printer).at(name).get<std::string>();
+	}
+	void set_printer_setting(const std::string &printer, const std::string &name, const std::string &value) {
+		m_printer_settings[printer][name] = value;
+		m_dirty = true;
+	}
+	const MachineSettingMap& get_printer_settings() const { return m_printer_settings; }
+
 	const std::vector<std::string> &get_filament_presets() const { return m_filament_presets; }
     void set_filament_presets(const std::vector<std::string> &filament_presets){
         m_filament_presets = filament_presets;
@@ -281,6 +309,8 @@ private:
 
 	// Map of enabled vendors / models / variants
 	VendorMap                                                   m_vendors;
+	// Preset for each printer (remembers last used presets per printer)
+	MachineSettingMap                                           m_printer_settings;
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
 	// Original version found in the ini file before it was overwritten
