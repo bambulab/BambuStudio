@@ -22,6 +22,7 @@
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Print.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 
 #include "I18N.hpp"
@@ -1795,6 +1796,55 @@ bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig
             }
         }
     }
+    return false;
+}
+
+bool PartPlate::check_high_temp_need_wrapping_detection(const DynamicPrintConfig &config, std::string &warning_text) const
+{
+    warning_text.clear();
+
+    // 1、判断当前机型是否支持触碰裹头检测
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    if (!DevPrinterConfigUtil::support_wrapping_detection(printer_type))
+        return false;
+
+    // 2. 检查是否开启了触碰裹头检测
+    bool enable_wrapping_detection = false;
+    if (config.has("enable_wrapping_detection"))
+        enable_wrapping_detection = config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+
+    if (enable_wrapping_detection)
+        return false;
+
+    // 3. 检查当前盘是否使用了高温料，并收集高温料名称
+    std::vector<int> used_filaments = get_extruders(true); // 1 base
+    if (used_filaments.empty())
+        return false;
+
+    std::set<std::string> high_temp_types;
+    for (auto filament_idx : used_filaments) {
+        int filament_id = filament_idx - 1;
+        if (filament_id < config.option<ConfigOptionStrings>("filament_type")->values.size()) {
+            std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            FilamentTempType temp_type = Print::get_filament_temp_type(filament_type);
+            if (temp_type == FilamentTempType::HighTemp) {
+                high_temp_types.insert(filament_type);
+            }
+        }
+    }
+
+    if (!high_temp_types.empty()) {
+        std::string filament_names;
+        for (auto it = high_temp_types.begin(); it != high_temp_types.end(); ++it) {
+            if (it != high_temp_types.begin()) {
+                filament_names += ", ";
+            }
+            filament_names += *it;
+        }
+        warning_text = GUI::format(_L("Risk of nozzle clogging detected with the current high-temperature filament (%s). Enable clogging detection (Process/Others/Advanced) to receive timely alerts and prevent further issues."), filament_names);
+        return true;
+    }
+
     return false;
 }
 

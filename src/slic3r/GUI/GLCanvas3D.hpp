@@ -418,7 +418,8 @@ class GLCanvas3D
         AsemblyInvalid, // for asembly view only
         FlushingVolumeZero,
         FilamentNozzleFlowIncompatible,
-        TpuNozzleMultipleFilaments
+        TpuNozzleMultipleFilaments,
+        HighTempNeedWrappingDetection
     };
 
     class RenderStats
