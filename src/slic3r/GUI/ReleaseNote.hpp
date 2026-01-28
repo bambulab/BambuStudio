@@ -374,6 +374,7 @@ public:
     //void on_ok(wxMouseEvent &evt);
     void on_dpi_changed(const wxRect& suggested_rect) override;
     void on_open_expand(const wxMouseEvent& evt);
+    void on_uninstall(const wxMouseEvent& evt);
     void report_consent_unstall();
 };
 

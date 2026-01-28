@@ -4167,7 +4167,7 @@ void GUI_App::request_helio_pat(std::function<void(std::string)> func)
 
 void GUI_App::request_helio_supported_data()
 {
-    std:;string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
+    std::string helio_api_url = Slic3r::HelioQuery::get_helio_api_url();
     std::string helio_api_key = Slic3r::HelioQuery::get_helio_pat();
 
     if (HelioQuery::global_supported_printers.size() <= 0 || HelioQuery::global_supported_materials.size() <= 0) {

@@ -675,7 +675,12 @@ void MediaFilePanel::doAction(size_t index, int action)
 #elif __APPLE__
                     wxShell("open " + file.local_path);
 #else
-                    const char *argv[] = { "xdg-open", file.local_path.data(), nullptr };
+                    // Create non-const copies of the strings to avoid const_cast
+                    // wxExecute may modify the argv array, so we need non-const storage
+                    std::string xdg_open = "xdg-open";
+                    std::string local_path_copy = file.local_path;
+                    // Use .data() on non-const strings to get non-const char* pointers
+                    char *argv[] = { xdg_open.data(), local_path_copy.data(), nullptr };
 
                     // Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
                     // because they may mess up the environment expected by the file manager.
@@ -701,10 +706,10 @@ void MediaFilePanel::doAction(size_t index, int action)
                             exec_env.cwd = std::move(owd);
                         }
 
-                        ::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+                        ::wxExecute(argv, wxEXEC_ASYNC, nullptr, &exec_env);
                     } else {
                         // Looks like we're NOT running from AppImage, we'll make no changes to the environment.
-                        ::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+                        ::wxExecute(argv, wxEXEC_ASYNC, nullptr, nullptr);
                     }
 #endif
                 } else {

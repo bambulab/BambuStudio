@@ -2117,9 +2117,43 @@ namespace Slic3r
                     break;
                 }
                 // helio
-                case EViewType::ThermalIndexMin: { append_range(m_p_extrusions->ranges.thermal_index_min, 0); break; }
-                case EViewType::ThermalIndexMax: { append_range(m_p_extrusions->ranges.thermal_index_max, 0); break; }
-                case EViewType::ThermalIndexMean: { append_range(m_p_extrusions->ranges.thermal_index_mean, 0); break; }
+                case EViewType::ThermalIndexMin: 
+                case EViewType::ThermalIndexMax: 
+                case EViewType::ThermalIndexMean: {
+                    if (m_view_type == EViewType::ThermalIndexMin)
+                        append_range(m_p_extrusions->ranges.thermal_index_min, 0);
+                    else if (m_view_type == EViewType::ThermalIndexMax)
+                        append_range(m_p_extrusions->ranges.thermal_index_max, 0);
+                    else
+                        append_range(m_p_extrusions->ranges.thermal_index_mean, 0);
+                    
+                    // Add "View Summary" link only if simulation/optimization result is available
+                    if (wxGetApp().plater()->has_helio_simulation_result()) {
+                        ImGui::Spacing();
+                        ImGui::Dummy({ window_padding, window_padding });
+                        ImGui::SameLine();
+                        
+                        // Render as hyperlink with green color and underline
+                        std::string label = _u8L("View Summary");
+                        ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
+                        ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
+                        imgui.text(label.c_str());
+                        ImGui::PopStyleColor();
+                        // underline
+                        ImVec2 lineEnd = ImGui::GetItemRectMax();
+                        lineEnd.y -= 2.0f;
+                        ImVec2 lineStart = lineEnd;
+                        lineStart.x = ImGui::GetItemRectMin().x;
+                        ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
+                        // click behavior
+                        if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
+                            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                                wxGetApp().plater()->show_helio_simulation_summary();
+                            }
+                        }
+                    }
+                    break;
+                }
                 // end helio
                 default: { break; }
                 }
