@@ -2399,6 +2399,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("first_non_support_filaments", new ConfigOptionInts(first_non_support_filaments));
     m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
     m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
+    m_placeholder_parser.set("initial_no_support_hotend",m_print->get_layered_nozzle_group_result()->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id);
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_hotend", m_print->get_layered_nozzle_group_result()->get_nozzle_for_filament(initial_extruder_id, 0)->group_id);
 

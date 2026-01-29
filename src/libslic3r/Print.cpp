@@ -2773,6 +2773,7 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
     }
 
 
+    m_full_print_config = m_ori_full_print_config;
     m_full_print_config.update_filament_config_values_for_multiple_extruders(m_full_print_config, filament_extruder_map, extruder_count, extruder_volume_type_count,
                                                                              filament_options_with_variant, "filament_self_index", "filament_extruder_variant");
 
