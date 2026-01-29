@@ -25,6 +25,7 @@
 #include "BindDialog.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevMappingNozzle.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
@@ -1039,7 +1040,8 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
             if (item->m_tray_data.type == TrayType::EMPTY) return;
             if ((m_show_type == ShowType::LEFT && item->GetParent()->GetName() == "left") ||
                 (m_show_type == ShowType::RIGHT && item->GetParent()->GetName() == "right") ||
-                m_show_type == ShowType::LEFT_AND_RIGHT) {
+                m_show_type == ShowType::LEFT_AND_RIGHT &&
+                m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
                 item->send_event(m_current_filament_id);
                 Dismiss();
                 break;
@@ -1155,17 +1157,6 @@ void AmsMapingPopup::update_title(MachineObject* obj)
 {
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-
-    // Control visibility of dual-nozzle tip based on nozzle count
-    if (m_ams_tips_panel) {
-        if (nozzle_nums == 1 || m_show_type == ShowType::LEFT_AND_RIGHT) {
-            update_amsmappping_tips(false);
-        } else {
-            update_amsmappping_tips(true);
-        }
-    }
-
-
     if (nozzle_nums > 1)
     {
         m_split_line_panel->Show();
@@ -1186,6 +1177,20 @@ void AmsMapingPopup::update_title(MachineObject* obj)
     }
 
     m_title_text->SetLabelText(_L("Nozzle"));
+}
+
+
+void AmsMapingPopup::update_ams_tips(MachineObject* obj)
+{
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    if (m_ams_tips_panel) {
+        if (nozzle_nums == 1 || m_show_type == ShowType::LEFT_AND_RIGHT) {
+            update_amsmappping_tips(false);
+        } else {
+            update_amsmappping_tips(true);
+        }
+    }
 }
 
 void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result)
@@ -1246,6 +1251,7 @@ void AmsMapingPopup::update(MachineObject* obj,
 
     /*title*/
     update_title(obj);
+    update_ams_tips(obj);
 
     /*rack*/
     update_rack_select(obj, use_dynamic_switch);
@@ -1318,10 +1324,11 @@ void AmsMapingPopup::update(MachineObject* obj,
                 m_right_tips->SetLabel("");
             }
         }
-        // 无论哪个喷嘴被选中，tips 面板始终保持启用状态
-     /*   if (m_ams_tips_panel) {
-            m_ams_tips_panel->Enable(true);
-        }*/
+        else if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC)
+        {
+            m_right_marea_panel->Enable(true);
+            m_right_extra_slot->Enable(true);
+        }
     }
 
     for (int i = 0; i < obj->vt_slot.size(); i++) {
@@ -1367,7 +1374,6 @@ void AmsMapingPopup::update(MachineObject* obj,
 
     if (!m_only_show_ext_spool) {
         /*ams*/
-        bool                            has_left_ams = false, has_right_ams = false;
         std::list<MappingContainer *>   left_one_slot_containers;
         std::list<MappingContainer *>   right_one_slot_containers;
         std::vector<MappingContainer *> left_four_slots_containers;
@@ -1375,14 +1381,28 @@ void AmsMapingPopup::update(MachineObject* obj,
 
         const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
         for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
+
+            wxPanel* target_panel = nullptr;
+            if (obj->GetFilaSwitch()->IsInstalled() && m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+                target_panel = m_right_marea_panel;
+            } else {
+                if (const auto& extruder_id_opt = ams_iter->second->GetUniqueBindedExtruderId(); extruder_id_opt.has_value()) {
+                    if (extruder_id_opt.value() == 0) {
+                        target_panel = m_right_marea_panel;
+                    } else {
+                        target_panel = m_left_marea_panel;
+                    }
+                }
+            }
+
+            if (!target_panel) {
+                continue;
+            }
+
             int ams_indx  = atoi(ams_iter->first.c_str());
-            int nozzle_id = ams_iter->second->GetExtruderId();
-
-
             auto sizer_mapping_list         = new wxBoxSizer(wxHORIZONTAL);
-            auto ams_mapping_item_container = new MappingContainer(nozzle_id == 0 ? m_right_marea_panel : m_left_marea_panel, ams_iter->second->GetDisplayName(),
-                                                                   ams_iter->second->GetSlotCount());
-            ams_mapping_item_container->SetName(nozzle_id == 0 ? m_right_marea_panel->GetName() : m_left_marea_panel->GetName());
+            auto ams_mapping_item_container = new MappingContainer(target_panel, ams_iter->second->GetDisplayName(), ams_iter->second->GetSlotCount());
+            ams_mapping_item_container->SetName(target_panel->GetName());
             ams_mapping_item_container->SetSizer(sizer_mapping_list);
             ams_mapping_item_container->Layout();
 
@@ -1430,15 +1450,13 @@ void AmsMapingPopup::update(MachineObject* obj,
             m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
             m_amsmapping_container_list.push_back(ams_mapping_item_container);
 
-            if (nozzle_id == 0) {
-                has_right_ams = true;
+            if (target_panel == m_right_marea_panel) {
                 if (ams_mapping_item_container->get_slots_num() == 1) {
                     right_one_slot_containers.push_back(ams_mapping_item_container);
                 } else {
                     right_four_slot_containers.push_back(ams_mapping_item_container);
                 }
-            } else if (nozzle_id == 1) {
-                has_left_ams = true;
+            } else if (target_panel == m_left_marea_panel) {
                 if (ams_mapping_item_container->get_slots_num() == 1) {
                     left_one_slot_containers.push_back(ams_mapping_item_container);
                 } else {
@@ -1449,8 +1467,8 @@ void AmsMapingPopup::update(MachineObject* obj,
 
         _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
         _add_containers(this, right_one_slot_containers, right_four_slot_containers, m_sizer_ams_basket_right);
-        m_left_split_ams_sizer->Show(has_left_ams);
-        m_right_split_ams_sizer->Show(has_right_ams);
+        m_left_split_ams_sizer->Show(!left_one_slot_containers.empty() || !left_four_slots_containers.empty());
+        m_right_split_ams_sizer->Show(!right_one_slot_containers.empty() || !right_four_slot_containers.empty());
         update_items_check_state(ams_mapping_result);
     } else {
         m_right_split_ams_sizer->Show(false);
@@ -1646,6 +1664,7 @@ void AmsMapingPopup::update_flush_waste(MachineObject* obj)
         m_flush_warning_panel->Hide();
     }
 }
+
 
  MappingItem::MappingItem(wxWindow *parent)
  : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)

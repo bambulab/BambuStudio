@@ -1596,14 +1596,20 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     }
 
     int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-    for (auto ams : obj->GetFilaSystem()->GetAmsList()) {
+    for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
+        // TODO: support filament switcher 
+        const auto& uniq_extruder_id = ams.second->GetUniqueBindedExtruderId();
+        if (!uniq_extruder_id.has_value()) {
+            continue;
+        }
+
         // Main (first) extruder at right
-        if (ams.second->GetExtruderId() == 0) {
+        if (uniq_extruder_id.value() == 0) {
             if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                 ++main_1;
             else
                 ++main_4;
-        } else if (ams.second->GetExtruderId() == 1) {
+        } else if (uniq_extruder_id.value() == 1) {
             if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                 ++deputy_1;
             else
@@ -1753,17 +1759,24 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         machine_extruder_infos[extruder.GetExtId()].nozzle_volue_type = int(extruder.GetNozzleFlowType()) - 1;
         machine_extruder_infos[extruder.GetExtId()].diameter          = extruder.GetNozzleDiameter();
     }
-    for (auto &item : obj->GetFilaSystem()->GetAmsList()) {
-        if (item.second->GetExtruderId() >= machine_extruder_infos.size())
+    for (const auto &item : obj->GetFilaSystem()->GetAmsList()) {
+
+        // TODO: filament switcher support
+        const auto& uniq_extruder_id = item.second->GetUniqueBindedExtruderId();
+        if(!uniq_extruder_id.has_value()) {
+            continue;
+        }
+
+        if (uniq_extruder_id.value() >= machine_extruder_infos.size())
             continue;
 
         if (item.second->GetAmsType() == DevAms::N3S)
         { // N3S
-            machine_extruder_infos[item.second->GetExtruderId()].ams_1++;
-            machine_extruder_infos[item.second->GetExtruderId()].ams_v1.push_back(item.second);
+            machine_extruder_infos[uniq_extruder_id.value()].ams_1++;
+            machine_extruder_infos[uniq_extruder_id.value()].ams_v1.push_back(item.second);
         } else {
-            machine_extruder_infos[item.second->GetExtruderId()].ams_4++;
-            machine_extruder_infos[item.second->GetExtruderId()].ams_v4.push_back(item.second);
+            machine_extruder_infos[uniq_extruder_id.value()].ams_4++;
+            machine_extruder_infos[uniq_extruder_id.value()].ams_v4.push_back(item.second);
         }
     }
 
@@ -3408,9 +3421,14 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     };
 
     auto list = obj->GetFilaSystem()->GetAmsList();
-    for (auto ams : list) {
+    for (const auto& ams : list) {
+        const auto& unique_extruder_id = ams.second->GetUniqueBindedExtruderId(); //TODO: filament switcher
+        if (!unique_extruder_id.has_value()) {
+            continue;
+        }
+
         int ams_id   = std::stoi(ams.first);
-        int extruder = ams.second->GetExtruderId() ? 0 : 0x10000; // Main (first) extruder at right
+        int extruder = unique_extruder_id.value() ? 0 : 0x10000; // Main (first) extruder at right
         for (auto tray : ams.second->GetTrays()) {
             int  slot_id = std::stoi(tray.first);
             filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
@@ -13197,14 +13215,19 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
         std::vector<std::map<int, int>> ams_count_info;
         ams_count_info.resize(2);
         int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-        for (auto ams : obj->GetFilaSystem()->GetAmsList()) {
+        for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
+            const auto& unique_extruder_id_opt = ams.second->GetUniqueBindedExtruderId(); //TODO support filament switcher
+            if (!unique_extruder_id_opt.has_value()) {
+                continue;
+            }
+
             // Main (first) extruder at right
-            if (ams.second->GetExtruderId() == 0) {
+            if (unique_extruder_id_opt.value() == 0) {
                 if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                     ++main_1;
                 else
                     ++main_4;
-            } else if (ams.second->GetExtruderId() == 1) {
+            } else if (unique_extruder_id_opt.value() == 1) {
                 if (ams.second->GetAmsType() == DevAms::N3S) // N3S
                     ++deputy_1;
                 else

@@ -70,7 +70,7 @@ static std::string s_get_diameter_str(const std::string& diameter)
 // warnings:
 // (1) the fila_id here is 1 based index
 // (2) the AP wants the diameter string with 2 decimal places
-int DevNozzleMappingCtrl::CtrlGetAutoNozzleMapping(Slic3r::GUI::Plater* plater,
+int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater,
                                                      const std::vector<FilamentInfo>& ams_mapping,
                                                      int flow_cali_opt, int pa_value)
 {
@@ -209,6 +209,66 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMapping(Slic3r::GUI::Plater* plater,
     }
 
     command_jj["print"]["nozzle_info"] = nozzle_info_jj;
+    m_req_version = NozzleMappingVersion::Version_V0;
+    return m_obj->publish_json(command_jj);
+}
+
+int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater)
+{
+    Clear();
+    m_plater = plater;
+    if (!m_plater) {
+        return -1;
+    }
+
+    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
+    if (!nozzle_group_res) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": gcode_result->nozzle_group_result is NULL";
+        return -1;
+    }
+
+    json command_jj;
+    command_jj["print"]["command"] = "get_auto_nozzle_mapping";
+    m_sequence_id = std::to_string(MachineObject::m_sequence_id++);
+    command_jj["print"]["sequence_id"] = m_sequence_id;
+
+    json nozzle_group_info_jj;
+    std::unordered_set<int> used_logic_groups;
+    const auto& used_logic_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
+    for (const auto& used_logic_nozzle : used_logic_nozzles) {
+        if (used_logic_groups.count(used_logic_nozzle.group_id) != 0) {
+            continue;
+        }
+        used_logic_groups.insert(used_logic_nozzle.group_id);
+
+        json nozzle_info;
+        nozzle_info["id"] = used_logic_nozzle.group_id;
+        nozzle_info["ext"] = (used_logic_nozzle.extruder_id + 1);
+        
+        try {
+            nozzle_info["dia"] = std::stof(used_logic_nozzle.diameter);
+        } catch(const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": e=" << e.what();
+            continue;
+        }
+
+        if (used_logic_nozzle.volume_type == NozzleVolumeType::nvtHighFlow) {
+            nozzle_info["vol"] = "High Flow";
+        } else if(used_logic_nozzle.volume_type == NozzleVolumeType::nvtStandard){
+            nozzle_info["vol"] = "Standard";
+        } else if(used_logic_nozzle.volume_type == NozzleVolumeType::nvtTPUHighFlow){
+            nozzle_info["vol"] = "TPU Flow";
+        } else {
+            assert(0);
+            continue;
+        }
+
+        nozzle_group_info_jj.push_back(nozzle_info);
+    }
+    command_jj["print"]["group_info"] = nozzle_group_info_jj;
+
+
+    m_req_version = NozzleMappingVersion::Version_V1;
     command_jj["print"]["version"] = (int)m_req_version;
     return m_obj->publish_json(command_jj);
 }
@@ -312,12 +372,12 @@ std::vector<int> DevNozzleMappingCtrl::GetMappedNozzlePosVecByFilaId(int fila_id
             } else {
                 physic_nozzle_pos_vec.push_back(iter->second);
             }
-        }
-
-        const auto& used_logic_extruders = sGetLogicExtruders(used_logic_nozzles);
-        if (used_logic_extruders.size() == 1 && *used_logic_extruders.begin() == LOGIC_L_EXTRUDER_ID) {
-            physic_nozzle_pos_vec.push_back(1);
-            return physic_nozzle_pos_vec; // only left extruder is used
+        } else {
+            const auto& used_logic_extruders = sGetLogicExtruders(used_logic_nozzles);
+            if (used_logic_extruders.size() == 1 && *used_logic_extruders.begin() == LOGIC_L_EXTRUDER_ID) {
+                physic_nozzle_pos_vec.push_back(1);
+                return physic_nozzle_pos_vec; // only left extruder is used
+            }
         }
     } else if (m_ack_version == NozzleMappingVersion::Version_V1) {
         for (const auto& used_logic_nozzle : used_logic_nozzles) {
@@ -346,7 +406,7 @@ wxString DevNozzleMappingCtrl::GetMappedNozzlePosStrByFilaId(int fila_id, const 
         } else if (pos_id == DEPUTY_EXTRUDER_ID) {
             display_str += "L";
         } else if (pos_id >= 0x10) {
-            display_str += "R%d";// display 1~n for rack hotends
+            display_str += wxString::Format("R%d", pos_id - 0x10 + 1);// display 1~n for rack hotends
         } else {
             continue;
         }

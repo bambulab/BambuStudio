@@ -4587,8 +4587,11 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 
         if (obj->is_enable_np || obj->is_enable_ams_np) {
             use_new_command = true;
-            if (it->second->GetExtruderId() < obj->GetExtderSystem()->GetTotalExtderSize()) {
-                has_filament_at_extruder = obj->GetExtderSystem()->HasFilamentInExt(it->second->GetExtruderId());
+
+            // TODO: support filament extruders
+            auto unique_extruder_id = it->second->GetUniqueBindedExtruderId();
+            if (unique_extruder_id.has_value()) {
+                has_filament_at_extruder = obj->GetExtderSystem()->HasFilamentInExt(unique_extruder_id.value());
             }
         } else {
             has_filament_at_extruder = obj->is_filament_at_extruder();

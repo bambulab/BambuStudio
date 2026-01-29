@@ -2420,12 +2420,19 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         if (obj->is_multi_extruders()) {
             bool main_done   = false;
             bool deputy_done = false;
-            for (auto &ams_item : obj->GetFilaSystem()->GetAmsList()) {
-                if (ams_item.second->GetExtruderId() == 0 && !main_done) {
-                    update_multi_extruder_filament_combobox(ams_item.second->GetAmsId(), ams_item.second->GetExtruderId());
+
+            // TODO: 禾麦适配选料器
+            for (const auto &ams_item : obj->GetFilaSystem()->GetAmsList()) {
+                const auto& unique_binded_extruder_id_opt = ams_item.second->GetUniqueBindedExtruderId();
+                if (!unique_binded_extruder_id_opt.has_value()) {
+                    continue;
+                }
+
+                if (unique_binded_extruder_id_opt.value() == 0 && !main_done) {
+                    update_multi_extruder_filament_combobox(ams_item.second->GetAmsId(), unique_binded_extruder_id_opt.value());
                     main_done = true;
-                } else if (ams_item.second->GetExtruderId() == 1 && !deputy_done) {
-                    update_multi_extruder_filament_combobox(ams_item.second->GetAmsId(), ams_item.second->GetExtruderId());
+                } else if (unique_binded_extruder_id_opt.value() == 1 && !deputy_done) {
+                    update_multi_extruder_filament_combobox(ams_item.second->GetAmsId(), unique_binded_extruder_id_opt.value());
                     deputy_done = true;
                 }
             }

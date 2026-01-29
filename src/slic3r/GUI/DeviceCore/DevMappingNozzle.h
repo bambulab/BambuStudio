@@ -32,6 +32,7 @@ public:
     DevNozzleMappingCtrl(MachineObject* obj) : m_obj(obj) {};
 
 public:
+    void SetPlater(Slic3r::GUI::Plater* plater) { m_plater = plater; }
     void Clear();
 
     bool HasResult() const { return !m_result.empty(); }
@@ -58,7 +59,8 @@ public:
 
 public:
     void ParseAutoNozzleMapping(const nlohmann::json& print_jj);
-    int CtrlGetAutoNozzleMapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    int CtrlGetAutoNozzleMappingV0(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    int CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater);
 
 private:
     float  GetFlushWeight(Slic3r::MachineObject* obj) const;
@@ -83,7 +85,7 @@ private:
     float m_flush_weight_base = -1;// the base weight for flush
     float m_flush_weight_current = -1;// the weight current
 
-    const NozzleMappingVersion m_req_version = NozzleMappingVersion::Version_V1;
+    NozzleMappingVersion m_req_version = NozzleMappingVersion::Version_V0;
     NozzleMappingVersion m_ack_version = NozzleMappingVersion::Version_V0;
 };
 

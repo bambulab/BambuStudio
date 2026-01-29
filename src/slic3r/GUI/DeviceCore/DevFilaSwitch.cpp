@@ -27,8 +27,18 @@ void DevFilaSwitch::Reset()
 
 bool DevFilaSwitch::IsReady() const
 {
-    return m_is_installed && m_in_a_slot.has_value() && m_in_b_slot.has_value()
-        && m_out_a_extruder_id.has_value() && m_out_b_extruder_id.has_value();
+    if (!m_is_installed) {
+        return false;
+    }
+
+    const auto& ams_list = m_owner->GetFilaSystem()->GetAmsList();
+    for (const auto& ams_item : ams_list) {
+        if (ams_item.second->GetBindedExtruderSet().size() == 0) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 std::optional<DevAmsTray> DevFilaSwitch::GetInA_Slot() const

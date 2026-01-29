@@ -328,8 +328,12 @@ bool check_filaments_printable(const std::string &dev_id,
     if (!physical_extruder_map_op)
         return true;
     std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
-    int obj_extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    int extruder_idx = obj_extruder_id;
+    int              obj_extruder_id        = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+    if (obj_extruder_id == -1) {
+        return true;//TODO 选料器槽位得喷嘴映射完才知道对应的挤出机id，暂时不做限制
+    }
+
+    int              extruder_idx           = obj_extruder_id;
     for (int index = 0; index < physical_extruder_maps.size(); ++index) {
         if (physical_extruder_maps[index] == obj_extruder_id) {
             extruder_idx = index;

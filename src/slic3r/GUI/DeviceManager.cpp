@@ -4431,10 +4431,17 @@ void MachineObject::check_ams_filament_valid()
         auto ams_id = ams_pair.first;
         auto &ams = ams_pair.second;
         std::ostringstream stream;
-        if (ams->GetExtruderId() < 0 || ams->GetExtruderId() >= m_extder_system->GetTotalExtderCount()) {
+
+        const auto& uniq_extruder_id = ams->GetUniqueBindedExtruderId();
+        if (!uniq_extruder_id.has_value()) {
+            continue;
+        }
+
+        int ext_id = uniq_extruder_id.value();
+        if (ext_id < 0 || ext_id >= m_extder_system->GetTotalExtderCount()) {
             return;
         }
-        stream << std::fixed << std::setprecision(1) << m_extder_system->GetNozzleDiameter(ams->GetExtruderId());
+        stream << std::fixed << std::setprecision(1) << m_extder_system->GetNozzleDiameter(ext_id);
         std::string nozzle_diameter_str = stream.str();
         assert(nozzle_diameter_str.size() == 3);
         if (m_nozzle_filament_data.find(nozzle_diameter_str) == m_nozzle_filament_data.end()) {

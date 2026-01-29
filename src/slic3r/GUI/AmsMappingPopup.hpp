@@ -67,7 +67,8 @@ enum TrayType {
 enum ShowType {
     LEFT,   //  only show left ams and left ext
     RIGHT,  //only show right ams and right ext
-    LEFT_AND_RIGHT  //show left and right ams at the same time
+    LEFT_AND_RIGHT,  //show left and right ams at the same time
+    LEFT_AND_RIGHT_DYNAMIC  //show left and right when use_dynamic_switch enabled
 };
 
 struct TrayData
@@ -323,7 +324,6 @@ public:
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
     void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch = false);
-    void         update_title(MachineObject* obj);
     void         update_rack_select(MachineObject* obj, bool use_dynamic_switch);
     void         update_amsmappping_tips(bool show);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
@@ -354,6 +354,10 @@ public:
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
 
 private:
+    // update
+    void update_title(MachineObject* obj);
+    void update_ams_tips(MachineObject* obj);
+
     // events
     void OnNozzleMappingSelected(wxCommandEvent& evt);
     void update_flush_waste(MachineObject* obj);
