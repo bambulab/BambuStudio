@@ -3074,8 +3074,8 @@ void PartPlate::update_slice_result_valid_state(bool valid)
         m_slice_percent = 100.0f;
     else {
         m_slice_percent = -1.0f;
-        // Clear helio results when slice becomes invalid
-        clear_helio_result();
+        // helio results cleared in restart_background_process() when slicing actually starts,
+        // not here, to preserve results on plates that are not being resliced.
     }
 }
 

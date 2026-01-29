@@ -8100,6 +8100,9 @@ bool Plater::priv::restart_background_process(unsigned int state)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: print is valid, try to start it now")%__LINE__;
         // The print is valid and it can be started.
         if (this->background_process.start()) {
+            if (auto* plate = this->background_process.get_current_plate()) {
+                plate->clear_helio_result();
+            }
             if (!show_warning_dialog)
                 on_slicing_began();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
@@ -8110,6 +8113,9 @@ bool Plater::priv::restart_background_process(unsigned int state)
         PartPlate* cur_plate = background_process.get_current_plate();
         if (cur_plate->is_slice_result_valid() && ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0)) {
             if (this->background_process.start()) {
+                if (auto* plate = this->background_process.get_current_plate()) {
+                    plate->clear_helio_result();
+                }
                 if (!show_warning_dialog)
                     on_slicing_began();
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
@@ -18009,7 +18015,7 @@ void Plater::reslice()
         p->preview->get_canvas3d()->on_back_slice_begin();
         this->SetDropTarget(nullptr);
 
-        // clear helio cache (per-plate results are cleared in update_slice_result_valid_state)
+        // clear helio cache (per-plate results are cleared in restart_background_process when slicing starts)
         p->helio_background_process.clear_helio_file_cache();
     }
 
