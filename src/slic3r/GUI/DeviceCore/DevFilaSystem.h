@@ -10,6 +10,7 @@
 #include <optional>
 #include <memory>
 #include <unordered_set>
+#include <set>
 
 #include <wx/string.h>
 #include <wx/colour.h>
@@ -165,8 +166,8 @@ public:
     };
 
 public:
-    DevAms(const std::string& ams_id, int extruder_id, AmsType type);
-    DevAms(const std::string& ams_id, int nozzle_id, int type);
+    DevAms(const std::string& ams_id, const std::set<int>& binded_extruder_set, AmsType type);
+    DevAms(const std::string& ams_id, const std::set<int>& binded_extruder_set, int type);
     ~DevAms();
 
 public:
@@ -186,7 +187,9 @@ public:
     const std::map<std::string, DevAmsTray*>& GetTrays() const { return m_trays; }
 
     // installed on the extruder
-    int   GetExtruderId() const { return m_ext_id; }
+    int GetBindedExtruderCount() const { return m_binded_extruder_set.size(); }
+    std::optional<int> GetUniqueBindedExtruderId() const;
+    std::set<int> GetBindedExtruderSet() const { return m_binded_extruder_set; }; // vector if filament switcher on
 
     // temperature and humidity
     float GetCurrentTemperature() const { return m_current_temperature; }
@@ -215,8 +218,12 @@ public:
 private:
     AmsType       m_ams_type = AmsType::AMS;
     std::string   m_ams_id;
-    int           m_ext_id;//extruder id
     bool          m_exist = false;
+
+    // bind extruder id set
+    // normally, one ams binds to one extruder
+    // for filament switcher, one ams may bind to multiple extruders
+    std::set<int> m_binded_extruder_set;
 
     // slots and trays
     std::map<std::string, DevAmsTray*> m_trays;//id -> DevAmsTray*

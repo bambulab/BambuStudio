@@ -57,7 +57,8 @@ private:
     bool m_enable_manual_nozzle_pick = true;
 
     // GUI
-    wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle{nullptr};
+    wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle_l{nullptr};
+    wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle_r{nullptr};
     std::unordered_map<int, wgtDeviceNozzleRackNozzleItem *> m_nozzle_items; // from 0 to 5
 };
 

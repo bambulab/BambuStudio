@@ -57,8 +57,10 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->m_ams_drying = ams->AmsIsDrying();
     this->current_temperature = ams->GetCurrentTemperature();
     this->ams_type = AMSModel(ams->GetAmsType());
+    if (auto extruder_opt = ams->GetUniqueBindedExtruderId(); extruder_opt.has_value()) {
+        this->nozzle_id = extruder_opt.value(); // TODO: filament switcher support
+    };
 
-    nozzle_id = ams->GetExtruderId();
     cans.clear();
     for (int i = 0; i < ams->GetTrays().size(); i++) {
         auto    it = ams->GetTrays().find(std::to_string(i));
