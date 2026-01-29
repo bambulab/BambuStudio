@@ -3027,7 +3027,6 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     if (obj) {
         obj->command_get_version();
         obj->command_request_push_all();
-        obj->get_nozzle_mapping_result()->Clear();
         obj->get_nozzle_mapping_result()->SetPlater(m_plater);
         if (!dev->get_selected_machine()) {
             dev->set_selected_machine(m_printer_last_select);
@@ -3044,6 +3043,7 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 
 
     //reset print status
+    clear_nozzle_mapping();
     m_text_printer_msg->Clear();
     m_statictext_ams_msg->Clear();
     show_status(PrintDialogStatus::PrintStatusInit);
@@ -4887,6 +4887,7 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
 
                 // STUDIO-15239
                 // request nozzle mapping result if right extruder nozzles used in slicing
+                clear_nozzle_mapping();
                 obj_->get_nozzle_mapping_result()->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result,
                                                                             m_checkbox_list["flow_cali"]->getValueInt(),
                                                                             m_pa_value_switch->GetValue() ? 0 : 1);
@@ -4929,6 +4930,7 @@ void SelectMachineDialog::on_pa_value_switch_changed(wxCommandEvent &event)
     }
     event.Skip();
 
+    clear_nozzle_mapping();
     obj_->get_nozzle_mapping_result()->CtrlGetAutoNozzleMappingV0(m_plater, m_ams_mapping_result,
                                                                 m_checkbox_list["flow_cali"]->getValueInt(),
                                                                 m_pa_value_switch->GetValue() ? 0 : 1);
@@ -5520,6 +5522,14 @@ std::optional<FilamentInfo> SelectMachineDialog::get_mapped_filament_info(int fi
 
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": not found for logic id " << fila_logic_id;
     return std::nullopt;
+}
+
+void SelectMachineDialog::clear_nozzle_mapping()
+{
+    m_nozzle_mapping_result.clear();
+    if (auto obj_ = get_current_machine()) {
+        obj_->get_nozzle_mapping_result()->Clear();
+    }
 }
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)
