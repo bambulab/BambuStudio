@@ -1642,8 +1642,15 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         return false;
     }
     if (machine_print_name != target_model_id) {
-        MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
-                                            "Are you sure to continue syncing?"), _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
+        wxString msg = wxString::Format(_L("Do you want to sync the preset printer with the connected printer, Bambulab %s \n%s\n%s"), wxString::FromUTF8(machine_print_name),
+                                        wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                                         wxString::Format(_L("Current connected printer (Device page): Bambu %s (%s)"), wxString::FromUTF8(machine_print_name),
+                                                                          wxString::FromUTF8(obj->get_dev_name()))),
+                                        wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                                         wxString::Format(_L("Current printer preset (Prepare page): Bambu %s"), wxString::FromUTF8(target_model_id))));
+        MessageDialog dlg(this->plater, msg, _L("Sync printer information"), wxYES | wxNO, wxEmptyString, wxEmptyString, nullptr, true);
+        dlg.SetButtonLabel(wxID_YES, _L("Sync now"));
+        dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
         if (dlg.ShowModal() == wxID_NO) {
             return false;
         }
