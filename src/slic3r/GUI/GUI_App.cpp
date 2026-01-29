@@ -2500,6 +2500,9 @@ void GUI_App::init_app_config()
             if (!boost::filesystem::exists(data_dir_path))
                 boost::filesystem::create_directory(data_dir_path);
             set_data_dir(data_dir);
+            boost::filesystem::path log_dir_path(data_dir_path / "log");
+            if (!boost::filesystem::exists(log_dir_path))
+                boost::filesystem::create_directory(log_dir_path);
 #if defined(__WINDOWS__)
             // Change current dirtory of application
             _chdir(encode_path((data_dir + "/log").c_str()).c_str());
