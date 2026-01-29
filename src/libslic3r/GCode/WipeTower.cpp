@@ -439,11 +439,11 @@ Polylines remove_points_from_polygon(const Polygon &polygon, const std::vector<V
     std::vector<IntersectionInfo> inter_info;
     auto                          polygon_box  = get_extents(polygon);
     //Point                         anchor_point = /*is_left ? Point{polygon_box.max[0], polygon_box.min[1]} :*/ polygon_box.min; // rd:ld
+    Point              anchor_point = Point{polygon_box.min[0], polygon_box.center()[1]};//for next reconnect
     std::vector<Vec2f>            points;
     {
         points.reserve(polygon.points.size());
-        //int idx = polygon.closest_point_index(anchor_point);
-        int      idx      = 0;
+        int idx = polygon.closest_point_index(anchor_point);
         Polyline tmp_poly = polygon.split_at_index(idx);
         for (auto &p : tmp_poly) points.push_back(unscale(p).cast<float>());
         points.pop_back();
