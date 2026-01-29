@@ -195,7 +195,7 @@ jobs:
 
       # - name: Deploy Ubuntu release
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   uses: WebFreak001/deploy-nightly@v3.2.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
       #     release_id: 137995723
@@ -206,7 +206,7 @@ jobs:
 
       # - name: Deploy orca_custom_preset_tests
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   uses: WebFreak001/deploy-nightly@v3.2.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
       #     release_id: 137995723
