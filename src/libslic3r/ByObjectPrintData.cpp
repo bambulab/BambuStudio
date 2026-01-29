@@ -127,9 +127,9 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
                                               FilamentGroupUtils::update_used_filament_values(print->config().filament_volume_map.values, grouping_result->get_volume_map(),
                                                                                               grouping_result->get_used_filaments()),
                                               grouping_result->get_nozzle_map());
+    } else {
+        print->update_to_config_by_nozzle_group_result(*grouping_result);
     }
-    print->update_to_config_by_nozzle_group_result(*grouping_result);
-
     return data;
 }
 

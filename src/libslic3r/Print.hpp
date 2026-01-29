@@ -933,7 +933,7 @@ public:
 
     // 判断是否会出现耗材动态映射
     bool  is_dynamic_group_reorder() const{
-        return config().enable_filament_dynamic_map && config().filament_map_mode == FilamentMapMode::fmmAutoForFlush;
+        return config().enable_filament_dynamic_map && config().filament_map_mode == FilamentMapMode::fmmAutoForFlush && config().nozzle_diameter.size()>1;
     }
 
     const std::optional<ByObjectPrintData>& sequential_print_data() const { return m_sequential_print_data; }

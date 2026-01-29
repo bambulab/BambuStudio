@@ -3422,6 +3422,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     //no need to parse extruder_ams_count
     std::vector<std::string> extruder_ams_count = std::move(config.option<ConfigOptionStrings>("extruder_ams_count", true)->values);
     config.erase("extruder_ams_count");
+    config.erase("enable_filament_dynamic_map");
     if (this->extruder_ams_counts.empty())
         this->extruder_ams_counts = get_extruder_ams_count(extruder_ams_count);
 
