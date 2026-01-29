@@ -1326,6 +1326,8 @@ void AmsMapingPopup::update(MachineObject* obj,
         }
         else if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC)
         {
+            m_left_marea_panel->Enable(true);
+            m_left_extra_slot->Enable(true);
             m_right_marea_panel->Enable(true);
             m_right_extra_slot->Enable(true);
         }

@@ -546,6 +546,9 @@ private:
     std::optional<FilamentInfo> get_slicing_filament_info(int fila_logic_id) const;
     std::optional<FilamentInfo> get_mapped_filament_info(int fila_logic_id) const;
 
+    // nozzle mapping
+    void clear_nozzle_mapping();
+
     /* update ams backup*/
     void update_ams_backup(MachineObject* obj_);
 
