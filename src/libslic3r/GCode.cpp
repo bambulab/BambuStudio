@@ -6485,7 +6485,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         bool use_short_travel_accel = false;
         if (!this->on_first_layer()) {
             // Check if short travel acceleration is enabled (value > 0)
-            unsigned int extruder_id = m_writer.filament()->id();
+            unsigned int extruder_id = m_writer.filament()->extruder_id();
             auto& short_accel = m_writer.get_travel_short_acceleration();
             if (extruder_id < short_accel.size() && short_accel[extruder_id] > 0) {
                 // Use short travel acceleration for external perimeters with short travel distance
