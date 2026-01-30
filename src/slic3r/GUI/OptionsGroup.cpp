@@ -805,7 +805,23 @@ void ConfigOptionsGroup::reload_config()
         if ((opt_id == "bed_temperature" || opt_id == "bed_temperature_initial_layer") && bed_type_field != nullptr)
             opt_index = default_bed_type;
 #endif
-		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
+        if (option.gui_type == ConfigOptionDef::GUIType::multi_variant) {
+            Field* field = get_field(opt_id);
+            if (field) {
+                auto *multi_variant = dynamic_cast<MultiVariantTextCtrl*>(field);
+                if (multi_variant) {
+                    for (auto& variant_ctrl : multi_variant->m_text_ctrls) {
+                        int actual_opt_index = variant_ctrl.opt_index;
+                        Field *text_field = variant_ctrl.text_ctrl.get();
+                        if (text_field) {
+                            text_field->set_value(config_value(opt_key, actual_opt_index, option.gui_flags == "serialized"), false);
+                        }
+                    }
+                }
+            }
+        } else {
+            this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
+        }
 	}
 }
 
