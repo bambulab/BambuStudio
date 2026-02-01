@@ -37,6 +37,7 @@
 #include "GUI_ObjectList.hpp"
 #include "Tab.hpp"
 #include "format.hpp"
+#include "../Utils/HelioDragon.hpp"
 #include <imgui/imgui_internal.h>
 #include <wx/dcgraph.h>
 using boost::optional;
@@ -3073,7 +3074,35 @@ void PartPlate::update_slice_result_valid_state(bool valid)
         m_slice_percent = 100.0f;
     else {
         m_slice_percent = -1.0f;
+        // Clear helio results when slice becomes invalid
+        clear_helio_result();
     }
+}
+
+// Helio result per-plate storage
+const HelioPlateResult* PartPlate::get_helio_result() const
+{
+    return m_helio_result.get();
+}
+
+void PartPlate::set_helio_result(const HelioPlateResult& result)
+{
+    if (!m_helio_result) {
+        m_helio_result = std::make_unique<HelioPlateResult>();
+    }
+    *m_helio_result = result;
+}
+
+void PartPlate::clear_helio_result()
+{
+    if (m_helio_result) {
+        m_helio_result->clear();
+    }
+}
+
+bool PartPlate::has_helio_result() const
+{
+    return m_helio_result && m_helio_result->has_result();
 }
 
 //update current slice context into backgroud slicing process
