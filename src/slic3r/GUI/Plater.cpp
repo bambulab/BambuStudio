@@ -10209,10 +10209,10 @@ public:
         bool is_dark_mode = wxGetApp().dark_mode();
         wxColour text_color = wxGetApp().get_label_clr_default();
         
-        // Warning header with orange styling
-        wxColour warning_color = wxColour("#FF6F00");
-        wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
-        
+        // Warning header with purple styling (Helio brand)
+        wxColour warning_color = wxColour("#AF7CFF");
+        wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
         StaticBox* warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
                                                wxSize(wxWindowBase::FromDIP(470, this), -1));
         warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
@@ -10220,12 +10220,12 @@ public:
         warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
         warning_box->SetBorderWidth(2);
         warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
-        
+
         wxBoxSizer* warning_sizer = new wxBoxSizer(wxVERTICAL);
         warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
-        
+
         Label* warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Multiple Filament Materials Detected"));
-        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
         warning_title->SetForegroundColour(warning_title_color);
         warning_sizer->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
         warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
@@ -10344,12 +10344,12 @@ public:
         wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
         option1_button_sizer->AddStretchSpacer();
         
-        StateColor btn_bg_orange(std::pair<wxColour, int>(wxColour(200, 100, 50), StateColor::Pressed),
-                                 std::pair<wxColour, int>(wxColour(255, 140, 80), StateColor::Hovered),
-                                 std::pair<wxColour, int>(wxColour(230, 120, 60), StateColor::Normal));
-        
+        StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                 std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                 std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
         Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
-        proceed_button->SetBackgroundColor(btn_bg_orange);
+        proceed_button->SetBackgroundColor(btn_bg_purple);
         proceed_button->SetBorderColor(*wxWHITE);
         proceed_button->SetTextColor(wxColour("#FFFFFE"));
         proceed_button->SetFont(Label::Body_12);
@@ -10491,10 +10491,10 @@ public:
         bool is_dark_mode = wxGetApp().dark_mode();
         wxColour text_color = wxGetApp().get_label_clr_default();
         
-        // Warning header with orange styling
-        wxColour warning_color = wxColour("#FF6F00");
-        wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
-        
+        // Warning header with purple styling (Helio brand)
+        wxColour warning_color = wxColour("#AF7CFF");
+        wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
         StaticBox* warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
                                                wxSize(wxWindowBase::FromDIP(470, this), -1));
         warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
@@ -10502,12 +10502,12 @@ public:
         warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
         warning_box->SetBorderWidth(2);
         warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
-        
+
         wxBoxSizer* warning_sizer = new wxBoxSizer(wxVERTICAL);
         warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
-        
+
         Label* warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Unsupported Materials Detected"));
-        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
         warning_title->SetForegroundColour(warning_title_color);
         warning_sizer->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
         warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
@@ -10596,12 +10596,12 @@ public:
         wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
         option1_button_sizer->AddStretchSpacer();
         
-        StateColor btn_bg_orange(std::pair<wxColour, int>(wxColour(200, 100, 50), StateColor::Pressed),
-                                 std::pair<wxColour, int>(wxColour(255, 140, 80), StateColor::Hovered),
-                                 std::pair<wxColour, int>(wxColour(230, 120, 60), StateColor::Normal));
-        
+        StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                 std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                 std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
         Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
-        proceed_button->SetBackgroundColor(btn_bg_orange);
+        proceed_button->SetBackgroundColor(btn_bg_purple);
         proceed_button->SetBorderColor(*wxWHITE);
         proceed_button->SetTextColor(wxColour("#FFFFFE"));
         proceed_button->SetFont(Label::Body_12);
@@ -10617,13 +10617,13 @@ public:
             EndModal(wxID_OK);
         });
         option1_button_sizer->Add(proceed_button, 0);
-        
+
         option1_sizer->Add(option1_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
         option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
-        
+
         option1_box->SetSizer(option1_sizer);
         main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
-        
+
         // Option 2: Go back (recommended)
         wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
         wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
@@ -10818,10 +10818,10 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                     bool is_dark_mode = wxGetApp().dark_mode();
                     wxColour text_color = wxGetApp().get_label_clr_default();
                     
-                    // Warning header with orange styling
-                    wxColour warning_color = wxColour("#FF6F00");
-                    wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
-                    
+                    // Warning header with purple styling (Helio brand)
+                    wxColour warning_color = wxColour("#AF7CFF");
+                    wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
                     m_warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
                                                    wxSize(wxWindowBase::FromDIP(470, this), -1));
                     m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
@@ -10829,12 +10829,12 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                     m_warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
                     m_warning_box->SetBorderWidth(2);
                     m_warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
-                    
+
                     wxBoxSizer *warning_sizer = new wxBoxSizer(wxVERTICAL);
                     warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
-                    
+
                     m_warning_title = new Label(m_warning_box, Label::Head_16, _L("⚠ Unsupported Printer Detected"));
-                    wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+                    wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
                     m_warning_title->SetForegroundColour(warning_title_color);
                     warning_sizer->Add(m_warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
                     warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
@@ -10902,12 +10902,12 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                     wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
                     option1_button_sizer->AddStretchSpacer();
                     
-                    StateColor btn_bg_orange(std::pair<wxColour, int>(wxColour(200, 100, 50), StateColor::Pressed),
-                                             std::pair<wxColour, int>(wxColour(255, 140, 80), StateColor::Hovered),
-                                             std::pair<wxColour, int>(wxColour(230, 120, 60), StateColor::Normal));
-                    
+                    StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                             std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                             std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
                     Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
-                    proceed_button->SetBackgroundColor(btn_bg_orange);
+                    proceed_button->SetBackgroundColor(btn_bg_purple);
                     proceed_button->SetBorderColor(*wxWHITE);
                     proceed_button->SetTextColor(wxColour("#FFFFFE"));
                     proceed_button->SetFont(Label::Body_12);
@@ -11362,10 +11362,10 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                         bool is_dark_mode = wxGetApp().dark_mode();
                         wxColour text_color = wxGetApp().get_label_clr_default();
                         
-                        // Warning header with orange styling
-                        wxColour warning_color = wxColour("#FF6F00");
-                        wxColour warning_bg = is_dark_mode ? wxColour(70, 55, 35) : wxColour(255, 245, 200);
-                        
+                        // Warning header with purple styling (Helio brand)
+                        wxColour warning_color = wxColour("#AF7CFF");
+                        wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
                         m_warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
                                                        wxSize(wxWindowBase::FromDIP(470, this), -1));
                         m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
@@ -11373,12 +11373,12 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                         m_warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
                         m_warning_box->SetBorderWidth(2);
                         m_warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
-                        
+
                         wxBoxSizer *warning_sizer = new wxBoxSizer(wxVERTICAL);
                         warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
-                        
+
                         m_warning_title = new Label(m_warning_box, Label::Head_16, _L("⚠ Unsupported Material Detected"));
-                        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(180, 90, 0);
+                        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
                         m_warning_title->SetForegroundColour(warning_title_color);
                         warning_sizer->Add(m_warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
                         warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
@@ -11446,12 +11446,12 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                         wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
                         option1_button_sizer->AddStretchSpacer();
                         
-                        StateColor btn_bg_orange(std::pair<wxColour, int>(wxColour(200, 100, 50), StateColor::Pressed),
-                                                 std::pair<wxColour, int>(wxColour(255, 140, 80), StateColor::Hovered),
-                                                 std::pair<wxColour, int>(wxColour(230, 120, 60), StateColor::Normal));
-                        
+                        StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                                 std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                                 std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
                         Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
-                        proceed_button->SetBackgroundColor(btn_bg_orange);
+                        proceed_button->SetBackgroundColor(btn_bg_purple);
                         proceed_button->SetBorderColor(*wxWHITE);
                         proceed_button->SetTextColor(wxColour("#FFFFFE"));
                         proceed_button->SetFont(Label::Body_12);
