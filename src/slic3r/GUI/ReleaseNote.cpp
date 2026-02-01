@@ -32,6 +32,15 @@
 
 namespace Slic3r { namespace GUI {
 
+// Helio dark palette constants (for ExpandCenterDialog - Welcome to Helio Additive)
+namespace {
+    const wxColour HELIO_BG_BASE(7, 9, 12);       // #07090C
+    const wxColour HELIO_CARD_BG(14, 19, 32);     // #0E1320
+    const wxColour HELIO_BORDER(255, 255, 255, 25); // rgba(255,255,255,0.10)
+    const wxColour HELIO_TEXT(238, 242, 255);     // #EEF2FF
+    const wxColour HELIO_MUTED(168, 176, 192);    // #A8B0C0
+}
+
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CONFIRM, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_CANCEL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_SECONDARY_CHECK_DONE, wxCommandEvent);
@@ -2287,109 +2296,205 @@ void SendFailedConfirm::on_dpi_changed(const wxRect &suggested_rect) {}
 ExpandCenterDialog::ExpandCenterDialog(wxWindow* parent /*= nullptr*/) :
     DPIDialog(static_cast<wxWindow*>(wxGetApp().mainframe),
         wxID_ANY,
-        _L("Third-party Extension"),
+        _L("Welcome to Helio Additive"),
         wxDefaultPosition,
         wxDefaultSize,
         wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
-    SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+    // Set Helio icon (not BambuStudio icon)
+    wxBitmap bmp = create_scaled_bitmap("helio_icon", this, 32);
+    wxIcon icon;
+    icon.CopyFromBitmap(bmp);
+    SetIcon(icon);
 
-    SetBackgroundColour(*wxWHITE);
+    // Use Helio dark palette
+    SetBackgroundColour(HELIO_BG_BASE);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
     wxPanel* line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 1), wxTAB_TRAVERSAL);
-    line->SetBackgroundColour(wxColour(166, 169, 170));
+    line->SetBackgroundColour(HELIO_BORDER);
 
+    // Banner image (restored from original)
     auto sm = create_scaled_bitmap("expand_helio", nullptr, 144);
-    auto expand_image = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(480), FromDIP(144)));
-    expand_image->SetMinSize(wxSize(FromDIP(450), FromDIP(144)));
-    expand_image->SetMaxSize(wxSize(FromDIP(450), FromDIP(144)));
+    auto expand_image = new wxStaticBitmap(this, wxID_ANY, sm, wxDefaultPosition, wxSize(FromDIP(380), FromDIP(144)));
+    expand_image->SetMinSize(wxSize(FromDIP(380), FromDIP(144)));
+    expand_image->SetMaxSize(wxSize(FromDIP(380), FromDIP(144)));
 
-    auto expand_name = new Label(this, Label::Head_16, wxString("Helio Additive"));
-    expand_name->SetForegroundColour("#262E30");
-    wxFont bold_font = expand_name->GetFont();
-    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
-    expand_name->SetFont(bold_font);
+    // Content panel with dark background
+    wxPanel* content_panel = new wxPanel(this);
+    content_panel->SetBackgroundColour(HELIO_BG_BASE);
+    wxBoxSizer* content_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto expand_description= new Label(this, _L("Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"));
-    expand_description->SetMinSize(wxSize(FromDIP(450), -1));
-    expand_description->SetMaxSize(wxSize(FromDIP(450), -1));
-    expand_description->Wrap(FromDIP(450));
-    expand_description->SetForegroundColour("#5C5C5C");
+    // Main heading
+    auto main_heading = new Label(content_panel, Label::Head_20, _L("Know Your Print Will Work — Before You Hit Print"));
+    wxFont heading_font = main_heading->GetFont();
+    heading_font.SetWeight(wxFONTWEIGHT_BOLD);
+    main_heading->SetFont(heading_font);
+    main_heading->SetForegroundColour(HELIO_TEXT);
+    
+    // Subheading
+    auto subheading = new Label(content_panel, Label::Body_14, _L("Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."));
+    subheading->SetForegroundColour(HELIO_MUTED);
+    
+    // Two feature cards side by side
+    wxBoxSizer* cards_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    StateColor btn_bg_green = StateColor(std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered), std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
-    StateColor btn_bg_white(std::pair<wxColour, int>(wxColour(206, 206, 206), StateColor::Pressed), std::pair<wxColour, int>(wxColour(238, 238, 238), StateColor::Hovered),
-        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    // Tooltip text for cards
+    wxString tooltip_text = _L("Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology.");
 
-    Button* m_button_uninstall = new Button(this, _L("Uninstall the Helio Additive extension"));
-    m_button_uninstall->SetBackgroundColor(btn_bg_white);
-    m_button_uninstall->SetBorderColor(*wxWHITE);
-    m_button_uninstall->SetBorderColor(wxColour(38, 46, 48));
-    m_button_uninstall->SetTextColor(wxColour("#6B6B6B"));
-    m_button_uninstall->SetFont(Label::Head_13);
-    m_button_uninstall->SetSize(wxSize(-1, FromDIP(28)));
-    m_button_uninstall->SetMinSize(wxSize(-1, FromDIP(28)));
-    m_button_uninstall->SetCornerRadius(FromDIP(8));
-    m_button_uninstall->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
-        wxGetApp().app_config->set_bool("helio_enable", false);
-        if (wxGetApp().getAgent()) {
-            json j;
-            j["operate"] = "switch";
-            j["content"] = "disable";
-            wxGetApp().getAgent()->track_event("helio_state", j.dump());
-        }
-        report_consent_unstall();
+    // Feature Card 1 - Fewer Failed Prints
+    wxPanel* card1 = new wxPanel(content_panel);
+    card1->SetBackgroundColour(HELIO_CARD_BG);
+    card1->SetMinSize(wxSize(FromDIP(220), FromDIP(190)));
+    card1->SetToolTip(tooltip_text);
+    wxBoxSizer* card1_sizer = new wxBoxSizer(wxVERTICAL);
+    auto check_icon = new wxStaticBitmap(card1, wxID_ANY, create_scaled_bitmap("helio_feature_shield_check", card1, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
+    check_icon->SetToolTip(tooltip_text);
+    auto card1_title = new Label(card1, Label::Body_16, _L("Fewer Failed Prints"));
+    card1_title->SetForegroundColour(HELIO_TEXT);
+    wxFont card_title_font = card1_title->GetFont();
+    card_title_font.SetWeight(wxFONTWEIGHT_BOLD);
+    card1_title->SetFont(card_title_font);
+    card1_title->SetToolTip(tooltip_text);
+    auto card1_desc = new Label(card1, Label::Body_12, _L("Catch issues before printing and improve first-try success."));
+    card1_desc->SetForegroundColour(HELIO_MUTED);
+    card1_desc->Wrap(FromDIP(190));
+    card1_desc->SetToolTip(tooltip_text);
+    card1_sizer->Add(check_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(20));
+    card1_sizer->Add(card1_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(12));
+    card1_sizer->Add(card1_desc, 0, wxALIGN_CENTER | wxALL, FromDIP(15));
+    card1->SetSizer(card1_sizer);
 
-        /*hide helio on main windows*/
-        if (wxGetApp().mainframe->expand_program_holder) {
-            wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, false);
-            wxGetApp().mainframe->Layout();
-        }
+    // Feature Card 2 - Faster Prints, Better Quality
+    wxPanel* card2 = new wxPanel(content_panel);
+    card2->SetBackgroundColour(HELIO_CARD_BG);
+    card2->SetMinSize(wxSize(FromDIP(220), FromDIP(190)));
+    card2->SetToolTip(tooltip_text);
+    wxBoxSizer* card2_sizer = new wxBoxSizer(wxVERTICAL);
+    auto speed_icon = new wxStaticBitmap(card2, wxID_ANY, create_scaled_bitmap("helio_feature_speed", card2, 48), wxDefaultPosition, wxSize(FromDIP(48), FromDIP(48)), 0);
+    speed_icon->SetToolTip(tooltip_text);
+    auto card2_title = new Label(card2, Label::Body_16, _L("Faster Prints, Better Quality"));
+    card2_title->SetForegroundColour(HELIO_TEXT);
+    card2_title->SetFont(card_title_font);
+    card2_title->SetToolTip(tooltip_text);
+    auto card2_desc = new Label(card2, Label::Body_12, _L("Automatically tune speed and extrusion without manual tweaking."));
+    card2_desc->SetForegroundColour(HELIO_MUTED);
+    card2_desc->Wrap(FromDIP(190));
+    card2_desc->SetToolTip(tooltip_text);
+    card2_sizer->Add(speed_icon, 0, wxALIGN_CENTER | wxTOP, FromDIP(20));
+    card2_sizer->Add(card2_title, 0, wxALIGN_CENTER | wxTOP, FromDIP(12));
+    card2_sizer->Add(card2_desc, 0, wxALIGN_CENTER | wxALL, FromDIP(15));
+    card2->SetSizer(card2_sizer);
 
-        EndModal(wxID_NO);
-    });
+    cards_sizer->Add(card1, 1, wxEXPAND | wxRIGHT, FromDIP(12));
+    cards_sizer->Add(card2, 1, wxEXPAND, 0);
 
-    if (wxGetApp().app_config->get("helio_enable") == "true") {
-        m_button_uninstall->Show();
-    }
-    else {
-        m_button_uninstall->Hide();
-    }
+    content_sizer->Add(main_heading, 0, wxALIGN_LEFT | wxTOP, FromDIP(20));
+    content_sizer->Add(subheading, 0, wxALIGN_LEFT | wxTOP, FromDIP(8));
+    content_sizer->Add(cards_sizer, 0, wxEXPAND | wxTOP, FromDIP(24));
+    content_panel->SetSizer(content_sizer);
+    content_panel->Layout();
 
+    // Enable Helio Additive button (green)
+    StateColor btn_bg_green = StateColor(
+        std::pair<wxColour, int>(wxColour(0, 150, 50), StateColor::Hovered), 
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
     wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Button* m_button_launch = new Button(this, _L("Use Immediately"));
-    m_button_launch->SetBackgroundColor(btn_bg_green);
-    m_button_launch->SetBorderColor(*wxWHITE);
-    m_button_launch->SetTextColor(wxColour(255, 255, 254));
-    m_button_launch->SetFont(Label::Head_13);
-    m_button_launch->SetSize(wxSize(FromDIP(58), FromDIP(28)));
-    m_button_launch->SetMinSize(wxSize(FromDIP(58), FromDIP(29)));
-    m_button_launch->SetCornerRadius(FromDIP(12));
-    m_button_launch->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_open_expand, this);
+    Button* m_button_activate = new Button(this, _L("Enable Helio Additive"));
+    m_button_activate->SetBackgroundColor(btn_bg_green);
+    m_button_activate->SetBorderColor(wxColour(0, 174, 66));
+    // White text for all states
+    StateColor activate_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
+    m_button_activate->SetTextColor(activate_btn_text);
+    m_button_activate->SetTextColorNormal(wxColour(255, 255, 254));
+    m_button_activate->SetFont(Label::Body_14);
+    m_button_activate->SetSize(wxSize(FromDIP(300), FromDIP(36)));
+    m_button_activate->SetMinSize(wxSize(FromDIP(300), FromDIP(36)));
+    m_button_activate->SetCornerRadius(FromDIP(4));
+    m_button_activate->SetToolTip(tooltip_text);
+    m_button_activate->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_open_expand, this);
     button_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    button_sizer->Add(m_button_launch, 0, wxRIGHT, FromDIP(40));
+    button_sizer->Add(m_button_activate, 0, wxALIGN_CENTER, 0);
+    button_sizer->Add(0, 0, 1, wxEXPAND, 0);
     
-    main_sizer->Add(line, 0, wxEXPAND, 0);
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(26));
-    main_sizer->Add(expand_image, 0, wxLEFT|wxRIGHT, FromDIP(40));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
-    main_sizer->Add(expand_name, 0, wxLEFT, FromDIP(40));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
-    main_sizer->Add(expand_description, 0, wxLEFT, FromDIP(40));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    main_sizer->Add(m_button_uninstall, 0, wxLEFT, FromDIP(40));
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
-    main_sizer->Add(button_sizer, 0, wxEXPAND, 0);
-    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(38));
+    // Uninstall button - only shown when Helio is already enabled
+    wxBoxSizer* uninstall_sizer = new wxBoxSizer(wxHORIZONTAL);
+    StateColor btn_bg_uninstall(std::pair<wxColour, int>(wxColour(100, 100, 105), StateColor::Hovered),
+                                std::pair<wxColour, int>(wxColour(80, 80, 85), StateColor::Normal));
+    Button* m_button_uninstall = new Button(this, _L("Uninstall"));
+    m_button_uninstall->SetBackgroundColor(btn_bg_uninstall);
+    m_button_uninstall->SetBorderColor(wxColour(130, 130, 135));
+    // Use StateColor for text with bright white for all states
+    StateColor uninstall_btn_text(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Hovered),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Pressed),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Enabled),
+                                  std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Normal));
+    m_button_uninstall->SetTextColor(uninstall_btn_text);
+    m_button_uninstall->SetTextColorNormal(wxColour(255, 255, 254));
+    m_button_uninstall->SetFont(Label::Body_13);
+    m_button_uninstall->SetSize(wxSize(FromDIP(120), FromDIP(28)));
+    m_button_uninstall->SetMinSize(wxSize(FromDIP(120), FromDIP(28)));
+    m_button_uninstall->SetCornerRadius(FromDIP(4));
+    m_button_uninstall->Bind(wxEVT_LEFT_DOWN, &ExpandCenterDialog::on_uninstall, this);
+    uninstall_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    uninstall_sizer->Add(m_button_uninstall, 0, wxALIGN_CENTER, 0);
+    uninstall_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    // Only show uninstall button if Helio is already enabled
+    bool helio_enabled = wxGetApp().app_config->get("helio_enable") == "true";
+    if (!helio_enabled) {
+        m_button_uninstall->Hide();
+    }
+    
+    // Microcopy under button with info tooltip
+    wxBoxSizer* microcopy_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto microcopy_text = new Label(this, Label::Body_12, _L("After slicing, click the Helio button to analyze your print."));
+    microcopy_text->SetForegroundColour(wxColour(160, 160, 160));
+    
+    // Info icon with tooltip
+    auto info_icon = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("more_info", this, 14), wxDefaultPosition, wxSize(FromDIP(14), FromDIP(14)), 0);
+    info_icon->SetToolTip(_L("Helio Additive does not change your printer's firmware."));
+    microcopy_text->SetToolTip(_L("Helio Additive does not change your printer's firmware."));
+    
+    microcopy_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    microcopy_sizer->Add(microcopy_text, 0, wxALIGN_CENTER_VERTICAL, 0);
+    microcopy_sizer->Add(info_icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
+    microcopy_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    
+    // Footer text
+    auto footer_text = new Label(this, Label::Body_12, _L("Designed to help prints succeed — even if you're new to 3D printing."));
+    footer_text->SetForegroundColour(wxColour(180, 180, 180));
+    wxBoxSizer* footer_sizer = new wxBoxSizer(wxHORIZONTAL);
+    footer_sizer->Add(0, 0, 1, wxEXPAND, 0);
+    footer_sizer->Add(footer_text, 0, wxALIGN_CENTER, 0);
+    footer_sizer->Add(0, 0, 1, wxEXPAND, 0);
 
-    wxGetApp().UpdateDlgDarkUI(this);
+    main_sizer->Add(line, 0, wxEXPAND, 0);
+    main_sizer->Add(expand_image, 0, wxALIGN_CENTER | wxTOP, FromDIP(10));
+    main_sizer->Add(content_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+    main_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    if (helio_enabled) {
+        main_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
+        main_sizer->Add(uninstall_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    }
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(8));
+    main_sizer->Add(microcopy_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+    main_sizer->Add(footer_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(20));
+    main_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
 
     SetSizer(main_sizer);
     Layout();
     Fit();
+    CentreOnParent();
 }
 
 void ExpandCenterDialog::report_consent_unstall()
@@ -2435,6 +2540,41 @@ void ExpandCenterDialog::on_open_expand(const wxMouseEvent& evt)
     EndModal(wxID_CLOSE);
     HelioStatementDialog dlg;
     auto res = dlg.ShowModal();
+}
+
+void ExpandCenterDialog::on_uninstall(const wxMouseEvent& evt)
+{
+    // Confirm uninstall
+    MessageDialog confirm_dlg(this, 
+        _L("Are you sure you want to uninstall Helio Additive? This will disable all Helio features."),
+        _L("Uninstall Helio Additive"),
+        wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+    
+    if (confirm_dlg.ShowModal() != wxID_YES) {
+        return;
+    }
+    
+    // Disable Helio
+    wxGetApp().app_config->set_bool("helio_enable", false);
+    
+    // Report consent withdrawal
+    report_consent_unstall();
+    
+    // Track the event
+    if (wxGetApp().getAgent()) {
+        json j;
+        j["operate"] = "switch";
+        j["content"] = "disable";
+        wxGetApp().getAgent()->track_event("helio_state", j.dump());
+    }
+    
+    // Hide the Helio button in main window
+    if (wxGetApp().mainframe->expand_program_holder) {
+        wxGetApp().mainframe->expand_program_holder->ShowExpandButton(wxGetApp().mainframe->expand_helio_id, false);
+        wxGetApp().mainframe->Layout();
+    }
+    
+    EndModal(wxID_OK);
 }
 
 }} // namespace Slic3r::GUI

@@ -740,6 +740,10 @@ public:
     //BBS Helio slice
     int  get_helio_process_status() const;
     void clear_helio_process_status() const;
+    // Check if simulation/optimization result is available for "View Summary"
+    bool has_helio_simulation_result() const;
+    // Show the Helio simulation/optimization summary dialog (returns true if shown, false if no result available)
+    bool show_helio_simulation_summary() const;
 
     //BBS
     bool show_publish_dialog(bool show = true);

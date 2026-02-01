@@ -6,6 +6,7 @@
 #include <array>
 #include <thread>
 #include <mutex>
+#include <memory>
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -64,6 +65,7 @@ class ModelObject;
 class ModelInstance;
 class Print;
 class SLAPrint;
+struct HelioPlateResult;
 
 namespace GUI {
 class Plater;
@@ -104,6 +106,7 @@ private:
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
     bool m_helio_apply_invalid {false};
+    std::unique_ptr<HelioPlateResult> m_helio_result;
     float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
@@ -458,6 +461,12 @@ public:
     void update_helio_apply_result_invalid(bool invalid) {
         m_helio_apply_invalid = invalid;
     }
+
+    // Helio result per-plate storage
+    const HelioPlateResult* get_helio_result() const;
+    void set_helio_result(const HelioPlateResult& result);
+    void clear_helio_result();
+    bool has_helio_result() const;
 
     //is slice result valid or not
     bool is_slice_result_valid() const
