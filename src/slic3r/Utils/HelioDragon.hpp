@@ -105,6 +105,7 @@ public:
         int sizeKb;
         bool success;
         std::vector<std::string> errors;
+        std::vector<std::string> restrictions;
     };
 
     struct CreateGCodeResult

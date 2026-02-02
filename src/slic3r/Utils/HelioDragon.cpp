@@ -668,7 +668,7 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
     result.success = false;
 
     std::string poll_query = R"( {
-        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress errors errorsV2 { line type } } }",
+        "query": "query GcodeV2($id: ID!) { gcodeV2(id: $id) { id name sizeKb status progress errors errorsV2 { line type } restrictions restrictionsV2 { description restriction } } }",
         "variables": { "id": "%1%" }
     } )";
     std::string poll_body = (boost::format(poll_query) % gcode_id).str();
@@ -721,7 +721,41 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
                                 }
                             }
                         }
-                        
+
+                        // Parse restrictions if present
+                        if (gcode_data.contains("restrictions") && !gcode_data["restrictions"].is_null()) {
+                            auto restrictions_data = gcode_data["restrictions"];
+                            if (restrictions_data.is_array()) {
+                                for (const auto& r : restrictions_data) {
+                                    if (r.is_string()) {
+                                        result.restrictions.push_back(r.get<std::string>());
+                                    }
+                                }
+                            }
+                        }
+
+                        // Parse restrictionsV2 for detailed restriction info
+                        if (gcode_data.contains("restrictionsV2") && !gcode_data["restrictionsV2"].is_null()) {
+                            auto restrictions_v2 = gcode_data["restrictionsV2"];
+                            if (restrictions_v2.is_array()) {
+                                for (const auto& r : restrictions_v2) {
+                                    std::string detail;
+                                    if (r.contains("restriction") && r["restriction"].is_string()) {
+                                        detail = r["restriction"].get<std::string>();
+                                    }
+                                    if (r.contains("description") && r["description"].is_string()) {
+                                        std::string desc = r["description"].get<std::string>();
+                                        if (!desc.empty()) {
+                                            detail += (detail.empty() ? "" : ": ") + desc;
+                                        }
+                                    }
+                                    if (!detail.empty()) {
+                                        result.restrictions.push_back(detail);
+                                    }
+                                }
+                            }
+                        }
+
                         result.success = true;
                     }
                 }
@@ -870,8 +904,21 @@ HelioQuery::CreateGCodeResult HelioQuery::create_gcode(const std::string key,
                     // Handle ERROR/RESTRICTED status even if errors array is empty
                     if (res.status_str == "ERROR" || res.status_str == "RESTRICTED") {
                         res.success = false;
-                        // Use status as the error message if no specific errors were provided
-                        res.error = (boost::format("GCode creation failed with status: %1%") % res.status_str).str();
+                        // For RESTRICTED, use restriction details if available
+                        if (res.status_str == "RESTRICTED" && !poll_res.restrictions.empty()) {
+                            std::string restriction_message;
+                            for (size_t i = 0; i < poll_res.restrictions.size(); ++i) {
+                                if (poll_res.restrictions.size() > 1) {
+                                    restriction_message += std::to_string(i + 1) + ". " + poll_res.restrictions[i];
+                                    if (i != poll_res.restrictions.size() - 1) restriction_message += "\n";
+                                } else {
+                                    restriction_message = poll_res.restrictions[i];
+                                }
+                            }
+                            res.error = restriction_message;
+                        } else {
+                            res.error = (boost::format("GCode creation failed with status: %1%") % res.status_str).str();
+                        }
                         return;
                     }
                 }
