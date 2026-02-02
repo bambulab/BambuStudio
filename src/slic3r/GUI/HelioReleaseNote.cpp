@@ -334,13 +334,13 @@ void HelioStatementDialog::create_legal_page()
     subtitle->SetForegroundColour(wxColour(180, 180, 180));
     
     // Scrollable content area
-    wxScrolledWindow* scroll_panel = new wxScrolledWindow(page_legal_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
-    scroll_panel->SetScrollRate(0, 10);
-    scroll_panel->SetBackgroundColour(HELIO_BG_BASE);
+    m_scroll_panel = new wxScrolledWindow(page_legal_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    m_scroll_panel->SetScrollRate(0, 10);
+    m_scroll_panel->SetBackgroundColour(HELIO_BG_BASE);
     wxBoxSizer* scroll_sizer = new wxBoxSizer(wxVERTICAL);
-    
+
     // Accordion Section 1: Software Service Terms & Conditions
-    terms_section_panel = new wxPanel(scroll_panel);
+    terms_section_panel = new wxPanel(m_scroll_panel);
     terms_section_panel->SetBackgroundColour(wxColour(55, 55, 59));
     wxBoxSizer* terms_section_sizer = new wxBoxSizer(wxVERTICAL);
     
@@ -362,6 +362,11 @@ void HelioStatementDialog::create_legal_page()
     terms_header_sizer->Add(terms_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(15));
     terms_header_panel->SetSizer(terms_header_sizer);
     terms_header_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_terms_section(); });
+    terms_title->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_terms_section(); });
+    terms_arrow->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_terms_section(); });
+    terms_header_panel->SetCursor(wxCURSOR_HAND);
+    terms_title->SetCursor(wxCURSOR_HAND);
+    terms_arrow->SetCursor(wxCURSOR_HAND);
     
     // Terms content - use HTML for proper text flow with embedded links
     terms_content_panel = new wxPanel(terms_section_panel);
@@ -427,7 +432,7 @@ void HelioStatementDialog::create_legal_page()
     terms_section_panel->SetSizer(terms_section_sizer);
     
     // Accordion Section 2: Special Note & Privacy Policy
-    privacy_section_panel = new wxPanel(scroll_panel);
+    privacy_section_panel = new wxPanel(m_scroll_panel);
     privacy_section_panel->SetBackgroundColour(wxColour(55, 55, 59));
     wxBoxSizer* privacy_section_sizer = new wxBoxSizer(wxVERTICAL);
     
@@ -447,6 +452,11 @@ void HelioStatementDialog::create_legal_page()
     privacy_header_sizer->Add(privacy_arrow, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(15));
     privacy_header_panel->SetSizer(privacy_header_sizer);
     privacy_header_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_privacy_section(); });
+    privacy_title->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_privacy_section(); });
+    privacy_arrow->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) { toggle_privacy_section(); });
+    privacy_header_panel->SetCursor(wxCURSOR_HAND);
+    privacy_title->SetCursor(wxCURSOR_HAND);
+    privacy_arrow->SetCursor(wxCURSOR_HAND);
     
     // Privacy content - FULL original text
     privacy_content_panel = new wxPanel(privacy_section_panel);
@@ -470,7 +480,7 @@ void HelioStatementDialog::create_legal_page()
     scroll_sizer->Add(terms_section_panel, 0, wxEXPAND, 0);
     scroll_sizer->Add(0, 0, 0, wxTOP, FromDIP(10));
     scroll_sizer->Add(privacy_section_panel, 0, wxEXPAND, 0);
-    scroll_panel->SetSizer(scroll_sizer);
+    m_scroll_panel->SetSizer(scroll_sizer);
     
     // Bottom row: Checkbox on left, button on right (same row)
     wxBoxSizer* bottom_row_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -529,7 +539,7 @@ void HelioStatementDialog::create_legal_page()
     legal_sizer->Add(title_row, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     legal_sizer->Add(subtitle, 0, wxALIGN_CENTER | wxTOP, FromDIP(8));
     legal_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
-    legal_sizer->Add(scroll_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
+    legal_sizer->Add(m_scroll_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(30));
     legal_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
     legal_sizer->Add(bottom_row_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(30));
     
@@ -804,27 +814,61 @@ void HelioStatementDialog::create_pat_page()
 void HelioStatementDialog::toggle_terms_section()
 {
     terms_expanded = !terms_expanded;
+    Freeze();
     if (terms_expanded) {
         terms_content_panel->Show();
     } else {
         terms_content_panel->Hide();
     }
+    if (m_scroll_panel) {
+        m_scroll_panel->FitInside();
+        // Clamp scroll position to valid range after content height change
+        int scroll_x, scroll_y;
+        m_scroll_panel->GetViewStart(&scroll_x, &scroll_y);
+        int virt_h = m_scroll_panel->GetVirtualSize().GetHeight();
+        int client_h = m_scroll_panel->GetClientSize().GetHeight();
+        int rate_x, rate_y;
+        m_scroll_panel->GetScrollPixelsPerUnit(&rate_x, &rate_y);
+        if (rate_y > 0) {
+            int max_scroll_units = std::max(0, (virt_h - client_h + rate_y - 1) / rate_y);
+            if (scroll_y > max_scroll_units)
+                m_scroll_panel->Scroll(scroll_x, max_scroll_units);
+        }
+    }
     page_legal_panel->Layout();
     Layout();
     Fit();
+    Thaw();
 }
 
 void HelioStatementDialog::toggle_privacy_section()
 {
     privacy_expanded = !privacy_expanded;
+    Freeze();
     if (privacy_expanded) {
         privacy_content_panel->Show();
     } else {
         privacy_content_panel->Hide();
     }
+    if (m_scroll_panel) {
+        m_scroll_panel->FitInside();
+        // Clamp scroll position to valid range after content height change
+        int scroll_x, scroll_y;
+        m_scroll_panel->GetViewStart(&scroll_x, &scroll_y);
+        int virt_h = m_scroll_panel->GetVirtualSize().GetHeight();
+        int client_h = m_scroll_panel->GetClientSize().GetHeight();
+        int rate_x, rate_y;
+        m_scroll_panel->GetScrollPixelsPerUnit(&rate_x, &rate_y);
+        if (rate_y > 0) {
+            int max_scroll_units = std::max(0, (virt_h - client_h + rate_y - 1) / rate_y);
+            if (scroll_y > max_scroll_units)
+                m_scroll_panel->Scroll(scroll_x, max_scroll_units);
+        }
+    }
     page_legal_panel->Layout();
     Layout();
     Fit();
+    Thaw();
 }
 
 void HelioStatementDialog::refresh_checkbox_visual()
