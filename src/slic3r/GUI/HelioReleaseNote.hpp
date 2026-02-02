@@ -72,6 +72,7 @@ private:
     wxPanel* terms_content_panel{ nullptr };
     wxPanel* privacy_section_panel{ nullptr };
     wxPanel* privacy_content_panel{ nullptr };
+    wxScrolledWindow* m_scroll_panel{ nullptr };
     bool terms_expanded{ true };
     bool privacy_expanded{ true };
 
