@@ -111,12 +111,8 @@ struct SupportFilamentRecommendation
     std::string model_material_name;    // 主体材料名称（用于显示，如 "Bambu TPU 95A"）
 };
 
-SupportFilamentRecommendation has_filament_combination();
-
-// 为单个对象查找匹配的耗材组合（仅处理单色模型）
+// 为单个对象查找匹配的耗材组合（支持同类材料的多色模型）
 SupportFilamentRecommendation has_filament_combination_for_object(const ModelObject* obj);
-
-bool is_filament_combination(int extruder_id);
 
 // 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
 // 返回是否有推荐参数

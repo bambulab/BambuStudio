@@ -10057,9 +10057,9 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
         auto       aprint_stats = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
         PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         if (plate) {
-            if (plate->get_slice_result()) { 
+            if (plate->get_slice_result()) {
                 time_origin_value = plate->get_slice_result()->print_statistics.modes[0].time;
-                //time_origin = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); 
+                //time_origin = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time)));
             }
         }
 
@@ -10083,7 +10083,7 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
             if (plate1) {
                 if (plate->get_slice_result()) {
                     time_optimized_value = plate->get_slice_result()->print_statistics.modes[0].time;
-                    //time_optimized = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); 
+                    //time_optimized = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time)));
                 }
             }
 

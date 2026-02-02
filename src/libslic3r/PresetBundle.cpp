@@ -538,8 +538,6 @@ std::pair<PresetsConfigSubstitutions, std::string> PresetBundle::load_presets(Ap
 
     set_calibrate_printer("");
 
-    // Load filament combination rules from JSON
-    this->load_filament_combinations();
     // Load support recommended params from JSON
     this->load_support_recommended_params();
 
@@ -5209,59 +5207,11 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
     printers.set_default_suppressed(default_suppressed);
 }
 
-void PresetBundle::load_filament_combinations()
-{
-    filament_combinations.clear();
-    boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "filament_combinations.json").make_preferred();
-
-    if (!boost::filesystem::exists(json_path)) {
-        BOOST_LOG_TRIVIAL(warning) << "Filament combinations JSON file not found";
-        return;
-    }
-
-    try {
-        boost::nowide::ifstream ifs(json_path.string());
-        if (!ifs.is_open()) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to open filament combinations JSON file";
-            return;
-        }
-
-        nlohmann::json j;
-        ifs >> j;
-
-        if (j.contains("combinations") && j["combinations"].is_array()) {
-            for (const auto &combo : j["combinations"]) {
-                FilamentCombination combination;
-
-                if (combo.contains("material_a") && combo["material_a"].is_string()) { combination.material_a = combo["material_a"].get<std::string>(); }
-
-                if (combo.contains("material_a_type") && combo["material_a_type"].is_string()) { combination.material_a_type = combo["material_a_type"].get<std::string>(); }
-
-                if (combo.contains("material_b_list") && combo["material_b_list"].is_array()) {
-                    for (const auto &b_material : combo["material_b_list"]) {
-                        if (b_material.is_string()) { combination.material_b_list.push_back(b_material.get<std::string>()); }
-                    }
-                }
-
-                if (combo.contains("material_b_type") && combo["material_b_type"].is_string()) { combination.material_b_type = combo["material_b_type"].get<std::string>(); }
-
-                if (combo.contains("priority") && combo["priority"].is_number_integer()) { combination.priority = combo["priority"].get<int>(); }
-
-                if (!combination.material_a.empty() && !combination.material_b_list.empty()) filament_combinations.push_back(combination);
-            }
-        }
-
-        BOOST_LOG_TRIVIAL(info) << "Loaded " << filament_combinations.size() << " filament combinations from JSON";
-    }
-    catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << "Error loading filament combinations JSON: " << e.what();
-    }
-}
-
 void PresetBundle::load_support_recommended_params()
 {
     support_recommended_params_map.clear();
-    boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "support_recommended_params.json").make_preferred();
+    model_material_index.clear();
+    boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "BBL" / "filament" / "support_recommended_params.json").make_preferred();
 
     if (!boost::filesystem::exists(json_path)) {
         BOOST_LOG_TRIVIAL(warning) << "Support recommended params JSON file not found: " << json_path.string();
@@ -5287,6 +5237,13 @@ void PresetBundle::load_support_recommended_params()
                     rec_params.model_material = combo["model_material"].get<std::string>();
                 }
 
+                // Load model_material_type (default to "type")
+                if (combo.contains("model_material_type") && combo["model_material_type"].is_string()) {
+                    rec_params.model_material_type = combo["model_material_type"].get<std::string>();
+                } else {
+                    rec_params.model_material_type = "type";
+                }
+
                 // Load support_material_list (array)
                 if (combo.contains("support_material_list") && combo["support_material_list"].is_array()) {
                     for (const auto &mat : combo["support_material_list"]) {
@@ -5294,6 +5251,18 @@ void PresetBundle::load_support_recommended_params()
                             rec_params.support_material_list.push_back(mat.get<std::string>());
                         }
                     }
+                }
+
+                // Load support_material_type (default to "type")
+                if (combo.contains("support_material_type") && combo["support_material_type"].is_string()) {
+                    rec_params.support_material_type = combo["support_material_type"].get<std::string>();
+                } else {
+                    rec_params.support_material_type = "type";
+                }
+
+                // Load priority (default to 0)
+                if (combo.contains("priority") && combo["priority"].is_number_integer()) {
+                    rec_params.priority = combo["priority"].get<int>();
                 }
 
                 if (rec_params.model_material.empty() || rec_params.support_material_list.empty()) {
@@ -5346,6 +5315,20 @@ void PresetBundle::load_support_recommended_params()
             }
         }
 
+        // Build model_material_index for fast lookup by model material
+        for (auto& [key, params] : support_recommended_params_map) {
+            std::string index_key = params.model_material + "|" + params.model_material_type;
+            model_material_index[index_key].push_back(&params);
+        }
+
+        // Sort each index entry by priority (descending)
+        for (auto& [key, params_list] : model_material_index) {
+            std::sort(params_list.begin(), params_list.end(),
+                [](const SupportRecommendedParams* a, const SupportRecommendedParams* b) {
+                    return a->priority > b->priority;
+                });
+        }
+
         BOOST_LOG_TRIVIAL(info) << "Loaded " << support_recommended_params_map.size() << " support recommended params from JSON";
     }
     catch (const std::exception& e) {
@@ -5361,6 +5344,16 @@ std::optional<SupportRecommendedParams> PresetBundle::get_support_recommended_pa
         return it->second;
     }
     return std::nullopt;
+}
+
+std::vector<const SupportRecommendedParams*> PresetBundle::get_support_params_for_model_material(const std::string& model_material, const std::string& model_material_type) const
+{
+    std::string key = model_material + "|" + model_material_type;
+    auto it = model_material_index.find(key);
+    if (it != model_material_index.end()) {
+        return it->second;
+    }
+    return {};
 }
 
 } // namespace Slic3r

@@ -90,20 +90,14 @@ struct FilamentCombinationParams
     }
 };
 
-struct FilamentCombination
-{
-    std::string material_a;
-    std::string material_a_type;
-    std::vector<std::string> material_b_list;
-    std::string material_b_type;
-    int priority{0};
-};
-
 // 支撑推荐参数：通过 (support_material, model_material) 查询
 struct SupportRecommendedParams
 {
-    std::string model_material;                     // 主体料类型
-    std::vector<std::string> support_material_list; // 支撑料类型列表
+    std::string model_material;                     // 主体料（类型或名称）
+    std::string model_material_type;                // "name" 或 "type"
+    std::vector<std::string> support_material_list; // 支撑料列表（类型或名称）
+    std::string support_material_type;              // "name" 或 "type"
+    int priority{0};                                // 优先级，数字越大优先级越高
     FilamentCombinationParams params;               // 推荐参数
 };
 
@@ -206,15 +200,12 @@ public:
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string()) const;
 
-    // Load filament combination rules from JSON file
-    void load_filament_combinations();
-    // Get filament combinations
-    const std::vector<FilamentCombination> &get_filament_combinations() const { return filament_combinations; }
-
     // Load support recommended params from JSON file
     void load_support_recommended_params();
     // Get support recommended params by (support_material, model_material)
     std::optional<SupportRecommendedParams> get_support_recommended_params(const std::string& support_material, const std::string& model_material) const;
+    // Get all support recommended params for a given model material (for finding matching support filaments)
+    std::vector<const SupportRecommendedParams*> get_support_params_for_model_material(const std::string& model_material, const std::string& model_material_type) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -294,11 +285,10 @@ public:
     };
     ObsoletePresets             obsolete_presets;
 
-    // Filament combination rules loaded from JSON
-    std::vector<FilamentCombination> filament_combinations;
-
     // Support recommended params: key = "support_material|model_material"
     std::map<std::string, SupportRecommendedParams> support_recommended_params_map;
+    // Index for looking up by model material: key = "model_material|model_material_type"
+    std::map<std::string, std::vector<const SupportRecommendedParams*>> model_material_index;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }

@@ -1082,134 +1082,17 @@ bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &
     return range_low_exist && range_high_exist;
 }
 
-// 查找最佳匹配的耗材组合，返回匹配的支撑耗材索引和材料类型
-SupportFilamentRecommendation has_filament_combination()
-{
-    SupportFilamentRecommendation result;
-
-    auto       &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-    auto       &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
-    const auto &combinations     = Slic3r::GUI::wxGetApp().preset_bundle->get_filament_combinations();
-
-    if (combinations.empty()) { return result; }
-
-    // get filaments that models are using (types and names)
-    std::set<std::string> model_filament_types;
-    std::set<std::string> model_filament_names;
-
-    try {
-        auto                              model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
-        const Slic3r::DynamicPrintConfig &config        = wxGetApp().preset_bundle->full_config();
-        Slic3r::Model::setExtruderParams(config, filament_presets.size());
-
-        auto get_filament_name = [](int id) {
-            return Slic3r::Model::extruderParamsMap.find(id) != Slic3r::Model::extruderParamsMap.end() ? Slic3r::Model::extruderParamsMap.at(id).materialName : "PLA";
-        };
-
-        for (const Slic3r::ModelObject *mo : model_objects) {
-            for (auto vol : mo->volumes) {
-                auto ve = vol->get_extruders();
-                for (auto id : ve) {
-                    if (id > 0 && id <= filament_presets.size()) {
-                        Slic3r::Preset *model_filament = filaments.find_preset(filament_presets[id - 1]);
-                        if (model_filament) {
-                            std::string model_filament_type = model_filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-                            std::string model_filament_name = model_filament->alias;
-                            model_filament_types.insert(model_filament_type);
-                            model_filament_names.insert(model_filament_name);
-                        }
-                    }
-                }
-            }
-        }
-    } catch (...) {
-        return result;
-    }
-
-    if (model_filament_types.empty() && model_filament_names.empty()) { return result; }
-
-    for (const auto &combination : combinations) {
-        // get all matched combinations, stored with <priority, filament_index> to sort
-        std::vector<std::pair<int, int>> matched_combinations;
-        // check if model filaments are in material_b_lists
-        bool model_uses_b_material = false;
-        std::string matched_b_material, matched_a_material;
-
-        for (const auto &b_material : combination.material_b_list) {
-            if (combination.material_b_type == "name") {
-                // name check
-                if (model_filament_names.find(b_material) != model_filament_names.end()) {
-                    model_uses_b_material = true;
-                    matched_b_material = b_material;
-                    break;
-                }
-            } else if (combination.material_b_type == "type") {
-                // type check
-                if (model_filament_types.find(b_material) != model_filament_types.end()) {
-                    model_uses_b_material = true;
-                    matched_b_material = b_material;
-                    break;
-                }
-            }
-        }
-
-        // only when model filaments are found in material_b_list, keep checking
-        if (!model_uses_b_material) { continue; }
-
-        // check if there is the correspond material_a in filaments
-        for (int i = 0; i < filament_presets.size(); i++) {
-            Slic3r::Preset *filament = filaments.find_preset(filament_presets[i]);
-            if (!filament) continue;
-
-            std::string filament_type  = filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-            std::string filament_alias = filament->alias;
-
-            // if material_a matches
-            bool matches_a = false;
-
-            if (combination.material_a_type == "name") {
-                // name check
-                if (filament_alias == combination.material_a) { matches_a = true; }
-            } else if (combination.material_a_type == "type") {
-                // type check
-                if (filament_type == combination.material_a) { matches_a = true; }
-            }
-
-            if (matches_a) {
-                // combination found, store id of material_a
-                matched_a_material = combination.material_a;
-                matched_combinations.push_back(std::make_pair(combination.priority, i));
-            }
-        }
-
-        if (matched_combinations.empty()) continue;
-        std::sort(matched_combinations.begin(), matched_combinations.end(), [](const std::pair<int, int> &a, const std::pair<int, int> &b) { return a.first > b.first; });
-
-        result.has_combination = true;
-        result.matched_filament_index = matched_combinations[0].second;
-        result.support_material = matched_a_material;
-        result.model_material = matched_b_material;
-
-        return result;  // Found a match, return immediately
-    }
-
-    return result;
-}
-
-// 为单个对象查找匹配的耗材组合
 SupportFilamentRecommendation has_filament_combination_for_object(const ModelObject* obj)
 {
     SupportFilamentRecommendation result;
 
     if (!obj) return result;
 
-    auto       &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-    auto       &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
-    const auto &combinations     = Slic3r::GUI::wxGetApp().preset_bundle->get_filament_combinations();
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+    auto *preset_bundle    = Slic3r::GUI::wxGetApp().preset_bundle;
 
-    if (combinations.empty()) return result;
-
-    // 1. 判断是否为单色模型，获取使用的 extruder
+    // 1. 获取模型使用的所有 extruder
     std::set<int> used_extruders;
     for (const auto* vol : obj->volumes) {
         if (!vol) continue;
@@ -1221,86 +1104,117 @@ SupportFilamentRecommendation has_filament_combination_for_object(const ModelObj
         }
     }
 
-    if (used_extruders.size() != 1) {
-        return result;  // 非单色模型，不处理
-    }
+    if (used_extruders.empty()) return result;
 
-    int model_extruder_id = *used_extruders.begin() - 1;  // 转为 0-based
-    if (model_extruder_id < 0 || model_extruder_id >= filament_presets.size()) {
-        return result;
-    }
+    // 2. 收集所有使用的耗材类型和名称
+    std::set<std::string> used_filament_types;
+    std::set<std::string> used_filament_names;
+    std::string first_filament_type;
+    std::string first_filament_name;
 
-    // 2. 获取模型主体料类型
-    Slic3r::Preset* model_filament = filaments.find_preset(filament_presets[model_extruder_id]);
-    if (!model_filament) return result;
+    for (int extruder_id : used_extruders) {
+        int idx = extruder_id - 1;  // 转为 0-based
+        if (idx < 0 || idx >= static_cast<int>(filament_presets.size())) continue;
 
-    std::string model_filament_type = model_filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-    std::string model_filament_name = model_filament->alias;
+        Slic3r::Preset* filament = filaments.find_preset(filament_presets[idx]);
+        if (!filament) continue;
 
-    // 3. 遍历组合，查找匹配的支撑料
-    for (const auto& combination : combinations) {
-        std::vector<std::pair<int, int>> matched_combinations;
-        bool model_uses_b_material = false;
-        std::string matched_b_material, matched_a_material;
+        std::string filament_type = filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+        std::string filament_name = filament->alias;
 
-        // 检查 model_material 是否在 material_b_list 中
-        for (const auto& b_material : combination.material_b_list) {
-            if (combination.material_b_type == "name") {
-                if (model_filament_name == b_material) {
-                    model_uses_b_material = true;
-                    matched_b_material = b_material;
-                    break;
-                }
-            } else if (combination.material_b_type == "type") {
-                if (model_filament_type == b_material) {
-                    model_uses_b_material = true;
-                    matched_b_material = b_material;
-                    break;
-                }
-            }
+        if (first_filament_type.empty()) {
+            first_filament_type = filament_type;
+            first_filament_name = filament_name;
         }
 
-        if (!model_uses_b_material) continue;
+        used_filament_types.insert(filament_type);
+        used_filament_names.insert(filament_name);
+    }
 
-        // 查找对应的 material_a（支撑料）
-        for (int i = 0; i < filament_presets.size(); i++) {
+    if (used_filament_types.empty()) return result;
+
+    // 3. 判断是否为同类材料（同名称优先于同类型）
+    bool same_name = (used_filament_names.size() == 1);  // 所有耗材名称相同
+    bool same_type = (used_filament_types.size() == 1);  // 所有耗材类型相同
+
+    if (!same_name && !same_type) {
+        return result;  // 既不是同名称也不是同类型，不处理
+    }
+
+    std::string model_filament_type = first_filament_type;
+    std::string model_filament_name = first_filament_name;
+
+    // 4. 查找匹配的推荐配置
+    std::vector<const Slic3r::SupportRecommendedParams*> matched_params;
+
+    if (same_name) { // 同名称：优先按名称匹配
+        auto name_params = preset_bundle->get_support_params_for_model_material(model_filament_name, "name");
+        matched_params.insert(matched_params.end(), name_params.begin(), name_params.end());
+    }
+
+    if (same_type) { // 同类型：按类型匹配
+        auto type_params = preset_bundle->get_support_params_for_model_material(model_filament_type, "type");
+        matched_params.insert(matched_params.end(), type_params.begin(), type_params.end());
+    }
+
+    if (matched_params.empty()) return result;
+
+    // 4. 按优先级排序
+    std::sort(matched_params.begin(), matched_params.end(),
+        [](const Slic3r::SupportRecommendedParams* a, const Slic3r::SupportRecommendedParams* b) {
+            return a->priority > b->priority;
+        });
+
+    // 5. 遍历推荐配置，查找可用的支撑料
+    for (const auto* rec_params : matched_params) {
+        std::vector<std::pair<int, int>> matched_filaments; // (priority, filament_index)
+
+        for (int i = 0; i < static_cast<int>(filament_presets.size()); i++) {
             Slic3r::Preset* filament = filaments.find_preset(filament_presets[i]);
             if (!filament) continue;
 
             std::string filament_type  = filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
             std::string filament_alias = filament->alias;
 
-            bool matches_a = false;
-            if (combination.material_a_type == "name") {
-                if (filament_alias == combination.material_a) matches_a = true;
-            } else if (combination.material_a_type == "type") {
-                if (filament_type == combination.material_a) matches_a = true;
-            }
+            // 检查是否匹配支撑料列表
+            for (const auto& support_mat : rec_params->support_material_list) {
+                bool matches = false;
+                if (rec_params->support_material_type == "name") {
+                    matches = (filament_alias == support_mat);
+                } else { // "type"
+                    matches = (filament_type == support_mat);
+                }
 
-            if (matches_a) {
-                matched_a_material = combination.material_a;
-                matched_combinations.push_back(std::make_pair(combination.priority, i));
+                if (matches) {
+                    matched_filaments.push_back(std::make_pair(rec_params->priority, i));
+                    break;
+                }
             }
         }
 
-        if (matched_combinations.empty()) continue;
-        std::sort(matched_combinations.begin(), matched_combinations.end(),
+        if (matched_filaments.empty()) continue;
+
+        // 选择优先级最高的匹配
+        std::sort(matched_filaments.begin(), matched_filaments.end(),
             [](const auto& a, const auto& b) { return a.first > b.first; });
 
-        // 获取支撑材料的名称
-        int support_filament_index = matched_combinations[0].second;
+        int support_filament_index = matched_filaments[0].second;
         std::string support_filament_name;
-        if (support_filament_index >= 0 && support_filament_index < filament_presets.size()) {
+        std::string support_filament_type;
+        if (support_filament_index >= 0 && support_filament_index < static_cast<int>(filament_presets.size())) {
             Slic3r::Preset* support_filament = filaments.find_preset(filament_presets[support_filament_index]);
             if (support_filament) {
                 support_filament_name = support_filament->alias;
+                support_filament_type = support_filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
             }
         }
 
         result.has_combination = true;
         result.matched_filament_index = support_filament_index;
-        result.support_material = matched_a_material;
-        result.model_material = matched_b_material;
+        // 用于查询推荐参数的 key（使用 support_material_list 中的值）
+        result.support_material = rec_params->support_material_type == "name" ? support_filament_name : support_filament_type;
+        result.model_material = rec_params->model_material;
+        // 用于显示的名称
         result.support_material_name = support_filament_name;
         result.model_material_name = model_filament_name;
 
@@ -1308,94 +1222,6 @@ SupportFilamentRecommendation has_filament_combination_for_object(const ModelObj
     }
 
     return result;
-}
-
-bool is_filament_combination(int extruder_id)
-{
-    auto       &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
-    auto       &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
-    const auto &combinations     = Slic3r::GUI::wxGetApp().preset_bundle->get_filament_combinations();
-
-    if (extruder_id < 0 || extruder_id >= filament_presets.size() || combinations.empty()) { return false; }
-
-    Slic3r::Preset *filament = filaments.find_preset(filament_presets[extruder_id]);
-    if (!filament) { return false; }
-
-    std::string filament_type  = filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-    std::string filament_alias = filament->alias;
-
-    // get filaments that models are using (types and names)
-    std::set<std::string> model_filament_types;
-    std::set<std::string> model_filament_names;
-
-    try {
-        auto                              model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
-        const Slic3r::DynamicPrintConfig &config        = wxGetApp().preset_bundle->full_config();
-        Slic3r::Model::setExtruderParams(config, filament_presets.size());
-
-        auto get_filament_name = [](int id) {
-            return Slic3r::Model::extruderParamsMap.find(id) != Slic3r::Model::extruderParamsMap.end() ? Slic3r::Model::extruderParamsMap.at(id).materialName : "PLA";
-        };
-
-        for (const Slic3r::ModelObject *mo : model_objects) {
-            for (auto vol : mo->volumes) {
-                auto ve = vol->get_extruders();
-                for (auto id : ve) {
-                    if (id > 0 && id <= filament_presets.size()) {
-                        Slic3r::Preset *model_filament = filaments.find_preset(filament_presets[id - 1]);
-                        if (model_filament) {
-                            std::string model_filament_type = model_filament->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
-                            std::string model_filament_name = model_filament->alias;
-                            model_filament_types.insert(model_filament_type);
-                            model_filament_names.insert(model_filament_name);
-                        }
-                    }
-                }
-            }
-        }
-    } catch (...) {
-        // Failed, return false
-        return false;
-    }
-
-    for (const auto &combination : combinations) {
-        bool matches_a = false;
-
-        // check if material_a matches
-        if (combination.material_a_type == "name") {
-            // name check
-            if (filament_alias == combination.material_a) { matches_a = true; }
-        } else if (combination.material_a_type == "type") {
-            // type check
-            if (filament_type == combination.material_a) { matches_a = true; }
-        }
-
-        if (!matches_a) { continue; }
-
-        // check if model filaments are in material_b_lists
-        bool model_uses_b_material = false;
-
-        for (const auto &b_material : combination.material_b_list) {
-            if (combination.material_b_type == "name") {
-                // name check
-                if (model_filament_names.find(b_material) != model_filament_names.end()) {
-                    model_uses_b_material = true;
-                    break;
-                }
-            } else if (combination.material_b_type == "type") {
-                // type check
-                if (model_filament_types.find(b_material) != model_filament_types.end()) {
-                    model_uses_b_material = true;
-                    break;
-                }
-            }
-        }
-
-        // only when model filaments are found in material_b_list, return true
-        if (model_uses_b_material) { return true; }
-    }
-
-    return false;
 }
 
 // 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
