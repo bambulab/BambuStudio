@@ -325,20 +325,25 @@ bool check_filaments_printable(const std::string &dev_id,
         return true;
 
     ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
-    if (!physical_extruder_map_op)
-        return true;
-    std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
-    int              obj_extruder_id        = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    if (obj_extruder_id == -1) {
-        return true;//TODO 选料器槽位得喷嘴映射完才知道对应的挤出机id，暂时不做限制
+    if (!physical_extruder_map_op) {
+        return;
     }
 
-    int              extruder_idx           = obj_extruder_id;
+    if (!check_info.extruder_id.has_value()) {
+        return;
+    }
+
+    int extruder_idx = -1;
+    std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
     for (int index = 0; index < physical_extruder_maps.size(); ++index) {
-        if (physical_extruder_maps[index] == obj_extruder_id) {
+        if (physical_extruder_maps[index] == check_info.extruder_id.value()) {
             extruder_idx = index;
             break;
         }
+    }
+
+    if (extruder_idx == -1) {
+        return;
     }
 
     PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;

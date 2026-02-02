@@ -169,7 +169,7 @@ private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
     struct {
         std::string m_ams_id;
-        DevAms::AmsType m_model = DevAms::AmsType::DUMMY;
+        DevAmsType m_model = DevAmsType::DUMMY;
         DevAms::DryStatus m_dry_status = DevAms::DryStatus::Off;
         DevAms::DrySubStatus m_dry_sub_status = DevAms::DrySubStatus::Off;
         int m_humidity_percent;
@@ -220,7 +220,7 @@ private:
     wxScrolledWindow* create_preview_scrolled_window(wxWindow* parent);
 
     bool check_values_changed(DevAms* dev_ams);
-    int update_image(DevAms::AmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
+    int update_image(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
     void update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status);
     void update_normal_description(DevAms* dev_ams);
     int update_state(DevAms* dev_ams);

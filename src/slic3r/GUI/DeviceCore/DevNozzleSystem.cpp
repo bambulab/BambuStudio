@@ -269,6 +269,22 @@ int DevNozzle::GetLogicExtruderId() const
     return LOGIC_UNIQUE_EXTRUDER_ID;
 }
 
+int DevNozzle::GetExtruderId() const
+{
+    int total_ext_count = GetTotalExtruderCount();
+    if (total_ext_count == 1) {
+        return MAIN_EXTRUDER_ID;
+    } else if (total_ext_count == 2) {
+        if (AtLeftExtruder()) {
+            return MAIN_EXTRUDER_ID;
+        } else if (AtRightExtruder()) {
+            return DEPUTY_EXTRUDER_ID;
+        }
+    }
+
+    return MAIN_EXTRUDER_ID;
+}
+
 bool DevNozzle::AtLeftExtruder() const
 {
     assert(GetTotalExtruderCount() == 2);

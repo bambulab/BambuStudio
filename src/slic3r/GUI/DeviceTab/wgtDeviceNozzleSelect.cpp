@@ -14,10 +14,10 @@ static wxColour s_gray_clr("#B0B0B0");
 static wxColour s_hgreen_clr("#00AE42");
 static wxColour s_red_clr("#D01B1B");
 
-static std::vector<int> a_nozzle_seq = {0, 2, 4, 1, 3, 5};
-static std::vector<int> b_nozzle_seq = {1, 3, 5, 0, 2, 4};
+static std::vector<int> a_nozzle_seq = {16, 18, 20, 17, 19, 21};
 
-wxDEFINE_EVENT(EVT_NOZZLE_RACK_ITEM_CLICKED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_NOZZLE_SELECT_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_NOZZLE_SELECT_CLICKED, wxCommandEvent);
 
 namespace Slic3r::GUI {
 
@@ -53,7 +53,7 @@ void wgtDeviceNozzleRackSelect::CreateGui()
     // nozzles
     wxGridSizer *nozzle_sizer = new wxGridSizer(2, 3, FromDIP(10), FromDIP(10));
     for (auto idx : a_nozzle_seq) {
-        wgtDeviceNozzleRackNozzleItem *nozzle_item = new wgtDeviceNozzleRackNozzleItem(this, idx);
+        wgtDeviceNozzleRackNozzleItem *nozzle_item = new wgtDeviceNozzleRackNozzleItem(this, idx - 16);
         nozzle_item->EnableSelect();
         nozzle_item->Bind(EVT_NOZZLE_RACK_NOZZLE_ITEM_SELECTED, &wgtDeviceNozzleRackSelect::OnNozzleItemSelected, this);
         m_nozzle_items[idx]                        = nozzle_item;
@@ -105,10 +105,10 @@ void wgtDeviceNozzleRackSelect::UpdateNozzleInfos(std::shared_ptr<DevNozzleRack>
 {
     m_nozzle_rack = rack;
     if (rack) {
-        s_update_nozzle_info(m_toolhead_nozzle_l, rack, rack->GetNozzleSystem()->GetExtNozzle(DEPUTY_EXTRUDER_ID));
-        s_update_nozzle_info(m_toolhead_nozzle_r, rack, rack->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID));
+        s_update_nozzle_info(m_toolhead_nozzle_l, rack, rack->GetNozzleSystem()->GetNozzleByPosId(DEPUTY_EXTRUDER_ID));
+        s_update_nozzle_info(m_toolhead_nozzle_r, rack, rack->GetNozzleSystem()->GetNozzleByPosId(MAIN_EXTRUDER_ID));
         for (const auto& item : m_nozzle_items) {
-            s_update_nozzle_info(item.second, rack, rack->GetNozzleSystem()->GetRackNozzle(item.first));
+            s_update_nozzle_info(item.second, rack, rack->GetNozzleSystem()->GetNozzleByPosId(item.first));
         }
     }
 }
@@ -118,6 +118,11 @@ static void s_enable_item_if_match(wgtDeviceNozzleRackNozzleItem* item,
                                    const DevNozzle& selected_nozzle)
 {
     if (item) {
+        if (nozzle_info.GetLogicExtruderId() != selected_nozzle.GetLogicExtruderId()) {
+            item->SetDisable(true);
+            return;
+        }
+
         if (!nozzle_info.IsEmpty() && !nozzle_info.IsAbnormal() && !nozzle_info.IsUnknown() &&
             nozzle_info.GetNozzleType() == selected_nozzle.GetNozzleType() &&
             nozzle_info.GetNozzleDiameter() == selected_nozzle.GetNozzleDiameter() &&
@@ -133,20 +138,12 @@ void wgtDeviceNozzleRackSelect::UpdatSelectedNozzle(std::shared_ptr<DevNozzleRac
 {
     m_nozzle_rack = rack;
     if (rack) {
-        if (selected_nozzle_pos_id == 0) {
-            SetSelectedNozzle(rack->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID));
-        } else if (selected_nozzle_pos_id == 1) {
-            SetSelectedNozzle(rack->GetNozzleSystem()->GetExtNozzle(DEPUTY_EXTRUDER_ID));
-        } else if (selected_nozzle_pos_id >= 0x10 && selected_nozzle_pos_id < 0x16) {
-            SetSelectedNozzle(rack->GetNozzle(selected_nozzle_pos_id - 0x10));
-        } else {
-            ClearSelection();
-        }
-
+        SetSelectedNozzle(rack->GetNozzleSystem()->GetNozzleByPosId(selected_nozzle_pos_id));
         if (m_enable_manual_nozzle_pick) {
-            s_enable_item_if_match(m_toolhead_nozzle_r, rack->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID), m_selected_nozzle);
+            s_enable_item_if_match(m_toolhead_nozzle_r, rack->GetNozzleSystem()->GetNozzleByPosId(MAIN_EXTRUDER_ID), m_selected_nozzle);
+            s_enable_item_if_match(m_toolhead_nozzle_l, rack->GetNozzleSystem()->GetNozzleByPosId(DEPUTY_EXTRUDER_ID), m_selected_nozzle);
             for (auto& item : m_nozzle_items) {
-                s_enable_item_if_match(item.second, rack->GetNozzleSystem()->GetRackNozzle(item.first), m_selected_nozzle);
+                s_enable_item_if_match(item.second, rack->GetNozzleSystem()->GetNozzleByPosId(item.first), m_selected_nozzle);
             }
         }
     }
@@ -204,17 +201,17 @@ void wgtDeviceNozzleRackSelect::ClearSelection()
 
 void wgtDeviceNozzleRackSelect::SetSelectedNozzle(const DevNozzle &nozzle)
 {
-    if (m_selected_nozzle.GetNozzlePosId() != nozzle.GetNozzlePosId()) {
+    int new_selected_pos_id = nozzle.GetNozzlePosId();
+    if (m_selected_nozzle.GetNozzlePosId() != new_selected_pos_id) {
         ClearSelection();
 
         m_selected_nozzle = nozzle;
-        if (m_selected_nozzle.IsNormal()) {
-            if (!m_selected_nozzle.IsOnRack()) {
-                m_toolhead_nozzle_r->SetSelected(true);
-            } else {
-                auto it = m_nozzle_items.find(m_selected_nozzle.GetNozzleId());
-                if (it != m_nozzle_items.end()) { it->second->SetSelected(true); }
-            }
+        if (new_selected_pos_id == MAIN_EXTRUDER_ID) {
+            m_toolhead_nozzle_r->SetSelected(true);
+        } else if (new_selected_pos_id == DEPUTY_EXTRUDER_ID) {
+            m_toolhead_nozzle_l->SetSelected(true);
+        } else if (auto it = m_nozzle_items.find(m_selected_nozzle.GetNozzlePosId()); it != m_nozzle_items.end()) {
+            it->second->SetSelected(true);
         }
     }
 }
@@ -225,19 +222,30 @@ void wgtDeviceNozzleRackSelect::OnNozzleItemSelected(wxCommandEvent &evt)
         return;
     }
 
+    int to_select_pos_id = -1;
     auto *item = dynamic_cast<wgtDeviceNozzleRackNozzleItem *>(evt.GetEventObject());
     if (item; auto ptr = m_nozzle_rack.lock()) {
-        if (item == m_toolhead_nozzle_r) {
-            SetSelectedNozzle(ptr->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID));
+        if (item == m_toolhead_nozzle_l) {
+            to_select_pos_id = DEPUTY_EXTRUDER_ID;
+        } else if (item == m_toolhead_nozzle_r) {
+            to_select_pos_id = MAIN_EXTRUDER_ID;
         } else {
-            SetSelectedNozzle(ptr->GetNozzle(item->GetNozzleId()));
+            to_select_pos_id = item->GetNozzleId() + 0x10;
+        }
+
+        if (to_select_pos_id > 0 && to_select_pos_id != GetSelectedNozzlePosID()) {
+            SetSelectedNozzle(ptr->GetNozzleSystem()->GetNozzleByPosId(to_select_pos_id));
+            wxCommandEvent change_evt(EVT_NOZZLE_SELECT_CHANGED, GetId());
+            change_evt.SetEventObject(this);
+            ProcessEvent(change_evt);
+            evt.Skip();
+        } else {
+            wxCommandEvent change_evt(EVT_NOZZLE_SELECT_CLICKED, GetId());
+            change_evt.SetEventObject(this);
+            ProcessEvent(change_evt);
+            evt.Skip();
         }
     }
-
-    wxCommandEvent change_evt(EVT_NOZZLE_RACK_ITEM_CLICKED, GetId());
-    change_evt.SetEventObject(this);
-    ProcessEvent(change_evt);
-    evt.Skip();
 }
 
 void wgtDeviceNozzleRackSelect::Rescale()
