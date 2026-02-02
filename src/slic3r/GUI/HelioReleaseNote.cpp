@@ -34,6 +34,7 @@ namespace GUI {
 #include <wx/valnum.h>
 #include <algorithm>
 #include <climits>
+#include <cstdlib>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 
@@ -3062,14 +3063,28 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
 
     auto label_original_time = wxString::Format("%s", short_time(get_time_dhms(original_time)));
     auto label_optimized_time = wxString::Format("%s", short_time(get_time_dhms(optimized_time)));
-    auto label_thrifty_time = wxString::Format("%s", short_time(get_time_dhms(original_time - optimized_time)));
 
-    auto label_time_impro        = new Label(this, Label::Body_14,label_thrifty_time + " (" + label_original_time + " -> " + label_optimized_time + ")");
+    int time_diff = original_time - optimized_time;
+    auto label_abs_diff = wxString::Format("%s", short_time(get_time_dhms(std::abs(time_diff))));
+
+    wxString time_impro_text;
+    wxColour time_impro_color;
+    if (time_diff > 0) {
+        time_impro_text = label_abs_diff + " (" + label_original_time + " -> " + label_optimized_time + ")";
+        time_impro_color = value_color;
+    } else if (time_diff < 0) {
+        time_impro_text = "+" + label_abs_diff + " (" + label_original_time + " -> " + label_optimized_time + ")";
+        time_impro_color = wxColour(221, 160, 62);
+    } else {
+        time_impro_text = "0s (" + label_original_time + " -> " + label_optimized_time + ")";
+        time_impro_color = value_color;
+    }
+
+    auto label_time_impro        = new Label(this, Label::Body_14, time_impro_text);
     auto label_average_impro     = new Label(this, Label::Body_14, format_improvement(quality_mean_improvement));
     auto label_consistency_impro = new Label(this, Label::Body_14, format_improvement(quality_std_improvement));
 
-    // Use Helio green accent for improvement values (works in both modes)
-    label_time_impro->SetForegroundColour(value_color);
+    label_time_impro->SetForegroundColour(time_impro_color);
     label_average_impro->SetForegroundColour(value_color);
     label_consistency_impro->SetForegroundColour(value_color);
 
