@@ -11323,13 +11323,13 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                                         % used_filament % best_token_native_name;
             } else {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User rejected token-based match for %1%") % used_filament;
-                GUI::MessageDialog errordialog(nullptr, 
-                    wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
-                    "", wxICON_WARNING | wxOK,
-                    wxString(), 
-                    _L("View supported materials"),
-                    [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
-                errordialog.ShowModal();
+                // GUI::MessageDialog errordialog(nullptr, 
+                //     wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
+                //     "", wxICON_WARNING | wxOK,
+                //     wxString(), 
+                //     _L("View supported materials"),
+                //     [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
+                // errordialog.ShowModal();
                 return -1;
             }
         } else {
@@ -11575,13 +11575,13 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                 } else {
                     // User cancelled
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User cancelled similar material selection for %1%") % used_filament;
-                    GUI::MessageDialog errordialog(nullptr, 
-                        wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
-                        "", wxICON_WARNING | wxOK,
-                        wxString(), 
-                        _L("View supported materials"),
-                        [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
-                    errordialog.ShowModal();
+                    // GUI::MessageDialog errordialog(nullptr, 
+                    //     wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
+                    //     "", wxICON_WARNING | wxOK,
+                    //     wxString(), 
+                    //     _L("View supported materials"),
+                    //     [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
+                    // errordialog.ShowModal();
                     return -1;
                 }
             } else {
