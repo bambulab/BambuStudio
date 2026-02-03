@@ -30,6 +30,7 @@ namespace Slic3r
         static wxString             GetNozzleFlowTypeStr(NozzleFlowType type);
         static std::string          GetNozzleFlowTypeString(NozzleFlowType type);// no translation
         static NozzleFlowType       ToNozzleFlowType(const std::string& type);
+        static NozzleVolumeType     ToNozzleVolumeType(const std::string &type);
         static NozzleFlowType       VariantToNozzleFlowType(const std::string& variant);
         static std::string          ToNozzleFlowString(const NozzleFlowType& type);
 
