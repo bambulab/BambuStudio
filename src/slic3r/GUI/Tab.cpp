@@ -5162,6 +5162,7 @@ void TabPrinter::on_preset_loaded()
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
                 m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
+                m_preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
                     updateNozzleCountDisplay(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]));
                 }

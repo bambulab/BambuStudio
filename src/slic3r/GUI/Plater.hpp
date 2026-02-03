@@ -130,6 +130,26 @@ wxDECLARE_EVENT(EVT_GCODE_VIEWER_CHANGED, SimpleEvent);
 
 const wxString DEFAULT_PROJECT_NAME = "Untitled";
 
+enum class NozzleStatus : int;
+struct NozzleConfig
+{
+    wxString         diameter;
+    NozzleVolumeType volume;
+    NozzleStatus     status = static_cast<NozzleStatus>(0);
+    NozzleConfig()          = default;
+    NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_, NozzleStatus status_) : diameter(diameter_), volume(volume_), status(status_) {}
+    NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_) : diameter(diameter_), volume(volume_), status(static_cast<NozzleStatus>(0)) {}
+
+    bool is_empty() const
+    {
+        return diameter.IsEmpty();
+    }
+    static NozzleConfig empty_config()
+    {
+        return NozzleConfig{wxEmptyString, NozzleVolumeType::nvtStandard, static_cast<NozzleStatus>(0)};
+    }
+};
+
 class Sidebar : public wxPanel
 {
     ConfigOptionMode    m_mode;
@@ -208,6 +228,7 @@ public:
     void reset_fila_switch();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
+    void reset_all_nozzle_status();
 
     PlaterPresetComboBox *  printer_combox();
     ObjectList*             obj_list();

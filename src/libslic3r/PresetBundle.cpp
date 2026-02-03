@@ -56,7 +56,8 @@ static std::vector<std::string> s_project_options {
     "filament_nozzle_map",
     "extruder_nozzle_stats",
     "prime_volume_mode",
-    "enable_filament_dynamic_map"
+    "enable_filament_dynamic_map",
+    "extruder_full_stats"
 };
 
 //BBS: add BBL as default
@@ -1740,6 +1741,96 @@ VendorProfile PresetBundle::get_custom_vendor_models() const
     return vendor;
 }
 
+std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type)
+{
+    switch (type) {
+    case NozzleVolumeType::nvtStandard: return "Standard";
+    case NozzleVolumeType::nvtHighFlow: return "High Flow";
+    case NozzleVolumeType::nvtTPUHighFlow: return "TPU High Flow";
+    case NozzleVolumeType::nvtHybrid: return "Hybrid";
+    default: return std::string();
+    }
+}
+
+void PresetBundle::update_extruder_full_stats_from_config()
+{
+    const ConfigOptionStrings* stats_opt = project_config.option<ConfigOptionStrings>("extruder_full_stats");
+    if (!stats_opt || stats_opt->values.empty()) {
+        generate_extruder_full_stats_from_nozzle_stats();
+        return;
+    }
+
+    extruder_full_stat.clear();
+    extruder_full_stat.resize(stats_opt->values.size());
+
+    for (size_t extruder_id = 0; extruder_id < stats_opt->values.size(); ++extruder_id) {
+        const std::string& extruder_stats_str = stats_opt->values[extruder_id];
+        std::vector<std::pair<std::string, std::string>> nozzle_stats;
+
+        if (!extruder_stats_str.empty()) {
+            std::vector<std::string> nozzle_strings;
+            boost::split(nozzle_strings, extruder_stats_str, boost::is_any_of(","));
+
+            for (const std::string& nozzle_str : nozzle_strings) {
+                std::string trimmed = boost::trim_copy(nozzle_str);
+                if (!trimmed.empty()) {
+                    size_t pos = trimmed.find('#');
+                    if (pos != std::string::npos) {
+                        nozzle_stats.emplace_back(
+                            trimmed.substr(0, pos),
+                            trimmed.substr(pos + 1)
+                        );
+                    }
+                }
+            }
+        }
+
+        extruder_full_stat.set_extruder_stats(extruder_id, nozzle_stats);
+    }
+}
+
+void PresetBundle::generate_extruder_full_stats_from_nozzle_stats()
+{
+    if (extruder_nozzle_stat.get_force_keep_flag()) {
+        return;
+    }
+    extruder_full_stat.clear();
+    auto raw_stats = extruder_nozzle_stat.get_raw_stat();
+    const Preset &printer_preset            = printers.get_edited_preset();
+    auto  diameter                          = printer_preset.config.opt_string("printer_variant");
+    auto  extruder_max_nozzle_count         = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+
+    extruder_full_stat.resize(raw_stats.size());
+    for (size_t extruder_id = 0; extruder_id < raw_stats.size(); ++extruder_id) {
+        std::vector<std::pair<std::string, std::string>> nozzle_stats;
+
+        for (const auto &[volume_type, count] : raw_stats[extruder_id]) {
+            std::string volume_str = GetNozzleVolumeTypeStr(volume_type);
+
+            for (int i = 0; i < count; ++i) {
+                nozzle_stats.emplace_back(diameter, volume_str);
+            }
+
+            int current_count = nozzle_stats.size();
+            int max_count = extruder_max_nozzle_count->values[extruder_id];
+
+            if (current_count < max_count) {
+                std::vector<std::string> diameters = {"0.2", "0.4", "0.6", "0.8"};
+                for (const auto& d : diameters) {
+                    if (d != diameter) {
+                        for (int i = current_count; i < max_count; ++i) {
+                            nozzle_stats.emplace_back(d, "Standard");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        extruder_full_stat.set_extruder_stats(extruder_id, nozzle_stats);
+    }
+}
+
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
 std::vector<std::string> PresetBundle::merge_presets(PresetBundle &&other)
 {
@@ -3189,6 +3280,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
     out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
+    out.option<ConfigOptionStrings>("extruder_full_stats", true)->values   = save_extruder_full_stats_to_string(this->extruder_full_stat.get_raw_stat());
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
