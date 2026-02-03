@@ -664,6 +664,7 @@ inline std::string short_time(const std::string &time)
     }
     // Format the dhm time.
     char buffer[64];
+    buffer[0] = '\0';
     if (days > 0)
         ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0)
