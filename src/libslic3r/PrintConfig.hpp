@@ -436,6 +436,7 @@ extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vec
 extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
 extern std::vector<std::map<NozzleVolumeType, int>> get_extruder_nozzle_stats(const std::vector<std::string> & strs);
 extern std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType, int>> &extruder_nozzle_stats);
+extern std::vector<std::string> save_extruder_full_stats_to_string(const std::vector<std::vector<std::pair<std::string, std::string>>> &extruder_full_stats);
 
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
