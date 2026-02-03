@@ -2815,6 +2815,22 @@ bool PresetBundle::support_different_extruders()
     return supported;
 }
 
+std::vector<NozzleVolumeType> PresetBundle::get_printer_nozzle_volume_list()
+{
+    const Preset& printer_preset = this->printers.get_edited_preset();
+    auto variants = printer_preset.config.option<ConfigOptionStrings>("printer_extruder_variant");
+
+    std::set<NozzleVolumeType> unique_types;
+    if (variants) {
+        for (const std::string& variant : variants->values) {
+            NozzleVolumeType nvt = convert_to_nvt_type(variant);
+            unique_types.insert(nvt);
+        }
+    }
+
+    return std::vector<NozzleVolumeType>(unique_types.begin(), unique_types.end());
+}
+
 std::vector<int> PresetBundle::get_default_nozzle_volume_types_for_filaments(std::vector<int>& f_maps)
 {
     std::vector<int> result;
