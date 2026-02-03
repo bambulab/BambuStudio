@@ -1427,6 +1427,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	    m_default_region_config.apply_only(new_full_config, region_diff, true);
         //m_full_print_config = std::move(new_full_config);
         m_full_print_config = new_full_config;
+        update_filament_self_index_cache();
         if (num_extruders  != m_config.filament_diameter.size()) {
             num_extruders  = m_config.filament_diameter.size();
             num_extruders_changed  = true;
@@ -1796,6 +1797,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Handle changes to regions config defaults
         m_default_region_config.apply_only(new_full_config, new_changed_keys, true);
         m_full_print_config = std::move(new_full_config);
+        update_filament_self_index_cache();
     }
 
     // All regions now have distinct settings.

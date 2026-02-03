@@ -1097,6 +1097,37 @@ int Print::get_filament_config_indx(int filament_id, int layer_id)
     return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_index_map);
 }
 
+void Print::update_filament_self_index_cache()
+{
+    std::vector<int> values;
+    if (m_full_print_config.has("filament_self_index")) {
+        values = m_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+    } else if (m_ori_full_print_config.has("filament_self_index")) {
+        values = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+    } else {
+        values = m_config.filament_self_index.values;
+    }
+
+    size_t expected_size = m_config.filament_extruder_variant.values.size();
+    m_filament_self_index.clear();
+    if (expected_size == 0) {
+        m_filament_index_map.clear();
+        m_nozzle_index_map.clear();
+        return;
+    }
+    m_filament_self_index.resize(expected_size, 0);
+    if (!values.empty()) {
+        for (size_t i = 0; i < expected_size; ++i) {
+            int v = i < values.size() ? values[i] : 1;
+            if (v <= 0)
+                v = 1;
+            m_filament_self_index[i] = v - 1;
+        }
+    }
+    m_filament_index_map.clear();
+    m_nozzle_index_map.clear();
+}
+
 int Print::get_nozzle_config_index(int filament_id, int layer_id)
 {
     return get_config_index(filament_id, layer_id, m_config.printer_extruder_variant.values, m_nozzle_index_map);
@@ -2745,6 +2776,7 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
             m_config.apply(filament_overrides);
         }
     }
+    update_filament_self_index_cache();
     m_has_auto_filament_map_result = true;
 }
 
@@ -2797,6 +2829,7 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
         m_placeholder_parser.apply_config(filament_overrides);
         m_config.apply(filament_overrides);
     }
+    update_filament_self_index_cache();
 }
 
 void Print::apply_config_for_render(const DynamicConfig &config)
