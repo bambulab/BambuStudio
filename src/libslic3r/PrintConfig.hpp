@@ -341,6 +341,7 @@ enum FilamentMapMode {
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
+extern int get_config_index_by_filament_id(int filament_id, const std::vector<std::string> &variant_list, const std::vector<int> &filament_self_index, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
 static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     std::set<NozzleVolumeType> type;
