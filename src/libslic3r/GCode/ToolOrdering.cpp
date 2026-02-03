@@ -1318,7 +1318,9 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
     // 2、收集每个材料不可使用的喷嘴
     std::map<int, std::set<int>> fil_unplaceable_nozs;
     for (auto fil : fils) {
-        auto unprintable_volumes = ctx.model_info.unprintable_volumes.at(fil);
+        std::set<NozzleVolumeType> unprintable_volumes;
+        if (ctx.model_info.unprintable_volumes.count(fil))
+            unprintable_volumes = ctx.model_info.unprintable_volumes.at(fil);
         auto expected_volume     = ctx.group_info.filament_volume_map[fil];
 
         for (int noz = 0; noz < ctx.nozzle_info.nozzle_list.size(); noz++) {
