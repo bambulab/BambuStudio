@@ -3177,12 +3177,14 @@ void Print::_make_wipe_tower()
 
         MultiNozzleUtils::NozzleStatusRecorder nozzle_recorder;
 
-        int layer_idx = 0;
+        int layer_idx = -1;
 
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
         nozzle_recorder.set_nozzle_status(group_result->get_nozzle_for_filament(old_filament_id, layer_idx)->group_id, old_filament_id);
 
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
+            ++layer_idx;
+
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_wipe_tower_data.tool_ordering.front();
             wipe_tower.plan_toolchange((float)layer_tools.print_z, (float)layer_tools.wipe_tower_layer_height, old_filament_id, old_filament_id);
@@ -3223,7 +3225,6 @@ void Print::_make_wipe_tower()
                 old_filament_id = filament_id;
 
                 nozzle_recorder.set_nozzle_status(nozzle_id, filament_id);
-                ++layer_idx;
             }
             layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
 

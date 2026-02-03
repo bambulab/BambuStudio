@@ -1290,7 +1290,7 @@ namespace Slic3r
                 ctx.model_info.flush_matrix,
                 get_custom_seq,
                 nullptr,
-                ctx.nozzle_info.nozzle_stats
+                ctx.nozzle_info.nozzle_status
             );
 
             if (groups[ctx.machine_info.master_extruder_id].size() < (used_filaments.size() + 1) / 2)

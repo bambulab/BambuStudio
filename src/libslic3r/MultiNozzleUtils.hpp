@@ -215,17 +215,25 @@ class NozzleStatusRecorder
 private:
     std::unordered_map<int, int> nozzle_filament_status; // Track filament in each nozzle
     std::unordered_map<int, int> extruder_nozzle_status; // Track nozzle for each extruder
+    int current_extruder_id_ = -1;                       // Track current extruder id
 
 public:
     NozzleStatusRecorder() = default;
     bool is_nozzle_empty(int nozzle_id) const;
     int  get_filament_in_nozzle(int nozzle_id) const;
     int  get_nozzle_in_extruder(int extruder_id) const;
+    int  get_current_extruder_id() const { return current_extruder_id_; }
 
     void clear_nozzle_status(int nozzle_id);
+    void set_current_extruder_id(int extruder_id) { current_extruder_id_ = extruder_id; }
 
     // Update the status of a nozzle with new filament and extruder information
     void set_nozzle_status(int nozzle_id, int filament_id, int extruder_id = -1);
+
+    // key: 喷嘴id, value: 材料id (-1表示该喷嘴内没有装载材料)
+    const std::unordered_map<int, int>& get_nozzle_filament_map() const { return nozzle_filament_status; }
+    // key: 挤出机id, value: 喷嘴id (-1表示该挤出机内没有装载喷嘴)
+    const std::unordered_map<int, int>& get_extruder_nozzle_map() const { return extruder_nozzle_status; }
 };
 
 float calc_filament_change_gap_for_assignment(

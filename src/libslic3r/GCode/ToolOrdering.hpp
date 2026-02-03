@@ -106,22 +106,19 @@ private:
 struct FilamentChangeStats
 {
     int filament_flush_weight{0};
+    int flush_filament_change_count {0};
     int filament_change_count{0};
-    int extruder_change_count{0};
-    int nozzle_change_count{0};
 
     void clear(){
         filament_flush_weight = 0;
         filament_change_count = 0;
-        extruder_change_count = 0;
-        nozzle_change_count = 0;
+        flush_filament_change_count = 0;
     }
 
     FilamentChangeStats& operator+=(const FilamentChangeStats& other) {
         this->filament_flush_weight += other.filament_flush_weight;
         this->filament_change_count += other.filament_change_count;
-        this->extruder_change_count += other.extruder_change_count;
-        this->nozzle_change_count += other.nozzle_change_count;
+        this->flush_filament_change_count += other.flush_filament_change_count;
         return *this;
     }
 
@@ -129,8 +126,7 @@ struct FilamentChangeStats
         FilamentChangeStats ret;
         ret.filament_flush_weight = this->filament_flush_weight + other.filament_flush_weight;
         ret.filament_change_count = this->filament_change_count + other.filament_change_count;
-        ret.extruder_change_count = this->extruder_change_count + other.extruder_change_count;
-        ret.nozzle_change_count = this->nozzle_change_count + other.nozzle_change_count;
+        ret.flush_filament_change_count = this->flush_filament_change_count + other.flush_filament_change_count;
         return ret;
     }
 
@@ -163,7 +159,7 @@ FilamentGroupContext build_filament_group_context(Print                         
                                                   const std::vector<std::set<int>>                &physical_unprintables,
                                                   const std::vector<std::set<int>>                &geometric_unprintables,
                                                   const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
-                                                  const std::optional<std::vector<unsigned int>>   initial_nozzle_stats = std::nullopt);
+                                                  const std::unordered_map<int, int>              &nozzle_status = {});
 } // namespace GroupReorder
 
 class LayerTools
@@ -291,7 +287,7 @@ public:
                                                                                   const std::vector<std::set<int>>                &physical_unprintables,
                                                                                   const std::vector<std::set<int>>                &geometric_unprintables,
                                                                                   const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
-                                                                                  const std::optional<std::vector<unsigned int>>            nozzle_stats = std::nullopt);
+                                                                                  const std::unordered_map<int, int>& nozzle_status = {});
 
     struct LayerData{
         std::vector<std::vector<unsigned int>> layer_filaments;

@@ -2105,7 +2105,7 @@ namespace Slic3r
                     ImGui::SameLine();
                     imgui.text(_u8L("Filament change times") + ":");
                     ImGui::SameLine();
-                    ::sprintf(buf, "%d", m_print_statistics.total_flush_chages + m_print_statistics.total_extruder_changes + m_print_statistics.total_nozzle_changes);
+                    ::sprintf(buf, "%d", m_print_statistics.total_filament_changes);
                     imgui.text(buf);
                     //BBS display cost
                     ImGui::Dummy({ window_padding, window_padding });

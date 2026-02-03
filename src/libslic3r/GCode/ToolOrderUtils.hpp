@@ -7,12 +7,14 @@
 #include <limits>
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
 #include "../MultiNozzleUtils.hpp"
 
 #define DEBUG_MULTI_NOZZLE_MCMF 0
 namespace Slic3r {
 
 using FlushMatrix = std::vector<std::vector<float>>;
+
 
 namespace MaxFlowGraph {
     const int INF = std::numeric_limits<int>::max();
@@ -155,7 +157,7 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int> &
                                                const std::vector<FlushMatrix> &flush_matrix,
                                                std::optional<std::function<bool(int, std::vector<int> &)>> get_custom_seq,
                                                std::vector<std::vector<unsigned int>> *filament_sequences,
-                                               std::optional<std::vector<unsigned int>> initial_filaments_id = std::nullopt);
+                                               const std::unordered_map<int, int>& nozzle_status = {});
 
 #if DEBUG_MULTI_NOZZLE_MCMF
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
@@ -178,13 +180,15 @@ std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<floa
 #endif
 
 
+
+
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
                                                 const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result,
                                                 const std::vector<std::vector<unsigned int>>& layer_filaments,
                                                 const std::vector<FlushMatrix>& flush_matrix,
                                                 const std::function<bool(int,std::vector<int>&)> get_custom_seq,
                                                 std::vector<std::vector<unsigned int>> * filament_sequences,
-                                                const std::optional<std::vector<unsigned int>> nozzles_stats = std::nullopt);
+                                                const MultiNozzleUtils::NozzleStatusRecorder& initial_status = {});
 
 }
 #endif // !TOOL_ORDER_UTILS_HPP

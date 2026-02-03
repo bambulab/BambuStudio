@@ -5713,58 +5713,45 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
             return;
 
         int new_extruder_id = target_nozzle_info->extruder_id;
-        int new_nozzle_in_extruder = target_nozzle_info->group_id;
-        int new_filament_in_nozzle = id;
-
         int old_extruder_id = prev_extruder_id;
-        int old_nozzle_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(new_extruder_id);
-        int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_in_extruder);
 
-        bool is_extruder_change = (old_extruder_id != new_extruder_id);
-        bool is_nozzle_change = (old_nozzle_in_extruder != new_nozzle_in_extruder);
-        bool is_flush_change = (old_filament_in_nozzle != new_filament_in_nozzle);
+        int new_nozzle_id_in_extruder = target_nozzle_info->group_id;
+        int old_nozzle_id_in_extruder = m_nozzle_status_recorder.get_nozzle_in_extruder(new_extruder_id);
 
-        if (is_extruder_change) {
-            extra_time += get_extruder_change_time(new_extruder_id);
-        }
-        if (is_nozzle_change) {
-            extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
-            extra_time += get_hotend_change_time();
-            m_time_processor.extruder_unloaded = false;
-            extra_time += get_filament_load_time(static_cast<size_t>(new_filament_in_nozzle));
-        }
-        if (is_flush_change) {
-            extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
-            m_time_processor.extruder_unloaded = false;
-            extra_time += get_filament_load_time(static_cast<size_t>(new_filament_in_nozzle));
-        }
+        int new_filament_id = id;
+        int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(new_nozzle_id_in_extruder);
+
+        bool extruder_change = new_extruder_id != old_extruder_id;
+        bool nozzle_in_extruder_change = old_nozzle_id_in_extruder != -1 && new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
+        bool filament_in_nozzle_change = old_filament_in_nozzle != -1 && new_filament_id != old_filament_in_nozzle;
 
         m_result.lock();
-        if (is_extruder_change || is_nozzle_change || is_flush_change) {
-            process_filaments(CustomGCode::ToolChange);
+        if (extruder_change) {
+            extra_time += get_extruder_change_time(new_extruder_id);
         }
+        if (filament_in_nozzle_change) {
+            extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
+            m_time_processor.extruder_unloaded = false;
+            extra_time += get_filament_load_time(static_cast<size_t>(new_filament_id));
+            m_result.print_statistics.total_flush_filament_changes++;
+        }
+        if (prev_filament_id != -1)
+            m_result.print_statistics.total_filament_changes++;
 
-        if(is_extruder_change){
-            m_result.print_statistics.total_extruder_changes++;
-        }
-        else if(is_nozzle_change){
-            m_result.print_statistics.total_nozzle_changes++;
-        }
-        else if(is_flush_change){
-            m_result.print_statistics.total_flush_chages++;
+        if (extruder_change || nozzle_in_extruder_change) {
+            process_filaments(CustomGCode::ToolChange);
         }
         m_result.unlock();
 
-        if (new_extruder_id != -1) {
-            m_filament_id[new_extruder_id] = new_filament_in_nozzle;
+        if (new_extruder_id != -1) { m_filament_id[new_extruder_id] = new_filament_id;
         }
         m_extruder_id = new_extruder_id;
 
         // 3. Ensure all state changes are recorded via NozzleStatusRecorder
-        m_nozzle_status_recorder.set_nozzle_status(new_nozzle_in_extruder, new_filament_in_nozzle, new_extruder_id);
+        m_nozzle_status_recorder.set_nozzle_status(new_nozzle_id_in_extruder, new_filament_id, new_extruder_id);
 
 
-    m_cp_color.current = m_extruder_colors[new_filament_in_nozzle];
+    m_cp_color.current = m_extruder_colors[new_filament_id];
     // store tool change move
     store_move_vertex(EMoveType::Tool_change);
 
