@@ -277,3 +277,5 @@ src/slic3r/GUI/AMSDryControl.cpp
 src/slic3r/GUI/AMSDryControl.hpp
 src/slic3r/GUI/UxProgramTermsDialog.cpp
 src/slic3r/GUI/UxProgramTermsDialog.hpp
+src/slic3r/GUI/HelioHistoryDialog.hpp
+src/slic3r/GUI/HelioHistoryDialog.cpp
