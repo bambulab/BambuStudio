@@ -431,15 +431,111 @@ void insert_points(std::vector<PointWithFlag> &pl, int idx, Vec2f pos, int pair_
     }
 }
 
-Polylines remove_points_from_polygon(const Polygon &polygon, const std::vector<Vec2f> &skip_points, double range, float wt_width, Polygon &insert_skip_pg)
+// For skip_point
+// TODO: Optimize the skip_point algorithm itself instead of adding guards here
+Polygon add_extra_point(const Polygon &polygon, int scale_range)
 {
+    Polygon res;
+    if (polygon.size() < 2) return polygon;
+
+    // Compute bounding box of the polygon
+    auto polygon_box = get_extents(polygon);
+
+    // Anchor point: X at bbox center, Y at bbox bottom
+    Vec2f anchor_point(float(polygon_box.center()[0]), float(polygon_box.min[1]));
+
+    // Find the edge whose midpoint is closest to the anchor point
+    size_t closest_edge_idx = 0;
+    float  min_dist_sq      = std::numeric_limits<float>::max();
+
+    for (size_t i = 0; i < polygon.size(); ++i) {
+        const Point &a_i = polygon[i];
+        const Point &b_i = polygon[(i + 1) % polygon.size()];
+
+        Vec2f a(float(a_i.x()), float(a_i.y()));
+        Vec2f b(float(b_i.x()), float(b_i.y()));
+        Vec2f mid = (a + b) * 0.5f;
+
+        float dist_sq = (anchor_point - mid).squaredNorm();
+        if (dist_sq < min_dist_sq) {
+            min_dist_sq      = dist_sq;
+            closest_edge_idx = i;
+        }
+    }
+
+    // Edge endpoints (integer space)
+    const Point &a_i = polygon[closest_edge_idx];
+    const Point &b_i = polygon[(closest_edge_idx + 1) % polygon.size()];
+
+    // Convert to float for geometric computation
+    Vec2f a(float(a_i.x()), float(a_i.y()));
+    Vec2f b(float(b_i.x()), float(b_i.y()));
+
+    Vec2f mid = (a + b) * 0.5f;
+
+    // Direction vectors from midpoint towards A and B
+    Vec2f dir_to_a = a - mid;
+    Vec2f dir_to_b = b - mid;
+
+    float len_a = dir_to_a.norm();
+    float len_b = dir_to_b.norm();
+
+    // Guard against degenerated edges
+    if (len_a < EPSILON || len_b < EPSILON) return polygon;
+
+    dir_to_a /= len_a;
+    dir_to_b /= len_b;
+
+    // Clamp range to avoid overshooting the edge
+    float max_range = std::min(len_a, len_b) * 0.9f;
+    float range     = std::min(float(scale_range), max_range);
+
+    // Offset points (float space)
+    Vec2f offset_to_a_f = mid + dir_to_a * range;
+    Vec2f offset_to_b_f = mid + dir_to_b * range;
+
+    // Safe cast back to scaled integer Point
+    auto to_int_point = [](const Vec2f &p) {
+        auto clamp = [](float v) -> coord_t {
+            constexpr float kMin = float(std::numeric_limits<coord_t>::min());
+            constexpr float kMax = float(std::numeric_limits<coord_t>::max());
+            v                    = std::clamp(v, kMin, kMax);
+            return static_cast<coord_t>(std::lround(v));
+        };
+        return Point(clamp(p.x()), clamp(p.y()));
+    };
+
+    Point mid_i         = to_int_point(mid);
+    Point offset_to_a_i = to_int_point(offset_to_a_f);
+    Point offset_to_b_i = to_int_point(offset_to_b_f);
+
+    // Rebuild polygon with inserted points
+    for (size_t i = 0; i < polygon.size(); ++i) {
+        res.points.push_back(polygon[i]);
+
+        // Insert points right after the selected edge start vertex
+        if (i == closest_edge_idx) {
+            res.points.push_back(offset_to_a_i);
+            res.points.push_back(mid_i);
+            res.points.push_back(offset_to_b_i);
+        }
+    }
+
+    return res;
+}
+
+
+
+Polylines remove_points_from_polygon(const Polygon &polygon_ori, const std::vector<Vec2f> &skip_points, double range, float wt_width, Polygon &insert_skip_pg)
+{
+    Polygon polygon = add_extra_point(polygon_ori, scale_(range));
     if (polygon.size() < 2) return Polylines{to_polyline(polygon)};
     Polylines                     result;
     std::vector<PointWithFlag>    new_pl; // add intersection points for gaps, where bool indicates whether it's a gap point.
     std::vector<IntersectionInfo> inter_info;
     auto                          polygon_box  = get_extents(polygon);
     //Point                         anchor_point = /*is_left ? Point{polygon_box.max[0], polygon_box.min[1]} :*/ polygon_box.min; // rd:ld
-    Point              anchor_point = Point{polygon_box.min[0], polygon_box.center()[1]};//for next reconnect
+    Point              anchor_point = Point{polygon_box.center()[0], polygon_box.min[1]}; // for next reconnect
     std::vector<Vec2f>            points;
     {
         points.reserve(polygon.points.size());
