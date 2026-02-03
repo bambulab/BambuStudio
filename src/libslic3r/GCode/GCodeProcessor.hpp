@@ -98,9 +98,8 @@ namespace Slic3r {
         std::map<ExtrusionRole, std::pair<double, double>>  used_filaments_per_role;
 
         std::array<Mode, static_cast<size_t>(ETimeMode::Count)> modes;
-        unsigned int                                        total_flush_chages;
-        unsigned int                                        total_extruder_changes;
-        unsigned int                                        total_nozzle_changes;
+        unsigned int                                        total_flush_filament_changes;
+        unsigned int                                        total_filament_changes;
 
         PrintEstimatedStatistics() { reset(); }
 
@@ -116,9 +115,8 @@ namespace Slic3r {
             total_volumes_per_extruder.clear();
             flush_per_filament.clear();
             used_filaments_per_role.clear();
-            total_flush_chages = 0;
-            total_extruder_changes = 0;
-            total_nozzle_changes   = 0;
+            total_flush_filament_changes = 0;
+            total_filament_changes = 0;
         }
     };
 

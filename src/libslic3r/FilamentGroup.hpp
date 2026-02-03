@@ -106,7 +106,7 @@ namespace Slic3r
         struct NozzleInfo {
             std::map<int, std::vector<int>> extruder_nozzle_list;
             std::vector<MultiNozzleUtils::NozzleInfo> nozzle_list;
-            std::optional<std::vector<unsigned int>> nozzle_stats = std::nullopt;
+            std::unordered_map<int, int> nozzle_status;
         } nozzle_info;
     };
 

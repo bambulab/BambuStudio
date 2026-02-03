@@ -6900,7 +6900,7 @@ int CLI::run(int argc, char **argv)
                                 auto it_wipe = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erWipeTower == item.first; });
                                 sliced_plate_info.total_predication = time_mode.time;
                                 sliced_plate_info.main_predication = time_mode.time - time_mode.prepare_time;
-                                sliced_plate_info.filament_change_times = print_estimated_stat.total_flush_chages;
+                                sliced_plate_info.filament_change_times = print_estimated_stat.total_flush_filament_changes;
                                 if (it_wipe != time_mode.roles_times.end()) {
                                     //filament changes time will be included in prime tower time later
                                     //ConfigOptionFloat* machine_load_filament_time_opt = m_print_config.option<ConfigOptionFloat>("machine_load_filament_time");
@@ -6924,7 +6924,7 @@ int CLI::run(int argc, char **argv)
                                         }
                                 }
                                 if (has_tool_change)
-                                    sliced_plate_info.layer_filament_change = print_estimated_stat.total_flush_chages;
+                                    sliced_plate_info.layer_filament_change = print_estimated_stat.total_flush_filament_changes;
 
                                 //filaments
                                 auto* filament_ids = dynamic_cast<const ConfigOptionStrings*>(m_print_config.option("filament_ids"));

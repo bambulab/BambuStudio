@@ -370,7 +370,7 @@ std::string GCodeWriter::toolchange(unsigned int filament_id, unsigned int nozzl
     if (this->multiple_extruders) {
         // BBS
         if (this->m_is_bbl_printer)
-            gcode << "M1020 S" << filament_id;
+            gcode << "M1020 S" << filament_id << " H" << nozzle_id;
         else
             gcode << this->toolchange_prefix() << filament_id;
         //BBS
