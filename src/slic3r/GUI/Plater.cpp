@@ -10532,12 +10532,12 @@ public:
         wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
         warning_text->SetForegroundColour(warning_text_color);
         warning_text->Wrap(wxWindowBase::FromDIP(440, this));
-        warning_sizer->Add(warning_text, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->Add(warning_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
         warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
-        
+
         warning_box->SetSizer(warning_sizer);
         main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
-        
+
         // Option 1: Proceed with reference material
         wxColour section_bg = is_dark_mode ? wxColour(50, 50, 55) : wxColour("#F8F8F8");
         wxColour section_border = is_dark_mode ? wxColour(70, 70, 75) : wxColour("#E8E8E8");
