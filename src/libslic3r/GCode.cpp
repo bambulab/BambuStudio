@@ -1257,11 +1257,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
     const std::vector<std::string> ColorPrintColors::Colors = { "#C0392B", "#E67E22", "#F1C40F", "#27AE60", "#1ABC9C", "#2980B9", "#9B59B6" };
 
 #define EXTRUDER_CONFIG(OPT) m_config.OPT.get_at(m_writer.filament()->extruder_id())
-#define FILAMENT_CONFIG(OPT) m_config.OPT.get_at(m_writer.filament()->id())
-//#define FILAMENT_CONFIG(OPT) m_config.OPT.get_at(get_filament_config_index(m_writer.filament()->id()))  // todo: to use this macro
-#define NOZZLE_CONFIG(OPT)   m_config.OPT.get_at(m_config.filament_map_2.values[m_writer.filament()->id()])
-//#define NOZZLE_CONFIG(OPT) m_config.OPT.get_at(get_nozzle_config_index(m_writer.filament()->id()) // todo: to use this macro
-
+//#define FILAMENT_CONFIG(OPT) m_config.OPT.get_at(m_writer.filament()->id())
+#define FILAMENT_CONFIG(OPT) m_config.OPT.get_at(get_filament_config_index(m_writer.filament()->id()))
+//#define NOZZLE_CONFIG(OPT)   m_config.OPT.get_at(m_config.filament_map_2.values[m_writer.filament()->id()])
+#define NOZZLE_CONFIG(OPT) m_config.OPT.get_at(get_nozzle_config_index(m_writer.filament()->id()))
 // Collect pairs of object_layer + support_layer sorted by print_z.
 // object_layer & support_layer are considered to be on the same print_z, if they are not further than EPSILON.
 std::vector<GCode::LayerToPrint> GCode::collect_layers_to_print(const PrintObject& object)
