@@ -1150,18 +1150,9 @@ int Print::get_config_index(int filament_id, int layer_id, std::vector<std::stri
     FilamentIndexKey key{filament_id, extruder_type, nozzle_volume_type};
     auto             iter = index_map.find(key);
     if (iter == index_map.end()) {
-        std::string              extruder_variant  = get_extruder_variant_string(extruder_type, nozzle_volume_type);
-        for (int index = 0; index < int(variant_list.size()); ++index) {
-            if (extruder_variant == variant_list[index] && m_filament_self_index[index] == filament_id) {
-                index_map[key] = index;
-                return index;
-            }
-        }
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                                 << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, filament_id %3%") % __LINE__ %
-                                        extruder_variant % filament_id;
-        assert(false);
-        return 0;
+        int index = get_config_index_by_filament_id(filament_id, variant_list, m_filament_self_index, extruder_type, nozzle_volume_type);
+        index_map[key] = index;
+        return index;
     } else {
         return index_map[key];
     }
