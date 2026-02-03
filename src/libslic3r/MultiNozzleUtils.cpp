@@ -727,7 +727,7 @@ std::string NozzleInfo::serialize() const
 {
     std::ostringstream oss;
     oss << "id=\"" << group_id << "\" "
-        << "extruder_id=\"" << extruder_id << "\" "
+        << "extruder_id=\"" << extruder_id + 1<< "\" "
         << "nozzle_diameter=\"" << diameter << "\" "
         << "volume_type=\"" << get_nozzle_volume_type_string(volume_type) << "\"";
     return oss.str();
