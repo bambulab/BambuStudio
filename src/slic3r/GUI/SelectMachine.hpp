@@ -202,6 +202,8 @@ private:
     ScalableButton     *m_printoption_tips{ nullptr };
     PrintOptionItem    *m_printoption_item{nullptr};
     wxString           m_full_title;
+    std::function<void()> m_tips_click_callback;
+    bool               m_tips_clickable{false};
 
 public:
     PrintOption(wxWindow *parent, wxString title, wxString tips, std::vector<POItem> ops, std::string param = "");
@@ -223,6 +225,7 @@ public:
     void        update_title_display();
     void        update_tooltip_options_area(const wxString& opt_tips);// options area tips
     void        insert_extra_widget(wxWindow* widget); // insert after title, before tips
+    void        set_tips_clickable(bool clickable, std::function<void()> callback = nullptr);
 
     void  msw_rescale();
 
@@ -233,6 +236,7 @@ private:
     void OnPaint(wxPaintEvent &event);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
+    void OnTipsButtonClicked(wxCommandEvent &event);
 };
 
 class ThumbnailPanel : public wxPanel
@@ -603,6 +607,8 @@ private:
     /* update option area*/
     void update_option_opts(MachineObject *obj);
     void update_options_layout();
+
+    void timelapse_button_click();
 
     // save and restore from config
     void load_option_vals(MachineObject* obj);            // read from config, call once on open/switch machine

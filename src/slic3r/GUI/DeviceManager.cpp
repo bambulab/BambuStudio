@@ -2828,6 +2828,12 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                     }
                 }
 
+                if (jj.contains("timelapse_slow_down")) {
+                    if (jj["timelapse_slow_down"].is_boolean()) {
+                        is_timelapse_slow_down = jj["timelapse_slow_down"].get<bool>();
+                    }
+                }
+
                 if (jj.contains("support_user_preset")) {
                     if (jj["support_user_preset"].is_boolean()) {
                         is_support_user_preset = jj["support_user_preset"].get<bool>();

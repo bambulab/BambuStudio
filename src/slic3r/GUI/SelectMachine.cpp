@@ -2486,10 +2486,43 @@ bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentI
     return (v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] > 1) || (v_ams_map[VIRTUAL_AMS_DEPUTY_ID_STR] > 1);
 }
 
+void SelectMachineDialog::timelapse_button_click()
+{
+    wxDialog dlg(nullptr, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE);
+    dlg.SetBackgroundColour(*wxWHITE);
+
+    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    dlg.SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* message = new wxStaticText(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(400), -1));
+    message->SetLabel(_L("After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."));
+    message->Wrap(FromDIP(400));
+    main_sizer->Add(message, 0, wxALL | wxEXPAND, FromDIP(20));
+
+    auto timelapse_url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/Timelapse",
+        wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
+    wxHyperlinkCtrl* learn_more = new wxHyperlinkCtrl(&dlg, wxID_ANY, _L("Learn more"),
+        timelapse_url, wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+    main_sizer->Add(learn_more, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(20));
+
+    wxBoxSizer* button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->AddStretchSpacer();
+    wxButton* ok_button = new wxButton(&dlg, wxID_OK, _L("OK"), wxDefaultPosition, wxDefaultSize);
+    button_sizer->Add(ok_button, 0, wxALL, FromDIP(5));
+    main_sizer->Add(button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(15));
+
+    dlg.SetSizer(main_sizer);
+    dlg.Fit();
+    dlg.CenterOnParent();
+    dlg.ShowModal();
+}
+
 void SelectMachineDialog::update_timelapse_folder_btn_icon()
 {
     if (!m_timelapse_folder_btn) return;
-    // always restore to normal (grey) â€” active state is managed by popup open/close
+    // always restore to normal (grey) ¡ª active state is managed by popup open/close
     m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed", m_timelapse_folder_btn, 16));
     m_timelapse_folder_btn->Refresh();
 }
@@ -2654,20 +2687,20 @@ void SelectMachineDialog::on_timelapse_storage_check_result()
     MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
     if (!obj) { on_send_print(); return; }
 
-    // query failed â†’ ignore, proceed with print
+    // query failed ¡ú ignore, proceed with print
     if (obj->timelapse_storage_check_result != 0) {
         BOOST_LOG_TRIVIAL(info) << "timelapse storage check failed (result=" << obj->timelapse_storage_check_result << "), proceeding";
         on_send_print();
         return;
     }
 
-    // space is enough â†’ proceed
+    // space is enough ¡ú proceed
     if (obj->timelapse_storage_is_enough) {
         on_send_print();
         return;
     }
 
-    // space not enough â†’ show dialog
+    // space not enough ¡ú show dialog
     show_timelapse_storage_dialog(obj);
 }
 
@@ -2741,8 +2774,8 @@ void SelectMachineDialog::show_timelapse_storage_dialog(MachineObject* obj)
     dlg.Fit();
     dlg.CenterOnParent();
 
-    // ShowModal returns after dialog closes â€” handle action outside modal stack
-    // wxID_CANCEL is returned when user clicks X (close button) â€” do nothing in that case
+    // ShowModal returns after dialog closes ¡ª handle action outside modal stack
+    // wxID_CANCEL is returned when user clicks X (close button) ¡ª do nothing in that case
     int result = dlg.ShowModal();
 
     if (result == wxID_OK) {
@@ -2791,7 +2824,7 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     if (!config) return;
     if (!obj) return;
 
-    // Read saved values from config â€” only called once on open / switch machine
+    // Read saved values from config ¡ª only called once on open / switch machine
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
@@ -2830,6 +2863,12 @@ void SelectMachineDialog::update_option_dynamic_state(MachineObject *obj)
         m_checkbox_list["timelapse"]->enable(false);
         m_checkbox_list["timelapse"]->setValue("off");
         m_checkbox_list["timelapse"]->update_tooltip(error_messgae);
+    }
+
+    if (obj->is_timelapse_slow_down) {
+        m_checkbox_list["timelapse"]->set_tips_clickable(true, [this]() { timelapse_button_click(); });
+    } else {
+        m_checkbox_list["timelapse"]->set_tips_clickable(false);
     }
 
     if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
@@ -2925,7 +2964,7 @@ void SelectMachineDialog::check_tpu_aero_flow_cali(MachineObject* obj)
     if (has_mapped && all_tpu_or_aero) {
         m_checkbox_list["flow_cali"]->setValue("off");
 
-        // Immediately update pa_panel visibility â€” same as on_flow_pa_caliation_option_changed
+        // Immediately update pa_panel visibility ¡ª same as on_flow_pa_caliation_option_changed
         if (obj->is_support_pa_mode) {
             m_pa_value_panel->Show();
             Layout();
@@ -6974,6 +7013,22 @@ void PrintOption::update_tooltip(const wxString &tips)
     m_printoption_tips->Show(!m_printoption_tips->GetToolTipText().IsEmpty());
 }
 
+void PrintOption::set_tips_clickable(bool clickable, std::function<void()> callback)
+{
+    m_tips_clickable = clickable;
+    m_tips_click_callback = callback;
+
+    if (clickable) {
+        m_printoption_tips->SetCursor(wxCursor(wxCURSOR_HAND));
+        m_printoption_tips->Bind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
+        m_printoption_tips->Show(true);
+    } else {
+        m_printoption_tips->SetCursor(wxNullCursor);
+        m_printoption_tips->Unbind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
+        m_printoption_tips->Show(!m_printoption_tips->GetToolTipText().IsEmpty());
+    }
+}
+
 void PrintOption::update_tooltip_options_area(const wxString& opt_tips)
 {
     if (m_printoption_item->GetToolTipText() != opt_tips) {
@@ -7023,6 +7078,13 @@ void PrintOption::update_title_display()
     }
 
     m_printoption_title->SetLabel(displayTitle);
+}
+
+void PrintOption::OnTipsButtonClicked(wxCommandEvent &event)
+{
+    if (m_tips_click_callback) {
+        m_tips_click_callback();
+    }
 }
 
 void PrintOption::msw_rescale()

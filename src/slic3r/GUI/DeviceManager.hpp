@@ -520,6 +520,7 @@ public:
     bool is_support_send_to_sdcard {false};
     bool is_support_filament_backup{false};
     bool is_support_timelapse{false};
+    bool is_timelapse_slow_down{false};
     bool is_support_update_remain{false};
     bool is_support_update_remain_hide_display{ false};
     int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
