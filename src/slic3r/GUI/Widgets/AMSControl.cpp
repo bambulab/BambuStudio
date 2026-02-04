@@ -1112,17 +1112,7 @@ void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSi
         if (ams1->get_ext_image()) { ams1->get_ext_image()->setShowAmsExt(false);}
 
         if (ams1->get_ams_model() == AMSModel::EXT_AMS) {
-            if (ams1->get_ext_type() == LITE_EXT) {
-                //book_sizer->Add(ams1, 0, wxALIGN_CENTER_HORIZONTAL, 0);
                 book_sizer->Add(ams1, 0, wxLEFT, (book_panel->GetSize().x - ams1->GetSize().x) / 2);
-            }
-            else{
-                auto ext_image = new AMSExtImage(book_panel, pos, m_total_ext_count, false);
-                book_sizer->Add(ams1, 0, wxLEFT, FromDIP(30));
-                book_sizer->Add(ext_image, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(30));
-                ext_image->setTotalExtNum(series_name, printer_type, total_ext_num);
-                m_ext_image_list[infos[0].ams_id] = ext_image;
-            }
         }
     }
 
