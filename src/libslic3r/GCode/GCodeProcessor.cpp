@@ -5143,8 +5143,21 @@ void GCodeProcessor::process_M104(const GCodeReader::GCodeLine& line)
 {
     int filament_id = get_filament_id();
     float new_temp;
-    if (line.has_value('S', new_temp))
-        m_extruder_temps[filament_id] = new_temp;
+    float   phy_extruder_id_temp;
+    if (line.has_value('T', phy_extruder_id_temp)) {
+        int  phy_extruder_id_temp_int = std::round(phy_extruder_id_temp);
+        auto it_temp                  = std::find(m_physical_extruder_map.begin(), m_physical_extruder_map.end(), phy_extruder_id_temp_int);
+        if (line.has_value('S', new_temp) && it_temp != m_physical_extruder_map.end()) {
+            size_t extruder_index = std::distance(m_physical_extruder_map.begin(), it_temp);
+            for (size_t ii = 0; ii < m_filament_maps.size(); ii++) {
+                auto it_temp_2 = std::find(m_filament_maps.begin(), m_filament_maps.end(), extruder_index);
+                size_t filament_index = std::distance(m_filament_maps.begin(), it_temp_2);
+                if (filament_index > 0 && filament_index < m_extruder_temps.size()) m_extruder_temps[filament_index] = new_temp;
+            }
+        }
+    } else {
+        if (line.has_value('S', new_temp)) m_extruder_temps[filament_id] = new_temp;
+    }
 }
 
 void GCodeProcessor::process_VM104(const GCodeReader::GCodeLine& line)
