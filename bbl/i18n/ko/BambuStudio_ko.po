@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-28 21:37+0800\n"
+"POT-Creation-Date: 2026-02-04 17:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -57,16 +57,16 @@ msgid "When using %s on the right extruder, it can only be used as support mater
 msgstr "오른쪽 압출기에서 %s을 사용하는 경우, 지지대 재료로만 사용할 수 있습니다."
 
 msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
-msgstr ""
+msgstr "현재 필라멘트는 TPU 고유량 노즐을 지원하지 않아 사용할 수 없습니다."
 
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "TPU 필라멘트에는 자동 동적 유량 보정이 지원되지 않습니다."
 
 msgid "Dynamic flow calibration is not supported for TPU 85A filament."
-msgstr ""
+msgstr "TPU 85A 필라멘트의 경우 동적 유량 보정이 지원되지 않습니다."
 
 msgid "How to feed TPU filament."
-msgstr ""
+msgstr "TPU 필라멘트 공급 방법"
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Bambu가 아닌 필라멘트를 사용하면 출력 품질 문제가 발생할 수 있습니다."
@@ -3344,7 +3344,7 @@ msgid "Right AMS"
 msgstr "오른쪽 AMS"
 
 msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
+msgstr "팁: 필라멘트 호환 규칙에 대해 알아보려면 사용 전에 Wiki를 참조하세요."
 
 msgid "Please select the filament installed on the left nozzle."
 msgstr "왼쪽 노즐에 장착된 필라멘트를 선택하십시오."
@@ -3370,7 +3370,7 @@ msgstr "현재 노즐로 출력하면 약 %0.2fg의 낭비물이 발생할 수 �
 
 #, c-format, boost-format
 msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr ""
+msgstr "팁: 필라멘트 유형(%s)이 슬라이싱 파일의 필라멘트 유형(%s)과 일치하지 않습니다. 이 슬롯을 사용하려면 %s 대신 %s를 설치하고 '장치' 페이지에서 슬롯 정보를 변경하세요."
 
 #, c-format, boost-format
 msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
@@ -4026,7 +4026,7 @@ msgid "Heating chamber"
 msgstr "실내 난방"
 
 msgid "Adjusting heatbed temperature"
-msgstr ""
+msgstr "히트베드 온도 조절"
 
 msgid "Printing calibration lines"
 msgstr "보정 라인 출력"
@@ -4074,7 +4074,7 @@ msgid "Purifying the chamber air"
 msgstr "챔버 공기 정화 중"
 
 msgid "Preparing AMS"
-msgstr ""
+msgstr "준비 중"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "이 프린터에서는 타임랩스가 지원되지 않습니다."
@@ -4395,6 +4395,9 @@ msgstr "총 시간"
 
 msgid "Filament change times"
 msgstr "필라멘트 교체 시간"
+
+msgid "View Summary"
+msgstr ""
 
 msgid "Color change"
 msgstr "색상 변경"
@@ -4856,25 +4859,25 @@ msgid "Calibration step selection"
 msgstr "캘리브레이션 단계 선택"
 
 msgid "Micro Lidar Calibration"
-msgstr ""
+msgstr "마이크로 라이다 교정"
 
 msgid "Auto Bed Leveling"
 msgstr "자동 베드 레벨링"
 
 msgid "Vibration Compensation"
-msgstr ""
+msgstr "진동 보정"
 
 msgid "Motor Noise Cancellation"
-msgstr ""
+msgstr "모터 소음 제거"
 
 msgid "Nozzle Offset Calibration"
 msgstr "노즐 오프셋 정 실패."
 
 msgid "High-temperature Bed Leveling"
-msgstr ""
+msgstr "고온 베드 레벨링"
 
 msgid "Nozzle Clumping Detection Calibration"
-msgstr ""
+msgstr "노즐 뭉침 감지 교정"
 
 msgid "Calibration program"
 msgstr "캘리브레이션 프로그램"
@@ -4980,6 +4983,9 @@ msgstr "아니요"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "새 모델을 생성하기 전에 닫힙니다. 계속하시겠습니까?"
+
+msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
+msgstr ""
 
 msgid "Slice plate"
 msgstr "플레이트 슬라이스"
@@ -6564,7 +6570,7 @@ msgid "Open Door Detection"
 msgstr "문 열림 감지"
 
 msgid "Choose the behavior when the door is opened during tasks."
-msgstr ""
+msgstr "작업 중에 문이 열렸을 때의 반응을 선택하세요."
 
 msgid "Notification"
 msgstr "알림"
@@ -6660,7 +6666,7 @@ msgid "Unlock current plate"
 msgstr "현재 플레이트 잠금 해제"
 
 msgid "Lock current plate"
-msgstr ""
+msgstr "현재 플레이트 잠금"
 
 msgid "Edit filament grouping"
 msgstr "필라멘트 그룹화 편집"
@@ -6748,12 +6754,12 @@ msgid ""
 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
 "Please confirm which nozzle you would like to use for this project."
 msgstr ""
-"소프트웨어는 한 번의 출력에 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
-"왼쪽 노즐과 오른쪽 노즐이 일치하지 않는 경우 단일 헤드 출력만 진행할 수 있습니다.\n"
-"이 프로젝트에 사용할 노즐을 확인해 주세요."
+"소프트웨어는 하나의 출력에 서로 다른 직경의 노즐 사용을 지원하지 않습니다.\n"
+"왼쪽과 오른쪽 노즐이 일치하지 않는 경우, 단일 헤드 출력만 진행할 수 있습니다.\n"
+"이 프로젝트에 사용할 노즐을 선택해 주세요."
 
 msgid "Switch diameter"
-msgstr "스위치 직경"
+msgstr "직경 전환"
 
 #, c-format, boost-format
 msgid "Left nozzle: %smm"
@@ -6859,7 +6865,7 @@ msgid "Restore"
 msgstr "복원"
 
 msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
+msgstr "현재 3mf 파일에 G 코드 스크립트가 포함되어 있습니다. 스크립트 내용을 확인해 주십시오."
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "현재 열판 온도가 상대적으로 높습니다. 밀폐된 환경에서 이 필라멘트를 출력할 경우 노즐이 막힐 수 있습니다. 전면 도어를 열거나 상단 유리를 제거하세요."
@@ -7077,9 +7083,85 @@ msgstr "잘못된 데이터"
 msgid "Slicing Canceled"
 msgstr "슬라이싱 취소됨"
 
+msgid "Great! Now click the Helio button to start optimization."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "슬라이싱 플레이트 %d"
+
+msgid "Multiple Filament Materials Detected"
+msgstr ""
+
+msgid "⚠ Multiple Filament Materials Detected"
+msgstr ""
+
+msgid " (unsupported)"
+msgstr ""
+
+msgid "Multicolour simulation currently supports only a single filament material.\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You have selected multiple materials: %s"
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Note: Unsupported materials will use the selected reference material for simulation."
+msgstr ""
+
+msgid "True multi-material support will be added in a future update."
+msgstr ""
+
+msgid "Option 1: Proceed using a single filament type"
+msgstr ""
+
+msgid "Select which filament to use for simulation:"
+msgstr ""
+
+msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
+msgstr ""
+
+msgid "Proceed Anyway"
+msgstr ""
+
+msgid "Option 2: Go back and change filament selection"
+msgstr ""
+
+msgid "✓ Recommended"
+msgstr ""
+
+msgid "Change your filament selection to use the same type for all colours, then try again."
+msgstr ""
+
+msgid "See supported materials"
+msgstr ""
+
+msgid "Go Back"
+msgstr ""
+
+msgid "Unsupported Materials Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Materials Detected"
+msgstr ""
+
+msgid "Some of your selected materials are not directly supported by Helio:\n"
+msgstr ""
+
+msgid "Option 1: Proceed with a reference material"
+msgstr ""
+
+msgid "Select a similar material type to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference material may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Change your filament selection to use a supported material, then try again."
+msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 시뮬레이션 또는 최적화 작업이 진행 중입니다."
@@ -7087,18 +7169,89 @@ msgstr "Helio 시뮬레이션 또는 최적화 작업이 진행 중입니다."
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "유효하지 않은 프린터 사전 설정입니다. Helio로 슬라이스할 수 없습니다."
 
+#, c-format, boost-format
+msgid ""
+"Helio found a potential printer match using token-based matching:\n"
+"\n"
+"Your printer: %s\n"
+"Matched printer: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your printer profile?"
+msgstr ""
+
+msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+msgid "Unsupported Printer Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Printer Detected"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You're using %s which is not officially supported by Helio."
+msgstr ""
+
+msgid "Option 1: Proceed with a reference printer"
+msgstr ""
+
+msgid "Select a similar printer to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference printer may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Option 2: Go back and change printer selection"
+msgstr ""
+
+msgid "Change your printer selection to use a supported printer, then try again."
+msgstr ""
+
+msgid "See supported printers"
+msgstr ""
+
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "현재 프린터 사전 설정은 Helio를 사용하여 슬라이스할 수 없습니다."
 
-msgid "Helio does not support using a number of materials greater than 1."
-msgstr "Helio는 1개 이상의 재료 사용을 지원하지 않습니다."
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+msgid "Unsupported Material Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Material Detected"
+msgstr ""
+
+msgid "Choose a Reference Material"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio는 소재 %s을(를) 지원하지 않습니다"
 
-msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr "Helio 기능은 \"물체별\" 출력 순서를 지원하지 않습니다."
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
+msgstr ""
+
+msgid "Click the Optimize/Enhance button to start your first optimization."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -7764,11 +7917,11 @@ msgid "User Experience"
 msgstr "사용자 경험"
 
 msgid "Join the User Experience Improvement Program."
-msgstr ""
+msgstr "사용자 경험 개선 프로그램에 참여하시겠습니까."
 
 msgctxt "Preferences"
 msgid "Learn more"
-msgstr ""
+msgstr "더 보기"
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "이전에 로그인한 계정을 자동으로 채우기."
@@ -9357,19 +9510,19 @@ msgid "Quick set"
 msgstr "빠른 설정"
 
 msgid "There are color input errors."
-msgstr ""
+msgstr "색상 입력 오류가 있습니다."
 
 msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
-msgstr ""
+msgstr "텍스처 가져오기가 일시적으로 불가능하며, 부분 색칠은 자동으로 기본 색상으로 대체됩니다."
 
 msgid " And "
-msgstr ""
+msgstr " 및 "
 
 msgid "Note"
 msgstr "메모"
 
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
-msgstr ""
+msgstr "색상이 선택되었으면 계속하려면 확인을 선택하거나 수동으로 조정할 수 있습니다."
 
 msgctxt "ObjImport"
 msgid "Original"
@@ -9877,44 +10030,53 @@ msgstr "전송하지 못했습니다. 다시 보내기를 클릭하여 다시 �
 msgid "reconnect"
 msgstr "다시 연결"
 
-msgid "Third-party Extension"
-msgstr "타사 확장 프로그램"
-
-msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr "더 강력한 부품, 뒤틀림 감소, 더 빠른 출력 - 빠른 물리 기반 FEM 시뮬레이션 지원"
-
-msgid "Uninstall the Helio Additive extension"
-msgstr "Helio Additive 확장 프로그램 제거"
-
-msgid "Use Immediately"
-msgstr "즉시 사용하기"
-
-msgid "Third-Party Extension"
-msgstr "타사 확장 프로그램"
-
-msgid "HELIO ADDITIVE"
+msgid "Welcome to Helio Additive"
 msgstr ""
 
-msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr "Helio Additive 타사 소프트웨어 서비스 기능이 성공적으로 활성화되었습니다!"
-
-msgid "Helio-PAT"
+msgid "Know Your Print Will Work — Before You Hit Print"
 msgstr ""
 
-msgid "Copy successful!"
-msgstr "복사 완료!"
-
-msgid "Helio Additive"
+msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
 msgstr ""
 
-msgid "Privacy Policy of Helio Additive"
-msgstr "Helio Additive의 개인정보 보호정책"
+msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
+msgstr ""
 
-msgid "Terms of Use of Helio Additive"
-msgstr "Helio Additive 이용 약관"
+msgid "Fewer Failed Prints"
+msgstr ""
 
-msgid "Agree and proceed"
-msgstr "동의하고 진행하기"
+msgid "Catch issues before printing and improve first-try success."
+msgstr ""
+
+msgid "Faster Prints, Better Quality"
+msgstr ""
+
+msgid "Automatically tune speed and extrusion without manual tweaking."
+msgstr ""
+
+msgid "Enable Helio Additive"
+msgstr ""
+
+msgid "Uninstall"
+msgstr ""
+
+msgid "After slicing, click the Helio button to analyze your print."
+msgstr ""
+
+msgid "Helio Additive does not change your printer's firmware."
+msgstr ""
+
+msgid "Designed to help prints succeed — even if you're new to 3D printing."
+msgstr ""
+
+msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
+msgstr ""
+
+msgid "Uninstall Helio Additive"
+msgstr ""
+
+msgid "Legal & Activation Terms"
+msgstr ""
 
 msgid "Got it"
 msgstr "알겠습니다"
@@ -9925,11 +10087,143 @@ msgstr "Helio PAT 획득 실패. 다시 얻으려면 새로 고침을 클릭하�
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr "PAT 획득 실패. 수량 제한에 도달하여 더 이상 얻을 수 없습니다. 새로 고침 버튼을 클릭하여 PAT를 다시 얻으십시오."
 
-msgid "Simulation"
-msgstr "시뮬레이션"
+msgid "You are activating Helio Additive's advanced simulation services."
+msgstr ""
 
-msgid "Optimization"
-msgstr "최적화"
+msgid "Software Service Terms && Conditions"
+msgstr ""
+
+msgid "^"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr ""
+
+msgid "Helio Additive Privacy Agreement"
+msgstr ""
+
+msgid "Helio Additive User Agreement"
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
+msgstr ""
+
+msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
+msgstr ""
+
+msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
+msgstr ""
+
+msgid " and refer to the "
+msgstr ""
+
+msgid " and "
+msgstr ""
+
+msgid " for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
+msgstr ""
+
+msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
+msgstr ""
+
+msgid "Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
+msgstr ""
+
+msgid "Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr "이 기능을 활성화하기로 확인하면 위의 내용에 대해 확인 및 동의한 것으로 간주됩니다."
+
+msgid "Special Note && Privacy Policy"
+msgstr ""
+
+msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
+msgstr ""
+
+msgid ""
+"I have read and agree to the terms\n"
+"and policies."
+msgstr ""
+
+msgid "Agree and Proceed"
+msgstr ""
+
+msgid "Activation Successful!"
+msgstr ""
+
+msgid "Helio Additive is now active. You have unlocked free optimizations!"
+msgstr ""
+
+msgid "Applies only when first activated"
+msgstr ""
+
+msgid "Run Your First Optimization"
+msgstr ""
+
+msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
+msgstr ""
+
+msgid ""
+"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
+"\n"
+msgstr ""
+
+msgid "Supported printers and materials"
+msgstr ""
+
+msgid "Copy PAT"
+msgstr ""
+
+msgid ""
+"Personal Access Token (PAT)\n"
+"\n"
+"A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.\n"
+"\n"
+"You may need to copy this to:\n"
+"• Integrate Helio with other slicers or tools\n"
+"• Use the Helio API directly\n"
+"• Provide to support when troubleshooting"
+msgstr ""
+
+msgid "Copy successful!"
+msgstr "복사 완료!"
+
+msgid "History"
+msgstr ""
+
+msgid "View and download recent optimizations and simulations"
+msgstr ""
+
+msgid "Terms of Use"
+msgstr ""
+
+msgid "Activation Successful"
+msgstr ""
+
+msgid "Assess"
+msgstr ""
+
+msgid "Formerly referred to as 'Simulate' or 'Simulation'"
+msgstr ""
+
+msgid "See where it will fail"
+msgstr ""
+
+msgid "Enhance"
+msgstr ""
+
+msgid "Formerly referred to as 'Optimize' or 'Optimization'"
+msgstr ""
+
+msgid "Auto-fix with new speeds"
+msgstr ""
 
 msgid "Environment Temperature"
 msgstr "환경 온도"
@@ -9937,20 +10231,47 @@ msgstr "환경 온도"
 msgid "Chamber Temperature"
 msgstr "챔버 온도"
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr "참고: 위 온도는 실제 조건에 맞게 조정하십시오. 데이터가 더 정확할수록 분석 결과도 더 정밀해집니다."
+msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
+msgstr ""
+
+msgid "Optional. More accurate temperatures ensures better results."
+msgstr ""
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "전문 사용자를 위한 Helio의 고급 기능: 공식 웹사이트에서 구매 후 이용 가능합니다."
 
-msgid "Monthly quota remaining: "
-msgstr "남은 월 할당량: "
+msgid "Account Status"
+msgstr ""
 
-msgid "Add-ons available: "
-msgstr "사용 가능한 애드온: "
+msgid "Subscription:"
+msgstr ""
 
-msgid "Optimise Outer Walls"
-msgstr "외벽 최적화"
+msgid "Loading subscription status..."
+msgstr ""
+
+msgid "Monthly quota:"
+msgstr ""
+
+msgid "Add-ons:"
+msgstr ""
+
+msgid "Plans / Upgrades"
+msgstr ""
+
+msgid "Manage Account"
+msgstr ""
+
+msgid "Environment Settings"
+msgstr ""
+
+msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
+msgstr ""
+
+msgid "Optimization Settings"
+msgstr ""
+
+msgid "Now referred to as 'Enhance' or 'Enhancement'"
+msgstr ""
 
 msgid "Helio default (recommended)"
 msgstr "Helio 기본값 (권장)"
@@ -9960,6 +10281,9 @@ msgstr "슬라이서 기본값"
 
 msgid "Limits"
 msgstr "제한"
+
+msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "최소 속도"
@@ -9976,26 +10300,83 @@ msgstr "최대 체적 속도"
 msgid "Last Trace ID: "
 msgstr "마지막 추적 ID: "
 
-msgid "Buy Now / Manage Account"
-msgstr "지금 구매 / 계정 관리"
-
 msgid "Click for more details"
 msgstr "자세한 내용을 보려면 클릭하세요"
 
-msgid "Start Simulation"
-msgstr "시뮬레이션 시작"
+msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
+msgstr ""
 
-msgid "Start Optimization"
-msgstr "최적화 시작"
+msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
+msgstr ""
 
-msgid "Buy add-ons"
-msgstr "애드온 구매하기"
+msgid "Start Free Trial"
+msgstr ""
 
-msgid "Layers to Optimize "
-msgstr "최적화할 레이어 "
+msgid "Activate your free trial to unlock premium enhancements"
+msgstr ""
+
+msgid "Go to our storefront to purchase more enhancements"
+msgstr ""
+
+msgid "Free Trial"
+msgstr ""
+
+msgid "Free Trial Expired"
+msgstr ""
+
+msgid "Your free trial has ended. Explore our plans to continue using premium features."
+msgstr ""
+
+msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
+msgstr ""
+
+msgid "Unlimited*"
+msgstr ""
+
+msgid "*Fair usage terms apply - click to learn more"
+msgstr ""
+
+msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
+msgstr ""
+
+msgid "Print Priority"
+msgstr ""
+
+msgid "Loading print priority options..."
+msgstr ""
+
+msgid "Fetching material-specific options from Helio API..."
+msgstr ""
+
+msgid "Preserve Surface Finish"
+msgstr ""
+
+msgid "Speed & Strength"
+msgstr ""
+
+msgid ""
+"Speed & Strength: Optimizes outer walls for improved performance.\n"
+"Preserve Surface Finish: Maintains original wall speeds to preserve visual finish.\n"
+"\n"
+"Note: Using fallback options - couldn't fetch material-specific settings from API."
+msgstr ""
+
+msgid "No print priority options available for this material"
+msgstr ""
+
+msgid "This material does not support print priority optimization."
+msgstr ""
+
+msgid ""
+"Failed to load print priority options from Helio API.\n"
+"Using standard optimization method instead (same as before print priority feature)."
+msgstr ""
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Helio PAT 획득 실패. 발급된 PAT 수가 상한선에 도달했습니다. Helio 공식 웹사이트의 정보를 주의 깊게 확인하시기 바랍니다. 사용 가능할 때 다시 얻으려면 새로 고침을 클릭하세요."
+
+msgid "HELIO ADDITIVE"
+msgstr ""
 
 msgid "Print Time Improvement"
 msgstr "출력 시간 개선"
@@ -10006,8 +10387,131 @@ msgstr "평균 개선"
 msgid "Consistency Improvement"
 msgstr "일관성 향상"
 
+msgid "Estimate of improvement in print time before and after enhancement"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
+msgstr ""
+
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
 msgstr "최상의 출력 품질을 위해 gcode가 개선되었습니다. 출력 품질을 더욱 향상시키려면 위키에서 다음 단계에 대한 팁과 요령을 확인하세요."
+
+msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
+msgstr ""
+
+msgid "Save the enhanced gcode locally"
+msgstr ""
+
+msgid "Print Plate"
+msgstr ""
+
+msgid "Print the enhanced part immediately"
+msgstr ""
+
+msgid "View Details"
+msgstr ""
+
+msgid "Verify Print Success Results"
+msgstr ""
+
+msgid "Simulates the thermal process to confirm your part will print without failure."
+msgstr ""
+
+msgid "Now referred to as 'Assess' or 'Assessment'"
+msgstr ""
+
+msgid "Time saved: "
+msgstr ""
+
+msgid "From "
+msgstr ""
+
+msgid "Expected Outcome:"
+msgstr ""
+
+msgid "Analysis:"
+msgstr ""
+
+msgid "Additional observations:"
+msgstr ""
+
+msgid "Fix suggestions"
+msgstr ""
+
+msgid "With Enhance Speed & Quality:"
+msgstr ""
+
+msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
+msgstr ""
+
+msgid "Enhance Speed & Quality"
+msgstr ""
+
+msgid "Applies Helio's optimized speed/flow/fan strategy."
+msgstr ""
+
+msgid "✅ Will Print"
+msgstr ""
+
+msgid "⚠️ May Print with Issues"
+msgstr ""
+
+msgid "❌ Likely to Fail"
+msgstr ""
+
+msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
+msgstr ""
+
+msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
+msgstr ""
+
+msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print"
+msgstr ""
+
+msgid "Too cold overall — see suggestions"
+msgstr ""
+
+msgid "Too hot overall — see suggestions"
+msgstr ""
+
+msgid "Your part is ready to print! Thermal conditions are within safe limits."
+msgstr ""
+
+msgid "Too cold (overall)"
+msgstr ""
+
+msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Too hot (overall)"
+msgstr ""
+
+msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Suggestions"
+msgstr ""
+
+msgid "Quick fixes (beginner):"
+msgstr ""
+
+msgid "Expert"
+msgstr ""
+
+msgid "Learn more"
+msgstr "더 보기"
+
+msgid "Helio Flowchart"
+msgstr ""
+
+msgid "Fixing cold prints"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "공기 펌프"
@@ -10191,7 +10695,7 @@ msgid "Please change the nozzle type or reassign the filament and try again."
 msgstr "노즐 종류를 변경하거나 필라멘트를 다시 지정한 후 다시 시도해 주세요."
 
 msgid "No valid nozzle found. Please check nozzle count."
-msgstr ""
+msgstr "유효한 노즐을 찾을 수 없습니다. 노즐 수를 확인해 주세요."
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
 msgstr "수동 모드에서 그룹 오류가 발생했습니다. 노즐 수를 확인하거나 그룹을 다시 설정해주세요."
@@ -11429,37 +11933,37 @@ msgid "Temperature drop before entering filament tower"
 msgstr "필라멘트 타워 진입 전 온도 강하"
 
 msgid "Interface layer pre-extrusion distance"
-msgstr ""
+msgstr "인터페이스 레이어 사전 압출 거리"
 
 msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "프라임 타워 인터페이스 레이어(서로 다른 재료가 만나는 부분)의  사전 압출 거리."
 
 msgid "Interface layer pre-extrusion length"
-msgstr ""
+msgstr "인터페이스 레이어 사전 압출 길이"
 
 msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "프라임 타워 인터페이스 레이어(서로 다른 재료가 만나는 부분)의 사전 압출 길이."
 
 msgid "Tower ironing area"
-msgstr ""
+msgstr "타워 다림질 영역"
 
 msgid "Ironing area for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "프라임 타워 인터페이스 레이어(서로 다른 재료가 만나는 부분)의 다림질 영역."
 
 msgid "mm²"
 msgstr "mm²"
 
 msgid "Interface layer purge length"
-msgstr ""
+msgstr "인터페이스 레이어 퍼지 길이"
 
 msgid "Purge length for prime tower interface layer (where different materials meet)."
-msgstr ""
+msgstr "프라임 타워 인터페이스 레이어(서로 다른 재료가 만나는 부분)의 퍼지 길이."
 
 msgid "Interface layer print temperature"
-msgstr ""
+msgstr "인터페이스 레이어 출력 온도"
 
 msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
-msgstr ""
+msgstr "서로 다른 재료가 만나는 프라임 타워 인터페이스 층의 출력 온도입니다. -1로 설정하면 권장 최대 노즐 온도를 사용합니다."
 
 msgid "°C"
 msgstr ""
@@ -11793,7 +12297,7 @@ msgid "Apply top surface compensation"
 msgstr "상단 표면 보정 적용"
 
 msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr ""
+msgstr "이 옵션을 활성화하면 상단 표면 선 사이의 이동 거리를 늘려 상단 표면 채움과 벽면 간의 접착력을 향상시킵니다."
 
 msgid "Air filtration enhancement"
 msgstr "공기 여과 기능 향상"
@@ -14998,6 +15502,9 @@ msgstr "Helio: 최적화 생성 성공"
 msgid "Helio: optimization working"
 msgstr "Helio: 최적화 작업 중"
 
+msgid "Helio: optimization failed"
+msgstr ""
+
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: 최적화 검사 실패"
 
@@ -15200,9 +15707,6 @@ msgstr "글로벌 설정"
 msgid "Video tutorial"
 msgstr "비디오 자습서"
 
-msgid "Learn more"
-msgstr "더 보기"
-
 msgid "(Sync with printer)"
 msgstr "(프린터와 동기화)"
 
@@ -15217,10 +15721,10 @@ msgid "Tips: You can drag the filaments to reassign them to different nozzles."
 msgstr "팁: 팁: 필라멘트를 드래그하여 다른 노즐에 재할당할 수 있습니다."
 
 msgid "Please adjust your grouping or click "
-msgstr "그룹화를 조정하거나 클릭하세요. "
+msgstr "그룹 조정 또는 클릭 "
 
 msgid " to set nozzle count"
-msgstr " 노즐 수를 설정하려면"
+msgstr " 노즐 개수를 설정하려면"
 
 #, c-format, boost-format
 msgid "Left Extruder(%d)"
@@ -15321,14 +15825,14 @@ msgid "Available Nozzles"
 msgstr "사용 가능한 노즐"
 
 msgid "Sync Nozzle status"
-msgstr ""
+msgstr "노즐 상태 동기화"
 
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "주의: 한 번에 여러 노즐 직경을 혼합하여 출력하는 것은 지원되지 않습니다. 선택한 크기가 압출기 하나에만 있는 경우, 단일 압출기 출력이 적용됩니다."
 
 #, c-format, boost-format
 msgid "Refresh %d/%d..."
-msgstr ""
+msgstr "새로 고침 %d/%d..."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "알 수 없는 노즐이 감지되었습니다. 정보를 업데이트하려면 새로 고침하세요(새로 고침되지 않은 노즐은 슬라이싱 과정에서 제외됩니다). 표시된 값과 노즐 직경 및 유량을 확인하세요."
@@ -15349,154 +15853,261 @@ msgid "Standard Mode"
 msgstr "표준 모드"
 
 msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr ""
+msgstr "최고의 출력 품질을 위해 완전한 프라이밍을 수행합니다. 더 많은 재료와 시간이 필요합니다."
 
 msgid "Prime Saving"
-msgstr ""
+msgstr "프라임 절약"
 
 msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
+msgstr "프라임 폐기물을 줄이고 출력 속도를 높입니다. 약간의 색상 혼입이나 작은 표면 결함이 발생할 수 있습니다."
 
 msgid "Learn more about prime mode"
-msgstr ""
+msgstr "프라임 모드에 대해 자세히 알아보기"
 
 msgid "AMS Dryness Control"
-msgstr ""
+msgstr "AMS 건조 제어"
 
 msgid "Filament Drying Settings"
-msgstr ""
+msgstr "필라멘트 건조 설정"
 
 msgid "Start"
-msgstr ""
+msgstr "시작"
 
 msgid "Unable to dry temporarily due to ..."
-msgstr ""
+msgstr "...이유로 일시적으로 건조할 수 없습니다."
 
 msgid "Drying Error"
-msgstr ""
+msgstr "건조 오류"
 
 msgid "Please check the Assistant for troubleshooting"
-msgstr ""
+msgstr "문제 해결을 위해 도우미를 확인하세요"
 
 msgid "Please remove and store the filament (as shown)."
-msgstr ""
+msgstr "필라멘트를 제거하여 보관해 주세요(그림 참조)."
 
 msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr ""
+msgstr "AMS는 적절히 보관된 필라멘트를 회전시켜 더 나은 건조 결과를 제공합니다."
 
 msgid "Rotate spool when drying"
-msgstr ""
+msgstr "건조 시 스풀을 회전하세요"
 
 msgctxt "amsdrying"
 msgid "Back"
 msgstr ""
 
 msgid "Drying-Heating"
-msgstr ""
+msgstr "건조-가열"
 
 msgid "Drying-Dehumidifying"
-msgstr ""
+msgstr "건조-제습"
 
 msgid " maximum drying temperature is "
-msgstr ""
+msgstr " 최대 건조 온도는 "
 
 msgid " minimum drying temperature is "
-msgstr ""
+msgstr " 최소 건조 온도는 "
 
 msgid "This filament may not be completely dried."
-msgstr ""
+msgstr "이 필라멘트는 완전히 건조되지 않았을 수 있습니다."
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
-msgstr ""
+msgstr "이 AMS는 현재 출력 중입니다. 출력 품질을 보장하기 위해 건조 온도는 권장 건조 온도를 초과할 수 없습니다."
 
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
-msgstr ""
+msgstr "온도는 필라멘트의 열 변형 온도를 초과해서는 안 됩니다."
 
 msgid "Minimum time value cannot be less than 1."
-msgstr ""
+msgstr "최소 시간은 1보다 작을 수 없습니다."
 
 msgid "Maximum time value cannot be greater than 24."
-msgstr ""
+msgstr "최대 시간은 24를 초과할 수 없습니다."
 
 msgid "Insufficient power"
-msgstr ""
+msgstr "전력 부족"
 
 msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
-msgstr ""
+msgstr "  너무 많은 AMS 장치가 동시에 건조 중입니다. 건조를 시작하기 전에 전원을 연결하거나 다른 건조 과정을 중단하세요."
 
 msgid "AMS is busy"
-msgstr ""
+msgstr "AMS 사용 중"
 
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
-msgstr ""
+msgstr "  AMS 교정 중 | RFID 읽는 중 | 재료 로드/언로드 중입니다. 잠시만 기다려 주십시오."
 
 msgid "Filament in AMS outlet"
-msgstr ""
+msgstr "AMS 배출구의 필라멘트"
 
 msgid "  The high drying temperature may cause AMS blockage, please unload first."
-msgstr ""
+msgstr "  건조 온도가 높으면 AMS가 막힐 수 있습니다. 먼저 언로드하십시오."
 
 msgid "Initiating AMS drying"
-msgstr ""
+msgstr "AMS 건조 시작"
 
 msgid "Not supported in 2D mode"
-msgstr ""
+msgstr "2D 모드에서 지원되지 않음"
 
 msgid "Task in progress"
-msgstr ""
+msgstr "작업 진행 중"
 
 msgid "  The AMS might be in use during Task."
-msgstr ""
+msgstr "  작업 중에 AMS가 사용 중일 수 있습니다."
 
 msgid "  Firmware update in progress, please wait..."
-msgstr ""
+msgstr "  펌웨어 업데이트가 진행 중입니다. 잠시 기다려 주세요..."
 
 msgid "  Please plug in the power and then use the drying function."
-msgstr ""
+msgstr "  전원을 꽂고 건조 기능을 사용하십시오."
 
 msgid "System is busy"
-msgstr ""
+msgstr "시스템 사용 중"
 
 msgid "  Initiating other drying processes, please wait a few seconds..."
-msgstr ""
+msgstr "  다른 건조 과정을 시작하는 중 잠시만 기다려주세요..."
 
 msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr ""
+msgstr "더 나은 건조 결과를 위해 필라멘트를 옮기고 회전시키세요."
 
 msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr ""
+msgstr "AMS는 건조 성능을 향상시키기 위해 보관된 필라멘트 슬롯을 자동으로 회전시킵니다."
 
 msgid "Alternatively, you can dry the filament without removing it."
-msgstr ""
+msgstr "또는 필라멘트를 옮기지 않고 건조할 수도 있습니다."
 
 msgid "Unknown filaments will be treated as PLA."
-msgstr ""
+msgstr "알 수 없는 필라멘트는 PLA로 취급됩니다."
 
 msgid "Please store the filament marked with an exclamation mark."
-msgstr ""
+msgstr "느낌표가 표시된 필라멘트를 보관하십시오."
 
 msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr ""
+msgstr "건조 중 공급기에 남아 있는 필라멘트는 건조 온도가 PLA 및 TPU와 같은 소재의 연화점을 초과하기 때문에 연화될 수 있습니다."
 
 msgid "Starting: Checking adapter connection"
-msgstr ""
+msgstr "시작하기: 어댑터 연결 확인"
 
 msgid "Starting: Checking filament status"
-msgstr ""
+msgstr "시작하기: 필라멘트 상태 확인"
 
 msgid "Starting: Checking drying presets"
-msgstr ""
+msgstr "시작하기: 건조 사전 설정 확인"
 
 msgid "Starting: Checking filament location"
-msgstr ""
+msgstr "시작 중: 필라멘트 위치 확인"
 
 msgid "Starting: Checking air intake"
-msgstr ""
+msgstr "시작하기: 흡입구 확인"
 
 msgid "Starting: Checking air vent"
-msgstr ""
+msgstr "시작하기: 통풍구 확인"
 
 msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr "Bambu Lab 사용자 경험 개선 프로그램 약관"
+
+msgid "Recent Helio Runs"
+msgstr ""
+
+msgid "Showing recent completed optimizations and simulations"
+msgstr ""
+
+msgid "Loading recent runs..."
+msgstr ""
+
+msgid "No Recent Runs Found"
+msgstr ""
+
+msgid "No completed simulations or optimizations found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "OPTIMIZATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "SIMULATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d layers"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Quality: %s | Consistency: %s"
+msgstr ""
+
+msgid "Download GCode"
+msgstr ""
+
+msgid "View Results"
+msgstr ""
+
+msgid "GCode URL is not available"
+msgstr ""
+
+msgid "Download Error"
+msgstr ""
+
+msgid "Save GCode File"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"GCode file downloaded successfully!\n"
+"\n"
+"Saved to: %s"
+msgstr ""
+
+msgid "Download Complete"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to open file for writing:\n"
+"%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error saving file: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to download GCode file.\n"
+"\n"
+"Error: %s"
+msgstr ""
+
+msgid "Optimization Details"
+msgstr ""
+
+msgid "Simulation Details"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d seconds ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d minutes ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d hours ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d days ago"
+msgstr ""
+
+msgid "Print Outcome: WILL_PRINT"
+msgstr ""
+
+msgid "Print Outcome: MAY_PRINT"
+msgstr ""
+
+msgid "Print Outcome: LIKELY_FAIL"
+msgstr ""
+
+msgid "Print Outcome: "
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -15719,134 +16330,235 @@ msgstr ""
 "뒤틀림 방지\n"
 "ABS와 같이 뒤틀리기 쉬운 소재를 출력할 때 열판 온도를 적절히 높이면 뒤틀릴 확률을 줄일 수 있다는 사실을 알고 계셨나요?"
 
-#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: materials) Like a Pro]
 msgid ""
-"Single-Material Only\n"
-"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+"Run Nylon & PC (and other advanced materials) Like a Pro\n"
+"Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
-"단일 재료만 지원\n"
-"Helio는 현재 한 작업에 대해 한 가지 재료와 한 개의 노즐만 시뮬레이션합니다. 다중 재료 또는 다중 압출기 G-코드는 열 연속성을 깨뜨리는 긴 일시 중지를 추가하므로, 결과가 의미 없을 수 있습니다."
 
-#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
+#: (Safely)]
 msgid ""
-"One Plate per Job\n"
-"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+"Make Prints up to 30% Faster (Safely)\n"
+"Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
-"작업당 한 개의 플레이트\n"
-"단일 빌드 플레이트가 포함된 G-코드를 업로드하세요—다중 플레이트 프로젝트는 아직 지원되지 않아, 첫 번째 플레이트만 실행됩니다."
 
-#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: Tuning]
 msgid ""
-"What is the Thermal Quality Index?\n"
-"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+"Stop Wasting Precious Design Time on Tuning\n"
+"Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
-"열 품질 지수(TQI)란 무엇인가요?\n"
-"열 품질 지수(척도 –100에서 +100)는 각 영역의 출력 온도가 얼마나 뜨겁거나 차가운지를 나타냅니다. 초록색(≈ 0)은 강력하고 뒤틀림 없는 부품을 만들기에 \"적정 온도\" 구역입니다. 최상의 결과를 위해 부품 대부분을 초록색 상태로 유지하세요."
 
-#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
+#: advanced materials]
 msgid ""
-"Voxel-Level Accuracy\n"
-"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+"Cut Warping on ASA/ABS and other advanced materials\n"
+"Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
-"복셀 수준 정확도\n"
-"모든 복셀의 모든 시간 단위 온도를 예측하며, 표준 작업의 경우 일반적으로 ±5~10°C 이내입니다. 일시 정지, 맞춤형 펌웨어 또는 비정상적인 냉각으로 인해 이 차이가 더 커질 수 있습니다."
 
-#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
-"Fan & Airflow Model\n"
-"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+"Quality Check Before You Hit Print\n"
+"Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
-"팬 및 기류 모델\n"
-"간소화된 팬 및 실내 모델은 느린 CFD 계산 없이 냉각 설정이 부품 온도에 어떻게 영향을 미치는지 보여줍니다 — 일상적인 조정에 매우 적합합니다. 챔버 내 와류는 아직 시뮬레이션되지 않아 실행 속도가 빠릅니다."
 
-#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
-"TQI Limits Explained\n"
-"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+"Stronger Parts With One Click\n"
+"Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
-"TQI 한계 설명\n"
-"-100 → 너무 차가움: 인장 강도가 이상적인 0°C에서 출력된 부품보다 약 50% 낮음(ASTM D638 도그본 테스트). +100 → 너무 뜨거움: 층이 용융 상태로 유지되어 처지거나 무너질 수 있음. 최대 강도와 정확도를 위해 영역을 0°C에 가깝게 유지하십시오."
 
-#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
-"What Drives Runtime?\n"
-"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+"Save Money Every Run\n"
+"Faster + fewer failures = real savings."
 msgstr ""
-"실행 시간을 결정하는 요인?\n"
-"추가 레이어, 고밀도 채우기, 작은 호(작은 메시 요소)가 많거나 출력 속도가 매우 느리면 솔버가 더 많은 시간을 들여 시뮬레이션을 진행해야 하므로 시뮬레이션 시간이 길어집니다. 멀티코어 CPU나 CUDA GPU는 시뮬레이션 속도를 높여줍니다."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
-"Nozzle Temp Range\n"
-"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+"First-Time-Right Reliability\n"
+"Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
-"노즐 온도 범위\n"
-"지원되는 설정점은 190~320°C이며, 이를 초과하는 온도는 물리적 현실성을 유지하기 위해 제한됩니다."
 
-#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
-msgid ""
-"Debugging Flowchart\n"
-"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-msgstr ""
-"디버깅 플로우차트\n"
-"결과가 왜 이상해 보이는지 궁금하세요? 단계별 디버깅 플로우차트를 따라 설정, G 코드, 재료 문제를 몇 분 만에 추적해 보세요."
+#~ msgid "Helio does not support using a number of materials greater than 1."
+#~ msgstr "Helio는 1개 이상의 재료 사용을 지원하지 않습니다."
 
-#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
-msgid ""
-"Why Cooling Varies\n"
-"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-msgstr ""
-"냉각이 다양한 이유\n"
-"외벽과 브리지는 가장 빠르게 냉각되는 반면, 두꺼운 내부는 더 따뜻하게 유지됩니다—형상, 공기 흐름, 그리고 툴 경로가 모두 영향을 미치며, 시뮬레이션은 이러한 차이를 시각화합니다."
+#~ msgid "Helio functions do not support the print sequence of \"ByObject\"."
+#~ msgstr "Helio 기능은 \"물체별\" 출력 순서를 지원하지 않습니다."
 
-#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
-msgid ""
-"Extrusion Temp Model\n"
-"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-msgstr ""
-"압출 온도 모델\n"
-"재료 속성은 용융 곡선을 형성하지만 프린터 기하학은 필라멘트가 실제로 얼마나 많은 열을 얻는지 결정하므로 모델은 재료별로 다르고 프린터에 따라 보정됩니다."
+#~ msgid "Third-party Extension"
+#~ msgstr "타사 확장 프로그램"
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
-#: °C?]
-msgid ""
-"Nozzle setting of 190 °C vs 320 °C?\n"
-"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-msgstr ""
-"190 °C와 320 °C 노즐 설정 차이?\n"
-"노즐 온도가 100 °C 차이 나는 것은 열 지수에 약간 영향을 줄 뿐이며, 압출 온도, 유량, 그리고 후냉각 과정이 부품의 열 이력에 더 큰 영향을 미칩니다."
+#~ msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+#~ msgstr "더 강력한 부품, 뒤틀림 감소, 더 빠른 출력 - 빠른 물리 기반 FEM 시뮬레이션 지원"
 
-#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
-msgid ""
-"Bed Temperature influence\n"
-"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-msgstr ""
-"베드 온도 영향\n"
-"현재는 첫 번째 레이어의 베드 온도만 모델에 반영되며, 이후의 베드 온도 변화는 아직 반영되지 않습니다."
+#~ msgid "Uninstall the Helio Additive extension"
+#~ msgstr "Helio Additive 확장 프로그램 제거"
 
-#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
-msgid ""
-"Actual Tool-Path\n"
-"Yes—your exact G-code path, speeds and fan commands are simulated."
-msgstr ""
-"실제 툴 경로\n"
-"예—정확한 G-코드 경로, 속도 및 팬 명령이 시뮬레이션됩니다."
+#~ msgid "Use Immediately"
+#~ msgstr "즉시 사용하기"
 
-#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
-msgid ""
-"Mesh Resolution\n"
-"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-msgstr ""
-"메시 해상도\n"
-"폭셀 그리드는 G-코드 줄 간격보다 미세하여 컴퓨팅을 낭비하지 않고 레이어별 세부 정보를 캡처합니다."
+#~ msgid "Third-Party Extension"
+#~ msgstr "타사 확장 프로그램"
 
-#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
-msgid ""
-"Shrinkage, Warping & Stress\n"
-"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-msgstr ""
-"수축, 뒤틀림 및 응력\n"
-"열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
+#~ msgid "Helio Additive third - party software service feature has been successfully enabled!"
+#~ msgstr "Helio Additive 타사 소프트웨어 서비스 기능이 성공적으로 활성화되었습니다!"
+
+#~ msgid "Privacy Policy of Helio Additive"
+#~ msgstr "Helio Additive의 개인정보 보호정책"
+
+#~ msgid "Terms of Use of Helio Additive"
+#~ msgstr "Helio Additive 이용 약관"
+
+#~ msgid "Agree and proceed"
+#~ msgstr "동의하고 진행하기"
+
+#~ msgid "Simulation"
+#~ msgstr "시뮬레이션"
+
+#~ msgid "Optimization"
+#~ msgstr "최적화"
+
+#~ msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+#~ msgstr "참고: 위 온도는 실제 조건에 맞게 조정하십시오. 데이터가 더 정확할수록 분석 결과도 더 정밀해집니다."
+
+#~ msgid "Monthly quota remaining: "
+#~ msgstr "남은 월 할당량: "
+
+#~ msgid "Add-ons available: "
+#~ msgstr "사용 가능한 애드온: "
+
+#~ msgid "Optimise Outer Walls"
+#~ msgstr "외벽 최적화"
+
+#~ msgid "Buy Now / Manage Account"
+#~ msgstr "지금 구매 / 계정 관리"
+
+#~ msgid "Start Simulation"
+#~ msgstr "시뮬레이션 시작"
+
+#~ msgid "Start Optimization"
+#~ msgstr "최적화 시작"
+
+#~ msgid "Buy add-ons"
+#~ msgstr "애드온 구매하기"
+
+#~ msgid "Layers to Optimize "
+#~ msgstr "최적화할 레이어 "
+
+#~ msgid ""
+#~ "Single-Material Only\n"
+#~ "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+#~ msgstr ""
+#~ "단일 재료만 지원\n"
+#~ "Helio는 현재 한 작업에 대해 한 가지 재료와 한 개의 노즐만 시뮬레이션합니다. 다중 재료 또는 다중 압출기 G-코드는 열 연속성을 깨뜨리는 긴 일시 중지를 추가하므로, 결과가 의미 없을 수 있습니다."
+
+#~ msgid ""
+#~ "One Plate per Job\n"
+#~ "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+#~ msgstr ""
+#~ "작업당 한 개의 플레이트\n"
+#~ "단일 빌드 플레이트가 포함된 G-코드를 업로드하세요—다중 플레이트 프로젝트는 아직 지원되지 않아, 첫 번째 플레이트만 실행됩니다."
+
+#~ msgid ""
+#~ "What is the Thermal Quality Index?\n"
+#~ "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+#~ msgstr ""
+#~ "열 품질 지수(TQI)란 무엇인가요?\n"
+#~ "열 품질 지수(척도 –100에서 +100)는 각 영역의 출력 온도가 얼마나 뜨겁거나 차가운지를 나타냅니다. 초록색(≈ 0)은 강력하고 뒤틀림 없는 부품을 만들기에 \"적정 온도\" 구역입니다. 최상의 결과를 위해 부품 대부분을 초록색 상태로 유지하세요."
+
+#~ msgid ""
+#~ "Voxel-Level Accuracy\n"
+#~ "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+#~ msgstr ""
+#~ "복셀 수준 정확도\n"
+#~ "모든 복셀의 모든 시간 단위 온도를 예측하며, 표준 작업의 경우 일반적으로 ±5~10°C 이내입니다. 일시 정지, 맞춤형 펌웨어 또는 비정상적인 냉각으로 인해 이 차이가 더 커질 수 있습니다."
+
+#~ msgid ""
+#~ "Fan & Airflow Model\n"
+#~ "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+#~ msgstr ""
+#~ "팬 및 기류 모델\n"
+#~ "간소화된 팬 및 실내 모델은 느린 CFD 계산 없이 냉각 설정이 부품 온도에 어떻게 영향을 미치는지 보여줍니다 — 일상적인 조정에 매우 적합합니다. 챔버 내 와류는 아직 시뮬레이션되지 않아 실행 속도가 빠릅니다."
+
+#~ msgid ""
+#~ "TQI Limits Explained\n"
+#~ "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+#~ msgstr ""
+#~ "TQI 한계 설명\n"
+#~ "-100 → 너무 차가움: 인장 강도가 이상적인 0°C에서 출력된 부품보다 약 50% 낮음(ASTM D638 도그본 테스트). +100 → 너무 뜨거움: 층이 용융 상태로 유지되어 처지거나 무너질 수 있음. 최대 강도와 정확도를 위해 영역을 0°C에 가깝게 유지하십시오."
+
+#~ msgid ""
+#~ "What Drives Runtime?\n"
+#~ "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+#~ msgstr ""
+#~ "실행 시간을 결정하는 요인?\n"
+#~ "추가 레이어, 고밀도 채우기, 작은 호(작은 메시 요소)가 많거나 출력 속도가 매우 느리면 솔버가 더 많은 시간을 들여 시뮬레이션을 진행해야 하므로 시뮬레이션 시간이 길어집니다. 멀티코어 CPU나 CUDA GPU는 시뮬레이션 속도를 높여줍니다."
+
+#~ msgid ""
+#~ "Nozzle Temp Range\n"
+#~ "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+#~ msgstr ""
+#~ "노즐 온도 범위\n"
+#~ "지원되는 설정점은 190~320°C이며, 이를 초과하는 온도는 물리적 현실성을 유지하기 위해 제한됩니다."
+
+#~ msgid ""
+#~ "Debugging Flowchart\n"
+#~ "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+#~ msgstr ""
+#~ "디버깅 플로우차트\n"
+#~ "결과가 왜 이상해 보이는지 궁금하세요? 단계별 디버깅 플로우차트를 따라 설정, G 코드, 재료 문제를 몇 분 만에 추적해 보세요."
+
+#~ msgid ""
+#~ "Why Cooling Varies\n"
+#~ "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+#~ msgstr ""
+#~ "냉각이 다양한 이유\n"
+#~ "외벽과 브리지는 가장 빠르게 냉각되는 반면, 두꺼운 내부는 더 따뜻하게 유지됩니다—형상, 공기 흐름, 그리고 툴 경로가 모두 영향을 미치며, 시뮬레이션은 이러한 차이를 시각화합니다."
+
+#~ msgid ""
+#~ "Extrusion Temp Model\n"
+#~ "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+#~ msgstr ""
+#~ "압출 온도 모델\n"
+#~ "재료 속성은 용융 곡선을 형성하지만 프린터 기하학은 필라멘트가 실제로 얼마나 많은 열을 얻는지 결정하므로 모델은 재료별로 다르고 프린터에 따라 보정됩니다."
+
+#~ msgid ""
+#~ "Nozzle setting of 190 °C vs 320 °C?\n"
+#~ "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+#~ msgstr ""
+#~ "190 °C와 320 °C 노즐 설정 차이?\n"
+#~ "노즐 온도가 100 °C 차이 나는 것은 열 지수에 약간 영향을 줄 뿐이며, 압출 온도, 유량, 그리고 후냉각 과정이 부품의 열 이력에 더 큰 영향을 미칩니다."
+
+#~ msgid ""
+#~ "Bed Temperature influence\n"
+#~ "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+#~ msgstr ""
+#~ "베드 온도 영향\n"
+#~ "현재는 첫 번째 레이어의 베드 온도만 모델에 반영되며, 이후의 베드 온도 변화는 아직 반영되지 않습니다."
+
+#~ msgid ""
+#~ "Actual Tool-Path\n"
+#~ "Yes—your exact G-code path, speeds and fan commands are simulated."
+#~ msgstr ""
+#~ "실제 툴 경로\n"
+#~ "예—정확한 G-코드 경로, 속도 및 팬 명령이 시뮬레이션됩니다."
+
+#~ msgid ""
+#~ "Mesh Resolution\n"
+#~ "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+#~ msgstr ""
+#~ "메시 해상도\n"
+#~ "폭셀 그리드는 G-코드 줄 간격보다 미세하여 컴퓨팅을 낭비하지 않고 레이어별 세부 정보를 캡처합니다."
+
+#~ msgid ""
+#~ "Shrinkage, Warping & Stress\n"
+#~ "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+#~ msgstr ""
+#~ "수축, 뒤틀림 및 응력\n"
+#~ "열 지수를 제어하여 열에 의해 발생하는 뒤틀림과 응력의 원인을 제거할 수 있습니다."
 
 #, c-format, boost-format
 #~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
@@ -16242,9 +16954,6 @@ msgstr ""
 
 #~ msgid "3.Using this software and services for any improper or illegal activities."
 #~ msgstr "3. 이 소프트웨어 및 서비스를 부적절하거나 불법적인 활동에 사용하는 행위."
-
-#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-#~ msgstr "이 기능을 활성화하기로 확인하면 위의 내용에 대해 확인 및 동의한 것으로 간주됩니다."
 
 #~ msgid "Agree"
 #~ msgstr "동의"
