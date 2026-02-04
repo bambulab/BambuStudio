@@ -1558,6 +1558,10 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
 {
+    auto printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+	if (printer_model == "Bambu Lab X2D") {
+		return true;
+	}
     bool has_pla = false;
     bool has_petg = false;
 
