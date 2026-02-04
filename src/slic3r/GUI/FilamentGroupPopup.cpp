@@ -4,6 +4,9 @@
 #include "wx/dcgraph.h"
 #include "I18N.hpp"
 #include "PartPlate.hpp"
+#include "FilamentMapDialog.hpp"
+
+#include <algorithm>
 
 namespace Slic3r { namespace GUI {
 
@@ -88,20 +91,22 @@ void FilamentGroupPopup::CreateBmps()
     unchecked_hover_bmp = create_scaled_bitmap("map_mode_off_hovered", nullptr, 16);
 }
 
-FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+void FilamentGroupPopup::RecreateUIElements()
 {
     const wxString AutoForFlushLabel = _L("Filament-Saving Mode");
     const wxString AutoForMatchLabel = _L("Convenience Mode");
+    const wxString AutoForQualityLabel = _L("Quality Mode");
     const wxString ManualLabel       = _L("Custom Mode");
 
     const wxString AutoForFlushDetail = _L("Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste");
     const wxString AutoForMatchDetail = _L("Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment");
+    const wxString AutoForQualityDetail = _L("Generates filament grouping for the left and right nozzles based on quality optimization principles");
     const wxString ManualDetail       = _L("Manually assign filament to the left or right nozzle");
 
     const wxString AutoForFlushDesp = ""; //_L("(Post-slicing arrangement)");
     const wxString ManualDesp       = "";
     const wxString AutoForMatchDesp = "";// _L("(Pre-slicing arrangement)");
-
+    const wxString AutoForQualityDesp = "";
 
     wxBoxSizer *top_sizer         = new wxBoxSizer(wxVERTICAL);
     const int   horizontal_margin = FromDIP(16);
@@ -111,21 +116,62 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
 
     SetBackgroundColour(BackGroundColor);
 
-    radio_btns.resize(ButtonType::btCount);
-    button_labels.resize(ButtonType::btCount);
-    button_desps.resize(ButtonType::btCount);
-    detail_infos.resize(ButtonType::btCount);
-    //global_mode_tags.resize(ButtonType::btCount);
+    // Create all possible modes
+    m_all_modes = {fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality, fmmManual};
+    m_available_modes = m_all_modes;
 
-    std::vector<wxString> btn_texts    = {AutoForFlushLabel, AutoForMatchLabel, ManualLabel};
-    std::vector<wxString> btn_desps    = {AutoForFlushDesp, AutoForMatchDesp, ManualDesp};
-    std::vector<wxString> mode_details = {AutoForFlushDetail, AutoForMatchDetail, ManualDetail};
+    // Resize vectors to match the number of all modes
+    size_t mode_count = m_all_modes.size();
+    radio_btns.resize(mode_count);
+    button_labels.resize(mode_count);
+    button_desps.resize(mode_count);
+    detail_infos.resize(mode_count);
+    button_sizers.resize(mode_count);
+    label_sizers.resize(mode_count);
+
+    // Create vectors to hold text, descriptions, and details for each mode
+    std::vector<wxString> btn_texts;
+    std::vector<wxString> btn_desps;
+    std::vector<wxString> mode_details;
+
+    for (FilamentMapMode mode : m_all_modes) {
+        wxString label, detail, desp;
+        switch (mode) {
+            case fmmAutoForFlush:
+                label = AutoForFlushLabel;
+                detail = AutoForFlushDetail;
+                desp = AutoForFlushDesp;
+                break;
+            case fmmAutoForMatch:
+                label = AutoForMatchLabel;
+                detail = AutoForMatchDetail;
+                desp = AutoForMatchDesp;
+                break;
+            case fmmAutoForQuality:
+                label = AutoForQualityLabel;
+                detail = AutoForQualityDetail;
+                desp = AutoForQualityDesp;
+                break;
+            case fmmManual:
+                label = ManualLabel;
+                detail = ManualDetail;
+                desp = ManualDesp;
+                break;
+            default:
+                label = wxEmptyString;
+                detail = wxEmptyString;
+                desp = wxEmptyString;
+                break;
+        }
+        btn_texts.push_back(label);
+        btn_desps.push_back(desp);
+        mode_details.push_back(detail);
+    }
 
     top_sizer->AddSpacer(vertical_margin);
-    CreateBmps();
 
-    for (size_t idx = 0; idx < ButtonType::btCount; ++idx) {
-        wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    for (size_t idx = 0; idx < mode_count; ++idx) {
+        button_sizers[idx] = new wxBoxSizer(wxHORIZONTAL);
         radio_btns[idx]          = new wxBitmapButton(this, wxID_ANY, unchecked_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
         radio_btns[idx]->SetBackgroundColour(BackGroundColor);
 
@@ -144,14 +190,14 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         global_mode_tags[idx]->SetBackgroundColour(BackGroundColor);
         global_mode_tags[idx]->SetToolTip(_L("Global settings"));
 #endif
-        button_sizer->Add(radio_btns[idx], 0, wxALIGN_CENTER);
-        button_sizer->AddSpacer(ratio_spacing);
-        button_sizer->Add(button_labels[idx], 0, wxALIGN_CENTER);
-        button_sizer->Add(button_desps[idx], 0, wxALIGN_CENTER);
+        button_sizers[idx]->Add(radio_btns[idx], 0, wxALIGN_CENTER);
+        button_sizers[idx]->AddSpacer(ratio_spacing);
+        button_sizers[idx]->Add(button_labels[idx], 0, wxALIGN_CENTER);
+        button_sizers[idx]->Add(button_desps[idx], 0, wxALIGN_CENTER);
         //button_sizer->AddSpacer(ratio_spacing);
         //button_sizer->Add(global_mode_tags[idx], 0, wxALIGN_CENTER);
 
-        wxBoxSizer *label_sizer = new wxBoxSizer(wxHORIZONTAL);
+        label_sizers[idx] = new wxBoxSizer(wxHORIZONTAL);
 
         detail_infos[idx] = new Label(this, mode_details[idx]);
         detail_infos[idx]->SetBackgroundColour(BackGroundColor);
@@ -159,11 +205,11 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
         detail_infos[idx]->SetFont(Label::Body_12);
         detail_infos[idx]->Wrap(FromDIP(320));
 
-        label_sizer->AddSpacer(radio_btns[idx]->GetRect().width + ratio_spacing);
-        label_sizer->Add(detail_infos[idx], 1, wxALIGN_CENTER_VERTICAL);
+        label_sizers[idx]->AddSpacer(radio_btns[idx]->GetRect().width + ratio_spacing);
+        label_sizers[idx]->Add(detail_infos[idx], 1, wxALIGN_CENTER_VERTICAL);
 
-        top_sizer->Add(button_sizer, 0, wxLEFT | wxRIGHT, horizontal_margin);
-        top_sizer->Add(label_sizer, 0, wxLEFT | wxRIGHT, horizontal_margin);
+        top_sizer->Add(button_sizers[idx], 0, wxLEFT | wxRIGHT, horizontal_margin);
+        top_sizer->Add(label_sizers[idx], 0, wxLEFT | wxRIGHT, horizontal_margin);
         top_sizer->AddSpacer(vertical_padding);
 
         radio_btns[idx]->Bind(wxEVT_LEFT_DOWN, [this, idx](auto &) { OnRadioBtn(idx);});
@@ -210,9 +256,9 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     }
 
     top_sizer->AddSpacer(vertical_margin);
-    SetSizerAndFit(top_sizer);
+    SetSizer(top_sizer);
+    Fit();
 
-    m_mode  = get_prefered_map_mode();
     m_timer = new wxTimer(this);
 
     GUI::wxGetApp().UpdateDarkUIWin(this);
@@ -221,6 +267,13 @@ FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent) : PopupWindow(parent, w
     Bind(wxEVT_TIMER, &FilamentGroupPopup::OnTimer, this);
     Bind(wxEVT_ENTER_WINDOW, &FilamentGroupPopup::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &FilamentGroupPopup::OnLeaveWindow, this);
+}
+
+FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent, const std::vector<FilamentMapMode>& available_modes) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
+{
+    CreateBmps();
+    RecreateUIElements();
+    m_mode  = get_prefered_map_mode();
 }
 
 void FilamentGroupPopup::DrawRoundedCorner(int radius)
@@ -237,7 +290,7 @@ void FilamentGroupPopup::DrawRoundedCorner(int radius)
 #endif
 }
 
-void FilamentGroupPopup::Init()
+void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_modes)
 {
     static bool is_dark_mode = wxGetApp().dark_mode();
     if (is_dark_mode != wxGetApp().dark_mode()) {
@@ -247,30 +300,63 @@ void FilamentGroupPopup::Init()
 
     const wxString AutoForMatchDesp = "";// _L("(Pre-slicing arrangement)");
     const wxString MachineSyncTip   = _L("(Sync with printer)");
-    m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
+    m_available_modes = available_modes.empty() ? m_all_modes : available_modes;
 
-    radio_btns[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
-    button_labels[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
-    button_desps[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
-    detail_infos[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
-    
-    if (m_connected) {
-        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
-        button_desps[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
-        detail_infos[ButtonType::btForMatch]->SetForegroundColour(GreyColor);
-        radio_btns[ButtonType::btForMatch]->SetBitmap(unchecked_bmp);
-        button_desps[ButtonType::btForMatch]->SetLabel(AutoForMatchDesp);
+    // Update UI visibility based on available modes
+    for (size_t i = 0; i < m_all_modes.size(); ++i) {
+        FilamentMapMode mode = m_all_modes[i];
+        bool is_available = (std::find(m_available_modes.begin(), m_available_modes.end(), mode) != m_available_modes.end());
+        if (is_available) {
+            // Show the mode
+            button_sizers[i]->ShowItems(true);
+            label_sizers[i]->ShowItems(true);
+            button_sizers[i]->Show(true);
+            label_sizers[i]->Show(true);
+        } else {
+            // Hide the mode
+            button_sizers[i]->ShowItems(false);
+            label_sizers[i]->ShowItems(false);
+            button_sizers[i]->Show(false);
+            label_sizers[i]->Show(false);
+        }
     }
-    else {
-        button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
-        button_desps[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
-        detail_infos[ButtonType::btForMatch]->SetForegroundColour(LabelDisableColor);
-        radio_btns[ButtonType::btForMatch]->SetBitmap(disabled_bmp);
-        button_desps[ButtonType::btForMatch]->SetLabel(MachineSyncTip);
+
+    // Recalculate layout and fit window to new size
+    Layout();
+    Fit();
+
+    // Update button states based on connection status
+    for (size_t i = 0; i < m_all_modes.size(); ++i) {
+        FilamentMapMode mode = m_all_modes[i];
+        bool is_available = (std::find(m_available_modes.begin(), m_available_modes.end(), mode) != m_available_modes.end());
+        
+        if (!is_available) {
+            continue;
+        }
+        if (mode == fmmAutoForMatch) {
+            if (m_connected) {
+                button_labels[i]->SetForegroundColour(LabelEnableColor);
+                button_desps[i]->SetForegroundColour(LabelEnableColor);
+                detail_infos[i]->SetForegroundColour(GreyColor);
+                radio_btns[i]->SetBitmap(unchecked_bmp);
+                button_desps[i]->SetLabel(AutoForMatchDesp);
+            }
+            else {
+                button_labels[i]->SetForegroundColour(LabelDisableColor);
+                button_desps[i]->SetForegroundColour(LabelDisableColor);
+                detail_infos[i]->SetForegroundColour(LabelDisableColor);
+                radio_btns[i]->SetBitmap(disabled_bmp);
+                button_desps[i]->SetLabel(MachineSyncTip);
+            }
+        }
     }
 
     m_mode = GetFilamentMapMode();
-    if (m_mode == fmmAutoForMatch && (!m_connected || m_fila_switch_ready)) {
+    if (m_mode == fmmAutoForMatch && !m_connected) {
+        SetFilamentMapMode(fmmAutoForFlush);
+        m_mode = fmmAutoForFlush;
+    }
+    else if (std::find(m_available_modes.begin(), m_available_modes.end(), m_mode) == m_available_modes.end()) {
         SetFilamentMapMode(fmmAutoForFlush);
         m_mode = fmmAutoForFlush;
     }
@@ -293,15 +379,33 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         this->plater_ref = plater;
         this->m_sync_plate = true;
         this->m_slice_all = slice_all;
+        
+        std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
+        Print* print_obj = partplate ? partplate->fff_print() : nullptr;
+        std::vector<FilamentMapMode> new_available_modes = resolve_available_auto_modes(print_obj, requested_modes, connect_status);
+
+        if (wxGetApp().sidebar().is_fila_switch_ready()) {
+            new_available_modes.erase(
+                std::remove(new_available_modes.begin(), new_available_modes.end(), fmmAutoForMatch),
+                new_available_modes.end()
+            );
+        }
+
+        new_available_modes.push_back(fmmManual);
+        
+        // Check if available modes changed
+        bool modes_changed = (m_available_modes != new_available_modes);
+        m_available_modes = new_available_modes;
+        
         if (m_active) {
-            if (m_connected != connect_status) { Init(); }
+            if (m_connected != connect_status || modes_changed) { Init(m_available_modes); }
             m_connected = connect_status;
             ResetTimer();
         }
         else {
             m_connected = connect_status;
             m_active = true;
-            Init();
+            Init(m_available_modes);
             ResetTimer();
             DrawRoundedCorner(16);
             PopupWindow::Popup();
@@ -352,13 +456,22 @@ void FilamentGroupPopup::ResetTimer()
 
 void FilamentGroupPopup::OnRadioBtn(int idx)
 {
-    if (mode_list.at(idx) == FilamentMapMode::fmmAutoForMatch && (!m_connected || m_fila_switch_ready))
+    if (idx < 0 || static_cast<size_t>(idx) >= m_all_modes.size())
         return;
-    if (m_mode != mode_list.at(idx)) {
-        m_mode = mode_list.at(idx);
+        
+    FilamentMapMode mode = m_all_modes.at(idx);
+    
+    // Check if this mode is available
+    if (std::find(m_available_modes.begin(), m_available_modes.end(), mode) == m_available_modes.end())
+        return;
+    
+    if (mode == FilamentMapMode::fmmAutoForMatch && !m_connected)
+        return;
+    if (m_mode != mode) {
+        m_mode = mode;
         SetFilamentMapMode(m_mode);
         plater_ref->update();
-        UpdateButtonStatus(m_mode);
+        UpdateButtonStatus(idx);
     }
 }
 
@@ -381,29 +494,32 @@ void FilamentGroupPopup::OnEnterWindow(wxMouseEvent &) { ResetTimer(); }
 
 void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 {
-    for (int i = 0; i < ButtonType::btCount; ++i) {
+    for (size_t i = 0; i < m_all_modes.size(); ++i) {
+        FilamentMapMode mode = m_all_modes[i];
+        
+        // Skip unavailable modes
+        if (std::find(m_available_modes.begin(), m_available_modes.end(), mode) == m_available_modes.end())
+            continue;
+            
 #if 0  // do not display global mode tag
-        if (mode_list.at(i) == global_mode)
+        if (mode == global_mode)
             global_mode_tags[i]->Show();
         else
             global_mode_tags[i]->Hide();
 #endif
-        if (ButtonType::btForMatch == i && m_fila_switch_ready) {
-            continue;
-        }
-        if (ButtonType::btForMatch == i && !m_connected) {
+        if (mode == fmmAutoForMatch && !m_connected) {
             button_labels[i]->SetFont(Label::Body_14);
             continue;
         }
         // process checked and unchecked status
-        if (mode_list.at(i) == m_mode) {
-            if (i == hover_idx)
+        if (mode == m_mode) {
+            if (static_cast<int>(i) == hover_idx)
                 radio_btns[i]->SetBitmap(checked_hover_bmp);
             else
                 radio_btns[i]->SetBitmap(checked_bmp);
             button_labels[i]->SetFont(Label::Head_14);
         } else {
-            if (i == hover_idx)
+            if (static_cast<int>(i) == hover_idx)
                 radio_btns[i]->SetBitmap(unchecked_hover_bmp);
             else
                 radio_btns[i]->SetBitmap(unchecked_bmp);

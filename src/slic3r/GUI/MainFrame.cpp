@@ -61,6 +61,7 @@
 #include "ConfigWizard.hpp"
 #include "Widgets/WebView.hpp"
 #include "DailyTips.hpp"
+#include "FilamentGroupPopup.hpp"
 #include "FilamentMapDialog.hpp"
 
 #include "DeviceCore/DevManager.h"

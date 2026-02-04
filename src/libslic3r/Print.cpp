@@ -2879,6 +2879,32 @@ FilamentMapMode Print::get_filament_map_mode() const
 {
     return m_config.filament_map_mode;
 }
+
+std::vector<FilamentMapMode> Print::get_available_filament_map_modes() const
+{
+    std::vector<FilamentMapMode> available_modes;
+
+    available_modes.push_back(fmmAutoForFlush);
+    available_modes.push_back(fmmAutoForMatch);
+
+    auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_config.option("extruder_type"));
+    if (opt_extruder_type && opt_extruder_type->values.size() > 1) {
+        bool has_different_types = false;
+        ExtruderType first_type = (ExtruderType)(opt_extruder_type->values[0]);
+        for (size_t i = 1; i < opt_extruder_type->values.size(); ++i) {
+            if ((ExtruderType)(opt_extruder_type->values[i]) != first_type) {
+                has_different_types = true;
+                break;
+            }
+        }
+        if (has_different_types) {
+            available_modes.push_back(fmmAutoForQuality);
+        }
+    }
+
+    available_modes.push_back(fmmManual);
+    return available_modes;
+}
 bool Print::get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string> &variants) const
 {
     variants.clear();

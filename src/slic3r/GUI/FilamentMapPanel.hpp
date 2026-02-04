@@ -93,7 +93,7 @@ private:
 class FilamentMapAutoPanel : public wxPanel
 {
 public:
-    FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced);
+    FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode>& available_modes = {});
     void            Hide();
     void            Show();
     FilamentMapMode GetMode() const { return m_mode; }
@@ -102,9 +102,10 @@ private:
     void OnModeSwitch(FilamentMapMode mode);
     void UpdateStatus();
 
-    FilamentMapBtnPanel *m_flush_panel;
-    FilamentMapBtnPanel *m_match_panel;
+    std::vector<FilamentMapBtnPanel*> m_mode_panels;
+    std::vector<FilamentMapMode> m_available_modes;
     FilamentMapMode      m_mode;
+    bool                  m_machine_synced;
 };
 
 class FilamentMapDefaultPanel : public wxPanel

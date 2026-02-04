@@ -21,7 +21,7 @@ bool open_filament_group_wiki();
 class FilamentGroupPopup : public PopupWindow
 {
 public:
-    FilamentGroupPopup(wxWindow *parent);
+    FilamentGroupPopup(wxWindow *parent, const std::vector<FilamentMapMode>& available_modes = {});
     void tryPopup(Plater* plater,PartPlate* plate, bool slice_all);
     void tryClose();
 
@@ -38,8 +38,8 @@ private:
     void Dismiss();
 
     void CreateBmps();
-
-    void Init();
+    void RecreateUIElements();
+    void Init(const std::vector<FilamentMapMode>& available_modes);
     void UpdateButtonStatus(int hover_idx = -1);
     void DrawRoundedCorner(int radius);
 private:
@@ -47,12 +47,12 @@ private:
     void SetFilamentMapMode(const FilamentMapMode mode);
 
 private:
-    enum ButtonType { btForFlush, btForMatch, btManual, btCount };
-
-    const std::vector<FilamentMapMode> mode_list = {fmmAutoForFlush, fmmAutoForMatch, fmmManual};
+    std::vector<FilamentMapMode> m_all_modes;
+    std::vector<FilamentMapMode> m_available_modes;
 
     bool m_connected{ false };
     bool m_active{ false };
+    bool m_support_quality_mode{ false };
 
     bool m_sync_plate{ false };
     bool m_slice_all{ false };
@@ -64,6 +64,8 @@ private:
     std::vector<Label *>   button_labels;
     std::vector<Label *>   button_desps;
     std::vector<Label *>   detail_infos;
+    std::vector<wxSizer *> button_sizers;
+    std::vector<wxSizer *> label_sizers;
 
     wxBitmap checked_bmp;
     wxBitmap unchecked_bmp;

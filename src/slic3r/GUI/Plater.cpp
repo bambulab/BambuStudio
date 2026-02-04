@@ -19520,6 +19520,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             if (old_nozzle_size != new_nozzle_size) {
                 update_flush_volume_matrix(old_nozzle_size, new_nozzle_size);
             }
+            set_global_filament_map_mode(fmmAutoForFlush);
 
             // update to force bed selection(for texturing)
             bed_shape_changed = true;
@@ -20787,6 +20788,14 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     if (plate_filament_volume_maps.size() != filament_colors.size())
         plate_filament_volume_maps.resize(filament_colors.size(), 0);
 
+    std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
+    Print* print_obj = curr_plate->fff_print();
+    std::vector<FilamentMapMode> available_modes = resolve_available_auto_modes(
+        print_obj,
+        requested_modes,
+        this->get_machine_sync_status()
+    );
+
     FilamentMapDialog filament_dlg(this,
         filament_colors,
         filament_types,
@@ -20795,7 +20804,9 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
         curr_plate->get_extruders(true),
         plate_filament_map_mode,
         this->get_machine_sync_status(),
-        false
+        false,
+        false,
+        available_modes
     );
 
     if (filament_dlg.ShowModal() == wxID_OK) {

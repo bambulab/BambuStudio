@@ -3513,6 +3513,25 @@ std::map<std::string, std::string> PartPlate::get_diff_plate_setting()
 	return out;
 }
 
+bool PartPlate::has_different_extruder_types()
+{
+    const auto &preset_bundle = wxGetApp().preset_bundle;
+    const auto &full_config = preset_bundle->full_config();
+    auto extruder_type_opt = full_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    
+    if (!extruder_type_opt || extruder_type_opt->values.size() < 2)
+        return false;
+    
+    // Check if all extruder types are the same
+    int first_type = extruder_type_opt->values[0];
+    for (size_t i = 1; i < extruder_type_opt->values.size(); ++i) {
+        if (extruder_type_opt->values[i] != first_type)
+            return true;
+    }
+    
+    return false;
+}
+
 FilamentMapMode PartPlate::get_filament_map_mode() const
 {
     std::string key = "filament_map_mode";
@@ -6597,6 +6616,20 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
 		m_plate_list[index]->config()->apply(plate_data_list[i]->config);
         m_plate_list[index]->set_plate_name(plate_data_list[i]->plate_name);
+        
+        // Check filament_map_mode compatibility
+        // If quality mode or convenience mode is not supported (all extruders have same type),
+        // automatically switch to flush mode
+#if 0
+        if (!has_different_extruder_types()) {
+            FilamentMapMode current_mode = m_plate_list[index]->get_filament_map_mode();
+            if (current_mode == FilamentMapMode::fmmAutoForQuality || 
+                current_mode == FilamentMapMode::fmmAutoForMatch) {
+                m_plate_list[index]->set_filament_map_mode(FilamentMapMode::fmmAutoForFlush);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% switched to flush mode (quality/convenience mode not supported)") % index;
+            }
+        }
+#endif
 		if (plate_data_list[i]->plate_index != index)
 		{
 			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":plate index %1% seems invalid, skip it")% plate_data_list[i]->plate_index;

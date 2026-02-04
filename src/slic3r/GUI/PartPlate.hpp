@@ -241,6 +241,9 @@ public:
     FilamentMapMode get_filament_map_mode() const;
     void set_filament_map_mode(const FilamentMapMode& mode);
 
+    // Check if the printer has different extruder types
+    static bool has_different_extruder_types();
+
     // get filament map, 0 based filament ids, 1 based extruder ids
     std::vector<int> get_filament_maps() const;
     void set_filament_maps(const std::vector<int>& f_maps);
