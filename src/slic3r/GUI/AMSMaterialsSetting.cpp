@@ -1523,11 +1523,14 @@ void AMSMaterialsSetting::on_select_filament(wxCommandEvent &evt)
         return 0;
     };
 
-    int extruder_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-    if (obj->is_nozzle_flow_type_supported() && (obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) == NozzleFlowType::NONE_FLOWTYPE))
-    {
-        MessageDialog dlg(nullptr, _L("The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n'Device -> Print parts'"), _L("Warning"), wxICON_WARNING | wxOK);
-        dlg.ShowModal();
+    if (auto ams_item = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
+        if (ams_item->GetBindedExtruderSet().size() == 1) {
+            int extruder_id = *ams_item->GetBindedExtruderSet().begin();
+            if (obj->is_nozzle_flow_type_supported() && (obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) == NozzleFlowType::NONE_FLOWTYPE)) {
+                MessageDialog dlg(nullptr, _L("The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n'Device -> Print parts'"), _L("Warning"), wxICON_WARNING | wxOK);
+                dlg.ShowModal();
+            }
+        }
     }
 
     std::vector<PACalibResult> cali_history = obj->GetCalib()->GetPAHistory();

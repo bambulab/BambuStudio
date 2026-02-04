@@ -3372,12 +3372,12 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         return;
     }
 
-    if (!CheckErrorSyncNozzleMappingResultV1(obj_)) {
-        return;// check nozzle mapping result v1 for rack and dynamic switcher
-    }
-
     if (!CheckErrorExtruderNozzleWithSlicing(obj_)) {
         return;
+    }
+
+    if (!CheckErrorSyncNozzleMappingResultV1(obj_)) {
+        return;// check nozzle mapping result v1 for rack and dynamic switcher
     }
 
     if (obj_->GetFilaSystem()->IsAmsSettingUp()) {
@@ -4728,10 +4728,6 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
         return false;
     }
 
-    if (use_dynamic_switch() && obj_->GetNozzleRack()->IsSupported()) {
-        return true; // the nozzle will be set by CheckErrorSyncNozzleMappingResultV1
-    }
-
     const auto& ext_sys = obj_->GetExtderSystem();
     const auto& nozzle_sys = obj_->GetNozzleSystem();
     if (m_print_type == FROM_NORMAL) {
@@ -4945,67 +4941,6 @@ void SelectMachineDialog::on_nozzle_offset_option_changed(wxCommandEvent& event)
     event.Skip();
 }
 
-
-std::optional<Slic3r::DevNozzle> SelectMachineDialog::get_mapped_nozzle(int fila_id) const
-{
-    auto obj_ = get_current_machine();
-    if (!obj_) {
-        return std::nullopt;
-    }
-
-    int total_ext_count = 0;
-    if (m_print_type == FROM_NORMAL) {
-        const auto& full_config = wxGetApp().preset_bundle->full_config();
-        const auto opt = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        total_ext_count = opt ? opt->values.size() : 0;
-    } else {
-        const auto opt = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        total_ext_count = opt ? opt->values.size() : 0;
-    }
-
-    if (total_ext_count != obj_->GetExtderSystem()->GetTotalExtderCount()) {
-        return std::nullopt;
-    }
-
-    if (!obj_->GetNozzleRack()->IsSupported()) {
-        if (total_ext_count == 1) {
-            return obj_->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
-        } else if (total_ext_count == 2) {
-            if (m_filaments_map.size() <= fila_id) {
-                return std::nullopt;
-            }
-
-            if (m_filaments_map[fila_id] == 1) {
-                return obj_->GetNozzleSystem()->GetExtNozzle(DEPUTY_EXTRUDER_ID);
-            } else if (m_filaments_map[fila_id] == 2) {
-                return obj_->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
-            };
-        };
-    } else {
-        if (m_print_type == FROM_NORMAL) {
-            if (m_filaments_map[fila_id] == 1) {
-                return obj_->GetNozzleSystem()->GetExtNozzle(DEPUTY_EXTRUDER_ID);
-            };
-
-            auto iter = m_nozzle_mapping_result.find(fila_id);
-            if (iter == m_nozzle_mapping_result.end()) {
-                return std::nullopt;
-            }
-
-            if (obj_->GetNozzleSystem()->GetReplaceNozzleTar().has_value() && iter->second == obj_->GetNozzleSystem()->GetReplaceNozzleTar().value()) {
-                return obj_->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
-            } else {
-                return obj_->GetNozzleSystem()->GetNozzleByPosId(iter->second);
-            }
-        } else {
-            // the mapping is not supported
-            return std::nullopt;
-        }
-    };
-
-    return std::nullopt;
-}
-
 // key: nozzle pos id, value: nozzle
 std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) const
 {
@@ -5079,16 +5014,13 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         if (obj_->GetNozzleRack()->IsSupported()) {
             return obj_->get_nozzle_mapping_result()->GetMappedNozzlePosStrByFilaId(fila_id);
         } else {
-            try {
-                const auto& physical_fila = m_ams_mapping_result.at(fila_id);
-                int extruder_id = obj_->GetFilaSystem()->GetExtruderIdByAmsId(physical_fila.ams_id);
-                if (extruder_id == MAIN_EXTRUDER_ID) {
-                    return "R";
-                } else if (extruder_id == DEPUTY_EXTRUDER_ID) {
-                    return "L";
-                }
-            } catch (const std::exception& e) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+            const auto& nozzle_map = get_mapped_nozzles(fila_id);
+            if (nozzle_map.count(MAIN_EXTRUDER_ID) != 0 && nozzle_map.count(DEPUTY_EXTRUDER_ID) != 0) {
+                return "L R";
+            } else if (nozzle_map.count(MAIN_EXTRUDER_ID) != 0) {
+                return "R";
+            } else if (nozzle_map.count(DEPUTY_EXTRUDER_ID) != 0) {
+                return "L";
             }
         }
 
@@ -5380,7 +5312,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 continue;
             };
 
-            if (tray_opt->ams_type != DevAmsType::DUMMY) {
+            if (tray_opt->ams_type != DevAmsType::EXT_SPOOL) {
                 extruder_ams_ext_status[nozzle.GetExtruderId()].has_ams = true;
             } else {
                 extruder_ams_ext_status[nozzle.GetExtruderId()].has_vt_slot = true;

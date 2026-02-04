@@ -169,7 +169,7 @@ private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
     struct {
         std::string m_ams_id;
-        DevAmsType m_model = DevAmsType::DUMMY;
+        DevAmsType m_model = DevAmsType::EXT_SPOOL;
         DevAms::DryStatus m_dry_status = DevAms::DryStatus::Off;
         DevAms::DrySubStatus m_dry_sub_status = DevAms::DrySubStatus::Off;
         int m_humidity_percent;
