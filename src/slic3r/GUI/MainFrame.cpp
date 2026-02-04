@@ -347,9 +347,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 m_topbar->SetMaximizedSize();
             }
 #endif
-        Refresh();
-        Layout();
-        wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
+#ifdef _WIN32
+        if (!m_is_in_move_or_resize) {
+#endif
+            Refresh();
+            Layout();
+            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
+#ifdef _WIN32
+        }
+#endif
         });
 
     //BBS
@@ -816,6 +822,14 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             return 0;
         }
       }
+    case WM_ENTERSIZEMOVE:
+        m_is_in_move_or_resize = true;
+        break;
+    case WM_EXITSIZEMOVE:
+        m_is_in_move_or_resize = false;
+        Refresh();
+        Layout();
+        break;
     }
     return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
