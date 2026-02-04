@@ -2682,11 +2682,27 @@ void HelioInputDialog::populate_print_priority_dropdown(ComboBox* combobox)
     for (size_t i = 0; i < m_available_print_priority_options.size(); i++) {
         const auto& option = m_available_print_priority_options[i];
 
-        // Add item
-        combobox->Append(wxString::FromUTF8(option.label.c_str()));
+        // Map known API values to local translated strings.
+        // Fall back to API label/description for unknown options (future-safe).
+        wxString display_label;
+        wxString display_description;
+        if (option.value == "SPEED_AND_STRENGTH") {
+            display_label = _L("Speed & Strength");           // 速度与强度
+            display_description = _L("Optimizes outer walls for improved performance.");
+        } else if (option.value == "PRESERVE_SURFACE_FINISH") {
+            display_label = _L("Preserve Surface Finish");    // 保持表面质量
+            display_description = _L("Maintains original wall speeds to preserve visual finish.");
+        } else if (option.value == "ENHANCE_SURFACE_GLOSS") {
+            display_label = _L("Enhance Surface Gloss");      // 增强表面光泽
+            display_description = _L("Optimizes for enhanced surface gloss.");
+        } else {
+            // Unknown option — use API strings directly (won't be translated, but won't break)
+            display_label = wxString::FromUTF8(option.label.c_str());
+            display_description = wxString::FromUTF8(option.description.c_str());
+        }
 
-        // Set tooltip with description
-        combobox->SetItemTooltip(i, wxString::FromUTF8(option.description.c_str()));
+        combobox->Append(display_label);
+        combobox->SetItemTooltip(i, display_description);
 
         // Set default selection to first SPEED_AND_STRENGTH option
         if (default_selection == -1 && option.value == "SPEED_AND_STRENGTH") {
