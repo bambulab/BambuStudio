@@ -10457,17 +10457,26 @@ public:
         option2_box->SetSizer(option2_sizer);
         main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
         
-        SetSizer(main_sizer);
-        Layout();
-        main_sizer->Fit(this);
+        SetSizerAndFit(main_sizer);
+        {
+            wxWindow* parent = GetParent();
+            if (parent) {
+                wxPoint parentPos = parent->GetScreenPosition();
+                wxSize parentSize = parent->GetSize();
+                wxSize dlgSize = GetSize();
+                int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+                int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+                SetPosition(wxPoint(x, y));
+            }
+        }
         wxGetApp().UpdateDlgDarkUI(this);
     }
-    
+
     void on_dpi_changed(const wxRect& suggested_rect) override {}
-    
+
     int get_user_choice() const { return m_user_choice; }
     std::string get_selected_material_id() const { return m_selected_material_id; }
-    
+
 private:
     std::vector<FilamentSupportInfo> m_filaments;
     ComboBox* m_filament_combo;
@@ -10700,17 +10709,26 @@ public:
         option2_box->SetSizer(option2_sizer);
         main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
         
-        SetSizer(main_sizer);
-        Layout();
-        main_sizer->Fit(this);
+        SetSizerAndFit(main_sizer);
+        {
+            wxWindow* parent = GetParent();
+            if (parent) {
+                wxPoint parentPos = parent->GetScreenPosition();
+                wxSize parentSize = parent->GetSize();
+                wxSize dlgSize = GetSize();
+                int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+                int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+                SetPosition(wxPoint(x, y));
+            }
+        }
         wxGetApp().UpdateDlgDarkUI(this);
     }
-    
+
     void on_dpi_changed(const wxRect& suggested_rect) override {}
-    
+
     int get_user_choice() const { return m_user_choice; }
     std::string get_selected_material_id() const { return m_selected_material_id; }
-    
+
 private:
     std::vector<HelioQuery::SupportedData> m_similar_materials;
     ComboBox* m_material_combo;
@@ -11540,12 +11558,21 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
                         option2_box->SetSizer(option2_sizer);
                         main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
                         
-                        SetSizer(main_sizer);
-                        Layout();
-                        main_sizer->Fit(this);
+                        SetSizerAndFit(main_sizer);
+                        {
+                            wxWindow* p = GetParent();
+                            if (p) {
+                                wxPoint pp = p->GetScreenPosition();
+                                wxSize ps = p->GetSize();
+                                wxSize ds = GetSize();
+                                int x = pp.x + (ps.GetWidth() - ds.GetWidth()) / 2;
+                                int y = pp.y + (ps.GetHeight() - ds.GetHeight()) / 3;
+                                SetPosition(wxPoint(x, y));
+                            }
+                        }
                         wxGetApp().UpdateDlgDarkUI(this);
                     }
-                    
+
                     void on_dpi_changed(const wxRect &suggested_rect) override {}
                     
                 private:
