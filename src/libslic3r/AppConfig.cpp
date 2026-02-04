@@ -454,6 +454,9 @@ void AppConfig::set_defaults()
     if (get("enable_step_mesh_setting").empty()) {
         set_bool("enable_step_mesh_setting", true);
     }
+    if (get("enable_beta_version_update").empty()) {
+        set_bool("enable_beta_version_update", true);
+    }
     if (get("linear_defletion").empty()) {
         set("linear_defletion", "0.003");
     }
