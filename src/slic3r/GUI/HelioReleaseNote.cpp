@@ -391,19 +391,73 @@ void HelioStatementDialog::create_legal_page()
     // Note: URLs are hardcoded and validated (not user input), so they are safe from XSS.
     // Translated strings from _L() are trusted content (legal terms are carefully controlled).
     // wxHtmlWindow provides basic HTML sanitization for rendered content.
-    wxString terms_html = _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=\"") + 
-        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=\"") +
-        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=\"") +
-        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a> and refer to the <a href=\"") +
-        helio_privacy_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive Privacy Agreement</a> and <a href=\"") +
-        helio_tou_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive User Agreement</a> for detailed information.<br><br>") +
-        _L("Meanwhile, you understand that this product is provided to you \"as is\" based on <a href=\"") +
-        helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>") +
-        _L("1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>") +
-        _L("2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;<br>") +
-        _L("3. Using this software and services for any improper or illegal activities.<br><br>") +
-        _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.");
-    
+    // wxString terms_html = _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=\"") + 
+    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=\"") +
+    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=\"") +
+    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a> and refer to the <a href=\"") +
+    //     helio_privacy_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive Privacy Agreement</a> and <a href=\"") +
+    //     helio_tou_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive User Agreement</a> for detailed information.<br><br>") +
+    //     _L("Meanwhile, you understand that this product is provided to you \"as is\" based on <a href=\"") +
+    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>") +
+    //     _L("1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>") +
+    //     _L("2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;<br>") +
+    //     _L("3. Using this software and services for any improper or illegal activities.<br><br>") +
+    //     _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.");
+
+    const wxString STYLE_LINK = "color:#00AE42; text-decoration:underline;";
+    const wxString STYLE_END = "\">";
+
+    const wxString TAG_A_START = "<a href=\"";
+    const wxString TAG_A_MID = "\" style=\"";
+    const wxString TAG_A_END = "</a>";
+    const wxString TAG_BR = "<br>";
+
+    const wxString URL_HELIO = helio_home_url;
+    const wxString URL_PRIVACY = helio_privacy_url;
+    const wxString URL_TOU = helio_tou_url;
+
+    const wxString TXT_HELIO = _L("Helio Additive");
+    const wxString TXT_PRIVACY = _L("Helio Additive Privacy Agreement");
+    const wxString TXT_TOU = _L("Helio Additive User Agreement");
+
+    const wxString TXT_P1_S1 = _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on ");
+    const wxString TXT_P1_S2 = _L("'s cloud service in this software will be developed, operated, provided, and maintained by ");
+    const wxString TXT_P1_S3 = _L(". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit ");
+    const wxString TXT_P1_S4 = _L(" and refer to the ");
+    const wxString TXT_P1_S5 = _L(" and ");
+    const wxString TXT_P1_S6 = _L(" for detailed information.");
+
+    const wxString TXT_P2_S1 = _L("Meanwhile, you understand that this product is provided to you \"as is\" based on ");
+    const wxString TXT_P2_S2 = _L("'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:");
+
+    const wxString TXT_ITEM_1 = _L("Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;");
+    const wxString TXT_ITEM_2 = _L("Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;");
+    const wxString TXT_ITEM_3 = _L("Using this software and services for any improper or illegal activities.");
+
+    const wxString TXT_FINAL = _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.");
+
+    #define LINK(url, text) TAG_A_START + url + TAG_A_MID + STYLE_LINK + STYLE_END + text + TAG_A_END
+
+    wxString terms_html = 
+    TXT_P1_S1 + LINK(URL_HELIO, TXT_HELIO) + 
+    TXT_P1_S2 + LINK(URL_HELIO, TXT_HELIO) + 
+    TXT_P1_S3 + LINK(URL_HELIO, TXT_HELIO) + 
+    TXT_P1_S4 + LINK(URL_PRIVACY, TXT_PRIVACY) + 
+    TXT_P1_S5 + LINK(URL_TOU, TXT_TOU) + 
+    TXT_P1_S6 + TAG_BR + TAG_BR +
+
+    TXT_P2_S1 + LINK(URL_HELIO, TXT_HELIO) + 
+    TXT_P2_S2 + TAG_BR + TAG_BR +
+
+    "1. " + TXT_ITEM_1 + TAG_BR +
+    "2. " + TXT_ITEM_2 + TAG_BR +
+    "3. " + TXT_ITEM_3 + TAG_BR + TAG_BR +
+
+    TXT_FINAL;
+
+    #undef LINK    
+
+
     // Use wxHtmlWindow for proper text rendering with embedded links
     wxHtmlWindow* terms_html_window = new wxHtmlWindow(terms_content_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO | wxHW_NO_SELECTION);
     terms_html_window->SetBackgroundColour(wxColour(55, 55, 59));
