@@ -1,7 +1,6 @@
 #ifndef slic3r_FilamentMapDialog_hpp_
 #define slic3r_FilamentMapDialog_hpp_
 
-#include "FilamentMapPanel.hpp"
 #include <vector>
 #include "CapsuleButton.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -10,12 +9,16 @@ class Button;
 
 namespace Slic3r {
 class DynamicPrintConfig;
+class Print;
 
 namespace GUI {
 class DragDropPanel;
 class Plater;
 class PartPlate;
-
+class FilamentMapManualPanel;
+class FilamentMapAutoPanel;
+class FilamentMapDefaultPanel;
+class FilamentMapSavingPanel;
 /**
  * @brief Try to pop up the filament map dialog before slicing.
  * 
@@ -28,6 +31,7 @@ class PartPlate;
  * @return whether continue slicing
 */
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
+std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, const std::vector<FilamentMapMode>& requested_modes, bool machine_synced);
 
 
 class FilamentMapDialog : public wxDialog
@@ -47,7 +51,8 @@ public:
         const FilamentMapMode mode,
         bool machine_synced,
         bool show_default=true,
-        bool with_checkbox = false
+        bool with_checkbox = false,
+        const std::vector<FilamentMapMode>& available_modes = {}
     );
 
     FilamentMapMode get_mode();

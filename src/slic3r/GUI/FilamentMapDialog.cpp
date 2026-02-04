@@ -1,9 +1,13 @@
 #include "FilamentMapDialog.hpp"
+#include "FilamentMapPanel.hpp"
 #include "Widgets/Button.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "CapsuleButton.hpp"
 #include "MsgDialog.hpp"
+#include "PartPlate.hpp"
+
+#include <algorithm>
 
 namespace Slic3r { namespace GUI {
 
@@ -17,6 +21,55 @@ static void set_pop_up_remind_flag(bool remind)
 {
     auto &app_config = wxGetApp().app_config;
     app_config->set_bool("pop_up_filament_map_dialog", remind);
+}
+
+static bool is_auto_mode(FilamentMapMode mode)
+{
+    return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
+}
+
+static std::vector<FilamentMapMode> normalize_auto_modes(const std::vector<FilamentMapMode>& modes)
+{
+    std::vector<FilamentMapMode> result;
+    for (auto mode : modes) {
+        if (!is_auto_mode(mode))
+            continue;
+        if (std::find(result.begin(), result.end(), mode) == result.end())
+            result.push_back(mode);
+    }
+    return result;
+}
+
+static std::vector<FilamentMapMode> get_default_auto_modes()
+{
+    return { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
+}
+
+std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, const std::vector<FilamentMapMode>& requested_modes, bool machine_synced)
+{
+    std::vector<FilamentMapMode> supported_modes;
+    if (print_obj) {
+        supported_modes = normalize_auto_modes(print_obj->get_available_filament_map_modes());
+    } else {
+        supported_modes.push_back(fmmAutoForFlush);
+        supported_modes.push_back(fmmAutoForMatch);
+        if (PartPlate::has_different_extruder_types())
+            supported_modes.push_back(fmmAutoForQuality);
+    }
+
+    std::vector<FilamentMapMode> requested_auto = normalize_auto_modes(requested_modes);
+    if (requested_auto.empty())
+        requested_auto = get_default_auto_modes();
+
+    std::vector<FilamentMapMode> result;
+    for (auto mode : requested_auto) {
+        if (std::find(supported_modes.begin(), supported_modes.end(), mode) != supported_modes.end())
+            result.push_back(mode);
+    }
+    if (result.empty())
+        result.push_back(fmmAutoForFlush);
+
+    return result;
 }
 
 static FilamentMapMode get_applied_map_mode(DynamicConfig& proj_config, const Plater* plater_ref, const PartPlate* partplate_ref, const bool sync_plate)
@@ -73,6 +126,14 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         filament_lists = partplate_ref->get_extruders();
     }
 
+    std::vector<FilamentMapMode> requested_modes = get_default_auto_modes();
+    Print* print_obj = partplate_ref->fff_print();
+    std::vector<FilamentMapMode> available_modes = resolve_available_auto_modes(
+        print_obj,
+        requested_modes,
+        plater_ref->get_machine_sync_status()
+    );
+
     FilamentMapDialog map_dlg(plater_ref,
         filament_colors,
         filament_types,
@@ -82,7 +143,8 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         applied_mode,
         plater_ref->get_machine_sync_status(),
         false,
-        false
+        false,
+        available_modes
     );
     auto ret = map_dlg.ShowModal();
 
@@ -155,7 +217,8 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const FilamentMapMode           mode,
                                      bool                            machine_synced,
                                      bool                            show_default,
-                                     bool                            with_checkbox)
+                                     bool                            with_checkbox,
+                                     const std::vector<FilamentMapMode>& available_modes)
     : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
     , m_filament_color(filament_color)
     , m_filament_type(filament_type)
@@ -165,11 +228,10 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     SetBackgroundColour(*wxWHITE);
 
     SetMinSize(wxSize(FromDIP(580), -1));
-    SetMaxSize(wxSize(FromDIP(580), -1));
 
     m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
 
-    if (mode < fmmManual)
+    if (is_auto_mode(mode))
         m_page_type = PageType::ptAuto;
     else if (mode == fmmManual)
         m_page_type = PageType::ptManual;
@@ -201,30 +263,30 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     auto            panel_sizer       = new wxBoxSizer(wxHORIZONTAL);
 
-    FilamentMapMode default_auto_mode = mode >= fmmManual ? fmmAutoForFlush :
-        mode == fmmAutoForMatch && !machine_synced ? fmmAutoForFlush :
-        mode;
+    std::vector<FilamentMapMode> modes_to_use = normalize_auto_modes(available_modes);
+    if (modes_to_use.empty())
+        modes_to_use = get_default_auto_modes();
+
+    FilamentMapMode default_auto_mode = is_auto_mode(mode) ? mode : fmmAutoForFlush;
+    if (!machine_synced && default_auto_mode == fmmAutoForMatch)
+        default_auto_mode = fmmAutoForFlush;
+    if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())
+        default_auto_mode = modes_to_use.front();
 
     m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map, filament_volume_map);
-
-    if (m_fila_switch_ready) {
-        m_auto_map_panel = nullptr;
-        m_saving_panel   = new FilamentMapSavingPanel(this);
-    } else {
-        m_saving_panel = nullptr;
-        m_auto_map_panel = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced);
-    }
-
+    m_auto_map_panel                          = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced, modes_to_use);
+    m_saving_panel                            = m_fila_switch_ready ? new FilamentMapSavingPanel(this) : nullptr;
     if (show_default)
         m_default_map_panel = new FilamentMapDefaultPanel(this);
     else
         m_default_map_panel = nullptr;
 
     panel_sizer->Add(m_manual_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
-    panel_sizer->Add(m_auto_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
-    panel_sizer->Add(m_saving_panel, 0, wxALIGN_CENTER | wxEXPAND);
+    panel_sizer->Add(m_auto_map_panel, 1, wxALIGN_CENTER | wxEXPAND);
+    if (m_saving_panel)
+        panel_sizer->Add(m_saving_panel, 1, wxALIGN_CENTER | wxEXPAND);
     if (show_default) panel_sizer->Add(m_default_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
-    main_sizer->Add(panel_sizer, 0, wxEXPAND);
+    main_sizer->Add(panel_sizer, 1, wxEXPAND);
 
     wxPanel* bottom_panel = new wxPanel(this);
     bottom_panel->SetBackgroundColour(*wxWHITE);
@@ -298,7 +360,39 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     SetSizer(main_sizer);
     Layout();
-    Fit();
+    {
+        int target_w = FromDIP(580);
+        int manual_min_w = m_manual_map_panel ? m_manual_map_panel->GetMinSize().GetWidth() : 0;
+        if (manual_min_w > target_w)
+            target_w = manual_min_w;
+
+        int auto_h = 0;
+        if (m_auto_map_panel) {
+            int h = m_auto_map_panel->GetBestSize().GetHeight();
+            if (h > auto_h)
+                auto_h = h;
+        }
+        if (m_saving_panel) {
+            int h = m_saving_panel->GetBestSize().GetHeight();
+            if (h > auto_h)
+                auto_h = h;
+        }
+        int manual_h = m_manual_map_panel ? m_manual_map_panel->GetBestSize().GetHeight() : 0;
+        int current_panel_h = 0;
+        if (m_page_type == PageType::ptAuto) {
+            if (m_fila_switch_ready && m_saving_panel)
+                current_panel_h = m_saving_panel->GetSize().GetHeight();
+            else if (m_auto_map_panel)
+                current_panel_h = m_auto_map_panel->GetSize().GetHeight();
+        }
+        else if (m_manual_map_panel) current_panel_h = m_manual_map_panel->GetSize().GetHeight();
+        int top_bottom_extra = GetSize().GetHeight() - current_panel_h;
+        int target_h = top_bottom_extra + (auto_h > manual_h ? auto_h : manual_h);
+
+        SetMinSize(wxSize(target_w, target_h));
+        SetMaxSize(wxSize(target_w, target_h));
+        SetSize(wxSize(target_w, target_h));
+    }
 
     CenterOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
@@ -356,7 +450,7 @@ void FilamentMapDialog::update_panel_status(PageType page)
             p->Select(false);
         }
     }
-    std::vector<wxPanel*>panel_list = { m_default_map_panel,m_manual_map_panel,m_auto_map_panel };
+    std::vector<wxPanel*>panel_list = { m_default_map_panel,m_manual_map_panel,m_auto_map_panel,m_saving_panel };
     for (auto p : panel_list) {
         if (p && p->IsShown()) {
             p->Hide();
@@ -386,7 +480,6 @@ void FilamentMapDialog::update_panel_status(PageType page)
     }
 
     Layout();
-    Fit();
 }
 
 void FilamentMapDialog::on_switch_mode(wxCommandEvent &event)

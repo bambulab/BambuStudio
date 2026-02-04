@@ -481,7 +481,8 @@ static const t_config_enum_values s_keys_map_FilamentMapMode = {
     { "Auto For Flush", fmmAutoForFlush },
     { "Auto For Match", fmmAutoForMatch },
     { "Manual", fmmManual },
-    { "Nozzle Manual", fmmNozzleManual}
+    { "Nozzle Manual", fmmNozzleManual},
+    { "Auto For Quality", fmmAutoForQuality }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
 

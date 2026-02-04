@@ -1272,6 +1272,56 @@ FilamentGroupContext build_filament_group_context(
         context.model_info.unprintable_filaments = ext_unprintable_filaments_with_volume;
     }
 
+    if (print_config.filament_map_mode == FilamentMapMode::fmmAutoForQuality) {
+        std::vector<int> prefer_support_extruders;
+        std::vector<int> non_prefer_support_extruders;
+        for (size_t idx = 0; idx < prefer_non_model_filament.size(); ++idx) {
+            if (prefer_non_model_filament[idx])
+                prefer_support_extruders.emplace_back((int)idx);
+            else
+                non_prefer_support_extruders.emplace_back((int)idx);
+        }
+
+        if (!prefer_support_extruders.empty()) {
+            auto &unprintable_filaments = context.model_info.unprintable_filaments;
+            for (auto fil_id : used_filaments) {
+                bool is_support_filament = context.model_info.filament_info[fil_id].usage_type == FilamentUsageType::SupportOnly;
+                if (is_support_filament) {
+                    // 若存在可打印的偏好支撑喷嘴，则限制该支撑料只在偏好喷嘴上打印
+                    std::vector<int> printable_preferred_extruders;
+                    for (auto extruder_id : prefer_support_extruders) {
+                        if (unprintable_filaments[extruder_id].count(fil_id) == 0)
+                            printable_preferred_extruders.emplace_back(extruder_id);
+                    }
+                    if (!printable_preferred_extruders.empty()) {
+                        for (auto extruder_id : non_prefer_support_extruders)
+                            unprintable_filaments[extruder_id].insert(fil_id);
+                    }
+                } else {
+                    // 若存在可打印的非偏好喷嘴，则限制模型料尽量避开偏好支撑喷嘴
+                    std::vector<int> printable_non_preferred_extruders;
+                    for (auto extruder_id : non_prefer_support_extruders) {
+                        if (unprintable_filaments[extruder_id].count(fil_id) == 0)
+                            printable_non_preferred_extruders.emplace_back(extruder_id);
+                    }
+                    if (!printable_non_preferred_extruders.empty()) {
+                        for (auto extruder_id : prefer_support_extruders)
+                            unprintable_filaments[extruder_id].insert(fil_id);
+                    }
+                }
+            }
+
+            if (!has_multiple_nozzle && unprintable_filaments.size() >= 2) {
+                for (auto fil_id : used_filaments) {
+                    if (unprintable_filaments[0].count(fil_id) && unprintable_filaments[1].count(fil_id)) {
+                        unprintable_filaments[0].erase(fil_id);
+                        unprintable_filaments[1].erase(fil_id);
+                    }
+                }
+            }
+        }
+    }
+
     return context;
 }
 
