@@ -172,6 +172,17 @@ void HelioHistoryDialog::create_ui()
     SetSizer(m_main_sizer);
     Layout();
     Fit();
+    {
+        wxWindow* parent = GetParent();
+        if (parent) {
+            wxPoint parentPos = parent->GetScreenPosition();
+            wxSize parentSize = parent->GetSize();
+            wxSize dlgSize = GetSize();
+            int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+            int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+            SetPosition(wxPoint(x, y));
+        }
+    }
 
     BOOST_LOG_TRIVIAL(info) << "HelioHistoryDialog UI created successfully";
 }

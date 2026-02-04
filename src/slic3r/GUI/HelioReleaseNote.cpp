@@ -2058,7 +2058,17 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     Layout();
     Fit();
 
-    CentreOnParent();
+    {
+        wxWindow* parent = GetParent();
+        if (parent) {
+            wxPoint parentPos = parent->GetScreenPosition();
+            wxSize parentSize = parent->GetSize();
+            wxSize dlgSize = GetSize();
+            int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+            int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+            SetPosition(wxPoint(x, y));
+        }
+    }
     wxGetApp().UpdateDlgDarkUI(this);
 
     /*set buy url - this is safe after main setup since it just updates an existing link*/
@@ -2968,6 +2978,17 @@ HelioPatNotEnoughDialog::HelioPatNotEnoughDialog(wxWindow* parent /*= nullptr*/)
     SetSizer(main_sizer);
     Layout();
     Fit();
+    {
+        wxWindow* parent = GetParent();
+        if (parent) {
+            wxPoint parentPos = parent->GetScreenPosition();
+            wxSize parentSize = parent->GetSize();
+            wxSize dlgSize = GetSize();
+            int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+            int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+            SetPosition(wxPoint(x, y));
+        }
+    }
 }
 
 HelioPatNotEnoughDialog::~HelioPatNotEnoughDialog() {}
@@ -3258,6 +3279,17 @@ HelioRatingDialog::HelioRatingDialog(wxWindow *parent, int original, int optimiz
     SetSizer(main_sizer);
     Layout();
     Fit();
+    {
+        wxWindow* parent = GetParent();
+        if (parent) {
+            wxPoint parentPos = parent->GetScreenPosition();
+            wxSize parentSize = parent->GetSize();
+            wxSize dlgSize = GetSize();
+            int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+            int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+            SetPosition(wxPoint(x, y));
+        }
+    }
 }
 
 void HelioRatingDialog::show_rating(std::vector<wxStaticBitmap *> stars, int rating)
@@ -3669,6 +3701,17 @@ HelioSimulationResultsDialog::HelioSimulationResultsDialog(wxWindow *parent,
     SetSizer(main_sizer);
     Layout();
     Fit();
+    {
+        wxWindow* parent = GetParent();
+        if (parent) {
+            wxPoint parentPos = parent->GetScreenPosition();
+            wxSize parentSize = parent->GetSize();
+            wxSize dlgSize = GetSize();
+            int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+            int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+            SetPosition(wxPoint(x, y));
+        }
+    }
 }
 
 wxString HelioSimulationResultsDialog::get_outcome_text(const HelioQuery::PrintInfo& print_info)
