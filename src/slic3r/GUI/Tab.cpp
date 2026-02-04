@@ -2075,12 +2075,11 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                     _L("The selected printer has a bed temperature limit of %d°C.\nSetting a higher bed temperature may cause damage to the printer."),
                     bed_temperature_limit);
                 MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxOK);
-                if (dialog.ShowModal() == wxID_OK) {
-                    DynamicPrintConfig new_conf = *m_config;
-                    new_conf.set_key_value(opt_key, new ConfigOptionInts{bed_temperature_limit});
-                    m_config_manipulation.apply(m_config, &new_conf);
-                    on_value_change(opt_key, bed_temperature_limit);
-                }
+                dialog.ShowModal();
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value(opt_key, new ConfigOptionInts{bed_temperature_limit});
+                m_config_manipulation.apply(m_config, &new_conf);
+                on_value_change(opt_key, bed_temperature_limit);
             }
         }
     }
