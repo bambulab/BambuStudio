@@ -495,7 +495,7 @@ wxPanel* HelioHistoryDialog::create_run_card(wxWindow* parent, const HelioQuery:
     meta_sizer->Add(material_label, 0, wxRIGHT, FromDIP(16));
 
     auto* layers_label = new Label(card, Label::Body_12);
-    layers_label->SetLabel(wxString::Format("%d layers", run.number_of_layers));
+    layers_label->SetLabel(wxString::Format(_L("%d layers"), run.number_of_layers));
     layers_label->SetForegroundColour(HELIO_MUTED);
     meta_sizer->Add(layers_label, 0, wxRIGHT, FromDIP(16));
 
@@ -509,7 +509,7 @@ wxPanel* HelioHistoryDialog::create_run_card(wxWindow* parent, const HelioQuery:
     // Quality improvement
     if (!run.quality_mean_improvement.empty() || !run.quality_std_improvement.empty()) {
         auto* quality_label = new Label(card, Label::Body_12);
-        quality_label->SetLabel(wxString::Format("Quality: %s | Consistency: %s",
+        quality_label->SetLabel(wxString::Format(_L("Quality: %s | Consistency: %s"),
             run.quality_mean_improvement, run.quality_std_improvement));
         quality_label->SetForegroundColour(HELIO_SUCCESS);
         card_sizer->Add(quality_label, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(12));
@@ -595,7 +595,7 @@ wxPanel* HelioHistoryDialog::create_run_card(wxWindow* parent, const HelioQuery:
     meta_sizer->Add(material_label, 0, wxRIGHT, FromDIP(16));
 
     auto* layers_label = new Label(card, Label::Body_12);
-    layers_label->SetLabel(wxString::Format("%d layers", run.number_of_layers));
+    layers_label->SetLabel(wxString::Format(_L("%d layers"), run.number_of_layers));
     layers_label->SetForegroundColour(HELIO_MUTED);
     meta_sizer->Add(layers_label, 0, wxRIGHT, FromDIP(16));
 
@@ -882,13 +882,13 @@ wxColour HelioHistoryDialog::get_status_color(const std::string& status)
 wxString HelioHistoryDialog::get_print_outcome_text(const std::string& outcome)
 {
     if (outcome == "WILL_PRINT") {
-        return "Print Outcome: WILL_PRINT";
+        return _L("Print Outcome: WILL_PRINT");
     } else if (outcome == "MAY_PRINT") {
-        return "Print Outcome: MAY_PRINT";
+        return _L("Print Outcome: MAY_PRINT");
     } else if (outcome == "LIKELY_FAIL") {
-        return "Print Outcome: LIKELY_FAIL";
+        return _L("Print Outcome: LIKELY_FAIL");
     } else {
-        return "Print Outcome: " + wxString(outcome);
+        return _L("Print Outcome: ") + wxString(_L(outcome));
     }
 }
 
