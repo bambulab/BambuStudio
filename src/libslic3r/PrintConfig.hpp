@@ -342,6 +342,7 @@ enum FilamentMapMode {
     fmmAutoForMatch,
     fmmManual,
     fmmNozzleManual,
+    fmmAutoForQuality,
     fmmDefault
 };
 
