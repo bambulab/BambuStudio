@@ -37,7 +37,7 @@ ThermalPreconditioningDialog::ThermalPreconditioningDialog(wxWindow *parent, std
     }
 
     Layout();
-    SetSize(wxSize(FromDIP(400), FromDIP(200)));
+    SetSize(wxSize(FromDIP(500), FromDIP(200)));
     wxGetApp().UpdateDlgDarkUI(this);
     CentreOnScreen();
 }
@@ -55,7 +55,7 @@ void ThermalPreconditioningDialog::create_ui()
 {
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
     // Remaining time label
-    m_remaining_time_label = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    m_remaining_time_label = new wxStaticText(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
     wxFont time_font       = m_remaining_time_label->GetFont();
     time_font.SetPointSize(14);
     time_font.SetWeight(wxFONTWEIGHT_BOLD);
@@ -66,8 +66,8 @@ void ThermalPreconditioningDialog::create_ui()
     m_explanation_label =
         new wxStaticText(this, wxID_ANY,
                          _L("The heated bed's thermal preconditioning helps optimize the first layer print quality. Printing will start once preconditioning is complete."),
-                         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
-    m_explanation_label->Wrap(FromDIP(350));
+                         wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+    m_explanation_label->Wrap(FromDIP(450));
     m_explanation_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour(50, 58, 61)));
 
     m_ok_button = new wxButton(this, wxID_OK, _L("OK"));
@@ -83,8 +83,9 @@ void ThermalPreconditioningDialog::create_ui()
 
     // Layout
     main_sizer->Add(0, 0, 1, wxEXPAND);
-    main_sizer->Add(m_remaining_time_label, 0, wxALIGN_CENTER);
-    main_sizer->Add(m_explanation_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(25));
+    main_sizer->Add(m_remaining_time_label, 0, wxALIGN_LEFT | wxLEFT , FromDIP(20));
+    main_sizer->AddSpacer(10);
+    main_sizer->Add(m_explanation_label, 0, wxALIGN_LEFT | wxLEFT, FromDIP(20));
     main_sizer->Add(0, 0, 1, wxEXPAND);
     main_sizer->Add(m_ok_button, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, FromDIP(20));
 
