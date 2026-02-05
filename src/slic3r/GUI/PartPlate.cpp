@@ -68,6 +68,8 @@ static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 const float WIPE_TOWER_DEFAULT_X_POS = 165.;
 const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
 
+const float N9_WIPE_TOWER_DEFAULT_Y_POS = 160.;
+
 const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
 const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
 
@@ -4532,6 +4534,12 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
         return { WIPE_TOWER_DEFAULT_X_POS, WIPE_TOWER_DEFAULT_Y_POS };
     }();
 
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+
+    // Note: printer_type == "N9" and printer_structure_opt->value == PrinterStructure::psI3 can both be true
+    if (printer_type == "N9") {
+        y = N9_WIPE_TOWER_DEFAULT_Y_POS;
+    }
     const float margin     = WIPE_TOWER_MARGIN;
     PartPlate* part_plate = get_plate(plate_idx);
     Vec3d plate_origin = part_plate->get_origin();
