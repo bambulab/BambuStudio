@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-04 17:30+0800\n"
+"POT-Creation-Date: 2026-02-05 10:17+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7160,7 +7160,7 @@ msgstr "⚠ 检测到不支持的打印机"
 
 #, c-format, boost-format
 msgid "You're using %s which is not officially supported by Helio."
-msgstr "你正在使用 %s，Helio 尚未正式支持该打印机。"
+msgstr "你正在使用 %s，Helio 尚未正式支持该预设。"
 
 msgid "Option 1: Proceed with a reference printer"
 msgstr "选项 1：继续使用参考打印机"
@@ -10071,43 +10071,43 @@ msgid "Helio Additive"
 msgstr ""
 
 msgid "Helio Additive Privacy Agreement"
-msgstr ""
+msgstr "Helio Additive 隐私协议"
 
 msgid "Helio Additive User Agreement"
-msgstr ""
+msgstr "Helio Additive 用户协议"
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
-msgstr ""
+msgstr "除非特殊说明，拓竹科技仅对官方提供的软件功能提供支持。本软件中基于"
 
 msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
-msgstr ""
+msgstr "云端服务的切片评估和切片优化功能由 "
 
 msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
-msgstr ""
+msgstr "负责开发、维护以及对外提供服务。其服务效果和可用性由Helio Additive负责。本服务的优化功能可能修改默认的打印指令，存在打印机损坏的风险。同时这些功能将收集必要的用户信息和数据以实现相关服务功能，并可能涉及订阅与付费，请访问 "
 
 msgid " and refer to the "
-msgstr ""
+msgstr " 并参考 "
 
 msgid " and "
-msgstr ""
+msgstr " 和 "
 
 msgid " for detailed information."
-msgstr ""
+msgstr " 获取详细信息。"
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
-msgstr ""
+msgstr "同时，您理解本产品是“按原样”向您提供基于 "
 
 msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "的服务，拓竹不存在任何形式的明示或暗示担保，也无法控制服务效果，并且在适用法律允许的最大范围内，拓竹、其许可方/附属公司均不提供任何明示或暗示的陈述或保证，包括但不限于有关适销性、满意质量、适用于特定目的、准确性、保密权以及不侵犯第三方权利的保证。基于网络服务的特性，拓竹无法保证该服务随时可达，并且拓竹有权根据相关情况终止该服务。您同意不使用本产品及相关更新内容从事以下行为："
 
 msgid "Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
-msgstr ""
+msgstr "在Helio Additive和拓竹授权范围之外复制或使用本产品的任何一部分内容；"
 
 msgid "Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
-msgstr ""
+msgstr "企图破坏、绕过、改变、作废或者逃避和本产品相关的以及/或者属于本产品有机组成的一部分的任何数字版权管理系统；"
 
 msgid "Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "利用本软件和服务进行任何不当或违反法律的行为。"
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
 msgstr "当您确认开启此功能后，代表您已经确认和同意以上声明。"
@@ -10147,7 +10147,6 @@ msgid ""
 msgstr ""
 "将对象添加到打印板上，选择 Helio 支持的材料与打印机，然后进行切片。\n"
 "\n"
-""
 
 msgid "Supported printers and materials"
 msgstr "支持的打印机与材料"
