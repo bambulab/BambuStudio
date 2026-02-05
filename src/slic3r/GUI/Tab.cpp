@@ -3327,10 +3327,15 @@ void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any&
     int opt_index = -1;
     if (auto n = opt_key.find('#'); n != std::string::npos) {
         opt_key = opt_key.substr(0, n);
-        auto iter = m_active_page->m_opt_id_map.lower_bound(opt_key);
-        assert(iter != m_active_page->m_opt_id_map.end() && iter->second == opt_id);
-        opt_id2 = iter->first;
-        opt_index = std::atoi(opt_id2.c_str() + n + 1);
+        if (multi_variant_text_ctrl_options.find(opt_key) != multi_variant_text_ctrl_options.end()) {
+            opt_id2   = opt_id;
+            opt_index = std::atoi(opt_id2.c_str() + n + 1);
+        } else {
+            auto iter = m_active_page->m_opt_id_map.lower_bound(opt_key);
+            assert(iter != m_active_page->m_opt_id_map.end() && iter->second == opt_id);
+            opt_id2   = iter->first;
+            opt_index = std::atoi(opt_id2.c_str() + n + 1);
+        }
     }
     if (!has_key(opt_key))
         return;
