@@ -430,9 +430,9 @@ void HelioStatementDialog::create_legal_page()
     const wxString TXT_P2_S1 = _L("Meanwhile, you understand that this product is provided to you \"as is\" based on ");
     const wxString TXT_P2_S2 = _L("'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:");
 
-    const wxString TXT_ITEM_1 = _L("Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;");
-    const wxString TXT_ITEM_2 = _L("Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;");
-    const wxString TXT_ITEM_3 = _L("Using this software and services for any improper or illegal activities.");
+    const wxString TXT_ITEM_1 = _L("1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;");
+    const wxString TXT_ITEM_2 = _L("2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;");
+    const wxString TXT_ITEM_3 = _L("3. Using this software and services for any improper or illegal activities.");
 
     const wxString TXT_FINAL = _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.");
 
@@ -449,9 +449,9 @@ void HelioStatementDialog::create_legal_page()
     TXT_P2_S1 + LINK(URL_HELIO, TXT_HELIO) + 
     TXT_P2_S2 + TAG_BR + TAG_BR +
 
-    "1. " + TXT_ITEM_1 + TAG_BR +
-    "2. " + TXT_ITEM_2 + TAG_BR +
-    "3. " + TXT_ITEM_3 + TAG_BR + TAG_BR +
+    TXT_ITEM_1 + TAG_BR +
+    TXT_ITEM_2 + TAG_BR +
+    TXT_ITEM_3 + TAG_BR + TAG_BR +
 
     TXT_FINAL;
 
