@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-05 10:17+0800\n"
+"POT-Creation-Date: 2026-02-05 17:07+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -10351,6 +10351,18 @@ msgstr "此材料没有可用的打印优先级选项"
 msgid "This material does not support print priority optimization."
 msgstr "该材料不支持打印优先级优化。"
 
+msgid "Optimizes outer walls for improved performance."
+msgstr "优化外墙以提升性能。"
+
+msgid "Maintains original wall speeds to preserve visual finish."
+msgstr "保持原有的墙体速度，以保持视觉效果。"
+
+msgid "Enhance Surface Gloss"
+msgstr "增强表面光泽"
+
+msgid "Optimizes for enhanced surface gloss."
+msgstr "优化以增强表面光泽。"
+
 msgid ""
 "Failed to load print priority options from Helio API.\n"
 "Using standard optimization method instead (same as before print priority feature)."
@@ -16085,7 +16097,7 @@ msgid "Print Outcome: LIKELY_FAIL"
 msgstr "打印结果：LIKELY_FAIL"
 
 msgid "Print Outcome: "
-msgstr ""
+msgstr "打印结果： "
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
