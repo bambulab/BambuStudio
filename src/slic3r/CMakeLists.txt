@@ -630,6 +630,7 @@ set(SLIC3R_GUI_SOURCES
     Utils/FileTransferUtils.hpp
     Utils/CertificateVerify.hpp
     Utils/CertificateVerify.cpp
+    Utils/FrameBuffer.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)

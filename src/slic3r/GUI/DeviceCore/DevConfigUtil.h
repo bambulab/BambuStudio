@@ -175,33 +175,23 @@ private:
 };
 
 /*special transform*/
-static std::string _parse_printer_type(const std::string& type_str)
+static std::string _parse_printer_type(const std::string &type_str)
 {
-    if (type_str.compare("3DPrinter-X1") == 0)
-    {
-        return "BL-P002";
-    }
-    else if (type_str.compare("3DPrinter-X1-Carbon") == 0)
-    {
-        return "BL-P001";
-    }
-    else if (type_str.compare("BL-P001") == 0)
-    {
-        return type_str;
-    }
-    else if (type_str.compare("BL-P002") == 0)
-    {
-        return type_str;
-    }
-    else
-    {
-        std::string result = DevPrinterConfigUtil::get_printer_type(type_str);
-        if (!result.empty())
-        {
-            return result;
-        }
-    }
+    static std::unordered_map<std::string, std::string> s_printer_type_lazy_cache;
 
+    if (type_str == "3DPrinter-X1") return "BL-P002";
+    if (type_str == "3DPrinter-X1-Carbon") return "BL-P001";
+    if (type_str == "BL-P001" || type_str == "BL-P002") return type_str;
+
+    auto cache_it = s_printer_type_lazy_cache.find(type_str);
+    if (cache_it != s_printer_type_lazy_cache.end()) {
+        return cache_it->second;
+    }
+    std::string result = DevPrinterConfigUtil::get_printer_type(type_str);
+    if (!result.empty()) {
+        s_printer_type_lazy_cache[type_str] = result;
+        return result;
+    }
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Unsupported printer type: " << type_str;
     return type_str;
 }
