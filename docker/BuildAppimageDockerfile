@@ -1,5 +1,8 @@
 ARG VERSION="studio_dep_22"
+
 FROM ${VERSION}:1.0 AS builder
+
+ARG INTERNAL_TESTING="0"
 
 COPY ./ /BambuStudio
 
@@ -8,8 +11,8 @@ WORKDIR /BambuStudio
 RUN mkdir -p /BambuStudio/deps/build
 
 RUN mv /destdir /BambuStudio/deps/build/
-
-RUN ./BuildLinux.sh -s
+RUN echo "INTERNAL_TESTING: ${INTERNAL_TESTING}"
+RUN ./BuildLinux.sh -s -t ${INTERNAL_TESTING}
 
 ENV container=podman
 RUN ./BuildLinux.sh -i

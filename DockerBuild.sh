@@ -4,18 +4,19 @@ PROJECT_ROOT=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)")
 set -e
 
 function usage() {
-    echo "Usage: ./DockerBuild.sh [-c][-d][-i][-v]"
+    echo "Usage: ./DockerBuild.sh [-c][-d][-i][-v][-b]"
     echo "   -c: Build a self-contained Docker image that can be run directly"
     echo "   -d: disable safe parallel number limit(By default, the maximum number of parallels is set to free memory/2.5)"
     echo "   -i: Build and export an AppImage"
     echo "   -v: Build System Version:ubu22 or ubu24"
+    echo "   -b: Build beta version (internal testing=2)"
     echo "   -h: this help output"
     echo "If you only need to run the program on a built Docker container, just use './DockerBuild.sh -c'"
-    echo "If you need to build an AppImage using Docker, first run './DockerBuild.sh -d', then run './DockerBuild.sh -s'."
+    echo "If you need to build an AppImage using Docker, first run './DockerBuild.sh -d', then run './DockerBuild.sh -i'."
 }
 
 unset name
-while getopts "hcdiv:" opt; do
+while getopts "hcdibv:" opt; do
   case ${opt} in
     c )
         BUILD_RUNNER=1
@@ -25,6 +26,9 @@ while getopts "hcdiv:" opt; do
         ;;
     i )
         BUILD_APPIMAGE=1
+        ;;
+    b )
+        BUILD_BETA="--build-arg INTERNAL_TESTING=2"
         ;;
     v )
         SYSTEM_VERSION="$OPTARG"
@@ -50,10 +54,10 @@ fi
 
 if [[ -n "${BUILD_APPIMAGE}" ]]; then
   if [ "$SYSTEM_VERSION" == "ubu22" ]; then
-    docker build -f docker/BuildAppimageDockerfile --build-arg VERSION=studio_dep_22 -o type=local,dest=./build .
+    docker build -f docker/BuildAppimageDockerfile --build-arg VERSION=studio_dep_22 ${BUILD_BETA} -o type=local,dest=./build .
     mv build/BambuStudio_ubu64.AppImage build/BambuStudio_ubu22.AppImage
   else
-    docker build -f docker/BuildAppimageDockerfile --build-arg VERSION=studio_dep_24 -o type=local,dest=./build .
+    docker build -f docker/BuildAppimageDockerfile --build-arg VERSION=studio_dep_24 ${BUILD_BETA} -o type=local,dest=./build .
     mv build/BambuStudio_ubu64.AppImage build/BambuStudio_ubu24.AppImage
   fi
 fi
