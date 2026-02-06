@@ -366,7 +366,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         //OrcaSlicer
         double cur_speed  = gcodegen.writer().get_current_speed();
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
-            gcodegen.writer().config.travel_speed.get_at(get_config_idx_for_filament(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
+            gcodegen.writer().config.travel_speed.get_at(get_process_config_idx(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
 
         if (toolchange) { wipe_speed = gcodegen.m_print->config().prime_tower_max_speed.value; }
 
@@ -2041,6 +2041,46 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_timelapse_pos_picker.init(&print,m_writer.get_xy_offset().cast<coord_t>());
     // init as filament map
     update_layer_related_config(0);
+
+    {
+        std::ofstream out("test_map.txt");
+        auto group_result = print.get_layered_nozzle_group_result();
+        if (!group_result) {
+            out << "nozzle_group_result: null\n";
+        } else {
+            auto used_nozzles = group_result->get_used_nozzles_in_extruder(-1);
+            out << "logical_nozzles=" << used_nozzles.size() << "\n";
+            for (const auto &nozzle : used_nozzles) {
+                out << "nozzle_id=" << nozzle.group_id
+                    << ", extruder_id=" << nozzle.extruder_id
+                    << ", volume_type=" << get_nozzle_volume_type_string(nozzle.volume_type)
+                    << "\n";
+            }
+
+            size_t layer_count = group_result->get_layer_count();
+            if (layer_count == 0) {
+                out << "layer=default\n";
+                const auto &map = group_result->get_layer_filament_nozzle_map(-1);
+                out << "map=[";
+                for (size_t i = 0; i < map.size(); ++i) {
+                    out << map[i];
+                    if (i + 1 < map.size()) out << ",";
+                }
+                out << "]\n";
+            } else {
+                for (size_t layer_id = 0; layer_id < layer_count; ++layer_id) {
+                    out << "layer=" << layer_id << "\n";
+                    const auto &map = group_result->get_layer_filament_nozzle_map(static_cast<int>(layer_id));
+                    out << "map=[";
+                    for (size_t i = 0; i < map.size(); ++i) {
+                        out << map[i];
+                        if (i + 1 < map.size()) out << ",";
+                    }
+                    out << "]\n";
+                }
+            }
+        }
+    }
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled, m_writer.extruders());

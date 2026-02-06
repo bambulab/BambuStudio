@@ -96,12 +96,23 @@ size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
     return 0;
 }
 
-size_t get_config_idx_for_filament(const GCodeConfig& config, unsigned int filament_id)
+size_t get_filament_config_idx(const GCodeConfig &config, unsigned int filament_id)
 {
-    if (filament_id < config.filament_map_2.size()) {
-        return config.filament_map_2.get_at(filament_id);
-    }
-    return 0;
+    NozzleVolumeType volume_type           = NozzleVolumeType(config.filament_volume_map.get_at(filament_id));
+    ExtruderType     extruder_type         = ExtruderType(config.extruder_type.get_at(get_extruder_index(config, filament_id)));
+    auto             filament_variant_list = config.filament_extruder_variant.values;
+    auto             filament_self_idx     = config.filament_self_index.values;
+    return get_config_index_base(volume_type, extruder_type, filament_id, filament_variant_list, filament_self_idx);
+}
+
+size_t get_process_config_idx(const GCodeConfig& config, unsigned int filament_id)
+{
+    NozzleVolumeType volume_type   = NozzleVolumeType(config.filament_volume_map.get_at(filament_id));
+    int extruder_id = get_extruder_index(config,filament_id);
+    ExtruderType     extruder_type = ExtruderType(config.extruder_type.get_at(extruder_id));
+    auto             print_extruder_id = config.printer_extruder_id.values;
+    auto             variant_list      = config.printer_extruder_variant.values;
+    return get_config_index_base(volume_type, extruder_type, extruder_id + 1, variant_list, print_extruder_id);
 }
 
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
@@ -502,23 +513,19 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
-int get_config_index_by_filament_id(int filament_id,
-    const std::vector<std::string> &variant_list,
-    const std::vector<int> &filament_self_index,
-    ExtruderType extruder_type,
-    NozzleVolumeType nozzle_volume_type)
+int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids)
 {
-    assert(variant_list.size() == filament_self_index.size());
-    std::string extruder_variant = get_extruder_variant_string(extruder_type, nozzle_volume_type);
+    assert(variant_list.size() == variant_ids.size());
+    std::string extruder_variant = get_extruder_variant_string(extruder_type, volume_type);
     for (int index = 0; index < int(variant_list.size()); ++index) {
-        if (extruder_variant == variant_list[index] && filament_self_index[index] == filament_id) { return index; }
+        if (extruder_variant == variant_list[index] && variant_ids[index] == variant_id) { return index; }
     }
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                             << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, filament_id %3%") % __LINE__ %
-                                    extruder_variant % filament_id;
-    assert(false);
+                             << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
+                                    extruder_variant % variant_id;
     return 0;
 }
+
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
 {

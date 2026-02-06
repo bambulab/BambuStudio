@@ -950,8 +950,10 @@ public:
     bool get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string>& variants) const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
-    // get the config idx for filament
-    size_t get_config_idx_for_filament(unsigned int filament_id) const;
+
+    // 根据map,volume map获取config idx，在导出gcode前调用
+    size_t get_filament_config_idx(unsigned int filament_id) const;
+    size_t get_process_config_idx(unsigned int filament_id) const;
 
     const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
@@ -1062,6 +1064,7 @@ public:
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
     }
 
+    // 切片后访问参数idx，通过上下文生成的index缓存访问
     int get_filament_config_indx(int filament_id, int layer_id);
     int get_nozzle_config_index(int filament_id, int layer_id);
 

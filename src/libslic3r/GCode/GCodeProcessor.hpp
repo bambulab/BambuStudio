@@ -272,6 +272,9 @@ namespace Slic3r {
         SettingsIds settings_ids;
         size_t filaments_count;
         std::vector<std::string> extruder_colors;
+        std::vector<std::string> printer_extruder_variant;  // 用于帮助访问喷嘴参数
+        std::vector<ExtruderType> extruder_types;
+        std::vector<int> printer_extruder_id;
         std::vector<float> filament_diameters;
         std::vector<int>   required_nozzle_HRC;
         std::vector<float> filament_densities;
@@ -1117,7 +1120,6 @@ namespace Slic3r {
         float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         std::vector<int> m_filament_maps;
-        std::vector<int> m_config_idx_for_filament;
         std::vector<unsigned char> m_last_filament_id;
         std::vector<unsigned char> m_filament_id;
         unsigned char m_extruder_id;
@@ -1443,7 +1445,7 @@ namespace Slic3r {
         //get current used extruder
         int get_extruder_id(bool force_initialize = true)const;
 
-        int get_config_idx_for_filament(int filament_idx) const;
+        int get_machine_config_idx(int filament_idx) const;
    };
 
 } /* namespace Slic3r */

@@ -259,7 +259,8 @@ public:
     }
 
     size_t get_extruder_id(unsigned int filament_id) const;
-    size_t get_config_idx_for_filament(unsigned int filament_id) const;
+    size_t get_filament_config_idx(unsigned int filament_id) const;
+    size_t get_process_config_idx(unsigned int filament_id) const;
 
 protected:
     friend class PrintObject;
