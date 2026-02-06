@@ -1150,7 +1150,7 @@ int Print::get_config_index(int filament_id, int layer_id, std::vector<std::stri
     FilamentIndexKey key{filament_id, extruder_type, nozzle_volume_type};
     auto             iter = index_map.find(key);
     if (iter == index_map.end()) {
-        int index = get_config_index_by_filament_id(filament_id, variant_list, m_filament_self_index, extruder_type, nozzle_volume_type);
+        int index = get_config_index_base(nozzle_volume_type, extruder_type, filament_id, variant_list, m_filament_self_index);
         index_map[key] = index;
         return index;
     } else {
@@ -2984,13 +2984,14 @@ size_t Print::get_extruder_id(unsigned int filament_id) const
     return 0;
 }
 
-size_t Print::get_config_idx_for_filament(unsigned int filament_id) const
+size_t Print::get_filament_config_idx(unsigned int filament_id) const
 {
-    std::vector<int> filament_map_2 = m_config.filament_map_2.values;
-    if (filament_id < filament_map_2.size()) {
-        return filament_map_2[filament_id];
-    }
-    return  0;
+    return Slic3r::get_filament_config_idx(m_config, filament_id);
+}
+
+size_t Print::get_process_config_idx(unsigned int filament_id) const
+{ 
+    return Slic3r::get_process_config_idx(m_config, filament_id);
 }
 
 // Wipe tower support.

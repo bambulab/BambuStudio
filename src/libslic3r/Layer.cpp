@@ -175,9 +175,9 @@ bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const 
     return config.wall_filament == other_config.wall_filament
            && config.wall_loops == other_config.wall_loops
            && config.wall_sequence == other_config.wall_sequence
-           && config.inner_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament)) == other_config.inner_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament))
-           && config.outer_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament)) == other_config.outer_wall_speed.get_at(get_config_idx_for_filament(config.wall_filament))
-           && config.gap_infill_speed.get_at(get_config_idx_for_filament(config.wall_filament)) == other_config.gap_infill_speed.get_at(get_config_idx_for_filament(config.wall_filament))
+           && config.inner_wall_speed.get_at(get_process_config_idx(config.wall_filament)) == other_config.inner_wall_speed.get_at(get_process_config_idx(config.wall_filament))
+           && config.outer_wall_speed.get_at(get_process_config_idx(config.wall_filament)) == other_config.outer_wall_speed.get_at(get_process_config_idx(config.wall_filament))
+           && config.gap_infill_speed.get_at(get_process_config_idx(config.wall_filament)) == other_config.gap_infill_speed.get_at(get_process_config_idx(config.wall_filament))
            && config.detect_overhang_wall == other_config.detect_overhang_wall
            && config.filter_out_gap_fill.value == other_config.filter_out_gap_fill.value
            && config.opt_serialize("inner_wall_line_width") == other_config.opt_serialize("inner_wall_line_width")
@@ -626,10 +626,16 @@ size_t Layer::get_extruder_id(unsigned int filament_id) const
     return m_object->print()->get_extruder_id(filament_id);
 }
 
-size_t Layer::get_config_idx_for_filament(unsigned int filament_id) const
+size_t Layer::get_filament_config_idx(unsigned int filament_id) const
 {
-    return m_object->print()->get_config_idx_for_filament(filament_id);
+    return m_object->print()->get_filament_config_idx(filament_id);
 }
+
+size_t Layer::get_process_config_idx(unsigned int filament_id) const
+{
+    return m_object->print()->get_process_config_idx(filament_id);
+}
+
 
 BoundingBox get_extents(const LayerRegion &layer_region)
 {

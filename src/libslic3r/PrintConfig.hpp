@@ -341,7 +341,8 @@ enum FilamentMapMode {
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
-extern int get_config_index_by_filament_id(int filament_id, const std::vector<std::string> &variant_list, const std::vector<int> &filament_self_index, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
+// 最基础的参数idx查找方法，遍历varint list寻找对应的idx
+extern int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids);
 
 static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
     std::set<NozzleVolumeType> type;
@@ -1858,7 +1859,10 @@ static void set_flush_volumes_matrix(std::vector<T> &out_matrix, const std::vect
 }
 
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id);
-size_t get_config_idx_for_filament(const GCodeConfig& config, unsigned int filament_id);
+
+// 从GCode Config中调用基础的参数idx查找方法
+size_t get_process_config_idx(const GCodeConfig &config, unsigned int filament_id);
+size_t get_filament_config_idx(const GCodeConfig& config, unsigned int filament_id);
 
 } // namespace Slic3r
 

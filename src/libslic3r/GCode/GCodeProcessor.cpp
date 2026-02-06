@@ -1927,6 +1927,10 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         }
     }
 
+    m_result.printer_extruder_id = config.printer_extruder_id.values;
+    m_result.printer_extruder_variant = config.printer_extruder_variant.values;
+    m_result.extruder_types = cast<ExtruderType>(config.extruder_type.values);
+
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
     // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
     // are considered to be active for the single extruder multi-material printers only.
@@ -1959,8 +1963,6 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
         m_filament_maps = filament_maps->values;
         std::transform(m_filament_maps.begin(), m_filament_maps.end(), m_filament_maps.begin(), [](int value) {return value - 1; });
     }
-
-    m_config_idx_for_filament = config.filament_map_2.values;
 
     const ConfigOptionBool* spiral_vase = config.option<ConfigOptionBool>("spiral_mode");
     if (spiral_vase != nullptr)
@@ -2121,11 +2123,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         std::transform(m_filament_maps.begin(), m_filament_maps.end(), m_filament_maps.begin(), [](int value) {return value - 1; });
     }
 
-    auto config_idx_for_filament = config.option<ConfigOptionInts>("filament_map_2");
-    if (config_idx_for_filament != nullptr){
-        m_config_idx_for_filament = config_idx_for_filament->values;
-    }
-
     //BBS
     const ConfigOptionFloats* filament_costs = config.option<ConfigOptionFloats>("filament_cost");
     if (filament_costs != nullptr) {
@@ -2185,6 +2182,29 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         for (size_t i = 0; i < m_result.extruder_colors.size(); ++i) {
             if (m_result.extruder_colors[i].empty())
                 m_result.extruder_colors[i] = filament_colour->values[i];
+        }
+    }
+
+    // BBS
+    const ConfigOptionStrings* printer_extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant");
+    if (printer_extruder_variant != nullptr) {
+        for (size_t i = 0; i < printer_extruder_variant->size(); ++i) {
+            m_result.printer_extruder_variant[i] = printer_extruder_variant->values[i];
+        }
+    }
+
+    // BBS
+    const ConfigOptionInts* printer_extruder_id = config.option<ConfigOptionInts>("printer_extruder_id");
+    if (printer_extruder_id != nullptr) {
+        for (size_t i = 0; i < printer_extruder_id->values.size(); ++i) {
+            m_result.printer_extruder_id[i] = static_cast<int>(printer_extruder_id->values[i]);
+        }
+    }
+
+    const ConfigOptionEnumsGeneric* extruder_types = config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    if (extruder_types != nullptr ) {
+        for (size_t i = 0; i < extruder_types->values.size(); ++i) {
+            m_result.extruder_types[i] = static_cast<ExtruderType>(extruder_types->values[i]);
         }
     }
 
@@ -4082,7 +4102,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
-                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_machine_config_idx(get_filament_id()));
                 if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
@@ -4100,7 +4120,7 @@ void GCodeProcessor::process_G1(const GCodeReader::GCodeLine& line)
 
         //BBS
         for (unsigned char a = X; a <= E; ++a) {
-            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
+            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_machine_config_idx(get_filament_id()));
             if (acceleration * std::abs(delta_pos[a]) * inv_distance > axis_max_acceleration)
                 acceleration = axis_max_acceleration / (std::abs(delta_pos[a]) * inv_distance);
         }
@@ -4478,7 +4498,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
-                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_machine_config_idx(get_filament_id()));
                 if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
@@ -4502,7 +4522,7 @@ void GCodeProcessor::process_VG1(const GCodeReader::GCodeLine& line)
 
         //BBS
         for (unsigned char a = X; a <= E; ++a) {
-            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
+            float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_machine_config_idx(get_filament_id()));
             if (acceleration * std::abs(delta_pos[a]) * inv_distance > axis_max_acceleration)
                 acceleration = axis_max_acceleration / (std::abs(delta_pos[a]) * inv_distance);
         }
@@ -4866,7 +4886,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
 
             curr.abs_axis_feedrate[a] = std::abs(curr.axis_feedrate[a]);
             if (curr.abs_axis_feedrate[a] != 0.0f) {
-                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
+                float axis_max_feedrate = get_axis_max_feedrate(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_machine_config_idx(get_filament_id()));
                 if (axis_max_feedrate != 0.0f) min_feedrate_factor = std::min<float>(min_feedrate_factor, axis_max_feedrate / curr.abs_axis_feedrate[a]);
             }
         }
@@ -4893,7 +4913,7 @@ void  GCodeProcessor::process_G2_G3(const GCodeReader::GCodeLine& line)
                 axis_acc[a] = acceleration * std::abs(delta_pos[a]) * inv_distance;
 
             if (axis_acc[a] != 0.0f) {
-                float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_config_idx_for_filament(get_filament_id()));
+                float axis_max_acceleration = get_axis_max_acceleration(static_cast<PrintEstimatedStatistics::ETimeMode>(i), static_cast<Axis>(a), get_machine_config_idx(get_filament_id()));
                 if (axis_max_acceleration != 0.0f && axis_acc[a] > axis_max_acceleration) min_acc_factor = std::min<float>(min_acc_factor, axis_max_acceleration / axis_acc[a]);
             }
         }
@@ -6213,12 +6233,19 @@ int GCodeProcessor::get_extruder_id(bool force_initialize)const
     return static_cast<int>(m_extruder_id);
 }
 
-int GCodeProcessor::get_config_idx_for_filament(int filament_idx) const
+int GCodeProcessor::get_machine_config_idx(int filament_idx) const
 {
-    if (m_config_idx_for_filament.size() > filament_idx)
-        return m_config_idx_for_filament[filament_idx];
-    else
-        return std::max(0, m_filament_maps[filament_idx] - 1);
+    int extruder_id = get_extruder_id();
+    if (!m_nozzle_group_result || extruder_id < 0)
+        return 0;
+    int nozzle_id = m_nozzle_status_recorder.get_nozzle_in_extruder(extruder_id);
+    auto nozzle_info = m_nozzle_group_result->get_nozzle_from_id(nozzle_id);
+    if (!nozzle_info )
+        return 0;
+    NozzleVolumeType nozzle_volume_type = nozzle_info->volume_type;
+    ExtruderType extruder_type = m_result.extruder_types[extruder_id];
+    return get_config_index_base(nozzle_volume_type, extruder_type, extruder_id + 1,
+        m_result.printer_extruder_variant, m_result.printer_extruder_id);
 }
 
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)

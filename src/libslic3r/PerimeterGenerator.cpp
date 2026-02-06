@@ -269,7 +269,7 @@ static void detect_bridge_wall(const PerimeterGenerator &perimeter_generator, Ex
 static bool is_enable_overhang_speed(const PerimeterGenerator& perimeter_generator)
 {
     int filament_idx = perimeter_generator.config->wall_filament - 1;
-    int extruder_id = get_extruder_index(*perimeter_generator.print_config, filament_idx);
+    int config_idx = get_process_config_idx(*perimeter_generator.print_config, filament_idx);
     bool use_filament_overhang_speed = perimeter_generator.print_config->override_process_overhang_speed.get_at(filament_idx);
 
     return use_filament_overhang_speed ? perimeter_generator.print_config->filament_enable_overhang_speed.get_at(filament_idx) :
@@ -880,7 +880,7 @@ void PerimeterGenerator::process_classic()
     // internal flow which is unrelated.
     coord_t min_spacing         = coord_t(perimeter_spacing      * (1 - INSET_OVERLAP_TOLERANCE));
     coord_t ext_min_spacing     = coord_t(ext_perimeter_spacing  * (1 - INSET_OVERLAP_TOLERANCE));
-    bool    has_gap_fill        = this->config->gap_infill_speed.get_at(get_config_idx_for_filament(*print_config, this->config->wall_filament - 1)) > 0;
+    bool    has_gap_fill        = this->config->gap_infill_speed.get_at(get_process_config_idx(*print_config, this->config->wall_filament - 1)) > 0;
 
     // BBS: this flow is for smaller external perimeter for small area
     coord_t ext_min_spacing_smaller = coord_t(ext_perimeter_spacing * (1 - SMALLER_EXT_INSET_OVERLAP_TOLERANCE));
