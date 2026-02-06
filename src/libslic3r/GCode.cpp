@@ -2042,45 +2042,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // init as filament map
     update_layer_related_config(0);
 
-    {
-        std::ofstream out("test_map.txt");
-        auto group_result = print.get_layered_nozzle_group_result();
-        if (!group_result) {
-            out << "nozzle_group_result: null\n";
-        } else {
-            auto used_nozzles = group_result->get_used_nozzles_in_extruder(-1);
-            out << "logical_nozzles=" << used_nozzles.size() << "\n";
-            for (const auto &nozzle : used_nozzles) {
-                out << "nozzle_id=" << nozzle.group_id
-                    << ", extruder_id=" << nozzle.extruder_id
-                    << ", volume_type=" << get_nozzle_volume_type_string(nozzle.volume_type)
-                    << "\n";
-            }
-
-            size_t layer_count = group_result->get_layer_count();
-            if (layer_count == 0) {
-                out << "layer=default\n";
-                const auto &map = group_result->get_layer_filament_nozzle_map(-1);
-                out << "map=[";
-                for (size_t i = 0; i < map.size(); ++i) {
-                    out << map[i];
-                    if (i + 1 < map.size()) out << ",";
-                }
-                out << "]\n";
-            } else {
-                for (size_t layer_id = 0; layer_id < layer_count; ++layer_id) {
-                    out << "layer=" << layer_id << "\n";
-                    const auto &map = group_result->get_layer_filament_nozzle_map(static_cast<int>(layer_id));
-                    out << "map=[";
-                    for (size_t i = 0; i < map.size(); ++i) {
-                        out << map[i];
-                        if (i + 1 < map.size()) out << ",";
-                    }
-                    out << "]\n";
-                }
-            }
-        }
-    }
 
     // modifies m_silent_time_estimator_enabled
     DoExport::init_gcode_processor(print.config(), m_processor, m_silent_time_estimator_enabled, m_writer.extruders());
@@ -3163,6 +3124,51 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
                 }
             }
         }
+
+        std::vector<int> optimal_assignment;
+        if (group_result) {
+            std::vector<int> logical_filaments = cast<int>(group_result->get_used_filaments());
+
+            auto nozzle_list = group_result->get_used_nozzles_in_extruder();
+            int group_count = group_result->get_extruder_count();
+
+            std::vector<int> filament_seq = cast<int>(result->filament_change_sequence);
+            std::vector<int> nozzle_seq = cast<int>(result->nozzle_change_sequence);
+
+            double load_time   = m_config.machine_load_filament_time.value;
+            double unload_time = m_config.machine_unload_filament_time.value;
+            MultiNozzleUtils::FilamentChangeTimeParams time_params;
+            time_params.selector_load_time   = static_cast<float>(load_time/2);
+            time_params.selector_unload_time = static_cast<float>(unload_time/2);
+            time_params.standard_load_time   = static_cast<float>(load_time);
+            time_params.standard_unload_time = static_cast<float>(unload_time);
+
+            bool enable_dynamic_map = group_result->is_support_dynamic_nozzle_map();
+            bool can_compute = enable_dynamic_map && !logical_filaments.empty() && !nozzle_list.empty() && !filament_seq.empty() && !nozzle_seq.empty() && group_count > 0;
+
+            if (enable_dynamic_map) {
+                size_t all_filaments_count = m_config.filament_map.values.size();
+                std::vector<int> final_assignment(all_filaments_count, 0);
+
+                if (can_compute) {
+                    double space = 1.0;
+                    for (size_t i = 1; i < logical_filaments.size(); ++i) {
+                        space *= static_cast<double>(group_count);
+                        if (space > 3e6) break;
+                    }
+                    if (space <= 3e6) {
+                        auto used_assignment = MultiNozzleUtils::find_optimal_physical_assignment(logical_filaments, nozzle_list, filament_seq, nozzle_seq, group_count, time_params);
+                        for (size_t idx = 0; idx < logical_filaments.size() && idx < used_assignment.size(); ++idx) {
+                            int filament_id = logical_filaments[idx];
+                            if (filament_id >= 0 && static_cast<size_t>(filament_id) < final_assignment.size())
+                                final_assignment[filament_id] = used_assignment[idx];
+                        }
+                    }
+                }
+                optimal_assignment = std::move(final_assignment);
+            } // else keep optimal_assignment empty
+        }
+        result->optimal_assignment = std::move(optimal_assignment);
     }
 }
 

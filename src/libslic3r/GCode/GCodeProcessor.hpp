@@ -292,6 +292,7 @@ namespace Slic3r {
         std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>,FilamentSequenceHash> layer_filaments;
         std::vector<unsigned int> nozzle_change_sequence;
         std::vector<unsigned int> filament_change_sequence;
+        std::vector<int> optimal_assignment;
         // first key stores `from` filament, second keys stores the `to` filament
         std::map<std::pair<int,int>, int > filament_change_count_map;
 
@@ -341,6 +342,7 @@ namespace Slic3r {
             filament_change_count_map = other.filament_change_count_map;
             filament_change_sequence = other.filament_change_sequence;
             nozzle_change_sequence = other.nozzle_change_sequence;
+            optimal_assignment = other.optimal_assignment;
             skippable_part_time = other.skippable_part_time;
             initial_layer_time = other.initial_layer_time;
             used_filaments = other.used_filaments;

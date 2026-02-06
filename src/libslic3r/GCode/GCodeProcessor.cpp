@@ -1489,6 +1489,7 @@ void GCodeProcessorResult::reset() {
     custom_gcode_per_print_z = std::vector<CustomGCode::Item>();
     spiral_vase_layers = std::vector<std::pair<float, std::pair<size_t, size_t>>>();
     time = 0;
+    optimal_assignment.clear();
 
     //BBS: add mutex for protection of gcode result
     unlock();
@@ -1525,6 +1526,7 @@ void GCodeProcessorResult::reset() {
     filament_change_count_map.clear();
     filament_change_sequence.clear();
     nozzle_change_sequence.clear();
+    optimal_assignment.clear();
     skippable_part_time.clear();
     warnings.clear();
 
