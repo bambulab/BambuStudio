@@ -104,6 +104,7 @@ struct PlateData
     LayerFilaments layer_filaments;
     std::vector<unsigned int> filament_change_sequence;
     std::vector<unsigned int> nozzle_change_sequence;
+    std::vector<int> optimal_assignment;
     std::optional<MultiNozzleUtils::LayeredNozzleGroupResult> nozzle_group_result;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1

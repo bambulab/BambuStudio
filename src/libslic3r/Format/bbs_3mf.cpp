@@ -1667,6 +1667,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->config = it->second->config;
             plate->filament_change_sequence = it->second->filament_change_sequence;
             plate->nozzle_change_sequence = it->second->nozzle_change_sequence;
+            plate->optimal_assignment = it->second->optimal_assignment;
 
             if (!plate->thumbnail_file.empty())
                 _extract_from_archive(archive, plate->thumbnail_file, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
@@ -2349,6 +2350,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
             plate_data_list[it->first-1]->filament_change_sequence = it->second->filament_change_sequence;
             plate_data_list[it->first-1]->nozzle_change_sequence = it->second->nozzle_change_sequence;
+            plate_data_list[it->first-1]->optimal_assignment = it->second->optimal_assignment;
             plate_data_list[it->first-1]->nozzle_volume_types = it->second->nozzle_volume_types;
             plate_data_list[it->first-1]->nozzle_diameters = it->second->nozzle_diameters;
 
@@ -3300,20 +3302,28 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 auto plater_data = elem.second;
                 std::string key = "plate_" + std::to_string(plate_idx);
                 std::string filament_key = "filament_sequence";
-                if (j[key].contains(filament_key))
+                if (!j[key].contains(filament_key))
                     filament_key = "sequence";
                 auto filament_seq = j[key][filament_key];
                 auto nozzle_seq = j[key]["nozzle_sequence"];
+                auto optimal_assignment_j = j[key].find("optimal_assignment");
                 std::vector<unsigned int> filament_sequence;
                 std::vector<unsigned int> nozzle_sequence;
+                std::vector<int> optimal_assignment;
                 for (auto &item : filament_seq) {
                     filament_sequence.push_back(item.get<unsigned int>() - 1); // data stored in file is 1 based, change to 0 based when loading
                 }
                 for (auto &item : nozzle_seq) {
                     nozzle_sequence.push_back(item.get<unsigned int>());
                 }
+                if (optimal_assignment_j != j[key].end()) {
+                    for (auto &item : *optimal_assignment_j) {
+                        optimal_assignment.emplace_back(item.get<int>());
+                    }
+                }
                 plater_data->filament_change_sequence = filament_sequence;
                 plater_data->nozzle_change_sequence   = nozzle_sequence;
+                if (!optimal_assignment.empty()) plater_data->optimal_assignment = optimal_assignment;
             }
         }
         catch (const std::exception& e) {
@@ -8703,8 +8713,19 @@ bool _BBS_3MF_Exporter::_add_filament_sequence_file_to_archive(mz_zip_archive& a
         std::string plate_idx = "plate_"+std::to_string(idx+1);
         std::vector<unsigned int> sequence = plate_data->filament_change_sequence;
         std::transform(sequence.begin(), sequence.end(), sequence.begin(), [](unsigned int v) { return v + 1; }); // to 1 based idx
-        j[plate_idx]["filament_sequence"] = sequence;
+       
+        bool enable_dynamic_map = plate_data->nozzle_group_result && plate_data->nozzle_group_result->is_support_dynamic_nozzle_map();
+        std::string seq_key;
+        if(enable_dynamic_map)
+            seq_key= "filament_sequence";
+        else
+            seq_key = "sequence";
+        j[plate_idx][seq_key] = sequence;
         j[plate_idx]["nozzle_sequence"] = plate_data->nozzle_change_sequence;
+
+        std::vector<int> optimal_assignment = plate_data->optimal_assignment;
+        if (enable_dynamic_map)
+            j[plate_idx]["optimal_assignment"] = optimal_assignment;
     }
 
     if(j.empty())
