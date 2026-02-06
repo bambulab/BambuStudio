@@ -1290,10 +1290,6 @@ void SendToPrinterDialog::update_show_status()
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
         return;
     }
-    else if (obj_->is_system_printing()) {
-        show_status(PrintDialogStatus::PrintStatusInSystemPrinting);
-        return;
-    }
 
     // check sdcard when if lan mode printer
    /* if (obj_->is_lan_mode_printer()) {
@@ -1926,7 +1922,11 @@ void SendToPrinterDialog::CreateMediaAbilityJob()
              }
          });
      });
-     m_filetransfer_mediability_job->start_on(*m_filetransfer_tunnel);
+     if (m_filetransfer_tunnel) {
+        m_filetransfer_mediability_job->start_on(*m_filetransfer_tunnel);
+     } else {
+        BOOST_LOG_TRIVIAL(info) << "CreateMediaAbilityJob:: file transfer tunnel is null";
+     }
 }
 
 void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std::string &name)
@@ -1966,7 +1966,11 @@ void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std
             }
         });
     });
-    m_filetransfer_uploadfile_job->start_on(*m_filetransfer_tunnel);
+    if (m_filetransfer_tunnel) {
+        m_filetransfer_uploadfile_job->start_on(*m_filetransfer_tunnel);
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": file transfer tunnel is null";
+    }
 }
 
 void SendToPrinterDialog::UploadFileProgressCallback(int progress)

@@ -32,12 +32,14 @@
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevStorage.h"
+#include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevStatus.h"
 
 #include "DeviceCore/DevConfig.h"
 #include "DeviceCore/DevInfo.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
-
+#include "DeviceCore/DevPrintOptions.h"
 #include "DeviceTab/wgtDeviceNozzleRack.h"
 
 
@@ -581,6 +583,16 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered), std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Enabled),
                         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
 
+    std::vector<std::string> list{ "ams_rfid_1", "ams_rfid_2", "ams_rfid_3", "ams_rfid_4" };
+    m_pausing_icon = new AnimaIcon(progress_lr_panel, wxID_ANY, list, "refresh_printer", 100);
+    m_pausing_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_pausing_icon->SetToolTip(_L("Pausing"));
+    m_pausing_icon->Hide();
+    m_stopping_icon = new AnimaIcon(progress_lr_panel, wxID_ANY, list, "refresh_printer", 100);
+    m_stopping_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
+    m_stopping_icon->SetToolTip(_L("Stopping"));
+    m_stopping_icon->Hide();
+
     m_button_partskip = new Button(progress_lr_panel, wxEmptyString, "print_control_partskip_disable", 0, 20, wxID_ANY);
     m_button_partskip->Enable(false);
     m_button_partskip->Hide();
@@ -782,8 +794,10 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
     progress_right_sizer->Add(m_button_partskip, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0)); // 5
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progress_right_sizer->Add(m_pausing_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(m_button_pause_resume, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progress_right_sizer->Add(m_stopping_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(m_button_abort, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
 
@@ -954,6 +968,28 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     parent->Fit();
 }
 
+static wxString get_bbl_time_dhms(float time_in_secs)
+{
+    int days = (int) (time_in_secs / 86400.0f);
+    time_in_secs -= (float) days * 86400.0f;
+    int hours = (int) (time_in_secs / 3600.0f);
+    time_in_secs -= (float) hours * 3600.0f;
+    int minutes = (int) (time_in_secs / 60.0f);
+    time_in_secs -= (float) minutes * 60.0f;
+
+    wxString s;
+    if (days > 0)
+        s = wxString::Format(_L("%dday%dh%dmin%ds"), days, hours, minutes, (int) time_in_secs);
+    else if (hours > 0)
+        s = wxString::Format(_L("%dh%dmin%ds"), hours, minutes, (int) time_in_secs);
+    else if (minutes > 0)
+        s = wxString::Format(_L("%dmin%ds"), minutes, (int) time_in_secs);
+    else
+        s = wxString::Format(_L("%ds"), (int) time_in_secs);
+
+    return s;
+}
+
 void PrintingTaskPanel::paint(wxPaintEvent &)
 {
     wxPaintDC dc(m_bitmap_thumbnail);
@@ -986,6 +1022,8 @@ void PrintingTaskPanel::set_has_reted_text(bool has_rated)
 
 void PrintingTaskPanel::msw_rescale()
 {
+    m_pausing_icon->Rescale();
+    m_stopping_icon->Rescale();
     m_panel_printing_title->SetSize(wxSize(-1, FromDIP(PAGE_TITLE_HEIGHT)));
     m_printing_sizer->SetMinSize(wxSize(PAGE_MIN_WIDTH, -1));
     // m_staticText_printing->SetMinSize(wxSize(PAGE_TITLE_TEXT_WIDTH, PAGE_TITLE_HEIGHT));
@@ -1047,6 +1085,8 @@ void PrintingTaskPanel::reset_printing_value()
 {
     this->set_thumbnail_img(m_thumbnail_placeholder.bmp(), m_thumbnail_placeholder.name());
     this->set_plate_index(-1);
+    update_pausing_state(false);
+    update_stopping_state(false);
 }
 
 void PrintingTaskPanel::enable_partskip_button(MachineObject *obj, bool enable)
@@ -1062,6 +1102,40 @@ void PrintingTaskPanel::enable_partskip_button(MachineObject *obj, bool enable)
     } else if (obj && obj->is_support_brtc) {
         m_button_partskip->Enable(true);
         m_button_partskip->SetIcon("print_control_partskip");
+    }
+}
+
+void PrintingTaskPanel::update_pausing_state(bool enter)
+{
+    if (m_pausing_icon->IsPlaying() != enter) {
+        if (enter) {
+            m_pausing_icon->Play();
+            m_pausing_icon->Show();
+            m_button_pause_resume->Hide();
+        } else {
+            m_pausing_icon->Stop();
+            m_pausing_icon->Hide();
+            m_button_pause_resume->Show();
+        }
+
+        Layout();
+    }
+}
+
+void PrintingTaskPanel::update_stopping_state(bool enter)
+{
+    if (m_stopping_icon->IsPlaying() != enter) {
+        if (enter) {
+            m_stopping_icon->Play();
+            m_stopping_icon->Show();
+            m_button_abort->Hide();
+        } else {
+            m_stopping_icon->Stop();
+            m_stopping_icon->Hide();
+            m_button_abort->Show();
+        }
+
+        Layout();
     }
 }
 
@@ -1181,12 +1255,12 @@ void PrintingTaskPanel::update_finish_time(wxString finish_time)
 void PrintingTaskPanel::update_left_time(int mc_left_time)
 {
     // update gcode progress
-    std::string left_time;
+    wxString left_time;
     std::string right_time;
     wxString    left_time_text = NA_STR;
 
     try {
-        left_time  = get_bbl_monitor_time_dhm(mc_left_time);
+        left_time  = get_bbl_time_dhms(mc_left_time);
         right_time = get_bbl_finish_time_dhm(mc_left_time);
     } catch (...) {
         ;
@@ -2065,6 +2139,8 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
                             std::pair<wxColour, int>(AMS_CONTROL_DEF_BLOCK_BK_COLOUR, StateColor::Hovered),
                             std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Normal));
 
+    wxBoxSizer* fila_change_sizer = new wxBoxSizer(wxHORIZONTAL);
+
     m_button_retry = new Button(m_filament_load_box, _L("Retry"));
     m_button_retry->SetFont(Label::Body_13);
     m_button_retry->SetBorderColor(btn_bd_white);
@@ -2078,8 +2154,24 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
         if (obj) { obj->command_ams_control("resume"); }
     });
 
+    m_fila_change_abort = new Button(m_filament_load_box, _L("Abort"));
+    m_fila_change_abort->SetFont(Label::Body_13);
+    m_fila_change_abort->SetBorderColor(btn_bd_white);
+    m_fila_change_abort->SetTextColor(btn_text_white);
+    m_fila_change_abort->SetMinSize(wxSize(FromDIP(80), FromDIP(31)));
+    m_fila_change_abort->SetBackgroundColor(btn_bg_white);
+    m_fila_change_abort->Hide();
+
+    m_fila_change_abort->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+        BOOST_LOG_TRIVIAL(info) << "on_ams_abort";
+        if (obj) { obj->command_ams_control("abort"); }
+    });
+
+    fila_change_sizer->Add(m_button_retry, 0, wxRIGHT, FromDIP(7));
+    fila_change_sizer->Add(m_fila_change_abort, 0, wxLEFT, FromDIP(7));
+
     sizer_box->Add(steps_sizer, 0, wxEXPAND | wxALIGN_LEFT | wxTOP, FromDIP(5));
-    sizer_box->Add(m_button_retry, 0, wxLEFT, FromDIP(28));
+    sizer_box->Add(fila_change_sizer, 0, wxLEFT, FromDIP(28));
     sizer_box->Add(0, 0, 0, wxTOP, FromDIP(5));
     m_filament_load_box->SetBackgroundColour(*wxWHITE);
     m_filament_load_box->Layout();
@@ -2130,6 +2222,7 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
                 m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
             }
         }
+        m_fila_change_abort->Show(obj->is_support_fila_change_abort);
     }
 
     m_filament_load_box->Show(tag_show);
@@ -2765,7 +2858,8 @@ void StatusPanel::update(MachineObject *obj)
 
         DevConfig *config = obj->GetConfig();
 
-        if (config->SupportFirstLayerInspect() || config->SupportAIMonitor() || obj->is_support_build_plate_marker_detect || obj->is_support_auto_recovery_step_loss) {
+        if (config->SupportFirstLayerInspect() || config->SupportAIMonitor() || obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection)->is_support_detect ||
+            obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->is_support_detect) {
             m_options_btn->Show();
             if (print_options_dlg) {
                 print_options_dlg->update_machine_obj(obj);
@@ -2829,9 +2923,16 @@ void StatusPanel::update_error_message()
 
     if (obj->print_error <= 0) {
         error_info_reset();
+        if (m_print_error_dlg) {
+            delete m_print_error_dlg;
+            m_print_error_dlg = nullptr;
+        }
     } else if (obj->print_error != last_error) {
         /* clear old dialog */
-        if (m_print_error_dlg) { delete m_print_error_dlg; }
+        if (m_print_error_dlg) {
+            delete m_print_error_dlg;
+            m_print_error_dlg = nullptr;
+        }
 
         /* show device error message*/
         m_print_error_dlg  = new DeviceErrorDialog(obj, this);
@@ -3171,8 +3272,9 @@ void StatusPanel::update_ams(MachineObject *obj)
     if (m_ams_setting_dlg && m_ams_setting_dlg->IsShown()) { m_ams_setting_dlg->UpdateByObj(obj); }
     if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
-    if (obj && (obj->last_cali_version != obj->cali_version) && obj->is_security_control_ready()) {
-        obj->last_cali_version = obj->cali_version;
+    if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
+        obj->GetCalib()->SyncCalibVersion();
+
         PACalibExtruderInfo cali_info;
         cali_info.nozzle_diameter        = obj->GetExtderSystem()->GetNozzleDiameter(0);
         cali_info.use_extruder_id        = false;
@@ -3242,6 +3344,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     // must select a current can
     m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), false);
+    m_ams_control->UpdateAmsDryControl(obj);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
     last_ams_exist_bits   = obj->ams_exist_bits;
@@ -3342,58 +3445,85 @@ void StatusPanel::update_ams(MachineObject *obj)
     update_ams_control_state(curr_ams_id, curr_can_id);
 }
 
+void sGetSwitchInfo(MachineObject* obj,
+                    const std::string& ams_id,
+                    const std::string& slot_id,
+                    wxString& load_error_info,
+                    wxString& unload_error_info)
+{
+
+    load_error_info.clear();
+    unload_error_info.clear();
+
+    if (!obj) {
+        load_error_info = "Please select a printer";
+        unload_error_info = "Please select a printer";
+        return;
+    }
+
+    if (obj->is_in_printing() && !obj->can_resume()) {
+        const auto& err_info = _L("The printer is busy on other print job");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    if (obj->can_resume() && !devPrinterUtil::IsVirtualSlot(ams_id)) {
+        const auto& err_info = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    bool in_switch_filament = false;
+    if (obj->is_enable_np && obj->GetExtderSystem()->IsBusyLoading()) {
+        in_switch_filament = true;
+    } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
+        in_switch_filament = true;
+    }
+
+    if (in_switch_filament) {
+        const auto& err_info = _L("Current extruder is busy changing filament");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    auto tray_item = obj->get_tray(ams_id, slot_id);
+    if (!tray_item) {
+        const auto& err_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
+        load_error_info = err_info;
+        unload_error_info = err_info;
+        return;
+    }
+
+    for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
+        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) {
+            load_error_info = _L("Current slot has alread been loaded");
+        }
+    }
+    if (!devPrinterUtil::IsVirtualSlot(ams_id) && !tray_item->is_exists) {
+        load_error_info = _L("The selected slot is empty.");
+    }
+
+    auto extder = obj->GetExtderSystem()->GetExtderById(obj->GetFilaSystem()->GetExtruderIdByAmsId(ams_id));
+    if (!extder) {
+        unload_error_info = _L("No extruder found for the selected slot.");
+    }
+
+    if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
+        if (!extder->HasFilamentInExt() ||
+            extder->GetSlotNow().ams_id != ams_id ||
+            extder->GetSlotNow().slot_id != slot_id) {
+            unload_error_info = _L("The selected slot is not loaded in the extruder.");
+        };
+    }
+};
+
 void StatusPanel::update_ams_control_state(std::string ams_id, std::string slot_id)
 {
     wxString load_error_info, unload_error_info;
-
-    if (obj->is_in_printing() && !obj->can_resume()) {
-        load_error_info   = _L("The printer is busy on other print job");
-        unload_error_info = _L("The printer is busy on other print job");
-    } else if (obj->can_resume() && !devPrinterUtil::IsVirtualSlot(ams_id)) {
-        load_error_info   = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
-        unload_error_info = _L("When printing is paused, filament loading and unloading are only supported for external slots.");
-    } else {
-        /*switch now*/
-        bool in_switch_filament = false;
-
-        if (obj->is_enable_np) {
-            if (obj->GetExtderSystem()->IsBusyLoading()) { in_switch_filament = true; }
-        } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
-            in_switch_filament = true;
-        }
-
-        if (in_switch_filament) {
-            load_error_info   = _L("Current extruder is busy changing filament");
-            unload_error_info = _L("Current extruder is busy changing filament");
-        }
-
-        if (ams_id.empty() || slot_id.empty()) {
-            load_error_info   = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-            unload_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-        } else if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-            for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
-                if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) { load_error_info = _L("Current slot has alread been loaded"); }
-            }
-        } else {
-            for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
-                if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) { load_error_info = _L("Current slot has alread been loaded"); }
-            }
-
-            /*empty*/
-            auto ams_item = obj->GetFilaSystem()->GetAmsById(ams_id);
-            if (!ams_item) {
-                load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-            } else {
-                auto tray_item = ams_item->GetTray(slot_id);
-                if (!tray_item) {
-                    load_error_info = _L("Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments.");
-                } else if (!tray_item->is_exists) {
-                    load_error_info = _L("The selected slot is empty.");
-                }
-            }
-        }
-    }
-
+    sGetSwitchInfo(obj, ams_id, slot_id, load_error_info, unload_error_info);
     m_ams_control->EnableLoadFilamentBtn(load_error_info.empty(), ams_id, slot_id, load_error_info);
     m_ams_control->EnableUnLoadFilamentBtn(unload_error_info.empty(), ams_id, slot_id, unload_error_info);
 }
@@ -3449,6 +3579,9 @@ void StatusPanel::update_market_scoring(bool show)
         Layout();
     }
 }
+
+
+
 
 void StatusPanel::update_basic_print_data(bool def)
 {
@@ -3609,6 +3742,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             } else {
                 m_project_task_panel->enable_pause_resume_button(true, "pause");
             }
+
             m_project_task_panel->enable_partskip_button(obj, true);
             // update printing stage
             m_project_task_panel->update_left_time(obj->mc_left_time);
@@ -3672,6 +3806,9 @@ void StatusPanel::update_subtask(MachineObject *obj)
     } else {
         reset_printing_values();
     }
+
+    m_project_task_panel->update_pausing_state(obj->GetStatus()->GetJobState() == DevJobState::JobStatePausing);
+    m_project_task_panel->update_stopping_state(obj->GetStatus()->GetJobState() == DevJobState::JobStateStoppping);
 }
 
 void StatusPanel::update_partskip_subtask(MachineObject *obj)
@@ -3769,6 +3906,8 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
 
 void StatusPanel::reset_printing_values()
 {
+    m_project_task_panel->update_pausing_state(false);
+    m_project_task_panel->update_stopping_state(false);
     m_project_task_panel->enable_partskip_button(nullptr, false);
     m_project_task_panel->enable_pause_resume_button(false, "pause_disable");
     m_project_task_panel->enable_abort_button(false);
@@ -5071,7 +5210,7 @@ void StatusPanel::update_filament_loading_panel(MachineObject *obj)
     bool ams_loading_state = false;
     auto ams_status_sub    = obj->ams_status_sub;
 
-    if (obj->is_enable_np) {
+    if (obj->is_enable_np && obj->ams_status_main != AMS_STATUS_MAIN_COLD_PULL) {
         ams_loading_state = obj->GetExtderSystem()->IsBusyLoading();
     } else if (obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
         ams_loading_state = true;

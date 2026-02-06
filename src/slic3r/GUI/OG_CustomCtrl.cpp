@@ -138,6 +138,24 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             line_height = win_height;
     };
 
+    auto correct_line_height_for_sizer = [this](int& line_height, wxSizer* sizer)
+    {
+        if (!sizer) return;
+
+        int total_height = 0;
+        auto children = sizer->GetChildren();
+        for (auto child : children) {
+            if (child->IsWindow()) {
+                total_height += child->GetWindow()->GetSize().GetHeight() + m_v_gap2;
+            }
+        }
+        if (total_height > 0) {
+            total_height -= m_v_gap2;
+            if (line_height < total_height)
+                line_height = total_height;
+        }
+    };
+
     auto correct_horiz_pos = [this](int& h_pos, Field* field) {
         if (m_max_win_width > 0 && field->getWindow()) {
             int win_width = field->getWindow()->GetSize().GetWidth();
@@ -215,7 +233,10 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
                 // BBS: new layout
                 // h_pos += 3 * blinking_button_width;
                 Field* field = opt_group->get_field(option_set.front().opt_id);
-                correct_line_height(ctrl_line.height, field->getWindow());
+                if (field->getWindow())
+                    correct_line_height(ctrl_line.height, field->getWindow());
+                else
+                    correct_line_height_for_sizer(ctrl_line.height, field->getSizer());
                 correct_horiz_pos(h_pos, field);
                 break;
             }
@@ -223,7 +244,10 @@ wxPoint OG_CustomCtrl::get_pos(const Line& line, Field* field_in/* = nullptr*/)
             bool is_multioption_line = option_set.size() > 1;
             for (auto opt : option_set) {
                 Field* field = opt_group->get_field(opt.opt_id);
-                correct_line_height(ctrl_line.height, field->getWindow());
+                if (field->getWindow())
+                    correct_line_height(ctrl_line.height, field->getWindow());
+                else
+                    correct_line_height_for_sizer(ctrl_line.height, field->getSizer());
 
                 if (!opt_group->option_label_at_right) { // BBS: position option label at right
                     ConfigOptionDef option = opt.opt;
@@ -373,18 +397,31 @@ void OG_CustomCtrl::OnMotion(wxMouseEvent& event)
             break;
         }
 
+        const std::vector<Option> &option_set = line.og_line.get_options();
+
+        Field *first_field   = option_set.empty() ? nullptr : opt_group->get_field(option_set.front().opt_id);
+        auto  *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(first_field);
+
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_icon[opt_idx])) {
-                const std::vector<Option>& option_set = line.og_line.get_options();
-                Field* field = opt_group->get_field(option_set[opt_idx].opt_id);
+                Field *field = nullptr;
+                if (multi_variant && opt_idx < multi_variant->m_text_ctrls.size()) {
+                    field = multi_variant->m_text_ctrls[opt_idx].text_ctrl.get();
+                } else if (opt_idx < option_set.size()) {
+                    field = opt_group->get_field(option_set[opt_idx].opt_id);
+                }
                 if (field)
                     tooltip = *field->undo_tooltip();
                 break;
             }
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_to_sys_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_to_sys_icon[opt_idx])) {
-                const std::vector<Option>& option_set = line.og_line.get_options();
-                Field* field = opt_group->get_field(option_set[opt_idx].opt_id);
+                Field *field = nullptr;
+                if (multi_variant && opt_idx < multi_variant->m_text_ctrls.size()) {
+                    field = multi_variant->m_text_ctrls[opt_idx].text_ctrl.get();
+                } else if (opt_idx < option_set.size()) {
+                    field = opt_group->get_field(option_set[opt_idx].opt_id);
+                }
                 if (field)
                     tooltip = *field->undo_to_sys_tooltip();
                 break;
@@ -424,10 +461,19 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
         if (!line.is_visible) continue;
         if (line.launch_browser())
             return;
+
+        const std::vector<Option> &option_set = line.og_line.get_options();
+
+        Field *first_field   = option_set.empty() ? nullptr : opt_group->get_field(option_set.front().opt_id);
+        auto  *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(first_field);
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_icon[opt_idx])) {
-                const std::vector<Option>& option_set = line.og_line.get_options();
-                Field* field = opt_group->get_field(option_set[opt_idx].opt_id);
+                Field *field = nullptr;
+                if (multi_variant && opt_idx < multi_variant->m_text_ctrls.size()) {
+                    field = multi_variant->m_text_ctrls[opt_idx].text_ctrl.get();
+                } else if (opt_idx < option_set.size()) {
+                    field = opt_group->get_field(option_set[opt_idx].opt_id);
+                }
                 if (field)
                     field->on_back_to_initial_value();
                 event.Skip();
@@ -436,7 +482,12 @@ void OG_CustomCtrl::OnLeftDown(wxMouseEvent& event)
         for (size_t opt_idx = 0; opt_idx < line.rects_undo_to_sys_icon.size(); opt_idx++)
             if (is_point_in_rect(pos, line.rects_undo_to_sys_icon[opt_idx])) {
                 const std::vector<Option>& option_set = line.og_line.get_options();
-                Field* field = opt_group->get_field(option_set[opt_idx].opt_id);
+                Field *field = nullptr;
+                if (multi_variant && opt_idx < multi_variant->m_text_ctrls.size()) {
+                    field = multi_variant->m_text_ctrls[opt_idx].text_ctrl.get();
+                } else if (opt_idx < option_set.size()) {
+                    field = opt_group->get_field(option_set[opt_idx].opt_id);
+                }
                 if (field)
                     field->on_back_to_sys_value();
                 event.Skip();
@@ -601,6 +652,67 @@ void OG_CustomCtrl::msw_rescale()
     GetParent()->Layout();
 }
 
+void OG_CustomCtrl::update_line_height_for_field(const t_config_option_key &opt_id)
+{
+    Field *field = opt_group->get_field(opt_id);
+    if (!field) return;
+
+    auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
+    if (!multi_variant || !multi_variant->getSizer()) return;
+
+    for (CtrlLine &ctrl_line : ctrl_lines) {
+        const std::vector<Option> &option_set = ctrl_line.og_line.get_options();
+        if (option_set.size() == 1 && option_set.front().opt_id == opt_id) {
+            ctrl_line.update_multi_variant_height();
+            recalculate_and_refresh();
+            return;
+        }
+    }
+}
+
+void OG_CustomCtrl::recalculate_and_refresh()
+{
+    for (CtrlLine& line : ctrl_lines) {
+        if (line.is_visible) {
+            line.correct_items_positions();
+        }
+    }
+
+    wxCoord h_pos = (ctrlWidth + get_title_width() - titleWidth) * m_em_unit;
+    wxCoord v_pos = 0;
+
+    for (CtrlLine& line : ctrl_lines) {
+        if (line.is_visible)
+            v_pos += line.height;
+    }
+
+    wxCoord h_pos2 = get_title_width() * m_em_unit;
+    SetFont(Label::Head_16);
+    wxSize label_sz = GetTextExtent(GetLabel());
+    SetFont(m_font);
+    auto lineHeight = label_sz.y;
+    while (label_sz.x > h_pos2) {
+        label_sz.x -= h_pos2;
+        label_sz.y += lineHeight;
+    }
+    if (v_pos < label_sz.y) v_pos = label_sz.y;
+
+    this->SetMinSize(wxSize(h_pos, v_pos));
+
+    Refresh();
+    Update();
+
+    wxWindow* parent = GetParent();
+    if (parent) {
+        parent->Layout();
+        parent->Refresh();
+
+        if (auto* scroll_win = dynamic_cast<wxScrolledWindow*>(parent)) {
+            scroll_win->FitInside();
+        }
+    }
+}
+
 void OG_CustomCtrl::sys_color_changed()
 {
 }
@@ -616,8 +728,11 @@ OG_CustomCtrl::CtrlLine::CtrlLine(  wxCoord         height,
     draw_just_act_buttons(draw_just_act_buttons),
     draw_mode_bitmap(draw_mode_bitmap)
 {
+    size_t initial_size = og_line.get_options().size();
+    rects_undo_icon.reserve(initial_size > 0 ? 3 : 1);
+    rects_undo_to_sys_icon.reserve(initial_size > 0 ? 3 : 1);
 
-    for (size_t i = 0; i < og_line.get_options().size(); i++) {
+    for (size_t i = 0; i < initial_size; i++) {
         rects_undo_icon.emplace_back(wxRect());
         rects_undo_to_sys_icon.emplace_back(wxRect());
     }
@@ -655,6 +770,40 @@ void OG_CustomCtrl::CtrlLine::correct_items_positions()
         Field* field = ctrl->opt_group->get_field(opt.opt_id);
         if (!field)
             continue;
+
+        auto  parent        = field->m_parent;
+        auto *multi_variant = dynamic_cast<MultiVariantTextCtrl *>(field);
+        if (multi_variant && multi_variant->getSizer()) {
+            wxPoint  base_pos   = ctrl->get_pos(og_line, field);
+            wxSizer *main_sizer = multi_variant->getSizer();
+            auto     children   = main_sizer->GetChildren();
+            int single_line_height = children.empty() ? 0 : (height - ctrl->m_v_gap + ctrl->m_v_gap2) / children.size();
+
+            wxPoint current_pos = base_pos;
+            current_pos.y += 2;
+
+            for (auto child : children) {
+                if (child->IsSizer()) {
+                    auto h_sizer = child->GetSizer();
+                    int  item_x  = current_pos.x;
+                    for (auto item : h_sizer->GetChildren()) {
+                        if (item->IsWindow()) {
+                            wxWindow *win = item->GetWindow();
+                            wxSize    sz  = win->GetSize();
+
+                            wxPoint pos = wxPoint(item_x, current_pos.y);
+                            pos.y += std::max(0, int(0.5 * (single_line_height - sz.y)));
+                            win->SetPosition(pos);
+
+                            item_x += sz.x + ctrl->m_h_gap;
+                        }
+                    }
+                    current_pos.y += single_line_height;
+                }
+            }
+            continue;
+        }
+
         if (field->getSizer())
             ctrl->correct_widgets_position(field->getSizer(), og_line, field);
         else if (field->getWindow())
@@ -669,6 +818,19 @@ void OG_CustomCtrl::CtrlLine::msw_rescale()
         height = get_bitmap_size(create_scaled_bitmap("empty")).GetHeight();
 
     if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
+        const std::vector<Option> &option_set = og_line.get_options();
+
+        if (option_set.size() == 1) {
+            Field *field               = ctrl->opt_group->get_field(option_set.front().opt_id);
+            auto  *multi_variant_field = dynamic_cast<MultiVariantTextCtrl *>(field);
+
+            if (multi_variant_field && multi_variant_field->getSizer()) {
+                update_multi_variant_height();
+                correct_items_positions();
+                return;
+            }
+        }
+
         wxSize label_sz = ctrl->GetTextExtent(og_line.label);
         if (ctrl->opt_group->split_multi_line) { // BBS
             const std::vector<Option> &option_set = og_line.get_options();
@@ -710,9 +872,18 @@ void OG_CustomCtrl::CtrlLine::update_visibility(ConfigOptionMode mode)
 
         if (field->getSizer()) {
             auto children = field->getSizer()->GetChildren();
-            for (auto child : children)
-                if (child->IsWindow())
+            for (auto child : children) {
+                if (child->IsWindow()) {
                     child->GetWindow()->Show(is_visible);
+                } else if (child->IsSizer()) {
+                    auto sub_children = child->GetSizer()->GetChildren();
+                    for (auto sub_child : sub_children) {
+                        if (sub_child->IsWindow()) {
+                            sub_child->GetWindow()->Show(is_visible);
+                        }
+                    }
+                }
+            }
         }
         else if (field->getWindow())
             field->getWindow()->Show(is_visible);
@@ -741,6 +912,90 @@ void OG_CustomCtrl::CtrlLine::render(wxDC& dc, wxCoord h_pos, wxCoord v_pos)
     }
 
     Field* field = ctrl->opt_group->get_field(og_line.get_options().front().opt_id);
+
+    auto *multi_variant_field = dynamic_cast<MultiVariantTextCtrl *>(field);
+    bool  is_multi_variant    = (multi_variant_field != nullptr);
+    if (is_multi_variant) {
+        size_t variant_count = multi_variant_field->m_text_ctrls.size();
+        ensure_rects_size(variant_count);
+
+        wxCoord label_actual_v_pos = v_pos;
+        if (ctrl->opt_group->label_width != 0 && !og_line.label.IsEmpty()) {
+            wxString label = og_line.label;
+            wxColour blink_color = StateColor::darkModeColorFor("#00AE42");
+
+            dc.SetFont(ctrl->m_font);
+            wxString multiline_text;
+            auto     label_size = Label::split_lines(dc, ctrl->opt_group->label_width * ctrl->m_em_unit, label, multiline_text);
+            label_actual_v_pos  = v_pos + lround((height - label_size.y) / 2);
+            const wxColour *label_color = field->blink() ? &blink_color : field->label_color();
+            h_pos = draw_text(dc, wxPoint(h_pos, v_pos), label, 
+                            label_color,
+                            ctrl->opt_group->label_width * ctrl->m_em_unit, 
+                            false, true);
+        }
+
+        if (multi_variant_field->getSizer()) {
+            auto children = multi_variant_field->getSizer()->GetChildren();
+
+            int total_child_count = 0;
+            for (auto child : children) {
+                if (child->IsSizer()) total_child_count++;
+            }
+
+            int single_line_height = total_child_count > 0 
+                ? (height - ctrl->m_v_gap + ctrl->m_v_gap2) / total_child_count 
+                : height;
+
+            int buttons_total_height = single_line_height * total_child_count - ctrl->m_v_gap2;
+
+            dc.SetFont(ctrl->m_font);
+            wxString multiline_text;
+            auto     label_size     = Label::split_lines(dc, ctrl->opt_group->label_width * ctrl->m_em_unit, og_line.label, multiline_text);
+            int      label_center_y = label_actual_v_pos + label_size.y / 2;
+
+            wxCoord current_v_pos = label_center_y - buttons_total_height / 2;
+            size_t variant_idx = 0;
+
+            for (auto child : children) {
+                if (child->IsSizer()) {
+                    auto h_sizer = child->GetSizer();
+
+                    int max_item_height = 0;
+                    for (auto item : h_sizer->GetChildren()) {
+                        if (item->IsWindow()) {
+                            int h = item->GetWindow()->GetSize().GetHeight();
+                            if (h > max_item_height) max_item_height = h;
+                        }
+                    }
+
+                    Field* variant_field = nullptr;
+                    if (variant_idx < multi_variant_field->m_text_ctrls.size()) {
+                        variant_field = multi_variant_field->m_text_ctrls[variant_idx].text_ctrl.get();
+                    }
+
+                    if (variant_field && variant_field->undo_to_sys_bitmap()) {
+                        wxPoint btn_pos = wxPoint(h_pos, current_v_pos);
+                        int bmp_height = get_bitmap_size(variant_field->undo_bitmap()->bmp()).GetHeight();
+                        int vertical_offset = std::max(0, (single_line_height - bmp_height - 6) / 2);
+                        btn_pos.y += vertical_offset;
+
+                        draw_act_bmps(dc, btn_pos, 
+                                     variant_field->undo_to_sys_bitmap()->bmp(), 
+                                     variant_field->undo_bitmap()->bmp(), 
+                                     variant_field->blink(), 
+                                     variant_idx,
+                                     true);
+                    }
+
+                    current_v_pos += single_line_height;
+                    variant_idx++;
+                }
+            }
+        }
+
+        return;
+    }
 
     bool suppress_hyperlinks = false;
     if (draw_just_act_buttons) {
@@ -956,19 +1211,21 @@ wxPoint OG_CustomCtrl::CtrlLine::draw_blinking_bmp(wxDC& dc, wxPoint pos, bool i
     return wxPoint(h_pos, v_pos);
 }
 
-wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id)
+wxCoord OG_CustomCtrl::CtrlLine::draw_act_bmps(wxDC& dc, wxPoint pos, const wxBitmap& bmp_undo_to_sys, const wxBitmap& bmp_undo, bool is_blinking, size_t rect_id, bool skip_vertical_adjust)
 {
 #ifndef DISABLE_BLINKING
     pos = draw_blinking_bmp(dc, pos, is_blinking);
 #else
-    if (ctrl->opt_group->split_multi_line) { // BBS
-        const std::vector<Option> &option_set = og_line.get_options();
-        if (option_set.size() > 1)
-            pos.y += lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
-        else
+    if (!skip_vertical_adjust) {
+        if (ctrl->opt_group->split_multi_line) { // BBS
+            const std::vector<Option> &option_set = og_line.get_options();
+            if (option_set.size() > 1)
+                pos.y += lround(((height - ctrl->m_v_gap + ctrl->m_v_gap2) / option_set.size() - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+            else
+                pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+        } else {
             pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
-    } else {
-        pos.y += lround((height - get_bitmap_size(bmp_undo).GetHeight()) / 2);
+        }
     }
 #endif
     wxCoord h_pos = pos.x;
@@ -999,6 +1256,63 @@ bool OG_CustomCtrl::CtrlLine::launch_browser() const
         return false;
 
     return OptionsGroup::launch_browser(og_line.label_path);
+}
+
+void OG_CustomCtrl::CtrlLine::ensure_rects_size(size_t size)
+{
+    if (rects_undo_icon.size() != size) {
+        rects_undo_icon.resize(size, wxRect());
+    }
+    if (rects_undo_to_sys_icon.size() != size) {
+        rects_undo_to_sys_icon.resize(size, wxRect());
+    }
+}
+
+void OG_CustomCtrl::CtrlLine::update_multi_variant_height()
+{
+    const std::vector<Option> &option_set = og_line.get_options();
+    if (option_set.size() != 1) {
+        return;
+    }
+    Field *field = ctrl->opt_group->get_field(option_set.front().opt_id);
+    if (!field) {
+        return;
+    }
+
+    auto *multi_variant_field = dynamic_cast<MultiVariantTextCtrl *>(field);
+    if (!multi_variant_field || !multi_variant_field->getSizer()) {
+        return;
+    }
+
+    int  total_height = 0;
+    auto children     = multi_variant_field->getSizer()->GetChildren();
+
+    for (auto child : children) {
+        if (child->IsWindow()) {
+            total_height += child->GetWindow()->GetSize().GetHeight() + ctrl->m_v_gap2;
+        } else if (child->IsSizer()) {
+            auto sub_children = child->GetSizer()->GetChildren();
+            int  max_height   = 0;
+            for (auto sub_child : sub_children) {
+                if (sub_child->IsWindow()) {
+                    int h = sub_child->GetWindow()->GetSize().GetHeight();
+                    if (h > max_height) {
+                        max_height = h;
+                    }
+                }
+            }
+            if (max_height > 0) {
+                total_height += max_height + ctrl->m_v_gap2;
+            }
+        }
+    }
+
+    if (total_height > 0 && multi_variant_field->m_text_ctrls.size() > 1) {
+        total_height -= ctrl->m_v_gap2;
+    }
+
+    wxSize label_sz  = ctrl->GetTextExtent(og_line.label);
+    height = std::max(label_sz.y, total_height);
 }
 
 } // GUI

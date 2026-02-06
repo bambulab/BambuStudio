@@ -103,7 +103,9 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
                     }},
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
                     {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},
-                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"top_surface_pattern", "",1},{"bottom_surface_pattern", "",1}, {"internal_solid_infill_pattern", "",1},
+                    {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"sparse_infill_lattice_angle_1", "",1},{"sparse_infill_lattice_angle_2", "",1},
+                    {"top_surface_pattern", "",1},{"top_surface_density", "",1},
+                    {"bottom_surface_pattern", "",1}, {"bottom_surface_density", "",1}, {"internal_solid_infill_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
                     }},
     { L("Speed"), {{"outer_wall_speed", "",1},{"inner_wall_speed", "",2},{"sparse_infill_speed", "",3},{"top_surface_speed", "",4}, {"internal_solid_infill_speed", "",5},
@@ -745,12 +747,21 @@ wxMenuItem* MenuFactory::append_menu_item_change_type(wxMenu* menu)
     return append_menu_item(menu, wxID_ANY, _L("Change type"), "",
         [](wxCommandEvent&) { obj_list()->change_part_type(); }, "", menu,
         []() {
-            const Selection &selection = plater()->canvas3D()->get_selection();
-            if (selection.get_volume_idxs().size() != 1) {
+            auto has_volume_in_list = []() {
+                wxDataViewItemArray sels;
+                obj_list()->GetSelections(sels);
+                for (auto item : sels) {
+                    const auto type = obj_list()->GetModel()->GetItemType(item);
+                    if (type & itVolume)
+                        return true;
+                    if ((type & itSettings) && (obj_list()->GetModel()->GetItemType(obj_list()->GetModel()->GetParent(item)) & itVolume))
+                        return true;
+                }
                 return false;
-            }
-            wxDataViewItem item = obj_list()->GetSelection();
-            return item.IsOk() || obj_list()->GetModel()->GetItemType(item) == itVolume;
+            };
+
+            const Selection &selection = plater()->canvas3D()->get_selection();
+            return has_volume_in_list() || !selection.get_volume_idxs().empty();
         }, m_parent);
 }
 
@@ -927,8 +938,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
 
 void MenuFactory::append_menu_item_scale_selection_to_fit_print_volume(wxMenu* menu)
 {
-    append_menu_item(menu, wxID_ANY, _L("Scale to build volume"), _L("Scale an object to fit the build volume"),
-        [](wxCommandEvent&) { plater()->scale_selection_to_fit_print_volume(); }, "", menu);
+    append_menu_item(menu, wxID_ANY, _L("Scale to print volume"), _L("Scale the selected object to fit the print volume"),
+        [](wxCommandEvent &) { plater()->scale_selection_to_fit_print_volume(); }, "", menu, []() { return plater()->can_scale_to_print_volume(); }, m_parent);
 }
 
 void MenuFactory::append_menu_items_flush_options(wxMenu* menu)
@@ -1232,8 +1243,11 @@ void MenuFactory::create_bbl_object_menu()
     append_menu_item_fix_through_netfabb(&m_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_object_menu);
+    append_menu_item_smooth_mesh(&m_object_menu);
     // merge to single part
     append_menu_item_merge_parts_to_single_part(&m_object_menu);
+    //scale_selection_to_fit_print_volume
+    append_menu_item_scale_selection_to_fit_print_volume(&m_object_menu);
     // Object Center
     append_menu_item_center(&m_object_menu);
     // Object Align/Distribute
@@ -1281,6 +1295,7 @@ void MenuFactory::create_bbl_assemble_object_menu()
     append_menu_item_fix_through_netfabb(&m_assemble_object_menu);
     // Object Simplify
     append_menu_item_simplify(&m_assemble_object_menu);
+    append_menu_item_smooth_mesh(&m_assemble_object_menu);
     m_assemble_object_menu.AppendSeparator();
 }
 
@@ -1364,6 +1379,7 @@ void MenuFactory::create_bbl_part_menu()
     append_menu_item_edit_text(menu);
     append_menu_item_fix_through_netfabb(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_smooth_mesh(menu);
     append_menu_item_center(menu);
     append_menu_item_align_distribute(menu);
     append_menu_items_mirror(menu);
@@ -1394,6 +1410,7 @@ void MenuFactory::create_bbl_assemble_part_menu()
 
     append_menu_item_delete(menu);
     append_menu_item_simplify(menu);
+    append_menu_item_smooth_mesh(menu);
     menu->AppendSeparator();
 }
 
@@ -1500,6 +1517,27 @@ void MenuFactory::create_plate_menu()
         []() {
             return !plater()->get_partplate_list().get_selected_plate()->get_objects().empty() && !plater()->is_background_process_slicing();
         }, m_parent);
+
+    auto get_plate_idx = []() {
+        int plate_idx = plater()->GetPlateIndexByRightMenuInLeftUI();
+        if (plate_idx < 0)
+            plate_idx = plater()->get_partplate_list().get_curr_plate_index();
+        return plate_idx;
+    };
+
+    append_menu_item(
+        menu, wxID_ANY, _L("Expand all"), _L("Expand all objects on this plate"),
+        [get_plate_idx](wxCommandEvent&) {
+            obj_list()->expand_collapse_plate(get_plate_idx(), true);
+        },
+        "", nullptr, []() { return true; }, m_parent);
+
+    append_menu_item(
+        menu, wxID_ANY, _L("Collapse all"), _L("Collapse all objects on this plate"),
+        [get_plate_idx](wxCommandEvent&) {
+            obj_list()->expand_collapse_plate(get_plate_idx(), false);
+        },
+        "", nullptr, []() { return true; }, m_parent);
 
     // delete current plate
 #ifdef __WINDOWS__
@@ -1702,6 +1740,7 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_items_convert_unit(menu);
         //BBS
         append_menu_item_change_filament(menu);
+        append_menu_item_reload_from_disk(menu);
         menu->AppendSeparator();
         append_menu_item_export_stl(menu, true);
     }
@@ -1716,8 +1755,10 @@ wxMenu* MenuFactory::multi_selection_menu()
         append_menu_item_fix_through_netfabb(menu);
         //append_menu_item_simplify(menu);
         append_menu_item_delete(menu);
+        append_menu_item_change_type(menu);
         append_menu_items_convert_unit(menu);
         append_menu_item_change_filament(menu);
+        append_menu_item_reload_from_disk(menu);
         wxMenu* split_menu = new wxMenu();
         if (split_menu) {
             append_menu_item(split_menu, wxID_ANY, _L("To objects"), _L("Split the selected object into multiple objects"),
@@ -1841,6 +1882,13 @@ void MenuFactory::append_menu_item_simplify(wxMenu* menu)
     wxMenuItem* menu_item = append_menu_item(menu, wxID_ANY, _L("Simplify Model"), "",
         [](wxCommandEvent&) { obj_list()->simplify(); }, "", menu,
         []() {return plater()->can_simplify(); }, m_parent);
+}
+
+void MenuFactory::append_menu_item_smooth_mesh(wxMenu *menu)
+{
+    wxMenuItem *menu_item = append_menu_item(
+        menu, wxID_ANY, _L("Subdivision mesh") + _L("(Lost color)"), "", [](wxCommandEvent &) { obj_list()->smooth_mesh(); }, "", menu, []() { return plater()->can_smooth_mesh(); },
+        m_parent);
 }
 
 void MenuFactory::append_menu_item_center(wxMenu* menu)

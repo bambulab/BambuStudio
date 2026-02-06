@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSN99_06",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -18,9 +22,6 @@
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "first_x_layer_fan_speed": [
-        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
         "220",
@@ -36,6 +37,9 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
     ],
     "filament_change_length_nc": [
         "4"

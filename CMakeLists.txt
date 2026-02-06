@@ -704,19 +704,31 @@ function(bambustudio_copy_sos target config postfix output_sos)
     set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
 
-    file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
-         DESTINATION ${_out_dir})
+    if (EXISTS "/usr/lib/aarch64-linux-gnu/libavcodec.so")
+        file(COPY /usr/lib/aarch64-linux-gnu/libavcodec.so
+                  /usr/lib/aarch64-linux-gnu/libavcodec.so.61
+                  /usr/lib/aarch64-linux-gnu/libavutil.so
+                  /usr/lib/aarch64-linux-gnu/libavutil.so.59
+                  /usr/lib/aarch64-linux-gnu/libswscale.so
+                  /usr/lib/aarch64-linux-gnu/libswscale.so.8
+                  /usr/lib/aarch64-linux-gnu/libswresample.so
+                  /usr/lib/aarch64-linux-gnu/libswresample.so.5
+             DESTINATION ${_out_dir})
+    else()
+        file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
+             DESTINATION ${_out_dir})
+    endif()
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so

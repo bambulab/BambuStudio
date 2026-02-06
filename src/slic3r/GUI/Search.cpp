@@ -113,7 +113,7 @@ void OptionsSearcher::append_options(DynamicPrintConfig *config, Preset::Type ty
         wxString label = opt.full_label.empty() ? opt.label : opt.full_label;
 
         std::string key = get_key(opt_key, type);
-        if (cnt == 0)
+        if (cnt == 0 || multi_variant_text_ctrl_options.find(opt_key) != multi_variant_text_ctrl_options.end())
             emplace(key, label);
         else
             for (int i = 0; i < cnt; ++i)

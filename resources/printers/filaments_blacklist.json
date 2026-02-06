@@ -32,34 +32,90 @@
     {
       "type": "PLA-Aero",
       "nozzle_flows": ["High Flow"],
+      "model_id":["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "type": "ASA-Aero",
       "nozzle_flows": ["High Flow"],
+      "model_id":["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "name_suffix": "TPU 85A",
       "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
       "name_suffix": "TPU 90A",
       "nozzle_flows": ["High Flow"],
+      "model_id": ["C11", "C12", "BL-P001"],
       "action": "prohibition",
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
-      "type": "TPU",
-      "action": "warning",
-      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+      "white_fila_ids": ["GFU04", "GFU03", "GFU01", "GFU00", "GFU99"],
+      "nozzle_flows": ["TPU High Flow"],
+      "model_id": ["O1D", "O1E"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
     },
     {
-      "type": "TPU-AMS",
+      "name_suffix": "Bambu TPU 85A",
+      "nozzle_flows": ["Standard", "High Flow"],
+      "nozzle_diameters": [0.4],
+      "model_id": ["O1D", "O1E"],
+      "action": "prohibition",
+      "description": "Dynamic flow calibration is not supported for TPU 85A filament."
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["N7"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=blx2TDu3uoRdfyIx"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1D"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1E"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1C2"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1S"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
+    },
+    {
+      "type": "TPU",
+      "action": "prohibition",
+      "calib_mode": "auto_pa",
+      "model_id": ["O1D", "O1E"],
+      "description": "Auto dynamic flow calibration is not supported for TPU filament."
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
       "action": "warning",
       "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
     },
@@ -90,28 +146,12 @@
       "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
     },
     {
-      "type_suffix": "CF",
-      "action": "warning",
-      "slot": "ams",
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-    },
-    {
-      "type_suffix": "GF",
-      "action": "warning",
-      "slot": "ams",
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-    },
-    {
       "vendor": "Bambu Lab",
       "type": "PLA",
-      "name": "PLA Glow",
-      "model_id": [
-        "N1",
-        "N2S"
-      ],
+      "name": "Bambu PLA Glow",
       "action": "warning",
       "slot": "ams",
-      "description": "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+      "description": "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
     },
     {
       "name_suffix": "PC FR",
@@ -168,6 +208,60 @@
       "action": "warning",
       "description": "Default settings may affect print quality. Adjust as needed for best results.",
       "wiki": "https://wiki.bambulab.com/en/accessories/e3d-hotend"
+    },
+    {
+      "type_suffix": "CF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type": "PA6-GF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type_suffix": "CF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "type": "PA-GF",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ams",
+      "description": "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+    },
+    {
+      "name_suffix": "TPU 85A",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+    },
+    {
+      "name_suffix": "TPU 90A",
+      "nozzle_flows": ["High Flow"],
+      "nozzle_diameters": [ 0.4, 0.6, 0.8 ],
+      "model_id": ["O1D", "O1S", "O1E", "O1C", "O1C2", "N7"],
+      "action": "warning",
+      "slot": "ext",
+      "description": "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
     }
   ]
 }

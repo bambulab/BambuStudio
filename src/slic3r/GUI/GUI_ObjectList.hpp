@@ -406,6 +406,7 @@ public:
     void select_item(const ObjectVolumeID& ov_id);
     void select_items(const std::vector<ObjectVolumeID>& ov_ids);
     void select_all();
+    void expand_collapse_plate(int plate_idx, bool expand);
     void select_item_all_children();
     void update_selection_mode();
     bool check_last_selection(wxString& msg_str);
@@ -431,6 +432,7 @@ public:
     void rename_item();
     void fix_through_netfabb();
     void simplify();
+    void smooth_mesh();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 
     void copy_layers_to_clipboard();

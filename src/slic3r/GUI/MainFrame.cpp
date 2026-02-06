@@ -1715,6 +1715,11 @@ wxBoxSizer* MainFrame::create_side_tools()
         expand_program_holder->ShowExpandButton(expand_helio_id, false);
     }
 
+    // Set tooltip for Helio expand button
+    expand_program_holder->SetExpandButtonRichTooltip(expand_helio_id, "monitor_speed", _L("Unlock faster, more reliable, warp-free prints with Helio Additive."));
+    // Set tooltip for program expand button (same tooltip as Helio for consistency)
+    expand_program_holder->SetExpandButtonRichTooltip(expand_program_id, "monitor_speed", _L("Unlock faster, more reliable, warp-free prints with Helio Additive."));
+
     /*slice*/
     m_slice_select = eSlicePlate;
     m_print_select = ePrintPlate;
@@ -3008,7 +3013,7 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent&) { m_plater->show_view3D_labels(!m_plater->are_view3D_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_labels_shown(); }, this);
 
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang"), _L("Show object overhang highlight in 3D scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show &Overhang") + "\t" + ctrl + "L", _L("Show object overhang highlight in 3D scene"),
             [this](wxCommandEvent &) {
                 m_plater->show_view3D_overhang(!m_plater->is_view3D_overhang_shown());
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));

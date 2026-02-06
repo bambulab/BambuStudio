@@ -17,6 +17,12 @@
         "0",
         "0"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -41,6 +47,12 @@
     ],
     "slow_down_layer_time": [
         "8"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.2 nozzle"

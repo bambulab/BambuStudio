@@ -243,7 +243,8 @@ else ()
     if (XCODE)
         # Because of Debug/Release/etc. configurations (similar to MSVC) the slic3r binary is located in an extra level
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
-        set(BIN_CONF_DIR "Debug")
+        # Use generator expression for Xcode multi-config builds
+        set(BIN_CONF_DIR "$<CONFIG>")
     else ()
         set(BIN_RESOURCES_DIR "${CMAKE_CURRENT_BINARY_DIR}/../resources")
     endif ()
@@ -252,7 +253,7 @@ else ()
         set(MACOSX_BUNDLE_ICON_FILE Icon.icns)
         set(MACOSX_BUNDLE_BUNDLE_NAME "Bambu Studio")
         set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${SLIC3R_VERSION})
-        set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2021-2023 Lunkuo All Rights Reserved")
+        set(MACOSX_BUNDLE_COPYRIGHT "Copyright(C) 2021-2025 Lunkuo All Rights Reserved")
     endif()
     add_custom_command(TARGET BambuStudio POST_BUILD
         COMMAND ln -sfn "${SLIC3R_RESOURCES_DIR}" "${BIN_RESOURCES_DIR}"

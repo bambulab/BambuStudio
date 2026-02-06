@@ -22,7 +22,6 @@ void DevConfig::ParseConfig(const json& print_json)
     ParseChamberConfig(print_json);
     ParsePrintOptionsConfig(print_json);
     ParseCalibrationConfig(print_json);
-
 }
 
 void DevConfig::ParseChamberConfig(const json& print_json)

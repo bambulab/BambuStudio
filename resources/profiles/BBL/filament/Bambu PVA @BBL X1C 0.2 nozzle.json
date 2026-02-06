@@ -5,11 +5,11 @@
     "from": "system",
     "setting_id": "GFSS04_01",
     "instantiation": "true",
-    "filament_max_volumetric_speed": [
+    "filament_flow_ratio": [
         "1",
         "1"
     ],
-    "filament_flow_ratio": [
+    "filament_max_volumetric_speed": [
         "1",
         "1"
     ],
@@ -35,6 +35,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab X1 Carbon 0.2 nozzle",

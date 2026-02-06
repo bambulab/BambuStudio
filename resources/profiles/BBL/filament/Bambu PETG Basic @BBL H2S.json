@@ -43,6 +43,15 @@
         "0",
         "0"
     ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -64,6 +73,12 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.4 nozzle"

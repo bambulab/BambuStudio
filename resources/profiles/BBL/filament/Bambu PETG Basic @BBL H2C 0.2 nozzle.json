@@ -8,6 +8,10 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "1",
         "1"
@@ -40,6 +44,9 @@
     "filament_change_length_nc": [
         "4"
     ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -56,6 +63,12 @@
     ],
     "pre_start_fan_time": [
         "0"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.2 nozzle"

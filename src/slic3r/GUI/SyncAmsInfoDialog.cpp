@@ -1457,7 +1457,7 @@ bool SyncAmsInfoDialog::can_hybrid_mapping(DevExtderSystem data)
     for (auto it = data.GetExtruders().rbegin(); it != data.GetExtruders().rend(); it++) {
         // exist field is not updated, wait add
         // if (it->exist < 3) return false;
-        std::string type_str = it->GetNozzleFlowType() ? "High Flow" : "Standard";
+        std::string type_str = DevNozzle::ToNozzleFlowString(it->GetNozzleFlowType());
         flow_type_of_machine.push_back(type_str);
     }
     // get the nozzle type of preset --> flow_types
@@ -1522,11 +1522,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
     for (auto i = 0; i < used_extruders.size(); i++) {
         if (nozzle_volume_type_opt) {
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (nozzle_volume_type_opt->get_at(used_extruders[i]));
-            if (nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                used_extruders_flow[used_extruders[i]] = "Standard";
-            } else {
-                used_extruders_flow[used_extruders[i]] = "High Flow";
-            }
+            used_extruders_flow[used_extruders[i]] = DevNozzle::ToNozzleVolumeString(nozzle_volume_type);
         }
     }
 
@@ -1535,11 +1531,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
     // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
     std::vector<std::string> flow_type_of_machine;
     for (auto it = data.GetExtruders().begin(); it != data.GetExtruders().end(); it++) {
-        if (it->GetNozzleFlowType() == NozzleFlowType::H_FLOW) {
-            flow_type_of_machine.push_back("High Flow");
-        } else if (it->GetNozzleFlowType() == NozzleFlowType::S_FLOW) {
-            flow_type_of_machine.push_back("Standard");
-        }
+        flow_type_of_machine.push_back(DevNozzle::ToNozzleFlowString(it->GetNozzleFlowType()));
     }
 
     // Only when all preset nozzle types and machine nozzle types are exactly the same, return true.

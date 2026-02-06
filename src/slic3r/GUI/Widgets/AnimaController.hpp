@@ -17,7 +17,13 @@ public:
     bool IsPlaying();
     bool IsRunning() const;
 
+    void Rescale();
+
 private:
+    std::string m_img_enable;
+    std::vector<std::string> m_img_list;
+
+    bool                  m_enable = false;
     wxBitmap              m_image_enable;
     wxStaticBitmap *      m_bitmap{nullptr};
     std::vector<wxBitmap> m_images;

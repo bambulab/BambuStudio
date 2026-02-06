@@ -411,11 +411,14 @@ class GLCanvas3D
         MultiExtruderHeightOutside,       // after slice
         FilamentUnPrintableOnFirstLayer,
         MixUsePLAAndPETG,
+        MultiFilaNoWipeTower,
         PrimeTowerOutside,
         NozzleFilamentIncompatible,
         MixtureFilamentIncompatible,
         AsemblyInvalid, // for asembly view only
-        FlushingVolumeZero
+        FlushingVolumeZero,
+        FilamentNozzleFlowIncompatible,
+        TpuNozzleMultipleFilaments
     };
 
     class RenderStats
@@ -573,6 +576,8 @@ public:
     int GetHoverId();
     void set_ignore_left_up() { m_mouse.ignore_left_up = true; }
     GLVolumeCollection &get_paint_outline_volumes() { return m_paint_outline_volumes; }
+    Vec2i               convert_world_pt_to_screen(Vec3d pos);
+    bool                is_mouse_in_screen_convex_hull(Vec2i mouse,const BoundingBoxf3& box);
 
 private:
     bool m_is_dark = false;
@@ -944,7 +949,10 @@ public:
     {
         m_enable_render = enabled;
     }
-
+    enum class ThumbnailRenderRype {
+        GLVolumes,
+        CustomMeshOrVertexColors,
+    };
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
@@ -952,6 +960,7 @@ public:
                                  Camera::ViewAngleType   camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                    for_picking  = false,
                                  bool                    ban_light    = false);
+
     void render_thumbnail(ThumbnailData &           thumbnail_data,
                                  std::vector<std::array<float, 4>> &extruder_colors,
                                  unsigned int              w,
@@ -962,7 +971,8 @@ public:
                                  Camera::EType             camera_type,
                                  Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                      for_picking  = false,
-                                 bool                      ban_light    = false);
+                                 bool                      ban_light    = false,
+                                 ThumbnailRenderRype       render_type = ThumbnailRenderRype::GLVolumes);
 
     // render thumbnail using an off-screen framebuffer
     static void render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager>& p_ogl_manager, ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
@@ -971,7 +981,8 @@ public:
                                              Camera::EType                      camera_type,
                                              Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                              bool                               for_picking  = false,
-                                             bool                               ban_light    = false);
+                                             bool                                    ban_light              = false,
+                                             ThumbnailRenderRype                     render_type            = ThumbnailRenderRype::GLVolumes);
 
     //BBS use gcoder viewer render calibration thumbnails
     void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -1341,7 +1352,19 @@ private:
         Camera::EType                      camera_type,
         Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
         bool                               for_picking = false,
-        bool                               ban_light = false);
+        bool                               ban_light              = false);
+    static void _render_custom_thumbnail_internal(ThumbnailData &                         thumbnail_data,
+                                           const ThumbnailsParams &                thumbnail_params,
+                                           PartPlateList &                         partplate_list,
+                                           ModelObjectPtrs &                       model_objects,
+                                           const GLVolumeCollection &              volumes,
+                                           std::vector<std::array<float, 4>> &     extruder_colors,
+                                           const std::shared_ptr<GLShaderProgram> &shader,
+                                           Camera::EType                           camera_type,
+                                           Camera::ViewAngleType                   camera_view_angle_type = Camera::ViewAngleType::Iso,
+                                           bool                                    for_picking            = false,
+                                           bool                                    ban_light              = false,
+                                           ThumbnailRenderRype                     render_type            = ThumbnailRenderRype::CustomMeshOrVertexColors);
 };
 
 const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);

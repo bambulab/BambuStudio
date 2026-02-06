@@ -203,6 +203,10 @@ void AppConfig::set_defaults()
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
+    if (get("3d_middle_tooltip_offset_x").empty())
+        set("3d_middle_tooltip_offset_x", "0.0");
+    if (get("3d_middle_tooltip_offset_y").empty())
+        set("3d_middle_tooltip_offset_y", "0.0");
     if (get("cancel_glmultidraw").empty())
         set_bool("cancel_glmultidraw", false);
 //#ifdef SUPPORT_SHOW_HINTS
@@ -449,6 +453,9 @@ void AppConfig::set_defaults()
 
     if (get("enable_step_mesh_setting").empty()) {
         set_bool("enable_step_mesh_setting", true);
+    }
+    if (get("enable_beta_version_update").empty()) {
+        set_bool("enable_beta_version_update", true);
     }
     if (get("linear_defletion").empty()) {
         set("linear_defletion", "0.003");
@@ -770,7 +777,7 @@ void AppConfig::save()
     // The config is first written to a file with a PID suffix and then moved
     // to avoid race conditions with multiple instances of Slic3r
     const auto path = config_path();
-    std::string path_pid = (boost::format("%1%.%2%") % PathSanitizer::sanitize(path) % get_current_pid()).str();
+    std::string path_pid = (boost::format("%1%.%2%") % path % get_current_pid()).str();
 
     json j;
 
@@ -905,7 +912,7 @@ void AppConfig::save()
     std::string backup_path = (boost::format("%1%.bak") % path).str();
     // Copy configuration file with PID suffix into the configuration file with "bak" suffix.
     if (copy_file(path_pid, backup_path, error_message, false) != SUCCESS)
-        BOOST_LOG_TRIVIAL(error) << "Copying from " << path_pid << " to " << PathSanitizer::sanitize(backup_path) << " failed. Failed to create a backup configuration.";
+        BOOST_LOG_TRIVIAL(error) << "Copying from " << PathSanitizer::sanitize(path_pid) << " to " << PathSanitizer::sanitize(backup_path) << " failed. Failed to create a backup configuration.";
 #endif
 
     // Rename the config atomically.
@@ -1438,14 +1445,14 @@ void AppConfig::reset_selections()
     }
 }
 
-std::string AppConfig::config_path()
+std::string AppConfig::config_path(EAppMode mode)
 {
 #ifdef USE_JSON_CONFIG
-    std::string path = (m_mode == EAppMode::Editor) ?
+    std::string path = (mode == EAppMode::Editor) ?
         (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".conf")).make_preferred().string() :
         (boost::filesystem::path(Slic3r::data_dir()) / (GCODEVIEWER_APP_KEY ".conf")).make_preferred().string();
 #else
-    std::string path = (m_mode == EAppMode::Editor) ?
+    std::string path = (mode == EAppMode::Editor) ?
         (boost::filesystem::path(Slic3r::data_dir()) / (SLIC3R_APP_KEY ".ini")).make_preferred().string() :
         (boost::filesystem::path(Slic3r::data_dir()) / (GCODEVIEWER_APP_KEY ".ini")).make_preferred().string();
 #endif

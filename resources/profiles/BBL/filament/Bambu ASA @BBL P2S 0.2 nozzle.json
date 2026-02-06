@@ -11,12 +11,6 @@
     "chamber_temperatures": [
         "65"
     ],
-    "eng_plate_temp": [
-        "90"
-    ],
-    "eng_plate_temp_initial_layer": [
-        "90"
-    ],
     "fan_max_speed": [
         "60"
     ],
@@ -47,12 +41,6 @@
         "0",
         "0"
     ],
-    "hot_plate_temp": [
-        "90"
-    ],
-    "hot_plate_temp_initial_layer": [
-        "90"
-    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -72,11 +60,9 @@
         "0",
         "0"
     ],
-    "textured_plate_temp": [
-        "90"
-    ],
-    "textured_plate_temp_initial_layer": [
-        "90"
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.2 nozzle"

@@ -176,7 +176,7 @@ void CalibrationPAStartPage::update(MachineObject *obj)
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-        if (obj->cali_version <= -1) {
+        if (!obj->GetCalib()->IsVersionInited()) {
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
@@ -193,7 +193,7 @@ void CalibrationPAStartPage::update(MachineObject *obj)
         }
     }
     else if (obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
-        if (obj->cali_version >= 0) {
+        if (obj->GetCalib()->IsVersionInited()) {
             m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, true);
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_MANAGE_RESULT, false);
         }
@@ -335,7 +335,7 @@ void CalibrationFlowRateStartPage::update(MachineObject *obj)
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         m_action_panel->show_button(CaliPageActionType::CALI_ACTION_MANUAL_CALI, true);
 
-        if (obj->cali_version <= -1) {
+        if (!obj->GetCalib()->IsVersionInited()) {
             m_action_panel->bind_button(CaliPageActionType::CALI_ACTION_AUTO_CALI, true);
         }
         else {

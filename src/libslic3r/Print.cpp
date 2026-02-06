@@ -212,7 +212,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         "filament_notes",
         "process_notes",
         "printer_notes",
-        "filament_velocity_adaptation_factor"
+        "filament_velocity_adaptation_factor",
+        "filament_tower_interface_purge_volume",
     };
 
     static std::unordered_set<std::string> steps_ignore;
@@ -305,6 +306,11 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "extruder_ams_count"
             || opt_key == "extruder_nozzle_stats"
             || opt_key == "filament_cooling_before_tower"
+            || opt_key == "enable_tower_interface_features"
+            || opt_key == "filament_tower_ironing_area"
+            || opt_key == "filament_tower_interface_print_temp"
+            || opt_key == "filament_tower_interface_pre_extrusion_dist"
+            || opt_key == "filament_tower_interface_pre_extrusion_length"
             || opt_key == "prime_volume_mode"
             || opt_key == "filament_map_mode"
             || opt_key == "filament_map"
@@ -368,8 +374,9 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             osteps.emplace_back(posSimplifyInfill);
             osteps.emplace_back(posSimplifySupportPath);
             steps.emplace_back(psSkirtBrim);
-        }
-        else if (opt_key == "z_hop_types") {
+        } else if (opt_key == "apply_top_surface_compensation") {
+            osteps.emplace_back(posInfill);
+        } else if (opt_key == "z_hop_types") {
             osteps.emplace_back(posDetectOverhangsForLift);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
@@ -1232,6 +1239,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
             warningtemp.opt_key    = "enable_prime_tower";
             warningtemp.is_warning = true;
+            warningtemp.hypetext   = L("Jump to: Prime tower");
             *warning               = warningtemp;
         }
     }
@@ -1535,6 +1543,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
                 return except;
             }
         }
+
+		// check wall sequence and precise outer wall
+		if (m_default_region_config.precise_outer_wall && m_default_region_config.wall_sequence != WallSequence::InnerOuter)
+		{
+			warning->string = L("Precise outer wall will be ignored unless the order of walls is set to inner/outer");
+			warning->opt_key = "precise_outer_wall";
+		}
     }
 
     return {};
@@ -1825,6 +1840,11 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             if (model_volume1.config.get() != model_volume2.config.get())
                 return false;
         }
+
+        // layer height ranges check
+        if ( model_obj1->layer_config_ranges != model_obj2->layer_config_ranges )
+            return false;
+
         //if (!object1->config().equals(object2->config()))
         //    return false;
         if (model_obj1->layer_height_profile.get() != model_obj2->layer_height_profile.get())
@@ -2030,8 +2050,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             this->set_geometric_unprintable_filaments(geometric_unprintables);
         }
 
-        {
-            std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
+        std::unordered_map<int,std::unordered_map<int,double>> filament_print_time;
+        if (calib_params().mode == CalibMode::Calib_None) {
             for(PrintObject* obj : m_objects){
                 auto obj_filament_print_time = obj->calc_estimated_filament_print_time();
                 for(auto [filament_idx,extruder_time] : obj_filament_print_time) {
@@ -2040,17 +2060,19 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     }
                 }
             }
-            this->set_filament_print_time(filament_print_time);
         }
+        this->set_filament_print_time(filament_print_time);
 
-        m_nozzle_group_result.reset();
         m_wipe_tower_data.clear();
         m_tool_ordering.clear();
+
         if (this->has_wipe_tower()) {
+            m_nozzle_group_result.reset();
             this->_make_wipe_tower();
         } else if (this->config().print_sequence != PrintSequence::ByObject
             || (this->config().print_sequence == PrintSequence::ByObject && m_objects.size() == 1)) {
             // Initialize the tool ordering, so it could be used by the G-code preview slider for planning tool changes and filament switches.
+            m_nozzle_group_result.reset();
             m_tool_ordering = ToolOrdering(*this, -1, false);
             m_tool_ordering.sort_and_build_data(*this, -1, false);
             if (m_tool_ordering.empty() || m_tool_ordering.last_extruder() == unsigned(-1))
@@ -2113,19 +2135,19 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
 
             auto physical_unprintables = this->get_physical_unprintable_filaments(used_filaments);
             auto geometric_unprintables = this->get_geometric_unprintable_filaments();
+            auto filament_unprintable_volumes = this->get_filament_unprintable_flow(used_filaments);
             // get recommended filament map
             {
-                if (!get_nozzle_group_result().has_value()) {
-                    auto map_mode = get_filament_map_mode();
-                    auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables);
-                    set_nozzle_group_result(group_result);
-                }
-                auto group_result = get_nozzle_group_result();
-                update_filament_maps_to_config(
-                    FilamentGroupUtils::update_used_filament_values(this->config().filament_map.values, group_result->get_extruder_map(false), used_filaments),
-                    FilamentGroupUtils::update_used_filament_values(this->config().filament_volume_map.values, group_result->get_volume_map(), used_filaments),
-                    group_result->get_nozzle_map()
-                );
+                this->m_nozzle_group_result.reset();
+                auto map_mode     = get_filament_map_mode();
+                auto group_result = ToolOrdering::get_recommended_filament_maps(this, all_filaments, map_mode, physical_unprintables, geometric_unprintables,
+                                                                                filament_unprintable_volumes);
+                set_nozzle_group_result(group_result);
+                update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(this->config().filament_map.values, group_result.get_extruder_map(false),
+                                                                                               used_filaments),
+                                               FilamentGroupUtils::update_used_filament_values(this->config().filament_volume_map.values, group_result.get_volume_map(),
+                                                                                               used_filaments),
+                                               group_result.get_nozzle_map());
             }
 
             //        print_object_instances_ordering = sort_object_instances_by_max_z(print);
@@ -2739,6 +2761,27 @@ FilamentMapMode Print::get_filament_map_mode() const
 {
     return m_config.filament_map_mode;
 }
+bool Print::get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string> &variants) const
+{
+    variants.clear();
+    if (!m_ori_full_print_config.has("filament_extruder_variant"))
+        return false;
+    auto filament_variants = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+
+    if (!m_ori_full_print_config.has("filament_self_index")) {
+        std::set<std::string> dup_variants(filament_variants.begin(), filament_variants.end());
+        variants.insert(variants.end(), dup_variants.begin(), dup_variants.end());
+    } else {
+        auto filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+
+        for (int i = 0; i < filament_self_index.size(); i++){
+            if (filament_self_index[i] - 1 == filament_id)
+                variants.emplace_back(filament_variants[i]);
+        }
+    }
+
+    return true;
+}
 
 std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const
 {
@@ -2774,6 +2817,36 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
     return physical_unprintables;
 }
 
+std::map<int, std::set<NozzleVolumeType>> Print::get_filament_unprintable_flow(const std::vector<unsigned int> &used_filaments) const
+{
+    std::vector<std::string> extruder_variant_list = m_config.printer_extruder_variant.values;
+    std::vector<std::string> filament_variant_list = m_ori_full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+    std::vector<int> filament_self_index;
+    if (!m_ori_full_print_config.has("filament_self_index"))
+        filament_self_index.resize(filament_variant_list.size(), 1);
+    else
+        filament_self_index = m_ori_full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
+    std::map<int, std::set<NozzleVolumeType>> ret;
+    std::unordered_set<int> used_fils_set(used_filaments.begin(), used_filaments.end());
+
+    std::unordered_map<int, std::set<NozzleVolumeType>> filament_variant_map;
+    for(int i = 0; i < filament_variant_list.size(); ++i){
+        NozzleVolumeType volume = convert_to_nvt_type(filament_variant_list[i]);
+        if(volume != nvtHybrid) filament_variant_map[filament_self_index[i]].insert(volume);
+    }
+
+    for (auto iter : filament_variant_map) {
+        int fil_idx = iter.first - 1;
+        if (used_fils_set.find(fil_idx) == used_fils_set.end()) continue;
+        const std::set<NozzleVolumeType> &volumes = iter.second;
+        for (int exd_idx = 0; exd_idx < extruder_variant_list.size(); ++exd_idx) {
+            auto exd_volume = convert_to_nvt_type(extruder_variant_list[exd_idx]);
+            assert(exd_volume != nvtHybrid);
+            if (volumes.find(exd_volume) == volumes.end() && exd_volume != nvtHybrid) ret[fil_idx].insert(exd_volume);
+        }
+    }
+    return ret;
+}
 
 std::vector<double> Print::get_extruder_printable_height() const
 {
@@ -2986,6 +3059,7 @@ void Print::_make_wipe_tower()
     wipe_tower.set_has_tpu_filament(this->has_tpu_filament());
     wipe_tower.set_filament_map(this->get_filament_maps());
     wipe_tower.set_nozzle_group_result(m_nozzle_group_result.value());
+    wipe_tower.set_shared_print_bed(this->get_extruder_shared_printable_polygon());
     // Set the extruder & material properties at the wipe tower object.
     for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(i, m_config);
@@ -3086,7 +3160,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.bbx = wipe_tower.get_bbx();
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
-    // Unload the current filament over the purge tower.
+    // Unload the current filament over the purge tower. 
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.

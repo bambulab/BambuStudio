@@ -933,6 +933,7 @@ public:
     FilamentMapMode  get_filament_map_mode() const;
     std::vector<int> get_filament_volume_maps() const;
     std::vector<int> get_filament_nozzle_maps() const;
+    bool get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string>& variants) const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
     // get the config idx for filament
@@ -968,6 +969,7 @@ public:
     * @return A vector of sets representing unprintable filaments for each extruder.Return an empty vecto if extruder num is 1
     */
     std::vector<std::set<int>> get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const;
+    std::map<int, std::set<NozzleVolumeType>> get_filament_unprintable_flow(const std::vector<unsigned int> &used_filaments) const;
 
     std::vector<double> get_extruder_printable_height() const;
     std::vector<Polygons> get_extruder_printable_polygons() const;

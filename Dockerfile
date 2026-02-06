@@ -1,4 +1,4 @@
-FROM docker.io/ubuntu:24.10
+FROM docker.io/ubuntu:24.04
 
 # Disable interactive package configuration
 RUN apt-get update && \

@@ -379,7 +379,7 @@ static void adjust_sort_for_segment_intersections(std::vector<SegmentIntersectio
             switch (type) {
             case SegmentIntersection::OUTER_LOW: return false;
             case SegmentIntersection::OUTER_HIGH: return top_type == IntersectionType::OUTER_LOW;
-            case SegmentIntersection::INNER_LOW: return top_type != IntersectionType::OUTER_HIGH;
+            case SegmentIntersection::INNER_LOW: return top_type == IntersectionType::OUTER_LOW || top_type == IntersectionType::INNER_HIGH;
             case SegmentIntersection::INNER_HIGH: return top_type == IntersectionType::INNER_LOW;
             default: break;
             }
@@ -3157,6 +3157,21 @@ Polylines FillCubic::fill_surface(const Surface *surface, const FillParams &para
     return polylines_out;
 }
 
+Polylines Fill2DLattice::fill_surface(const Surface *surface, const FillParams &params)
+{
+    Polylines polylines_out;
+    coordf_t  lattice_angle_1 = std::clamp(params.lattice_angle_1, -85.0, 85.0); //protect from very large tan value
+    coordf_t  lattice_angle_2 = std::clamp(params.lattice_angle_2, -85.0, 85.0);
+    coordf_t  dx1             = tan(Geometry::deg2rad(lattice_angle_1)) * z; // tan(angel_1)*z get the x direction delta
+    coordf_t  dx2             = tan(Geometry::deg2rad(params.lattice_angle_2)) * z;
+    if (!this->fill_surface_by_multilines(surface, params, {{float(M_PI / 2.), float(dx1)}, {float(M_PI / 2.), float(dx2)}}, polylines_out))
+        BOOST_LOG_TRIVIAL(error) << "Fill2DLattice::fill_surface() failed to fill a region.";
+
+    if (this->layer_id % 2 == 1)
+        for (int i = 0; i < polylines_out.size(); i++) std::reverse(polylines_out[i].begin(), polylines_out[i].end());
+    return polylines_out;
+}
+
 Polylines FillSupportBase::fill_surface(const Surface *surface, const FillParams &params)
 {
     assert(! params.full_infill());
@@ -3326,8 +3341,12 @@ void FillMonotonicLineWGapFill::fill_surface_by_lines(const Surface* surface, co
     // Rotate polygons so that we can work with vertical lines here
     std::pair<float, Point> rotate_vector = this->_infill_direction(surface);
 
+    coord_t line_spacing = 0;
     assert(params.full_infill());
-    coord_t line_spacing = params.flow.scaled_spacing();
+    if (params.density < (float) params.flow.spacing() / (float) INT32_MAX || params.density < EPSILON)
+        line_spacing = INT32_MAX;
+    else
+        line_spacing = params.flow.scaled_spacing() / params.density;
 
     // On the polygons of poly_with_offset, the infill lines will be connected.
     ExPolygonWithOffset poly_with_offset(

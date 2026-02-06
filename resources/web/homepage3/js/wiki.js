@@ -334,7 +334,7 @@ function updateSearchResult(result) {
   $('#search_result_area').empty();
   if (data["totalHits"] > 0) {
     data["results"].forEach(element => {
-      if (IsChinese()) {
+      if (isMainland() || IsChinese()){
         if (element["locale"] != "zh")
           return;
       }else {
@@ -353,12 +353,6 @@ function getAcademyData() {
   var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="get_academy_list";
-  tSend['data']={};
-  if(IsChinese()) {
-    tSend['data']['region'] = "mainland";
-  }else {
-    tSend['data']['region'] = "oversea";
-  }
 	SendWXMessage( JSON.stringify(tSend) );
 }
 
@@ -408,11 +402,24 @@ function scrollByStep(dir) {
 function openAcademyUrl(id)
 {
   let open_url = "";
-  if (IsChinese()){
+  if (isMainland()){
     open_url = "https://bambulab.cn/zh-cn/support/academy/";
   }else{
     let strLang=langStringTransfer();
     open_url = "https://bambulab.com/" + strLang + "/support/academy/";
+  }
+  open_url += id;
+  OpenUrlInLocalBrowser(open_url);
+}
+
+function openWebsiteUrl(id)
+{
+  let open_url = "";
+  if (isMainland()){
+    open_url = "https://bambulab.cn/zh-cn/";
+  }else{
+    let strLang=langStringTransfer();
+    open_url = "https://bambulab.com/" + strLang + "/";
   }
   open_url += id;
   OpenUrlInLocalBrowser(open_url);
@@ -534,6 +541,11 @@ function IsChinese()
 		return false;
 }
 
+function isMainland(){
+  let strRegion=GetQueryString("region");
+  return strRegion=="CN";
+}
+
 function langStringTransfer()
 {
   let strLang=GetQueryString("lang");
@@ -566,25 +578,30 @@ function langStringTransfer()
 }
 
 function get_image_url(printer_type) {
-  const normalized = (printer_type || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '');
+  const raw = (printer_type || '').toLowerCase();
+  const normalized = raw.replace(/[^a-z0-9]/g, '');
 
   const mappings = [
-    { keywords: ['h2d'], src: 'img/printer_h2d.png' },
-    { keywords: ['h2s'], src: 'img/printer_h2s.png' },
-    { keywords: ['p2s'], src: 'img/printer_p2s.png' },
-    { keywords: ['p1s'], src: 'img/printer_p1s.png' },
-    { keywords: ['a1mini'], src: 'img/printer_a1mini.png' },
-    { keywords: ['a1'], src: 'img/printer_a1.png' },
-    { keywords: ['x1c'], src: 'img/printer_x1c.png' },
-    { keywords: ['studio'], src: 'img/studio.png' },
-    { keywords: ['suite'], src: 'img/suite.png' },
-    { keywords: ['handy'], src: 'img/handy.png' },
+    { keywords: ['h2d'], src: 'img/printer_h2d.png', useRaw: false },
+    { keywords: ['h2c'], src: 'img/printer_h2c.png', useRaw: false },
+    { keywords: ['h2s'], src: 'img/printer_h2s.png', useRaw: false },
+    { keywords: ['p2s'], src: 'img/printer_p2s.png', useRaw: false },
+    { keywords: ['p1s'], src: 'img/printer_p1s.png', useRaw: false },
+    { keywords: ['a1mini'], src: 'img/printer_a1mini.png', useRaw: false },
+    { keywords: ['a1'], src: 'img/printer_a1.png', useRaw: false },
+    { keywords: ['x1c'], src: 'img/printer_x1c.png', useRaw: false },
+    { keywords: ['studio'], src: 'img/studio.png', useRaw: false },
+    { keywords: ['suite'], src: 'img/suite.png', useRaw: false },
+    { keywords: ['handy'], src: 'img/handy.png', useRaw: false },
+    { keywords: ['拓竹耗材'], src: 'img/filament.png', useRaw: true },
+    { keywords: ['filament'], src: 'img/filament.png', useRaw: false },
+    { keywords: ['canvas'], src: 'img/canvas.png', useRaw: false },
+    { keywords: ['彩色版画生成器'], src: 'img/canvas.png', useRaw: true },
   ];
 
   for (const item of mappings) {
-    if (item.keywords.some(keyword => normalized.includes(keyword))) {
+    const haystack = item.useRaw ? raw : normalized;
+    if (item.keywords.some(keyword => haystack.includes(keyword))) {
       return item.src;
     }
   }

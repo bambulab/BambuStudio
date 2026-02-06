@@ -88,10 +88,20 @@ DeviceErrorDialog::DeviceErrorDialog(MachineObject* obj, wxWindow* parent, wxWin
         if (m_obj) { m_obj->command_clean_print_error_uiop(m_obj->print_error); }
         e.Skip();
     });
+
+    m_request_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, &DeviceErrorDialog::on_request_timeout, this, m_request_timer->GetId());
 }
 
 DeviceErrorDialog::~DeviceErrorDialog()
 {
+    if (m_request_timer) {
+        m_request_timer->Stop();
+        m_request_timer->Disconnect();
+        delete m_request_timer;
+        m_request_timer = nullptr;
+    }
+
     if (web_request.IsOk() && web_request.GetState() == wxWebRequest::State_Active)
     {
         BOOST_LOG_TRIVIAL(info) << "web_request: cancelled";
@@ -100,9 +110,21 @@ DeviceErrorDialog::~DeviceErrorDialog()
     m_error_picture->SetBitmap(wxBitmap());
 }
 
+void DeviceErrorDialog::on_request_timeout(wxTimerEvent& event)
+{
+    if (m_request_cancelled.load()) { return; }
+    m_error_picture->SetBitmap(get_default_error_image());
+    Layout();
+    Fit();
+}
+
 void DeviceErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
 {
     BOOST_LOG_TRIVIAL(trace) << "monitor: monitor_panel web request state = " << evt.GetState();
+
+    m_request_cancelled.store(true);
+    clear_request_timer();
+
     switch (evt.GetState())
     {
     case wxWebRequest::State_Completed:
@@ -121,6 +143,9 @@ void DeviceErrorDialog::on_webrequest_state(wxWebRequestEvent& evt)
     case wxWebRequest::State_Unauthorized:
     {
         m_error_picture->SetBitmap(wxBitmap());
+        m_error_picture->Hide();
+        Layout();
+        Fit();
         break;
     }
     case wxWebRequest::State_Active:
@@ -214,6 +239,7 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
 
     /* error code str*/
     std::string error_str = m_obj->get_error_code_str(error_code);
+    m_error_code = error_code;
 
     /* error code message*/
     wxString error_msg = wxGetApp().get_hms_query()->query_print_error_msg(m_obj, error_code);
@@ -262,6 +288,145 @@ std::vector<int> DeviceErrorDialog::convert_to_pseudo_buttons(std::string error_
     return pseudo_button;
 }
 
+void DeviceErrorDialog::clear_request_timer()
+{
+    if (m_request_timer && m_request_timer->IsRunning()) {
+        m_request_timer->Stop();
+    }
+}
+
+wxBitmap DeviceErrorDialog::get_default_loading_image()
+{
+    const int w = FromDIP(320);
+    const int h = FromDIP(180);
+
+    wxBitmap bmp(wxSize(w, h));
+    wxMemoryDC dc(bmp);
+    dc.SetBackground(wxBrush(wxColour(238, 238, 238))); // gray300
+    dc.Clear();
+
+    ScalableBitmap icon = ScalableBitmap(this, "dev_hms_diag_loading", 80);
+    wxBitmap icon_bmp = icon.bmp();
+    if (icon_bmp.IsOk()) {
+        int ix = (w - icon_bmp.GetWidth()) / 2;
+        int iy = (h - icon_bmp.GetHeight()) / 3;
+        dc.DrawBitmap(icon_bmp, ix, iy, true);
+    }
+
+    dc.SetTextForeground(wxColour(158, 158, 158)); // gray500
+    dc.SetFont(::Label::Body_14);
+    const wxString txt = _L("Loading ...");
+    wxSize txtSize = dc.GetTextExtent(txt);
+    int tx = (w - txtSize.GetWidth()) / 2;
+    int ty = h - txtSize.GetHeight() - FromDIP(45);
+    dc.DrawText(txt, tx, ty);
+
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
+wxBitmap DeviceErrorDialog::get_default_error_image()
+{
+    const int w = FromDIP(320);
+    const int h = FromDIP(180);
+
+    wxBitmap bmp(wxSize(w, h));
+    wxMemoryDC dc(bmp);
+    dc.SetBackground(wxBrush(wxColour(238, 238, 238))); // gray300
+    dc.Clear();
+
+    ScalableBitmap icon = ScalableBitmap(this, "dev_hms_diag_loading", 80);
+    wxBitmap icon_bmp = icon.bmp();
+    if (icon_bmp.IsOk()) {
+        int ix = (w - icon_bmp.GetWidth()) / 2;
+        int iy = (h - icon_bmp.GetHeight()) / 3;
+        dc.DrawBitmap(icon_bmp, ix, iy, true);
+    }
+
+    dc.SetTextForeground(wxColour(158, 158, 158)); // gray500
+    dc.SetFont(::Label::Body_14);
+    const wxString txt = _L("Network unavailable");
+    wxSize txtSize = dc.GetTextExtent(txt);
+    int tx = (w - txtSize.GetWidth()) / 2;
+    int ty = h - txtSize.GetHeight() - FromDIP(45);
+    dc.DrawText(txt, tx, ty);
+
+    dc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
+bool DeviceErrorDialog::get_fail_snapshot_from_cloud()
+{
+    if (!m_obj || m_obj->m_print_error_img_id.empty()) { return false; }
+
+    NetworkAgent* agent = GUI::wxGetApp().getAgent();
+    if (!agent) { return false; }
+
+    int ret = agent->get_hms_snapshot(m_obj->get_dev_id(), m_obj->m_print_error_img_id,
+    [this](std::string body, int status) {
+        if (status == 200) {
+            wxMemoryInputStream stream(body.data(), body.size());
+            wxImage             success_image;
+            if (success_image.LoadFile(stream, wxBITMAP_TYPE_ANY)) {
+                CallAfter([this, success_image]() {
+                    this->m_request_cancelled.store(true);
+                    clear_request_timer();
+                    wxImage resize_img = success_image.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+                    wxBitmap error_prompt_pic = resize_img;
+                    m_error_picture->SetBitmap(error_prompt_pic);
+                    Layout();
+                    Fit();
+                });
+            } else {
+                BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: failed to resolve stream";
+                CallAfter([this]() {
+                    if (!this->get_fail_snapshot_from_local(this->m_local_img_url)) {
+                        m_error_picture->SetBitmap(this->get_default_error_image());
+                        Layout();
+                    }
+                });
+            }
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "get_fail_snapshot_from_cloud: status = " << status;
+            CallAfter([this]() {
+                if (!this->get_fail_snapshot_from_local(this->m_local_img_url)) {
+                    m_error_picture->SetBitmap(this->get_default_error_image());
+                    Layout();
+                }
+            });
+        }
+    });
+
+    return ret == 0;
+}
+
+bool DeviceErrorDialog::get_fail_snapshot_from_local(const wxString& image_url)
+{
+    if (image_url.empty()) {
+        return false;
+    }
+
+    const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
+    if (!img.IsOk() && image_url.Contains("http"))
+    {
+        web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
+        BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
+        if (web_request.GetState() == wxWebRequest::State_Idle) {
+            web_request.Start();
+        }
+        BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
+    }
+    else
+    {
+        m_request_cancelled.store(true);
+        clear_request_timer();
+        const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
+        m_error_picture->SetBitmap(wxBitmap(resize_img));
+    }
+
+    return true;
+}
+
 void DeviceErrorDialog::update_contents(const wxString& title, const wxString& text, const wxString& error_code, const wxString& image_url, const std::vector<int>& btns)
 {
     if (error_code.empty()) { return; }
@@ -305,22 +470,18 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
     }
 
     /* image */
-    if (!image_url.empty())
+    m_local_img_url = image_url;
+    m_error_picture->SetBitmap(get_default_loading_image());
+    if (m_request_timer->IsRunning()) {
+        m_request_timer->Stop();
+    }
+    m_request_timer->StartOnce(10000);
+    if (get_fail_snapshot_from_cloud())
     {
-        const wxImage& img = wxGetApp().get_hms_query()->query_image_from_local(image_url);
-        if (!img.IsOk() && image_url.Contains("http"))
-        {
-            web_request = wxWebSession::GetDefault().CreateRequest(this, image_url);
-            BOOST_LOG_TRIVIAL(trace) << "monitor: create new webrequest, state = " << web_request.GetState();
-            if (web_request.GetState() == wxWebRequest::State_Idle) web_request.Start();
-            BOOST_LOG_TRIVIAL(trace) << "monitor: start new webrequest, state = " << web_request.GetState();
-        }
-        else
-        {
-            const wxImage& resize_img = img.Scale(FromDIP(320), FromDIP(180), wxIMAGE_QUALITY_HIGH);
-            m_error_picture->SetBitmap(wxBitmap(resize_img));
-        }
-
+        m_error_picture->Show();
+    }
+    else if (get_fail_snapshot_from_local(image_url))
+    {
         m_error_picture->Show();
     }
     else
@@ -349,7 +510,7 @@ void DeviceErrorDialog::update_contents(const wxString& title, const wxString& t
         auto text_size = m_error_msg_label->GetBestSize();
         if (text_size.y < FromDIP(360))
         {
-            if (!image_url.empty())
+            if (!image_url.empty() || !m_obj->m_print_error_img_id.empty())
             {
                 m_scroll_area->SetMinSize(wxSize(FromDIP(320), text_size.y + FromDIP(220)));
             }
@@ -397,7 +558,7 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     }
     case DeviceErrorDialog::RETRY_FILAMENT_EXTRUDED: {
         m_obj->command_ams_control("resume");
-        return;// do not hide the dialogs
+        break;
     }
     case DeviceErrorDialog::CONTINUE: {
         m_obj->command_ams_control("resume");

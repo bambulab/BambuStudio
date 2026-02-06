@@ -175,6 +175,11 @@ void GCodeWriter::set_travel_acceleration(const std::vector<unsigned int>& accel
     m_travel_accelerations = accelerations;
 }
 
+void GCodeWriter::set_travel_short_acceleration(const std::vector<unsigned int>& accelerations)
+{
+    m_travel_short_accelerations = accelerations;
+}
+
 void GCodeWriter::reset_last_acceleration()
 {
     m_last_acceleration = 0;
@@ -197,6 +202,11 @@ std::string GCodeWriter::set_extrude_acceleration()
 
 std::string GCodeWriter::set_travel_acceleration()
 {
+    return set_travel_acceleration(false);
+}
+
+std::string GCodeWriter::set_travel_acceleration(bool use_short_travel_acceleration)
+{
     std::vector<unsigned int> travel_accelerations = m_is_first_layer ? m_first_layer_travel_accelerations : m_travel_accelerations;
     if (travel_accelerations.empty())
         return std::string();
@@ -205,7 +215,16 @@ std::string GCodeWriter::set_travel_acceleration()
     if (!cur_filament)
         return std::string();
 
-    return set_acceleration_impl(travel_accelerations[cur_filament->extruder_id()]);
+    unsigned int extruder_id = cur_filament->extruder_id();
+
+    // Use short travel acceleration if requested and available
+    if (use_short_travel_acceleration &&
+        extruder_id < m_travel_short_accelerations.size() &&
+        m_travel_short_accelerations[extruder_id] > 0) {
+        return set_acceleration_impl(m_travel_short_accelerations[extruder_id]);
+    }
+
+    return set_acceleration_impl(travel_accelerations[extruder_id]);
 }
 
 std::string GCodeWriter::set_acceleration_impl(unsigned int acceleration)
@@ -378,6 +397,11 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
 
 std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment)
 {
+    return travel_to_xy(point, comment, false);
+}
+
+std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration)
+{
     m_pos(0) = point(0);
     m_pos(1) = point(1);
 
@@ -390,7 +414,7 @@ std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &com
     w.emit_f(this->config.travel_speed.get_at(get_config_idx_for_filament(this->config, filament()->id())) * 60.0);
     //BBS
     w.emit_comment(GCodeWriter::full_gcode_comment, comment);
-    return set_travel_acceleration() + w.string();
+    return set_travel_acceleration(use_short_travel_acceleration) + w.string();
 }
 
 /*  If this method is called more than once before calling unlift(),
@@ -468,6 +492,11 @@ std::string GCodeWriter::eager_lift(const LiftType type, bool tool_change)
 }
 
 std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
+{
+    return travel_to_xyz(point, comment, false);
+}
+
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration)
 {
     // FIXME: This function was not being used when travel_speed_z was separated (bd6badf).
     // Calculation of feedrate was not updated accordingly. If you want to use
@@ -549,7 +578,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
         }
         m_pos = dest_point;
         this->set_current_position_clear(true);
-        return set_travel_acceleration() + slop_move + xy_z_move;
+        return set_travel_acceleration(use_short_travel_acceleration) + slop_move + xy_z_move;
     }
     else if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
@@ -560,7 +589,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
             m_lifted = 0.;
         //BBS
         this->set_current_position_clear(true);
-        return this->travel_to_xy(to_2d(point));
+        return this->travel_to_xy(to_2d(point), std::string(), use_short_travel_acceleration);
     }
     else {
         /*  In all the other cases, we perform an actual XYZ move and cancel
@@ -589,7 +618,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
 
     m_pos = dest_point;
     this->set_current_position_clear(true);
-    return set_travel_acceleration() + out_string;
+    return set_travel_acceleration(use_short_travel_acceleration) + out_string;
 }
 
 std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
@@ -776,7 +805,7 @@ std::string GCodeWriter::_retract(double length, double restart_extra, const std
     return gcode;
 }
 
-std::string GCodeWriter::unretract()
+std::string GCodeWriter::unretract(float extra_retract)
 {
     std::string gcode;
 
@@ -792,7 +821,7 @@ std::string GCodeWriter::unretract()
             //BBS
             // use G1 instead of G0 because G0 will blend the restart with the previous travel move
             GCodeG1Formatter w;
-            w.emit_e(filament()->E());
+            w.emit_e(filament()->E()+extra_retract);
             w.emit_f(filament()->deretract_speed() * 60.);
             //BBS
             w.emit_comment(GCodeWriter::full_gcode_comment, " ; unretract");

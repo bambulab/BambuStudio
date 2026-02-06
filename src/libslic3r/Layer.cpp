@@ -84,22 +84,46 @@ static inline bool layer_needs_raw_backup(const Layer *layer)
 void Layer::backup_untyped_slices()
 {
     if (layer_needs_raw_backup(this)) {
-        for (LayerRegion *layerm : m_regions)
+        for (LayerRegion *layerm : m_regions) {
             layerm->raw_slices = to_expolygons(layerm->slices.surfaces);
+            layerm->raw_counter_circle_compensation.clear();
+            layerm->raw_holes_circle_compensation.clear();
+            for (Surface &surface : layerm->slices.surfaces) {
+                layerm->raw_counter_circle_compensation.push_back(surface.counter_circle_compensation);
+                layerm->raw_holes_circle_compensation.push_back(surface.holes_circle_compensation);
+            }
+        }
     } else {
         assert(m_regions.size() == 1);
         m_regions.front()->raw_slices.clear();
+        m_regions.front()->raw_counter_circle_compensation.clear();
+        m_regions.front()->raw_holes_circle_compensation.clear();
     }
 }
 
 void Layer::restore_untyped_slices()
 {
     if (layer_needs_raw_backup(this)) {
-        for (LayerRegion *layerm : m_regions)
+        for (LayerRegion *layerm : m_regions) {
             layerm->slices.set(layerm->raw_slices, stInternal);
+            int surface_idx = 0;
+            for (Surface &surface : layerm->slices.surfaces) {
+                if (surface_idx < layerm->raw_counter_circle_compensation.size()
+                    && surface_idx < layerm->raw_holes_circle_compensation.size()) {
+                    surface.counter_circle_compensation = layerm->raw_counter_circle_compensation[surface_idx];
+                    surface.holes_circle_compensation   = layerm->raw_holes_circle_compensation[surface_idx];
+                }
+            }
+        }
     } else {
         assert(m_regions.size() == 1);
         m_regions.front()->slices.set(this->lslices, stInternal);
+        if (0 < m_regions.front()->raw_counter_circle_compensation.size()
+            && 0 < m_regions.front()->raw_holes_circle_compensation.size()
+            && 0 < m_regions.front()->slices.surfaces.size()) {
+            m_regions.front()->slices.surfaces.front().counter_circle_compensation = m_regions.front()->raw_counter_circle_compensation.front();
+            m_regions.front()->slices.surfaces.front().holes_circle_compensation   = m_regions.front()->raw_holes_circle_compensation.front();
+        }
     }
 }
 
@@ -574,6 +598,7 @@ coordf_t Layer::get_sparse_infill_max_void_area()
             case ipHilbertCurve:
             case ip3DHoneycomb:
             case ipArchimedeanChords:
+            case ip2DLattice: //this function seems to have been abandoned, there's no anywhere called this
                 max_void_area = std::max(max_void_area, spacing * spacing);
                 break;
             case ipGrid:

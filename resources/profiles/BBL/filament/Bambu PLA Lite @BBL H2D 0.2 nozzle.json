@@ -20,6 +20,10 @@
     "fan_min_speed": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_cost": [
         "24.99"
     ],
@@ -38,6 +42,12 @@
         "0",
         "0"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -51,6 +61,16 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "supertack_plate_temp": [
+        "40"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "40"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

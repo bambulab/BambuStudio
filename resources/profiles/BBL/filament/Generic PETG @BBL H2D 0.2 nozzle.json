@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG99_06",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "1",
         "1"
@@ -23,6 +27,10 @@
     "nozzle_temperature_initial_layer": [
         "255",
         "255"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.2 nozzle"

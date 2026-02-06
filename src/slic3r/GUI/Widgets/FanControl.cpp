@@ -783,7 +783,7 @@ void FanControlPopupNew::UpdatePartSubMode()
             m_cooling_filter_switch_panel = new FanControlNewSwitchPanel(m_sub_mode_panel, _L("Filter"), _L("Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."));
             m_cooling_filter_switch_panel->Bind(EVT_FANCTRL_SWITCH, [this] (wxCommandEvent& evt)
                 {
-                  if (m_obj && m_obj->is_in_printing()) {
+                  if (m_obj && m_obj->is_in_printing() && m_cooling_filter_switch_panel->IsSwitchOn()) {
                       MessageDialog msg_wingow(nullptr, _L("Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"), "", wxICON_WARNING | wxCANCEL | wxOK);
                       msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
                       if (msg_wingow.ShowModal() != wxID_OK) { return; }
@@ -1012,11 +1012,40 @@ void FanControlPopupNew::init_names(MachineObject* obj) {
 
     // special texts
     if (obj) {
-        const std::string& special_cooling_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "special_cooling_text");
-        if (!special_cooling_text.empty()) {
-            L("Cooling mode is suitable for printing PLA/PETG/TPU materials."); //some potential text, add i18n flags
-            L("Cooling mode is suitable for printing PLA/PETG/TPU materials and filters the chamber air.");
-            label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L(special_cooling_text);
+        {
+            wxString special_cooling_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "AIR_DUCT_COOLING_FILT");
+            if (!special_cooling_text.empty()) {
+                //some potential text, add i18n flags
+                L("Cooling mode is suitable for printing %s materials.");
+
+                // label with params
+                if (special_cooling_text == "Cooling mode is suitable for printing %s materials.") {
+                    const std::vector<std::string>& params = DevPrinterConfigUtil::get_fan_text_params(obj->printer_type, "AIR_DUCT_COOLING_FILT_PARAM");
+                    if (!params.empty()) {
+                        special_cooling_text = wxString::Format(_L(special_cooling_text), params[0]);
+                    }
+                }
+
+                label_text[AIR_DUCT::AIR_DUCT_COOLING_FILT] = _L(special_cooling_text);
+            }
+        }
+
+        {
+            wxString special_heating_text = DevPrinterConfigUtil::get_fan_text(obj->printer_type, "AIR_DUCT_HEATING_INTERNAL_FILT");
+            if (!special_heating_text.empty()) {
+                //some potential text, add i18n flags
+                L("Heating mode is suitable for printing %s materials and circulates filters the chamber air.");
+
+                // label with params
+                if (special_heating_text == "Heating mode is suitable for printing %s materials and circulates filters the chamber air.") {
+                    const std::vector<std::string>& params = DevPrinterConfigUtil::get_fan_text_params(obj->printer_type, "AIR_DUCT_HEATING_INTERNAL_FILT_PARAM");
+                    if (!params.empty()) {
+                        special_heating_text = wxString::Format(_L(special_heating_text), params[0]);
+                    }
+                }
+
+                label_text[AIR_DUCT::AIR_DUCT_HEATING_INTERNAL_FILT] = _L(special_heating_text);
+            }
         }
     }
 }
@@ -1031,6 +1060,7 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
             L_CONTEXT("Right(Aux)", "air_duct");
             L_CONTEXT("Right(Filter)", "air_duct");
             L_CONTEXT("Left(Aux)", "air_duct");
+            L_CONTEXT("Chamber", "air_duct");
             return _CTX(func_text, "air_duct");
         }
     }

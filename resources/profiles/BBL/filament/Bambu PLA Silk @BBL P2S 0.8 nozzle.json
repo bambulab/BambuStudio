@@ -42,12 +42,12 @@
         "Spiral Lift",
         "nil"
     ],
-    "first_x_layer_fan_speed": [
-        "40"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "first_x_layer_fan_speed": [
+        "40"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -70,6 +70,10 @@
     ],
     "slow_down_layer_time": [
         "10"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.8 nozzle"

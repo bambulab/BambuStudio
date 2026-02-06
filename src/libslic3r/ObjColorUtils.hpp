@@ -6,6 +6,12 @@
 #include "opencv2/opencv.hpp"
 #include "libslic3r/Color.hpp"
 
+namespace Slic3r {
+    class Model;
+    struct ObjDialogInOut;
+    struct VolumeColorInfo;
+}
+
 class QuantKMeans
 {
     struct ClusterInfo
@@ -331,3 +337,13 @@ bool obj_color_deal_algo(std::vector<Slic3r::RGBA> &input_colors,
                          std::vector<int> &         cluster_labels_from_algo,
                          char &                     cluster_number,
                          int                        max_cluster);
+
+// Extract color information from the Model imported from 3MF and convert it to ObjDialogInOut format.
+// color_group_map: Mapping color group IDs to color arrays (e.g., ["#FF0000FF", "#00FF00FF"])
+// volume_color_data: Optional volume color data for multi - volume scenarios.
+// Returns whether color information was successfully extracted.
+bool extract_colors_to_obj_dialog(
+    Slic3r::Model* model,
+    const std::unordered_map<int, std::vector<std::string>>& color_group_map,
+    const std::unordered_map<int, Slic3r::VolumeColorInfo>& volume_color_data,
+    Slic3r::ObjDialogInOut& out);

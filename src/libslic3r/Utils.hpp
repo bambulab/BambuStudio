@@ -360,8 +360,24 @@ bool makedir(const std::string path);
 // Writes out the output path prefix to the console for the first time the function is called,
 // so the user knows where to search for the debugging output.
 std::string debug_out_path(const char *name, ...);
+
 // smaller level means less log. level=5 means saving all logs.
-void set_log_path_and_level(const std::string& file, unsigned int level);
+struct LogEncOptions
+{
+    enum LogEncType : unsigned char
+    {
+        LOG_ENC_NONE = 0,
+        LOG_ENC_AES_256_CBC = 1,
+        //ENC_RSA_2048 = 2, maybe supported in future
+    };
+
+    LogEncType enc_type = LOG_ENC_AES_256_CBC;
+    std::string enc_key_url;
+    std::string enc_key_host_env;
+};
+bool is_log_trivival_valid();
+void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options);
+void update_log_sink(const std::string& file, const LogEncOptions& enc_options);
 void flush_logs();
 
 // A special type for strings encoded in the local Windows 8-bit code page.
@@ -648,6 +664,7 @@ inline std::string short_time(const std::string &time)
     }
     // Format the dhm time.
     char buffer[64];
+    buffer[0] = '\0';
     if (days > 0)
         ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0)

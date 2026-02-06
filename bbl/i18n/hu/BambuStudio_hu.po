@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2026-02-05 19:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -50,7 +50,26 @@ msgid "AMS does not support 'Bambu Lab PET-CF'."
 msgstr "Az AMS nem támogatja a „Bambu Lab PET-CF“ anyagot."
 
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
-msgstr ""
+msgstr "A jelenlegi filament nem támogatja az E3D nagy áramlású fúvókát, így nem használható."
+
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr "A(z) %s csak támaszanyagként használható a jobb oldali extruderben."
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr "A jelenlegi filament nem támogatja az TPU nagy áramlású fúvókát, így nem használható."
+
+msgid "Auto dynamic flow calibration is not supported for TPU filament."
+msgstr "Az automatikus dinamikus anyagáramlás kalibráció nem támogatott a TPU filamenttel."
+
+msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+msgstr "A dinamikus anyagáramlás kalibráció nem támogatott TPU 85A filamenttel."
+
+msgid "How to feed TPU filament."
+msgstr "TPU filament betöltése."
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr "Nem Bambu filament használata nyomtatási minőségi problémákat okozhat."
 
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr "TPU nyomtatása előtt végezz el egy hidegen kihúzást, hogy elkerüld az eltömődést. Ehhez használhatod a dedikált karbantartási módot."
@@ -61,20 +80,29 @@ msgstr "A nedves PVA rugalmassá válik és elakadhat az AMS belsejében; kérj�
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr "A nedves PVA felpuhul, ezért elakadhat az extruderben. Használat előtt szárítsd ki."
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "A PPS-CF rideg és eltörhet szerszámfej feletti hajlított PTFE-csőben."
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr "A PPA-CF rideg, és eltörhet a szerszámfej feletti hajlított PTFE-csőben."
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr "A PLA Glow kopást okozhat az AMS első fokozatának adagolójában. Használd külső tartón."
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
-msgstr ""
+msgstr "Az alapértelmezett beállítások befolyásolhatják a nyomtatási minőséget. A legjobb eredmény elérése érdekében szükség szerint módosítsd."
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr "A(z) %s filamentet 0,4 mm-es nagy áramlású fúvókával használva fennáll a fúvóka eltömődésének veszélye. Légy körültekintő a használatakor."
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr "A(z) %s filament kemény és törékeny, ezért eltörhet az AMS belsejében, és 0,4 mm-es nagy áramlású fúvókák használata esetén fennáll a fúvóka eltömődésének veszélye is. Légy körültekintő a használatakor."
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+msgstr "A(z) %s filamentet 0,4 mm-es, 0,6 mm-es vagy 0,8 mm-es nagy áramlású fúvókával használva fennáll a fúvóka eltömődésének veszélye."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -110,8 +138,14 @@ msgstr "Nagy áramlás"
 msgid "Standard"
 msgstr "Normál"
 
+msgid "TPU High Flow"
+msgstr "TPU nagy áramlású"
+
 msgid "Unknown"
 msgstr "Ismeretlen"
+
+msgid "Hybrid"
+msgstr "Hibrid"
 
 msgid "Hardened Steel"
 msgstr "Edzett acél"
@@ -546,11 +580,23 @@ msgstr "Objektum koordináták"
 msgid "World coordinates"
 msgstr "Világkoordináták"
 
+msgid "Align selected"
+msgstr "Kijelölt igazítása"
+
 msgid "Translate(Relative)"
 msgstr "Fordítás (Relatív)"
 
+msgid "Align Object"
+msgstr "Objektum igazítása"
+
+msgid "Align Plate"
+msgstr "Tálca igazítása"
+
 msgid "Align top-bottom center"
-msgstr ""
+msgstr "Függőleges igazítás"
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
+msgstr "A Ctrl billentyű lenyomva tartása és az egér bal gombjának kattintása több objektum kiválasztását teszi lehetővé, míg az Alt billentyű lenyomva tartása és az egér bal gombjának kattintása több alkatrész kiválasztását eredményezi"
 
 msgid "Align"
 msgstr "Igazítás"
@@ -558,44 +604,41 @@ msgstr "Igazítás"
 msgid "Distribute"
 msgstr "Elosztás"
 
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
-msgstr "A Ctrl billentyű lenyomva tartása és az egér bal gombjának kattintása több objektum kiválasztását teszi lehetővé, míg az Alt billentyű lenyomva tartása és az egér bal gombjának kattintása több alkatrész kiválasztását eredményezi"
-
 msgid "Align left"
-msgstr ""
+msgstr "Balra igazítás"
 
 msgid "Align left-right center"
-msgstr ""
+msgstr "Vízszintes igazítás"
 
 msgid "Align right"
-msgstr ""
+msgstr "Jobbra igazítás"
 
 msgid "Distribute left-right"
-msgstr ""
+msgstr "Vízszintes elosztás"
 
 msgid "Please select at least 3 parts or objects"
 msgstr "Kérjük, válassz ki legalább 3 tárgyat vagy objektumot"
 
 msgid "Align front"
-msgstr ""
+msgstr "Előre igazítás"
 
 msgid "Align front-back center"
-msgstr ""
+msgstr "Előre-hátra igazítás"
 
 msgid "Align back"
-msgstr ""
+msgstr "Hátra igazítás"
 
 msgid "Distribute front-back"
-msgstr ""
+msgstr "Elosztás előre-hátra"
 
 msgid "Align bottom"
-msgstr ""
+msgstr "Alulra igazítás"
 
 msgid "Align top"
-msgstr ""
+msgstr "Felülre igazítás"
 
 msgid "Distribute top-bottom"
-msgstr ""
+msgstr "Függőleges elosztás"
 
 msgid "°"
 msgstr "°"
@@ -1216,8 +1259,8 @@ msgstr "Módosító"
 msgid "Click to change part type into modifier."
 msgstr "Kattints a gombra az alkatrész típusának módosítóvá változtatásához."
 
-msgid "Surround projection by char"
-msgstr "A kivetítés körbevétele szöveggel"
+msgid "Surround projection by character"
+msgstr "A kivetítés körbevétele szöveggel."
 
 msgid "Not surround"
 msgstr "Nincs körülvéve"
@@ -1227,9 +1270,6 @@ msgstr "Felület körbevétele"
 
 msgid "Surround"
 msgstr "Körbevétel"
-
-msgid "Horizonal"
-msgstr "Vízszintes"
 
 msgid "Reset rotation"
 msgstr "Forgatás visszaállítása"
@@ -1254,7 +1294,7 @@ msgstr "Szöveg"
 msgid "Advanced"
 msgstr "Haladó"
 
-msgid "Embeded depth"
+msgid "Embedded depth"
 msgstr "Beágyazás mélysége"
 
 msgid "Text Gap"
@@ -2038,11 +2078,11 @@ msgstr "Filament %d"
 msgid "current"
 msgstr "jelenlegi"
 
-msgid "Scale to build volume"
-msgstr "Átméretezés a nyomtatótérhez"
+msgid "Scale to print volume"
+msgstr "Átméretezés a nyomtatási térfogathoz"
 
-msgid "Scale an object to fit the build volume"
-msgstr "Átméretez egy objektumot, hogy beférjen a nyomtatótérbe"
+msgid "Scale the selected object to fit the print volume"
+msgstr "Átméretezi a kijelölt objektumot, hogy beleférjen a nyomtatási térfogatba"
 
 msgid "Flush Options"
 msgstr "Öblítési lehetőségek"
@@ -2179,6 +2219,18 @@ msgstr "Automatikus forgatás"
 msgid "auto rotate current plate"
 msgstr "aktuális tálca automatikus forgatása"
 
+msgid "Expand all"
+msgstr "Összes kibontása"
+
+msgid "Expand all objects on this plate"
+msgstr "Az összes tárgy kibontása ezen a tálcán"
+
+msgid "Collapse all"
+msgstr "Összes összecsukása"
+
+msgid "Collapse all objects on this plate"
+msgstr "Az összes tárgy összecsukása ezen a tálcán"
+
 msgid "Delete Plate"
 msgstr "Tálca törlése"
 
@@ -2193,6 +2245,12 @@ msgstr "Klónozás"
 
 msgid "Simplify Model"
 msgstr "Modell egyszerűsítése"
+
+msgid "Subdivision mesh"
+msgstr "Felosztási háló"
+
+msgid "(Lost color)"
+msgstr "(Elveszett szín)"
 
 msgid "Center"
 msgstr "Közép"
@@ -2394,9 +2452,6 @@ msgstr "Ha az első kiválasztott elem egy objektum, akkor a másodiknak is obje
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "Ha az első kiválasztott elem egy tárgy, akkor a másodiknak is tárgynak kell lennie."
 
-msgid "The type of the last solid object part is not to be changed."
-msgstr "Az utolsó tömör objektum típusa nem módosítható."
-
 msgid "Negative Part"
 msgstr "Negatív tárgy"
 
@@ -2411,6 +2466,9 @@ msgstr "Típus:"
 
 msgid "Choose part type"
 msgstr "Alkatrésztípus kiválasztása"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "Az utolsó tömör objektum típusa nem módosítható."
 
 msgid "Enter new name"
 msgstr "Adj meg egy új nevet"
@@ -2430,6 +2488,17 @@ msgstr[1] ""
 
 msgid "Repairing was canceled"
 msgstr "A javítás meg lett szakítva"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr "\"%s\" a felosztás után meghaladja az 1 millió felületet, ami megnövelheti a szeletelési időt. Biztosan folytatod?"
+
+msgid "BambuStudio warning"
+msgstr "BambuStudio figyelmeztetés"
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr "A(z) „%s” tárgy hálója hibákat tartalmaz. Kérjük, először javítsd ki."
 
 msgid "Additional process preset"
 msgstr "További folyamatbeállítások"
@@ -2532,6 +2601,9 @@ msgstr "Egyedi sablon:"
 
 msgid "Custom G-code:"
 msgstr "Egyedi G-kód:"
+
+msgid "Toggle path view to current layer/all layers"
+msgstr "Útvonalnézet váltása az aktuális rétegre/összes rétegre"
 
 msgid "Custom G-code"
 msgstr "Egyedi G-kód"
@@ -2690,8 +2762,13 @@ msgstr "A fűtési mód alkalmas ABS/ASA/PC/PA anyagok nyomtatására, és kerin
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr "Az erős hűtési mód PLA/TPU anyagok nyomtatására alkalmas. Ebben az üzemmódban a nyomatok teljesen lehűlnek."
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
-msgstr "A hűtési mód alkalmas PLA/PETG/TPU anyagok nyomtatására."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr "A hűtési mód alkalmas %s anyagok nyomtatására."
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
+msgstr "A fűtési mód alkalmas %s anyagok nyomtatására, és keringteti a kamra levegőjét."
 
 msgctxt "air_duct"
 msgid "Right(Aux)"
@@ -2704,6 +2781,10 @@ msgstr "Jobb (szűrő)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Bal(Aux)"
+
+msgctxt "air_duct"
+msgid "Chamber"
+msgstr "Kamra"
 
 msgid "Hotend"
 msgstr ""
@@ -3118,6 +3199,12 @@ msgstr "Nem módosíthatod a virtuális férőhelyek beállításait nyomtatás 
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Biztos, hogy törölni akarod a filament adatait?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr "A TPU-nak eltérő adagolási útra van szüksége. Ellenkező esetben eltömődést okozhat. Kérjük, olvasd el a vonatkozó útmutatót a TPU használata előtt."
+
+msgid "Go to Check"
+msgstr "Ugrás az ellenőrzéshez"
+
 msgid "You need to select the material type and color first."
 msgstr "Először ki kell választanod az anyag típusát és színét."
 
@@ -3128,9 +3215,6 @@ msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f)"
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Kérjük, adj meg egy érvényes értéket (K %.1f ~%.1f, N %.1f ~%.1f)"
-
-msgid "Standard Flow"
-msgstr "Normál áramlás"
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr "Megjegyzés: A jobb oldali extruderen lévő hotend száma a tartóhoz van rendelve. Amikor a hotendet áthelyezed egy új tartóra, a száma automatikusan frissül."
@@ -3264,11 +3348,14 @@ msgstr "Jelenlegi filamentkiosztás törlése"
 msgid "Right AMS"
 msgstr "Jobb AMS"
 
-msgid "Left Nozzle"
-msgstr "Bal fúvóka"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+msgstr "Tipp: A használat előtt, kérjük olvasd el a filamentek párosításának szabályait a kapcsolódó a Wiki oldalon ->"
 
-msgid "Right Nozzle"
-msgstr "Jobb fúvóka"
+msgid "Please select the filament installed on the left nozzle."
+msgstr "Kérjük, válaszd ki a bal oldali fúvókába töltött filamentet."
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr "Kérjük, válaszd ki a jobb oldali fúvókába töltött filamentet."
 
 msgid "Nozzle"
 msgstr "Fúvóka"
@@ -3287,15 +3374,19 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "A jelenlegi fúvókával történő nyomtatás %0.2f g többlethulladékot eredményezhet."
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
-msgstr "Megjegyzés: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr "Tipp: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
-msgstr "Megjegyzés: a férőhely üres vagy nem definiált. Ha használni szeretnéd ezt a helyet, tölts be %s filamentet és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgstr "Nem választható: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
 
-msgid "Note: Only filament-loaded slots can be selected."
-msgstr "Megjegyzés: Csak olyan helyek választhatók ki, amelyekbe filament van betöltve."
+#, c-format, boost-format
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr "Nem választható: a férőhely üres vagy nem definiált. Ha használni szeretnéd ezt a helyet, tölts be %s filamentet és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+
+msgid "Cannot select: No filament loaded in current slot."
+msgstr "Nem választható: Nincs filament betöltve a jelenlegi helyre."
 
 msgid "Enable AMS"
 msgstr "AMS engedélyezése"
@@ -3436,8 +3527,14 @@ msgstr "Az AMS típusváltás firmware frissítést igényel, ami körülbelül 
 msgid "Arrange AMS Order"
 msgstr "AMS-kiosztás megváltoztatása"
 
-msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
-msgstr "Az AMS azonosító visszaállításra kerül. Ha egy adott azonosítósorozatot szeretnél, akkor a visszaállítás előtt válaszd le az összes AMS eszközt, majd a visszaállítás után a kívánt sorrendben csatlakoztasd őket."
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr "Ha egy meghatározott AMS-sorrendet szeretnél, kérjük, a \"Visszaállítás\" gomb megnyomása után csatlakoztasd le az összes AMS-t, majd csatlakoztasd őket a kívánt sorrendben."
+
+msgid "Are you sure to reset the ID sequence of the connected AMS?"
+msgstr "Biztosan visszaállítod az AMS-sorrendet?"
+
+msgid "Reset AMS Sequence"
+msgstr "AMS-sorrend visszaállítása"
 
 msgid "File"
 msgstr "Fájl"
@@ -3653,6 +3750,24 @@ msgid ""
 msgstr ""
 "Túl kicsi vasalási térköz.\n"
 "Visszaállítva 0,1-re"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+"Túl kicsi támaszvasalási térköz.\n"
+"Visszaállítva 0,1-re"
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to adjust the support interface config to use ironing?\n"
+"Yes: make the support interface solid.\n"
+"No: disable the support ironing."
+msgstr ""
+"A támasz vasalása nem működik ritkás érintkezőfelülettel.\n"
+"Szeretnéd módosítani a támasz érintkezőfelület beállításait a vasalás használatához?\n"
+"Igen: a támasz érintkezőfelület legyen szilárd.\n"
+"Nem: kapcsold ki a támasz vasalását."
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -3915,8 +4030,8 @@ msgstr "Automatikus asztalyszintezés - 2. fázis"
 msgid "Heating chamber"
 msgstr "Kamra fűtése"
 
-msgid "Cooling heatbed"
-msgstr "Tárgyasztal hűtése"
+msgid "Adjusting heatbed temperature"
+msgstr "Tárgyasztal hőmérsékletének beállítása"
 
 msgid "Printing calibration lines"
 msgstr "Kalibrációs vonalak nyomtatása"
@@ -3954,14 +4069,17 @@ msgstr "Hotend felvétel és lerakás teszt"
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr "Várakozás a kamra hőmérsékletének kiegyenlítődésére"
 
-msgid " Preparing Hotend"
-msgstr " Hotend előkészítése"
+msgid "Preparing Hotend"
+msgstr "Hotend előkészítése"
 
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr "A fúvókára tapadt anyag érzékelési pozíciójának kalibrálása"
 
 msgid "Purifying the chamber air"
 msgstr "Kamra levegőjének tisztítása"
+
+msgid "Preparing AMS"
+msgstr "AMS előkészítése"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "A timelapse funkció nem támogatott ezen a nyomtatón."
@@ -3997,21 +4115,6 @@ msgstr "Ha a kamra hőmérsékletét 40 ℃-nál alacsonyabbra állítod, a kamr
 
 msgid "Failed to start printing job"
 msgstr "Nem sikerült elindítani a nyomtatási feladatot"
-
-msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "Ezt a kalibrálást nem lehet elvégezni a kiválasztott fúvókaátmérővel"
-
-msgid "Current flowrate cali param is invalid"
-msgstr "Az anyagáramlás kalibrációs paramétere érvénytelen"
-
-msgid "Selected diameter and machine diameter do not match"
-msgstr "A kiválasztott átmérő és a nyomtatóban megadott átmérő nem egyezik"
-
-msgid "Failed to generate cali gcode"
-msgstr "Nem sikerült létrehozni a kalibrációs G-kódot"
-
-msgid "Calibration error"
-msgstr "Kalibrációs hiba"
 
 msgid "Resume Printing"
 msgstr "Nyomtatás folytatása"
@@ -4088,6 +4191,12 @@ msgstr "Folytatás"
 msgid "Unknown error."
 msgstr "Ismeretlen hiba."
 
+msgid "Loading ..."
+msgstr "Betöltés…"
+
+msgid "Network unavailable"
+msgstr "A hálózat nem érhető el"
+
 msgid "default"
 msgstr "alapértelmezett"
 
@@ -4131,6 +4240,28 @@ msgstr "Érvénytelen formátum. Elvárt vektor formátum: \"%1%\""
 
 msgid "Clear color"
 msgstr "Szín törlése"
+
+msgid "L"
+msgstr "B"
+
+msgid "R"
+msgstr "J"
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr "Norm"
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr "B:"
+
+msgid "R:"
+msgstr "J:"
 
 msgid "Loading G-codes"
 msgstr "G-kódok betöltése"
@@ -4269,6 +4400,9 @@ msgstr "Teljes idő"
 
 msgid "Filament change times"
 msgstr "Filamentcserék száma"
+
+msgid "View Summary"
+msgstr ""
 
 msgid "Color change"
 msgstr "Színváltás"
@@ -4705,6 +4839,9 @@ msgstr "%s nem nyomtatható közvetlenül a tálca felületére."
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr "A keverékben PLA- és PETG-filament is található. A nyomtatási minőség biztosítása érdekében állítsd be a paramétereket a Wiki szerint."
 
+msgid "The prime tower improves multi-color print quality and is recommended."
+msgstr "A törlőtorony javítja a többszínű nyomtatási minőséget, és ajánlott a használata."
+
 msgid "The prime tower extends beyond the plate boundary."
 msgstr "A törlőtorony túlnyúlik a tálca területén."
 
@@ -4713,6 +4850,9 @@ msgstr "A részleges öblítés térfogata 0-ra van állítva. Többszínű nyom
 
 msgid "Click Wiki for help."
 msgstr "Kattints a Wikire a segítségért."
+
+msgid "Jump to: Prime tower"
+msgstr "Ugrás: törlőtorony"
 
 msgid "Click here to regroup"
 msgstr "Kattints ide az átcsoportosításhoz"
@@ -4723,17 +4863,26 @@ msgstr "Tisztítási mennyiségek"
 msgid "Calibration step selection"
 msgstr "Kalibrálási lépés kiválasztása"
 
-msgid "Micro lidar calibration"
+msgid "Micro Lidar Calibration"
 msgstr "Micro Lidar kalibrálás"
 
-msgid "Bed leveling"
-msgstr "Asztalszintezés"
+msgid "Auto Bed Leveling"
+msgstr "Automatikus asztalszintezés"
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "Magas hőmérsékletű tárgyasztal kalibrálás"
+msgid "Vibration Compensation"
+msgstr "Rezgés-kompenzáció"
 
-msgid "Nozzle clumping detection Calibration"
-msgstr "Fúvókára tapadt anyag észlelésének kalibrálása"
+msgid "Motor Noise Cancellation"
+msgstr "Motorzajszűrés"
+
+msgid "Nozzle Offset Calibration"
+msgstr "Fúvókaeltérés kalibrálása"
+
+msgid "High-temperature Bed Leveling"
+msgstr "Magas hőmérsékletű tárgyasztal szintezés"
+
+msgid "Nozzle Clumping Detection Calibration"
+msgstr "Fúvókára feltapadás észlelésének kalibrálása"
 
 msgid "Calibration program"
 msgstr "Kalibrációs program"
@@ -4820,7 +4969,7 @@ msgid "Preview"
 msgstr "Előnézet"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
-msgstr ""
+msgstr "A jelenlegi oldalon mentetlen változtatások vannak. Folytathatod a szerkesztést, vagy elmentheted/elvetheted a módosításokat kilépés előtt."
 
 msgid "Device"
 msgstr "Nyomtató"
@@ -4839,6 +4988,9 @@ msgstr "Nem"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "bezáródik az új modell létrehozása előtt. Folytatod?"
+
+msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
+msgstr ""
 
 msgid "Slice plate"
 msgstr "Tálca szeletelése"
@@ -5727,6 +5879,12 @@ msgstr "Átváltás sikertelen"
 msgid "Printing Progress"
 msgstr "Nyomtatás folyamata"
 
+msgid "Pausing"
+msgstr "Szünet"
+
+msgid "Stopping"
+msgstr "Leállítás"
+
 msgid "Parts Skip"
 msgstr "Alkatrészek kihagyása"
 
@@ -5767,6 +5925,22 @@ msgstr "(Már értékelted ezt a modellt. Az új értékelésed felülírja az e
 
 msgid "Rate"
 msgstr "Értékelés"
+
+#, c-format, boost-format
+msgid "%dday%dh%dmin%ds"
+msgstr "%dnap%dó%dperc%dmp"
+
+#, c-format, boost-format
+msgid "%dh%dmin%ds"
+msgstr "%dó%dp%d mp"
+
+#, c-format, boost-format
+msgid "%dmin%ds"
+msgstr "%dperc%dmp"
+
+#, c-format, boost-format
+msgid "%ds"
+msgstr "%dmp"
 
 msgid "Finished"
 msgstr "Kész"
@@ -5833,6 +6007,12 @@ msgstr "A jelenlegi slot már töltve van"
 
 msgid "The selected slot is empty."
 msgstr "A kiválasztott hely üres."
+
+msgid "No extruder found for the selected slot."
+msgstr "A kiválasztott helyen nem található extruder."
+
+msgid "The selected slot is not loaded in the extruder."
+msgstr "A kiválasztott hely nincs betöltve az extruderbe."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "A nyomtató 2D-módja nem támogatja a 3D-kalibrációt"
@@ -6296,6 +6476,21 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alsó"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr "Ha engedélyezve van, a nyomtató automatikusan képeket készít a nyomtatott tárgyakról, és feltölti azokat a felhőbe. Szeretnéd engedélyezni ezt az opciót?"
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr "Nyomtatási állapot pillanatkép engedélyezésének megerősítése"
+
+msgid "Unavailable during the task"
+msgstr "Nem elérhető a feladat során"
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr "A kiválasztott mód alapján megtisztítja a kamra levegőjét a nyomtatás befejezésekor."
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr "Minden nyomtatás befejezésekor belső légkeringetés segítségével megtisztítja a kamrában lévő levegőt."
+
 msgid "Enable detection of build plate position"
 msgstr "Nyomtatótálca helyzetének érzékelése"
 
@@ -6348,7 +6543,7 @@ msgid "Type Detection"
 msgstr "Típusfelismerés"
 
 msgid "Pauses printing when the detected build plate type does not match the selected one."
-msgstr ""
+msgstr "Szünetelteti a nyomtatást, ha a felismert tálcatípus nem egyezik meg a kiválasztottal."
 
 msgid "Alignment Detection"
 msgstr "Elhelyezésfelismerés"
@@ -6359,6 +6554,12 @@ msgstr "Szünetelteti a nyomtatást, ha a tálca nincs megfelelően behelyezve."
 msgid "First Layer Inspection"
 msgstr "Kezdőréteg ellenőrzése"
 
+msgid "Purify Air at Print End"
+msgstr "Levegő tisztítása a nyomtatás végén"
+
+msgid "Internal Circulation"
+msgstr "Belső keringetés"
+
 msgid "Auto-recovery from step loss"
 msgstr "Automatikus helyreállítás lépésvesztésből"
 
@@ -6368,8 +6569,8 @@ msgstr "Elküldött fájlok tárolása külső tárhelyen"
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr "A Bambu Studio, a Bambu Handy és a MakerWorld által kezdeményezett nyomtatási fájlok mentése külső tárhelyre"
 
-msgid "Allow Prompt Sound"
-msgstr "Hangjelzés engedélyezése"
+msgid "Enable notification sounds"
+msgstr "Értesítési hangok engedélyezése"
 
 msgid "Filament Tangle Detect"
 msgstr "Filament Tangle Detection"
@@ -6380,11 +6581,20 @@ msgstr "Figyeli, hogy a fúvókára nem rakódott-e le filament vagy egyéb ideg
 msgid "Open Door Detection"
 msgstr "Nyitott ajtó érzékelése"
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr "Az ajtó nyitott állapotának érzékelése egy feladat során."
+
 msgid "Notification"
 msgstr "Értesítés"
 
 msgid "Pause printing"
 msgstr "Nyomtatás szüneteltetése"
+
+msgid "Print Status Snapshot"
+msgstr "Nyomtatási állapot pillanatkép"
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr "Automatikusan képet rögzít és tölt fel a nyomtatás során, amelyek a hibákat és a végső eredményt mutatják távoli eléréshez."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -6404,11 +6614,20 @@ msgstr "Kérjük, módosítsd a fúvóka beállításait a nyomtatón."
 msgid "View wiki"
 msgstr "Wiki megtekintése"
 
+msgid "Left Nozzle"
+msgstr "Bal fúvóka"
+
+msgid "Right Nozzle"
+msgstr "Jobb fúvóka"
+
 msgid "Brass"
 msgstr "Sárgaréz"
 
 msgid "High flow"
 msgstr "Nagy áramlás"
+
+msgid "TPU High flow"
+msgstr "TPU nagy áramlású"
 
 msgid "No wiki link available for this printer."
 msgstr "Ehhez a nyomtatóhoz nincs wiki link."
@@ -6458,6 +6677,9 @@ msgstr "Objektumok elrendezése a tálcán"
 msgid "Unlock current plate"
 msgstr "Tálca feloldása"
 
+msgid "Lock current plate"
+msgstr "Tálca zárolása"
+
 msgid "Edit filament grouping"
 msgstr "Filamentcsoportosítás szerkesztése"
 
@@ -6488,6 +6710,13 @@ msgstr "Nem ajánlott a következő fúvóka- és filamentkombinációk használ
 #, boost-format
 msgid "%1% with %2%\n"
 msgstr "%1% ezzel: %2%\n"
+
+#, c-format, boost-format
+msgid "The %s nozzle does not support automatic filament switching.\n"
+msgstr "A(z) %s fúvóka nem támogatja az automatikus filamentváltást.\n"
+
+msgid "Please change the nozzle type or reassign the filaments and try again."
+msgstr "Kérjük, módosítsd a fúvóka típusát, vagy változtasd meg a filamentek kiosztását, és próbáld újra."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6647,6 +6876,9 @@ msgstr ""
 msgid "Restore"
 msgstr "Visszaállítás"
 
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr "A jelenlegi 3mf fájl tartalmaz G-kód szkriptet, kérjük, ellenőrizd a szkript tartalmát."
+
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
@@ -6689,6 +6921,9 @@ msgstr "A Bambu Studio alacsonyabb verziója miatt ez a 3mf fájl nem tölthető
 
 msgid "Found following keys unrecognized:\n"
 msgstr "A következő ismeretlen kulcsokat találtuk:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr "Ez a 3mf nem a Bambu Labtól származik, csak a geometriai és színadatok kerülnek betöltésre."
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "A 3mf a Bambu Studio egy régebbi verziójával lett létrehozva, csak a geometriai adatok kerülnek betöltésre."
@@ -6857,9 +7092,85 @@ msgstr "Érvénytelen adat"
 msgid "Slicing Canceled"
 msgstr "Szeletelés megszakítva"
 
+msgid "Great! Now click the Helio button to start optimization."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "%d tálca szeletelése"
+
+msgid "Multiple Filament Materials Detected"
+msgstr ""
+
+msgid "⚠ Multiple Filament Materials Detected"
+msgstr ""
+
+msgid " (unsupported)"
+msgstr ""
+
+msgid "Multicolour simulation currently supports only a single filament material.\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You have selected multiple materials: %s"
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Note: Unsupported materials will use the selected reference material for simulation."
+msgstr ""
+
+msgid "True multi-material support will be added in a future update."
+msgstr ""
+
+msgid "Option 1: Proceed using a single filament type"
+msgstr ""
+
+msgid "Select which filament to use for simulation:"
+msgstr ""
+
+msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
+msgstr ""
+
+msgid "Proceed Anyway"
+msgstr ""
+
+msgid "Option 2: Go back and change filament selection"
+msgstr ""
+
+msgid "✓ Recommended"
+msgstr ""
+
+msgid "Change your filament selection to use the same type for all colours, then try again."
+msgstr ""
+
+msgid "See supported materials"
+msgstr ""
+
+msgid "Go Back"
+msgstr ""
+
+msgid "Unsupported Materials Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Materials Detected"
+msgstr ""
+
+msgid "Some of your selected materials are not directly supported by Helio:\n"
+msgstr ""
+
+msgid "Option 1: Proceed with a reference material"
+msgstr ""
+
+msgid "Select a similar material type to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference material may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Change your filament selection to use a supported material, then try again."
+msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Egy Helio szimulációs vagy optimalizálási feladat folyamatban van."
@@ -6867,18 +7178,89 @@ msgstr "Egy Helio szimulációs vagy optimalizálási feladat folyamatban van."
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Érvénytelen nyomtatóbeállítás. Nem lehetséges a szeletelés Helióval."
 
+#, c-format, boost-format
+msgid ""
+"Helio found a potential printer match using token-based matching:\n"
+"\n"
+"Your printer: %s\n"
+"Matched printer: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your printer profile?"
+msgstr ""
+
+msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+msgid "Unsupported Printer Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Printer Detected"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You're using %s which is not officially supported by Helio."
+msgstr ""
+
+msgid "Option 1: Proceed with a reference printer"
+msgstr ""
+
+msgid "Select a similar printer to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference printer may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Option 2: Go back and change printer selection"
+msgstr ""
+
+msgid "Change your printer selection to use a supported printer, then try again."
+msgstr ""
+
+msgid "See supported printers"
+msgstr ""
+
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "A jelenlegi nyomtatóbeállítás nem használható Helióval."
 
-msgid "Helio does not support using a number of materials greater than 1."
-msgstr "Helio nem támogatja egynél több anyag használatát."
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+msgid "Unsupported Material Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Material Detected"
+msgstr ""
+
+msgid "Choose a Reference Material"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio nem támogatja a következő anyagokat: %s"
 
-msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr "A Helio funkciók nem támogatják az „Objektumonként” nyomtatási sorrendet."
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
+msgstr ""
+
+msgid "Click the Optimize/Enhance button to start your first optimization."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -7438,6 +7820,12 @@ msgstr ""
 msgid "Value range"
 msgstr "Értéktartomány"
 
+msgid "Tooltip offset"
+msgstr "Eszköztipp eltolás"
+
+msgid "Set tooltip offset for different mouse size."
+msgstr "Eszköztipp eltolásának beállítása különböző egérméretekhez."
+
 msgid "Presets"
 msgstr "Beállítások"
 
@@ -7537,11 +7925,12 @@ msgstr "Felugró ablak a filamentek csoportosításinak kiválasztásához"
 msgid "User Experience"
 msgstr "Felhasználói élmény"
 
-msgid "Join Customer Experience Improvement Program."
-msgstr "Csatlakozz a felhasználói élmény javítását célzó programhoz."
+msgid "Join the User Experience Improvement Program."
+msgstr "Csatlakozz a Felhasználói élményt javító programhoz."
 
-msgid "What data would be collected?"
-msgstr "Milyen adatokat gyűjtünk?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr "Tudj meg többet"
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Korábban már bejelentkezett fiókok adatainak automatikus kitöltése."
@@ -7935,8 +8324,8 @@ msgstr "Többszínű külső tekercsről"
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr "A szeletelt fájlban a filamentek csoportosítása nem optimális."
 
-msgid "Auto Bed Leveling"
-msgstr "Automatikus asztalszintezés"
+msgid "To ensure print quality, the drying temperature will be lowered during printing."
+msgstr "A nyomtatási minőség biztosítása érdekében a szárítási hőmérséklet nyomtatás közben csökkenni fog."
 
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
@@ -7954,9 +8343,6 @@ msgid ""
 msgstr ""
 "Megkeresi a legjobb értéket a dinamikus anyagáramláshoz, hogy javítsa a nyomtatás minőségét.\n"
 "*Automatikus mód: Kihagyás, ha a filament nemrég lett kalibrálva."
-
-msgid "Nozzle Offset Calibration"
-msgstr "Fúvókaeltérés kalibrálása"
 
 msgid ""
 "Calibrate nozzle offsets to enhance print quality.\n"
@@ -8046,8 +8432,8 @@ msgid "both extruders"
 msgstr "mindkét extruder"
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
-msgstr "[ %s ] magas hőmérsékleten történő nyomtatást igényel. Kérjük, csukd be az ajtót."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
+msgstr "[ %s ] magas hőmérsékleten történő nyomtatást igényel. Kérjük, csukd be az ajtót, ha még nem tetted meg."
 
 #, c-format, boost-format
 msgid "[ %s ] requires printing in a high-temperature environment."
@@ -8067,6 +8453,10 @@ msgid ""
 "Lower half area:  Selected nozzle\n"
 "And you can click it to modify"
 msgstr ""
+"Felső terület:  Eredeti\n"
+"Középső terület:  Filament az AMS-ben\n"
+"Alsó terület:  Kiválasztott fúvóka\n"
+"Rákattintva módosíthatod"
 
 msgid "Unable to automatically match to suitable filament. Please click to manually match."
 msgstr "Nem lehet automatikusan hozzárendelni a megfelelő filamentet. Kérjük, kattints a kézi beállításra."
@@ -8100,10 +8490,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban megadott értékkel (%.1f mm). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeleteléskor használd a megfelelő nyomtatóbeállítást."
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr "Az aktuális anyag keménysége (%s) meghaladja a(z) %s (%s) keménységét. Kérjük, ellenőrizd a fúvóka vagy az anyag beállításait, és próbáld újra."
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "Nem sikerült elküldeni a fúvóka automatikus kiosztását a nyomtatónak {kód: %d}. Kérjük, próbáld meg frissíteni a nyomtató adatait. Ha ezután sem működik, próbáld meg újból párosítani a nyomtatót, és ellenőrizd a hálózati kapcsolatot."
 
@@ -8116,11 +8502,18 @@ msgstr "Nem sikerült fogadni a fúvóka automatikus kiosztását a nyomtatótó
 
 #, c-format, boost-format
 msgid "The printer failed to build the nozzle auto-mapping table { code: %d }. Please refreash nozzle information."
-msgstr ""
+msgstr "A nyomtató nem tudta elvégezni a fúvóka automatikus kiosztását { kód: %d }. Kérjük, frissítsd a fúvóka adatait."
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
 msgstr "A jelenlegi fúvókakiosztás további %0.2f g hulladékot eredményezhet."
+
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr "Az aktuális firmware-verzióval nem indítható el a nyomtatási feladat. Kérjük, frissíts a legújabb verzióra, majd próbáld újra."
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
 
 msgid "Cool"
 msgstr ""
@@ -8203,9 +8596,6 @@ msgstr "Ez a nyomtató nem támogatja az összes tálcára való nyomtatást"
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr "A jelenlegi firmware maximum 16 anyagot támogat. Vagy csökkentsd az anyagok számát 16-ra (vagy kevesebbre) az Előkészítés oldalon, vagy próbáld meg frissíteni a firmware-t. Ha a frissítés után sem tudsz több filamentet használni, kérjük várj a következő firmware-verzióra."
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr "Magas kamrahőmérséklet szükséges. Kérjük, csukd be az ajtót."
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Kérjük, ellenőrizd, hogy a fúvókaátmérő és áramlási sebesség megegyezik-e a kijelzőn lévővel."
 
@@ -8214,6 +8604,9 @@ msgstr "Kérjük, használat előtt olvasd el a Wikit ->"
 
 msgid "How to install"
 msgstr "Hogyan kell beállítani"
+
+msgid "Upgrade"
+msgstr "Frissítés"
 
 msgid "Current firmware does not support file transfer to internal storage."
 msgstr "A jelenlegi firmware nem támogatja a fájlátvitelt a belső tárhelyre."
@@ -8318,8 +8711,14 @@ msgstr "Párosítás..."
 msgid "Please confirm on the printer screen"
 msgstr "Kérjük, erősítsd meg a nyomtató képernyőjén"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "A bejelentkezés sikertelen. Kérjük, ellenőrizd a PIN-kódot."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
+"Sikertelen bejelentkezés. Kérjük, ellenőrizd a következőket:\n"
+"1. Győződj meg arról, hogy a PIN-kód helyesen van megadva.\n"
+"2. Ellenőrizd, hogy a nyomtató és a Bambu Studio régióbeállításai megegyeznek-e."
 
 msgid "Log in printer"
 msgstr "Bejelentkezés a nyomtatóra"
@@ -8551,6 +8950,9 @@ msgstr "Tutaj"
 
 msgid "Support filament"
 msgstr "Filament a támaszhoz"
+
+msgid "Support ironing"
+msgstr "Támasz vasalása"
 
 msgid "Tree Support"
 msgstr "Fa típusú támasz"
@@ -9086,6 +9488,9 @@ msgstr "Nyisd meg a Wikit további információkért >"
 msgid "Obj file Import color"
 msgstr "Obj fájl szín importálása"
 
+msgid "Standard 3mf Import color"
+msgstr "Standard 3mf szín importálása"
+
 msgid "Some faces don't have color defined."
 msgstr "Néhány felületnek nincs definiált színe."
 
@@ -9116,6 +9521,28 @@ msgstr "Egyezés"
 msgid "Quick set"
 msgstr "Gyors beállítás"
 
+msgid "There are color input errors."
+msgstr "Színbeviteli hiba."
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr "A textúra importálása átmenetileg nem érhető el, a részleges színezés automatikusan az alapértelmezett színre cserélődik."
+
+msgid " And "
+msgstr " és "
+
+msgid "Note"
+msgstr "Megjegyzés"
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr "A szín kiválasztása megtörtént, az OK gombbal folytathatod vagy beállíthatod kézzel."
+
+msgctxt "ObjImport"
+msgid "Original"
+msgstr "Eredeti"
+
+msgid "After mapping"
+msgstr "Kiosztás után"
+
 msgid "Color match"
 msgstr "Színegyeztetés"
 
@@ -9131,16 +9558,6 @@ msgstr "Hozzáfűzés a meglévő filamentekhez"
 msgid "Reset mapped extruders."
 msgstr "Extruder-kiosztás visszaállítása."
 
-msgid "Note"
-msgstr "Megjegyzés"
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-"A szín kiválasztása megtörtént, az OK gombbal\n"
-"folytathatod vagy beállíthatod kézzel."
-
 msgid "—> "
 msgstr ""
 
@@ -9154,9 +9571,6 @@ msgstr ""
 msgctxt "Sync_AMS"
 msgid "Original"
 msgstr "Eredeti"
-
-msgid "After mapping"
-msgstr "Kiosztás után"
 
 msgid "After overwriting"
 msgstr "Felülírást követően"
@@ -9628,44 +10042,53 @@ msgstr "Nem sikerült az elküldés. Kattints az Újra gombra a küldés újból
 msgid "reconnect"
 msgstr "újracsatlakozás"
 
-msgid "Third-party Extension"
-msgstr "Harmadik féltől származó bővítmény"
-
-msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr "Erősebb alkatrészek, kevesebb vetemedés, gyorsabb nyomtatás – gyors, fizikán alapuló végeselem-szimulációval"
-
-msgid "Uninstall the Helio Additive extension"
-msgstr "A Helio Additive bővítmény eltávolítása"
-
-msgid "Use Immediately"
-msgstr "Azonnali használat"
-
-msgid "Third-Party Extension"
-msgstr "Harmadik féltől származó bővítmény"
-
-msgid "HELIO ADDITIVE"
+msgid "Welcome to Helio Additive"
 msgstr ""
 
-msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr "A Helio Additive harmadik féltől származó szoftverszolgáltatás engedélyezése sikeresen megtörtént!"
-
-msgid "Helio-PAT"
+msgid "Know Your Print Will Work — Before You Hit Print"
 msgstr ""
 
-msgid "Copy successful!"
-msgstr "Másolás sikeres!"
-
-msgid "Helio Additive"
+msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
 msgstr ""
 
-msgid "Privacy Policy of Helio Additive"
-msgstr "A Helio Additive adatvédelmi irányelvei"
+msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
+msgstr ""
 
-msgid "Terms of Use of Helio Additive"
-msgstr "A Helio Additive felhasználási feltételei"
+msgid "Fewer Failed Prints"
+msgstr ""
 
-msgid "Agree and proceed"
-msgstr "Elfogadom és folytatom"
+msgid "Catch issues before printing and improve first-try success."
+msgstr ""
+
+msgid "Faster Prints, Better Quality"
+msgstr ""
+
+msgid "Automatically tune speed and extrusion without manual tweaking."
+msgstr ""
+
+msgid "Enable Helio Additive"
+msgstr ""
+
+msgid "Uninstall"
+msgstr ""
+
+msgid "After slicing, click the Helio button to analyze your print."
+msgstr ""
+
+msgid "Helio Additive does not change your printer's firmware."
+msgstr ""
+
+msgid "Designed to help prints succeed — even if you're new to 3D printing."
+msgstr ""
+
+msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
+msgstr ""
+
+msgid "Uninstall Helio Additive"
+msgstr ""
+
+msgid "Legal & Activation Terms"
+msgstr ""
 
 msgid "Got it"
 msgstr "Értem"
@@ -9676,11 +10099,143 @@ msgstr "Nem sikerült letölteni a Helio PAT fájlt. Kattints a Frissítés gomb
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr "Nem sikerült letölteni a Helio PAT fájlt. Elérted a mennyiségi korlátot. Kattints a frissítés gombra egy újabb PAT beszerzéséhez."
 
-msgid "Simulation"
-msgstr "Szimuláció"
+msgid "You are activating Helio Additive's advanced simulation services."
+msgstr ""
 
-msgid "Optimization"
-msgstr "Optimalizálás"
+msgid "Software Service Terms && Conditions"
+msgstr ""
+
+msgid "^"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr ""
+
+msgid "Helio Additive Privacy Agreement"
+msgstr ""
+
+msgid "Helio Additive User Agreement"
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
+msgstr ""
+
+msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
+msgstr ""
+
+msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
+msgstr ""
+
+msgid " and refer to the "
+msgstr ""
+
+msgid " and "
+msgstr ""
+
+msgid " for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
+msgstr ""
+
+msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
+msgstr ""
+
+msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
+msgstr ""
+
+msgid "3. Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr "Ha megerősíted ennek a funkciónak az engedélyezését, azzal azt is megerősíted és elfogadod, hogy a fentiekben foglaltakkal egyetértesz."
+
+msgid "Special Note && Privacy Policy"
+msgstr ""
+
+msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
+msgstr ""
+
+msgid ""
+"I have read and agree to the terms\n"
+"and policies."
+msgstr ""
+
+msgid "Agree and Proceed"
+msgstr ""
+
+msgid "Activation Successful!"
+msgstr ""
+
+msgid "Helio Additive is now active. You have unlocked free optimizations!"
+msgstr ""
+
+msgid "Applies only when first activated"
+msgstr ""
+
+msgid "Run Your First Optimization"
+msgstr ""
+
+msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
+msgstr ""
+
+msgid ""
+"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
+"\n"
+msgstr ""
+
+msgid "Supported printers and materials"
+msgstr ""
+
+msgid "Copy PAT"
+msgstr ""
+
+msgid ""
+"Personal Access Token (PAT)\n"
+"\n"
+"A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.\n"
+"\n"
+"You may need to copy this to:\n"
+"• Integrate Helio with other slicers or tools\n"
+"• Use the Helio API directly\n"
+"• Provide to support when troubleshooting"
+msgstr ""
+
+msgid "Copy successful!"
+msgstr "Másolás sikeres!"
+
+msgid "History"
+msgstr ""
+
+msgid "View and download recent optimizations and simulations"
+msgstr ""
+
+msgid "Terms of Use"
+msgstr ""
+
+msgid "Activation Successful"
+msgstr ""
+
+msgid "Assess"
+msgstr ""
+
+msgid "Formerly referred to as 'Simulate' or 'Simulation'"
+msgstr ""
+
+msgid "See where it will fail"
+msgstr ""
+
+msgid "Enhance"
+msgstr ""
+
+msgid "Formerly referred to as 'Optimize' or 'Optimization'"
+msgstr ""
+
+msgid "Auto-fix with new speeds"
+msgstr ""
 
 msgid "Environment Temperature"
 msgstr "Környezet hőmérséklete"
@@ -9688,20 +10243,47 @@ msgstr "Környezet hőmérséklete"
 msgid "Chamber Temperature"
 msgstr "Kamra hőmérséklete"
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr "Megjegyzés: Kérjük, a fenti hőmérsékletet a valóságnak megfelelően állítsd be. Minél pontosabbak az adatok, annál precízebb lesz az elemzés eredménye."
+msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
+msgstr ""
+
+msgid "Optional. More accurate temperatures ensures better results."
+msgstr ""
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "A Helio fejlett funkciója haladó felhasználók számára: a hivatalos honlapjon elérhető a megvásárlását követően."
 
-msgid "Monthly quota remaining: "
-msgstr "Havi fennmaradó kvóta: "
+msgid "Account Status"
+msgstr ""
 
-msgid "Add-ons available: "
-msgstr "Elérhető kiegészítők: "
+msgid "Subscription:"
+msgstr ""
 
-msgid "Optimise Outer Walls"
-msgstr "Külső falak optimalizálása"
+msgid "Loading subscription status..."
+msgstr ""
+
+msgid "Monthly quota:"
+msgstr ""
+
+msgid "Add-ons:"
+msgstr ""
+
+msgid "Plans / Upgrades"
+msgstr ""
+
+msgid "Manage Account"
+msgstr ""
+
+msgid "Environment Settings"
+msgstr ""
+
+msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
+msgstr ""
+
+msgid "Optimization Settings"
+msgstr ""
+
+msgid "Now referred to as 'Enhance' or 'Enhancement'"
+msgstr ""
 
 msgid "Helio default (recommended)"
 msgstr "Helio alapértelmezett (ajánlott)"
@@ -9711,6 +10293,9 @@ msgstr "Szeletelő alapértelmezett"
 
 msgid "Limits"
 msgstr "Határértékek"
+
+msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
+msgstr ""
 
 msgid "Min Velocity"
 msgstr "Min. sebesség"
@@ -9727,26 +10312,95 @@ msgstr "Max. volumetrikus sebesség"
 msgid "Last Trace ID: "
 msgstr "Utolsó nyomkövetési azonosító: "
 
-msgid "Buy Now / Manage Account"
-msgstr "Vásárlás / Fiókkezelés"
-
 msgid "Click for more details"
 msgstr "Részletek megtekintése"
 
-msgid "Start Simulation"
-msgstr "Szimuláció indítása"
+msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
+msgstr ""
 
-msgid "Start Optimization"
-msgstr "Optimalizálás indítása"
+msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
+msgstr ""
 
-msgid "Buy add-ons"
-msgstr "Kiegészítők vásárlása"
+msgid "Start Free Trial"
+msgstr ""
 
-msgid "Layers to Optimize "
-msgstr "Optimalizálandó rétegek "
+msgid "Activate your free trial to unlock premium enhancements"
+msgstr ""
+
+msgid "Go to our storefront to purchase more enhancements"
+msgstr ""
+
+msgid "Free Trial"
+msgstr ""
+
+msgid "Free Trial Expired"
+msgstr ""
+
+msgid "Your free trial has ended. Explore our plans to continue using premium features."
+msgstr ""
+
+msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
+msgstr ""
+
+msgid "Unlimited*"
+msgstr ""
+
+msgid "*Fair usage terms apply - click to learn more"
+msgstr ""
+
+msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
+msgstr ""
+
+msgid "Print Priority"
+msgstr ""
+
+msgid "Loading print priority options..."
+msgstr ""
+
+msgid "Fetching material-specific options from Helio API..."
+msgstr ""
+
+msgid "Preserve Surface Finish"
+msgstr ""
+
+msgid "Speed & Strength"
+msgstr ""
+
+msgid ""
+"Speed & Strength: Optimizes outer walls for improved performance.\n"
+"Preserve Surface Finish: Maintains original wall speeds to preserve visual finish.\n"
+"\n"
+"Note: Using fallback options - couldn't fetch material-specific settings from API."
+msgstr ""
+
+msgid "No print priority options available for this material"
+msgstr ""
+
+msgid "This material does not support print priority optimization."
+msgstr ""
+
+msgid "Optimizes outer walls for improved performance."
+msgstr ""
+
+msgid "Maintains original wall speeds to preserve visual finish."
+msgstr ""
+
+msgid "Enhance Surface Gloss"
+msgstr ""
+
+msgid "Optimizes for enhanced surface gloss."
+msgstr ""
+
+msgid ""
+"Failed to load print priority options from Helio API.\n"
+"Using standard optimization method instead (same as before print priority feature)."
+msgstr ""
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Nem sikerült beszerezni a Helio PAT-et. A kiadott PAT-ok száma elérte a felső határt. Kérjük, figyeld a Helio hivatalos weboldalán található információkat. Kattints a Frissítés gombra, hogy újra megpróbáld, amint elérhetővé válik."
+
+msgid "HELIO ADDITIVE"
+msgstr ""
 
 msgid "Print Time Improvement"
 msgstr "Nyomtatási idő javítása"
@@ -9757,8 +10411,131 @@ msgstr "Átlagos javulás"
 msgid "Consistency Improvement"
 msgstr "Konzisztencia javítása"
 
+msgid "Estimate of improvement in print time before and after enhancement"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
+msgstr ""
+
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
 msgstr "A G-kódon változtattunk, hogy a lehető legjobb nyomatot eredményezze. A nyomtatás további javításához kérjük, nézd meg a Wikinket, ahol tippeket és trükköket találsz a következő lépésekhez."
+
+msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
+msgstr ""
+
+msgid "Save the enhanced gcode locally"
+msgstr ""
+
+msgid "Print Plate"
+msgstr ""
+
+msgid "Print the enhanced part immediately"
+msgstr ""
+
+msgid "View Details"
+msgstr ""
+
+msgid "Verify Print Success Results"
+msgstr ""
+
+msgid "Simulates the thermal process to confirm your part will print without failure."
+msgstr ""
+
+msgid "Now referred to as 'Assess' or 'Assessment'"
+msgstr ""
+
+msgid "Time saved: "
+msgstr ""
+
+msgid "From "
+msgstr ""
+
+msgid "Expected Outcome:"
+msgstr ""
+
+msgid "Analysis:"
+msgstr ""
+
+msgid "Additional observations:"
+msgstr ""
+
+msgid "Fix suggestions"
+msgstr ""
+
+msgid "With Enhance Speed & Quality:"
+msgstr ""
+
+msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
+msgstr ""
+
+msgid "Enhance Speed & Quality"
+msgstr ""
+
+msgid "Applies Helio's optimized speed/flow/fan strategy."
+msgstr ""
+
+msgid "✅ Will Print"
+msgstr ""
+
+msgid "⚠️ May Print with Issues"
+msgstr ""
+
+msgid "❌ Likely to Fail"
+msgstr ""
+
+msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
+msgstr ""
+
+msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
+msgstr ""
+
+msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print"
+msgstr ""
+
+msgid "Too cold overall — see suggestions"
+msgstr ""
+
+msgid "Too hot overall — see suggestions"
+msgstr ""
+
+msgid "Your part is ready to print! Thermal conditions are within safe limits."
+msgstr ""
+
+msgid "Too cold (overall)"
+msgstr ""
+
+msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Too hot (overall)"
+msgstr ""
+
+msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Suggestions"
+msgstr ""
+
+msgid "Quick fixes (beginner):"
+msgstr ""
+
+msgid "Expert"
+msgstr ""
+
+msgid "Learn more"
+msgstr "Tudj meg többet"
+
+msgid "Helio Flowchart"
+msgstr ""
+
+msgid "Fixing cold prints"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "Légszivattyú"
@@ -9771,6 +10548,9 @@ msgstr "Lézer 40W"
 
 msgid "Cutting Module"
 msgstr "Vágómodul"
+
+msgid "Rotary Attachment"
+msgstr "Forgó tartozék"
 
 msgid "Auto Fire Extinguishing System"
 msgstr "Automatikus tűzoltó rendszer"
@@ -9812,7 +10592,7 @@ msgid "Extension Board"
 msgstr "Bővítőpanel"
 
 msgid "Do you want to save the changes ?"
-msgstr ""
+msgstr "Menteni szeretnéd a változtatásokat?"
 
 msgid "Saving objects into the 3mf failed."
 msgstr "Az objektumok mentése a 3mf-be sikertelen volt."
@@ -9920,14 +10700,29 @@ msgstr "Z irányú sebesség simítása"
 msgid "Exporting G-code"
 msgstr "G-kód exportálása"
 
-msgid "Grouping error: "
-msgstr "Csoportosítási hiba: "
+msgid "Grouping error: filament"
+msgstr "Csoportosítási hiba: filament"
 
 msgid " can not be placed in the "
 msgstr " nem helyezhető el itt "
 
+msgid "Filament Grouping Error: Filament "
+msgstr "Filament-csoportosítási hiba: A filamentet "
+
+msgid " is not supported by the "
+msgstr " nem támogatja a "
+
+msgid " nozzle. "
+msgstr " fúvóka. "
+
+msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr "Kérjük, módosítsd a fúvóka típusát, vagy változtasd meg a filamentek kiosztását, és próbáld újra."
+
+msgid "No valid nozzle found. Please check nozzle count."
+msgstr "Nem található használható fúvóka. Kérjük, ellenőrizd a fúvókák számát."
+
 msgid "Group error in manual mode. Please check nozzle count or regroup."
-msgstr ""
+msgstr "Csoportosítási hiba manuális módban. Ellenőrizd a fúvókák számát, vagy csoportosítsd őket újra."
 
 msgid "Inner wall"
 msgstr "Belső fal"
@@ -10182,6 +10977,9 @@ msgstr "A rétegmagasság nem lehet nagyobb a fúvóka átmérőjénél"
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "%d. tálca: %s nem használható %s filamenttel."
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr "A pontos külső fal figyelmen kívül lesz hagyva, kivéve, ha a falak sorrendje belső/külsőre van állítva"
 
 msgid "Generating skirt & brim"
 msgstr "Szoknya & perem generálása"
@@ -10575,6 +11373,42 @@ msgstr ""
 "2. A külső fal sebességváltozásának elkerülése érdekében, amely kisebb hibákat okozhat, melyek Z-sávosodásra emlékeztetnek\n"
 "3. Annak elkerülése érdekében, hogy olyan sebességgel nyomtass, amely VFA-kat (finom hibák) eredményez a külső falakon"
 
+msgid "Cooling slowdown logic"
+msgstr "Hűtés lassítási logika"
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+"Meghatározza, hogyan lassítja a nyomtató a nyomtatást, ha a minimális rétegidő nem teljesül.\n"
+"\n"
+"Az „Egyenletes hűtés” minden nyomtatási jellemzőt egyenlő mértékben lassít (jelenlegi alapértelmezett viselkedés).\n"
+"\n"
+"Az „Egységes felület” előnyben részesíti a kitöltés és a belső körvonalak lassítását, megőrizve a külső körvonal sebességét a jobb felületi minőség érdekében fényes filamentek esetén. Ez segít csökkenteni a VFA-t (függőleges finom hibák) és fenntartja az egyenletes felületi fényt."
+
+msgid "Uniform cooling"
+msgstr "Egyenletes hűtés"
+
+msgid "Consistent surface"
+msgstr "Egységes felület"
+
+msgid "Perimeter transition distance"
+msgstr "Peremátmenet távolság"
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+"Távolság milliméterben a lelassított peremek vége előtt, ahol az eredeti nyomtatási sebesség fokozatosan visszaáll. Ezzel csökkenek a minőségi problémák a lassított értékekről a gyors külső perem nyomtatásra történő átmenetkor.\n"
+"\n"
+"Csak akkor érvényesül, ha az „Egységes felület” hűtés van kiválasztva.\n"
+"Ajánlott érték: 5–10 mm. Állítsd 0-ra a letiltáshoz."
+
 msgid "Normal printing"
 msgstr "Normál nyomtatás"
 
@@ -10583,6 +11417,22 @@ msgstr "Ez az alapértelmezett gyorsulás mind a normál nyomtatáshoz, mind az 
 
 msgid "The acceleration of travel except initial layer"
 msgstr "A mozgás gyorsulása a kezdőréteg kivételével"
+
+msgid "Short travel"
+msgstr "Rövid mozgás"
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
+msgstr ""
+"Gyorsulás, amely a külső peremeknél előforduló rövid mozgásoknál kerül alkalmazásra. Rövid mozgásnak az számít, amely kisebb, mint a „Minimális mozgás visszahúzáskor“ távolsága.\n"
+"\n"
+"Az alacsonyabb érték (például 250-500 mm/s²) csökkenti a szellemképszerű hibákat az éles sarkokon anélkül, hogy jelentősen befolyásolnák a nyomtatási időt.\n"
+"\n"
+"0 értékre állítva kikapcsolható (normál mozgási gyorsulás lesz alkalmazva)."
 
 msgid "Initial layer travel"
 msgstr "Kezdőréteg mozgás"
@@ -10620,14 +11470,14 @@ msgstr "Az elszívóventilátor fordulatszáma a nyomtatás befejezése után"
 msgid "For the first"
 msgstr "Az első"
 
-msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "Bekapcsol egy speciális hűtőventilátort az első pár rétegnél. A hűtőventilátor az első pár rétegnél kikapcsolva szokott lenni, hogy jobb legyen a tapadás"
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr "Bekapcsol egy speciális hűtőventilátort az első pár rétegnél. A tárgyhűtő ventilátor az első pár rétegnél kikapcsolva szokott lenni, hogy jobb legyen a tapadás"
 
 msgid "layers"
 msgstr "réteg"
 
-msgid "Special cooling fan speed for the first certain layers"
-msgstr "Egyedi hűtőventilátor sebesség az első pár rétegnél"
+msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
+msgstr "Kiegészítő hűtőventilátor-sebesség, csak az első x rétegre érvényes"
 
 msgid "Don't support bridges"
 msgstr "Ne támassza alá az áthidalásokat"
@@ -10725,11 +11575,24 @@ msgstr "Archimédeszi vonalak"
 msgid "Octagram Spiral"
 msgstr "Nyolcágú spirál"
 
+msgid "Top surface density"
+msgstr "Felső felület sűrűsége"
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr "A felső felület kitöltési sűrűsége. A 100% teljesen szilárd, kitöltött felső réteget jelent. Alacsonyabb értékek texturált felső felületet hoznak létre, 0% esetén csak a falak készülnek el a felső rétegen. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására."
+
 msgid "Bottom surface pattern"
 msgstr "Alsó felület mintázata"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Az alsó felület kitöltésének mintája, kivéve az áthidalásokat"
+
+msgid "Bottom surface density"
+msgstr "Alsó felület sűrűsége"
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr "Az alsó felület kitöltési sűrűsége. A 100%% teljesen szilárd, kitöltött alsó réteget jelent. Alacsonyabb értékek texturált alsó felületet hoznak létre. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására. FIGYELEM: az érték csökkentése negatívan befolyásolhatja az asztalra tapadást."
 
 msgid "Internal solid infill pattern"
 msgstr "Belső tömör kitöltés mintája"
@@ -11093,6 +11956,42 @@ msgstr "Törlőtorony hűtés"
 msgid "Temperature drop before entering filament tower"
 msgstr "Hőmérsékletcsökkenés a törlőtoronyba lépés előtt"
 
+msgid "Interface layer pre-extrusion distance"
+msgstr "Érintkező réteg előextrudálási távolság"
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr "Előextrudálási távolság a törlőtorony érintkező rétegéhez (ahol különböző anyagok találkoznak)."
+
+msgid "Interface layer pre-extrusion length"
+msgstr "Érintkező réteg előextrudálási hossz"
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr "Előextrudálási hossz a törlőtorony érintkező rétegéhez (ahol különböző anyagok találkoznak)."
+
+msgid "Tower ironing area"
+msgstr "Torony vasalási terület"
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr "Vasalási terület a törlőtorony érintkező rétegéhez (ahol különböző anyagok találkoznak)."
+
+msgid "mm²"
+msgstr "mm²"
+
+msgid "Interface layer purge length"
+msgstr "Érintkező réteg tisztítási hossza"
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr "Törlőtorony érintkező rétegének kitisztítása hossza (ahol különböző anyagok találkoznak)."
+
+msgid "Interface layer print temperature"
+msgstr "Érintkező réteg nyomtatási hőmérséklete"
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr "Nyomtatási hőmérséklet a törlőtorony érintkező rétegéhez (ahol különböző anyagok találkoznak). Ha -1-re van állítva, a legmagasabb ajánlott fúvókahőmérsékletet használja."
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Lágyulási hőmérséklet"
 
@@ -11192,6 +12091,9 @@ msgstr ""
 
 msgid "Locked Zag"
 msgstr "Zárt cakkozás"
+
+msgid "2D Lattice"
+msgstr "2D-rács"
 
 msgid "Skin infill pattern"
 msgstr "Bőr kitöltési mintája"
@@ -11418,6 +12320,9 @@ msgstr "Ez az opció csak akkor működik, ha a nyomtató rendelkezik kamra hőm
 msgid "Apply top surface compensation"
 msgstr "Felső felület kompenzációjának alkalmazása"
 
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr "Engedélyezze ezt a beállítást a felső felületek közötti mozgási távolság növeléséhez, ezáltal javítva a felső felületi kitöltést és a falak közötti tapadást."
+
 msgid "Air filtration enhancement"
 msgstr "Levegőszűrés javítása"
 
@@ -11429,9 +12334,6 @@ msgstr "Hűtőszűrő használata"
 
 msgid "Enable this if printer support cooling filter"
 msgstr "Engedélyezd a beállítást, ha a nyomtató támogatja a hűtőszűrőt"
-
-msgid "Auto turn off filter on overheat"
-msgstr "Szűrő automatikus kikapcsolása túlmelegedés esetén"
 
 msgid "G-code flavor"
 msgstr "G-kód változat"
@@ -11504,6 +12406,18 @@ msgstr "Szimmetrikus kitöltés Y-tengelyen"
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
 msgstr "Ha a modellnek két olyan része van, amelyek az Y-tengelyre szimmetrikusak, és azt szeretnéd, hogy ezek a részek szimmetrikus textúrával rendelkezzenek, kattints erre az opcióra az egyik tárgyon."
+
+msgid "Lattice angle 1"
+msgstr "Rácsszög 1"
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr "Az első szett 2D-rácselem szöge Z irányban. A nulla függőleges."
+
+msgid "Lattice angle 2"
+msgstr "Rácsszög 2"
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr "A második szett 2D-rácselem szöge Z irányban. A nulla függőleges."
 
 msgid "Length of sparse infill anchor"
 msgstr "Ritkás kitöltés horgony hossza"
@@ -11985,9 +12899,6 @@ msgstr "Bowden"
 msgid "Nozzle Volume Type"
 msgstr "Fúvóka térfogattípus"
 
-msgid "Hybrid"
-msgstr "Hibrid"
-
 msgid "Default Nozzle Volume Type"
 msgstr "Alapértelmezett fúvóka térfogattípus"
 
@@ -12133,9 +13044,6 @@ msgstr "Ritkás kitöltés küszöbértéke"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "A küszöbérték alatti ritkás kitöltési terület belső szilárd kitöltéssel kerül leváltásra."
-
-msgid "mm²"
-msgstr "mm²"
 
 msgid "Solid infill filament"
 msgstr "Tömör kitöltés filament"
@@ -12317,8 +13225,32 @@ msgstr "Ugyanaz, mint a felső"
 msgid "Top interface spacing"
 msgstr "Felső érintkező felület térköze"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Az érintkező réteg vonalai közötti távolság. A nulla szilárd kitöltést jelent"
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr "Az érintkező felület vonalai közötti távolság. A nulla tömör felületet jelent. Nulla távolság szükséges az érintkező felület vasalásának engedélyezése opcióhoz"
+
+msgid "Enable ironing support interface"
+msgstr "Érintkező felület vasalásának engedélyezése"
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr "A vasalás azt jelenti, hogy fúvóka kis áramlással újra végigmegy a felületen, hogy az sima és még egyenletesebb legyen. Ez a beállítás szabályozza, hogy történjen-e vasalás a támasz vagy a tutaj érintkező felületén. A támasz vasalása csak szilárd felületen működik, azaz amikor a támasz érintkezőfelület térköze nulla, és a támasz érintkezőfelület mintázata nem rács mintázat"
+
+msgid "Support ironing pattern"
+msgstr "Támaszvasalás mintázat"
+
+msgid "Support ironing flow"
+msgstr "Támaszvasalás áramlás"
+
+msgid "Support ironing line spacing"
+msgstr "Támaszvasalás vonalköz"
+
+msgid "Support ironing inset"
+msgstr "Támaszvasalás eltolása"
+
+msgid "Support ironing speed"
+msgstr "Támasz vasalási sebesség"
+
+msgid "Support ironing direction"
+msgstr "Támasz vasalási irány"
 
 msgid "Bottom interface spacing"
 msgstr "Alső érintkező réteg térköz"
@@ -12486,8 +13418,8 @@ msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
 msgid "Bottom paint penetration layers"
 msgstr "Alsó festett rétegek mélysége"
 
-msgid "This is  the number of layers of top bottom penetration."
-msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
+msgid "This is the number of layers of bottom paint penetration."
+msgstr "Megadja, hogy hány réteg mélységben kerül az alsó festés alkalmazásra."
 
 msgid "Use infill instead of top and bottom surfaces"
 msgstr "Kitöltés használata a felső és alsó felület helyett"
@@ -13126,6 +14058,9 @@ msgstr "A név nem haladhatja meg a 40 karaktert."
 msgid "Nozzle ID"
 msgstr "Fúvókaazonosító"
 
+msgid "Standard Flow"
+msgstr "Normál áramlás"
+
 msgid "Please find the best line on your plate"
 msgstr "Keresd meg a legjobb vonalat a tálcán"
 
@@ -13328,6 +14263,9 @@ msgstr "Eddig a volumetrikus sebességig"
 
 msgid "Are you sure to stop printing?"
 msgstr "Biztos, hogy leállítod a nyomtatást?"
+
+msgid "0min"
+msgstr "0perc"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Áramlásdinamikai kalibrációs eredmény"
@@ -14226,7 +15164,7 @@ msgstr ""
 "Kérjük, kattints a fenti Szinkronizálás gombra, és indítsd újra a kalibrálást."
 
 msgid "Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again."
-msgstr ""
+msgstr "Az áramláskalibrálás nem támogatja több fúvókaátmérő egyidejű használatát. Kérjük, győződj meg arról, hogy a kalibrálandó filament által használt fúvókaátmérők egyformák, mielőtt újraindítod a kalibrálást."
 
 msgid "Unable to calibrate: maybe because the set calibration value range is too large, or the step is too small"
 msgstr "Nem lehet kalibrálni: előfordulhat, hogy a beállított kalibrációs értéktartomány túl nagy, vagy a lépésköz túl kicsi"
@@ -14585,6 +15523,9 @@ msgstr "Helio: optimalizálás sikeresen létrehozva"
 msgid "Helio: optimization working"
 msgstr "Helio: optimalizálás folyamatban"
 
+msgid "Helio: optimization failed"
+msgstr ""
+
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: optimízációs ellenőrzés sikertelen"
 
@@ -14787,9 +15728,6 @@ msgstr "Globális beállítások"
 msgid "Video tutorial"
 msgstr "Oktatóvideó"
 
-msgid "Learn more"
-msgstr "Tudj meg többet"
-
 msgid "(Sync with printer)"
 msgstr "(Szinkronizálás a nyomtatóval)"
 
@@ -14838,9 +15776,6 @@ msgstr "Nagyítás"
 
 msgid "Load skipping objects information failed. Please try again."
 msgstr "A kihagyott objektumok információinak betöltése sikertelen. Kérjük próbáld újra."
-
-msgid "Loading ..."
-msgstr "Betöltés…"
 
 #, c-format, boost-format
 msgid "%d%%"
@@ -14910,8 +15845,15 @@ msgstr "Fúvóka kiválasztás"
 msgid "Available Nozzles"
 msgstr "Elérhető fúvókák"
 
+msgid "Sync Nozzle status"
+msgstr "Fúvókaállapot szinkronizálása"
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
 msgstr "Figyelem: Nem lehetséges a fúvókaátmérők keverése egyetlen nyomtatás során. Ha a kiválasztott méret csak egy extruderen van, akkor az egy extruderes nyomtatás lesz kényszerítve."
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
+msgstr "Frissítés %d/%d..."
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
 msgstr "Ismeretlen fúvóka érzékelve. Frissítsd az adatokat (a nem frissített fúvókákat nem használjuk a szeleteléskor). Hasonlítsd össze a fúvóka átmérőjét és a térfogatáramot a megjelenített értékekkel."
@@ -14931,17 +15873,263 @@ msgstr "Átöblítési mód beállításai"
 msgid "Standard Mode"
 msgstr "Normál mód"
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
+msgid "Performs full priming for the best print quality. Requires more material and time."
 msgstr "Teljes átöblítést végez a legjobb nyomtatási minőség érdekében. Több anyagot és időt igényel."
 
-msgid "Purge Saving"
+msgid "Prime Saving"
 msgstr "Takarékos átöblítés"
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
 msgstr "Csökkenti a felesleges öblítést és gyorsabb nyomtatást tesz lehetővé. Enyhe színkeveredést vagy kisebb felületi hibákat okozhat."
 
-msgid "Learn more about purge mode"
+msgid "Learn more about prime mode"
 msgstr "Tudj meg többet az átöblítési módról"
+
+msgid "AMS Dryness Control"
+msgstr "AMS szárazságszabályozás"
+
+msgid "Filament Drying Settings"
+msgstr "Filamentszárítási beállítások"
+
+msgid "Start"
+msgstr "Indítás"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr "Szárítás átmenetileg nem lehetséges ..."
+
+msgid "Drying Error"
+msgstr "Szárítási hiba"
+
+msgid "Please check the Assistant for troubleshooting"
+msgstr "Kérjük, ellenőrizd az Asszisztenst a hibaelhárításhoz"
+
+msgid "Please remove and store the filament (as shown)."
+msgstr "Kérjük, vedd ki és tárold a filamentet (a képen látható módon)."
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr "Az AMS elforgathatja a megfelelően tárolt filamentet, így jobb szárítási eredményt biztosítva."
+
+msgid "Rotate spool when drying"
+msgstr "Tekercs forgatása szárításkor"
+
+msgctxt "amsdrying"
+msgid "Back"
+msgstr "Hátul"
+
+msgid "Drying-Heating"
+msgstr "Szárítás-fűtés"
+
+msgid "Drying-Dehumidifying"
+msgstr "Szárítás-párátlanítás"
+
+msgid " maximum drying temperature is "
+msgstr " a maximális szárítási hőmérséklet "
+
+msgid " minimum drying temperature is "
+msgstr " a minimális szárítási hőmérséklet "
+
+msgid "This filament may not be completely dried."
+msgstr "Lehet, hogy ez a filament nincs teljesen kiszárítva."
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
+msgstr "Ez az AMS jelenleg nyomtat. A nyomtatási minőség biztosítása érdekében a szárítási hőmérséklet nem haladhatja meg az ajánlott hőmérsékletet."
+
+msgid "The temperature shall not exceed the filament's heat distortion temperature"
+msgstr "A hőmérséklet nem haladhatja meg a filament deformációs hőmérsékletét"
+
+msgid "Minimum time value cannot be less than 1."
+msgstr "A minimális érték nem lehet kisebb, mint 1."
+
+msgid "Maximum time value cannot be greater than 24."
+msgstr "A maximális érték nem lehet nagyobb, mint 24."
+
+msgid "Insufficient power"
+msgstr "Elégtelen teljesítmény"
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
+msgstr "  Túl sok AMS szárít egyszerre. Kérjük, csatlakoztass tápellátást, vagy állítsd le a többi szárítási folyamatot."
+
+msgid "AMS is busy"
+msgstr "Az AMS elfoglalt"
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
+msgstr "  Az AMS kalibrál | RFID-t olvas | anyagot tölt be/ki, kérjük várj."
+
+msgid "Filament in AMS outlet"
+msgstr "Filament az AMS kimeneti nyílásban"
+
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
+msgstr "  A magas szárítási hőmérséklet az AMS eltömődését okozhatja; kérjük, előbb ürítsd ki."
+
+msgid "Initiating AMS drying"
+msgstr "AMS szárítás indítása"
+
+msgid "Not supported in 2D mode"
+msgstr "Nem támogatott 2D-módban"
+
+msgid "Task in progress"
+msgstr "Feladat folyamatban"
+
+msgid "  The AMS might be in use during Task."
+msgstr "  Előfordulhat, hogy az AMS a feladat során használatban van."
+
+msgid "  Firmware update in progress, please wait..."
+msgstr "  Firmware frissítés folyamatban, kérjük várj..."
+
+msgid "  Please plug in the power and then use the drying function."
+msgstr "  Kérjük, csatlakoztasd a tápellátást, majd használd a szárítási funkciót."
+
+msgid "System is busy"
+msgstr "A rendszer foglalt"
+
+msgid "  Initiating other drying processes, please wait a few seconds..."
+msgstr "  Többi szárítási folyamat elindítása, kérjük, várj néhány másodpercet..."
+
+msgid "For better drying results, remove the filament and allow it to rotate."
+msgstr "A jobb szárítási eredmény érdekében húzd ki a filamentet, és hagyd forogni."
+
+msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgstr "Az AMS automatikusan forgatja a filamenteket a szárítás javítása érdekében."
+
+msgid "Alternatively, you can dry the filament without removing it."
+msgstr "A filamentet kihúzás nélkül is száríthatod."
+
+msgid "Unknown filaments will be treated as PLA."
+msgstr "Az ismeretlen filamenteket PLA-ként kezeljük."
+
+msgid "Please store the filament marked with an exclamation mark."
+msgstr "Kérjük, húzd ki a felkiáltójellel jelölt filamentet."
+
+msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+msgstr "A szárítás során az adagolóban hagyott filament megpuhulhat, mivel a szárítási hőmérséklet meghaladja az olyan anyagok, mint a PLA és a TPU lágyulási pontját."
+
+msgid "Starting: Checking adapter connection"
+msgstr "Indítás: Adapter csatlakozásának ellenőrzése"
+
+msgid "Starting: Checking filament status"
+msgstr "Indítás: A filament állapotának ellenőrzése"
+
+msgid "Starting: Checking drying presets"
+msgstr "Indítás: Szárítási beállítások ellenőrzése"
+
+msgid "Starting: Checking filament location"
+msgstr "Indítás: A filament helyének ellenőrzése"
+
+msgid "Starting: Checking air intake"
+msgstr "Indítás: A beszívott levegő ellenőrzése"
+
+msgid "Starting: Checking air vent"
+msgstr "Indítás: A szellőzőnyílás ellenőrzése"
+
+msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr "A Bambu Lab felhasználói élmény javítását célzó program feltételei"
+
+msgid "Recent Helio Runs"
+msgstr ""
+
+msgid "Showing recent completed optimizations and simulations"
+msgstr ""
+
+msgid "Loading recent runs..."
+msgstr ""
+
+msgid "No Recent Runs Found"
+msgstr ""
+
+msgid "No completed simulations or optimizations found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "OPTIMIZATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "SIMULATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d layers"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Quality: %s | Consistency: %s"
+msgstr ""
+
+msgid "Download GCode"
+msgstr ""
+
+msgid "View Results"
+msgstr ""
+
+msgid "GCode URL is not available"
+msgstr ""
+
+msgid "Download Error"
+msgstr ""
+
+msgid "Save GCode File"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"GCode file downloaded successfully!\n"
+"\n"
+"Saved to: %s"
+msgstr ""
+
+msgid "Download Complete"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to open file for writing:\n"
+"%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error saving file: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to download GCode file.\n"
+"\n"
+"Error: %s"
+msgstr ""
+
+msgid "Optimization Details"
+msgstr ""
+
+msgid "Simulation Details"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d seconds ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d minutes ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d hours ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d days ago"
+msgstr ""
+
+msgid "Print Outcome: WILL_PRINT"
+msgstr ""
+
+msgid "Print Outcome: MAY_PRINT"
+msgstr ""
+
+msgid "Print Outcome: LIKELY_FAIL"
+msgstr ""
+
+msgid "Print Outcome: "
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -15164,134 +16352,406 @@ msgstr ""
 "Vetemedés elkerülése\n"
 "Tudtad, hogy a vetemedésre hajlamos anyagok (például ABS) nyomtatásakor a tárgyasztal hőmérsékletének növelése csökkentheti a vetemedés valószínűségét?"
 
-#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: materials) Like a Pro]
 msgid ""
-"Single-Material Only\n"
-"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+"Run Nylon & PC (and other advanced materials) Like a Pro\n"
+"Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
-"Csak egy anyag használata\n"
-"A Helio jelenleg egy anyagot és egy fúvókát szimulál feladatonként. A több anyagos vagy több extruderes G-kód hosszú szüneteket okoz, amelyek megtörik a hőátvitel folytonosságát, így az eredmények nem lennének relevánsak."
 
-#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
+#: (Safely)]
 msgid ""
-"One Plate per Job\n"
-"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+"Make Prints up to 30% Faster (Safely)\n"
+"Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
-"Egy tálca feladatonként\n"
-"Tölts fel G-kódot egyetlen tálcával — a több tálcás projektek még nem támogatottak, ezért csak az első tálca kerül feldolgozásra."
 
-#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: Tuning]
 msgid ""
-"What is the Thermal Quality Index?\n"
-"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+"Stop Wasting Precious Design Time on Tuning\n"
+"Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
-"Mi az a Hőminőségi Index?\n"
-"A Hőminőségi Index (skála –100-tól +100-ig) megmutatja, hogy az egyes területek milyen melegen vagy hidegen nyomtatnak – a zöld (≈ 0) az „ideális” zóna az erős, deformációmentes alkatrészekhez. Tartsd a legtöbb tárgyat a zöld zónában a legjobb eredmény érdekében."
 
-#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
+#: advanced materials]
 msgid ""
-"Voxel-Level Accuracy\n"
-"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+"Cut Warping on ASA/ABS and other advanced materials\n"
+"Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
-"Voxel szintű pontosság\n"
-"Minden egyes voxel hőmérsékletét minden időlépésben megjósoljuk, és a standard feladatok esetében az előrejelzés jellemzően ±5–10 °C-on belül van. A szünetek, az egyedi firmware vagy a szokatlan hűtés szélesítheti ezt a sávot."
 
-#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
-"Fan & Airflow Model\n"
-"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+"Quality Check Before You Hit Print\n"
+"Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
-"Ventilátor és légáramlás modell\n"
-"Egy egyszerűsített ventilátor- és helyiségmodell megmutatja, hogyan változtatják a hűtési beállítások a tárgyak hőmérsékletét anélkül, hogy időigényes CFD számításokra lenne szükség – nagyszerű a mindennapi finomhangoláshoz. A kamrában keletkező örvényeket még nem szimuláljuk, így a számítás gyorsan lefut."
 
-#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
-"TQI Limits Explained\n"
-"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+"Stronger Parts With One Click\n"
+"Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
-"TQI határértékek magyarázata\n"
-"-100 → túl hideg: a szakítószilárdság ~50%-kal alacsonyabb, mint az ideális 0 fokon nyomtatott tárgyaké (ASTM D638 kutyacsont-teszt). +100 → túl meleg: a rétegek olvadtak maradnak, és megereszkedhetnek vagy összeroskadhatnak. A maximális szilárdság és pontosság érdekében tartsd a 0 körüli értéket."
 
-#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
-"What Drives Runtime?\n"
-"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+"Save Money Every Run\n"
+"Faster + fewer failures = real savings."
 msgstr ""
-"Mi befolyásolja a futási időt?\n"
-"Az extra rétegek, a sűrű kitöltés, a sok apró ív (kis hálóelemek) vagy a nagyon lassú nyomtatási sebesség mind meghosszabbítják a szimulációs időt, mivel az algoritmusnak nagyobb időintervallumot kell feldolgoznia. A többmagos CPU-k vagy a CUDA GPU-k felgyorsítják a dolgokat."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
-"Nozzle Temp Range\n"
-"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+"First-Time-Right Reliability\n"
+"Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
-"Fúvóka hőmérsékleti tartomány\n"
-"A beállítási értékek 190 – 320 °C között vannak; a határokon kívüli értékeket a fizika realisztikus működésének érdekében korlátozzuk."
 
-#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
-msgid ""
-"Debugging Flowchart\n"
-"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-msgstr ""
-"Hibakeresési folyamatábra\n"
-"Nem világos, miért eltérő az eredmény? Kövesd lépésről lépésre a hibakeresési folyamatábránkat, hogy percek alatt feltérképezd a beállításokat, a G-kódot és az anyagproblémákat."
+#~ msgid "Helio does not support using a number of materials greater than 1."
+#~ msgstr "Helio nem támogatja egynél több anyag használatát."
 
-#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
-msgid ""
-"Why Cooling Varies\n"
-"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-msgstr ""
-"Miért változik a hűtés\n"
-"A külső falak és az áthidalások hűlnek a leggyorsabban, míg a vastag belső részek melegebbek maradnak – a geometria, a légáramlás és a mozgás útvonala mind szerepet játszanak, és a szimuláció ezeket a különbségeket megjeleníti."
+#~ msgid "Helio functions do not support the print sequence of \"ByObject\"."
+#~ msgstr "A Helio funkciók nem támogatják az „Objektumonként” nyomtatási sorrendet."
 
-#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
-msgid ""
-"Extrusion Temp Model\n"
-"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-msgstr ""
-"Extrúziós hőmérséklet modell\n"
-"Az anyagtulajdonságok alakítják az olvadási görbét, de a nyomtató geometriája dönti el, hogy a filament mennyi hőt vesz fel valójában, így a modell anyagspecifikus és a nyomtatóhoz kalibrált."
+#~ msgid "Third-party Extension"
+#~ msgstr "Harmadik féltől származó bővítmény"
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
-#: °C?]
-msgid ""
-"Nozzle setting of 190 °C vs 320 °C?\n"
-"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-msgstr ""
-"190 °C-os fúvókabeállítás 320 °C helyett?\n"
-"A 100 °C-os fúvókacsere csak a hőindexet befolyásolja, mivel az extrudálási hőmérséklet, az áramlási sebesség és az extrudálás utáni hűtés dominál a tárgyak hőelőzményében."
+#~ msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+#~ msgstr "Erősebb alkatrészek, kevesebb vetemedés, gyorsabb nyomtatás – gyors, fizikán alapuló végeselem-szimulációval"
 
-#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
-msgid ""
-"Bed Temperature influence\n"
-"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-msgstr ""
-"Az asztal hőmérséklet hatása\n"
-"Jelenleg csak az első réteg asztalhőmérséklete van hatással a modellre; a későbbi asztalhőmérséklet-változásokat még nem rögzíti a rendszer."
+#~ msgid "Uninstall the Helio Additive extension"
+#~ msgstr "A Helio Additive bővítmény eltávolítása"
 
-#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
-msgid ""
-"Actual Tool-Path\n"
-"Yes—your exact G-code path, speeds and fan commands are simulated."
-msgstr ""
-"Tényleges szerszámút\n"
-"Igen – a pontos G-kód útvonal, sebességek és ventilátorparancsok szimulálva vannak."
+#~ msgid "Use Immediately"
+#~ msgstr "Azonnali használat"
 
-#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
-msgid ""
-"Mesh Resolution\n"
-"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-msgstr ""
-"Hálófelbontás\n"
-"A voxelrács finomabb, mint a G-kód sortávolsága, így rétegenként rögzíti a részleteket számítási idő pazarlása nélkül."
+#~ msgid "Third-Party Extension"
+#~ msgstr "Harmadik féltől származó bővítmény"
 
-#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
-msgid ""
-"Shrinkage, Warping & Stress\n"
-"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-msgstr ""
-"Zsugorodás, vetemedés és feszültség\n"
-"A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+#~ msgid "Helio Additive third - party software service feature has been successfully enabled!"
+#~ msgstr "A Helio Additive harmadik féltől származó szoftverszolgáltatás engedélyezése sikeresen megtörtént!"
+
+#~ msgid "Privacy Policy of Helio Additive"
+#~ msgstr "A Helio Additive adatvédelmi irányelvei"
+
+#~ msgid "Terms of Use of Helio Additive"
+#~ msgstr "A Helio Additive felhasználási feltételei"
+
+#~ msgid "Agree and proceed"
+#~ msgstr "Elfogadom és folytatom"
+
+#~ msgid "Simulation"
+#~ msgstr "Szimuláció"
+
+#~ msgid "Optimization"
+#~ msgstr "Optimalizálás"
+
+#~ msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+#~ msgstr "Megjegyzés: Kérjük, a fenti hőmérsékletet a valóságnak megfelelően állítsd be. Minél pontosabbak az adatok, annál precízebb lesz az elemzés eredménye."
+
+#~ msgid "Monthly quota remaining: "
+#~ msgstr "Havi fennmaradó kvóta: "
+
+#~ msgid "Add-ons available: "
+#~ msgstr "Elérhető kiegészítők: "
+
+#~ msgid "Optimise Outer Walls"
+#~ msgstr "Külső falak optimalizálása"
+
+#~ msgid "Buy Now / Manage Account"
+#~ msgstr "Vásárlás / Fiókkezelés"
+
+#~ msgid "Start Simulation"
+#~ msgstr "Szimuláció indítása"
+
+#~ msgid "Start Optimization"
+#~ msgstr "Optimalizálás indítása"
+
+#~ msgid "Buy add-ons"
+#~ msgstr "Kiegészítők vásárlása"
+
+#~ msgid "Layers to Optimize "
+#~ msgstr "Optimalizálandó rétegek "
+
+#~ msgid ""
+#~ "Single-Material Only\n"
+#~ "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+#~ msgstr ""
+#~ "Csak egy anyag használata\n"
+#~ "A Helio jelenleg egy anyagot és egy fúvókát szimulál feladatonként. A több anyagos vagy több extruderes G-kód hosszú szüneteket okoz, amelyek megtörik a hőátvitel folytonosságát, így az eredmények nem lennének relevánsak."
+
+#~ msgid ""
+#~ "One Plate per Job\n"
+#~ "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+#~ msgstr ""
+#~ "Egy tálca feladatonként\n"
+#~ "Tölts fel G-kódot egyetlen tálcával — a több tálcás projektek még nem támogatottak, ezért csak az első tálca kerül feldolgozásra."
+
+#~ msgid ""
+#~ "What is the Thermal Quality Index?\n"
+#~ "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+#~ msgstr ""
+#~ "Mi az a Hőminőségi Index?\n"
+#~ "A Hőminőségi Index (skála –100-tól +100-ig) megmutatja, hogy az egyes területek milyen melegen vagy hidegen nyomtatnak – a zöld (≈ 0) az „ideális” zóna az erős, deformációmentes alkatrészekhez. Tartsd a legtöbb tárgyat a zöld zónában a legjobb eredmény érdekében."
+
+#~ msgid ""
+#~ "Voxel-Level Accuracy\n"
+#~ "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+#~ msgstr ""
+#~ "Voxel szintű pontosság\n"
+#~ "Minden egyes voxel hőmérsékletét minden időlépésben megjósoljuk, és a standard feladatok esetében az előrejelzés jellemzően ±5–10 °C-on belül van. A szünetek, az egyedi firmware vagy a szokatlan hűtés szélesítheti ezt a sávot."
+
+#~ msgid ""
+#~ "Fan & Airflow Model\n"
+#~ "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+#~ msgstr ""
+#~ "Ventilátor és légáramlás modell\n"
+#~ "Egy egyszerűsített ventilátor- és helyiségmodell megmutatja, hogyan változtatják a hűtési beállítások a tárgyak hőmérsékletét anélkül, hogy időigényes CFD számításokra lenne szükség – nagyszerű a mindennapi finomhangoláshoz. A kamrában keletkező örvényeket még nem szimuláljuk, így a számítás gyorsan lefut."
+
+#~ msgid ""
+#~ "TQI Limits Explained\n"
+#~ "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+#~ msgstr ""
+#~ "TQI határértékek magyarázata\n"
+#~ "-100 → túl hideg: a szakítószilárdság ~50%-kal alacsonyabb, mint az ideális 0 fokon nyomtatott tárgyaké (ASTM D638 kutyacsont-teszt). +100 → túl meleg: a rétegek olvadtak maradnak, és megereszkedhetnek vagy összeroskadhatnak. A maximális szilárdság és pontosság érdekében tartsd a 0 körüli értéket."
+
+#~ msgid ""
+#~ "What Drives Runtime?\n"
+#~ "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+#~ msgstr ""
+#~ "Mi befolyásolja a futási időt?\n"
+#~ "Az extra rétegek, a sűrű kitöltés, a sok apró ív (kis hálóelemek) vagy a nagyon lassú nyomtatási sebesség mind meghosszabbítják a szimulációs időt, mivel az algoritmusnak nagyobb időintervallumot kell feldolgoznia. A többmagos CPU-k vagy a CUDA GPU-k felgyorsítják a dolgokat."
+
+#~ msgid ""
+#~ "Nozzle Temp Range\n"
+#~ "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+#~ msgstr ""
+#~ "Fúvóka hőmérsékleti tartomány\n"
+#~ "A beállítási értékek 190 – 320 °C között vannak; a határokon kívüli értékeket a fizika realisztikus működésének érdekében korlátozzuk."
+
+#~ msgid ""
+#~ "Debugging Flowchart\n"
+#~ "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+#~ msgstr ""
+#~ "Hibakeresési folyamatábra\n"
+#~ "Nem világos, miért eltérő az eredmény? Kövesd lépésről lépésre a hibakeresési folyamatábránkat, hogy percek alatt feltérképezd a beállításokat, a G-kódot és az anyagproblémákat."
+
+#~ msgid ""
+#~ "Why Cooling Varies\n"
+#~ "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+#~ msgstr ""
+#~ "Miért változik a hűtés\n"
+#~ "A külső falak és az áthidalások hűlnek a leggyorsabban, míg a vastag belső részek melegebbek maradnak – a geometria, a légáramlás és a mozgás útvonala mind szerepet játszanak, és a szimuláció ezeket a különbségeket megjeleníti."
+
+#~ msgid ""
+#~ "Extrusion Temp Model\n"
+#~ "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+#~ msgstr ""
+#~ "Extrúziós hőmérséklet modell\n"
+#~ "Az anyagtulajdonságok alakítják az olvadási görbét, de a nyomtató geometriája dönti el, hogy a filament mennyi hőt vesz fel valójában, így a modell anyagspecifikus és a nyomtatóhoz kalibrált."
+
+#~ msgid ""
+#~ "Nozzle setting of 190 °C vs 320 °C?\n"
+#~ "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+#~ msgstr ""
+#~ "190 °C-os fúvókabeállítás 320 °C helyett?\n"
+#~ "A 100 °C-os fúvókacsere csak a hőindexet befolyásolja, mivel az extrudálási hőmérséklet, az áramlási sebesség és az extrudálás utáni hűtés dominál a tárgyak hőelőzményében."
+
+#~ msgid ""
+#~ "Bed Temperature influence\n"
+#~ "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+#~ msgstr ""
+#~ "Az asztal hőmérséklet hatása\n"
+#~ "Jelenleg csak az első réteg asztalhőmérséklete van hatással a modellre; a későbbi asztalhőmérséklet-változásokat még nem rögzíti a rendszer."
+
+#~ msgid ""
+#~ "Actual Tool-Path\n"
+#~ "Yes—your exact G-code path, speeds and fan commands are simulated."
+#~ msgstr ""
+#~ "Tényleges szerszámút\n"
+#~ "Igen – a pontos G-kód útvonal, sebességek és ventilátorparancsok szimulálva vannak."
+
+#~ msgid ""
+#~ "Mesh Resolution\n"
+#~ "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+#~ msgstr ""
+#~ "Hálófelbontás\n"
+#~ "A voxelrács finomabb, mint a G-kód sortávolsága, így rétegenként rögzíti a részleteket számítási idő pazarlása nélkül."
+
+#~ msgid ""
+#~ "Shrinkage, Warping & Stress\n"
+#~ "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+#~ msgstr ""
+#~ "Zsugorodás, vetemedés és feszültség\n"
+#~ "A hőindex szabályozásával kiküszöbölhetők a vetemedés és a feszültség hő okozta okai."
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+#~ msgstr "A jelenlegi anyag keménysége (%s) meghaladja a(z) %s(%s) keménységét. Ez fúvókakopást okozhat, ami anyagszivárgáshoz és instabil anyagáramláshoz vezethet."
+
+#~ msgid "Join Customer Experience Improvement Program."
+#~ msgstr "Csatlakozz a felhasználói élmény javítását célzó programhoz."
+
+#~ msgid "What data would be collected?"
+#~ msgstr "Milyen adatokat gyűjtünk?"
+
+#~ msgid "Performs full purging for the best print quality. Requires more material and time."
+#~ msgstr "Teljes átöblítést végez a legjobb nyomtatási minőség érdekében. Több anyagot és időt igényel."
+
+#~ msgid "Purge Saving"
+#~ msgstr "Takarékos átöblítés"
+
+#~ msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+#~ msgstr "Csökkenti a felesleges öblítést és gyorsabb nyomtatást tesz lehetővé. Enyhe színkeveredést vagy kisebb felületi hibákat okozhat."
+
+#~ msgid "Learn more about purge mode"
+#~ msgstr "Tudj meg többet az átöblítési módról"
+
+#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+#~ msgstr "Az ABS/ASA/PETG HF csak támaszanyagként használható a jobb oldali extruderben."
+
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4 férőhelyes AMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "1 férőhelyes AMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "AMS eltávolítása"
+
+#~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
+#~ msgstr "Nincs fúvóka, amely megegyezik a jelenlegi átmérővel. A folytatással automatikusan megváltoztatod az összes fúvóka átmérőjét"
+
+#~ msgid "Confirm Diameter Switch"
+#~ msgstr "Átmérőváltás megerősítése"
+
+#~ msgid "(Unavailable for right extruder)"
+#~ msgstr "(Nem elérhető a jobb oldali extruderhez)"
+
+#~ msgid "The TPU High Flow nozzle doesn't support auto filament switching, so only one filament can be assigned.\n"
+#~ msgstr "A TPU nagy áramlású fúvóka nem támogatja az automatikus filamentváltást, így csak egy filament rendelhető hozzá.\n"
+
+#~ msgid " filaments are assigned to the TPU High Flow nozzle"
+#~ msgstr " a filament a TPU nagy áramlású fúvókához van rendelve"
+
+#~ msgid "1. Filaments of different types cannot be matched."
+#~ msgstr "1. A különböző típusú filamentek nem párosíthatók."
+
+#~ msgid "2. Left nozzle filaments do not match the right nozzle."
+#~ msgstr "2. A bal oldali fúvóka filamentjei nem egyeznek a jobb oldali fúvókáéval."
+
+#~ msgid "To proceed, go to the Preparation page to change the filament or nozzle assignment, then slice again. Please refer to Wiki before use->"
+#~ msgstr "A folytatáshoz lépj az Előkészítés oldalra a filament vagy fúvóka kijelölésének módosításához, majd szeleteld újra a tárgyat. A részletekért lásd a Wiki-t ->"
+
+#~ msgid "Cooling heatbed"
+#~ msgstr "Tárgyasztal hűtése"
+
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Micro Lidar kalibrálás"
+
+#~ msgid "Bed leveling"
+#~ msgstr "Asztalszintezés"
+
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Magas hőmérsékletű tárgyasztal kalibrálás"
+
+#~ msgid "Nozzle clumping detection Calibration"
+#~ msgstr "Fúvókára tapadt anyag észlelésének kalibrálása"
+
+#~ msgid ""
+#~ "The color has been selected, you can choose OK \n"
+#~ " to continue or manually adjust it."
+#~ msgstr ""
+#~ "A szín kiválasztása megtörtént, az OK gombbal\n"
+#~ "folytathatod vagy beállíthatod kézzel."
+
+#, c-format, boost-format
+#~ msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+#~ msgstr "Megjegyzés: a filament típusa (%s) nem egyezik meg a szeletelt fájlban megadott filament típusával (%s). Ha ezt a férőhelyet szeretnéd használni, a(z) %s filament helyett töltsd be ezt: %s és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+
+#, c-format, boost-format
+#~ msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+#~ msgstr "Megjegyzés: a férőhely üres vagy nem definiált. Ha használni szeretnéd ezt a helyet, tölts be %s filamentet és változtasd meg a filamentinformációkat az „Eszköz” oldalon."
+
+#~ msgid "Note: Only filament-loaded slots can be selected."
+#~ msgstr "Megjegyzés: Csak olyan helyek választhatók ki, amelyekbe filament van betöltve."
+
+#~ msgid "Surround projection by char"
+#~ msgstr "A kivetítés körbevétele szöveggel"
+
+#~ msgid "Horizonal"
+#~ msgstr "Vízszintes"
+
+#~ msgid "Embeded depth"
+#~ msgstr "Beágyazás mélysége"
+
+#~ msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+#~ msgstr "Az AMS azonosító visszaállításra kerül. Ha egy adott azonosítósorozatot szeretnél, akkor a visszaállítás előtt válaszd le az összes AMS eszközt, majd a visszaállítás után a kívánt sorrendben csatlakoztasd őket."
+
+#~ msgid " Preparing Hotend"
+#~ msgstr " Hotend előkészítése"
+
+#~ msgid "This calibration does not support the currently selected nozzle diameter"
+#~ msgstr "Ezt a kalibrálást nem lehet elvégezni a kiválasztott fúvókaátmérővel"
+
+#~ msgid "Current flowrate cali param is invalid"
+#~ msgstr "Az anyagáramlás kalibrációs paramétere érvénytelen"
+
+#~ msgid "Selected diameter and machine diameter do not match"
+#~ msgstr "A kiválasztott átmérő és a nyomtatóban megadott átmérő nem egyezik"
+
+#~ msgid "Failed to generate cali gcode"
+#~ msgstr "Nem sikerült létrehozni a kalibrációs G-kódot"
+
+#~ msgid "Calibration error"
+#~ msgstr "Kalibrációs hiba"
+
+#~ msgid "Allow Prompt Sound"
+#~ msgstr "Hangjelzés engedélyezése"
+
+#, c-format, boost-format
+#~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
+#~ msgstr "Az aktuális anyag keménysége (%s) meghaladja a(z) %s (%s) keménységét. Kérjük, ellenőrizd a fúvóka vagy az anyag beállításait, és próbáld újra."
+
+#~ msgid "Grouping error: "
+#~ msgstr "Csoportosítási hiba: "
+
+#~ msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+#~ msgstr "Bekapcsol egy speciális hűtőventilátort az első pár rétegnél. A hűtőventilátor az első pár rétegnél kikapcsolva szokott lenni, hogy jobb legyen a tapadás"
+
+#~ msgid "Special cooling fan speed for the first certain layers"
+#~ msgstr "Egyedi hűtőventilátor sebesség az első pár rétegnél"
+
+#~ msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
+#~ msgstr "A PLA Glow érdes felülete felgyorsíthatja az AMS rendszer kopását, különösen az AMS Lite belső alkatrészein."
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Átméretezés a nyomtatótérhez"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Átméretez egy objektumot, hogy beférjen a nyomtatótérbe"
+
+#~ msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#~ msgstr "A hűtési mód alkalmas PLA/PETG/TPU anyagok nyomtatására."
+
+#, c-format, boost-format
+#~ msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+#~ msgstr "[ %s ] magas hőmérsékleten történő nyomtatást igényel. Kérjük, csukd be az ajtót."
+
+#~ msgid "High chamber temperature is required. Please close the door."
+#~ msgstr "Magas kamrahőmérséklet szükséges. Kérjük, csukd be az ajtót."
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "A bejelentkezés sikertelen. Kérjük, ellenőrizd a PIN-kódot."
+
+#~ msgid "Auto turn off filter on overheat"
+#~ msgstr "Szűrő automatikus kikapcsolása túlmelegedés esetén"
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Az érintkező réteg vonalai közötti távolság. A nulla szilárd kitöltést jelent"
+
+#~ msgid "This is  the number of layers of top bottom penetration."
+#~ msgstr "Megadja, hogy hány réteg mélységben kerül a festés alkalmazásra."
 
 #~ msgid "Distribute along Y axis"
 #~ msgstr "Egyenletes elosztás az Y tengely mentén"
@@ -15488,9 +16948,6 @@ msgstr ""
 
 #~ msgid "3.Using this software and services for any improper or illegal activities."
 #~ msgstr "3. A szoftver és a szolgáltatások használata bármilyen helytelen vagy illegális tevékenységre."
-
-#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-#~ msgstr "Ha megerősíted ennek a funkciónak az engedélyezését, azzal azt is megerősíted és elfogadod, hogy a fentiekben foglaltakkal egyetértesz."
 
 #~ msgid "Agree"
 #~ msgstr "Elfogadás"
@@ -17798,9 +19255,6 @@ msgstr ""
 #~ msgid "Split the selected object into mutiple parts"
 #~ msgstr "Szétválasztja a kijelölt objektumot több tárgyra"
 
-#~ msgid "Start"
-#~ msgstr "Indítás"
-
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Nyomtatás leállítása, ha spagettit vagy kidobónyílás eltömődést észlelt"
 
@@ -18374,9 +19828,6 @@ msgstr ""
 
 #~ msgid "you can always update Bambu Studio at your convenience. The slicer file will now be loaded without full functionality."
 #~ msgstr "A Bambu Studiót bármikor frissítheted. A szeletelőfájl teljes funkcionalitás nélkül töltődik be."
-
-#~ msgid "°C"
-#~ msgstr "°C"
 
 #~ msgid "⌘+Any arrow"
 #~ msgstr "⌘+Bármilyen nyíl gomb"

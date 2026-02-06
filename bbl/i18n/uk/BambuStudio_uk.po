@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 16:30+0800\n"
+"POT-Creation-Date: 2026-02-05 19:18+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -52,6 +52,25 @@ msgstr ""
 msgid "The current filament doesn't support the E3D high-flow nozzle and can't be used."
 msgstr ""
 
+#, c-format, boost-format
+msgid "When using %s on the right extruder, it can only be used as support material."
+msgstr ""
+
+msgid "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+msgstr ""
+
+msgid "Auto dynamic flow calibration is not supported for TPU filament."
+msgstr ""
+
+msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+msgstr ""
+
+msgid "How to feed TPU filament."
+msgstr ""
+
+msgid "Using non-bambu filament may have printing quality issues."
+msgstr ""
+
 msgid "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
 msgstr ""
 
@@ -61,19 +80,28 @@ msgstr "Вологий PVA стає гнучким і може застрягт�
 msgid "Damp PVA is flexible and may get stuck in extruder. Dry it before use."
 msgstr ""
 
-msgid "The rough surface of PLA Glow can accelerate wear on the AMS system, particularly on the internal components of the AMS Lite."
-msgstr ""
-
-msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-msgstr "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони можуть застряти в AMS, будьте обережні під час використання."
-
 msgid "PPS-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
 msgid "PPA-CF is brittle and could break in bended PTFE tube above Toolhead."
 msgstr ""
 
+msgid "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
+msgstr ""
+
 msgid "Default settings may affect print quality. Adjust as needed for best results."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
 msgstr ""
 
 #, c-format, boost-format
@@ -110,8 +138,14 @@ msgstr ""
 msgid "Standard"
 msgstr "Стандартний"
 
+msgid "TPU High Flow"
+msgstr ""
+
 msgid "Unknown"
 msgstr "Невідомий"
+
+msgid "Hybrid"
+msgstr ""
 
 msgid "Hardened Steel"
 msgstr "Закалена сталь"
@@ -546,19 +580,28 @@ msgstr "Координати об’єкта"
 msgid "World coordinates"
 msgstr "Світові координати"
 
+msgid "Align selected"
+msgstr ""
+
 msgid "Translate(Relative)"
 msgstr ""
 
+msgid "Align Object"
+msgstr ""
+
+msgid "Align Plate"
+msgstr ""
+
 msgid "Align top-bottom center"
+msgstr ""
+
+msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
 msgid "Align"
 msgstr ""
 
 msgid "Distribute"
-msgstr ""
-
-msgid "Holded down Ctrl key continuously and click by left mouse button can select multiple objects, or holded down Alt key continuously and click by left mouse button can select multiple parts"
 msgstr ""
 
 msgid "Align left"
@@ -1213,7 +1256,7 @@ msgstr "Модифікатор"
 msgid "Click to change part type into modifier."
 msgstr "Натисніть, щоб змінити тип частини на модифікатор."
 
-msgid "Surround projection by char"
+msgid "Surround projection by character"
 msgstr ""
 
 msgid "Not surround"
@@ -1223,9 +1266,6 @@ msgid "Surround surface"
 msgstr ""
 
 msgid "Surround"
-msgstr ""
-
-msgid "Horizonal"
 msgstr ""
 
 msgid "Reset rotation"
@@ -1251,7 +1291,7 @@ msgstr "Введення тексту"
 msgid "Advanced"
 msgstr "Додатково"
 
-msgid "Embeded depth"
+msgid "Embedded depth"
 msgstr ""
 
 msgid "Text Gap"
@@ -2030,11 +2070,11 @@ msgstr "Філамент %d"
 msgid "current"
 msgstr "поточний"
 
-msgid "Scale to build volume"
-msgstr "Масштабування для збільшення обсягу"
+msgid "Scale to print volume"
+msgstr ""
 
-msgid "Scale an object to fit the build volume"
-msgstr "Відмасштабувати під область друку"
+msgid "Scale the selected object to fit the print volume"
+msgstr ""
 
 msgid "Flush Options"
 msgstr "Варіанти скидання"
@@ -2171,6 +2211,18 @@ msgstr "Авто-поворот"
 msgid "auto rotate current plate"
 msgstr "автоповорот поточної пластини"
 
+msgid "Expand all"
+msgstr ""
+
+msgid "Expand all objects on this plate"
+msgstr ""
+
+msgid "Collapse all"
+msgstr ""
+
+msgid "Collapse all objects on this plate"
+msgstr ""
+
 msgid "Delete Plate"
 msgstr "Видалити пластину"
 
@@ -2185,6 +2237,12 @@ msgstr "Клонування"
 
 msgid "Simplify Model"
 msgstr "Спростити модель"
+
+msgid "Subdivision mesh"
+msgstr ""
+
+msgid "(Lost color)"
+msgstr ""
 
 msgid "Center"
 msgstr "Центр"
@@ -2388,9 +2446,6 @@ msgstr "Якщо перший вибраний елемент є об’єкто
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "Якщо перший вибраний елемент є частиною, другий також має бути частиною того ж об’єкта."
 
-msgid "The type of the last solid object part is not to be changed."
-msgstr "Тип останньої твердотільної частини об'єкта не можна змінювати."
-
 msgid "Negative Part"
 msgstr "Негативна частина"
 
@@ -2405,6 +2460,9 @@ msgstr "Тип:"
 
 msgid "Choose part type"
 msgstr "Виберіть тип деталі"
+
+msgid "The type of the last solid object part is not to be changed."
+msgstr "Тип останньої твердотільної частини об'єкта не можна змінювати."
 
 msgid "Enter new name"
 msgstr "Введіть нове ім'я"
@@ -2424,6 +2482,17 @@ msgstr[1] "Не вдалося відремонтувати наступний �
 
 msgid "Repairing was canceled"
 msgstr "Ремонт було скасовано"
+
+#, c-format, boost-format
+msgid "\"%s\" will exceed 1 million faces after this subdivision, which may increase slicing time. Do you want to continue?"
+msgstr ""
+
+msgid "BambuStudio warning"
+msgstr ""
+
+#, c-format, boost-format
+msgid "\"%s\" part's mesh contains errors. Please repair it first."
+msgstr ""
 
 msgid "Additional process preset"
 msgstr "Додаткове попереднє встановлення процесу"
@@ -2526,6 +2595,9 @@ msgstr "Користувацький шаблон:"
 
 msgid "Custom G-code:"
 msgstr "G-код користувача:"
+
+msgid "Toggle path view to current layer/all layers"
+msgstr ""
 
 msgid "Custom G-code"
 msgstr "G-код користувача"
@@ -2684,7 +2756,12 @@ msgstr ""
 msgid "Strong cooling mode is suitable for printing PLA/TPU materials. In this mode, the printouts will be fully cooled."
 msgstr ""
 
-msgid "Cooling mode is suitable for printing PLA/PETG/TPU materials."
+#, c-format, boost-format
+msgid "Cooling mode is suitable for printing %s materials."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
 msgctxt "air_duct"
@@ -2697,6 +2774,10 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Chamber"
 msgstr ""
 
 msgid "Hotend"
@@ -3120,6 +3201,12 @@ msgstr "Встановлення інформації про віртуальн�
 msgid "Are you sure you want to clear the filament information?"
 msgstr "Ви впевнені, що хочете видалити інформацію про нитки?"
 
+msgid "TPU needs a different feeding path and loading procedure. Otherwise clogging or jam may happen. Please read the tutorial before using TPU."
+msgstr ""
+
+msgid "Go to Check"
+msgstr ""
+
 msgid "You need to select the material type and color first."
 msgstr "Спочатку потрібно вибрати тип матеріалу та колір."
 
@@ -3130,9 +3217,6 @@ msgstr "Будь ласка, введіть допустиме значення 
 #, c-format, boost-format
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Будь ласка, введіть допустиме значення (K у межах %.1f~%.1f, N у межах %.1f~%.1f)"
-
-msgid "Standard Flow"
-msgstr ""
 
 msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
@@ -3258,10 +3342,13 @@ msgstr ""
 msgid "Right AMS"
 msgstr ""
 
-msgid "Left Nozzle"
+msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
 msgstr ""
 
-msgid "Right Nozzle"
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
 msgstr ""
 
 msgid "Nozzle"
@@ -3281,14 +3368,18 @@ msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
+msgid "Tips: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
 #, c-format, boost-format
-msgid "Note: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgid "Cannot select: the filament type(%s) does not match with the filament type(%s) in the slicing file. If you want to use this slot, you can install %s instead of %s and change slot information on the 'Device' page."
 msgstr ""
 
-msgid "Note: Only filament-loaded slots can be selected."
+#, c-format, boost-format
+msgid "Cannot select: the slot is empty or undefined. If you want to use this slot, you can install %s and change slot information on the 'Device' page."
+msgstr ""
+
+msgid "Cannot select: No filament loaded in current slot."
 msgstr ""
 
 msgid "Enable AMS"
@@ -3430,7 +3521,13 @@ msgstr ""
 msgid "Arrange AMS Order"
 msgstr ""
 
-msgid "AMS ID will be reset. If you want a specific ID sequence, disconnect all AMS before resetting and connect them in the desired order after resetting."
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr ""
+
+msgid "Are you sure to reset the ID sequence of the connected AMS?"
+msgstr ""
+
+msgid "Reset AMS Sequence"
 msgstr ""
 
 msgid "File"
@@ -3649,6 +3746,18 @@ msgid ""
 msgstr ""
 "Занадто маленька відстань для згладжування.\n"
 "Скинути на 0,1"
+
+msgid ""
+"Too small support ironing spacing.\n"
+"Reset to 0.1"
+msgstr ""
+
+msgid ""
+"Support ironing will not work with sparse support interface.\n"
+"Do you want to adjust the support interface config to use ironing?\n"
+"Yes: make the support interface solid.\n"
+"No: disable the support ironing."
+msgstr ""
 
 msgid ""
 "Zero initial layer height is invalid.\n"
@@ -3909,7 +4018,7 @@ msgstr ""
 msgid "Heating chamber"
 msgstr ""
 
-msgid "Cooling heatbed"
+msgid "Adjusting heatbed temperature"
 msgstr ""
 
 msgid "Printing calibration lines"
@@ -3948,13 +4057,16 @@ msgstr ""
 msgid "Waiting for the Chamber temperature to equalize"
 msgstr ""
 
-msgid " Preparing Hotend"
+msgid "Preparing Hotend"
 msgstr ""
 
 msgid "Calibrating the detection position of nozzle clumping"
 msgstr ""
 
 msgid "Purifying the chamber air"
+msgstr ""
+
+msgid "Preparing AMS"
 msgstr ""
 
 msgid "Timelapse is not supported on this printer."
@@ -3991,21 +4103,6 @@ msgstr "Якщо ви встановите температуру камери �
 
 msgid "Failed to start printing job"
 msgstr "Не вдалося запустити завдання друку"
-
-msgid "This calibration does not support the currently selected nozzle diameter"
-msgstr "Калібрування не підтримує обраний діаметр сопла"
-
-msgid "Current flowrate cali param is invalid"
-msgstr "Поточний параметр калібрування витрати недійсний"
-
-msgid "Selected diameter and machine diameter do not match"
-msgstr "Обраний діаметр і діаметр пристрою не відповідають один одному"
-
-msgid "Failed to generate cali gcode"
-msgstr "Не вдалося створити Gcode для калібрування"
-
-msgid "Calibration error"
-msgstr "Помилка калібрування"
 
 msgid "Resume Printing"
 msgstr "Відновити друк"
@@ -4082,6 +4179,12 @@ msgstr "Продовжити"
 msgid "Unknown error."
 msgstr ""
 
+msgid "Loading ..."
+msgstr ""
+
+msgid "Network unavailable"
+msgstr ""
+
 msgid "default"
 msgstr "за замовчуванням"
 
@@ -4124,6 +4227,28 @@ msgid "Invalid format. Expected vector format: \"%1%\""
 msgstr "Невірний формат. Очікуваний векторний формат: \"%1%\""
 
 msgid "Clear color"
+msgstr ""
+
+msgid "L"
+msgstr ""
+
+msgid "R"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s %s:"
+msgstr ""
+
+msgid "Std"
+msgstr ""
+
+msgid "HF"
+msgstr ""
+
+msgid "L:"
+msgstr ""
+
+msgid "R:"
 msgstr ""
 
 msgid "Loading G-codes"
@@ -4263,6 +4388,9 @@ msgstr "Загальний час"
 
 msgid "Filament change times"
 msgstr "Час зміни філаменту"
+
+msgid "View Summary"
+msgstr ""
 
 msgid "Color change"
 msgstr "Зміна кольору"
@@ -4697,6 +4825,9 @@ msgstr "філаменти %s не можуть бути надруковані 
 msgid "PLA and PETG filaments detected in the mixture. Adjust parameters according to the Wiki to ensure print quality."
 msgstr ""
 
+msgid "The prime tower improves multi-color print quality and is recommended."
+msgstr ""
+
 msgid "The prime tower extends beyond the plate boundary."
 msgstr ""
 
@@ -4705,6 +4836,9 @@ msgstr ""
 
 msgid "Click Wiki for help."
 msgstr "Натисніть Wiki для допомоги."
+
+msgid "Jump to: Prime tower"
+msgstr ""
 
 msgid "Click here to regroup"
 msgstr "Натисніть тут щоб перегрупувати"
@@ -4715,16 +4849,25 @@ msgstr ""
 msgid "Calibration step selection"
 msgstr "Вибір етапу калібрування"
 
-msgid "Micro lidar calibration"
-msgstr "Калібрування мікролідара"
+msgid "Micro Lidar Calibration"
+msgstr ""
 
-msgid "Bed leveling"
-msgstr "Вирівнювання столу"
+msgid "Auto Bed Leveling"
+msgstr ""
 
-msgid "High-temperature Heatbed Calibration"
-msgstr "Високотемпературне калібрування гарячого ліжка"
+msgid "Vibration Compensation"
+msgstr ""
 
-msgid "Nozzle clumping detection Calibration"
+msgid "Motor Noise Cancellation"
+msgstr ""
+
+msgid "Nozzle Offset Calibration"
+msgstr ""
+
+msgid "High-temperature Bed Leveling"
+msgstr ""
+
+msgid "Nozzle Clumping Detection Calibration"
 msgstr ""
 
 msgid "Calibration program"
@@ -4827,6 +4970,9 @@ msgstr "Ні"
 
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "буде закрито перед створенням нової моделі. Ви хочете продовжувати?"
+
+msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
+msgstr ""
 
 msgid "Slice plate"
 msgstr "Нарізати моделі"
@@ -5710,6 +5856,12 @@ msgstr ""
 msgid "Printing Progress"
 msgstr "Хід друку"
 
+msgid "Pausing"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
 msgid "Parts Skip"
 msgstr ""
 
@@ -5750,6 +5902,22 @@ msgstr "(Модель вже була оцінена. Ваша оцінка пе
 
 msgid "Rate"
 msgstr "Оцінити"
+
+#, c-format, boost-format
+msgid "%dday%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dh%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%dmin%ds"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%ds"
+msgstr ""
 
 msgid "Finished"
 msgstr "Завершено"
@@ -5815,6 +5983,12 @@ msgid "Current slot has alread been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
+msgstr ""
+
+msgid "No extruder found for the selected slot."
+msgstr ""
+
+msgid "The selected slot is not loaded in the extruder."
 msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
@@ -6279,6 +6453,21 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Ніз"
 
+msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
+msgstr ""
+
+msgid "Confirm Enable Print Status Snapshot"
+msgstr ""
+
+msgid "Unavailable during the task"
+msgstr ""
+
+msgid "Purifies the chamber air as the print finishes, based on the selected mode."
+msgstr ""
+
+msgid "Purifies the chamber air through internal circulation as each print finishes."
+msgstr ""
+
 msgid "Enable detection of build plate position"
 msgstr "Увімкнути визначення положення робочого столу"
 
@@ -6344,6 +6533,12 @@ msgstr ""
 msgid "First Layer Inspection"
 msgstr "Перевірка першого шару"
 
+msgid "Purify Air at Print End"
+msgstr ""
+
+msgid "Internal Circulation"
+msgstr ""
+
 msgid "Auto-recovery from step loss"
 msgstr "Автоматичне відновлення після втрати кроку"
 
@@ -6353,8 +6548,8 @@ msgstr ""
 msgid "Save the printing files initiated from Bambu Studio, Bambu Handy and MakerWorld on External Storage"
 msgstr ""
 
-msgid "Allow Prompt Sound"
-msgstr "Дозволити звук підказки"
+msgid "Enable notification sounds"
+msgstr ""
 
 msgid "Filament Tangle Detect"
 msgstr "Виявлення заплутування філаменту"
@@ -6365,10 +6560,19 @@ msgstr ""
 msgid "Open Door Detection"
 msgstr ""
 
+msgid "Choose the behavior when the door is opened during tasks."
+msgstr ""
+
 msgid "Notification"
 msgstr ""
 
 msgid "Pause printing"
+msgstr ""
+
+msgid "Print Status Snapshot"
+msgstr ""
+
+msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
 msgstr ""
 
 msgctxt "Nozzle Type"
@@ -6389,10 +6593,19 @@ msgstr ""
 msgid "View wiki"
 msgstr ""
 
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
 msgid "Brass"
 msgstr "Латунь"
 
 msgid "High flow"
+msgstr ""
+
+msgid "TPU High flow"
 msgstr ""
 
 msgid "No wiki link available for this printer."
@@ -6443,6 +6656,9 @@ msgstr ""
 msgid "Unlock current plate"
 msgstr ""
 
+msgid "Lock current plate"
+msgstr ""
+
 msgid "Edit filament grouping"
 msgstr ""
 
@@ -6472,6 +6688,13 @@ msgstr ""
 
 #, boost-format
 msgid "%1% with %2%\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The %s nozzle does not support automatic filament switching.\n"
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
 #, boost-format
@@ -6627,6 +6850,9 @@ msgstr ""
 msgid "Restore"
 msgstr "Відновити"
 
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr ""
+
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "Поточна температура гарячого ложа висока. При друку цим філаментом в закритому приміщенні може статися забивання сопла. Будь ласка, відкрийте передню дверцю та/або видаліть верхнє скло."
 
@@ -6672,6 +6898,9 @@ msgstr "Через застарілу версію Bambu Studio цей файл 
 
 msgid "Found following keys unrecognized:\n"
 msgstr "Знайдені наступні невпізнані ключі:\n"
+
+msgid "The 3mf is not from Bambu Lab, load geometry data and color data only."
+msgstr ""
 
 msgid "The 3mf is generated by old Bambu Studio, load geometry data only."
 msgstr "3mf генерується старим слайсером Orca, завантажувати лише дані геометрії."
@@ -6845,9 +7074,85 @@ msgstr "Неправильні дані"
 msgid "Slicing Canceled"
 msgstr "Нарізка скасована"
 
+msgid "Great! Now click the Helio button to start optimization."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Пластина для нарізки %d"
+
+msgid "Multiple Filament Materials Detected"
+msgstr ""
+
+msgid "⚠ Multiple Filament Materials Detected"
+msgstr ""
+
+msgid " (unsupported)"
+msgstr ""
+
+msgid "Multicolour simulation currently supports only a single filament material.\n"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You have selected multiple materials: %s"
+msgstr ""
+
+msgid ""
+"\n"
+"\n"
+"Note: Unsupported materials will use the selected reference material for simulation."
+msgstr ""
+
+msgid "True multi-material support will be added in a future update."
+msgstr ""
+
+msgid "Option 1: Proceed using a single filament type"
+msgstr ""
+
+msgid "Select which filament to use for simulation:"
+msgstr ""
+
+msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
+msgstr ""
+
+msgid "Proceed Anyway"
+msgstr ""
+
+msgid "Option 2: Go back and change filament selection"
+msgstr ""
+
+msgid "✓ Recommended"
+msgstr ""
+
+msgid "Change your filament selection to use the same type for all colours, then try again."
+msgstr ""
+
+msgid "See supported materials"
+msgstr ""
+
+msgid "Go Back"
+msgstr ""
+
+msgid "Unsupported Materials Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Materials Detected"
+msgstr ""
+
+msgid "Some of your selected materials are not directly supported by Helio:\n"
+msgstr ""
+
+msgid "Option 1: Proceed with a reference material"
+msgstr ""
+
+msgid "Select a similar material type to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference material may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Change your filament selection to use a supported material, then try again."
+msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr ""
@@ -6855,17 +7160,88 @@ msgstr ""
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr ""
 
+#, c-format, boost-format
+msgid ""
+"Helio found a potential printer match using token-based matching:\n"
+"\n"
+"Your printer: %s\n"
+"Matched printer: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your printer profile?"
+msgstr ""
+
+msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+msgid "Unsupported Printer Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Printer Detected"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You're using %s which is not officially supported by Helio."
+msgstr ""
+
+msgid "Option 1: Proceed with a reference printer"
+msgstr ""
+
+msgid "Select a similar printer to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference printer may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Option 2: Go back and change printer selection"
+msgstr ""
+
+msgid "Change your printer selection to use a supported printer, then try again."
+msgstr ""
+
+msgid "See supported printers"
+msgstr ""
+
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr ""
 
-msgid "Helio does not support using a number of materials greater than 1."
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+msgid "Unsupported Material Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Material Detected"
+msgstr ""
+
+msgid "Choose a Reference Material"
 msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr ""
 
-msgid "Helio functions do not support the print sequence of \"ByObject\"."
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
+msgstr ""
+
+msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr ""
 
 msgid ""
@@ -7411,6 +7787,12 @@ msgstr "Встановіть розмір захоплювача для інст
 msgid "Value range"
 msgstr "Діапазон значень"
 
+msgid "Tooltip offset"
+msgstr ""
+
+msgid "Set tooltip offset for different mouse size."
+msgstr ""
+
 msgid "Presets"
 msgstr "Пресети"
 
@@ -7510,11 +7892,12 @@ msgstr ""
 msgid "User Experience"
 msgstr "User Experience"
 
-msgid "Join Customer Experience Improvement Program."
-msgstr "Програма покращення взаємодії з користувачем."
+msgid "Join the User Experience Improvement Program."
+msgstr ""
 
-msgid "What data would be collected?"
-msgstr "Яка інформація буде зібрана?"
+msgctxt "Preferences"
+msgid "Learn more"
+msgstr ""
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr ""
@@ -7904,7 +8287,7 @@ msgstr ""
 msgid "Your filament grouping method in the sliced file is not optimal."
 msgstr ""
 
-msgid "Auto Bed Leveling"
+msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
 msgid ""
@@ -7918,9 +8301,6 @@ msgstr "Калібрування динаміки потоку"
 msgid ""
 "This process determines the dynamic flow values to improve overall print quality.\n"
 "*Automatic mode: Skip if the filament was calibrated recently."
-msgstr ""
-
-msgid "Nozzle Offset Calibration"
 msgstr ""
 
 msgid ""
@@ -8007,7 +8387,7 @@ msgid "both extruders"
 msgstr ""
 
 #, c-format, boost-format
-msgid "[ %s ] requires printing in a high-temperature environment.Please close the door."
+msgid "[ %s ] requires printing in a high-temperature environment. Reminder to close the door if not already closed."
 msgstr ""
 
 #, c-format, boost-format
@@ -8061,10 +8441,6 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr ""
 
 #, c-format, boost-format
-msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). Please verify the nozzle or material settings and try again."
-msgstr ""
-
-#, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
 
@@ -8081,6 +8457,13 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The current nozzle mapping may produce an extra %0.2f g of waste."
+msgstr ""
+
+msgid "Your current firmware version cannot start this print job. Please update to the latest version and try again."
+msgstr ""
+
+#, c-format, boost-format
+msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
 
 msgid "Cool"
@@ -8164,9 +8547,6 @@ msgstr "Цей принтер не підтримує друк всіх плас
 msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr ""
 
-msgid "High chamber temperature is required. Please close the door."
-msgstr ""
-
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
 
@@ -8174,6 +8554,9 @@ msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "How to install"
+msgstr ""
+
+msgid "Upgrade"
 msgstr ""
 
 msgid "Current firmware does not support file transfer to internal storage."
@@ -8279,8 +8662,11 @@ msgstr "Прив’язка…"
 msgid "Please confirm on the printer screen"
 msgstr "Будь ласка, підтвердьте на екрані принтера"
 
-msgid "Log in failed. Please check the Pin Code."
-msgstr "Вхід не вдається. Будь ласка, перевірте Пін-код."
+msgid ""
+"Login failed. Please check the following items:\n"
+"1. Ensure the Pin code is entered correctly.\n"
+"2. Confirm that the region settings of the printer and Bambu Studio are consistent."
+msgstr ""
 
 msgid "Log in printer"
 msgstr "Авторизуватися на принтері"
@@ -8505,6 +8891,9 @@ msgstr "Підкладка"
 
 msgid "Support filament"
 msgstr "Філамент підтримки"
+
+msgid "Support ironing"
+msgstr ""
 
 msgid "Tree Support"
 msgstr "Деревоподібна підтримка"
@@ -9040,6 +9429,9 @@ msgstr ""
 msgid "Obj file Import color"
 msgstr "Імпорт кольору файлу OBJ"
 
+msgid "Standard 3mf Import color"
+msgstr ""
+
 msgid "Some faces don't have color defined."
 msgstr ""
 
@@ -9070,6 +9462,28 @@ msgstr ""
 msgid "Quick set"
 msgstr ""
 
+msgid "There are color input errors."
+msgstr ""
+
+msgid "Texture import is temporarily unavailable, partial coloring is automatically replaced with the default color."
+msgstr ""
+
+msgid " And "
+msgstr ""
+
+msgid "Note"
+msgstr ""
+
+msgid "The color has been selected, you can choose OK to continue or manually adjust it."
+msgstr ""
+
+msgctxt "ObjImport"
+msgid "Original"
+msgstr ""
+
+msgid "After mapping"
+msgstr ""
+
 msgid "Color match"
 msgstr "Відповідність кольору"
 
@@ -9085,14 +9499,6 @@ msgstr ""
 msgid "Reset mapped extruders."
 msgstr "Скинути відображені екструдери."
 
-msgid "Note"
-msgstr ""
-
-msgid ""
-"The color has been selected, you can choose OK \n"
-" to continue or manually adjust it."
-msgstr ""
-
 msgid "—> "
 msgstr ""
 
@@ -9103,9 +9509,6 @@ msgstr ""
 
 msgctxt "Sync_AMS"
 msgid "Original"
-msgstr ""
-
-msgid "After mapping"
 msgstr ""
 
 msgid "After overwriting"
@@ -9574,43 +9977,52 @@ msgstr ""
 msgid "reconnect"
 msgstr ""
 
-msgid "Third-party Extension"
+msgid "Welcome to Helio Additive"
 msgstr ""
 
-msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+msgid "Know Your Print Will Work — Before You Hit Print"
 msgstr ""
 
-msgid "Uninstall the Helio Additive extension"
+msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
 msgstr ""
 
-msgid "Use Immediately"
+msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
 msgstr ""
 
-msgid "Third-Party Extension"
+msgid "Fewer Failed Prints"
 msgstr ""
 
-msgid "HELIO ADDITIVE"
+msgid "Catch issues before printing and improve first-try success."
 msgstr ""
 
-msgid "Helio Additive third - party software service feature has been successfully enabled!"
+msgid "Faster Prints, Better Quality"
 msgstr ""
 
-msgid "Helio-PAT"
+msgid "Automatically tune speed and extrusion without manual tweaking."
 msgstr ""
 
-msgid "Copy successful!"
+msgid "Enable Helio Additive"
 msgstr ""
 
-msgid "Helio Additive"
+msgid "Uninstall"
 msgstr ""
 
-msgid "Privacy Policy of Helio Additive"
+msgid "After slicing, click the Helio button to analyze your print."
 msgstr ""
 
-msgid "Terms of Use of Helio Additive"
+msgid "Helio Additive does not change your printer's firmware."
 msgstr ""
 
-msgid "Agree and proceed"
+msgid "Designed to help prints succeed — even if you're new to 3D printing."
+msgstr ""
+
+msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
+msgstr ""
+
+msgid "Uninstall Helio Additive"
+msgstr ""
+
+msgid "Legal & Activation Terms"
 msgstr ""
 
 msgid "Got it"
@@ -9622,10 +10034,142 @@ msgstr ""
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr ""
 
-msgid "Simulation"
+msgid "You are activating Helio Additive's advanced simulation services."
 msgstr ""
 
-msgid "Optimization"
+msgid "Software Service Terms && Conditions"
+msgstr ""
+
+msgid "^"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr ""
+
+msgid "Helio Additive Privacy Agreement"
+msgstr ""
+
+msgid "Helio Additive User Agreement"
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
+msgstr ""
+
+msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
+msgstr ""
+
+msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
+msgstr ""
+
+msgid " and refer to the "
+msgstr ""
+
+msgid " and "
+msgstr ""
+
+msgid " for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
+msgstr ""
+
+msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
+msgstr ""
+
+msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
+msgstr ""
+
+msgid "3. Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr ""
+
+msgid "Special Note && Privacy Policy"
+msgstr ""
+
+msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
+msgstr ""
+
+msgid ""
+"I have read and agree to the terms\n"
+"and policies."
+msgstr ""
+
+msgid "Agree and Proceed"
+msgstr ""
+
+msgid "Activation Successful!"
+msgstr ""
+
+msgid "Helio Additive is now active. You have unlocked free optimizations!"
+msgstr ""
+
+msgid "Applies only when first activated"
+msgstr ""
+
+msgid "Run Your First Optimization"
+msgstr ""
+
+msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
+msgstr ""
+
+msgid ""
+"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
+"\n"
+msgstr ""
+
+msgid "Supported printers and materials"
+msgstr ""
+
+msgid "Copy PAT"
+msgstr ""
+
+msgid ""
+"Personal Access Token (PAT)\n"
+"\n"
+"A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.\n"
+"\n"
+"You may need to copy this to:\n"
+"• Integrate Helio with other slicers or tools\n"
+"• Use the Helio API directly\n"
+"• Provide to support when troubleshooting"
+msgstr ""
+
+msgid "Copy successful!"
+msgstr ""
+
+msgid "History"
+msgstr ""
+
+msgid "View and download recent optimizations and simulations"
+msgstr ""
+
+msgid "Terms of Use"
+msgstr ""
+
+msgid "Activation Successful"
+msgstr ""
+
+msgid "Assess"
+msgstr ""
+
+msgid "Formerly referred to as 'Simulate' or 'Simulation'"
+msgstr ""
+
+msgid "See where it will fail"
+msgstr ""
+
+msgid "Enhance"
+msgstr ""
+
+msgid "Formerly referred to as 'Optimize' or 'Optimization'"
+msgstr ""
+
+msgid "Auto-fix with new speeds"
 msgstr ""
 
 msgid "Environment Temperature"
@@ -9634,19 +10178,46 @@ msgstr ""
 msgid "Chamber Temperature"
 msgstr ""
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
+msgstr ""
+
+msgid "Optional. More accurate temperatures ensures better results."
 msgstr ""
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr ""
 
-msgid "Monthly quota remaining: "
+msgid "Account Status"
 msgstr ""
 
-msgid "Add-ons available: "
+msgid "Subscription:"
 msgstr ""
 
-msgid "Optimise Outer Walls"
+msgid "Loading subscription status..."
+msgstr ""
+
+msgid "Monthly quota:"
+msgstr ""
+
+msgid "Add-ons:"
+msgstr ""
+
+msgid "Plans / Upgrades"
+msgstr ""
+
+msgid "Manage Account"
+msgstr ""
+
+msgid "Environment Settings"
+msgstr ""
+
+msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
+msgstr ""
+
+msgid "Optimization Settings"
+msgstr ""
+
+msgid "Now referred to as 'Enhance' or 'Enhancement'"
 msgstr ""
 
 msgid "Helio default (recommended)"
@@ -9656,6 +10227,9 @@ msgid "Slicer default"
 msgstr ""
 
 msgid "Limits"
+msgstr ""
+
+msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
 msgstr ""
 
 msgid "Min Velocity"
@@ -9673,25 +10247,94 @@ msgstr "Максимальна об’ємна швидкість"
 msgid "Last Trace ID: "
 msgstr ""
 
-msgid "Buy Now / Manage Account"
-msgstr ""
-
 msgid "Click for more details"
 msgstr ""
 
-msgid "Start Simulation"
+msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
 msgstr ""
 
-msgid "Start Optimization"
+msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
 msgstr ""
 
-msgid "Buy add-ons"
+msgid "Start Free Trial"
 msgstr ""
 
-msgid "Layers to Optimize "
+msgid "Activate your free trial to unlock premium enhancements"
+msgstr ""
+
+msgid "Go to our storefront to purchase more enhancements"
+msgstr ""
+
+msgid "Free Trial"
+msgstr ""
+
+msgid "Free Trial Expired"
+msgstr ""
+
+msgid "Your free trial has ended. Explore our plans to continue using premium features."
+msgstr ""
+
+msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
+msgstr ""
+
+msgid "Unlimited*"
+msgstr ""
+
+msgid "*Fair usage terms apply - click to learn more"
+msgstr ""
+
+msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
+msgstr ""
+
+msgid "Print Priority"
+msgstr ""
+
+msgid "Loading print priority options..."
+msgstr ""
+
+msgid "Fetching material-specific options from Helio API..."
+msgstr ""
+
+msgid "Preserve Surface Finish"
+msgstr ""
+
+msgid "Speed & Strength"
+msgstr ""
+
+msgid ""
+"Speed & Strength: Optimizes outer walls for improved performance.\n"
+"Preserve Surface Finish: Maintains original wall speeds to preserve visual finish.\n"
+"\n"
+"Note: Using fallback options - couldn't fetch material-specific settings from API."
+msgstr ""
+
+msgid "No print priority options available for this material"
+msgstr ""
+
+msgid "This material does not support print priority optimization."
+msgstr ""
+
+msgid "Optimizes outer walls for improved performance."
+msgstr ""
+
+msgid "Maintains original wall speeds to preserve visual finish."
+msgstr ""
+
+msgid "Enhance Surface Gloss"
+msgstr ""
+
+msgid "Optimizes for enhanced surface gloss."
+msgstr ""
+
+msgid ""
+"Failed to load print priority options from Helio API.\n"
+"Using standard optimization method instead (same as before print priority feature)."
 msgstr ""
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
+msgstr ""
+
+msgid "HELIO ADDITIVE"
 msgstr ""
 
 msgid "Print Time Improvement"
@@ -9703,7 +10346,130 @@ msgstr ""
 msgid "Consistency Improvement"
 msgstr ""
 
+msgid "Estimate of improvement in print time before and after enhancement"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
+msgstr ""
+
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
+msgstr ""
+
+msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
+msgstr ""
+
+msgid "Save the enhanced gcode locally"
+msgstr ""
+
+msgid "Print Plate"
+msgstr ""
+
+msgid "Print the enhanced part immediately"
+msgstr ""
+
+msgid "View Details"
+msgstr ""
+
+msgid "Verify Print Success Results"
+msgstr ""
+
+msgid "Simulates the thermal process to confirm your part will print without failure."
+msgstr ""
+
+msgid "Now referred to as 'Assess' or 'Assessment'"
+msgstr ""
+
+msgid "Time saved: "
+msgstr ""
+
+msgid "From "
+msgstr ""
+
+msgid "Expected Outcome:"
+msgstr ""
+
+msgid "Analysis:"
+msgstr ""
+
+msgid "Additional observations:"
+msgstr ""
+
+msgid "Fix suggestions"
+msgstr ""
+
+msgid "With Enhance Speed & Quality:"
+msgstr ""
+
+msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
+msgstr ""
+
+msgid "Enhance Speed & Quality"
+msgstr ""
+
+msgid "Applies Helio's optimized speed/flow/fan strategy."
+msgstr ""
+
+msgid "✅ Will Print"
+msgstr ""
+
+msgid "⚠️ May Print with Issues"
+msgstr ""
+
+msgid "❌ Likely to Fail"
+msgstr ""
+
+msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
+msgstr ""
+
+msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
+msgstr ""
+
+msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print"
+msgstr ""
+
+msgid "Too cold overall — see suggestions"
+msgstr ""
+
+msgid "Too hot overall — see suggestions"
+msgstr ""
+
+msgid "Your part is ready to print! Thermal conditions are within safe limits."
+msgstr ""
+
+msgid "Too cold (overall)"
+msgstr ""
+
+msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Too hot (overall)"
+msgstr ""
+
+msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Suggestions"
+msgstr ""
+
+msgid "Quick fixes (beginner):"
+msgstr ""
+
+msgid "Expert"
+msgstr ""
+
+msgid "Learn more"
+msgstr ""
+
+msgid "Helio Flowchart"
+msgstr ""
+
+msgid "Fixing cold prints"
 msgstr ""
 
 msgid "Air Pump"
@@ -9716,6 +10482,9 @@ msgid "Laser 40W"
 msgstr ""
 
 msgid "Cutting Module"
+msgstr ""
+
+msgid "Rotary Attachment"
 msgstr ""
 
 msgid "Auto Fire Extinguishing System"
@@ -9868,10 +10637,25 @@ msgstr ""
 msgid "Exporting G-code"
 msgstr "Експорт G-code"
 
-msgid "Grouping error: "
+msgid "Grouping error: filament"
 msgstr ""
 
 msgid " can not be placed in the "
+msgstr ""
+
+msgid "Filament Grouping Error: Filament "
+msgstr ""
+
+msgid " is not supported by the "
+msgstr ""
+
+msgid " nozzle. "
+msgstr ""
+
+msgid "Please change the nozzle type or reassign the filament and try again."
+msgstr ""
+
+msgid "No valid nozzle found. Please check nozzle count."
 msgstr ""
 
 msgid "Group error in manual mode. Please check nozzle count or regroup."
@@ -10130,6 +10914,9 @@ msgstr "Висота шару не може перевищувати діаме�
 #, c-format, boost-format
 msgid "Plate %d: %s does not support filament %s"
 msgstr "Плита %d: %s не підтримує філамент %s"
+
+msgid "Precise outer wall will be ignored unless the order of walls is set to inner/outer"
+msgstr ""
 
 msgid "Generating skirt & brim"
 msgstr "Створення спідниці та кайми"
@@ -10529,6 +11316,33 @@ msgid ""
 "3. To avoid printing at speeds which cause VFAs (fine artifacts) on the external walls"
 msgstr ""
 
+msgid "Cooling slowdown logic"
+msgstr ""
+
+msgid ""
+"Determines how the printer slows down when minimum layer time isn't reached.\n"
+"\n"
+"'Uniform cooling' slows down all print features equally (current default behavior).\n"
+"\n"
+"'Consistent surface' prioritizes slowing infill and internal perimeters first, preserving external perimeter speed for better surface finish on glossy filaments. This helps reduce VFA (Vertical Fine Artifacts) and maintains consistent surface shine."
+msgstr ""
+
+msgid "Uniform cooling"
+msgstr ""
+
+msgid "Consistent surface"
+msgstr ""
+
+msgid "Perimeter transition distance"
+msgstr ""
+
+msgid ""
+"Distance in millimeters before the end of slowed perimeters where the original print speed is gradually restored. This reduces quality issues when transitioning from slowed features to fast external perimeter printing.\n"
+"\n"
+"Only applies when 'Consistent surface' cooling logic is selected.\n"
+"Recommended value: 5-10mm. Set to 0 to disable."
+msgstr ""
+
 msgid "Normal printing"
 msgstr "Звичайний друк"
 
@@ -10536,6 +11350,17 @@ msgid "The default acceleration of both normal printing and travel except initia
 msgstr "Прискорення за умовчанням як для звичайного друку, так і для переміщення за виключенням початкового шару"
 
 msgid "The acceleration of travel except initial layer"
+msgstr ""
+
+msgid "Short travel"
+msgstr ""
+
+msgid ""
+"Acceleration used for short travel moves near external perimeters. Short travels are moves shorter than the 'Retraction minimum travel' distance.\n"
+"\n"
+"Lower values (e.g., 250-500 mm/s²) reduce ringing artifacts on sharp corners without significantly impacting print time.\n"
+"\n"
+"Set to 0 to disable (uses normal travel acceleration)."
 msgstr ""
 
 msgid "Initial layer travel"
@@ -10574,13 +11399,13 @@ msgstr "Швидкість вентилятора відсмоктування �
 msgid "For the first"
 msgstr ""
 
-msgid "Set special cooling fan for the first certain layers. Cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr ""
 
 msgid "layers"
 msgstr "шари"
 
-msgid "Special cooling fan speed for the first certain layers"
+msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr ""
 
 msgid "Don't support bridges"
@@ -10679,11 +11504,24 @@ msgstr "Хорди архімеду"
 msgid "Octagram Spiral"
 msgstr "Спіральна октограма"
 
+msgid "Top surface density"
+msgstr ""
+
+msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Малюнок нижньої поверхні"
 
 msgid "Line pattern of bottom surface infill, not bridge infill"
 msgstr "Малюнок заповнення нижньої поверхні, а не заповнення мосту"
+
+msgid "Bottom surface density"
+msgstr ""
+
+#, c-format
+msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
+msgstr ""
 
 msgid "Internal solid infill pattern"
 msgstr "Внутрішній малюнок заповнення суцільними шарами"
@@ -11047,6 +11885,42 @@ msgstr ""
 msgid "Temperature drop before entering filament tower"
 msgstr ""
 
+msgid "Interface layer pre-extrusion distance"
+msgstr ""
+
+msgid "Pre-extrusion distance for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer pre-extrusion length"
+msgstr ""
+
+msgid "Pre-extrusion length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Tower ironing area"
+msgstr ""
+
+msgid "Ironing area for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "mm²"
+msgstr "мм²"
+
+msgid "Interface layer purge length"
+msgstr ""
+
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
 msgid "Softening temperature"
 msgstr "Температура м’якості"
 
@@ -11145,6 +12019,9 @@ msgid "Cross Zag"
 msgstr ""
 
 msgid "Locked Zag"
+msgstr ""
+
+msgid "2D Lattice"
 msgstr ""
 
 msgid "Skin infill pattern"
@@ -11372,6 +12249,9 @@ msgstr "Ця опція включається, якщо пристрій під
 msgid "Apply top surface compensation"
 msgstr ""
 
+msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+msgstr ""
+
 msgid "Air filtration enhancement"
 msgstr "Покращення фільтрації повітря"
 
@@ -11382,9 +12262,6 @@ msgid "Use cooling filter"
 msgstr ""
 
 msgid "Enable this if printer support cooling filter"
-msgstr ""
-
-msgid "Auto turn off filter on overheat"
 msgstr ""
 
 msgid "G-code flavor"
@@ -11457,6 +12334,18 @@ msgid "Symmetric infill y axis"
 msgstr ""
 
 msgid "If the model has two parts that are symmetric about the y-axis, and you want these parts to have symmetric textures, please click this option on one of the parts."
+msgstr ""
+
+msgid "Lattice angle 1"
+msgstr ""
+
+msgid "The angle of the first set of 2D lattice elements in the Z direction. Zero is vertical."
+msgstr ""
+
+msgid "Lattice angle 2"
+msgstr ""
+
+msgid "The angle of the second set of 2D lattice elements in the Z direction. Zero is vertical."
 msgstr ""
 
 msgid "Length of sparse infill anchor"
@@ -11939,9 +12828,6 @@ msgstr "Боудена"
 msgid "Nozzle Volume Type"
 msgstr ""
 
-msgid "Hybrid"
-msgstr ""
-
 msgid "Default Nozzle Volume Type"
 msgstr ""
 
@@ -12087,9 +12973,6 @@ msgstr "Мінімальний поріг заповнення"
 
 msgid "Sparse infill area which is smaller than threshold value is replaced by internal solid infill"
 msgstr "Площа заповнення, яка менша за порогове значення, замінюється внутрішнім суцільним заповненням"
-
-msgid "mm²"
-msgstr "мм²"
 
 msgid "Solid infill filament"
 msgstr ""
@@ -12271,8 +13154,32 @@ msgstr "Так само, як вище"
 msgid "Top interface spacing"
 msgstr "Відстань між верхніми інтерфейсами"
 
-msgid "Spacing of interface lines. Zero means solid interface"
-msgstr "Відстань між лініями підтримки. Нуль означає суцільну підтримку"
+msgid "Spacing of interface lines. Zero means solid interface.And zero spacing is required to access the enable_support_ironing option"
+msgstr ""
+
+msgid "Enable ironing support interface"
+msgstr ""
+
+msgid "Ironing is using small flow to print on same height of surface again to make flat surface more smooth. This setting controls whether support interface or raft interface will be ironned.Support ironing could only works on solid interface,that is, support_interface_spacing was zero and support_interface_pattern was't grid"
+msgstr ""
+
+msgid "Support ironing pattern"
+msgstr ""
+
+msgid "Support ironing flow"
+msgstr ""
+
+msgid "Support ironing line spacing"
+msgstr ""
+
+msgid "Support ironing inset"
+msgstr ""
+
+msgid "Support ironing speed"
+msgstr ""
+
+msgid "Support ironing direction"
+msgstr ""
 
 msgid "Bottom interface spacing"
 msgstr "Інтервал нижнього шару підтримки"
@@ -12438,7 +13345,7 @@ msgstr ""
 msgid "Bottom paint penetration layers"
 msgstr ""
 
-msgid "This is  the number of layers of top bottom penetration."
+msgid "This is the number of layers of bottom paint penetration."
 msgstr ""
 
 msgid "Use infill instead of top and bottom surfaces"
@@ -13077,6 +13984,9 @@ msgstr "Ім’я не може перевищувати 40 символів."
 msgid "Nozzle ID"
 msgstr ""
 
+msgid "Standard Flow"
+msgstr ""
+
 msgid "Please find the best line on your plate"
 msgstr "Будь ласка, знайдіть найкращу лінію на вашій пластині"
 
@@ -13267,6 +14177,9 @@ msgid "To Volumetric Speed"
 msgstr "До об'ємної швидкості"
 
 msgid "Are you sure to stop printing?"
+msgstr ""
+
+msgid "0min"
 msgstr ""
 
 msgid "Flow Dynamics Calibration Result"
@@ -14509,6 +15422,9 @@ msgstr ""
 msgid "Helio: optimization working"
 msgstr ""
 
+msgid "Helio: optimization failed"
+msgstr ""
+
 msgid "Helio: Optimzaion check failed"
 msgstr ""
 
@@ -14711,9 +15627,6 @@ msgstr ""
 msgid "Video tutorial"
 msgstr ""
 
-msgid "Learn more"
-msgstr ""
-
 msgid "(Sync with printer)"
 msgstr ""
 
@@ -14761,9 +15674,6 @@ msgid "Zoom In"
 msgstr ""
 
 msgid "Load skipping objects information failed. Please try again."
-msgstr ""
-
-msgid "Loading ..."
 msgstr ""
 
 #, c-format, boost-format
@@ -14834,7 +15744,14 @@ msgstr ""
 msgid "Available Nozzles"
 msgstr ""
 
+msgid "Sync Nozzle status"
+msgstr ""
+
 msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Refresh %d/%d..."
 msgstr ""
 
 msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
@@ -14855,16 +15772,262 @@ msgstr ""
 msgid "Standard Mode"
 msgstr ""
 
-msgid "Performs full purging for the best print quality. Requires more material and time."
+msgid "Performs full priming for the best print quality. Requires more material and time."
 msgstr ""
 
-msgid "Purge Saving"
+msgid "Prime Saving"
 msgstr ""
 
-msgid "Reduces purge waste and prints faster. May cause slight color mixing or small surface defects."
+msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
 msgstr ""
 
-msgid "Learn more about purge mode"
+msgid "Learn more about prime mode"
+msgstr ""
+
+msgid "AMS Dryness Control"
+msgstr ""
+
+msgid "Filament Drying Settings"
+msgstr ""
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Unable to dry temporarily due to ..."
+msgstr ""
+
+msgid "Drying Error"
+msgstr ""
+
+msgid "Please check the Assistant for troubleshooting"
+msgstr ""
+
+msgid "Please remove and store the filament (as shown)."
+msgstr ""
+
+msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
+msgstr ""
+
+msgid "Rotate spool when drying"
+msgstr ""
+
+msgctxt "amsdrying"
+msgid "Back"
+msgstr ""
+
+msgid "Drying-Heating"
+msgstr ""
+
+msgid "Drying-Dehumidifying"
+msgstr ""
+
+msgid " maximum drying temperature is "
+msgstr ""
+
+msgid " minimum drying temperature is "
+msgstr ""
+
+msgid "This filament may not be completely dried."
+msgstr ""
+
+msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
+msgstr ""
+
+msgid "The temperature shall not exceed the filament's heat distortion temperature"
+msgstr ""
+
+msgid "Minimum time value cannot be less than 1."
+msgstr ""
+
+msgid "Maximum time value cannot be greater than 24."
+msgstr ""
+
+msgid "Insufficient power"
+msgstr ""
+
+msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
+msgstr ""
+
+msgid "AMS is busy"
+msgstr ""
+
+msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
+msgstr ""
+
+msgid "Filament in AMS outlet"
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage, please unload first."
+msgstr ""
+
+msgid "Initiating AMS drying"
+msgstr ""
+
+msgid "Not supported in 2D mode"
+msgstr ""
+
+msgid "Task in progress"
+msgstr ""
+
+msgid "  The AMS might be in use during Task."
+msgstr ""
+
+msgid "  Firmware update in progress, please wait..."
+msgstr ""
+
+msgid "  Please plug in the power and then use the drying function."
+msgstr ""
+
+msgid "System is busy"
+msgstr ""
+
+msgid "  Initiating other drying processes, please wait a few seconds..."
+msgstr ""
+
+msgid "For better drying results, remove the filament and allow it to rotate."
+msgstr ""
+
+msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
+msgstr ""
+
+msgid "Alternatively, you can dry the filament without removing it."
+msgstr ""
+
+msgid "Unknown filaments will be treated as PLA."
+msgstr ""
+
+msgid "Please store the filament marked with an exclamation mark."
+msgstr ""
+
+msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
+msgstr ""
+
+msgid "Starting: Checking adapter connection"
+msgstr ""
+
+msgid "Starting: Checking filament status"
+msgstr ""
+
+msgid "Starting: Checking drying presets"
+msgstr ""
+
+msgid "Starting: Checking filament location"
+msgstr ""
+
+msgid "Starting: Checking air intake"
+msgstr ""
+
+msgid "Starting: Checking air vent"
+msgstr ""
+
+msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr ""
+
+msgid "Recent Helio Runs"
+msgstr ""
+
+msgid "Showing recent completed optimizations and simulations"
+msgstr ""
+
+msgid "Loading recent runs..."
+msgstr ""
+
+msgid "No Recent Runs Found"
+msgstr ""
+
+msgid "No completed simulations or optimizations found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "OPTIMIZATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "SIMULATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d layers"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Quality: %s | Consistency: %s"
+msgstr ""
+
+msgid "Download GCode"
+msgstr ""
+
+msgid "View Results"
+msgstr ""
+
+msgid "GCode URL is not available"
+msgstr ""
+
+msgid "Download Error"
+msgstr ""
+
+msgid "Save GCode File"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"GCode file downloaded successfully!\n"
+"\n"
+"Saved to: %s"
+msgstr ""
+
+msgid "Download Complete"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to open file for writing:\n"
+"%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error saving file: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to download GCode file.\n"
+"\n"
+"Error: %s"
+msgstr ""
+
+msgid "Optimization Details"
+msgstr ""
+
+msgid "Simulation Details"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d seconds ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d minutes ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d hours ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d days ago"
+msgstr ""
+
+msgid "Print Outcome: WILL_PRINT"
+msgstr ""
+
+msgid "Print Outcome: MAY_PRINT"
+msgstr ""
+
+msgid "Print Outcome: LIKELY_FAIL"
+msgstr ""
+
+msgid "Print Outcome: "
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -15088,102 +16251,105 @@ msgstr ""
 "Уникнення деформації\n"
 "Чи знаєте ви, що при друку матеріалами, схильними до деформації, такими як ABS, відповідне підвищення температури гарячого ліжка може зменшити ймовірність деформації."
 
-#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: materials) Like a Pro]
 msgid ""
-"Single-Material Only\n"
-"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+"Run Nylon & PC (and other advanced materials) Like a Pro\n"
+"Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
+#: (Safely)]
 msgid ""
-"One Plate per Job\n"
-"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+"Make Prints up to 30% Faster (Safely)\n"
+"Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: Tuning]
 msgid ""
-"What is the Thermal Quality Index?\n"
-"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+"Stop Wasting Precious Design Time on Tuning\n"
+"Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
+#: advanced materials]
 msgid ""
-"Voxel-Level Accuracy\n"
-"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+"Cut Warping on ASA/ABS and other advanced materials\n"
+"Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
-"Fan & Airflow Model\n"
-"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+"Quality Check Before You Hit Print\n"
+"Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
-"TQI Limits Explained\n"
-"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+"Stronger Parts With One Click\n"
+"Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
-"What Drives Runtime?\n"
-"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+"Save Money Every Run\n"
+"Faster + fewer failures = real savings."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
-"Nozzle Temp Range\n"
-"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+"First-Time-Right Reliability\n"
+"Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
-msgid ""
-"Debugging Flowchart\n"
-"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-msgstr ""
+#~ msgid "Join Customer Experience Improvement Program."
+#~ msgstr "Програма покращення взаємодії з користувачем."
 
-#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
-msgid ""
-"Why Cooling Varies\n"
-"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-msgstr ""
+#~ msgid "What data would be collected?"
+#~ msgstr "Яка інформація буде зібрана?"
 
-#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
-msgid ""
-"Extrusion Temp Model\n"
-"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-msgstr ""
+#~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
+#~ msgstr "Філаменти CF/GF є жорсткими і крихкими, їх легко можна зламати або вони можуть застряти в AMS, будьте обережні під час використання."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
-#: °C?]
-msgid ""
-"Nozzle setting of 190 °C vs 320 °C?\n"
-"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-msgstr ""
+#~ msgid "Micro lidar calibration"
+#~ msgstr "Калібрування мікролідара"
 
-#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
-msgid ""
-"Bed Temperature influence\n"
-"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-msgstr ""
+#~ msgid "Bed leveling"
+#~ msgstr "Вирівнювання столу"
 
-#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
-msgid ""
-"Actual Tool-Path\n"
-"Yes—your exact G-code path, speeds and fan commands are simulated."
-msgstr ""
+#~ msgid "High-temperature Heatbed Calibration"
+#~ msgstr "Високотемпературне калібрування гарячого ліжка"
 
-#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
-msgid ""
-"Mesh Resolution\n"
-"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-msgstr ""
+#~ msgid "This calibration does not support the currently selected nozzle diameter"
+#~ msgstr "Калібрування не підтримує обраний діаметр сопла"
 
-#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
-msgid ""
-"Shrinkage, Warping & Stress\n"
-"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-msgstr ""
+#~ msgid "Current flowrate cali param is invalid"
+#~ msgstr "Поточний параметр калібрування витрати недійсний"
+
+#~ msgid "Selected diameter and machine diameter do not match"
+#~ msgstr "Обраний діаметр і діаметр пристрою не відповідають один одному"
+
+#~ msgid "Failed to generate cali gcode"
+#~ msgstr "Не вдалося створити Gcode для калібрування"
+
+#~ msgid "Calibration error"
+#~ msgstr "Помилка калібрування"
+
+#~ msgid "Allow Prompt Sound"
+#~ msgstr "Дозволити звук підказки"
+
+#~ msgid "Scale to build volume"
+#~ msgstr "Масштабування для збільшення обсягу"
+
+#~ msgid "Scale an object to fit the build volume"
+#~ msgstr "Відмасштабувати під область друку"
+
+#~ msgid "Log in failed. Please check the Pin Code."
+#~ msgstr "Вхід не вдається. Будь ласка, перевірте Пін-код."
+
+#~ msgid "Spacing of interface lines. Zero means solid interface"
+#~ msgstr "Відстань між лініями підтримки. Нуль означає суцільну підтримку"
 
 #~ msgid "Smoothing outwall speed in z direction to get better surface quality. Print time will increases. It is not work on spiral vase mode."
 #~ msgstr "Згладжувати швидкість по вісі Z для досягнення кращої якості поверхні. Сповільнює друк. Не працює в режимі вази."
@@ -16659,9 +17825,6 @@ msgstr ""
 #~ msgid "IP"
 #~ msgstr "IP"
 
-#~ msgid "°C"
-#~ msgstr "°C"
-
 #~ msgid "CoreXY"
 #~ msgstr "CoreXY"
 
@@ -17903,9 +19066,6 @@ msgstr ""
 
 #~ msgid "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional"
 #~ msgstr "Spiral mode only works when wall loops is 1, support is disabled, top shell layers is 0, sparse infill density is 0 and timelapse type is traditional"
-
-#~ msgid "Start"
-#~ msgstr "Start"
 
 #~ msgid "Stop printing when Spaghetti or Excess Chute Pileup is detected"
 #~ msgstr "Stop printing when Spaghetti or Excess Chute Pileup is detected"

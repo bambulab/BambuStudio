@@ -31,6 +31,7 @@ static const std::unordered_map<wxString, wxString> ACCESSORY_DISPLAY_STR = {
     {"O2L_PCM", L("Cutting Module")},
     {"O2L_ACM", "Active Cutting Module"},
     {"O2L_UCM", "Ultrasonic Cutting Module"},
+    {"O2L-LFA", L("Rotary Attachment")},
     {"O2L-AFP", L("Auto Fire Extinguishing System")},
 };
 
@@ -222,6 +223,7 @@ MachineInfoPanel::MachineInfoPanel(wxWindow* parent, wxWindowID id, const wxPoin
     createLaserWidgets(m_main_left_sizer);
     createAirPumpWidgets(m_main_left_sizer);
     createExtinguishWidgets(m_main_left_sizer);
+    createRotaryWidgets(m_main_left_sizer);
 
     // nozzle rack widgets
     createNozzleRackWidgets(m_main_left_sizer);
@@ -482,6 +484,38 @@ void MachineInfoPanel::createExtinguishWidgets(wxBoxSizer* main_left_sizer)
     main_left_sizer->Add(m_extinguish_sizer, 0, wxEXPAND, 0);
 }
 
+void MachineInfoPanel::createRotaryWidgets(wxBoxSizer *main_left_sizer)
+{
+    m_rotary_line_above = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    m_rotary_line_above->SetBackgroundColour(wxColour(206, 206, 206));
+    main_left_sizer->Add(m_rotary_line_above, 0, wxEXPAND | wxLEFT, FromDIP(40));
+
+    m_rotary_img = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxSize(FromDIP(200), FromDIP(200)));
+    m_rotary_img->SetBitmap(m_img_rotary.bmp());
+
+    auto        panel_rotary    = new wxPanel(this);
+    wxBoxSizer *content_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *content_sizer_v = new wxBoxSizer(wxVERTICAL);
+
+    m_rotary_version = new uiDeviceUpdateVersion(panel_rotary, wxID_ANY);
+
+    content_sizer_h->Add(m_rotary_version, 0, wxALIGN_CENTER, 0);
+    content_sizer_v->Add(content_sizer_h, 1, wxLEFT, 0);
+
+    panel_rotary->SetSizer(content_sizer_v);
+
+    m_laser_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_laser_sizer->Add(m_cutting_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_laser_sizer->Add(panel_rotary, 1, wxEXPAND, 0);
+
+    m_rotary_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_rotary_sizer->Add(m_rotary_img, 0, wxALIGN_TOP | wxALL, FromDIP(5));
+    m_rotary_sizer->Add(panel_rotary, 1, wxEXPAND, 0);
+
+    main_left_sizer->Add(m_rotary_sizer, 0, wxEXPAND, 0);
+}
+
+
 void MachineInfoPanel::msw_rescale()
 {
     rescale_bitmaps();
@@ -504,13 +538,12 @@ void MachineInfoPanel::init_bitmaps()
         m_img_printer     = ScalableBitmap(this, "printer_thumbnail_png", 160);
         m_img_monitor_ams = ScalableBitmap(this, "monitor_upgrade_ams_png", 150);
         m_img_ext         = ScalableBitmap(this, "monitor_upgrade_ext", 160);
-
-        m_img_air_pump  = ScalableBitmap(this, "air_pump", 160);
-        m_img_extra_ams = ScalableBitmap(this, "extra_icon_png", 160);
-
-        m_img_laser      = ScalableBitmap(this, "laser", 160);
-        m_img_cutting    = ScalableBitmap(this, "cut", 160);
-        m_img_extinguish = ScalableBitmap(this, "extinguish", 160); // TODO
+        m_img_air_pump    = ScalableBitmap(this, "air_pump", 160);
+        m_img_extra_ams   = ScalableBitmap(this, "extra_icon_png", 160);
+        m_img_laser       = ScalableBitmap(this, "laser", 160);
+        m_img_cutting     = ScalableBitmap(this, "cut", 160);
+        m_img_extinguish  = ScalableBitmap(this, "extinguish", 160);
+        m_img_rotary      = ScalableBitmap(this, "rotary", 160);
         m_img_nozzle_rack = ScalableBitmap(this, "nozzle_rack", 160);
 
         upgrade_green_icon  = ScalableBitmap(this, "monitor_upgrade_online", 5);
@@ -627,6 +660,7 @@ void MachineInfoPanel::update(MachineObject* obj)
         // update
         update_air_pump(obj);
         update_cut(obj);
+        update_rotary(obj);
         update_laszer(obj);
         update_extinguish(obj);
         update_nozzle_rack(obj);
@@ -853,8 +887,19 @@ void MachineInfoPanel::update_ams_ext(MachineObject *obj)
     //ams
     if (obj->ams_exist_bits != 0)
     {
-        std::string extra_ams_str = (boost::format("ams_f1/%1%") % 0).str();
-        auto extra_ams_it = obj->module_vers.find(extra_ams_str);
+        std::string extra_ams_str = "ams_f1";
+        auto extra_ams_it = obj->module_vers.end();
+
+        for (auto it = obj->module_vers.begin(); it != obj->module_vers.end(); it++)
+        {
+            const std::string ams_if_key = it->first;
+            if (ams_if_key.find(extra_ams_str) != std::string::npos)
+            {
+                extra_ams_it = it;
+                break;
+            }
+        }
+
         if (extra_ams_it != obj->module_vers.end()) {
             wxString sn_text = extra_ams_it->second.sn;
             sn_text = sn_text.MakeUpper();
@@ -1239,6 +1284,15 @@ void MachineInfoPanel::update_nozzle_rack(MachineObject* obj)
     }
 }
 
+void MachineInfoPanel::update_rotary(MachineObject *obj)
+{
+    if (obj && obj->rotary_version_info.isValid()) {
+        m_rotary_version->UpdateInfo(obj->rotary_version_info);
+        show_rotary(true);
+    } else {
+        show_rotary(false);
+    }
+}
 
 void MachineInfoPanel::show_status(int status, std::string upgrade_status_str)
 {
@@ -1381,6 +1435,14 @@ void MachineInfoPanel::show_extinguish(bool show)
     }
 }
 
+void MachineInfoPanel::show_rotary(bool show)
+{
+    if (m_rotary_version->IsShown() != show) {
+        m_rotary_img->Show(show);
+        m_rotary_line_above->Show(show);
+        m_rotary_version->Show(show);
+    }
+}
 
 void MachineInfoPanel::show_nozzle_rack(bool show)
 {
