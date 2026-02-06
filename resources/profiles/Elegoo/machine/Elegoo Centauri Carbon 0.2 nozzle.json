@@ -8,6 +8,7 @@
     "printer_model": "Elegoo Centauri Carbon",
     "default_print_profile": "0.10mm Standard @Elegoo CC 0.2 nozzle",
     "gcode_flavor": "klipper",
+    "host_type": "octoprint",
     "nozzle_diameter": [
         "0.2"
     ],
