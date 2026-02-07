@@ -1189,7 +1189,7 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     this->sla_support_points          = std::move(rhs.sla_support_points);
     this->sla_points_status           = std::move(rhs.sla_points_status);
     this->sla_drain_holes             = std::move(rhs.sla_drain_holes);
-    this->brim_points                 = std::move(brim_points);
+    this->brim_points                 = std::move(rhs.brim_points);
     this->layer_config_ranges         = std::move(rhs.layer_config_ranges);
     this->layer_height_profile        = std::move(rhs.layer_height_profile);
     this->printable                   = std::move(rhs.printable);
@@ -2839,7 +2839,7 @@ unsigned int ModelObject::update_instances_print_volume_state(const BuildVolume 
 
     //BBS: add logs for build_volume
     //const BoundingBoxf3& print_volume = build_volume.bounding_volume();
-    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}")\
+    //BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", print_volume {%1%, %2%, %3%} to {%4%, %5%, %6%}")
     //    %print_volume.min.x() %print_volume.min.y() %print_volume.min.z()%print_volume.max.x() %print_volume.max.y() %print_volume.max.z();
     for (ModelInstance* model_instance : this->instances) {
         unsigned int inside_outside = 0;
@@ -4061,7 +4061,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
 {
     double adhesionCoeff = 1;
     for (const ModelVolume* modelVolume : objectVolumes) {
-        if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end())
+        if (Model::extruderParamsMap.find(modelVolume->extruder_id()) != Model::extruderParamsMap.end()) {
             if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PETG" ||
                 Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "PCTG") {
                 adhesionCoeff = 2;
@@ -4069,6 +4069,7 @@ double getadhesionCoeff(const ModelVolumePtrs objectVolumes)
             else if (Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU" || Model::extruderParamsMap.at(modelVolume->extruder_id()).materialName == "TPU-AMS") {
                 adhesionCoeff = 0.5;
             }
+        }
     }
     return adhesionCoeff;
 }

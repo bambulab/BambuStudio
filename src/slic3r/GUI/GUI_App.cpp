@@ -7642,7 +7642,8 @@ const std::shared_ptr<GLShaderProgram>& GUI_App::get_shader(const std::string &s
         return p_ogl_manager->get_shader(shader_name);
     }
 
-    return nullptr;
+    static const std::shared_ptr<GLShaderProgram> s_null_shader;
+    return s_null_shader;
 }
 
 const std::shared_ptr<GLShaderProgram> GUI_App::get_current_shader() const
