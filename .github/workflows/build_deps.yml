@@ -76,7 +76,7 @@ jobs:
         shell: pwsh
           
       - name: Fix python install error on mac
-        if: inputs.os == 'macos-13'
+        if: inputs.os == 'macos-15-intel'
         working-directory: ${{ github.workspace }}
         run: |
           find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete
@@ -92,7 +92,7 @@ jobs:
           df -h
 
       - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-13'
+        if: inputs.os == 'macos-15-intel'
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo nasm yasm x264
@@ -130,7 +130,7 @@ jobs:
             brew install zstd
 
       - name: pack deps on Macos
-        if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
+        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
         run: |
           cd ${{ github.workspace }}/deps
@@ -149,14 +149,14 @@ jobs:
 
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
+        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
         uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_dep_mac_${{ inputs.arch }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
 
       - name: clean artifacts
-        if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
+        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
         run: rm -rf ${{ github.workspace }}/deps/build/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
 
