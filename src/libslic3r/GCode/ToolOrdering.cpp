@@ -164,11 +164,13 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
                 }
             if (curr_priority == 0) // default
                 extruder = region.config().wall_filament.value;
-        }else
+        } else {
             extruder = region.config().wall_filament.value;
-    }else
+        }
+    } else {
         extruder = this->extruder_override;
-	return (extruder == 0) ? 0 : extruder - 1;
+    }
+    return (extruder == 0) ? 0 : extruder - 1;
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)

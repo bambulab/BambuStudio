@@ -307,60 +307,60 @@ void AxisCtrlButton::mouseMoving(wxMouseEvent& event)
 {
     if (pressedDown)
         return;
-	wxPoint mouse_pos(event.GetX(), event.GetY());
-	wxPoint transformed_mouse_pos = mouse_pos - center;
-	double r_temp = transformed_mouse_pos.x * transformed_mouse_pos.x + transformed_mouse_pos.y * transformed_mouse_pos.y;
-	if (r_temp > r_outer * r_outer) {
-		current_pos = CurrentPos::UNDEFINED;
-	}
-	else if (r_temp > r_inner * r_inner) {
-		if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
-		{
-			current_pos = CurrentPos::OUTER_UP;
-		}
-		else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
-		{
-			current_pos = CurrentPos::OUTER_LEFT;
-		}
-		else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
-		{
-			current_pos = CurrentPos::OUTER_DOWN;
-		}
-		else if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
-		{
-			current_pos = CurrentPos::OUTER_RIGHT;
-		}
+    wxPoint mouse_pos(event.GetX(), event.GetY());
+    wxPoint transformed_mouse_pos = mouse_pos - center;
+    double r_temp = transformed_mouse_pos.x * transformed_mouse_pos.x + transformed_mouse_pos.y * transformed_mouse_pos.y;
+    if (r_temp > r_outer * r_outer) {
+        current_pos = CurrentPos::UNDEFINED;
+    }
+    else if (r_temp > r_inner * r_inner) {
+        if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
+        {
+            current_pos = CurrentPos::OUTER_UP;
+        }
+        else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
+        {
+            current_pos = CurrentPos::OUTER_LEFT;
+        }
+        else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
+        {
+            current_pos = CurrentPos::OUTER_DOWN;
+        }
+        else if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
+        {
+            current_pos = CurrentPos::OUTER_RIGHT;
+        }
         else {
             current_pos = CurrentPos::UNDEFINED;
         }
-	}
-	else if (r_temp > r_blank * r_blank) {
-		if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
-		{
-			current_pos = CurrentPos::INNER_UP;
-		}
-		else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
-		{
-			current_pos = CurrentPos::INNER_LEFT;
-		}
-		else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
-		{
-			current_pos = CurrentPos::INNER_DOWN;
-		}
-		else if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
-		{
-			current_pos = CurrentPos::INNER_RIGHT;
-		}
+    }
+    else if (r_temp > r_blank * r_blank) {
+        if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
+        {
+            current_pos = CurrentPos::INNER_UP;
+        }
+        else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y < -transformed_mouse_pos.x - gap)
+        {
+            current_pos = CurrentPos::INNER_LEFT;
+        }
+        else if (transformed_mouse_pos.y > transformed_mouse_pos.x + gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
+        {
+            current_pos = CurrentPos::INNER_DOWN;
+        }
+        else if (transformed_mouse_pos.y < transformed_mouse_pos.x - gap && transformed_mouse_pos.y > -transformed_mouse_pos.x + gap)
+        {
+            current_pos = CurrentPos::INNER_RIGHT;
+        }
         else {
             current_pos = CurrentPos::UNDEFINED;
         }
     } else if (r_temp <= r_home * r_home) {
         current_pos = INNER_HOME;
     }
-	if (last_pos != current_pos) {
-		last_pos = current_pos;
-		Refresh();
-	}
+    if (last_pos != current_pos) {
+        last_pos = current_pos;
+        Refresh();
+    }
 }
 
 void AxisCtrlButton::sendButtonEvent()

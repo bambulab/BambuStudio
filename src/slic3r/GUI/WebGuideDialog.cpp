@@ -1095,9 +1095,10 @@ int GuideFrame::GetFilamentInfo( std::string VendorDirectory, json & pFilaList, 
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "sType is Empty";
                     return -1;
                 }
-                else
+                else {
                     sVendor = "Generic";
                     return 0;
+                }
             }
         }
         else
