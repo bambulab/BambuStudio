@@ -260,6 +260,15 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
     add_compile_options(-Werror=return-type)
 
+    # Prevent common bugs that can be caught at compile time:
+    # - misleading-indentation: code that looks like it's in a block but isn't
+    add_compile_options(-Werror=misleading-indentation)
+
+    # C++-only warnings (these flags are not valid for C):
+    # - pessimizing-move: std::move() preventing copy elision (RVO/NRVO)
+    # - catch-value: catching exceptions by value instead of reference (slicing)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Werror=pessimizing-move> $<$<COMPILE_LANGUAGE:CXX>:-Werror=catch-value>)
+
     add_compile_options(-Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-label -Wno-unused-local-typedefs)
 
     # removes LOTS of extraneous Eigen warnings (GCC only supports it since 6.1)
