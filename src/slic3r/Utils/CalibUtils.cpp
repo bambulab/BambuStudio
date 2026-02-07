@@ -1516,6 +1516,52 @@ bool CalibUtils::is_support_auto_pa_cali(std::string filament_id)
     return not_support_auto_pa_cali_filaments.find(filament_id) == not_support_auto_pa_cali_filaments.end();
 }
 
+std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(const std::string &printer_model)
+{
+    std::vector<std::string> result;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle || printer_model.empty())
+        return result;
+
+    std::vector<const Preset *> machine_presets = preset_bundle->printers.find_all_presets_by_model(printer_model, true);
+
+    std::set<std::string> nozzle_diameters_set;
+    for (const Preset *preset : machine_presets) {
+        std::string variant = preset->config.opt_string("printer_variant");
+        if (!variant.empty())
+            nozzle_diameters_set.insert(variant);
+    }
+
+    result.assign(nozzle_diameters_set.begin(), nozzle_diameters_set.end());
+    return result;
+}
+
+std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &model_id, const std::string &nozzle_diameter)
+{
+    std::vector<NozzleVolumeType> result;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle || model_id.empty())
+        return result;
+
+    // Find the system preset by model and nozzle diameter variant
+    const Preset *matched_preset = preset_bundle->printers.find_system_preset_by_model_and_variant(model_id, nozzle_diameter);
+    if (!matched_preset)
+        return result;
+
+    // Get supported NozzleVolumeTypes from printer_extruder_variant
+    auto variants = matched_preset->config.option<ConfigOptionStrings>("printer_extruder_variant");
+    if (!variants)
+        return result;
+
+    std::set<NozzleVolumeType> unique_types;
+    for (const std::string &v : variants->values) {
+        NozzleVolumeType nvt = convert_to_nvt_type(v);
+        unique_types.insert(nvt);
+    }
+
+    return std::vector<NozzleVolumeType>(unique_types.begin(), unique_types.end());
+}
+
 int CalibUtils::get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx) {
     for (int i = 0; i < pa_calib_values.size(); ++i) {
         if(pa_calib_values[i].cali_idx == cali_idx)

@@ -3418,6 +3418,22 @@ const Preset *PrinterPresetCollection::find_custom_preset_by_model_and_variant(c
     return it != cend() ? &*it : nullptr;
 }
 
+std::vector<const Preset*> PrinterPresetCollection::find_all_presets_by_model(const std::string &model_id, bool system_only) const
+{
+    std::vector<const Preset*> result;
+    if (model_id.empty()) { return result; }
+
+    for (auto it = cbegin(); it != cend(); ++it) {
+        if (system_only && !it->is_system)
+            continue;
+        if (it->config.opt_string("printer_model") == model_id) {
+            result.push_back(&(*it));
+        }
+    }
+
+    return result;
+}
+
 bool  PrinterPresetCollection::only_default_printers() const
 {
     for (const auto& printer : get_presets()) {
