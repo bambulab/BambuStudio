@@ -687,17 +687,30 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-#target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
+# On Linux, use OSMesa instead of OpenGL::GL for headless rendering
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Link OSMesa FIRST before GLEW to ensure OSMesa symbols are used
+    find_library(OSMESA_LIB OSMesa REQUIRED)
+    target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo ${OSMESA_LIB} GLEW::GLEW hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+else()
+    target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+endif()
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Add OSMesa for headless rendering support - force link with --no-as-needed
+    find_library(OSMESA_LIBRARY OSMesa)
+    if(OSMESA_LIBRARY)
+        message(STATUS "Linking OSMesa for headless rendering: ${OSMESA_LIBRARY}")
+        target_link_libraries(libslic3r_gui "-Wl,--no-as-needed" ${OSMESA_LIBRARY} "-Wl,--as-needed")
+    endif()
+    
     FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
     FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
     find_package(CURL REQUIRED)
-    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} OSMesa)
+    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES})
     target_link_libraries(libslic3r_gui
         OpenGL::EGL
         ${WAYLAND_SERVER_LIBRARIES}

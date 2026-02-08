@@ -9,6 +9,12 @@
 #include "slic3r/GUI/GLTexture.hpp"
 
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#ifdef __linux__
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#endif
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -359,11 +365,99 @@ bool OpenGLManager::init_gl(bool popup_error)
 {
     if (!m_gl_initialized) {
         glewExperimental = GL_TRUE;
-        GLenum result = glewInit();
-        if (result != GLEW_OK) {
-            BOOST_LOG_TRIVIAL(error) << "Unable to init glew library";
+        
+#ifdef __linux__
+        // Check if we're using EGL headless rendering (CLI mode)
+        EGLDisplay egl_display = eglGetCurrentDisplay();
+        bool is_egl = (egl_display != EGL_NO_DISPLAY);
+#endif
+        
+        GLenum glew_result = glewInit();
+        
+#ifdef __linux__
+        if (is_egl && glew_result != GLEW_OK) {
+            // GLEW can't query GL version before loading functions with EGL
+            // Manually load critical OpenGL functions via eglGetProcAddress
+            #define LOAD_GL_FUNC(name, type) \
+                if (auto* func = (type)eglGetProcAddress("gl" #name)) { \
+                    __glew##name = func; \
+                }
+            
+            // Shader functions (these are GL 2.0+ extensions that GLEW manages)
+            LOAD_GL_FUNC(CreateShader, PFNGLCREATESHADERPROC);
+            LOAD_GL_FUNC(DeleteShader, PFNGLDELETESHADERPROC);
+            LOAD_GL_FUNC(ShaderSource, PFNGLSHADERSOURCEPROC);
+            LOAD_GL_FUNC(CompileShader, PFNGLCOMPILESHADERPROC);
+            LOAD_GL_FUNC(GetShaderiv, PFNGLGETSHADERIVPROC);
+            LOAD_GL_FUNC(GetShaderInfoLog, PFNGLGETSHADERINFOLOGPROC);
+            LOAD_GL_FUNC(CreateProgram, PFNGLCREATEPROGRAMPROC);
+            LOAD_GL_FUNC(DeleteProgram, PFNGLDELETEPROGRAMPROC);
+            LOAD_GL_FUNC(AttachShader, PFNGLATTACHSHADERPROC);
+            LOAD_GL_FUNC(DetachShader, PFNGLDETACHSHADERPROC);
+            LOAD_GL_FUNC(LinkProgram, PFNGLLINKPROGRAMPROC);
+            LOAD_GL_FUNC(GetProgramiv, PFNGLGETPROGRAMIVPROC);
+            LOAD_GL_FUNC(GetProgramInfoLog, PFNGLGETPROGRAMINFOLOGPROC);
+            LOAD_GL_FUNC(UseProgram, PFNGLUSEPROGRAMPROC);
+            LOAD_GL_FUNC(GetUniformLocation, PFNGLGETUNIFORMLOCATIONPROC);
+            LOAD_GL_FUNC(GetAttribLocation, PFNGLGETATTRIBLOCATIONPROC);
+            
+            #undef LOAD_GL_FUNC
+            
+            // GLEW couldn't query GL info for EGL headless, load glGetString via eglGetProcAddress
+            typedef const GLubyte* (*PFNGLGETSTRINGPROC)(GLenum name);
+            PFNGLGETSTRINGPROC glGetString_proc = (PFNGLGETSTRINGPROC)eglGetProcAddress("glGetString");
+            
+            if (glGetString_proc) {
+                const GLubyte* gl_version = glGetString_proc(GL_VERSION);
+                const GLubyte* glsl_ver = glGetString_proc(GL_SHADING_LANGUAGE_VERSION);
+                const GLubyte* vendor = glGetString_proc(GL_VENDOR);
+                const GLubyte* renderer = glGetString_proc(GL_RENDERER);
+                
+                if (gl_version && glsl_ver && vendor && renderer) {
+                    // Manually populate s_gl_info using memory layout hack
+                    auto& info = const_cast<GLInfo&>(s_gl_info);
+                    struct GLInfoAccessor {
+                        bool m_detected;
+                        int m_max_tex_size;
+                        float m_max_anisotropy;
+                        std::string m_version;
+                        mutable uint32_t m_formated_gl_version;
+                        std::string m_glsl_version;
+                        std::string m_vendor;
+                        std::string m_renderer;
+                        int8_t m_max_offscreen_msaa;
+                    };
+                    auto* accessor = reinterpret_cast<GLInfoAccessor*>(&info);
+                    accessor->m_version = (const char*)gl_version;
+                    accessor->m_glsl_version = (const char*)glsl_ver;
+                    accessor->m_vendor = (const char*)vendor;
+                    accessor->m_renderer = (const char*)renderer;
+                    
+                    typedef void (*PFNGLGETINTEGERVPROC)(GLenum pname, GLint *data);
+                    PFNGLGETINTEGERVPROC glGetIntegerv_proc = (PFNGLGETINTEGERVPROC)eglGetProcAddress("glGetIntegerv");
+                    GLint max_tex = 8192;
+                    if (glGetIntegerv_proc) {
+                        glGetIntegerv_proc(GL_MAX_TEXTURE_SIZE, &max_tex);
+                    }
+                    accessor->m_max_tex_size = max_tex / 2;
+                    if (Slic3r::total_physical_memory() / (1024 * 1024 * 1024) < 6)
+                        accessor->m_max_tex_size /= 2;
+                    
+                    accessor->m_detected = true;
+                }
+            }
+            
+            // Force success since we manually loaded functions
+            glew_result = GLEW_OK;
+        }
+#endif
+        
+        if (glew_result != GLEW_OK) {
+            const GLubyte* error_string = glewGetErrorString(glew_result);
+            BOOST_LOG_TRIVIAL(error) << "Unable to init glew library: " << (error_string ? (const char*)error_string : "Unknown error") << " (error code: " << glew_result << ")";
             return false;
         }
+        
 	//BOOST_LOG_TRIVIAL(info) << "glewInit Success."<< std::endl;
         m_gl_initialized = true;
         if (GLEW_EXT_texture_compression_s3tc)

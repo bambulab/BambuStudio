@@ -515,6 +515,17 @@ find_package(PNG REQUIRED)
 set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
 
+# On Linux, also link OSMesa for headless rendering
+if(UNIX AND NOT APPLE)
+    find_library(OSMESA_LIBRARY OSMesa)
+    if(OSMESA_LIBRARY)
+        message(STATUS "Found OSMesa: ${OSMESA_LIBRARY}")
+        list(APPEND OpenGL_LIBRARIES ${OSMESA_LIBRARY})
+    else()
+        message(WARNING "OSMesa library not found - headless rendering may not work")
+    endif()
+endif()
+
 # Find glew or use bundled version
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)
     set(GLEW_USE_STATIC_LIBS ON)

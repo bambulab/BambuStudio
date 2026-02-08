@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install  -y \
     extra-cmake-modules \
     file \
     git \
+    ffmpeg \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-libav \
     libcairo2-dev \
@@ -48,6 +49,11 @@ RUN apt-get update && apt-get install  -y \
     wayland-protocols \
     libwebkit2gtk-4.1-dev \
     wget 
+
+#temp fix for 24.10 dependency
+RUN echo 'deb http://gb.archive.ubuntu.com/ubuntu jammy main' >> /etc/apt/sources.list
+
+RUN apt-get update && apt-get install -y libwebkit2gtk-4.0-dev
 
 # Change your locale here if you want.  See the output
 # of `locale -a` to pick the correct string formatting.
@@ -123,6 +129,11 @@ SHELL ["/bin/bash", "-l", "-c"]
 
 # Point FFMPEG Library search to the binary built upon BambuStudio build time
 ENV LD_LIBRARY_PATH=/BambuStudio/build/package/bin
+
+# Force software rendering in the container to avoid GPU driver issues.  This is needed for the preview to work in CLI mode, and also prevents potential GPU driver issues when running the GUI version in a container.
+ENV LIBGL_ALWAYS_SOFTWARE=1
+ENV GALLIUM_DRIVER=llvmpipe
+ENV __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json
 
 # Using an entrypoint instead of CMD because the binary
 # accepts several command line arguments.
