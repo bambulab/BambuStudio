@@ -24,6 +24,10 @@ namespace GUI {
 const double MIN_PA_K_VALUE = 0.0;
 const double MAX_PA_K_VALUE = 2.0;
 static const double MIN_PA_K_VALUE_STEP = 0.001;
+static const double MIN_PA_K_ACCEL_VALUE = 100.0;
+static const double MAX_PA_K_ACCEL_VALUE = 20000.0;
+static const double MIN_PA_K_SPEED_VALUE = 10.0;
+static const double MAX_PA_K_SPEED_VALUE = 1000.0;
 
 std::shared_ptr<PrintJob> CalibUtils::print_job;
 wxString wxstr_temp_dir = fs::path(fs::temp_directory_path() / "calib").wstring();
@@ -167,10 +171,39 @@ static int get_physical_extruder_idx(std::vector<int> physical_extruder_maps, in
 
 bool is_pa_params_valid(const Calib_Params &params)
 {
+    wxString errors;
     if (params.start < MIN_PA_K_VALUE || params.end > MAX_PA_K_VALUE || params.step < MIN_PA_K_VALUE_STEP || params.end < params.start + params.step) {
-        MessageDialog msg_dlg(nullptr,
-                              wxString::Format(_L("Please input valid values:\nStart value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f)"),
-                                               MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP),
+        errors += wxString::Format(_L("Start value: >= %.1f\nEnd value: <= %.1f\nEnd value: > Start value\nValue step: >= %.3f)"),
+                                   MIN_PA_K_VALUE, MAX_PA_K_VALUE, MIN_PA_K_VALUE_STEP);
+    }
+    if (params.mode == CalibMode::Calib_PA_Pattern) {
+        bool accel_invalid = false;
+        for (double a : params.accelerations) {
+            if (a < MIN_PA_K_ACCEL_VALUE || a > MAX_PA_K_ACCEL_VALUE) {
+                accel_invalid = true;
+                break;
+            }
+        }
+        if (accel_invalid) {
+            if (!errors.empty()) errors += "\n";
+            errors += wxString::Format(_L("Acceleration: >= %.0f and <= %.0f mm/s²"),
+                                       MIN_PA_K_ACCEL_VALUE, MAX_PA_K_ACCEL_VALUE);
+        }
+        bool speed_invalid = false;
+        for (double s : params.speeds) {
+            if (s < MIN_PA_K_SPEED_VALUE || s > MAX_PA_K_SPEED_VALUE) {
+                speed_invalid = true;
+                break;
+            }
+        }
+        if (speed_invalid) {
+            if (!errors.empty()) errors += "\n";
+            errors += wxString::Format(_L("Speed: >= %.0f and <= %.0f mm/s"),
+                                       MIN_PA_K_SPEED_VALUE, MAX_PA_K_SPEED_VALUE);
+        }
+    }
+    if (!errors.empty()) {
+        MessageDialog msg_dlg(nullptr, _L("Please input valid values:\n") + errors,
                               wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
@@ -904,7 +937,7 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     full_config.apply(printer_config);
 
     Vec3d plate_origin(0, 0, 0);
-    CalibPressureAdvancePattern pa_pattern(calib_info.params, full_config, true, model, plate_origin);
+    CalibPressureAdvancePattern pa_pattern(calib_info.params, full_config, true, *model.objects[0], plate_origin);
 
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
     double  current_width = bedfs[2].x() - bedfs[0].x();
@@ -913,7 +946,8 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
     Vec3d   offset            = Vec3d(current_width / 2, current_depth / 2, 0) - half_pattern_size;
     pa_pattern.set_start_offset(offset);
 
-    pa_pattern.generate_custom_gcodes(full_config, true, model, plate_origin);
+    CustomGCode::Info info = pa_pattern.generate_custom_gcodes(full_config, true, *model.objects[0], plate_origin);
+    model.plates_custom_gcodes[0] = info;
     model.calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
 }
 
