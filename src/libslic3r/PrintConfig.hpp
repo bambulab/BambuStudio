@@ -959,8 +959,6 @@ PRINT_CONFIG_CLASS_DEFINE(
 PRINT_CONFIG_CLASS_DEFINE(
     PrintRegionConfig,
 
-    ((ConfigOptionInts,  print_extruder_id))
-    ((ConfigOptionStrings,  print_extruder_variant))
     ((ConfigOptionInt, bottom_shell_layers))
     ((ConfigOptionFloat, bottom_shell_thickness))
     ((ConfigOptionFloat, bridge_angle))
@@ -1157,6 +1155,8 @@ PRINT_CONFIG_CLASS_DEFINE(
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
     ((ConfigOptionInts,                filament_self_index))
+    ((ConfigOptionInts,                print_extruder_id))
+    ((ConfigOptionStrings,             print_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloat,               machine_switch_extruder_time))

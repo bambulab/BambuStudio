@@ -1094,7 +1094,7 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 
 int Print::get_filament_config_indx(int filament_id, int layer_id)
 {
-    return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_index_map);
+    return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_self_index, m_filament_index_map);
 }
 
 void Print::update_filament_self_index_cache()
@@ -1125,15 +1125,15 @@ void Print::update_filament_self_index_cache()
         }
     }
     m_filament_index_map.clear();
-    m_nozzle_index_map.clear();
+    m_nozzle_index_map.clear(); 
 }
 
 int Print::get_nozzle_config_index(int filament_id, int layer_id)
 {
-    return get_config_index(filament_id, layer_id, m_config.printer_extruder_variant.values, m_nozzle_index_map);
+    return get_config_index(filament_id, layer_id, m_config.print_extruder_variant.values, m_config.print_extruder_id.values, m_nozzle_index_map);
 }
 
-int Print::get_config_index(int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map)
+int Print::get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, FilamentIndexMap &index_map)
 {
     auto group_result = get_layered_nozzle_group_result();
     auto nozzle_info  = group_result->get_nozzle_for_filament(filament_id, layer_id);
@@ -1150,7 +1150,33 @@ int Print::get_config_index(int filament_id, int layer_id, std::vector<std::stri
     FilamentIndexKey key{filament_id, extruder_type, nozzle_volume_type};
     auto             iter = index_map.find(key);
     if (iter == index_map.end()) {
-        int index = get_config_index_base(nozzle_volume_type, extruder_type, filament_id, variant_list, m_filament_self_index);
+        int index = get_config_index_base(nozzle_volume_type, extruder_type, filament_id,variant_list, self_index_list);
+        index_map[key] = index;
+        return index;
+    } else {
+        return index_map[key];
+    }
+}
+
+int Print::get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, PrintIndexMap &index_map)
+{
+    auto group_result = get_layered_nozzle_group_result();
+    auto nozzle_info  = group_result->get_nozzle_for_filament(filament_id, layer_id);
+    if (!nozzle_info.has_value()) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                 << boost::format(", Line %1%: could not found group_nozzle_info corresponding to filament_id %2%, layer_id %3%") % __LINE__ % filament_id %
+                                        layer_id;
+        return 0;
+    }
+
+    int              extruder_id        = nozzle_info->extruder_id + 1; // to 1 based
+    ExtruderType     extruder_type      = ExtruderType(m_config.extruder_type.get_at(extruder_id));
+    NozzleVolumeType nozzle_volume_type = nozzle_info->volume_type;
+
+    PrintIndexKey key{filament_id, extruder_id, extruder_type, nozzle_volume_type};
+    auto          iter = index_map.find(key);
+    if (iter == index_map.end()) {
+        int index = get_config_index_base(nozzle_volume_type, extruder_type, extruder_id, variant_list, self_index_list);
         index_map[key] = index;
         return index;
     } else {
@@ -2744,7 +2770,9 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
         m_full_print_config = m_ori_full_print_config;
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%:  extruder_count %2%, extruder_volume_type_count %3%")%__LINE__ %extruder_count %extruder_volume_type_count;
-        m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, extruder_count, extruder_volume_type_count, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
+        std::set<std::string> filament_keys = filament_options_with_variant;
+        filament_keys.insert("filament_self_index");
+        m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, extruder_count, extruder_volume_type_count, filament_keys,  "filament_self_index", "filament_extruder_variant");
 
         const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
         const std::string               filament_prefix       = "filament_";
@@ -2761,6 +2789,7 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
         }
 
         t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
+        keys.push_back("filament_self_index");
         m_config.apply_only(m_full_print_config, keys, true);
         if (!print_diff.empty()) {
             m_placeholder_parser.apply_config(filament_overrides);
@@ -2797,8 +2826,10 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
 
 
     m_full_print_config = m_ori_full_print_config;
+    std::set<std::string> filament_keys = filament_options_with_variant;
+    filament_keys.insert("filament_self_index");
     m_full_print_config.update_filament_config_values_for_multiple_extruders(m_full_print_config, filament_extruder_map, extruder_count, extruder_volume_type_count,
-                                                                             filament_options_with_variant, "filament_self_index", "filament_extruder_variant");
+                                                                             filament_keys, "filament_self_index", "filament_extruder_variant");
 
     const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
     const std::string               filament_prefix       = "filament_";
@@ -2815,6 +2846,7 @@ void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::Nozz
     }
 
     t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
+    keys.push_back("filament_self_index");
     m_config.apply_only(m_full_print_config, keys, true);
     if (!print_diff.empty()) {
         m_placeholder_parser.apply_config(filament_overrides);

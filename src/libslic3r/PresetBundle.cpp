@@ -200,7 +200,14 @@ DynamicPrintConfig PresetBundle::construct_full_config(
             }
         }
 
-        if (!apply_extruder) {
+        if (apply_extruder) {
+            std::vector<int> &filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
+            int               index_size           = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+            filament_self_indice.resize(index_size, 1);
+            for (size_t i = 0; i < num_filaments && i < filament_self_indice.size(); i++) {
+                filament_self_indice[i] = int(i + 1);
+            }
+        } else {
             // append filament_self_index
             std::vector<int> &filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
             int               index_size           = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
@@ -3072,7 +3079,14 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
             }
         }
 
-        if (!apply_extruder) {
+        if (apply_extruder) {
+            std::vector<int>& filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
+            int index_size = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
+            filament_self_indice.resize(index_size, 1);
+            for (size_t i = 0; i < num_filaments && i < filament_self_indice.size(); i++) {
+                filament_self_indice[i] = int(i + 1);
+            }
+        } else {
             //append filament_self_index
             std::vector<int>& filament_self_indice = out.option<ConfigOptionInts>("filament_self_index", true)->values;
             int index_size = out.option<ConfigOptionStrings>("filament_extruder_variant")->size();
