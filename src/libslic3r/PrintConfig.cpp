@@ -8200,8 +8200,14 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
             return;
         }
+        bool has_id_key = !id_name.empty() && key_set.count(id_name) > 0;
+        std::vector<int> id_values;
+        if (has_id_key && opt_ids)
+            id_values = opt_ids->values;
         for (auto& key: key_set)
         {
+            if (has_id_key && key == id_name)
+                continue;
             const ConfigOptionDef *optdef  = config_def->get(key);
             if (!optdef) {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
@@ -8303,6 +8309,14 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%")%__LINE__%key;
                     break;
             }
+        }
+        if (has_id_key && opt_ids) {
+            std::vector<int> new_values;
+            new_values.resize(filament_count);
+            for (int f_index = 0; f_index < filament_count; f_index++) {
+                new_values[f_index] = opt_ids->get_at(variant_index[f_index]);
+            }
+            const_cast<ConfigOptionInts*>(opt_ids)->values = new_values;
         }
     }
 }

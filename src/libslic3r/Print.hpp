@@ -1081,6 +1081,21 @@ protected:
         }
     };
 
+    struct PrintIndexKey
+    {
+        int              filament_id;
+        int              extruder_id;
+        ExtruderType     extruder;
+        NozzleVolumeType nozzle_volume_type;
+
+        bool operator==(const PrintIndexKey &other) const
+        {
+            return filament_id == other.filament_id && extruder_id == other.extruder_id && extruder == other.extruder && nozzle_volume_type == other.nozzle_volume_type;
+        }
+    };
+
+
+
     struct FilamentIndexKeyHash
     {
         std::size_t operator()(const FilamentIndexKey &k) const
@@ -1091,8 +1106,21 @@ protected:
             return h1 ^ (h2 << 8) ^ (h3 << 12);
         }
     };
+    struct PrintIndexKeyHash
+    {
+        std::size_t operator()(const PrintIndexKey &k) const
+        {
+            size_t h1 = std::hash<int>{}(k.filament_id);
+            size_t h2 = std::hash<int>{}(k.extruder_id);
+            size_t h3 = std::hash<int>{}(static_cast<int>(k.extruder));
+            size_t h4 = std::hash<int>{}(static_cast<int>(k.nozzle_volume_type));
+            return h1 ^ (h2 << 8) ^ (h3 << 12) ^ (h4 << 16);
+        }
+    };
     using FilamentIndexMap = std::unordered_map<FilamentIndexKey, int, FilamentIndexKeyHash>;
-    int get_config_index(int filament_id, int layer_id, std::vector<std::string> &variant_list, FilamentIndexMap &index_map);
+    using PrintIndexMap = std::unordered_map<PrintIndexKey, int, PrintIndexKeyHash>;
+    int get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, FilamentIndexMap &index_map);
+    int get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, PrintIndexMap &index_map);
 
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
@@ -1150,7 +1178,7 @@ private:
     // Used to cache filament parameter information
     FilamentIndexMap m_filament_index_map;
     // Used to cache printer and process parameter information
-    FilamentIndexMap m_nozzle_index_map;
+    PrintIndexMap m_nozzle_index_map;
     // save the config value of "filament_self_index"
     std::vector<int> m_filament_self_index;
 
