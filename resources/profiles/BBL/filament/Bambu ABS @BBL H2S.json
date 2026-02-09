@@ -11,6 +11,10 @@
     "fan_max_speed": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "20",
         "35"
@@ -27,6 +31,9 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
@@ -34,9 +41,6 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "filament_prime_volume": [
-        "30"
     ],
     "filament_change_length": [
         "4"

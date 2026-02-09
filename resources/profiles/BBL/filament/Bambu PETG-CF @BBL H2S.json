@@ -14,16 +14,20 @@
     "fan_min_speed": [
         "5"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "11.5",
         "11.5"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "filament_prime_volume": [
-        "30"
     ],
     "filament_change_length": [
         "4"
