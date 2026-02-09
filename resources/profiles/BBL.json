@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.05.00.05",
+    "version": "02.05.00.06",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -6336,6 +6336,10 @@
         {
             "name": "Bambu Lab H2S 0.4 nozzle template time_lapse_gcode",
             "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template time_lapse_gcode.json"
+        },
+        {
+            "name": "Bambu Lab H2S 0.4 nozzle template wrapping_detection_gcode",
+            "sub_path": "machine/Bambu Lab H2S 0.4 nozzle template wrapping_detection_gcode.json"
         },
         {
             "name": "Bambu Lab P1P 0.2 nozzle template machine_start_gcode",

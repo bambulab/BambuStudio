@@ -42,7 +42,8 @@
         "Bambu Lab H2S 0.4 nozzle template machine_end_gcode",
         "Bambu Lab H2S 0.4 nozzle template time_lapse_gcode",
         "Bambu Lab H2S 0.4 nozzle template change_filament_gcode",
-        "Bambu Lab H2S 0.4 nozzle template layer_change_gcode"
+        "Bambu Lab H2S 0.4 nozzle template layer_change_gcode",
+        "Bambu Lab H2S 0.4 nozzle template wrapping_detection_gcode"
     ],
     "long_retractions_when_cut": [
         "0",
@@ -226,6 +227,12 @@
     "wipe": [
         "1",
         "1"
+    ],
+    "wrapping_exclude_area": [
+        "172.3x302",
+        "232.5x302",
+        "232.5x322",
+        "172.3x322"
     ],
     "z_hop": [
         "0.4",
