@@ -699,13 +699,6 @@ endif()
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # Add OSMesa for headless rendering support - force link with --no-as-needed
-    find_library(OSMESA_LIBRARY OSMesa)
-    if(OSMESA_LIBRARY)
-        message(STATUS "Linking OSMesa for headless rendering: ${OSMESA_LIBRARY}")
-        target_link_libraries(libslic3r_gui "-Wl,--no-as-needed" ${OSMESA_LIBRARY} "-Wl,--as-needed")
-    endif()
-    
     FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
     FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
