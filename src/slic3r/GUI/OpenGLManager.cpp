@@ -11,7 +11,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#ifdef __linux__
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #endif

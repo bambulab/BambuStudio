@@ -687,14 +687,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-# On Linux, use OSMesa instead of OpenGL::GL for headless rendering
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # Link OSMesa FIRST before GLEW to ensure OSMesa symbols are used
-    find_library(OSMESA_LIB OSMesa REQUIRED)
-    target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo ${OSMESA_LIB} GLEW::GLEW hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-else()
-    target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
-endif()
+target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib)

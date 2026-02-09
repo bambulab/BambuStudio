@@ -520,8 +520,8 @@ find_package(PNG REQUIRED)
 set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
 
-# On Linux, also link OSMesa for headless rendering
-if(UNIX AND NOT APPLE)
+# On Linux, link OSMesa for headless rendering if enabled
+if(SLIC3R_HEADLESS AND UNIX AND NOT APPLE)
     find_library(OSMESA_LIBRARY OSMesa)
     if(OSMESA_LIBRARY)
         message(STATUS "Found OSMesa: ${OSMESA_LIBRARY}")
