@@ -9,6 +9,7 @@
 #include "DownloadProgressDialog.hpp"
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "slic3r/Utils/FileTransferObject.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
@@ -137,6 +138,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
+    m_image_transfer = std::make_shared<FileTransferObject>();
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -224,6 +226,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
+
+    start_device_image_flow();
 }
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
@@ -681,6 +685,124 @@ void MediaPlayCtrl::jump_to_play()
     TogglePlay();
 }
 
+void MediaPlayCtrl::RequestLiveviewUrl(std::function<void(std::string url)> cb)
+{
+    if (!cb) return;
+
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
+
+    if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto) && !m_disable_lan && !m_lan_ip.empty()) {
+        std::string url;
+        if (m_lan_proto == MachineObject::LVL_Local)
+            url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        else if (m_lan_proto == MachineObject::LVL_Rtsps)
+            url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
+        else if (m_lan_proto == MachineObject::LVL_Rtsp)
+            url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
+        url += "&device=" + m_machine;
+        url += "&net_ver=" + agent_version;
+        url += "&dev_ver=" + m_dev_ver;
+        url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+        url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+
+        CallAfter([cb = std::move(cb), url = std::move(url)] { cb(url); });
+        return;
+    }
+
+    if (!agent || !m_remote_proto) {
+        CallAfter([cb = std::move(cb)] { cb({}); });
+        return;
+    }
+
+    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, v = agent_version, dv = m_dev_ver, cb = std::move(cb)](std::string url) mutable {
+        if (boost::algorithm::starts_with(url, "bambu:///")) {
+            url += "&device=" + into_u8(m_machine);
+            url += "&net_ver=" + v;
+            url += "&dev_ver=" + dv;
+            url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
+            url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+            url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+        }
+
+        CallAfter([cb = std::move(cb), url = std::move(url)]() mutable { cb(std::move(url)); });
+    });
+}
+
+void MediaPlayCtrl::start_device_image_flow()
+{
+    // if liveview is playing, do not request the image
+    if (m_last_state == wxMEDIASTATE_PLAYING) {
+        return;
+    }
+
+    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+
+    if (!IsEnabled()) {
+        m_image_transfer->CancelAll();
+        m_image_token = std::make_shared<int>(0);
+        return;
+    }
+
+    m_image_transfer->CancelAll();
+    m_image_token = std::make_shared<int>(0);
+    auto image_token = std::weak_ptr<int>(m_image_token);
+    std::string request_machine = m_machine;
+
+    RequestLiveviewUrl([this, image_token, request_machine](std::string url) {
+        if (image_token.expired()) return;
+        if (url.empty()) return;
+
+        // Check if machine has changed during URL request
+        if (request_machine != m_machine) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImage: machine changed during URL request, skip.";
+            return;
+        }
+
+        SetDeviceImageUrl(url);
+        std::string target_path = "";
+
+        m_image_transfer->DownloadMemFile("mem:/26", target_path, [this, image_token, request_machine](int ec, int resp_ec, std::string json, std::vector<std::byte> data) {
+            if (image_token.expired()) return;
+
+            if (ec != 0) {
+                BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer failed with error code: " << ec;
+                return;
+            }
+
+            if (data.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer received empty data";
+                return;
+            }
+
+            wxMemoryInputStream stream(data.data(), data.size());
+            wxImage             image(stream, wxBITMAP_TYPE_ANY);
+
+            if (!image.IsOk()) {
+                BOOST_LOG_TRIVIAL(warning) << "Failed to parse image data";
+                return;
+            }
+            CallAfter([this, img = std::move(image), request_machine]() {
+                if (request_machine != m_machine) {
+                    BOOST_LOG_TRIVIAL(info) << "DeviceImage: machine changed, skip display.";
+                    return;
+                }
+                if (m_media_ctrl) {
+                    m_media_ctrl->SetIdleImage(img);
+                }
+            });
+        });
+    });
+}
+
+void MediaPlayCtrl::SetDeviceImageUrl(std::string url)
+{
+    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+    m_image_transfer->SetTunnelUrl(std::move(url));
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
@@ -819,7 +941,12 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
     m_failed_retry = 0;
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
-    IsShownOnScreen() ? Play() : Stop();
+    if (IsShownOnScreen()) {
+        Play();
+        start_device_image_flow();
+    } else {
+        Stop();
+    }
 }
 
 void MediaPlayCtrl::media_proc()

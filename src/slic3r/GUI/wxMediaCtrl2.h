@@ -31,6 +31,7 @@ public:
     void Stop();
 
     void SetIdleImage(wxString const & image);
+    void SetIdleImage(const wxImage &image);
 
     wxMediaState GetState() const;
 
@@ -69,6 +70,7 @@ public:
     void Stop();
 
     void SetIdleImage(wxString const & image);
+    void SetIdleImage(const wxImage &image);
 
     int GetLastError() const;
 

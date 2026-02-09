@@ -96,6 +96,19 @@ void wxMediaCtrl3::SetIdleImage(wxString const &image)
     }
 }
 
+void wxMediaCtrl3::SetIdleImage(const wxImage &image)
+{
+    if (!image.IsOk())
+        return;
+    m_idle_image.clear();
+    if (m_url == nullptr) {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        m_frame = image;
+        assert(m_frame.IsOk());
+        Refresh();
+    }
+}
+
 wxMediaState wxMediaCtrl3::GetState()
 {
     std::unique_lock<std::mutex> lk(m_mutex);

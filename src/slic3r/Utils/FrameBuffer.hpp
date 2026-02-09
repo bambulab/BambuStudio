@@ -1,5 +1,5 @@
 #ifndef slic3r_Utils_FrameBuffer_hpp_
-#define slic3r_Utils_FrameBuffe_hpp_
+#define slic3r_Utils_FrameBuffer_hpp_
 
 #include <deque>
 #include <mutex>
@@ -101,4 +101,4 @@ private:
 } // namespace Utils
 } // namespace Slic3r
 
-#endif // slic3r_Utils_FrameBuffe_hpp_
+#endif // slic3r_Utils_FrameBuffer_hpp_

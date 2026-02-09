@@ -144,6 +144,10 @@ void wxMediaCtrl2::SetIdleImage(wxString const &image)
 {
 }
 
+void wxMediaCtrl2::SetIdleImage(const wxImage &image)
+{
+}
+
 void wxMediaCtrl2::NotifyStopped()
 {
     if (m_state != wxMEDIASTATE_STOPPED) {
