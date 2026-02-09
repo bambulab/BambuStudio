@@ -5890,7 +5890,7 @@ int CLI::run(int argc, char **argv)
         glfwGetVersion(&gl_major, &gl_minor, &gl_verbos);
         BOOST_LOG_TRIVIAL(info) << boost::format("opengl version %1%.%2%.%3%")%gl_major %gl_minor %gl_verbos;
 
-#ifdef __linux__
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
         // Use EGL for headless rendering in CLI mode (Docker/server environments)
         EGLDisplay egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         if (egl_display == EGL_NO_DISPLAY) {

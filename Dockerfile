@@ -50,11 +50,6 @@ RUN apt-get update && apt-get install  -y \
     libwebkit2gtk-4.1-dev \
     wget 
 
-#temp fix for 24.10 dependency
-RUN echo 'deb http://gb.archive.ubuntu.com/ubuntu jammy main' >> /etc/apt/sources.list
-
-RUN apt-get update && apt-get install -y libwebkit2gtk-4.0-dev
-
 # Change your locale here if you want.  See the output
 # of `locale -a` to pick the correct string formatting.
 ENV LC_ALL=en_US.utf8
@@ -116,7 +111,8 @@ USER $USER
 # Build dependencies in ./deps
 RUN ./BuildLinux.sh -d
 
-# Build slic3r
+# Build slic3r with headless rendering enabled
+ENV BUILD_ARGS="-DSLIC3R_HEADLESS=ON"
 RUN ./BuildLinux.sh -s
 
 # Build AppImage

@@ -366,7 +366,7 @@ bool OpenGLManager::init_gl(bool popup_error)
     if (!m_gl_initialized) {
         glewExperimental = GL_TRUE;
         
-#ifdef __linux__
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
         // Check if we're using EGL headless rendering (CLI mode)
         EGLDisplay egl_display = eglGetCurrentDisplay();
         bool is_egl = (egl_display != EGL_NO_DISPLAY);
@@ -374,13 +374,16 @@ bool OpenGLManager::init_gl(bool popup_error)
         
         GLenum glew_result = glewInit();
         
-#ifdef __linux__
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
         if (is_egl && glew_result != GLEW_OK) {
             // GLEW can't query GL version before loading functions with EGL
             // Manually load critical OpenGL functions via eglGetProcAddress
             #define LOAD_GL_FUNC(name, type) \
                 if (auto* func = (type)eglGetProcAddress("gl" #name)) { \
                     __glew##name = func; \
+                } else { \
+                    BOOST_LOG_TRIVIAL(error) << "Failed to load GL function: gl" #name; \
+                    return false; \
                 }
             
             // Shader functions (these are GL 2.0+ extensions that GLEW manages)
