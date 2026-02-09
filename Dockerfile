@@ -129,6 +129,7 @@ ENV LD_LIBRARY_PATH=/BambuStudio/build/package/bin
 # Force software rendering in the container to avoid GPU driver issues.  This is needed for the preview to work in CLI mode, and also prevents potential GPU driver issues when running the GUI version in a container.
 ENV LIBGL_ALWAYS_SOFTWARE=1
 ENV GALLIUM_DRIVER=llvmpipe
+ENV MESA_LOADER_DRIVER_OVERRIDE=swrast
 ENV __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json
 
 # Using an entrypoint instead of CMD because the binary

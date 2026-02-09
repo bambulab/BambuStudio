@@ -76,7 +76,16 @@ if [ ! -d "$HOME/.config" ]; then
     mkdir -p "$HOME/.config"
 fi
 
+# Start Xvfb for EGL to use as display backend
+Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+sleep 1
+
+# Set XDG_RUNTIME_DIR
+export XDG_RUNTIME_DIR=/tmp/runtime-$EXEC_USER
+mkdir -p "$XDG_RUNTIME_DIR"
+chmod 700 "$XDG_RUNTIME_DIR"
+
 # Using su $USER -c will pass all the important ENV args when Bamboo Studio starts in a different shell
 # Continue with Bambu Studio using correct user, passing all arguments
-exec su "$EXEC_USER" -s /bin/bash -c 'export LD_LIBRARY_PATH=/BambuStudio/build/package/bin:$LD_LIBRARY_PATH; export LIBGL_ALWAYS_SOFTWARE=1; export GALLIUM_DRIVER=llvmpipe; export __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json; exec /BambuStudio/build/package/bin/bambu-studio "$@"' -- bash "$@"
+exec su "$EXEC_USER" -s /bin/bash -c 'export DISPLAY=:99; export XDG_RUNTIME_DIR=/tmp/runtime-'"$EXEC_USER"'; export LD_LIBRARY_PATH=/BambuStudio/build/package/bin:$LD_LIBRARY_PATH; export LIBGL_ALWAYS_SOFTWARE=1; export GALLIUM_DRIVER=llvmpipe; export MESA_LOADER_DRIVER_OVERRIDE=swrast; export __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json; exec /BambuStudio/build/package/bin/bambu-studio "$@"' -- bash "$@"
 
