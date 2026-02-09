@@ -85,7 +85,7 @@ using namespace nlohmann;
 #include "slic3r/GUI/GuiColor.hpp"
 #include <GLFW/glfw3.h>
 
-#ifdef __linux__
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #endif
