@@ -348,7 +348,7 @@ void SyncAmsInfoDialog::update_map_when_change_map_mode()
         m_cur_colors_in_thumbnail = m_back_cur_colors_in_thumbnail;
     } else if (m_map_mode == MapModeEnum::Override) {
         if (m_ams_combo_info.empty()) {
-            wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
+            wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info, has_selector(nullptr));
         }
         for (size_t i = 0; i < m_ams_combo_info.ams_filament_colors.size(); i++) {
             auto result = decode_ams_color(m_ams_combo_info.ams_filament_colors[i]);
@@ -1219,6 +1219,17 @@ void SyncAmsInfoDialog::sync_ams_mapping_result(std::vector<FilamentInfo> &resul
     }
 }
 
+bool SyncAmsInfoDialog::has_selector(MachineObject *obj_) const
+{
+    if (!obj_) {
+        DeviceManager *dev_manager = Slic3r::GUI::wxGetApp().getDeviceManager();
+        if (!dev_manager)
+            return false;
+        obj_ = dev_manager->get_selected_machine();
+    }
+    return obj_ && obj_->GetFilaSwitch()->IsInstalled() && obj_->GetFilaSwitch()->IsReady();
+}
+
 bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
 {
     if (!obj_) return false;
@@ -1235,6 +1246,10 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
     std::vector<bool> map_opt; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1) {
         map_opt         = {true, true, true, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+        if (has_selector(obj_)) {//选料器
+            map_opt[2] = false;
+            map_opt[3] = false;
+        }
         filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
                                                      wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
     }
@@ -1441,39 +1456,6 @@ bool SyncAmsInfoDialog::build_nozzles_info(std::string &nozzles_info)
         nozzle_info_json.push_back(nozzle_item);
     }
     nozzles_info = nozzle_info_json.dump();
-    return true;
-}
-
-bool SyncAmsInfoDialog::can_hybrid_mapping(DevExtderSystem data)
-{
-    // Mixed mappings are not allowed
-    return false;
-
-    if (data.GetTotalExtderCount() <= 1 || !wxGetApp().preset_bundle) return false;
-
-    // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
-    // Therefore, some adjustments need to be made.
-    std::vector<std::string> flow_type_of_machine;
-    for (auto it = data.GetExtruders().rbegin(); it != data.GetExtruders().rend(); it++) {
-        // exist field is not updated, wait add
-        // if (it->exist < 3) return false;
-        std::string type_str = DevNozzle::ToNozzleFlowString(it->GetNozzleFlowType());
-        flow_type_of_machine.push_back(type_str);
-    }
-    // get the nozzle type of preset --> flow_types
-    const Preset &      current_printer = wxGetApp().preset_bundle->printers.get_selected_preset();
-    const Preset *      base_printer    = wxGetApp().preset_bundle->printers.get_preset_base(current_printer);
-    std::string         base_name       = base_printer->name;
-    auto                flow_data       = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
-    std::vector<string> flow_types;
-    boost::split(flow_types, flow_data, boost::is_any_of(","));
-    if (flow_types.size() <= 1 || flow_types.size() != flow_type_of_machine.size()) return false;
-
-    // Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
-    auto type = flow_types[0];
-    for (int i = 0; i < flow_types.size(); i++) {
-        if (flow_types[i] != type || flow_type_of_machine[i] != type) return false;
-    }
     return true;
 }
 
@@ -2694,7 +2676,11 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             const auto &   full_config = wxGetApp().preset_bundle->full_config();
             size_t         nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
             if (nozzle_nums > 1) {
-                m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);//special
+                if (has_selector(obj_)) {//选料器
+                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT_DYNAMIC);
+                } else {
+                    m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
+                }
             }
             // m_mapping_popup.set_show_type(ShowType::RIGHT);
             if (obj_) {
@@ -2804,7 +2790,7 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
         }
     }
     if (m_ams_combo_info.empty()) {
-        wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info);
+        wxGetApp().preset_bundle->get_ams_cobox_infos(m_ams_combo_info, has_selector(nullptr));
     }
     std::vector<int> extruders(wxGetApp().plater()->get_extruders_colors().size());
     std::iota(extruders.begin(), extruders.end(), 1);
