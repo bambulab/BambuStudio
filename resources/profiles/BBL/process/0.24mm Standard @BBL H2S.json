@@ -153,6 +153,10 @@
         "10000",
         "10000"
     ],
+    "travel_short_distance_acceleration": [
+        "250",
+        "250"
+    ],
     "travel_speed": [
         "1000",
         "1000"
