@@ -56,7 +56,8 @@
 			"support_chamber_temp_switch_heating": 40,
 			"support_extrusion_cali": false,
 			"support_user_preset": false,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_ams_filament_change_abort": true
 		},
 		"fan" : {
 			"0" :

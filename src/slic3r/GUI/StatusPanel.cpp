@@ -2150,7 +2150,7 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
                 m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
             }
         }
-        m_fila_change_abort->Show(obj->is_support_fila_change_abort);
+        m_fila_change_abort->Show(obj->is_support_fila_change_abort || DevPrinterConfigUtil::support_ams_fila_change_abort(obj->printer_type));
     }
 
     m_filament_load_box->Show(tag_show);
