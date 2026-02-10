@@ -1372,6 +1372,15 @@ int MachineObject::command_hms_stop(const std::string &error_str, const std::str
     return this->publish_json(j, 1);
 }
 
+int MachineObject::command_purification_disable()
+{
+    json j;
+    j["print"]["command"] = "close_air_filt";
+    j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+
+    return this->publish_json(j, 1);
+}
+
 int MachineObject::command_stop_buzzer()
 {
     json j;
