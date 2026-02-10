@@ -13,7 +13,7 @@ endif()
 
 # The build_version should start from 50 in master branch
 
-set(SLIC3R_VERSION "02.05.01.52")
+set(SLIC3R_VERSION "02.05.00.52")
 set(ZAA_VERSION "1.0.3")
 
 string(REPLACE "." "," SLIC3R_COMMA_SEPARATED_VERSION ${SLIC3R_VERSION})
