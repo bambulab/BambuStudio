@@ -90,6 +90,7 @@
         "Direct Drive Standard",
         "Direct Drive High Flow"
     ],
+    "prime_tower_flat_ironing": "1",
     "smooth_coefficient": "4",
     "sparse_infill_speed": [
         "100",
