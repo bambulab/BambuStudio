@@ -29,7 +29,11 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMod
         else {
             paths_length[i] = paths_length[i - 1] + paths[i].polyline.length();
         }
-        polygon.points.insert(polygon.points.end(), paths[i].polyline.points.begin(), paths[i].polyline.points.end() - 1);
+        std::transform(
+            paths[i].polyline.points.begin(), paths[i].polyline.points.end() - 1,
+            std::back_inserter(polygon.points),
+            [](const Point3 &pt) {return pt.to_point(); }
+        );
     }
     // 1 generate point series which is on the line of polygon, point distance along the polygon is smaller than 1mm
     polygon.densify(scale_(curvatures_densify_width));
@@ -167,7 +171,7 @@ void CurveAnalyzer::calculate_curvatures(ExtrusionPaths& paths, ECurveAnalyseMod
                 //split paths[i]
                 ExtrusionPath current_path = paths[i];
                 while (j < curvature_list.size()) {
-                    Polyline left, right;
+                    Polyline3 left, right;
                     current_path.polyline.split_at(curvature_list[j].first.first, &left, &right);
                     ExtrusionPath left_path(left, current_path);
                     left_path.set_curve_degree(current_curva_norm);

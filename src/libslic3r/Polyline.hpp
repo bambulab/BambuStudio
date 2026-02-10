@@ -288,7 +288,81 @@ inline ThickPolylines to_thick_polylines(Polylines&& polylines, const coordf_t w
 class Polyline3 : public MultiPoint3
 {
 public:
+    Polyline3() {}
+    explicit Polyline3(const Points3 &points) { this->points = points; }
+    explicit Polyline3(const Polyline &poly, coord_t z = 0) {
+        this->points.reserve(poly.points.size());
+        for (const Point &pt : poly.points) {
+            this->points.emplace_back(pt.x(), pt.y(), z);
+        }
+    }
+
     virtual Lines3 lines() const;
+
+    // Convert to 2D Polyline by dropping Z coordinates
+    Polyline to_polyline() const;
+
+    // Clip the end of the polyline by a distance
+    void clip_end(double distance);
+
+    // Simplify polyline using Douglas-Peucker algorithm
+    void simplify(double tolerance);
+
+    // Simplify by arc fitting (for ZAA arc fitting support)
+    void simplify_by_fitting_arc(double tolerance);
+
+    // Reverse the polyline
+    using MultiPoint3::reverse;
+
+    // Split polyline at given index
+    bool split_at_index(const size_t index, Polyline3 *p1, Polyline3 *p2) const;
+
+    // Split polyline at a given point (2D)
+    void split_at(Point &point, Polyline3* p1, Polyline3* p2) const;
+
+    // Split polyline at a given point (3D)
+    void split_at(Point3 &point, Polyline3* p1, Polyline3* p2) const;
+
+    // Split polyline at a given length
+    bool split_at_length(const double length, Polyline3 *p1, Polyline3 *p2) const;
+
+    // Append a single point
+    void append(const Point3& point);
+
+    // Append a 2D point (converted to 3D with z=0)
+    void append(const Point &point) {
+        this->append(Point3(point, 0));
+    }
+
+    // Append 2D points (converted to 3D with z=0)
+    void append(const Points &src) {
+        this->points.reserve(this->points.size() + src.size());
+        for (const Point &point : src) {
+            this->points.emplace_back(point.x(), point.y(), 0);
+        }
+    }
+
+    // Append another Polyline3
+    void append(const Polyline3& src);
+
+    // Append before (prepend)
+    void append_before(const Point3& point);
+
+    // Arc fitting support - fitting_result stores arc path data
+    // This is populated by simplify_by_fitting_arc()
+    // Uses the global PathFittingData from ArcFitter.hpp
+    std::vector<PathFittingData> fitting_result;
+
+private:
+    // Helper methods for split_at_index
+    bool split_fitting_result_before_index(size_t index, Point3 &new_endpoint, std::vector<PathFittingData> &result) const {
+        // Simplified stub - full implementation would handle arc fitting data
+        return false;
+    }
+    bool split_fitting_result_after_index(size_t index, Point3 &new_startpoint, std::vector<PathFittingData> &result) const {
+        // Simplified stub - full implementation would handle arc fitting data
+        return false;
+    }
 };
 
 typedef std::vector<Polyline3> Polylines3;
