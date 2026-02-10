@@ -202,6 +202,8 @@ typedef struct _sliced_info {
     size_t prepare_time;
     size_t export_time;
     float  layer_height{0.f};
+    float  sparse_infill_density{0.f};
+    int    wall_loops{0};
     std::vector<std::string> upward_machines;
     std::vector<std::string> downward_machines;
     std::vector<std::string> upward_compatibility_taint;
@@ -464,6 +466,8 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         j["prepare_time"] = sliced_info.prepare_time;
         j["export_time"] = sliced_info.export_time;
         j["layer_height"] = sliced_info.layer_height;
+        j["wall_loops"] = sliced_info.wall_loops;
+        j["sparse_infill_density"] = sliced_info.sparse_infill_density;
 
         if (code != 0)
         {
@@ -6545,6 +6549,10 @@ int CLI::run(int argc, char **argv)
                         new_print_config.apply(m_extra_config, true);
                         if (m_print_config.option<ConfigOptionFloat>("layer_height"))
                             sliced_info.layer_height = m_print_config.option<ConfigOptionFloat>("layer_height")->value;
+                        if (m_print_config.option<ConfigOptionInt>("wall_loops"))
+                            sliced_info.wall_loops = m_print_config.option<ConfigOptionInt>("wall_loops")->value;
+                        if (m_print_config.option<ConfigOptionPercent>("sparse_infill_density"))
+                            sliced_info.sparse_infill_density = m_print_config.option<ConfigOptionPercent>("sparse_infill_density")->value;
                         if (new_extruder_count > 1) {
                             FilamentMapMode map_mode = fmmAutoForFlush;
                             if (new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
