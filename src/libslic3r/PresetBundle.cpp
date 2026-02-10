@@ -2251,11 +2251,14 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
 }
 
 
-void PresetBundle::get_ams_cobox_infos(AMSComboInfo& combox_info)
+void PresetBundle::get_ams_cobox_infos(AMSComboInfo &combox_info, bool skip_ext)
 {
     combox_info.clear();
     for (auto &entry : filament_ams_list) {
         auto &ams                  = entry.second;
+        if (ams.opt_string("tray_name", 0u) == "Ext" && skip_ext) {
+            continue;
+        }
         auto  filament_id          = ams.opt_string("filament_id", 0u);
         auto  filament_color       = ams.opt_string("filament_colour", 0u);
         auto  ams_name             = ams.opt_string("tray_name", 0u);
@@ -2303,7 +2306,12 @@ void PresetBundle::get_ams_cobox_infos(AMSComboInfo& combox_info)
     }
 }
 
-unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo &merge_info)
+unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
+                                         bool                                                       use_map,
+                                         std::map<int, AMSMapInfo> &                                maps,
+                                         bool                                                       enable_append,
+                                         MergeFilamentInfo &                                        merge_info,
+                                         bool                                                       skip_ext)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "use_map:" << use_map << " enable_append:" << enable_append;
     std::vector<std::string> ams_filament_presets;
@@ -2326,6 +2334,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     int                  index = 0;
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
+        if (ams.opt_string("tray_name", 0u) == "Ext" && skip_ext) {
+            continue;
+        }
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_color_type = ams.opt_string("filament_colour_type", 0u);

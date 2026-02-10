@@ -985,7 +985,7 @@ static std::string serialize_nozzle_config(const std::vector<DevNozzle>& nozzles
     std::ostringstream oss;
     for (size_t i = 0; i < nozzles.size(); ++i) {
         if (i > 0) oss << ";";
-        oss << std::fixed << std::setprecision(1) << nozzles[i].GetNozzleDiameter() << "," 
+        oss << std::fixed << std::setprecision(1) << nozzles[i].GetNozzleDiameter() << ","
             << static_cast<int>(nozzles[i].GetNozzleFlowType());
     }
     return oss.str();
@@ -1012,7 +1012,7 @@ static std::vector<DevNozzle> deserialize_nozzle_config(const std::string &confi
     return nozzles;
 }
 
-static bool is_same_nozzle_config(const std::vector<DevNozzle>& config1, 
+static bool is_same_nozzle_config(const std::vector<DevNozzle>& config1,
                                    const std::vector<DevNozzle>& config2) {
     if (config1.size() != config2.size()) return false;
 
@@ -2034,7 +2034,7 @@ std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj
             app_config->set_section("sync_extruder", data);
         }
     }
-    
+
     return nozzle_option;
 }
 
@@ -3833,10 +3833,14 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error: sync_result.is_same_printer value is false";
         return;
     }
+    auto skip_ext = m_sync_dlg->has_selector(nullptr);
     list2.resize(list.size());
     auto iter = list.begin();
     for (int i = 0; i < list.size(); ++i, ++iter) {
         auto & ams = iter->second;
+        if (ams.opt_string("tray_name", 0u) == "Ext" && skip_ext) {
+            continue;
+        }
         auto filament_id = ams.opt_string("filament_id", 0u);
         ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
         list2[i] = filament_id;
@@ -3854,7 +3858,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     MergeFilamentInfo merge_info;
     std::vector<std::pair<DynamicPrintConfig *,std::string>> unknowns;
     auto enable_append = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
-    auto n             = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info);
+    auto     n = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info, skip_ext);
     wxString detail;
     for (auto & uk : unknowns) {
         auto tray_name     = uk.first->opt_string("tray_name", 0u);
