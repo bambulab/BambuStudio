@@ -1515,8 +1515,9 @@ namespace Slic3r
         for (int ext_id = 0; ext_id < static_cast<int>(last_nozzle_idx.size()); ext_id++) {
             int initial_nozzle = initial_status.get_nozzle_in_extruder(ext_id);
             auto ext_nozzles = nozzles_per_extruder[ext_id];
-            if (std::find(ext_nozzles.begin(), ext_nozzles.end(), initial_nozzle) != ext_nozzles.end())
-                last_nozzle_idx[ext_id] = initial_nozzle;
+            auto it = std::find(ext_nozzles.begin(), ext_nozzles.end(), initial_nozzle);
+            if (it != ext_nozzles.end())
+                last_nozzle_idx[ext_id] = static_cast<int>(std::distance(ext_nozzles.begin(), it));
         }
 
         for (size_t layer = 0; layer < layer_filaments.size(); ++layer) {

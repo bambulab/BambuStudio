@@ -1482,15 +1482,20 @@ std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order2(
             range_filas_map[range] = combo;
     }
 
+
+    std::set<int> used_filaments;   // 收集所有使用的材料set
+
     // 对每个材料组合的每个连续区间，构建新的 layer_filaments 并调用 get_recommended_filament_maps
     MultiNozzleUtils::NozzleStatusRecorder tool_status;
-    std::vector<int> fil_noz_map(ctx.group_info.total_filament_num, 0);
+    std::vector<int> fil_noz_map(ctx.group_info.total_filament_num, -1);    //全局的材料到喷嘴的映射
+    std::unordered_map<int, int> fil_first_nozzle_map;  // 记录每个材料首次使用的喷嘴id (key: 材料id, value: 首次分配的喷嘴id)
     for (auto &[range, combo] : range_filas_map) {
         auto [start_layer, end_layer] = range;
         // 1、构建区间的 layer_filaments
         std::vector<std::vector<unsigned int>> range_layer_fils;
         range_layer_fils.reserve(end_layer - start_layer + 1);
         for (int layer_idx = start_layer; layer_idx <= end_layer; ++layer_idx) { range_layer_fils.push_back(layer_fils[layer_idx]); }
+        used_filaments.insert(combo.begin(), combo.end());
 
         // 2、生成区间分组结果
         auto nozzle_filament_map = tool_status.get_nozzle_filament_map();
@@ -1521,6 +1526,9 @@ std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order2(
 
                 fil_noz_map[fil_id] = noz_id;
 
+                // 记录材料首次使用的喷嘴id（仅首次插入）
+                fil_first_nozzle_map.emplace(static_cast<int>(fil_id), noz_id);
+
                 tool_status.set_current_extruder_id(ext_id);
                 tool_status.set_nozzle_status(noz_id, fil_id, ext_id);
             }
@@ -1531,6 +1539,14 @@ std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order2(
             int g_layer_id                       = start_layer + static_cast<int>(layer_id);
             results[g_layer_id].fil_nozzle_match = fil_noz_map;
             results[g_layer_id].fil_order        = std::vector<int>(fils_sequences[layer_id].begin(), fils_sequences[layer_id].end());
+        }
+    }
+
+    for (auto& res : results){
+        for (int fil_id = 0; fil_id < res.fil_nozzle_match.size(); fil_id++){
+            auto& noz_id = res.fil_nozzle_match[fil_id];
+            if (noz_id == -1)
+                noz_id = (used_filaments.count(fil_id) && fil_first_nozzle_map.count(fil_id)) ? fil_first_nozzle_map[fil_id] : 0;
         }
     }
 
