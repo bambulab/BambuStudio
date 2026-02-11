@@ -152,6 +152,8 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusFilamentWarningHighChamberTempCloseDoor,
     PrintStatusFilamentWarningHighChamberTempSoft,
     PrintStatusFilamentWarningUnknownHighChamberTempSoft,
+    PrintStatusFilamentWarningRemainNotEnough,
+    PrintStatusTPUUnsupportCaliOn,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-

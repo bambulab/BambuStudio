@@ -3359,9 +3359,20 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         }
     }
 
-    if (!can_support_pa_auto_cali() && m_checkbox_list["flow_cali"]->IsShown() && m_checkbox_list["flow_cali"]->getValue() == "on") {
-        show_status(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali);
-        return;
+    if (!can_support_pa_auto_cali() && m_checkbox_list["flow_cali"]->IsShown()) {
+        if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
+            show_status(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali);
+            if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusTPUUnsupportAutoCali)) {
+                return;
+            }
+        }
+
+        if (m_checkbox_list["flow_cali"]->getValue() == "on") {
+            show_status(PrintDialogStatus::PrintStatusTPUUnsupportCaliOn);
+            if (PrePrintChecker::is_error(PrintDialogStatus::PrintStatusTPUUnsupportCaliOn)) {
+                return;
+            }
+        }
     }
 
     if (!CheckErrorDynamicSwitchNozzle(obj_)) {
