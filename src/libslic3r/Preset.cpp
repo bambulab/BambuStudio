@@ -2035,14 +2035,17 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             }
         }
     } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
+        std::string msg = name + ": " + err.what();
+        errors_cummulative += msg;
         errors_cummulative += "\n";
     }
 
     unlock();
 
-    if (! errors_cummulative.empty())
+    if (!errors_cummulative.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, load user preset %1% , type %2%, errors_cummulative %3%")%name %Preset::get_type_string(m_type) %errors_cummulative;
         throw Slic3r::RuntimeError(errors_cummulative);
+    }
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, load user preset %1% , type %2%, errors_cummulative %3%")%name %Preset::get_type_string(m_type) %errors_cummulative;
     return (need_update)?false:true;
