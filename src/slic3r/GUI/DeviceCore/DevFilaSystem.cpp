@@ -111,6 +111,23 @@ std::optional<Slic3r::DevFilamentDryingPreset> DevAmsTray::get_ams_drying_preset
     return DevUtilBackend::GetFilamentDryingPreset(setting_id);
 }
 
+std::optional<int> DevAmsTray::get_filament_remain_weight() const
+{
+    std::optional<int> weight_int;
+    try {
+        weight_int = stoi(weight) * remain / 100;
+    } catch(...) {
+        weight_int = std::nullopt;
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid filament weight " << weight;
+    }
+    
+    if (weight_int.has_value() && weight_int.value() > 0) {
+        return weight_int;
+    } else {
+        return std::nullopt;
+    }
+}
+
 DevAms::DevAms(const std::string& ams_id, int extruder_id, AmsType type)
 {
     m_ams_id = ams_id;
@@ -251,7 +268,7 @@ DevAmsTray* DevFilaSystem::GetAmsTray(const std::string& ams_id, const std::stri
     auto it = amsList.find(ams_id);
     if (it == amsList.end()) return nullptr;
     if (!it->second) return nullptr;
-    return it->second->GetTray(tray_id);;
+    return it->second->GetTray(tray_id);
 }
 
 void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
@@ -269,6 +286,27 @@ void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
             }
         }
     }
+}
+
+std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
+{
+    std::map<int, DevAmsSlotId> tray_id_map;
+    for (auto& [ams_id, ams_item] : GetAmsList()) {
+        for (auto &[slot_id, slot_item] : ams_item->GetTrays()) {
+            if (ams_item && slot_item) {
+                try {
+                    int ams_id_int = stoi(ams_id);
+                    int slot_id_int = stoi(slot_id);
+                    int tray_index= ams_item->GetAmsType() == DevAms::AmsType::N3S ? ams_id_int : (ams_id_int * 4 + slot_id_int);
+                    tray_id_map[tray_index] = {ams_id_int, slot_id_int};
+                } catch(...) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
+                }
+            }
+        }
+    }
+
+    return  tray_id_map;
 }
 
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const

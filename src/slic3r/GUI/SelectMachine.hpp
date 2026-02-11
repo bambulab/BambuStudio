@@ -467,6 +467,7 @@ public:
     void CheckWarningRackStatus(MachineObject* obj_);
 
     bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
+    bool CheckWarningFilamentRemain(MachineObject* obj_); // return true if no errors
 
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();

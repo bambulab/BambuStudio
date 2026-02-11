@@ -1765,6 +1765,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
+    } else if (status == PrintStatusFilamentWarningRemainNotEnough) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     }
 
     /*enter perpare mode*/
@@ -3866,7 +3869,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
                 int           id   = iter->first;
                 Material *    item = iter->second;
                 MaterialItem *m    = item->item;
-                m->on_normal();
+                if (m->is_selected())
+                    m->on_normal();
                 iter++;
             }
 
@@ -5290,7 +5294,172 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     }
 
+    if (!CheckWarningFilamentRemain(obj_)) {
+        wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
+        show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
+    }
+
     return true;
+}
+
+// return true don't warning
+bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
+{
+    std::vector<int> filaments_not_enough;
+
+    if (!obj_) return true;
+
+    if (!obj_->GetFilaSystem()->IsDetectRemainEnabled() || m_print_type != PrintFromType::FROM_NORMAL) return true;
+
+    auto full_config = wxGetApp().preset_bundle->full_config();
+    auto filament_densities = full_config.option<ConfigOptionFloats>("filament_density");
+
+    // key: ams_id slot_id value: remain
+    std::map<std::pair<std::string, std::string>, double> fila_remain_map; //collect fila remain info
+    std::map<std::pair<std::string, std::string>, FilamentInfo> fila_used_map;
+    {
+        for (auto ams_item : obj_->GetFilaSystem()->GetAmsList()) {
+            std::string ams_id = ams_item.first;
+            if (ams_item.second) {
+                for (auto tray_item : ams_item.second->GetTrays()) {
+                    std::string slot_id = tray_item.first;
+                    if (tray_item.second) {
+                        std::pair<std::string, std::string> key{ams_id, slot_id};
+                        if (auto weight = tray_item.second->get_filament_remain_weight()) {
+                            fila_remain_map[key] = weight.value();
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int extruder_id = 0; extruder_id < obj_->vt_slot.size(); extruder_id++) {
+            std::pair<std::string, std::string> key;
+            if (extruder_id == MAIN_EXTRUDER_ID) {
+                key = {VIRTUAL_AMS_MAIN_ID_STR, "0"};
+            } else if (extruder_id == DEPUTY_EXTRUDER_ID){
+                key = {VIRTUAL_AMS_DEPUTY_ID_STR, "0"};
+            }
+            if (auto weight =obj_->vt_slot[extruder_id].get_filament_remain_weight()) {
+                fila_remain_map[key] = weight.value();
+            }
+        }
+    }
+
+    // collect used filament weight
+    for (const auto& fila : m_ams_mapping_result) {
+        if (GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result()) {
+            if (filament_densities) {
+                auto densities = filament_densities->values;
+                auto volumes_map = gcode_result->print_statistics.total_volumes_per_extruder;
+                if (volumes_map.find(fila.id) != volumes_map.end() && fila.id >= 0 && fila.id < densities.size()) {
+                    std::pair<std::string, std::string> key{fila.ams_id, fila.slot_id};
+                    FilamentInfo info;
+                    info.id = fila.id;
+                    info.used_g = densities[fila.id] * (volumes_map[fila.id] / 1000); // mm^3 -> cm^3
+                    fila_used_map[key] = info;
+                } else {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "the list of filament densities can't find "<< fila.id;
+                    return true;
+                }
+            }
+        }
+    }
+
+    {
+        wxString record_used_log;
+        for (auto [key, used] : fila_used_map) {
+            record_used_log += wxString::Format("ams_id: %s, slot_id: %s, fila_id: %d, used: %0.2f;", key.first, key.second, used.id, used.used_g);
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "fila_used_map: " << record_used_log;
+
+        wxString record_remain_log;
+        for (auto& [key, remain] : fila_remain_map) {
+            record_remain_log += wxString::Format("ams_id: %s, slot_id: %s, remain: %0.2f;", key.first, key.second, remain);
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "fila_remain_map: " << record_remain_log;
+    }
+
+    double tolerance = DevAmsTray::get_fila_remain_tolerance();
+
+    for (auto& item : fila_used_map)
+    {
+        auto ams_slot_key = item.first;
+
+        if (fila_remain_map.find(ams_slot_key) == fila_remain_map.end()) continue;
+
+        auto fila_used = item.second.used_g;
+        auto fila_remain = fila_remain_map[ams_slot_key];
+
+        if (fila_remain >= fila_used * (1 - tolerance)) {
+            double remain_to_deduct = fila_used * (1 + tolerance);
+            fila_remain_map[ams_slot_key] = std::max(fila_remain_map[ams_slot_key] - remain_to_deduct, 0.0);
+        } else {
+            if (obj_->GetFilaSystem()->IsAutoRefillEnabled() && obj_->GetExtderSystem()->HasFilamentBackup()) {
+                std::string ams_id = ams_slot_key.first;
+                std::string slot_id = ams_slot_key.second;
+                try {
+                    DevAmsSlotId ams_slot_id{stoi(ams_id), stoi(slot_id)};
+                    auto ams_slot_list = obj_->GetExtderSystem()->GetBackupAmsSlotInGroup(ams_slot_id);
+
+                    double total_remain = fila_remain;
+
+                    for (const DevAmsSlotId& item : ams_slot_list) {
+                        std::pair<std::string, std::string> backup_key = {std::to_string(item.first), std::to_string(item.second)};
+                        total_remain += fila_remain_map[backup_key];
+                    }
+
+                    if (total_remain >= fila_used * (1 - tolerance)) {
+                        double remain_to_deduct = fila_used * (1 + tolerance);
+                        if (fila_remain > 0) {
+                            double deduct = std::min(fila_remain_map[ams_slot_key], remain_to_deduct);
+                            fila_remain_map[ams_slot_key] -= deduct;
+                            remain_to_deduct -= deduct;
+                        }
+
+                        for (const DevAmsSlotId& item : ams_slot_list) {
+                            if (remain_to_deduct <= 0) break;
+
+                            std::pair<std::string, std::string> backup_key = {std::to_string(item.first), std::to_string(item.second)};
+                            if (fila_remain_map.find(backup_key) != fila_remain_map.end() && fila_remain_map[backup_key] > 0) {
+                                double deduct = std::min(fila_remain_map[backup_key], remain_to_deduct);
+                                fila_remain_map[backup_key] -= deduct;
+                                remain_to_deduct -= deduct;
+                            }
+                        }
+                    } else {
+                        filaments_not_enough.push_back(item.second.id);
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams: "
+                                                   << ams_slot_key.first << " slot: " << ams_slot_key.second
+                                                   << ", used: " << fila_used << ", available: " << total_remain;
+                    }
+                } catch(...) {
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
+                    return true;
+                }
+            } else {
+                filaments_not_enough.push_back(item.second.id);
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams slot: "
+                                           << ams_slot_key.first << " slot: " << ams_slot_key.second
+                                           << ", used: " << fila_used << ", available: " << fila_remain;
+            }
+        }
+    }
+
+    for (auto iter : m_materialList) {
+        int fila_id        = iter.first;
+        Material * item    = iter.second;
+        MaterialItem *m    = item->item;
+        if(std::find(filaments_not_enough.begin(), filaments_not_enough.end(), fila_id) != filaments_not_enough.end()) {
+            m->on_warning();
+        } else if (m->is_selected()) {
+            m->on_selected();
+        } else {
+            m->on_normal();
+        }
+    }
+
+    return filaments_not_enough.empty();
 }
 
 std::optional<FilamentInfo> SelectMachineDialog::get_slicing_filament_info(int fila_logic_id) const

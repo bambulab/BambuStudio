@@ -7,6 +7,7 @@
 #include "slic3r/GUI/I18N.hpp"
 
 #include "DevUtil.h"
+#include "DevFilaSystem.h"
 
 using namespace nlohmann;
 
@@ -64,6 +65,37 @@ namespace Slic3r
     NozzleDiameterType DevExtder::GetNozzleDiameterType() const
     {
         return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).GetNozzleDiameterType();
+    }
+
+    std::unordered_map<int, bool> DevExtder::GetBackupStatus(unsigned int fila_back_group)
+    {
+        std::unordered_map<int, bool> trayid_group;
+        for (int i = 0; i < 16; i++)
+        {
+            if (fila_back_group & (1 << i))
+            {
+                trayid_group[i] = true;
+            }
+        }
+
+        for (int j = 16; j <= 23; j++)/* single ams is from 128*/
+        {
+            if (fila_back_group & (1 << j))
+            {
+                trayid_group[128 + j - 16] = true;
+            }
+        }
+
+        for (int i=24; i <= 27; i++) /* ams lite for N9*/
+        {
+            if (fila_back_group & (1 << i))
+            {
+                // ams_id(=16) * 4 + slot_id
+                trayid_group[64 + i - 24] = true;
+            }
+        }
+
+        return trayid_group;
     }
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
@@ -149,6 +181,24 @@ namespace Slic3r
         }
 
         return false;
+    }
+
+    std::vector<DevAmsSlotId> DevExtderSystem::GetBackupAmsSlotInGroup(const DevAmsSlotId& ams_slot_id)
+    {
+        std::map<int, DevAmsSlotId> tray_map = Owner()->GetFilaSystem()->GetTrayIndexMap();
+
+        std::vector<DevAmsSlotId> backup_group;
+        for (const auto& extruder : m_extders) {
+            for (int fila_backup : extruder.GetFilamBackup()) {
+                for (auto [tray_id,  is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
+                    if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] != ams_slot_id) {
+                        backup_group.emplace_back(tray_map[tray_id]);
+                    }
+                }
+            }
+        }
+
+        return backup_group;
     }
 
     void ExtderSystemParser::ParseV1_0(const nlohmann::json& print_json, DevExtderSystem* system)
