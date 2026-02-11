@@ -1511,7 +1511,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
         return false;
     }
-
+    
     std::string machine_print_name = obj->get_show_printer_type();
     wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -1650,6 +1650,16 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     for (size_t idx = 0; idx < target_types.size(); ++idx) {
         printer_tab->set_extruder_volume_type(idx, target_types[idx]);
+    }
+
+    if (obj->is_support_active_arc_fitting) {
+        auto tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+        if (tab->disable_arc_fitting()) {
+            wxGetApp().sidebar().jump_to_option("enable_arc_fitting", Preset::TYPE_PRINT, L"");
+            auto notification_manager = plater->get_notification_manager();
+            auto msg                  = into_u8(_L("Tips:\nYour printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."));
+            notification_manager->push_notification(NotificationType::BBLPlateInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+        }
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
