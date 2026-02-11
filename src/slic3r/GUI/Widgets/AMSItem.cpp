@@ -55,7 +55,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->ams_humidity = ams->SupportHumidityLevel() ? ams->GetHumidityLevel() : -1;
     this->ams_humidity_percent = ams->SupportHumidityPercent() ? ams->GetHumidityPercent() : -1;
     this->left_dray_time = ams->GetLeftDryTime();
-    this->m_ams_drying = ams->AmsIsDrying();
+    this->m_ams_drying = ams->AmsIsDrying() || (!ams->GetDryStatus().has_value() && this->left_dray_time > 0);
     this->current_temperature = ams->GetCurrentTemperature();
     this->ams_type = ams->GetAmsType(); 
     this->current_extruder_id = ams->GetCurrentExtruderId();
