@@ -279,15 +279,15 @@ void wxMediaCtrl3::PlayThread()
             m_video_size = { info.format.video.width, info.format.video.height };
             adjust_frame_size(m_frame_size, m_video_size, GetSize());
             NotifyStopped();
-        }
-        m_get_frame_exit.store(false);
-        m_get_frame_thread = std::thread(&wxMediaCtrl3::GetFrameThread, this, info.format.video.frame_rate);
-        m_need_refresh.store(false);
-        m_render_timer.Start(1000 / (info.format.video.frame_rate + 5));
-        bool res = m_frame_buffer.set_capacity(m_buffer_time * info.format.video.frame_rate / 1000);
-        if (res == false) {
-            BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl3:forbidden capacity size";
-            continue;
+            size_t buffer_cap = (size_t) (m_buffer_time * info.format.video.frame_rate / 1000);
+            if (buffer_cap == 0) {
+                buffer_cap = 1;
+            }
+            m_frame_buffer.set_capacity(buffer_cap);
+            m_get_frame_exit.store(false);
+            m_get_frame_thread = std::thread(&wxMediaCtrl3::GetFrameThread, this, info.format.video.frame_rate);
+            m_need_refresh.store(false);
+            m_render_timer.Start(1000 / (info.format.video.frame_rate + 5));
         }
         Bambu_Sample sample;
         while (error == 0) {
@@ -346,8 +346,8 @@ void wxMediaCtrl3::PlayThread()
         if (m_get_frame_thread.joinable()) {
             m_get_frame_exit.store(true);
             m_get_frame_thread.join();
-            m_frame_buffer.reset();
         }
+        m_frame_buffer.reset();
         if (tunnel) {
             lk.unlock();
             Bambu_Close(tunnel);
