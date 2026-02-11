@@ -505,6 +505,10 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     m_url.clear();
     ++m_failed_retry;
+
+    // Set idle image after video stops
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
     if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
@@ -738,6 +742,7 @@ void MediaPlayCtrl::start_device_image_flow()
         return;
     }
 
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
     if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
 
     if (!IsEnabled()) {
