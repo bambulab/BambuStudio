@@ -373,6 +373,7 @@ public:
     void        update_extruder_switch_colors();
     void        update_all_extruder_options_status();
     void        check_extruder_options_status(int index, bool &sys_extruder, bool &modified_extruder, const std::vector<PageShp>& pages_to_check);
+    bool        disable_arc_fitting();
 
 	void		on_roll_back_value(const bool to_sys = false);
 

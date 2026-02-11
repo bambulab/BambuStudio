@@ -1266,6 +1266,19 @@ void Tab::check_extruder_options_status(int index, bool &sys_extruder, bool &mod
     }
 }
 
+bool Tab::disable_arc_fitting()
+{
+    DynamicPrintConfig &config          = m_preset_bundle->prints.get_edited_preset().config;
+    ConfigOptionBool   *arc_fitting_opt = config.option<ConfigOptionBool>("enable_arc_fitting", true);
+    if (arc_fitting_opt && arc_fitting_opt->value) {
+        DynamicPrintConfig new_conf;
+        new_conf.set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
+        m_config_manipulation.apply(&config, &new_conf);
+        return true;
+    }
+    return false;
+}
+
 void Tab::init_options_list()
 {
     if (!m_options_list.empty())
