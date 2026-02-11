@@ -1513,16 +1513,25 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     }
 
     std::string machine_print_name = obj->get_show_printer_type();
+    wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
+    const Preset &selected_preset = preset_bundle->printers.get_selected_preset();
+    const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(selected_preset);
+    wxString target_display_name = pm ? wxString::FromUTF8(pm->name) : wxString::FromUTF8(target_model_id);
     Preset* machine_preset = get_printer_preset(obj);
     if (!machine_preset) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: machine_preset empty";
         return false;
     }
     if (machine_print_name != target_model_id) {
-        MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
-                                            "Are you sure to continue syncing?"), _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
+        wxString msg = wxString::Format(_L("Do you want to sync the preset printer with the connected printer, %s \n%s\n%s"), machine_display_name,
+                                        wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                                         wxString::Format(_L("Current connected printer (Device page): %s (%s)"), machine_display_name,
+                                                                          wxString::FromUTF8(obj->get_dev_name()))),
+                                        wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                                         wxString::Format(_L("Current printer preset (Prepare page): %s"), target_display_name)));
+        MessageDialog dlg(this->plater, msg, _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
         if (dlg.ShowModal() == wxID_NO) {
             return false;
         }
