@@ -5,7 +5,7 @@
         {
             "model_material": "PLA",
             "model_material_type": "type",
-            "support_material_list": ["Bambu Support For PLA-PETG", "Bambu Support For PLA"],
+            "support_material_list": ["Bambu Support For PLA/PETG", "Bambu Support For PLA"],
             "support_material_type": "name",
             "priority": 3,
             "recommended_params": {
@@ -63,7 +63,7 @@
         {
             "model_material": "PETG",
             "model_material_type": "type",
-            "support_material_list": ["Bambu Support For PLA-PETG"],
+            "support_material_list": ["Bambu Support For PLA/PETG"],
             "support_material_type": "name",
             "priority": 3,
             "recommended_params": {
@@ -120,7 +120,7 @@
         {
             "model_material": "PA",
             "model_material_type": "type",
-            "support_material_list": ["Bambu Support For PA PET", "Bambu ASA", "Bambu ABS"],
+            "support_material_list": ["Bambu Support For PA/PET", "Bambu ASA", "Bambu ABS"],
             "support_material_type": "name",
             "priority": 3,
             "recommended_params": {
