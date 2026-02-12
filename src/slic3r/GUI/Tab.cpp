@@ -5144,14 +5144,12 @@ void TabPrinter::on_preset_loaded()
 
         // only reset nozzle count when printer model is changed
         if (base_model != m_base_preset_model) {
-            wxGetApp().plater()->sidebar().reset_fila_switch();
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
             if (extruder_max_nozzle_count && nozzle_volume_type) {
                 wxGetApp().plater()->sidebar().enable_nozzle_count_edit(has_multiple_nozzle);
                 m_preset_bundle->extruder_nozzle_stat.on_printer_model_change(m_preset_bundle);
-                m_preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
                 for (size_t idx = 0; idx < extruders_count; ++idx) {
                     updateNozzleCountDisplay(m_preset_bundle, idx, NozzleVolumeType(nozzle_volume_type->values[idx]));
                 }

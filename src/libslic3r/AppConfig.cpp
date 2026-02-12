@@ -469,9 +469,6 @@ void AppConfig::set_defaults()
     if (get("play_slicing_video").empty()) {
         set_bool("play_slicing_video", true);
     }
-    if (get("show_fila_switch_tips").empty()) {
-        set_bool("show_fila_switch_tips", true);
-    }
     if (get("play_tpu_printing_video").empty()) {
         set_bool("play_tpu_printing_video", true);
     }
