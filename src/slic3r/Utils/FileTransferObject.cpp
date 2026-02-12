@@ -33,9 +33,13 @@ struct FileTransferObject::Impl
     std::shared_ptr<FileTransferTunnel>               tunnel;
     std::vector<Pending>                              pending;
     std::vector<std::shared_ptr<FileTransferJob>>     active_jobs;
+    uint64_t                                          request_seq = 0;
+    uint64_t                                          active_request_id = 0;
 
     void reset_locked()
     {
+        ++request_seq;
+        active_request_id = request_seq;
         for (auto &job : active_jobs) {
             if (job) job->cancel();
         }
@@ -203,11 +207,16 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
             try {
                 mod = &module();
             } catch (const std::exception &e) {
+                {
+                    std::lock_guard<std::mutex> lock(impl_->mutex);
+                    impl_->reset_locked();
+                }
                 if (cb) cb(FT_ESTATE, FT_ESTATE, std::string("{\"error\":\"") + e.what() + "\"}", {});
                 return;
             }
 
             std::shared_ptr<FileTransferTunnel> tunnel;
+            uint64_t request_id = 0;
             {
                 std::lock_guard<std::mutex> lock(impl_->mutex);
 
@@ -217,6 +226,8 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
                 }
 
                 tunnel = impl_->tunnel;
+                request_id = ++impl_->request_seq;
+                impl_->active_request_id = request_id;
             }
 
             // Create FTDownloadFiles job (via JSON parameters)
@@ -226,14 +237,17 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
                 impl_->track_job_locked(job);
             }
 
-            job->on_result([this, job, cb = std::move(cb)](int ec2, int resp_ec, std::string json, std::vector<std::byte> bin) mutable {
+            job->on_result([this, job, request_id, cb = std::move(cb)](int ec2, int resp_ec, std::string json, std::vector<std::byte> bin) mutable {
+                if (cb) cb(ec2, resp_ec, std::move(json), std::move(bin));
+
+                // Cleanup resources after callback completes (one-shot design)
                 {
                     std::lock_guard<std::mutex> lock(impl_->mutex);
                     impl_->untrack_job_locked(job);
+                    if (request_id == impl_->active_request_id) {
+                        impl_->reset_locked();
+                    }
                 }
-                // FTDownloadFiles has completed all processing (streaming reception, MD5 verification, etc.)
-                // Return complete result directly
-                if (cb) cb(ec2, resp_ec, std::move(json), std::move(bin));
             });
 
             {
@@ -241,11 +255,15 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
                 if (tunnel) {
                     job->start_on(*tunnel);
                 } else {
-                    impl_->untrack_job_locked(job);
+                    impl_->reset_locked();
                     if (cb) cb(FT_ESTATE, FT_ESTATE, "{\"error\":\"tunnel released\"}", {});
                 }
             }
         } catch (const std::exception &e) {
+            {
+                std::lock_guard<std::mutex> lock(impl_->mutex);
+                impl_->reset_locked();
+            }
             if (cb) cb(FT_EIO, FT_EIO, std::string("{\"error\":\"") + e.what() + "\"}", {});
         }
     });
