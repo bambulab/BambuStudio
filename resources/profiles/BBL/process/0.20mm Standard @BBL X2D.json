@@ -18,6 +18,7 @@
         "1000",
         "1000"
     ],
+    "enable_tower_interface_features": "1",
     "enable_overhang_speed": [
         "1",
         "0",
@@ -42,17 +43,17 @@
         "200",
         "200"
     ],
-    "outer_wall_acceleration": [
-        "5000",
-        "5000",
-        "1000",
-        "1000"
-    ],
     "outer_wall_speed": [
         "200",
         "500",
         "50",
         "50"
+    ],
+    "outer_wall_acceleration": [
+        "5000",
+        "5000",
+        "1000",
+        "1000"
     ],
     "overhang_1_4_speed": [
         "0",
@@ -72,24 +73,18 @@
         "30",
         "10"
     ],
+    "prime_tower_brim_width": "-1",
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
         "Bowden Standard",
         "Bowden High Flow"
     ],
-    "prime_tower_brim_width": "-1",
     "sparse_infill_speed": [
         "270",
         "500",
         "200",
         "200"
-    ],
-    "top_surface_acceleration": [
-        "2000",
-        "2000",
-        "1000",
-        "1000"
     ],
     "top_surface_speed": [
         "200",
@@ -100,6 +95,12 @@
     "travel_speed": [
         "1000",
         "1000",
+        "1000",
+        "1000"
+    ],
+    "top_surface_acceleration": [
+        "2000",
+        "2000",
         "1000",
         "1000"
     ],
