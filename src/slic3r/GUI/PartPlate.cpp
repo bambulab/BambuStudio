@@ -1850,6 +1850,72 @@ bool PartPlate::check_high_temp_need_wrapping_detection(const DynamicPrintConfig
     return false;
 }
 
+bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const
+{
+    warning_text.clear();
+
+    std::vector<int> used_filaments = get_extruders(true); // 1 base
+    if (used_filaments.empty()){
+        return false;
+	}
+
+	static const std::set<std::string> high_shrinkage_filament_ids = {
+		"GFN08",         // PA6-GF
+		"GFB00", "GFB99",// ABS
+		"GFB50",         // ABS-GF
+		"GFB01", "GFB98",// ASA
+		"GFT01",         // PET-CF
+		"GFB51",         // ASA-CF
+		"GFN05",         // PA6-CF
+		"GFC00", "GFC99",// PC
+		"GFC01",         // PC FR
+		"GFN04",         // PAHT-CF
+		"GFN06", "GFN97",// PPA-CF
+		"GFT02", "GFT98",// PPS-CF
+		"GFG50", "GFG98",// PETG-CF
+		"GFG00",         // PETG Basic
+		"GFA06",         // PLA Silk+
+		"GFG01",         // PETG Translucent
+		"GFG02", "GFG96" // PETG HF
+	};
+
+	auto *filament_ids = config.option<ConfigOptionStrings>("filament_ids");
+	const auto &filament_presets = wxGetApp().preset_bundle->filament_presets;
+    std::set<std::string> found_filaments;
+
+    for (auto filament_idx : used_filaments) {
+        int filament_config_idx = filament_idx - 1;
+        if (filament_config_idx < 0)
+            continue;
+
+        auto fil_preset = filament_config_idx < filament_presets.size() ? wxGetApp().preset_bundle->filaments.find_preset(filament_presets[filament_config_idx]) : nullptr;
+        std::string filament_name = fil_preset != nullptr ? fil_preset->display_name() : "";
+        std::string filament_id;
+
+        if (filament_ids && filament_config_idx < filament_ids->values.size())
+            filament_id = filament_ids->values.at(filament_config_idx);
+        else if (fil_preset != nullptr)
+            filament_id = fil_preset->filament_id;
+
+        if (high_shrinkage_filament_ids.count(filament_id) > 0)
+            found_filaments.insert(filament_name.empty() ? filament_id : filament_name);
+	}
+
+    if (!found_filaments.empty()) {
+        std::string filament_names;
+        for (auto it = found_filaments.begin(); it != found_filaments.end(); ++it) {
+            if (it != found_filaments.begin())
+                filament_names += ", ";
+            filament_names += *it;
+        }
+        warning_text = GUI::format(_L("High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."),
+                                   filament_names);
+        return true;
+    }
+
+    return false;
+}
+
 /*Vec3d PartPlate::calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size, bool use_global_objects) const
 {
     Vec3d  wipe_tower_size;
@@ -3526,17 +3592,17 @@ bool PartPlate::has_different_extruder_types()
     const auto &preset_bundle = wxGetApp().preset_bundle;
     const auto &full_config = preset_bundle->full_config();
     auto extruder_type_opt = full_config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    
+
     if (!extruder_type_opt || extruder_type_opt->values.size() < 2)
         return false;
-    
+
     // Check if all extruder types are the same
     int first_type = extruder_type_opt->values[0];
     for (size_t i = 1; i < extruder_type_opt->values.size(); ++i) {
         if (extruder_type_opt->values[i] != first_type)
             return true;
     }
-    
+
     return false;
 }
 
@@ -6630,14 +6696,14 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->m_locked = plate_data_list[i]->locked;
 		m_plate_list[index]->config()->apply(plate_data_list[i]->config);
         m_plate_list[index]->set_plate_name(plate_data_list[i]->plate_name);
-        
+
         // Check filament_map_mode compatibility
         // If quality mode or convenience mode is not supported (all extruders have same type),
         // automatically switch to flush mode
 #if 0
         if (!has_different_extruder_types()) {
             FilamentMapMode current_mode = m_plate_list[index]->get_filament_map_mode();
-            if (current_mode == FilamentMapMode::fmmAutoForQuality || 
+            if (current_mode == FilamentMapMode::fmmAutoForQuality ||
                 current_mode == FilamentMapMode::fmmAutoForMatch) {
                 m_plate_list[index]->set_filament_map_mode(FilamentMapMode::fmmAutoForFlush);
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% switched to flush mode (quality/convenience mode not supported)") % index;

@@ -284,6 +284,9 @@ public:
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
     std::string         label(bool no_alias) const;
 
+    // Return a short display name: alias (or name before '@') with vendor prefix stripped.
+    std::string         display_name() const;
+
     // Set the is_dirty flag if the provided config is different from the active one.
     void                set_dirty(const DynamicPrintConfig &config) { this->is_dirty = ! this->config.diff(config).empty(); }
     void                set_dirty(bool dirty = true) { this->is_dirty = dirty; }

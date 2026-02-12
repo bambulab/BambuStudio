@@ -161,6 +161,8 @@ enum class NotificationType
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,
+    BBLHighTempNeedWrappingDetection,
+    BBLHighShrinkageFilament,
     AssemblyWarning,
     AssemblyInfo,
 	BBLArcFittingInfo,

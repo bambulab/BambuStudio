@@ -668,6 +668,27 @@ std::string Preset::label(bool no_alias) const
         + ((no_alias || this->alias.empty()) ? this->name : this->alias);
 }
 
+std::string Preset::display_name() const
+{
+    std::string result;
+    if (!this->alias.empty()) {
+        result = this->alias;
+    } else {
+        size_t at_pos = this->name.find('@');
+        result = this->name.substr(0, at_pos);
+        boost::algorithm::trim(result);
+    }
+
+    std::string vendor = this->config.get_filament_vendor();
+    if (!vendor.empty()) {
+        std::string prefix = (vendor == "Bambu Lab" ? "Bambu" : vendor) + " ";
+        if (result.compare(0, prefix.size(), prefix) == 0)
+            result = result.substr(prefix.size());
+    }
+
+    return result;
+}
+
 bool is_compatible_with_print(const PresetWithVendorProfile &preset, const PresetWithVendorProfile &active_print, const PresetWithVendorProfile &active_printer)
 {
 	if (preset.vendor != nullptr && preset.vendor != active_printer.vendor)
