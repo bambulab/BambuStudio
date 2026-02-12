@@ -681,6 +681,145 @@ void MediaPlayCtrl::jump_to_play()
     TogglePlay();
 }
 
+void MediaPlayCtrl::RequestFileSystemUrl(std::function<void(std::string url)> cb, bool lan_mode)
+{
+    if (!cb) return;
+
+    if (lan_mode && !m_lan_ip.empty() && !m_lan_passwd.empty()) {
+        std::string url = "bambu:///local/" + m_lan_ip + "?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        cb(url);
+        return;
+    }
+
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
+
+    if (!agent || !m_remote_proto) {
+        BOOST_LOG_TRIVIAL(info) << "RequestFileSystemUrl: agent not available or remote protocol not supported" << lan_mode << " " << m_remote_proto;
+        cb("");
+        return;
+    }
+
+    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, v = agent_version, dv = m_dev_ver, cb = std::move(cb)](std::string url) mutable {
+        if (boost::algorithm::starts_with(url, "bambu:///")) {
+            url += "&device=" + into_u8(m_machine);
+            url += "&net_ver=" + v;
+            url += "&dev_ver=" + dv;
+            url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
+            url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+            url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+        }
+
+        CallAfter([cb = std::move(cb), url = std::move(url)]() mutable { cb(std::move(url)); });
+    });
+}
+
+void MediaPlayCtrl::start_device_image_flow()
+{
+    // if liveview is playing, do not request the image
+    if (m_last_state == wxMEDIASTATE_PLAYING) {
+        return;
+    }
+
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+
+    if (!IsEnabled()) {
+        m_image_transfer->CancelAll();
+        m_image_token = std::make_shared<int>(0);
+        return;
+    }
+
+    m_image_transfer->CancelAll();
+    m_image_token = std::make_shared<int>(0);
+    auto image_token = std::weak_ptr<int>(m_image_token);
+    std::string request_machine = m_machine;
+
+    enum class DownloadMode {
+        DOWNLOAD_MODE_LOCAL,
+        DOWNLOAD_MODE_REMOTE
+    };
+
+    auto mode_to_string = [](DownloadMode mode) -> const char* {
+        return mode == DownloadMode::DOWNLOAD_MODE_LOCAL ? "LAN" : "Remote";
+    };
+
+    // Helper: Process downloaded image data
+    auto process_image_data = [this, request_machine, mode_to_string](const std::vector<std::byte>& data, DownloadMode mode) -> bool {
+        if (data.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer (" << mode_to_string(mode) << ") received empty data";
+            return false;
+        }
+
+        wxMemoryInputStream stream(data.data(), data.size());
+        wxImage image(stream, wxBITMAP_TYPE_ANY);
+
+        if (!image.IsOk()) {
+            BOOST_LOG_TRIVIAL(warning) << "Failed to parse image data (" << mode_to_string(mode) << ")";
+            return false;
+        }
+
+        CallAfter([this, img = std::move(image), request_machine]() {
+            if (request_machine != m_machine) {
+                BOOST_LOG_TRIVIAL(info) << "DeviceImage: machine changed, skip display.";
+                return;
+            }
+            if (m_media_ctrl) {
+                m_media_ctrl->SetIdleImage(img);
+            }
+        });
+        return true;
+    };
+
+    // Helper: Download image with specified mode
+    auto download_image = [this, image_token, request_machine, process_image_data, mode_to_string](DownloadMode mode, std::function<void()> on_failure = nullptr) {
+        bool lan_mode = (mode == DownloadMode::DOWNLOAD_MODE_LOCAL);
+        RequestFileSystemUrl([this, image_token, request_machine, mode, process_image_data, on_failure, mode_to_string](std::string url) {
+            if (image_token.expired() || url.empty()) return;
+
+            if (request_machine != m_machine) {
+                BOOST_LOG_TRIVIAL(info) << "DeviceImage: machine changed during URL request, skip.";
+                return;
+            }
+
+            SetDeviceImageUrl(url);
+
+            m_image_transfer->DownloadMemFile("mem:/26", "", [this, image_token, mode, process_image_data, on_failure, mode_to_string]
+                (int ec, int resp_ec, std::string json, std::vector<std::byte> data) {
+                if (image_token.expired()) return;
+
+                if (ec != 0) {
+                    BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer " << mode_to_string(mode) << " failed with error code: " << ec;
+                    if (on_failure) {
+                        on_failure();
+                    }
+                    return;
+                }
+
+                process_image_data(data, mode);
+            });
+        }, lan_mode);
+    };
+
+    // Try LAN mode first, fallback to remote mode if failed
+    download_image(DownloadMode::DOWNLOAD_MODE_LOCAL, [this, download_image, image_token]() {
+        if (m_remote_proto && !image_token.expired()) {
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer LAN failed, trying remote mode...";
+            download_image(DownloadMode::DOWNLOAD_MODE_REMOTE);
+        } else if (image_token.expired()) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImage: token expired, download cancelled.";
+        }
+    });
+}
+
+void MediaPlayCtrl::SetDeviceImageUrl(std::string url)
+{
+    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+    m_image_transfer->SetTunnelUrl(std::move(url));
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;

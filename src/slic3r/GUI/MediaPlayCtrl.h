@@ -52,6 +52,11 @@ public:
 
     void jump_to_play();
 
+    void RequestFileSystemUrl(std::function<void(std::string url)> cb, bool lan_mode=true);
+
+    using ImageResultCb = std::function<void(int ec, int resp_ec, std::string json, std::vector<std::byte> data)>;
+    void SetDeviceImageUrl(std::string url);
+
 protected:
     void onStateChanged(wxMediaEvent & event);
 
