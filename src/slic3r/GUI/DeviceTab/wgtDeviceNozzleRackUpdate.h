@@ -13,6 +13,7 @@
 
 #include <wx/panel.h>
 #include <memory>
+#include <cmath>
 
 // Previous definitions
 class Button;
@@ -135,6 +136,7 @@ private:
     Label* m_sn_label;
     Label* m_version_label;
     Label* m_version_new_label;
+    Label* m_used_time;
 };
 
 
