@@ -167,6 +167,8 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     SetMinSize(wxSize(FromDIP(580), -1));
     SetMaxSize(wxSize(FromDIP(580), -1));
 
+    m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
+
     if (mode < fmmManual)
         m_page_type = PageType::ptAuto;
     else if (mode == fmmManual)
@@ -179,7 +181,8 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     wxBoxSizer *mode_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, _L("Auto"), false);
+    wxString auto_btn_label = m_fila_switch_ready ? _L("Fila Saving") : _L("Auto");
+    m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, auto_btn_label, false);
     m_manual_btn = new CapsuleButton(this, PageType::ptManual, _L("Custom"), false);
     if (show_default)
         m_default_btn = new CapsuleButton(this, PageType::ptDefault, _L("Same as Global"), true);
@@ -203,7 +206,15 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
         mode;
 
     m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map, filament_volume_map);
-    m_auto_map_panel                  = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced);
+
+    if (m_fila_switch_ready) {
+        m_auto_map_panel = nullptr;
+        m_saving_panel   = new FilamentMapSavingPanel(this);
+    } else {
+        m_saving_panel = nullptr;
+        m_auto_map_panel = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced);
+    }
+
     if (show_default)
         m_default_map_panel = new FilamentMapDefaultPanel(this);
     else
@@ -211,6 +222,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     panel_sizer->Add(m_manual_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
     panel_sizer->Add(m_auto_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
+    panel_sizer->Add(m_saving_panel, 0, wxALIGN_CENTER | wxEXPAND);
     if (show_default) panel_sizer->Add(m_default_map_panel, 0, wxALIGN_CENTER | wxEXPAND);
     main_sizer->Add(panel_sizer, 0, wxEXPAND);
 
@@ -294,7 +306,11 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
 FilamentMapMode FilamentMapDialog::get_mode()
 {
-    if (m_page_type == PageType::ptAuto) return m_auto_map_panel->GetMode();
+    if (m_page_type == PageType::ptAuto) {
+        if (m_fila_switch_ready)
+            return fmmAutoForFlush;
+        return m_auto_map_panel->GetMode();
+    }
     if (m_page_type == PageType::ptManual) return fmmManual;
     return fmmDefault;
 }
@@ -359,7 +375,11 @@ void FilamentMapDialog::update_panel_status(PageType page)
     }
     if (page == PageType::ptAuto) {
         m_auto_btn->Select(true);
-        m_auto_map_panel->Show();
+        if (m_fila_switch_ready && m_saving_panel) {
+            m_saving_panel->Show();
+        } else if (m_auto_map_panel) {
+            m_auto_map_panel->Show();
+        }
         if (!m_ok_btn->IsEnabled()) {
             m_ok_btn->Enable();
         }
