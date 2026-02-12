@@ -2141,10 +2141,11 @@ void PrintObject::discover_shell_for_perimeters()
                     ExPolygons old_internal = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternal));
                     ExPolygons old_internal_void = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalVoid));
                     ExPolygons old_internal_solid = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalSolid));
+                    ExPolygons bottom_area        = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stBottom));
 
                     lower_layerm->fill_surfaces.remove_types({ stInternal,stInternalVoid,stInternalSolid });
 
-                    ExPolygons new_internal_solid = union_ex(old_internal_solid, new_perimeter_solid);
+                    ExPolygons new_internal_solid = diff_ex(union_ex(old_internal_solid, new_perimeter_solid), bottom_area);
                     ExPolygons new_internal = diff_ex(old_internal, new_perimeter_solid);
                     ExPolygons new_internal_void = diff_ex(old_internal_void, new_perimeter_solid);
                     lower_layerm->fill_surfaces.append(new_internal, stInternal);
