@@ -3164,20 +3164,21 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer, int layer_id)
     }
     if (m_enable_tower_interface_features) {
         for (auto &block : m_wipe_tower_blocks) {
-            float block_depth = cur_block_depth[block.filament_adhesiveness_category];
+            float block_depth = cur_block_depth.count(block.filament_adhesiveness_category) ? cur_block_depth[block.filament_adhesiveness_category] : block.start_depth;
             if (block_depth + EPSILON >= block.start_depth + block.layer_depths[layer_id] - m_perimeter_width) { continue; }
             bool block_solid = block.layers_type[layer_id] == WipeTowerLayerType::Contact;
-            if (block_solid) {
+            bool add_skip_point = block_solid && std::abs(block_depth - block.start_depth) < EPSILON;
+            if (add_skip_point) {
                 Vec2f res;
                 int   index = layer_id % 4;
 
                 float gird_depth = ((int) (block.layer_depths[layer_id] - m_perimeter_width + 0.25 * m_perimeter_width) / m_perimeter_width + 1) *
                                    m_perimeter_width; // Note: updated in sync with finish_block_solid
                 switch (index % 4) {
-                case 0: res = Vec2f(0, block.start_depth); break;
-                case 1: res = Vec2f(m_wipe_tower_width, block.start_depth + gird_depth); break;
-                case 2: res = Vec2f(m_wipe_tower_width, block.start_depth); break;
-                case 3: res = Vec2f(0, block.start_depth + gird_depth); break;
+                case 0: res = Vec2f(0, block_depth); break;
+                case 1: res = Vec2f(m_wipe_tower_width, block_depth + gird_depth); break;
+                case 2: res = Vec2f(m_wipe_tower_width, block_depth); break;
+                case 3: res = Vec2f(0, block_depth + gird_depth); break;
                 default: break;
                 }
                 m_wall_skip_points[layer_id].emplace_back(res);
@@ -3845,7 +3846,8 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
             .append(";--------------------\n"
                     "; CP EMPTY GRID START\n")
             .comment_with_value(" layer #", m_num_layer_changes + 1);
-        if (layer_type == WipeTowerLayerType::Contact&&m_enable_tower_interface_features) {
+        bool is_full_block = std::abs(block.cur_depth - block.start_depth) < EPSILON;
+        if (is_full_block && layer_type == WipeTowerLayerType::Contact && m_enable_tower_interface_features ) {
             Vec2f        stop_pos                                    = initial_pos;
             float        filament_tower_interface_pre_extrusion_dist = m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_dist;
             BoundingBoxf printer_bbx                                 = unscaled(get_extents(m_shared_print_bed));
