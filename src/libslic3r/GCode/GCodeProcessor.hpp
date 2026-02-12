@@ -359,9 +359,10 @@ namespace Slic3r {
         {
             int filament_id;
             int extruder_id;
+            int nozzle_id;
             unsigned int lower_gcode_id;
             unsigned int upper_gcode_id;  // [lower_gcode_id,upper_gcode_id) uses current filament , upper gcode id will be set after finding next block
-            FilamentUsageBlock(int filament_id_, int extruder_id_, unsigned int lower_gcode_id_, unsigned int upper_gcode_id_) :filament_id(filament_id_), extruder_id(extruder_id_), lower_gcode_id(lower_gcode_id_), upper_gcode_id(upper_gcode_id_) {}
+            FilamentUsageBlock(int filament_id_, int extruder_id_, int nozzle_id_, unsigned int lower_gcode_id_, unsigned int upper_gcode_id_) :filament_id(filament_id_), extruder_id(extruder_id_), nozzle_id(nozzle_id_), lower_gcode_id(lower_gcode_id_), upper_gcode_id(upper_gcode_id_) {}
         };
 
         /**
@@ -388,22 +389,26 @@ namespace Slic3r {
             unsigned int end_id = -1;
             int start_filament = -1;
             int end_filament = -1;
+            int start_nozzle_id = -1;
+            int end_nozzle_id = -1;
             unsigned int post_extrusion_start_id = -1;
             unsigned int post_extrusion_end_id = -1;
             bool         ignore_cooling_before_tower = false;
 
-            void initialize_step_1(int extruder_id_, int start_id_, int start_filament_) {
+            void initialize_step_1(int extruder_id_, int start_id_, int start_filament_, int start_nozzle_id_) {
                 extruder_id = extruder_id_;
                 start_id = start_id_;
                 start_filament = start_filament_;
+                start_nozzle_id = start_nozzle_id_;
             };
             void initialize_step_2(int post_extrusion_start_id_) {
                 post_extrusion_start_id = post_extrusion_start_id_;
             }
-            void initialize_step_3(int end_id_, int end_filament_, int post_extrusion_end_id_) {
+            void initialize_step_3(int end_id_, int end_filament_, int post_extrusion_end_id_, int end_nozzle_id_) {
                 end_id = end_id_;
                 end_filament = end_filament_;
                 post_extrusion_end_id = post_extrusion_end_id_;
+                end_nozzle_id = end_nozzle_id_;
             }
             void reset() {
                 *this = ExtruderUsageBlcok();
@@ -865,6 +870,8 @@ namespace Slic3r {
                 unsigned int partial_free_upper_id;
                 int last_filament_id;
                 int next_filament_id;
+                int last_nozzle_id;
+                int next_nozzle_id;
                 int extruder_id; // 并不一定是真实的extruder_id，只是用来划分需要提前升降温的区块，可能是挤出机、热端
                 bool ignore_cooling_before_tower = false;
             };
