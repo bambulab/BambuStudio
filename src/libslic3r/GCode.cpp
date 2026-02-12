@@ -2400,9 +2400,19 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     match_physical_extruder_for_each_filament(first_non_support_filaments, m_config);
 
     auto group_result = m_print->get_layered_nozzle_group_result();
+    std::vector<int> first_non_support_hotends;
+    first_non_support_hotends.reserve(first_non_support_filaments.size());
+    for (int filament_id : first_non_support_filaments) {
+        if (filament_id < 0) {
+            first_non_support_hotends.push_back(-1);
+            continue;
+        }
+        first_non_support_hotends.push_back(NOZZLE_ID_FOR_GCODE(group_result, group_result->get_first_nozzle_for_filament(filament_id)->group_id));
+    }
 
     m_placeholder_parser.set("first_non_support_tools", new ConfigOptionInts(first_non_support_filaments));
     m_placeholder_parser.set("first_non_support_filaments", new ConfigOptionInts(first_non_support_filaments));
+    m_placeholder_parser.set("first_non_support_hotend", new ConfigOptionInts(first_non_support_hotends));
     m_placeholder_parser.set("initial_no_support_tool", initial_non_support_extruder_id);
     m_placeholder_parser.set("initial_no_support_extruder", initial_non_support_extruder_id);
     m_placeholder_parser.set("initial_no_support_hotend",NOZZLE_ID_FOR_GCODE( group_result,group_result->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id));
