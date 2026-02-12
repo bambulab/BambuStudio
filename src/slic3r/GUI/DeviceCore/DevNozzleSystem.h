@@ -61,6 +61,7 @@ namespace Slic3r
        float          GetNozzleDiameter() const { return m_diameter; }
        float          GetNozzleWear() const { return m_wear; }
 
+       int            GetNozzlePrintTime() const { return m_nozzle_print_time; }
        // display
        wxString GetDisplayId() const;
        wxString GetNozzleDiameterStr() const {  return wxString::Format("%.1f mm", m_diameter);}
@@ -103,6 +104,7 @@ namespace Slic3r
        std::string m_filament_clr;// main color
 
        std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
+       int m_nozzle_print_time;
    };
 
    class DevNozzleSystem

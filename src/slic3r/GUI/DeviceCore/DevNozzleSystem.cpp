@@ -726,7 +726,10 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
 
             DevJsonValParser::ParseVal(njon, "fila_id", nozzle_obj.m_fila_id);
             DevJsonValParser::ParseVal(njon, "wear", nozzle_obj.m_wear);
-
+            if (njon.contains("p_t"))/*maybe not contains*/
+            {
+                nozzle_obj.m_nozzle_print_time = njon["p_t"].get<int>();
+            }
             if (njon.contains("color_m"))/*maybe not contains*/
             {
                 nozzle_obj.m_filament_clr = njon["color_m"].get<std::string>();
