@@ -1854,6 +1854,32 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (extruder_nums != obj->GetExtderSystem()->GetTotalExtderCount())
         return;
 
+    if (extruder_nums > 1) {
+        auto fila_switch = obj->GetFilaSwitch();
+        if (fila_switch->IsInstalled()) {
+            if (fila_switch->IsReady()) {
+                if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
+                    MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                                      _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
+                                         "will be automatically allocated to the optimal extruder during slicing."),
+                                      _L("Filament Switcher Detected"), wxICON_INFORMATION | wxOK);
+                    dlg.ShowModal();
+                    wxGetApp().app_config->set("show_fila_switch_tips", "false");
+                }
+                // dual_panel->SetSeparatorState(CustomSeparator::State::Normal);
+            } else {
+                MessageDialog
+                    dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                        _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
+                        _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
+                dlg.ShowModal();
+                // dual_panel->SetSeparatorState(CustomSeparator::State::Error);
+            }
+        } else {
+            // dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
+        }
+    }
+
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
 
     if (extruder_nums == 1) {
@@ -1876,23 +1902,31 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         machine_extruder_infos[extruder.GetExtId()].diameter          = extruder.GetNozzleDiameter();
     }
     for (const auto &item : obj->GetFilaSystem()->GetAmsList()) {
-
-        // TODO: filament switcher support
-        const auto& uniq_extruder_id = item.second->GetUniqueBindedExtruderId();
-        if(!uniq_extruder_id.has_value()) {
-            continue;
+        int extruder_id;
+        if (fila_switch_flag) {
+            auto switcher_pos = item.second->GetSwitcherPos();
+            if (!switcher_pos) {
+                continue;
+            }
+            extruder_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : 1 - static_cast<int>(switcher_pos.value());
+        } else {
+            const auto &uniq_extruder_id = item.second->GetUniqueBindedExtruderId();
+            if(!uniq_extruder_id) {
+                continue;
+            }
+            extruder_id = uniq_extruder_id.value();
         }
 
-        if (uniq_extruder_id.value() >= machine_extruder_infos.size())
+        if (extruder_id >= machine_extruder_infos.size())
             continue;
 
         if (item.second->GetAmsType() == DevAmsType::N3S)
         { // N3S
-            machine_extruder_infos[uniq_extruder_id.value()].ams_1++;
-            machine_extruder_infos[uniq_extruder_id.value()].ams_v1.push_back(item.second);
+            machine_extruder_infos[extruder_id].ams_1++;
+            machine_extruder_infos[extruder_id].ams_v1.push_back(item.second);
         } else {
-            machine_extruder_infos[uniq_extruder_id.value()].ams_4++;
-            machine_extruder_infos[uniq_extruder_id.value()].ams_v4.push_back(item.second);
+            machine_extruder_infos[extruder_id].ams_4++;
+            machine_extruder_infos[extruder_id].ams_v4.push_back(item.second);
         }
     }
 
@@ -4181,6 +4215,11 @@ bool Sidebar::is_collapsed() {
 
 void Sidebar::collapse(bool collapse){
     p->plater->collapse_sidebar(collapse);
+}
+
+bool Sidebar::is_fila_switch_ready()
+{
+    return p->fila_switch_flag;
 }
 
 #ifdef _MSW_DARK_MODE
@@ -6668,6 +6707,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             if (wipe_tower_y_opt)
                                 file_wipe_tower_y = *wipe_tower_y_opt;
 
+                            preset_bundle->project_config.option<ConfigOptionStrings>("extruder_full_stats")->values.clear();
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             // BBS: do not change extruder nozzle stat when loading 3mf
 

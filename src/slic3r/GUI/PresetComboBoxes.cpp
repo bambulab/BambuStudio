@@ -496,8 +496,15 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
     bool selected_in_ams      = false;
     bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
+        bool fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
         bool dual_extruder   = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
-        set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+
+        if (fila_switch_ready) {
+            set_label_marker(Append(_L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        } else {
+            set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        }
+
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
 
@@ -510,7 +517,7 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         }
 
         for (auto &entry : m_preset_bundle->filament_ams_list) {
-            if (dual_extruder && (entry.first & 0x10000)) {
+            if (!fila_switch_ready && dual_extruder && (entry.first & 0x10000)) {
                 dual_extruder = false;
                 set_label_marker(Append(_L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             }
@@ -519,6 +526,9 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             auto        name        = tray.opt_string("tray_name", 0u);
             if (filament_id.empty()) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  %1% 's filament_id is empty.") % name;
+                continue;
+            }
+            if (fila_switch_ready && name == "Ext") {
                 continue;
             }
             auto iter = std::find_if(filaments.begin(), filaments.end(),

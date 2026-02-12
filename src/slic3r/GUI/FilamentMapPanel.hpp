@@ -117,6 +117,13 @@ public:
 private:
     Label *m_label;
 };
+
+class FilamentMapSavingPanel : public wxPanel
+{
+public:
+    FilamentMapSavingPanel(wxWindow *parent);
+};
+
 }} // namespace Slic3r::GUI
 
 #endif

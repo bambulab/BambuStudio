@@ -77,6 +77,7 @@ private:
     FilamentMapManualPanel* m_manual_map_panel;
     FilamentMapAutoPanel* m_auto_map_panel;
     FilamentMapDefaultPanel* m_default_map_panel;
+    FilamentMapSavingPanel* m_saving_panel;
 
     CapsuleButton* m_auto_btn;
     CapsuleButton* m_manual_btn;
@@ -87,6 +88,7 @@ private:
     CheckBox* m_checkbox;
 
     PageType m_page_type;
+    bool     m_fila_switch_ready{false};
 
 private:
     std::vector<int> m_filament_map;

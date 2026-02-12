@@ -706,4 +706,26 @@ void FilamentMapDefaultPanel::Show()
     wxPanel::Show();
 }
 
-}} // namespace Slic3r::GUI
+FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : wxPanel(parent)
+{
+    SetBackgroundColour(*wxWHITE);
+
+    auto saving_sizer = new wxBoxSizer(wxVERTICAL);
+    saving_sizer->AddSpacer(FromDIP(32));
+
+    auto icon_bitmap = create_scaled_bitmap("search_file", nullptr, 80);
+    auto icon_btn    = new wxStaticBitmap(this, wxID_ANY, icon_bitmap);
+    saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
+    saving_sizer->AddSpacer(FromDIP(16));
+
+    auto desc_label = new Label(this, _L("Filament grouping is automatically optimized based on filament-saving principles"));
+    desc_label->SetFont(Label::Body_12);
+    desc_label->SetForegroundColour(wxColour("#6B6B6B"));
+    saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
+    saving_sizer->AddSpacer(FromDIP(32));
+
+    SetSizer(saving_sizer);
+}
+
+} // namespace GUI
+} // namespace Slic3r
