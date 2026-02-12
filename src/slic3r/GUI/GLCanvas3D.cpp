@@ -187,6 +187,12 @@ std::string& get_high_temp_wrapping_warning_text()
     return high_temp_wrapping_warning_text;
 }
 
+std::string& get_high_shrinkage_warning_text()
+{
+    static std::string high_shrinkage_warning_text;
+    return high_shrinkage_warning_text;
+}
+
 static std::string format_number(float value)
 {
     std::ostringstream oss;
@@ -3573,6 +3579,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 
             bool high_temp_need_wrapping = cur_plate->check_high_temp_need_wrapping_detection(full_config_temp, get_high_temp_wrapping_warning_text());
             _set_warning_notification(EWarning::HighTempNeedWrappingDetection, high_temp_need_wrapping);
+
+            bool has_high_shrinkage = cur_plate->check_high_shrinkage_filament(full_config_temp, get_high_shrinkage_warning_text());
+            _set_warning_notification(EWarning::HighShrinkageFilament, has_high_shrinkage);
         }
         else {
             _set_warning_notification(EWarning::ObjectOutside, false);
@@ -3593,6 +3602,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::MixtureFilamentIncompatible,false);
            _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, false);
            _set_warning_notification(EWarning::HighTempNeedWrappingDetection, false);
+           _set_warning_notification(EWarning::HighShrinkageFilament, false);
 
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
         }
@@ -11460,6 +11470,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text = _u8L(get_high_temp_wrapping_warning_text());
         break;
     }
+    case EWarning::HighShrinkageFilament: {
+        text = _u8L(get_high_shrinkage_warning_text());
+        break;
+    }
     case EWarning::FlushingVolumeZero:
         text = _u8L("Partial flushing volume set to 0. Multi-color printing may cause color mixing in models. Please redjust flushing settings.");
         error = ErrorType::SLICING_ERROR;
@@ -11529,6 +11543,28 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     });
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel);
+            }
+        }
+        else if (warning == EWarning::HighShrinkageFilament) {
+            if (state) {
+                notification_manager.push_slicing_customize_error_notification(
+                    NotificationType::BBLHighShrinkageFilament,
+                    NotificationLevel::WarningNotificationLevel,
+                    text,
+                    _u8L("Click Wiki for help."),
+                    [](wxEvtHandler*) {
+                        std::string language = wxGetApp().app_config->get("language");
+                        wxString    region = L"en";
+                        if (language.find("zh") == 0)
+                            region = L"zh";
+                        wxGetApp().open_browser_with_warning_dialog(
+                            wxString::Format(L"https://wiki.bambulab.com/%s/knowledge-sharing/3d-prints-shrinkage", region));
+                        return false;
+                    });
+            } else {
+                notification_manager.close_slicing_customize_error_notification(
+                    NotificationType::BBLHighShrinkageFilament,
+                    NotificationLevel::WarningNotificationLevel);
             }
         }
         else {

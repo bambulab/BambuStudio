@@ -419,7 +419,8 @@ class GLCanvas3D
         FlushingVolumeZero,
         FilamentNozzleFlowIncompatible,
         TpuNozzleMultipleFilaments,
-        HighTempNeedWrappingDetection
+        HighTempNeedWrappingDetection,
+        HighShrinkageFilament
     };
 
     class RenderStats
