@@ -1430,8 +1430,8 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
             preset = fallback_preset.value();
         }
         std::string icon_path = "dev_ams_dry_ctr_enable";
-        int soften_temp = static_cast<int>(preset.filament_dev_drying_softening_temperature);
-        if (valid_temp && soften_temp < input_temp) {
+        int distortion_temp = static_cast<int>(preset.filament_dev_ams_drying_heat_distortion_temperature);
+        if (valid_temp && distortion_temp < input_temp) {
             icon_path = "dev_ams_dry_ctr_disable";
             can_start = false;
         }
