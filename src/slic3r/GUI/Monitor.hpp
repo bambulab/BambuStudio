@@ -75,6 +75,7 @@ public:
 class MonitorPanel : public wxPanel
 {
 private:
+    static bool is_hms_list_equal(const std::map<std::string, DevHMSItem> &map1, const std::map<std::string, DevHMSItem> &map2);
     Tabbook*		m_tabpanel{ nullptr };
     wxSizer*        m_main_sizer{ nullptr };
 
@@ -106,6 +107,8 @@ private:
     bool m_initialized { false };
     bool update_flag{false};
     wxTimer* m_refresh_timer = nullptr;
+
+    std::map<std::string, DevHMSItem> m_last_hms_list;
 
 public:
     MonitorPanel(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL);

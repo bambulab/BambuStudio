@@ -404,21 +404,46 @@ void MonitorPanel::update_all()
 
 void MonitorPanel::update_hms_tag()
 {
-    for (auto hmsitem : m_hms_panel->temp_hms_list) {
+    if (is_hms_list_equal(m_hms_panel->temp_hms_list, m_last_hms_list)) {
+        return;
+    }
 
-        if (!obj) { break;}
-
-        const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->get_dev_id(), hmsitem.second.get_long_error_code());
-        if (msg.empty()){ continue;} /*STUDIO-10363 it's hidden message*/
+    for (auto& hmsitem : m_hms_panel->temp_hms_list) {
+        if (!obj) { break; }
 
         if (!hmsitem.second.has_read()) {
-            //show HMS new tag
-            m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
-            return;
+            const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->get_dev_id(), hmsitem.second.get_long_error_code());
+            if (!msg.empty()) {
+                m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
+                m_last_hms_list = m_hms_panel->temp_hms_list;
+                return;
+            }
         }
     }
 
     m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
+    m_last_hms_list = m_hms_panel->temp_hms_list;
+}
+
+bool MonitorPanel::is_hms_list_equal(const std::map<std::string, DevHMSItem> &map1, const std::map<std::string, DevHMSItem> &map2) {
+    if (map1.size() != map2.size()) {
+        return false;
+    }
+    auto it1 = map1.begin();
+    auto it2 = map2.begin();
+    while (it1 != map1.end()) {
+        if (it1->first != it2->first) {
+            return false;
+        }
+
+        if (it1->second.has_read() != it2->second.has_read()) {
+            return false;
+        }
+
+        ++it1;
+        ++it2;
+    }
+    return true;
 }
 
 bool MonitorPanel::Show(bool show)
