@@ -502,6 +502,68 @@ namespace Slic3r
     }
 
     std::vector<int> KMediods::cluster_small_data(const FilamentGroupContext &context) {
+        constexpr bool calc_small_data_by_mcmf = false;
+        if constexpr (calc_small_data_by_mcmf) {
+            std::vector<int> cluster_labels(m_elem_count, m_default_group_id);
+
+            std::vector<int> r_nodes(m_k, -1);
+            const auto& nozzle_status = context.nozzle_info.nozzle_status;
+            for (int r_id = 0; r_id < (int)r_nodes.size(); r_id++) {
+                if (nozzle_status.count(r_id) && nozzle_status.at(r_id) >= 0)
+                    r_nodes[r_id] = nozzle_status.at(r_id);
+            }
+
+            std::vector<int> r_nodes_group(context.nozzle_info.nozzle_list.size(), -1);
+            for (const auto &nozzle_info : context.nozzle_info.nozzle_list) { r_nodes_group[nozzle_info.group_id] = nozzle_info.extruder_id; }
+
+            std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(context.model_info.layer_filaments);
+            std::vector<int> l_nodes(used_filaments.begin(), used_filaments.end());
+
+            const auto& flush_matrix = context.model_info.flush_matrix;
+
+            // 1、Pre-matching: directly match filaments to nozzles already loaded with the same filament
+            std::unordered_map<int, int> filament_to_nozzle;
+            for (int r_id = 0; r_id < (int)r_nodes.size(); r_id++) {
+                if (r_nodes[r_id] >= 0)
+                    filament_to_nozzle[r_nodes[r_id]] = r_id;
+            }
+
+            std::vector<int> remaining_l_nodes;     // filament IDs not yet matched
+            std::vector<int> remaining_l_positions;  // original position indices in l_nodes
+
+            for (int l_id = 0; l_id < l_nodes.size(); l_id++) {
+                auto it = filament_to_nozzle.find(l_nodes[l_id]);
+                if (it != filament_to_nozzle.end()) {
+                    cluster_labels[l_id] = it->second;
+                } else {
+                    remaining_l_nodes.emplace_back(l_nodes[l_id]);
+                    remaining_l_positions.emplace_back(l_id);
+                }
+            }
+
+            // 2、Run flow solver on remaining unmatched filaments, keeping all nozzles
+            if (!remaining_l_nodes.empty()) {
+                GeneralMinCostLowerBoundsSolver s(flush_matrix, remaining_l_nodes, r_nodes, r_nodes_group);
+                auto match = s.solve();
+
+                for (int i = 0; i < remaining_l_nodes.size(); i++) {
+                    if (match[i] >= 0 && match[i] < r_nodes.size())
+                        cluster_labels[remaining_l_positions[i]] = match[i];
+                }
+            }
+
+            // 3、Add result to memoryed_groups
+            {
+                std::vector<int> cluster_center(m_k, -1);
+                for (int idx = 0; idx < m_elem_count; ++idx) {
+                    if (cluster_center[cluster_labels[idx]] == -1)
+                        cluster_center[cluster_labels[idx]] = idx;
+                }
+                MemoryedGroup g(cluster_labels, calc_cost(cluster_labels, cluster_center), 1);
+                update_memoryed_groups(g, memory_threshold, memoryed_groups);
+            }
+            return cluster_labels;
+        }
 
         //1.Determine the groups each filament is allowed to be assigned to
         std::vector<std::vector<int>> candidates(m_elem_count);
@@ -737,64 +799,7 @@ namespace Slic3r
         T.time_machine_start();
 
         if (m_elem_count <= m_k) {
-            m_cluster_labels.assign(m_elem_count, m_default_group_id);
-
-            std::vector<int> r_nodes(m_k, -1);
-            const auto& nozzle_status = context.nozzle_info.nozzle_status;
-            for (int r_id = 0; r_id < (int)r_nodes.size(); r_id++) {
-                if (nozzle_status.count(r_id) && nozzle_status.at(r_id) >= 0)
-                    r_nodes[r_id] = nozzle_status.at(r_id);
-            }
-
-            std::vector<int> r_nodes_group(context.nozzle_info.nozzle_list.size(), -1);
-            for (const auto &nozzle_info : context.nozzle_info.nozzle_list) { r_nodes_group[nozzle_info.group_id] = nozzle_info.extruder_id; }
-
-            std::vector<unsigned int> used_filaments = collect_sorted_used_filaments(context.model_info.layer_filaments);
-            std::vector<int> l_nodes(used_filaments.begin(), used_filaments.end());
-
-            const auto& flush_matrix = context.model_info.flush_matrix;
-
-            // 1、Pre-matching: directly match filaments to nozzles already loaded with the same filament
-            std::unordered_map<int, int> filament_to_nozzle;
-            for (int r_id = 0; r_id < (int)r_nodes.size(); r_id++) {
-                if (r_nodes[r_id] >= 0)
-                    filament_to_nozzle[r_nodes[r_id]] = r_id;
-            }
-
-            std::vector<int> remaining_l_nodes;     // filament IDs not yet matched
-            std::vector<int> remaining_l_positions;  // original position indices in l_nodes
-
-            for (int l_id = 0; l_id < l_nodes.size(); l_id++) {
-                auto it = filament_to_nozzle.find(l_nodes[l_id]);
-                if (it != filament_to_nozzle.end()) {
-                    m_cluster_labels[l_id] = it->second;
-                } else {
-                    remaining_l_nodes.emplace_back(l_nodes[l_id]);
-                    remaining_l_positions.emplace_back(l_id);
-                }
-            }
-
-            // 2、Run flow solver on remaining unmatched filaments, keeping all nozzles
-            if (!remaining_l_nodes.empty()) {
-                GeneralMinCostLowerBoundsSolver s(flush_matrix, remaining_l_nodes, r_nodes, r_nodes_group);
-                auto match = s.solve();
-
-                for (int i = 0; i < remaining_l_nodes.size(); i++) {
-                    if (match[i] >= 0 && match[i] < r_nodes.size())
-                        m_cluster_labels[remaining_l_positions[i]] = match[i];
-                }
-            }
-
-            // 3、Add result to memoryed_groups
-            {
-                std::vector<int> cluster_center(m_k, -1);
-                for (int idx = 0; idx < m_elem_count; ++idx) {
-                    if (cluster_center[m_cluster_labels[idx]] == -1)
-                        cluster_center[m_cluster_labels[idx]] = idx;
-                }
-                MemoryedGroup g(m_cluster_labels, calc_cost(m_cluster_labels, cluster_center), 1);
-                update_memoryed_groups(g, memory_threshold, memoryed_groups);
-            }
+            m_cluster_labels = cluster_small_data(context);
             return;
         }
 

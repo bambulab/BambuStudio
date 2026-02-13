@@ -1191,14 +1191,14 @@ namespace Slic3r {
         GCodeProcessor();
         void init_filament_maps_and_nozzle_type_when_import_only_gcode();
         // check whether the gcode path meets the filament_map grouping requirements
-        bool check_multi_extruder_gcode_valid(const int                         extruder_size,
-                                              const Pointfs                     plate_printable_area,
-                                              const double                      plate_printable_height,
-                                              const Pointfs                     wrapping_exclude_area,
-                                              const std::vector<Polygons> &unprintable_areas,
-                                              const std::vector<double>   &printable_heights,
-                                              const std::vector<int>      &filament_map,
-                                              const std::vector<std::set<int>>& unprintable_filament_types );
+        bool check_multi_extruder_gcode_valid(const int                               extruder_size,
+                                              const Pointfs                           plate_printable_area,
+                                              const double                            plate_printable_height,
+                                              const Pointfs                           wrapping_exclude_area,
+                                              const std::vector<Polygons>            &unprintable_areas,
+                                              const std::vector<double>              &printable_heights,
+                                              const MultiNozzleUtils::LayeredNozzleGroupResult &nozzle_group_result,
+                                              const std::vector<std::set<int>>       &unprintable_filament_types );
         void apply_config(const PrintConfig& config);
 
         DynamicConfig export_config_for_render() const;
