@@ -1331,7 +1331,8 @@ namespace Slic3r
                 if (!m_legend_enabled)
                     return;
                 const Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
-                bool fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
+                auto group_result = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
+                bool is_support_dynamic_nozzle_map = group_result && group_result->is_support_dynamic_nozzle_map();
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
                 //BBS: GUI refactor: move to the right
                 imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
@@ -1898,7 +1899,7 @@ namespace Slic3r
                     if ((displayed_columns & ~ColumnData::Model) > 0) {
                         title_columns.push_back({ _u8L("Total"), total_filaments });
                     }
-                    if (fila_switch_ready) {
+                    if (is_support_dynamic_nozzle_map) {
                         title_columns.push_back({ _u8L("Nozzles"), {""} });
                     }
                     auto offsets_ = calculate_offsets(title_columns, icon_size);
@@ -2091,8 +2092,7 @@ namespace Slic3r
                                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", column_sum_m, column_sum_g / unit_conver);
                                 columns_offsets.push_back({ buf, color_print_offsets[_u8L("Total")] });
                             }
-                            if (fila_switch_ready) {
-                                auto group_result = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
+                            if (is_support_dynamic_nozzle_map) {
                                 std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(i));
                                 ::sprintf(buf, "%s", nozzle_str.c_str());
                                 columns_offsets.push_back({buf, color_print_offsets[_u8L("Nozzles")]});
@@ -2630,7 +2630,7 @@ namespace Slic3r
                 }
                 ImGui::Dummy({ window_padding, window_padding });
                 if (m_nozzle_nums > 1)
-                    render_legend_color_arr_recommen(window_padding);
+                    render_legend_color_arr_recommen(window_padding, is_support_dynamic_nozzle_map);
                 legend_height = ImGui::GetCurrentWindow()->Size.y;
                 imgui.end();
                 ImGui::PopStyleColor(7);
@@ -2653,7 +2653,7 @@ namespace Slic3r
                 }
             }
 
-            void BaseRenderer::render_legend_color_arr_recommen(float window_padding)
+            void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_support_dynamic_nozzle_map)
             {
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
                 auto link_text = [&](const std::string& label) {
@@ -2728,7 +2728,6 @@ namespace Slic3r
                 ////BBS Color Arrangement Recommendation
                 auto config = wxGetApp().plater()->get_partplate_list().get_current_fff_print().config();
                 auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
-                bool is_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
                 float delta_weight_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight;
                 float delta_weight_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
                 int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count;
@@ -2779,16 +2778,16 @@ namespace Slic3r
                 }
                 else
                     tips_count = 5;
-                float AMS_container_height = is_fila_switch_ready ? line_height * (tips_count - 3) + line_height / 2 :
+                float AMS_container_height = is_support_dynamic_nozzle_map ? line_height * (tips_count - 3) + line_height / 2 :
                                                                     ams_item_height + line_height * tips_count + line_height / 2;
-                is_fila_switch_ready ? ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.3f, 0.3f, 0.1f)) :
+                is_support_dynamic_nozzle_map ? ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.3f, 0.3f, 0.1f)) :
                                        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
                 // ImGui::Dummy({window_padding, window_padding});
                 ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
                 {
-                    if (!is_fila_switch_ready) {
+                    if (!is_support_dynamic_nozzle_map) {
                         float available_width = ImGui::GetContentRegionAvail().x;
                         float half_width      = available_width * 0.49f;
                         float spacing         = 18.0f * m_scale;
@@ -2880,7 +2879,7 @@ namespace Slic3r
                         ImGui::PopStyleColor(1);
                     }
                     else if (any_less_to_single_ext) {
-                        ImVec4   color = is_fila_switch_ready ? ImVec4(0.95f, 0.95f, 0.95f, 1.0f) : ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
+                        ImVec4 color = is_support_dynamic_nozzle_map ? ImVec4(0.95f, 0.95f, 0.95f, 1.0f) : ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
                         ImGui::PushStyleColor(ImGuiCol_Text, color);
                         wxString tip;
                         if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext >= 0)
