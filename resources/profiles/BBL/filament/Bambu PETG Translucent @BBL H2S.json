@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG01_08",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "6",
         "6"
@@ -21,6 +25,9 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
@@ -28,9 +35,6 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "filament_prime_volume": [
-        "30"
     ],
     "filament_change_length": [
         "4"
@@ -57,14 +61,14 @@
         "0",
         "0"
     ],
-    "slow_down_layer_time": [
-        "8"
-    ],
     "supertack_plate_temp": [
         "60"
     ],
     "supertack_plate_temp_initial_layer": [
         "60"
+    ],
+    "slow_down_layer_time": [
+        "8"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.4 nozzle",

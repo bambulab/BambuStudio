@@ -8,6 +8,10 @@
     "fan_max_speed": [
         "40"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.94",
         "0.94"
@@ -20,12 +24,12 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
-    ],
-    "filament_prime_volume": [
-        "30"
     ],
     "filament_change_length": [
         "4"
