@@ -1717,9 +1717,12 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
     std::vector<Polygons> extruder_unprintable_polys   = m_print->get_extruder_unprintable_polygons();
     Pointfs               plate_printable_area         = m_print->config().printable_area.values;
     Pointfs               wrapping_exclude_area_points = m_print->config().wrapping_exclude_area.values;
-    m_processor.check_multi_extruder_gcode_valid(extruder_size, plate_printable_area, m_print->config().printable_height.value, wrapping_exclude_area_points,
-                                                 extruder_unprintable_polys, m_print->get_extruder_printable_height(),  m_print->get_filament_maps(),
+    const auto nozzle_group_result = m_print->get_layered_nozzle_group_result();
+    if(nozzle_group_result){
+        m_processor.check_multi_extruder_gcode_valid(extruder_size, plate_printable_area, m_print->config().printable_height.value, wrapping_exclude_area_points,
+                                                 extruder_unprintable_polys, m_print->get_extruder_printable_height(), *nozzle_group_result,
                                                  m_print->get_physical_unprintable_filaments(m_print->get_slice_used_filaments(false)));
+    }
 
     m_processor.finalize(true);
 //    DoExport::update_print_estimated_times_stats(m_processor, print->m_print_statistics);

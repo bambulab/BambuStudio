@@ -1695,25 +1695,35 @@ void GCodeProcessor::register_commands()
     }
 }
 
-bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                         extruder_size,
-                                                      const Pointfs                     plate_printable_area,
-                                                      const double                      plate_printable_height,
-                                                      const Pointfs                     wrapping_exclude_area,
-                                                      const std::vector<Polygons>      &unprintable_areas,
-                                                      const std::vector<double>        &printable_heights,
-                                                      const std::vector<int>           &filament_map,
-                                                      const std::vector<std::set<int>> &unprintable_filament_types)
+bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                                         extruder_size,
+                                                      const Pointfs                                     plate_printable_area,
+                                                      const double                                      plate_printable_height,
+                                                      const Pointfs                                     wrapping_exclude_area,
+                                                      const std::vector<Polygons>                      &unprintable_areas,
+                                                      const std::vector<double>                        &printable_heights,
+                                                      const MultiNozzleUtils::LayeredNozzleGroupResult &nozzle_group_result,
+                                                      const std::vector<std::set<int>>                 &unprintable_filament_types)
 {
     m_result.limit_filament_maps.clear();
-    m_result.gcode_check_result.reset();// including both single extruder machine printable area check result and multi extruder result
-    Polygon plate_printable_poly = Polygon::new_scale(plate_printable_area);
+    m_result.gcode_check_result.reset(); // including both single extruder machine printable area check result and multi extruder result
+    Polygon plate_printable_poly  = Polygon::new_scale(plate_printable_area);
     Polygon wrapping_exclude_poly = Polygon::new_scale(wrapping_exclude_area);
 
-    m_result.limit_filament_maps.resize(filament_map.size(), 0);
+    size_t filament_count = m_result.filaments_count;
+    if (filament_count == 0) {
+        const auto used_filaments = nozzle_group_result.get_used_filaments();
+        if (!used_filaments.empty()) { filament_count = static_cast<size_t>(*std::max_element(used_filaments.begin(), used_filaments.end()) + 1); }
+    }
+    m_result.limit_filament_maps.resize(filament_count, 0);
 
     auto to_2d = [](const Vec3d &pos) -> Point {
         Point ps(scale_(pos.x()), scale_(pos.y()));
         return ps;
+    };
+    auto get_extruder_id_for_filament = [&nozzle_group_result](int filament_id, int layer_id) -> int {
+        auto nozzle_opt = nozzle_group_result.get_nozzle_for_filament(filament_id, layer_id);
+        if (!nozzle_opt) return 0;
+        return nozzle_opt->extruder_id;
     };
 
     struct GCodePosInfo
@@ -1723,134 +1733,144 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
         float  max_print_z;
         float  max_print_z_custom;
     };
-    std::map<int, std::map<int, GCodePosInfo>> gcode_path_pos; // object_id, filament_id, pos
+    std::map<int, std::map<int, std::map<int, GCodePosInfo>>> gcode_path_pos; // object_id, layer_id, filament_id
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
         // sometimes, the start line extrude was outside the edge of plate a little, this is allowed, so do not include into the gcode_path_pos
-        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/)
+        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/) {
+            int layer_id = static_cast<int>(move.layer_duration) - 1;
             if (move.extrusion_role == ExtrusionRole::erCustom) {
                 if (move.is_arc_move_with_interpolation_points()) {
                     for (int i = 0; i < move.interpolation_points.size(); i++) {
-                        gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                        gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
                     }
                 } else {
-                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.position.cast<double>()));
+                    gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].pos_custom.emplace_back(to_2d(move.position.cast<double>()));
                 }
-                gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z_custom =
-                    std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z_custom, move.print_z);
+                gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z_custom =
+                    std::max(gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z_custom, move.print_z);
             } else {
                 if (move.is_arc_move_with_interpolation_points()) {
                     for (int i = 0; i < move.interpolation_points.size(); i++) {
-                        gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
+                        gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.interpolation_points[i].cast<double>()));
                     }
                 } else {
-                    gcode_path_pos[move.object_label_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.position.cast<double>()));
+                    gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].pos.emplace_back(to_2d(move.position.cast<double>()));
                 }
-                gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z,
-                                                                                                   move.print_z);
+                gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z =
+                    std::max(gcode_path_pos[move.object_label_id][layer_id][int(move.extruder_id)].max_print_z, move.print_z);
             }
+        }
     }
 
-    bool valid = true;
+    bool  valid        = true;
+    std::map<int, std::set<std::pair<int, int>>> print_area_dedupe;   // 去重：避免同一挤出机下重复的耗材-对象错误
+    std::map<int, std::set<std::pair<int, int>>> print_height_dedupe; // 去重：避免同一挤出机下重复的耗材-对象错误
+    auto add_unique_error = [](std::map<int, std::vector<std::pair<int, int>>>& target,
+                               std::map<int, std::set<std::pair<int, int>>>& dedupe,
+                               int extruder_id,
+                               int filament_id,
+                               int object_label_id) {
+        const std::pair<int, int> item{ filament_id, object_label_id };
+        if (dedupe[extruder_id].insert(item).second) {
+            target[extruder_id].push_back(item);
+        }
+    };
     Point plate_offset = Point(scale_(m_x_offset), scale_(m_y_offset));
     plate_printable_poly.translate(plate_offset);
-    //wrapping_exclude_poly.translate(plate_offset);
+    // wrapping_exclude_poly.translate(plate_offset);
     BoundingBox plate_printable_bbox = plate_printable_poly.bounding_box();
     if (plate_printable_poly.is_valid()) {
         plate_printable_bbox.offset(scale_(2.0)); // Expand the range to provide a tolerance
     } else
-        plate_printable_bbox.defined = false; //when this is used, the printable area config was missing, something wrong
+        plate_printable_bbox.defined = false; // when this is used, the printable area config was missing, something wrong
 
     for (auto obj_iter = gcode_path_pos.begin(); obj_iter != gcode_path_pos.end(); ++obj_iter) {
-        int                                object_label_id = obj_iter->first;
-        const std::map<int, GCodePosInfo> &path_pos        = obj_iter->second;
-        for (auto iter = path_pos.begin(); iter != path_pos.end(); ++iter) {
-            int extruder_id = filament_map[iter->first] - 1;
-            Points iter_points;//temp points
-            iter_points.insert(iter_points.end(), iter->second.pos.begin(), iter->second.pos.end());// put object/wipetower extrude position in
-            Polygon     path_poly(iter_points);
-            if (path_poly.empty()) continue;
-            BoundingBox bbox = path_poly.bounding_box();
-            if (plate_printable_bbox.defined) {
-                if (!plate_printable_bbox.contains(bbox)) { // out of the bed area
-                    m_result.gcode_check_result.error_code |= (1<<2);
-                    std::pair<int, int> filament_to_object_id;
-                    filament_to_object_id.first  = iter->first;
-                    filament_to_object_id.second = object_label_id;
-                    m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
+        int         object_label_id = obj_iter->first;
+        const auto &layer_pos       = obj_iter->second;
+        for (auto layer_iter = layer_pos.begin(); layer_iter != layer_pos.end(); ++layer_iter) {
+            int         layer_id = layer_iter->first;
+            const auto &path_pos = layer_iter->second;
+            for (auto iter = path_pos.begin(); iter != path_pos.end(); ++iter) {
+                int filament_id = iter->first;
+                int extruder_id = get_extruder_id_for_filament(filament_id, layer_id);
+                if (extruder_id < 0 || extruder_id >= extruder_size) continue;
+                Points iter_points;                                                                      // temp points
+                iter_points.insert(iter_points.end(), iter->second.pos.begin(), iter->second.pos.end()); // put object/wipetower extrude position in
+                Polygon path_poly(iter_points);
+                if (path_poly.empty()) continue;
+                BoundingBox bbox = path_poly.bounding_box();
+                if (plate_printable_bbox.defined) {
+                    if (!plate_printable_bbox.contains(bbox)) { // out of the bed area
+                        m_result.gcode_check_result.error_code |= (1 << 2);
+                        add_unique_error(m_result.gcode_check_result.print_area_error_infos, print_area_dedupe, extruder_id, filament_id, object_label_id);
+                        valid = false;
+                    }
+                }
+                if (iter->second.max_print_z > plate_printable_height) { // over height
+                    m_result.gcode_check_result.error_code |= (1 << 3);
+                    add_unique_error(m_result.gcode_check_result.print_height_error_infos, print_height_dedupe, extruder_id, filament_id, object_label_id);
                     valid = false;
                 }
-            }
-            if ( iter->second.max_print_z > plate_printable_height ) { //over height
-                m_result.gcode_check_result.error_code |= (1 << 3);
-                std::pair<int, int> filament_to_object_id;
-                filament_to_object_id.first  = iter->first;
-                filament_to_object_id.second = object_label_id;
-                m_result.gcode_check_result.print_height_error_infos[extruder_id].push_back(filament_to_object_id);
-                valid = false;
-            }
-            // if (wrapping_exclude_poly.is_valid()) {
-            //     if (wrapping_exclude_poly.bounding_box().overlap(bbox)) { // get into the wrapping area
-            //         m_result.gcode_check_result.error_code |= (1 << 4);
-            //         std::pair<int, int> filament_to_object_id;
-            //         filament_to_object_id.first  = iter->first;
-            //         filament_to_object_id.second = object_label_id;
-            //         m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
-            //         valid = false;
-            //     }
-            // }
+                // if (wrapping_exclude_poly.is_valid()) {
+                //     if (wrapping_exclude_poly.bounding_box().overlap(bbox)) { // get into the wrapping area
+                //         m_result.gcode_check_result.error_code |= (1 << 4);
+                //         std::pair<int, int> filament_to_object_id;
+                //         filament_to_object_id.first  = iter->first;
+                //         filament_to_object_id.second = object_label_id;
+                //         m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
+                //         valid = false;
+                //     }
+                // }
 
-            if (extruder_size > 1) {// in multi extruder condition
-                /*//iter_points.insert(iter_points.end(), iter->second.pos_custom.begin(), iter->second.pos_custom.end()); // put custom extrude position in
-                //Polygon     path_poly_custom(iter_points);
-                //BoundingBox bbox_custom = path_poly_custom.bounding_box();
-                //bbox_custom.offset(-scale_(1.0)); // Narrow the range to provide a tolerance for the custom gcode
-                //bbox.merge(bbox_custom);          // merge the custom gcode pos with other pos*/
-                // check printable area
-                // Simplified use bounding_box, Accurate calculation is not efficient
-                if (!unprintable_areas[extruder_id].empty())
-                    for (Polygon poly : unprintable_areas[extruder_id]) {
-                        poly.translate(plate_offset);
-                        if (poly.bounding_box().overlap(bbox)) {
-                            m_result.gcode_check_result.error_code |= 1;
-                            std::pair<int, int>         filament_to_object_id;
-                            filament_to_object_id.first = iter->first;
-                            filament_to_object_id.second = object_label_id;
-                            m_result.gcode_check_result.print_area_error_infos[extruder_id].push_back(filament_to_object_id);
-                            valid = false;
+                if (extruder_size > 1) { // in multi extruder condition
+                    /*//iter_points.insert(iter_points.end(), iter->second.pos_custom.begin(), iter->second.pos_custom.end()); // put custom extrude position in
+                    //Polygon     path_poly_custom(iter_points);
+                    //BoundingBox bbox_custom = path_poly_custom.bounding_box();
+                    //bbox_custom.offset(-scale_(1.0)); // Narrow the range to provide a tolerance for the custom gcode
+                    //bbox.merge(bbox_custom);          // merge the custom gcode pos with other pos*/
+                    // check printable area
+                    // Simplified use bounding_box, Accurate calculation is not efficient
+                    if (extruder_id >= 0 && extruder_id < static_cast<int>(unprintable_areas.size())) {
+                        if (!unprintable_areas[extruder_id].empty())
+                            for (Polygon poly : unprintable_areas[extruder_id]) {
+                                poly.translate(plate_offset);
+                                if (poly.bounding_box().overlap(bbox)) {
+                                    m_result.gcode_check_result.error_code |= 1;
+                                    add_unique_error(m_result.gcode_check_result.print_area_error_infos, print_area_dedupe, extruder_id, filament_id, object_label_id);
+                                    valid = false;
+                                }
+                            }
+                    }
+
+                    // check printable height
+                    if ((extruder_id < printable_heights.size()) && (iter->second.max_print_z > printable_heights[extruder_id])) {
+                        m_result.gcode_check_result.error_code |= (1 << 1);
+                        add_unique_error(m_result.gcode_check_result.print_height_error_infos, print_height_dedupe, extruder_id, filament_id, object_label_id);
+                        if (filament_id >= 0 && filament_id < static_cast<int>(m_result.limit_filament_maps.size()))
+                            m_result.limit_filament_maps[filament_id] |= (1 << extruder_id);
+                        valid = false;
+                    }
+
+                    for (int i = 0; i < unprintable_areas.size(); ++i) {
+                        for (Polygon poly : unprintable_areas[i]) {
+                            poly.translate(plate_offset);
+                            if (!poly.bounding_box().overlap(bbox)) continue;
+
+                            if (filament_id >= 0 && filament_id < static_cast<int>(m_result.limit_filament_maps.size())) m_result.limit_filament_maps[filament_id] |= (1 << i);
                         }
                     }
-
-                // check printable height
-                if ((extruder_id < printable_heights.size()) && (iter->second.max_print_z > printable_heights[extruder_id])) {
-                    m_result.gcode_check_result.error_code |= (1 << 1);
-                    std::pair<int, int> filament_to_object_id;
-                    filament_to_object_id.first  = iter->first;
-                    filament_to_object_id.second = object_label_id;
-                    m_result.gcode_check_result.print_height_error_infos[extruder_id].push_back(filament_to_object_id);
-                    m_result.limit_filament_maps[iter->first] |= (1 << extruder_id);
-                    valid = false;
-                }
-
-                for (int i = 0; i < unprintable_areas.size(); ++i) {
-                    for (Polygon poly : unprintable_areas[i]) {
-                        poly.translate(plate_offset);
-                        if (!poly.bounding_box().overlap(bbox)) continue;
-
-                        m_result.limit_filament_maps[iter->first] |= (1 << i);
-                    }
                 }
             }
         }
+
+        // apply unprintable filament type result
+        for (int extruder_id = 0; extruder_id < unprintable_filament_types.size(); ++extruder_id) {
+            const std::set<int> &filament_ids = unprintable_filament_types[extruder_id];
+            for (int filament_id : filament_ids) {
+                if (filament_id >= 0 && filament_id < static_cast<int>(m_result.limit_filament_maps.size())) m_result.limit_filament_maps[filament_id] |= (1 << extruder_id);
+            }
+        };
     }
-
-    // apply unprintable filament type result
-    for (int extruder_id = 0; extruder_id < unprintable_filament_types.size(); ++extruder_id) {
-        const std::set<int> &filament_ids = unprintable_filament_types[extruder_id];
-        for (int filament_id : filament_ids) {
-            m_result.limit_filament_maps[filament_id] |= (1 << extruder_id);
-        }
-    };
-
     return valid;
 }
 

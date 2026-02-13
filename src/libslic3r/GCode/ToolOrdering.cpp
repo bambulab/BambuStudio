@@ -1327,7 +1327,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
             auto noz_info             = ctx.nozzle_info.nozzle_list[noz];
             int  ext_id               = noz_info.extruder_id;
             auto ext_unprintable_fils = ctx.model_info.unprintable_filaments[ext_id];
-            if (std::find(ext_unprintable_fils.begin(), ext_unprintable_fils.end(), ext_id) != ext_unprintable_fils.end() ||
+            if (ext_unprintable_fils.count(fil) > 0 ||
                 (expected_volume != nvtHybrid && expected_volume != noz_info.volume_type) || (unprintable_volumes.count(noz_info.volume_type) != 0))
                 fil_unplaceable_nozs[fil].insert(noz);
         }
@@ -1409,6 +1409,8 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
         for (size_t local_u = 0; local_u < u_nodes.size(); ++local_u) {
             int global_u = u_nodes[local_u];
             int local_v  = local_match[static_cast<int>(local_u)];
+            if (local_v == MaxFlowGraph::INVALID_ID || local_v < 0 || local_v >= static_cast<int>(v_nodes.size()))
+                continue;
             int global_v = v_nodes[local_v];
             global_uv_match[global_u] = global_v;
         }
