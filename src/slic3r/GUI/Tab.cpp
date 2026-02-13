@@ -1279,6 +1279,19 @@ bool Tab::disable_arc_fitting()
     return false;
 }
 
+bool Tab::set_dynamic_filament_mapping(bool mapping)
+{
+    DynamicPrintConfig &config          = m_preset_bundle->printers.get_edited_preset().config;
+    ConfigOptionBool   *mapping_opt = config.option<ConfigOptionBool>("enable_filament_dynamic_map", true);
+    if (mapping_opt && mapping_opt->value != mapping) {
+        DynamicPrintConfig new_conf;
+        new_conf.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(mapping));
+        m_config_manipulation.apply(&config, &new_conf);
+        return true;
+    }
+    return false;
+}
+
 void Tab::init_options_list()
 {
     if (!m_options_list.empty())

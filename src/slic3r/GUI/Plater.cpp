@@ -678,6 +678,7 @@ struct Sidebar::priv
     bool switch_diameter(bool single);
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
+    bool is_fila_switch_ready();
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -817,6 +818,18 @@ void Sidebar::priv::adjust_filament_title_layout()
     }
 
     m_panel_filament_title->Layout();
+}
+bool Sidebar::priv::is_fila_switch_ready()
+{
+    if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
+        return false;
+    }
+    auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    if (obj == nullptr || !obj->is_online()) return false;
+    auto fila_switch = obj->GetFilaSwitch();
+    if (fila_switch == nullptr) return false;
+
+    return fila_switch->IsInstalled() && fila_switch->IsReady();
 }
 
 Sidebar::priv::~priv()
@@ -1783,6 +1796,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             notification_manager->push_notification(NotificationType::BBLPlateInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
         }
     }
+    wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(true);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
     return true;
@@ -1854,17 +1868,18 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (extruder_nums != obj->GetExtderSystem()->GetTotalExtderCount())
         return;
 
+    auto fila_switch_flag = is_fila_switch_ready();
     if (extruder_nums > 1) {
         auto fila_switch = obj->GetFilaSwitch();
         if (fila_switch->IsInstalled()) {
             if (fila_switch->IsReady()) {
                 if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
+                    wxGetApp().app_config->set("show_fila_switch_tips", "false");
                     MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
                                       _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
                                          "will be automatically allocated to the optimal extruder during slicing."),
                                       _L("Filament Switcher Detected"), wxICON_INFORMATION | wxOK);
                     dlg.ShowModal();
-                    wxGetApp().app_config->set("show_fila_switch_tips", "false");
                 }
                 // dual_panel->SetSeparatorState(CustomSeparator::State::Normal);
             } else {
@@ -1878,6 +1893,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         } else {
             // dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
         }
+        //wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(fila_switch_flag);
     }
 
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
@@ -4219,7 +4235,7 @@ void Sidebar::collapse(bool collapse){
 
 bool Sidebar::is_fila_switch_ready()
 {
-    return p->fila_switch_flag;
+    return p->is_fila_switch_ready();
 }
 
 #ifdef _MSW_DARK_MODE
