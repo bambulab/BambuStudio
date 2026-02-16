@@ -15173,6 +15173,9 @@ void Plater::calib_flowrate(int pass)
         auto config_opt = dynamic_cast<const ConfigOptionFloatsNullable *>(_obj->config.option("top_solid_infill_flow_ratio"));
         if (config_opt)
             _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloatsNullable(config_opt->size(), 1.0f));
+        config_opt = dynamic_cast<const ConfigOptionFloatsNullable *>(_obj->config.option("bottom_solid_infill_flow_ratio"));
+        if (config_opt)
+            _obj->config.set_key_value("bottom_solid_infill_flow_ratio", new ConfigOptionFloatsNullable(config_opt->size(), 1.0f));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;

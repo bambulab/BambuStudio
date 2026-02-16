@@ -989,7 +989,7 @@ static std::vector<std::string> s_Preset_print_options {
      "timelapse_type", "internal_bridge_support_thickness",
      "wall_generator", "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
      "wall_distribution_count", "min_feature_size", "min_bead_width", "post_process",
-    "seam_gap", "wipe_speed", "top_solid_infill_flow_ratio", "initial_layer_flow_ratio",
+    "seam_gap", "wipe_speed", "top_solid_infill_flow_ratio", "bottom_solid_infill_flow_ratio", "initial_layer_flow_ratio",
     "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk",
     "filter_out_gap_fill", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
     "small_perimeter_speed", "small_perimeter_threshold", "z_direction_outwall_speed_continuous",
