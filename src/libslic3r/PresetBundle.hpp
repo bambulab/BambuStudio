@@ -61,6 +61,35 @@ struct FilamentBaseInfo
     bool is_support{ false };
     bool is_system{ true };
     int  filament_printable = 3;
+    std::string setting_id = "";
+};
+
+class PresetBundle;
+struct ExtruderNozzleStat
+{
+public:
+    enum NozzleDataFlag {
+        ndfMachine = 0,
+        ndfNone
+    };
+public:
+    ExtruderNozzleStat() = default;
+    ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts, const NozzleDataFlag flag = ndfNone) : extruder_nozzle_counts(nozzle_counts), data_flag(flag) {}
+    void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
+    void on_printer_model_change(PresetBundle* preset_bundle);
+    void on_printer_model_change_cli(const std::vector<int> &nozzle_volume_type, const std::vector<int> &max_nozzle_count);
+    void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
+    int get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type = std::nullopt) const;
+
+    const std::vector<std::map<NozzleVolumeType, int>> get_raw_stat() const { return extruder_nozzle_counts; }
+    void set_raw_stat(const std::vector<std::map<NozzleVolumeType, int>>& data) { extruder_nozzle_counts = data; }
+
+    void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
+    void set_force_keep_flag(bool flag) { force_keep_stat = flag; }
+private:
+    bool force_keep_stat{ false };
+    std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
+    NozzleDataFlag data_flag{ ndfNone };
 };
 
 // Bundle of Print + Filament + Printer presets.
@@ -72,7 +101,8 @@ public:
                                                     const DynamicPrintConfig       &project_config,
                                                     std::vector<Preset>            &in_filament_presets,
                                                     bool                            apply_extruder,
-                                                    std::optional<std::vector<int>> filament_maps_new);
+                                                    std::optional<std::vector<int>> filament_maps_new,
+                                                    std::optional<std::vector<int>> filament_volume_maps_new);
     PresetBundle();
     PresetBundle(const PresetBundle &rhs);
     PresetBundle& operator=(const PresetBundle &rhs);
@@ -118,6 +148,8 @@ public:
     void remove_user_presets_directory(const std::string preset_folder);
     void update_system_preset_setting_ids(std::map<std::string, std::map<std::string, std::string>>& system_presets);
 
+    std::vector<std::vector<std::vector<float>>> get_full_flush_matrix(bool with_multiplier = true) const;
+
     //BBS: add API to get previous machine
     int validate_presets(const std::string &file_name, DynamicPrintConfig& config, std::set<std::string>& different_gcodes);
 
@@ -130,7 +162,7 @@ public:
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
 
-    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string()) const;
+    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -187,7 +219,7 @@ public:
     std::vector<std::vector<std::string>> ams_multi_color_filment;
 
     std::vector<std::map<int, int>> extruder_ams_counts;
-
+    ExtruderNozzleStat extruder_nozzle_stat;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -213,13 +245,14 @@ public:
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
-    DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt) const;
+    DynamicPrintConfig          full_config(bool apply_extruder = true, std::optional<std::vector<int>>filament_maps = std::nullopt, std::optional<std::vector<int>> filament_volume_maps = std::nullopt) const;
     // full_config() with the some "useless" config removed.
     DynamicPrintConfig          full_config_secure(std::optional<std::vector<int>>filament_maps = std::nullopt) const;
 
     //BBS: add some functions for multiple extruders
     int get_printer_extruder_count() const;
     bool support_different_extruders();
+    std::vector<int> get_default_nozzle_volume_types_for_filaments(std::vector<int>& f_maps);
 
     // Load user configuration and store it into the user profiles.
     // This method is called by the configuration wizard.
@@ -298,7 +331,7 @@ public:
 
     const std::string&          get_preset_name_by_alias(const Preset::Type& preset_type, const std::string& alias) const;
 
-    const int                   get_required_hrc_by_filament_type(const std::string& filament_type) const;
+    const int                   get_required_hrc_by_filament_id(const std::string& filament_id) const;
     // Save current preset of a provided type under a new name. If the name is different from the old one,
     // Unselected option would be reverted to the beginning values
     //BBS: add project embedded preset logic
@@ -336,11 +369,14 @@ private:
     /*ConfigSubstitutions         load_config_file_config_bundle(
         const std::string &path, const boost::property_tree::ptree &tree, ForwardCompatibilitySubstitutionRule compatibility_rule);*/
 
-    DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt) const;
+    DynamicPrintConfig          full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps=std::nullopt, std::optional<std::vector<int>> filament_volume_maps=std::nullopt) const;
     DynamicPrintConfig          full_sla_config() const;
 };
 
 ENABLE_ENUM_BITMASK_OPERATORS(PresetBundle::LoadConfigBundleAttribute)
+
+//add these functions here to allow other access
+extern void convert_filament_preset_name(std::string& machine_name, std::string& filament_name);
 
 } // namespace Slic3r
 

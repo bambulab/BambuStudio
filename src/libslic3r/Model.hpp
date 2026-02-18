@@ -868,12 +868,20 @@ struct TextInfo
     TextConfiguration text_configuration;
 };
 
+class OriginRenderInfo
+{
+    public:
+       std::vector<std::pair<TriangleMesh,RGBA>> mesh_with_colors;
+       std::pair<TriangleMesh, std::vector<RGBA>> vertices_with_colors;
+};
+
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume final : public ObjectBase
 {
 public:
     std::string         name;
+    std::shared_ptr<OriginRenderInfo> origin_render_info_ptr{nullptr};
     // struct used by reload from disk command to recover data from disk
     struct Source
     {
@@ -1066,7 +1074,8 @@ public:
     void set_text_info(const TextInfo& text_info) { m_text_info = text_info; }
     void  clear_text_info() { m_text_info.m_text = ""; }
     const TextInfo& get_text_info() const { return m_text_info; }
-    bool  is_text() const { return !m_text_info.m_text.empty(); }
+    void  check_boldness_skew_min_max(float min_boldness, float max_boldness, float min_skew, float max_skew);
+    bool  is_text() const{ return !m_text_info.m_text.empty(); }
     const Transform3d &get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 	void set_new_unique_id() {
         ObjectBase::set_new_unique_id();
@@ -1082,6 +1091,10 @@ public:
     bool is_seam_painted() const { return !this->seam_facets.empty(); }
     bool is_mm_painted() const { return !this->mmu_segmentation_facets.empty(); }
 
+    void set_origin_mesh_render_type(bool is_mesh){
+        m_origin_mesh_or_vertice_render = is_mesh;
+    }
+    bool get_origin_mesh_or_vertice_render()const {return m_origin_mesh_or_vertice_render;}
 protected:
 	friend class Print;
     friend class SLAPrint;
@@ -1104,6 +1117,7 @@ private:
     // Is it an object to be printed, or a modifier volume?
     ModelVolumeType                 	m_type;
     t_model_material_id             	m_material_id;
+    mutable bool                        m_mmuseg_extruders_has_0_extruder{true};
     // The convex hull of this model's mesh.
     std::shared_ptr<const TriangleMesh> m_convex_hull;
     //BBS: add convex hull 2d related logic
@@ -1113,6 +1127,8 @@ private:
     Geometry::Transformation        	m_transformation;
 
     TextInfo m_text_info;
+
+    bool       m_origin_mesh_or_vertice_render = true;//true mean mesh render//false mean vertice render
     // Is set only when volume is Embossed Text type
     // Contain information how to re-create volume
     //std::optional<TextConfiguration> text_configuration;
@@ -1651,11 +1667,11 @@ public:
                                 ImportstlProgressFn        stlFn                = nullptr,
                                 BBLProject *               project              = nullptr,
                                 int                        plate_id             = 0,
-                                ObjImportColorFn           objFn                = nullptr
-                                );
+                                ObjImportColorFn           objFn                = nullptr);
     // BBS
-    static bool    obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, Model *model);
-    static bool    obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, Model *model);
+    static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, const unsigned char& first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, const unsigned char& first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, ModelVolume *volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
@@ -1668,7 +1684,7 @@ public:
     static Model read_from_archive(
         const std::string& input_file,
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::unordered_map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

@@ -8,6 +8,7 @@
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
 #include <wx/menu.h>
+#include <wx/timer.h>
 
 #include "Event.hpp"
 #include "wxExtensions.hpp"
@@ -405,6 +406,7 @@ public:
     void select_item(const ObjectVolumeID& ov_id);
     void select_items(const std::vector<ObjectVolumeID>& ov_ids);
     void select_all();
+    void expand_collapse_plate(int plate_idx, bool expand);
     void select_item_all_children();
     void update_selection_mode();
     bool check_last_selection(wxString& msg_str);
@@ -430,6 +432,7 @@ public:
     void rename_item();
     void fix_through_netfabb();
     void simplify();
+    void smooth_mesh();
     void update_item_error_icon(const int obj_idx, int vol_idx) const ;
 
     void copy_layers_to_clipboard();
@@ -494,6 +497,11 @@ private:
 
     std::vector<int> m_columns_width;
     wxSize           m_last_size;
+
+    // BBS: 支持多位数快捷键设置挤出机（与3D场景保持一致）
+    wxTimer m_timer_set_extruder;
+    int m_extruder_input_value = -1;
+    void on_set_extruder_timer(wxTimerEvent& evt);
 };
 
 

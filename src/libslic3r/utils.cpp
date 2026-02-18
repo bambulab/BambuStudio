@@ -42,10 +42,11 @@
 	#endif
 #endif
 
+#include "LogSink.hpp"
+
 #include <boost/log/core.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/log/sources/severity_logger.hpp>
@@ -157,8 +158,6 @@ unsigned get_logging_level()
     default: return 1;
     }
 }
-
-boost::shared_ptr<boost::log::sinks::synchronous_sink<boost::log::sinks::text_file_backend>> g_log_sink;
 
 // Force set_logging_level(<=error) after loading of the DLL.
 // This is currently only needed if libslic3r is loaded as a shared library into Perl interpreter
@@ -306,12 +305,19 @@ std::string debug_out_path(const char *name, ...)
 	return svg_folder.string() + std::string(buffer);
 }
 
+boost::shared_ptr<LogSink> g_log_sink;
+boost::shared_ptr<LogSinkBackend> g_log_sink_backend;
+bool is_log_trivival_valid()
+{
+    return g_log_sink != nullptr;
+}
+
 namespace logging = boost::log;
 namespace src = boost::log::sources;
 namespace expr = boost::log::expressions;
 namespace keywords = boost::log::keywords;
 namespace attrs = boost::log::attributes;
-void set_log_path_and_level(const std::string& file, unsigned int level)
+void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options)
 {
 #ifdef __APPLE__
 	//currently on old macos, the boost::log::add_file_log will crash
@@ -321,30 +327,27 @@ void set_log_path_and_level(const std::string& file, unsigned int level)
 	}
 #endif
 
-	//BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
-	auto log_folder = boost::filesystem::path(g_data_dir) / "log";
-	if (!boost::filesystem::exists(log_folder)) {
-		boost::filesystem::create_directory(log_folder);
-	}
-	auto full_path = (log_folder / file).make_preferred();
-
-	g_log_sink = boost::log::add_file_log(
-		keywords::file_name = full_path.string() + ".%N",
-		keywords::rotation_size = 100 * 1024 * 1024,
-		keywords::format =
-		(
-			expr::stream
-			<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
-			<<"[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
-			<< ":" << expr::smessage
-			)
+	g_log_sink_backend = boost::make_shared<LogSinkBackend>(file, enc_options);
+    g_log_sink = boost::make_shared<LogSink>(g_log_sink_backend);
+	g_log_sink->set_formatter(
+		expr::stream
+		<< expr::format_date_time< boost::posix_time::ptime >("TimeStamp", "%Y-%m-%d %H:%M:%S.%f")
+		<< "[Thread " << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << "]"
+		<< ":" << expr::smessage
 	);
+	boost::log::core::get()->add_sink(g_log_sink);
 
 	logging::add_common_attributes();
 
 	set_logging_level(level);
-
 	return;
+}
+
+void update_log_sink(const std::string& file, const LogEncOptions& enc_options)
+{
+    if (g_log_sink_backend) {
+        g_log_sink_backend->update_enc_option(file, enc_options);
+    }
 }
 
 void flush_logs()
@@ -1340,6 +1343,15 @@ std::string format_memsize_MB(size_t n)
     return out + "MB";
 }
 
+std::string format_diameter_to_str(double diameter, int precision)
+{
+    double candidates[] = {0.2, 0.4, 0.6, 0.8};
+    double best = *std::min_element(std::begin(candidates), std::end(candidates), [diameter](double a, double b) { return std::abs(a - diameter) < std::abs(b - diameter); });
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(precision) << best;
+    return oss.str();
+}
+
 // Returns platform-specific string to be used as log output or parsed in SysInfoDialog.
 // The latter parses the string with (semi)colons as separators, it should look about as
 // "desc1: value1; desc2: value2" or similar (spaces should not matter).
@@ -1534,6 +1546,5 @@ void load_string_file(const boost::filesystem::path& p, std::string& str)
     str.resize(sz, '\0');
     file.read(&str[0], sz);
 }
-
 
 }; // namespace Slic3r

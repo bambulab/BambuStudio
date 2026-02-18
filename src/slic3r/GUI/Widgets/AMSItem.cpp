@@ -51,15 +51,10 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     if (!ams) return false;
     this->ams_id = ams->GetAmsId();
 
-    if (ams->SupportHumidity()){
-        this->ams_humidity = ams->GetHumidityLevel();
-    }
-    else{
-        this->ams_humidity = -1;
-    }
-
-    this->humidity_raw = ams->GetHumidityPercent();
+    this->ams_humidity = ams->SupportHumidityLevel() ? ams->GetHumidityLevel() : -1;
+    this->ams_humidity_percent = ams->SupportHumidityPercent() ? ams->GetHumidityPercent() : -1;
     this->left_dray_time = ams->GetLeftDryTime();
+    this->m_ams_drying = ams->AmsIsDrying();
     this->current_temperature = ams->GetCurrentTemperature();
     this->ams_type = AMSModel(ams->GetAmsType());
 
@@ -115,7 +110,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
                 wxColour(255, 255, 255);
             }
 
-            if (it->second->is_tray_info_ready() && obj->cali_version >= 0) {
+            if (it->second->is_tray_info_ready() && obj->GetCalib()->IsVersionInited()) {
                 CalibUtils::get_pa_k_n_value_by_cali_idx(obj, it->second->cali_idx, info.k, info.n);
             }
             else {
@@ -172,7 +167,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
         wxColour(255, 255, 255);
     }
     info.material_state = AMSCanType::AMS_CAN_TYPE_VIRTUAL;
-    if (tray.is_tray_info_ready() && obj->cali_version >= 0) {
+    if (tray.is_tray_info_ready() && obj->GetCalib()->IsVersionInited()) {
         CalibUtils::get_pa_k_n_value_by_cali_idx(obj, tray.cali_idx, info.k, info.n);
     }
     else {
@@ -208,19 +203,19 @@ int AMSinfo::get_humidity_display_idx() const
     }
     else if (ams_type == AMSModel::N3F_AMS || ams_type == AMSModel::N3S_AMS)
     {
-        if (humidity_raw < 20)
+        if (ams_humidity_percent < 20)
         {
             return 5;
         }
-        else if (humidity_raw < 40)
+        else if (ams_humidity_percent < 40)
         {
             return 4;
         }
-        else if (humidity_raw < 60)
+        else if (ams_humidity_percent < 60)
         {
             return 3;
         }
-        else if (humidity_raw < 80)
+        else if (ams_humidity_percent < 80)
         {
             return 2;
         }
@@ -1094,8 +1089,8 @@ void AMSLib::render_generic_text(wxDC &dc)
     if (m_info.material_name.empty()) {
         show_k_value = false;
     }
-    else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->pa_calib_tab, m_info.cali_idx) == -1))) {
-        if (m_obj && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
+    else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->GetCalib()->GetPAHistory(), m_info.cali_idx) == -1))) {
+        if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
             show_k_value = false;
         else
             get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
@@ -1103,6 +1098,8 @@ void AMSLib::render_generic_text(wxDC &dc)
     else if (abs(m_info.k) < EPSILON) {
         show_k_value = false;
     }
+
+    wxString tooltip_text;
 
     auto tmp_lib_colour = m_info.material_colour;
     change_the_opacity(tmp_lib_colour);
@@ -1199,6 +1196,7 @@ void AMSLib::render_generic_text(wxDC &dc)
                 }
                 dc.DrawText(m_info.material_name, pot);
             }
+            tooltip_text += m_info.material_name;
         }
 
         //draw k&n
@@ -1210,7 +1208,12 @@ void AMSLib::render_generic_text(wxDC &dc)
                 auto tsize = dc.GetMultiLineTextExtent(str_k);
                 auto pot_k = wxPoint((libsize.x - tsize.x) / 2, (libsize.y - tsize.y) / 2 - FromDIP(9) + tsize.y);
                 dc.DrawText(str_k, pot_k);
+
+                tooltip_text += "\n" + str_k;
             }
+        }
+        if (GetToolTipText() != tooltip_text) {
+            SetToolTip(tooltip_text);
         }
     }
 
@@ -1401,7 +1404,10 @@ void AMSLib::render_generic_lib(wxDC &dc)
     auto alpha = m_info.material_colour.Alpha();
     int height = size.y;
     int curr_height = height * float(m_info.material_remain * 1.0 / 100.0);
-    if (curr_height != 0) { curr_height = std::max(curr_height, FromDIP(2)); }/*STUDIO-11323 too small to show, enlarge it*/
+    if (m_info.material_remain < 10)// Display Optimization for Empty Consumable Remaining Quantity in AMS
+    {
+        curr_height = height * 0.1;
+    }
     dc.SetFont(::Label::Body_13);
 
     int top = height - curr_height;
@@ -1413,7 +1419,19 @@ void AMSLib::render_generic_lib(wxDC &dc)
         }
         else if (alpha != 255 && alpha != 254) {
             if (transparent_changed) {
+                std::string rgb = (tmp_lib_colour.GetAsString(wxC2S_HTML_SYNTAX)).ToStdString();
+                if (rgb.size() == 9) {
+                    //delete alpha value
+                    rgb = rgb.substr(0, rgb.size() - 2);
+                }
+                float alpha_f = 0.7 * tmp_lib_colour.Alpha() / 255.0;
+                std::vector<std::string> replace;
+                replace.push_back(rgb);
+                std::string fill_replace = "fill-opacity=\"" + std::to_string(alpha_f);
+                replace.push_back(fill_replace);
+                m_bitmap_transparent = ScalableBitmap(this, "transparent_ams_lib", 76, false, false, true, replace);
                 transparent_changed = false;
+
             }
             dc.DrawBitmap(m_bitmap_transparent.bmp(), FromDIP(2), FromDIP(2));
         }
@@ -2635,6 +2653,9 @@ void AMSPreview::doRender(wxDC &dc)
     wxSize size = GetSize();
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
+    BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - AMS Info: "
+                            << "ams_id = " << m_amsinfo.ams_id << ", ams_type = " << static_cast<int>(m_amsinfo.ams_type) << ", cans_count = " << m_amsinfo.cans.size();
+
     // draw background
     if (wxGetApp().dark_mode())
     {
@@ -2655,7 +2676,14 @@ void AMSPreview::doRender(wxDC &dc)
     //four slot
     if (m_ams_item_type != AMSModel::EXT_AMS && m_ams_item_type != AMSModel::N3S_AMS){
         left =  FromDIP(8);
+        int can_idx = 0;
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
+            BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Can[" << can_idx << "]: "
+                                    << "can_id = \"" << iter->can_id << "\""
+                                    << ", material_name = \"" << iter->material_name.ToStdString() << "\""
+                                    << ", material_colour = " << iter->material_colour.GetAsString(2).ToStdString()
+                                    << ", filament_id=\"" << iter->filament_id << "\""
+                                    << ", material_state=" << static_cast<int>(iter->material_state);
 
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
 
@@ -2714,6 +2742,7 @@ void AMSPreview::doRender(wxDC &dc)
                 }
             }
             left += AMS_ITEM_CUBE_SIZE.x;
+            can_idx++;
         }
 
         //auto pot = wxPoint((size.x - m_four_slot_bitmap.GetBmpSize().x) / 2, (size.y - m_four_slot_bitmap.GetBmpSize().y) / 2);
@@ -2731,6 +2760,13 @@ void AMSPreview::doRender(wxDC &dc)
     //single slot
     else if (m_amsinfo.cans.size() == 1) {
         auto iter = m_amsinfo.cans[0];
+        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - Single Can: "
+                                << "can_id = \"" << iter.can_id << "\""
+                                << ", material_name = \"" << iter.material_name.ToStdString() << "\""
+                                << ", material_colour = " << iter.material_colour.GetAsString(2).ToStdString()
+                                << ", filament_id=\"" << iter.filament_id << "\""
+                                << ", material_state=" << static_cast<int>(iter.material_state);
+
         dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
         dc.SetBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_BLOCK_BK_COLOUR));
         wxSize rec_size = wxSize(FromDIP(16), FromDIP(24));
@@ -2796,6 +2832,11 @@ void AMSPreview::doRender(wxDC &dc)
             dc.DrawRoundedRectangle(rect, FromDIP(3));
         }
     }
+
+    if (m_amsinfo.cans.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "AMSPreview::doRender - No cans data available for AMS: " << m_amsinfo.ams_id;
+    }
+
     auto border_colour = AMS_CONTROL_BRAND_COLOUR;
     if (!wxWindow::IsEnabled()) { border_colour = AMS_CONTROL_DISABLE_COLOUR; }
 
@@ -2862,7 +2903,7 @@ AMSHumidity::AMSHumidity(wxWindow* parent, wxWindowID id, AMSinfo info, const wx
                 info->ams_id            = m_amsinfo.ams_id;
                 info->ams_type          = m_amsinfo.ams_type;
                 info->humidity_display_idx = m_amsinfo.get_humidity_display_idx();
-                info->humidity_percent  = m_amsinfo.humidity_raw;
+                info->humidity_percent  = m_amsinfo.ams_humidity_percent;
                 info->left_dry_time     = m_amsinfo.left_dray_time;
                 info->current_temperature = m_amsinfo.current_temperature;
                 show_event.SetClientData(info);
@@ -2963,7 +3004,7 @@ void AMSHumidity::doRender(wxDC& dc)
             dc.DrawBitmap(hum_img.bmp(), pot);
             pot.x = pot.x + hum_img.GetBmpSize().x;
         }
-        else if (m_amsinfo.humidity_raw != -1) /*image with no number + percentage*/
+        else if (m_amsinfo.ams_humidity_percent != -1) /*image with no number + percentage*/
         {
             // hum image
             ScalableBitmap hum_img;
@@ -2978,7 +3019,7 @@ void AMSHumidity::doRender(wxDC& dc)
             pot.x += hum_img.GetBmpSize().x + FromDIP(3);
 
             // percentage
-            wxString hum_percentage(std::to_string(m_amsinfo.humidity_raw));
+            wxString hum_percentage(std::to_string(m_amsinfo.ams_humidity_percent));
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetFont(Label::Body_14);
             dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_BLACK_COLOUR));
@@ -3011,7 +3052,7 @@ void AMSHumidity::doRender(wxDC& dc)
             // sun image
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             pot.x += ((size.GetWidth() - pot.x) - ams_drying_img.GetBmpWidth()) / 2;// spacing
-            if (m_amsinfo.left_dray_time > 0) {
+            if (m_amsinfo.m_ams_drying) {
                 pot.y = (size.y - ams_drying_img.GetBmpHeight()) / 2;
                 dc.DrawBitmap(ams_drying_img.bmp(), pot);
             } else {

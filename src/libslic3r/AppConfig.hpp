@@ -24,6 +24,9 @@ using namespace nlohmann;
 
 namespace Slic3r {
 
+namespace MultiNozzleUtils{
+	struct NozzleGroupInfo;
+}
 class AppConfig
 {
 public:
@@ -213,7 +216,8 @@ public:
     void                reset_selections();
 
 	// Get the default config path from Slic3r::data_dir().
-	std::string			config_path();
+	std::string			config_path() { return config_path(m_mode); };
+	static std::string	config_path(EAppMode mode);
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
 	bool 				legacy_datadir() const { return m_legacy_datadir; }

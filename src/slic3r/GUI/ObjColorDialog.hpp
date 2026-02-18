@@ -22,11 +22,13 @@ public:
     // BBS
     ObjColorPanel(wxWindow *parent, Slic3r::ObjDialogInOut &in_out, const std::vector<std::string> &extruder_colours);
     ~ObjColorPanel();
+    wxBoxSizer *create_sizer_thumbnail(wxButton *image_button, bool left);
     void msw_rescale();
     bool is_ok();
     void send_new_filament_to_ui();
     void cancel_paint_color();
     void update_filament_ids();
+    Slic3r::ObjDialogInOut::FormatType get_input_type() const { return m_obj_in_out.input_type; }
     struct ButtonState
     {
         ComboBox*   bitmap_combox{nullptr};
@@ -56,17 +58,26 @@ private:
     void deal_default_strategy();
     void deal_thumbnail();
     void generate_thumbnail();
+    void generate_origin_thumbnail();
     void set_view_angle_type(int);
 private:
     //view ui
     Slic3r::ObjDialogInOut &  m_obj_in_out;
     Slic3r::GUI::Camera::ViewAngleType m_camera_view_angle_type{Slic3r::GUI::Camera::ViewAngleType::Iso};
+    StaticBox *               m_two_image_panel{nullptr};
+    wxBoxSizer *                       m_left_sizer_thumbnail{nullptr};
+    wxBoxSizer *                       m_right_sizer_thumbnail{nullptr};
+    wxButton *                         m_left_image_button{nullptr};
+    wxButton *                         m_right_image_button{nullptr};
+    wxBoxSizer *                       m_two_image_panel_sizer{nullptr};
+
     wxPanel *                 m_page_simple  = nullptr;
     wxBoxSizer *              m_sizer        = nullptr;
     wxBoxSizer *              m_sizer_simple = nullptr;
     wxBoxSizer *               m_sizer_current_filaments = nullptr;
     SpinInput *                m_color_cluster_num_by_user_ebox{nullptr};
-    wxStaticText *             m_warning_text{nullptr};
+    Label*                     m_warn_text{nullptr};
+    Label*                     m_note_text{nullptr};
     wxGridSizer *              m_new_grid_sizer{nullptr};
     wxScrolledWindow *         m_scrolledWindow{nullptr};
     Button *    m_quick_approximate_match_btn{nullptr};
@@ -107,6 +118,9 @@ private:
     std::vector<unsigned char> &m_filament_ids;
 
     Slic3r::Vec3d m_thumbnail_offset;
+
+    const int LEFT_THUMBNAIL_SIZE_WIDTH  = 100;
+    const int RIGHT_THUMBNAIL_SIZE_WIDTH = 300;
 };
 
 class ObjColorDialog : public Slic3r::GUI::DPIDialog

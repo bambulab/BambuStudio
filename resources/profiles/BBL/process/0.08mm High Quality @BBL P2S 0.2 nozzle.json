@@ -6,7 +6,6 @@
     "setting_id": "GP204",
     "instantiation": "true",
     "description": "High quality profile for 0.2mm nozzle, prioritizing print quality.",
-    "bottom_surface_pattern": "monotonicline",
     "bridge_speed": [
         "50",
         "50"
@@ -27,21 +26,9 @@
         "50",
         "50"
     ],
-    "initial_layer_infill_speed": [
-        "50",
-        "50"
-    ],
     "initial_layer_speed": [
         "40",
         "40"
-    ],
-    "initial_layer_acceleration": [
-        "500",
-        "500"
-    ],
-    "inner_wall_acceleration": [
-        "0",
-        "0"
     ],
     "inner_wall_speed": [
         "150",
@@ -55,13 +42,33 @@
         "6000",
         "6000"
     ],
-    "overhang_1_4_speed": [
+    "initial_layer_acceleration": [
+        "500",
+        "500"
+    ],
+    "initial_layer_infill_speed": [
+        "50",
+        "50"
+    ],
+    "inner_wall_acceleration": [
         "0",
+        "0"
+    ],
+    "outer_wall_speed": [
+        "60",
         "60"
+    ],
+    "overhang_totally_speed": [
+        "10",
+        "10"
     ],
     "outer_wall_acceleration": [
         "2000",
         "2000"
+    ],
+    "overhang_1_4_speed": [
+        "0",
+        "60"
     ],
     "overhang_2_4_speed": [
         "60",
@@ -71,20 +78,12 @@
         "40",
         "10"
     ],
-    "outer_wall_speed": [
-        "60",
-        "60"
-    ],
     "overhang_4_4_speed": [
         "20",
         "10"
     ],
-    "overhang_totally_speed": [
-        "10",
-        "10"
-    ],
-    "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
+    "prime_tower_brim_width": "-1",
     "print_extruder_id": [
         "1",
         "1"
@@ -98,6 +97,14 @@
     "sparse_infill_speed": [
         "100",
         "100"
+    ],
+    "support_interface_speed": [
+        "80",
+        "80"
+    ],
+    "support_speed": [
+        "150",
+        "150"
     ],
     "slowdown_start_height": [
         "0",
@@ -135,22 +142,21 @@
         "100%",
         "100%"
     ],
-    "support_speed": [
-        "150",
-        "150"
-    ],
-    "support_interface_speed": [
-        "80",
-        "80"
-    ],
-    "top_surface_pattern": "monotonic",
-    "travel_speed": [
-        "600",
-        "600"
-    ],
     "top_surface_speed": [
         "150",
         "150"
+    ],
+    "top_solid_infill_flow_ratio": [
+        "1",
+        "1"
+    ],
+    "travel_acceleration": [
+        "10000",
+        "10000"
+    ],
+    "travel_speed": [
+        "600",
+        "600"
     ],
     "top_surface_acceleration": [
         "2000",
@@ -159,10 +165,6 @@
     "travel_speed_z": [
         "0",
         "0"
-    ],
-    "travel_acceleration": [
-        "10000",
-        "10000"
     ],
     "vertical_shell_speed": [
         "80%",

@@ -225,6 +225,28 @@ public:
     }
 };
 
+struct TryLoadLastMachine
+{
+    ~TryLoadLastMachine();
+    bool is_mqtt_ok = false;
+    bool is_list_ok = false;
+
+    void InnerLoad(NetworkAgent *agent, DeviceManager *dev);
+
+    inline void TryLoadFromMqttCB(NetworkAgent *agent, DeviceManager *dev)
+    {
+        is_mqtt_ok |= true;
+        InnerLoad(agent, dev);
+    }
+    inline void TryLoadFromHttpCB(NetworkAgent *agent, DeviceManager *dev)
+    {
+        is_list_ok |= true;
+        InnerLoad(agent, dev);
+    }
+
+    boost::thread local_bind_thread;
+};
+
 class GUI_App : public wxApp
 {
 public:
@@ -323,6 +345,8 @@ private:
     HttpServer       m_http_server;
 
     boost::thread    m_check_cert_thread;
+    TryLoadLastMachine m_load_last_machine;
+
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
@@ -698,6 +722,8 @@ public:
 
     void set_picking_color(const ColorRGB& color);
     const ColorRGB& get_picking_color() const;
+
+    void update_log_sink_region();
 
 private:
     int             updating_bambu_networking();

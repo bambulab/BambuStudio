@@ -100,6 +100,8 @@ const std::string& var_dir();
 // Return a full resource path for a file_name.
 std::string var(const std::string &file_name);
 
+std::string format_diameter_to_str(double diameter, int precision = 1);
+
 // Set a path with various static definition data (for example the initial config bundles).
 void set_resources_dir(const std::string &path);
 // Return a full path to the resources directory.
@@ -358,8 +360,24 @@ bool makedir(const std::string path);
 // Writes out the output path prefix to the console for the first time the function is called,
 // so the user knows where to search for the debugging output.
 std::string debug_out_path(const char *name, ...);
+
 // smaller level means less log. level=5 means saving all logs.
-void set_log_path_and_level(const std::string& file, unsigned int level);
+struct LogEncOptions
+{
+    enum LogEncType : unsigned char
+    {
+        LOG_ENC_NONE = 0,
+        LOG_ENC_AES_256_CBC = 1,
+        //ENC_RSA_2048 = 2, maybe supported in future
+    };
+
+    LogEncType enc_type = LOG_ENC_AES_256_CBC;
+    std::string enc_key_url;
+    std::string enc_key_host_env;
+};
+bool is_log_trivival_valid();
+void set_log_path_and_level(const std::string& file, unsigned int level, const LogEncOptions& enc_options);
+void update_log_sink(const std::string& file, const LogEncOptions& enc_options);
 void flush_logs();
 
 // A special type for strings encoded in the local Windows 8-bit code page.
@@ -646,6 +664,7 @@ inline std::string short_time(const std::string &time)
     }
     // Format the dhm time.
     char buffer[64];
+    buffer[0] = '\0';
     if (days > 0)
         ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
     else if (hours > 0)
@@ -766,15 +785,15 @@ inline std::string get_bbl_monitor_time_dhm(float time_in_secs)
     time_in_secs -= (float)days * 86400.0f;
     int hours = (int)(time_in_secs / 3600.0f);
     time_in_secs -= (float)hours * 3600.0f;
-    int minutes = (int)(time_in_secs / 60.0f);
+    int minutes = (int) std::ceil(time_in_secs / 60.0f);
 
     char buffer[64];
     if (days > 0)
-        ::sprintf(buffer, "%dd%dh%dm", days, hours, minutes);
+        ::sprintf(buffer, "%dd%dh%dmin", days, hours, minutes);
     else if (hours > 0)
-        ::sprintf(buffer, "%dh%dm", hours, minutes);
+        ::sprintf(buffer, "%dh%dmin", hours, minutes);
     else if (minutes >= 0)
-        ::sprintf(buffer, "%dm", minutes);
+        ::sprintf(buffer, "%dmin", minutes);
     else {
         return "";
     }
@@ -827,7 +846,7 @@ inline std::string get_bbl_remain_time_dhms(float time_in_secs)
     time_in_secs -= (float) days * 86400.0f;
     int hours = (int) (time_in_secs / 3600.0f);
     time_in_secs -= (float) hours * 3600.0f;
-    int minutes = (int) (time_in_secs / 60.0f);
+    int minutes = (int) std::ceil(time_in_secs / 60.0f);
     time_in_secs -= (float) minutes * 60.0f;
 
     char buffer[64];

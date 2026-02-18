@@ -109,7 +109,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_management->SetToolTip(_L("Batch manage files."));
     m_button_refresh = new ::Button(m_manage_panel, _L("Refresh"));
     m_button_refresh->SetToolTip(_L("Reload file list from printer."));
-    for (auto b : {m_button_delete, m_button_download, m_button_refresh, m_button_management}) {
+    m_button_select_all = new ::Button(m_manage_panel, _L("Select All"));
+    for (auto b : {m_button_delete, m_button_download, m_button_refresh, m_button_management, m_button_select_all}) {
         b->SetFont(Label::Body_12);
         b->SetCornerRadius(12);
         b->SetPaddingSize({10, 6});
@@ -125,9 +126,14 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_refresh->SetBackgroundColorNormal(wxColor("#00AE42"));
     m_button_refresh->SetTextColorNormal(*wxWHITE);
     m_button_refresh->Enable(false);
+    m_button_select_all->SetBorderWidth(0);
+    m_button_select_all->SetBackgroundColorNormal(wxColor("#00AE42"));
+    m_button_select_all->SetTextColorNormal(*wxWHITE);
+    m_button_select_all->Enable(false);
 
     wxBoxSizer *manage_sizer = new wxBoxSizer(wxHORIZONTAL);
     manage_sizer->AddStretchSpacer(1);
+    manage_sizer->Add(m_button_select_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
     manage_sizer->Add(m_button_delete, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24)->Show(false);
     manage_sizer->Add(m_button_refresh, 0, wxALIGN_CENTER_VERTICAL);
@@ -179,7 +185,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     // File management
     m_button_management->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         e.Skip();
-        SetSelecting(!m_image_grid->IsSelecting());
+        SetSelecting(!m_image_grid->IsSelecting(), false);
     });
     m_button_refresh->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         e.Skip();
@@ -188,11 +194,15 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     });
     m_button_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         m_image_grid->DoActionOnSelection(1);
-        SetSelecting(false);
+        SetSelecting(false, false);
     });
     m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
         m_image_grid->DoActionOnSelection(0);
-        SetSelecting(false);
+        SetSelecting(false, false);
+    });
+    m_button_select_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
+        e.Skip();
+        SetSelecting(!m_image_grid->IsSelecting(), true);
     });
 
     auto onShowHide = [this](auto &e) {
@@ -267,7 +277,8 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
     }
     m_button_refresh->Enable(false);
     m_button_management->Enable(false);
-    SetSelecting(false);
+    m_button_select_all->Enable(false);
+    SetSelecting(false, false);
     if (m_machine.empty()) {
         m_image_grid->SetStatus(m_bmp_failed, _L("Please confirm if the printer is connected."));
     } else {
@@ -284,10 +295,16 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
             //m_manage_panel->Show(fs->GetFileType() < PrinterFileSystem::F_MODEL);
             m_button_refresh->Enable(fs->GetStatus() == PrinterFileSystem::ListReady);
             m_button_management->Enable(fs->GetCount() > 0);
+            m_button_select_all->Enable(fs->GetCount() > 0);
             bool download_support = fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
             m_image_grid->ShowDownload(download_support);
             if (fs->GetCount() == 0)
-                SetSelecting(false);
+                SetSelecting(false, false);
+            int delete_count = e.GetInt();
+            if (delete_count > 0)
+            {
+               fs->ListAllFiles();
+            }
         });
         fs->Bind(EVT_SELECT_CHANGED, [this, wfs = boost::weak_ptr(fs)](auto &e) {
             e.Skip();
@@ -433,15 +450,21 @@ void MediaFilePanel::Rescale()
     m_image_grid->Rescale();
 }
 
-void MediaFilePanel::SetSelecting(bool selecting)
+void MediaFilePanel::SetSelecting(bool selecting, bool selectall)
 {
-    m_image_grid->SetSelecting(selecting);
+    if (selectall)
+        m_image_grid->SetAllSelecting(selecting);
+    else
+        m_image_grid->SetSelecting(selecting);
+
     m_button_management->SetLabel(selecting ? _L("Cancel") : _L("Select"));
     auto fs = m_image_grid->GetFileSystem();
     bool download_support = fs && fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
-    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
+
+    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support && !selectall);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
     m_manage_panel->GetSizer()->Show(m_button_refresh, !selecting);
+    m_manage_panel->GetSizer()->Show(m_button_select_all, !selecting);
     m_manage_panel->Layout();
 }
 
@@ -649,8 +672,45 @@ void MediaFilePanel::doAction(size_t index, int action)
                     auto             wfile = boost::filesystem::path(file.local_path).wstring();
                     SHELLEXECUTEINFO info{sizeof(info), 0, NULL, NULL, wfile.c_str(), L"", SW_HIDE};
                     ::ShellExecuteEx(&info);
-#else
+#elif __APPLE__
                     wxShell("open " + file.local_path);
+#else
+                    // Create non-const copies of the strings to avoid const_cast
+                    // wxExecute may modify the argv array, so we need non-const storage
+                    std::string xdg_open = "xdg-open";
+                    std::string local_path_copy = file.local_path;
+                    // Use .data() on non-const strings to get non-const char* pointers
+                    char *argv[] = { xdg_open.data(), local_path_copy.data(), nullptr };
+
+                    // Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
+                    // because they may mess up the environment expected by the file manager.
+                    // Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
+                    if (wxGetEnv("APPIMAGE", nullptr)) {
+                        // We're running from AppImage
+                        wxEnvVariableHashMap env_vars;
+                        wxGetEnvMap(&env_vars);
+
+                        env_vars.erase("APPIMAGE");
+                        env_vars.erase("APPDIR");
+                        env_vars.erase("LD_LIBRARY_PATH");
+                        env_vars.erase("LD_PRELOAD");
+                        env_vars.erase("UNION_PRELOAD");
+
+                        wxExecuteEnv exec_env;
+                        exec_env.env = std::move(env_vars);
+
+                        wxString owd;
+                        if (wxGetEnv("OWD", &owd)) {
+                            // This is the original work directory from which the AppImage image was run,
+                            // set it as CWD for the child process:
+                            exec_env.cwd = std::move(owd);
+                        }
+
+                        ::wxExecute(argv, wxEXEC_ASYNC, nullptr, &exec_env);
+                    } else {
+                        // Looks like we're NOT running from AppImage, we'll make no changes to the environment.
+                        ::wxExecute(argv, wxEXEC_ASYNC, nullptr, nullptr);
+                    }
 #endif
                 } else {
                     fs->DownloadCancel(index);

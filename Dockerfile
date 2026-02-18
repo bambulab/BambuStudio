@@ -1,4 +1,4 @@
-FROM docker.io/ubuntu:24.10
+FROM docker.io/ubuntu:24.04
 
 # Disable interactive package configuration
 RUN apt-get update && \
@@ -78,7 +78,7 @@ RUN if id "ubuntu" >/dev/null 2>&1; then userdel -r ubuntu; fi
 # If user was passed from build it will create a user same
 # as your workstation. Else it will use /root
 
-# Setting ARG at build time is convienient for testing purposes
+# Setting ARG at build time is convenient for testing purposes
 # otherwise the same commands will be executed at runtime
 
 ARG USER=root
@@ -106,7 +106,7 @@ RUN ./BuildLinux.sh -u
 USER $USER
 
 
-# These can run together, but we run them seperate for podman caching
+# These can run together, but we run them separate for podman caching
 # Build dependencies in ./deps
 RUN ./BuildLinux.sh -d
 

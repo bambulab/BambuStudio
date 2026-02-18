@@ -61,9 +61,13 @@
 			"support_extrusion_cali": false,
 			"support_user_preset": false,
 			"support_refresh_nozzle": true,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_print_check_firmware_for_tpu_left": true,
+			"support_user_first_setup_tpu_check": true,
+			"support_user_first_setup_tpu_check_url": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
 		},
 		"model_id": "O1D",
+		"subseries": [ "O1D-V2" ],
 		"support_wrapping_detection": true,
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto_multi_extruders",
 		"printer_modes": [ "fdm", "laser", "cut" ],

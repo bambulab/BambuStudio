@@ -426,7 +426,7 @@ public:
     virtual void            set_task(const TaskParams &params) {}
     // Perform the calculation. This is the only method that is to be called at a worker thread.
     virtual void            process(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false) = 0;
-    virtual int             export_cached_data(const std::string& dir_path, bool with_space=false) { return 0;}
+    virtual int             export_cached_data(const std::string& dir_path, int& obj_cnt_exported, bool with_space=false) { return 0;}
     virtual int            load_cached_data(const std::string& directory) { return 0;}
     // Clean up after process() finished, either with success, error or if canceled.
     // The adjustments on the Print / PrintObject data due to set_task() are to be reverted here.
@@ -509,6 +509,8 @@ public:
 
     const PlaceholderParser&   placeholder_parser() const { return m_placeholder_parser; }
     const DynamicPrintConfig&  full_print_config() const { return m_full_print_config; }
+
+    const DynamicPrintConfig& ori_full_print_config() const { return m_ori_full_print_config; }
 
     virtual std::string        output_filename(const std::string &filename_base = std::string()) const = 0;
     // If the filename_base is set, it is used as the input for the template processing. In that case the path is expected to be the directory (may be empty).

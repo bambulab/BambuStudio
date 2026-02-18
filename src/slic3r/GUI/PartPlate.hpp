@@ -6,6 +6,7 @@
 #include <array>
 #include <thread>
 #include <mutex>
+#include <memory>
 
 #include "libslic3r/ObjectID.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -64,6 +65,7 @@ class ModelObject;
 class ModelInstance;
 class Print;
 class SLAPrint;
+struct HelioPlateResult;
 
 namespace GUI {
 class Plater;
@@ -104,6 +106,7 @@ private:
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
     bool m_helio_apply_invalid {false};
+    std::unique_ptr<HelioPlateResult> m_helio_result;
     float m_slice_percent;
 
     Print *m_print; //Print reference, not own it, no need to serialize
@@ -134,7 +137,6 @@ private:
     GLModel        m_height_limit_bottom;
     GLModel        m_height_limit_top;
     GLModel        m_plate_name_edit_icon;
-
     float m_scale_factor{ 1.0f };
     GLUquadricObject* m_quadric;
     int m_hover_id;
@@ -175,6 +177,7 @@ private:
     void render_right_arrow(const float* render_color, bool use_lighting) const;
 
     void render_icon_texture(GLModel &buffer, GLTexture &texture);
+    void show_tooltip(const std::string tooltip);
     void render_plate_name_texture();
     void render_icons(bool bottom, bool only_body = false, int hover_id = -1,bool render_name_edit_icon = true);
     void render_plate_name_icon_and_texture(bool only_body = false, int hover_id = -1);
@@ -188,8 +191,8 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int PLATE_FILAMENT_MAP_ID = 6;
-    static const unsigned int GRABBER_COUNT = 8;
+    static const unsigned int GRABBER_COUNT         = 8;
+    static const unsigned int PLATE_FILAMENT_MAP_ID = GRABBER_COUNT - 2;
     static const unsigned int PLATE_NAME_ID = GRABBER_COUNT-1;
 
     static std::array<float, 4> SELECT_COLOR;
@@ -233,6 +236,7 @@ public:
 
     std::vector<int> get_real_filament_maps(const DynamicConfig& g_config, bool* use_global_param = nullptr)const;
     FilamentMapMode  get_real_filament_map_mode(const DynamicConfig& g_config,bool * use_global_param = nullptr) const;
+    std::vector<int> get_real_filament_volume_maps(const DynamicConfig &g_config, bool *use_global_param = nullptr) const;
 
     FilamentMapMode get_filament_map_mode() const;
     void set_filament_map_mode(const FilamentMapMode& mode);
@@ -241,8 +245,16 @@ public:
     std::vector<int> get_filament_maps() const;
     void set_filament_maps(const std::vector<int>& f_maps);
 
+    std::vector<int> get_filament_nozzle_maps() const;
+    void set_filament_nozzle_maps(const std::vector<int>& f_maps);
+
+    std::vector<int> get_filament_volume_maps() const;
+    void set_filament_volume_maps(const std::vector<int>& f_maps);
+
     void clear_filament_map();
     void clear_filament_map_mode();
+    void clear_filament_nozzle_map();
+    void clear_filament_volume_map();
 
     bool has_spiral_mode_config() const;
     bool get_spiral_vase_mode() const;
@@ -252,6 +264,7 @@ public:
     //static const double plate_x_gap = 0.2;
     ThumbnailData thumbnail_data;
     ThumbnailData no_light_thumbnail_data;
+    ThumbnailData obj_preview_origin_thumbnail_data;
     ThumbnailData obj_preview_thumbnail_data;
     static const int plate_thumbnail_width = 512;
     static const int plate_thumbnail_height = 512;
@@ -318,12 +331,17 @@ public:
     std::vector<int> get_extruders_without_support(bool conside_custom_gcode = false) const;
     // get used filaments from gcode result, 1 based idx
     std::vector<int> get_used_filaments();
+    int  get_logical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
     int  get_physical_extruder_by_filament_id(const DynamicConfig& g_config, int idx) const;
+    int  get_physical_extruder_by_logical_extruder(const DynamicConfig& g_config, int logical_extruder) const;
     bool check_filament_printable(const DynamicPrintConfig & config, wxString& error_message);
     bool check_tpu_printable_status(const DynamicPrintConfig & config, const std::vector<int> &tpu_filaments);
     bool check_mixture_of_pla_and_petg(const DynamicPrintConfig & config);
+    bool check_multi_filament_without_prime_tower(const DynamicPrintConfig &config);
     bool check_mixture_filament_compatible(const DynamicPrintConfig& config, std::string &error_msg);
     bool check_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
+    bool check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
+    bool check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg);
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
@@ -443,6 +461,12 @@ public:
     void update_helio_apply_result_invalid(bool invalid) {
         m_helio_apply_invalid = invalid;
     }
+
+    // Helio result per-plate storage
+    const HelioPlateResult* get_helio_result() const;
+    void set_helio_result(const HelioPlateResult& result);
+    void clear_helio_result();
+    bool has_helio_result() const;
 
     //is slice result valid or not
     bool is_slice_result_valid() const
@@ -755,7 +779,8 @@ public:
         depth = m_plate_depth;
         height = m_plate_height;
     }
-
+    // Pantheon: update plates after moving plate to the front
+    void update_plates();
     /*basic plate operations*/
     //create an empty plate and return its index
     int create_plate(bool adjust_position = true);

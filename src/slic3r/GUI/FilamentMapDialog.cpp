@@ -33,6 +33,13 @@ static std::vector<int> get_applied_map(DynamicConfig& proj_config, const Plater
     return plater_ref->get_global_filament_map();
 }
 
+static std::vector<int> get_applied_volume_map(DynamicConfig& proj_config, const Plater* plater_ref, const PartPlate* partplate_ref, const bool sync_plate)
+{
+    if (sync_plate)
+        return partplate_ref->get_real_filament_volume_maps(proj_config);
+    return plater_ref->get_global_filament_volume_map();
+}
+
 extern std::string& get_left_extruder_unprintable_text();
 extern std::string& get_right_extruder_unprintable_text();
 
@@ -50,7 +57,9 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     std::vector<std::string> filament_types = full_config.option<ConfigOptionStrings>("filament_type")->values;
     FilamentMapMode applied_mode = get_applied_map_mode(full_config, plater_ref,partplate_ref, sync_plate);
     std::vector<int> applied_maps = get_applied_map(full_config, plater_ref, partplate_ref, sync_plate);
+    std::vector<int> applied_volume_maps = get_applied_volume_map(full_config, plater_ref, partplate_ref, sync_plate);
     applied_maps.resize(filament_colors.size(), 1);
+    applied_volume_maps.resize(filament_colors.size(), 0);
 
     if (!force_pop_up && applied_mode != fmmManual)
         return true;
@@ -68,6 +77,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         filament_colors,
         filament_types,
         applied_maps,
+        applied_volume_maps,
         filament_lists,
         applied_mode,
         plater_ref->get_machine_sync_status(),
@@ -79,25 +89,32 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     if (ret == wxID_OK) {
         FilamentMapMode new_mode = map_dlg.get_mode();
         std::vector<int> new_maps = map_dlg.get_filament_maps();
+        std::vector<int> new_volume_maps = map_dlg.get_filament_volume_maps();
         if (sync_plate) {
             if (is_slice_all) {
                 auto plate_list = plater_ref->get_partplate_list().get_plate_list();
                 for (int i = 0; i < plate_list.size(); ++i) {
                     plate_list[i]->set_filament_map_mode(new_mode);
-                    if(new_mode == fmmManual)
+                    if (new_mode == fmmManual) {
                         plate_list[i]->set_filament_maps(new_maps);
+                        plate_list[i]->set_filament_volume_maps(new_volume_maps);
+                    }
                 }
             }
             else {
                 partplate_ref->set_filament_map_mode(new_mode);
-                if (new_mode == fmmManual)
+                if (new_mode == fmmManual) {
                     partplate_ref->set_filament_maps(new_maps);
+                    partplate_ref->set_filament_volume_maps(new_volume_maps);
+                }
             }
         }
         else {
             plater_ref->set_global_filament_map_mode(new_mode);
-            if (new_mode == fmmManual)
+            if (new_mode == fmmManual) {
                 plater_ref->set_global_filament_map(new_maps);
+                plater_ref->set_global_filament_volume_map(new_volume_maps);
+            }
         }
         plater_ref->update();
         // check whether able to slice, if not, return false
@@ -110,9 +127,12 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 }
 
 
-static const StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
-                                     std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
-                                     std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+StateColor btn_bg_green(
+    std::pair<wxColour, int>(wxColour(144, 144, 144), StateColor::Disabled),
+    std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+    std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+    std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal)
+);
 
 static const StateColor btn_bd_green(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
 
@@ -130,12 +150,17 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
                                      const std::vector<std::string> &filament_color,
                                      const std::vector<std::string> &filament_type,
                                      const std::vector<int>         &filament_map,
+                                     const std::vector<int>         &filament_volume_map,
                                      const std::vector<int>         &filaments,
                                      const FilamentMapMode           mode,
                                      bool                            machine_synced,
                                      bool                            show_default,
                                      bool                            with_checkbox)
-    : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE), m_filament_color(filament_color), m_filament_type(filament_type), m_filament_map(filament_map)
+    : wxDialog(parent, wxID_ANY, _L("Filament grouping"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
+    , m_filament_color(filament_color)
+    , m_filament_type(filament_type)
+    , m_filament_map(filament_map)
+    , m_filament_volume_map(filament_volume_map)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -177,7 +202,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
         mode == fmmAutoForMatch && !machine_synced ? fmmAutoForFlush :
         mode;
 
-    m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map);
+    m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map, filament_volume_map);
     m_auto_map_panel                  = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced);
     if (show_default)
         m_default_map_panel = new FilamentMapDefaultPanel(this);
@@ -221,7 +246,6 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
         m_cancel_btn->SetFont(Label::Body_12);
 
         m_ok_btn->SetBackgroundColor(btn_bg_green);
-        m_ok_btn->SetBorderColor(btn_bd_green);
         m_ok_btn->SetTextColor(btn_text_green);
         m_cancel_btn->SetBackgroundColor(btn_bg_white);
         m_cancel_btn->SetBorderColor(btn_bd_white);
@@ -240,6 +264,25 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     m_auto_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
     m_manual_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
     if (show_default) m_default_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
+
+    m_manual_map_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent& event) {
+        if (m_page_type != PageType::ptManual) {
+            if (!m_ok_btn->IsEnabled()) {
+                m_ok_btn->Enable();
+            }
+            return;
+        }
+        if (event.GetInt()) {
+            if (!m_ok_btn->IsEnabled()) {
+                m_ok_btn->Enable();
+            }
+        }
+        else {
+            if (m_ok_btn->IsEnabled()) {
+                m_ok_btn->Disable();
+            }
+        }
+        });
 
     SetSizer(main_sizer);
     Layout();
@@ -280,16 +323,8 @@ void FilamentMapDialog::on_checkbox(wxCommandEvent &event)
 void FilamentMapDialog::on_ok(wxCommandEvent &event)
 {
     if (m_page_type == PageType::ptManual) {
-        std::vector<int> left_filaments  = m_manual_map_panel->GetLeftFilaments();
-        std::vector<int> right_filaments = m_manual_map_panel->GetRightFilaments();
-
-        for (int i = 0; i < m_filament_map.size(); ++i) {
-            if (std::find(left_filaments.begin(), left_filaments.end(), i + 1) != left_filaments.end()) {
-                m_filament_map[i] = 1;
-            } else if (std::find(right_filaments.begin(), right_filaments.end(), i + 1) != right_filaments.end()) {
-                m_filament_map[i] = 2;
-            }
-        }
+        m_filament_map = m_manual_map_panel->GetFilamentMaps();
+        m_filament_volume_map = m_manual_map_panel->GetFilamentVolumeMaps();
     }
 
     EndModal(wxID_OK);
@@ -325,6 +360,9 @@ void FilamentMapDialog::update_panel_status(PageType page)
     if (page == PageType::ptAuto) {
         m_auto_btn->Select(true);
         m_auto_map_panel->Show();
+        if (!m_ok_btn->IsEnabled()) {
+            m_ok_btn->Enable();
+        }
     }
 
     Layout();

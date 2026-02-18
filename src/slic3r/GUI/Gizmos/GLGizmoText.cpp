@@ -1097,7 +1097,7 @@ void GLGizmoText::update_default_boldness()
     std::optional<float> &boldness = m_style_manager.get_font_prop().boldness;
     if (m_bold) {
         set_default_boldness(boldness);
-        m_custom_boldness = *boldness;
+        m_custom_boldness = boldness.value_or(0.f);
     } else {
         boldness = 0.0f;
         m_custom_boldness = 0.0f;
@@ -1210,11 +1210,11 @@ void GLGizmoText::draw_surround_type(int caption_width)
         return;
     }
     auto label_width = caption_width;
-    float cur_cap      = m_imgui->calc_text_size(_L("Surround projection by char")).x;
+    float cur_cap      = m_imgui->calc_text_size(_L("Surround projection by character")).x;
     auto  item_width  = cur_cap * 1.2 + ImGui::GetStyle().FramePadding.x * 18.0f;
     ImGui::AlignTextToFramePadding();
     size_t                   selection_idx = int(m_surface_type);
-    std::vector<std::string> modes         = {_u8L("Not surround") , _u8L("Surround surface"), _u8L("Surround") + "+" + _u8L("Horizonal")};
+    std::vector<std::string> modes         = {_u8L("Not surround") , _u8L("Surround surface"), _u8L("Surround") + "+" + _u8L("Horizontal")};
     if (m_rr.mesh_id < 0) {
         modes.erase(modes.begin() + 2);
         modes.erase(modes.begin() + 1);
@@ -1222,7 +1222,7 @@ void GLGizmoText::draw_surround_type(int caption_width)
         selection_idx  = int(m_surface_type);
     }
     else {
-        modes.push_back(_u8L("Surround projection by char"));
+        modes.push_back(_u8L("Surround projection by character"));
     }
     bool is_changed    = false;
 
@@ -1575,8 +1575,19 @@ void GLGizmoText::load_init_text(bool first_open_text)
     if (selection.is_single_volume_or_modifier() || selection.is_single_full_object()) {
         auto model_volume = get_selected_model_volume(m_parent);
         if (model_volume) {
-            TextInfo text_info = model_volume->get_text_info();
             if (model_volume->is_text()) {
+                {
+                    const auto &          ff        = m_style_manager.get_font_file_with_cache();
+                    FontProp &            font_prop = m_style_manager.get_font_prop();
+                    const FontFile::Info &font_info = get_font_info(*ff.font_file, font_prop);
+                    // min max value
+                    int   min_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.min);
+                    int   max_boldness = static_cast<int>(font_info.ascent * limits.boldness.gui.max);
+                    float min_skew = static_cast<float>(limits.skew.gui.min);
+                    float max_skew = static_cast<float>(limits.skew.gui.max);
+                    model_volume->check_boldness_skew_min_max(min_boldness, max_boldness, min_skew, max_skew);
+                }
+                TextInfo text_info = model_volume->get_text_info();
                 if (m_last_text_mv == model_volume && !m_is_serializing) {
                     return;
                 }
@@ -1877,6 +1888,9 @@ void GLGizmoText::on_render()
     const auto& projection_matrix = camera.get_projection_matrix();
     const auto& view_matrix = camera.get_view_matrix();
     // First check that the mouse pointer is on an object.
+    if (selection.get_instance_idx() < 0 || selection.get_instance_idx() >= mo->instances.size()) {
+        return;
+    }
     const ModelInstance *mi        = mo->instances[selection.get_instance_idx()];
     glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     glsafe(::glEnable(GL_DEPTH_TEST));
@@ -2313,8 +2327,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     if (!is_only_text_case()) {
         auto depth_x = caption_size + space_size * 2 + temp_input_width;
         ImGui::SameLine(depth_x);
-        float depth_cap = m_imgui->calc_text_size(_L("Embeded depth")).x;
-        std::string display_text  = _u8L("Embeded depth");
+        float depth_cap = m_imgui->calc_text_size(_L("Embedded depth")).x;
+        std::string display_text  = _u8L("Embedded depth");
         auto depth_input_x = depth_x + depth_cap + space_size * 2;
         ImFont *imgui_font    = m_style_manager.get_imgui_font();
         auto    valid_width   = full_width - depth_input_x;
@@ -2322,12 +2336,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
             valid_width = 80;
             depth_cap   = full_width - valid_width - depth_x - space_size * 2;
             depth_input_x = depth_x + depth_cap + space_size * 2;
-            display_text = ellipsize_text_imgui(_u8L("Embeded depth"), depth_cap);
+            display_text = ellipsize_text_imgui(_u8L("Embedded depth"), depth_cap);
         }
         ImGui::PushItemWidth(depth_cap);
         m_imgui->text(display_text);
         if (ImGui::IsItemHovered()) {
-            m_imgui->tooltip(_u8L("Embeded depth"), m_gui_cfg->max_tooltip_width);
+            m_imgui->tooltip(_u8L("Embedded depth"), m_gui_cfg->max_tooltip_width);
         }
         ImGui::SameLine(depth_input_x);
 
@@ -3428,9 +3442,8 @@ void GLGizmoText::load_from_text_info(const TextInfo &text_info)
         wxString font_name = wxString::FromUTF8(m_font_name.c_str());//wxString(m_font_name.c_str(), wxConvUTF8);
         select_facename(font_name,false);
     }
-    m_custom_boldness = *text_info.text_configuration.style.prop.boldness;
-    m_custom_skew = *text_info.text_configuration.style.prop.skew;
-
+    m_custom_boldness          = text_info.text_configuration.style.prop.boldness.value_or(0.f);
+    m_custom_skew              = text_info.text_configuration.style.prop.skew.value_or(0.f);
     if (is_text_changed) {
         process(true,std::nullopt,false);
     }
@@ -3900,6 +3913,13 @@ EmbossShape &TextDataBase::create_shape()
         text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled, ft_fn);
     } else {
         text2vshapes(shape, m_font_file, text_w, fp, shape.scale, was_canceled);
+    }
+    if (shape.shapes_with_ids.size() == 1 && shape.shapes_with_ids[0].expoly.empty()) {//empty deal
+        if (support_backup_fonts) {
+            text2vshapes(shape, m_font_file, L"?", fp, shape.scale, was_canceled, ft_fn);
+        } else {
+            text2vshapes(shape, m_font_file, L"?", fp, shape.scale, was_canceled);
+        }
     }
     return shape;
 }

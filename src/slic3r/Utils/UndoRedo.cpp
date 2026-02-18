@@ -976,9 +976,9 @@ void StackImpl::reduce_noisy_snapshots(const std::string& new_name)
 	auto it_last = m_snapshots.end();
 	-- it_last; -- it_last;
 	assert(it_last != m_snapshots.begin() && (it_last->snapshot_data.snapshot_type == SnapshotType::LeavingGizmoNoAction || it_last->snapshot_data.snapshot_type == SnapshotType::LeavingGizmoWithAction));
-	if (it_last->snapshot_data.snapshot_type == SnapshotType::LeavingGizmoWithAction) {
-		for (-- it_last; it_last->snapshot_data.snapshot_type != SnapshotType::EnteringGizmo; -- it_last) {
-            if (it_last > m_snapshots.begin() && it_last->snapshot_data.snapshot_type == SnapshotType::GizmoAction) {
+    if ( it_last->snapshot_data.snapshot_type == SnapshotType::LeavingGizmoWithAction) {
+        for (--it_last; it_last >= m_snapshots.begin() && it_last->snapshot_data.snapshot_type != SnapshotType::EnteringGizmo; --it_last) {
+            if (it_last->snapshot_data.snapshot_type == SnapshotType::GizmoAction) {
                 it_last->name = new_name;
                 auto it = it_last;
 				for (-- it; it->snapshot_data.snapshot_type == SnapshotType::GizmoAction; -- it) ;

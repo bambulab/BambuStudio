@@ -4,6 +4,8 @@
 #include "GLGizmoBase.hpp"
 #include "GLGizmosCommon.hpp"
 #include "libslic3r/Model.hpp"
+#include "slic3r/GUI/Jobs/JobNew.hpp"
+#include "slic3r/GUI/Jobs/BooleanOperationJob.hpp"
 #include "imgui/imgui.h"
 #include <functional>
 #include <set>
@@ -12,6 +14,7 @@
 #include <unordered_map>
 #include <array>
 #include <optional>
+#include <mutex>
 
 namespace Slic3r {
 class GLVolume; // forward declaration in the correct namespace
@@ -76,7 +79,7 @@ struct MeshBooleanConfig {
     // ========================== BOOLEAN OPERATIONS ==========================
     static constexpr const char* OP_UNION = "UNION";
     static constexpr const char* OP_INTERSECTION = "INTERSECTION";
-    static constexpr const char* OP_DIFFERENCE = "SUBSTRACTION";
+    static constexpr const char* OP_DIFFERENCE = "A_NOT_B";
 
     // ========================== UI COLORS ==========================
     static constexpr unsigned int COLOR_LIST_A = 0xFFFFCC75;        // List A title (light blue)
@@ -207,7 +210,46 @@ struct BooleanOperationResult {
     std::vector<ModelVolume*> volumes_to_delete;
 };
 
+// ========================== ASYNC JOB DATA ==========================
+// Note: EBooleanOperationState is defined in BooleanOperationJob.hpp
+
+struct BooleanJobData {
+    // Thread-safe volume data (deep copied)
+    struct VolumeData {
+        TriangleMesh mesh;           // Deep copied mesh data
+        Transform3d transformation;   // Transformation matrix
+        ObjectID volume_id;          // For locating original volume
+        ObjectID object_id;          // For locating object
+        int object_index;
+        std::string name;            // For debugging
+    };
+
+    std::vector<VolumeData> volumes_a;  // Group A data
+    std::vector<VolumeData> volumes_b;  // Group B data (for difference)
+
+    MeshBooleanOperation operation_mode;
+    BooleanOperationSettings settings;
+
+    // Output result
+    BooleanOperationResult result;
+
+    // State control
+    EBooleanOperationState state = EBooleanOperationState::NotStart;
+
+    // Callbacks (set by Job automatically)
+    std::function<bool()> cancel_cb;
+    std::function<void()> failed_cb;
+    std::function<void(float)> progress_cb;
+
+    // Progress tracking
+    int current_step = 0;
+    int total_steps = 0;
+};
+
 class BooleanOperationEngine {
+    // Allow GLGizmoMeshBoolean to access prepare_volumes for async operations
+    friend class GLGizmoMeshBoolean;
+
 public:
     BooleanOperationEngine();
 
@@ -237,18 +279,28 @@ public:
     };
 
 private:
-    // Volume processing helpers
+    // ========================== VOLUME PROCESSING HELPERS ==========================
     std::vector<VolumeInfo> prepare_volumes(const std::vector<unsigned int>& volume_indices, const Selection& selection) const;
     TriangleMesh get_transformed_mesh(const VolumeInfo& volume_info) const;
     TriangleMesh execute_boolean_operation(const TriangleMesh& mesh_a, const TriangleMesh& mesh_b, const std::string& operation_name) const;
 
-    // Core implementation methods
+    // ========================== SYNCHRONOUS IMPLEMENTATION ==========================
+    // Synchronous methods - only compiled when USE_ASYNC_BOOLEAN_MODE = 0
     BooleanOperationResult part_level_boolean(const std::vector<VolumeInfo>& volumes, const BooleanOperationSettings& settings, const std::string& operation, bool allow_single_volume = false) const;
     BooleanOperationResult part_level_sub(const std::vector<VolumeInfo>& volumes_a, const std::vector<VolumeInfo>& volumes_b, const BooleanOperationSettings& settings) const;
     std::optional<TriangleMesh> execute_boolean_on_meshes(
         const std::vector<VolumeInfo>& volumes,
         const std::string& operation) const;
-    // Model manipulation helpers
+
+    // ========================== ASYNC CORE LOGIC ==========================
+    // Core boolean logic with CGAL fallback - used by async version
+    std::optional<TriangleMesh> execute_boolean_on_meshes_async(
+        const std::vector<TriangleMesh>& meshes,
+        const std::string& operation,
+        std::function<bool()> cancel_cb = nullptr,
+        std::function<void(float)> progress_cb = nullptr) const;
+
+    // ========================== MODEL MANIPULATION HELPERS ==========================
     ModelVolume* create_result_volume(ModelObject* target_object, const TriangleMesh& result_mesh, ModelVolume* source_volume);
     void delete_volumes_from_model(const std::vector<ModelVolume*>& volumes_to_delete);
     void update_delete_list(BooleanOperationResult& result, const std::vector<VolumeInfo>& volumes, const BooleanOperationSettings& settings) const;
@@ -269,6 +321,7 @@ struct MeshBooleanWarnings {
     static const std::string MIN_OBJECTS_DIFFERENCE;
     static const std::string GROUPING;
     static const std::string OVERLAPING;
+    static const std::string PREPAREING;
 };
 
 // ========================== WARNING SYSTEM ==========================
@@ -346,30 +399,9 @@ protected:
     void on_save(cereal::BinaryOutputArchive &ar) const override;
 
 private:
-    struct SavedVolumeColorState {
-        std::array<float, 4> original_color;
-        bool original_force_native_color;
-        bool original_force_neutral_color;
-    };
-
-    // Helper to manage temporary volume color overrides during gizmo lifetime
-    struct ColorOverrideManager {
-        std::unordered_map<unsigned int, SavedVolumeColorState> saved; // key: global volume index
-        bool applied { false };
-
-        void apply_for_indices(const Selection &selection,
-                               const std::vector<unsigned int>& volume_indices,
-                               const std::array<float,4>& rgba);
-
-        void restore_non_selected_indices(const Selection &selection);
-        void clear() { saved.clear(); applied = false; }
-    };
-
-
     // ========================== CORE MODULES ==========================
     bool m_enable{ false };
     BooleanWarningManager m_warning_manager;
-    ColorOverrideManager m_color_overrides;
     VolumeListManager m_volume_manager;
     BooleanOperationEngine m_boolean_engine;
     mutable int m_last_plate_idx_for_visibility {-1};
@@ -381,6 +413,31 @@ private:
     bool is_on_same_plate(const Selection& selection) const;
     BooleanTargetMode update_cur_mode(const Selection& selection) const;
 
+    // ========================== ASYNC JOB METHODS ==========================
+    BooleanJobData::VolumeData prepare_volume_data(const BooleanOperationEngine::VolumeInfo& vol_info) const;
+    BooleanJobData prepare_job_data();
+    BooleanOperationResult perform_boolean_operation_async(BooleanJobData& data, JobNew::Ctl& ctl);
+    void apply_boolean_result_from_job(const BooleanJobData& job_data);
+
+    // Helper: Group volumes by object and union within each object (for Object mode)
+    std::vector<TriangleMesh> group_and_union_by_object(
+        const std::vector<BooleanJobData::VolumeData>& volumes,
+        std::function<bool()> cancel_cb);
+
+    // Helper: Prepare meshes for operation (group by object if in Object mode, otherwise extract directly)
+    std::vector<TriangleMesh> prepare_meshes_for_operation(
+        const std::vector<BooleanJobData::VolumeData>& volumes,
+        BooleanTargetMode target_mode,
+        std::function<bool()> cancel_cb);
+
+    // Helper: Accumulate boolean operations on a list of meshes (for Union/Intersection)
+    std::optional<TriangleMesh> accumulate_boolean_operations(
+        const std::vector<TriangleMesh>& meshes,
+        const std::string& operation,
+        BooleanJobData& data,
+        JobNew::Ctl& ctl,
+        BooleanOperationResult& result);
+
     // ========================== UI LAYER ==========================
     std::unique_ptr<MeshBooleanUI> m_ui;
     MeshBooleanOperation m_operation_mode = MeshBooleanOperation::Union;
@@ -388,6 +445,13 @@ private:
     bool m_keep_original_models = false;
     bool m_entity_only = true;
     size_t m_last_snapshot_time = 0;
+
+    // ========================== ASYNC JOB TRACKING ==========================
+    std::shared_ptr<BooleanJobData> m_current_job_data;  // Shared data with running job
+    bool m_async_job_running = false;
+    bool m_async_job_cancel_requested = false;
+    float m_async_boolean_operation_progress = 0.0f;  // Progress percentage (0-100)
+    mutable std::mutex m_async_mutex;  // Mutex for thread-safe progress updates
 
     // ================= VISUAL ELEMENTS ==========================
     // Helper methods to apply / restore color overrides for lists of volumes

@@ -38,11 +38,17 @@
 			"support_ai_monitoring": false,
 			"support_first_layer_inspect": false,
 			"support_chamber": true,
+			"support_chamber_temp_display": false,
 			"support_chamber_temp_edit": false,
 			"support_extrusion_cali": true,
 			"support_user_preset": false,
 			"bed_temperature_limit": 100,
 			"support_ams_ext_mix_print": true
+		},
+		"fan": {
+			"-1": {
+				"3": "Chamber"
+			}
 		},
 		"model_id": "C12",
 		"support_wrapping_detection": false,
@@ -54,13 +60,14 @@
 		"printer_thumbnail_image": "printer_thumbnail_p1s",
 		"printer_connect_help_image": "input_access_code_p1p",
 		"printer_use_ams_image": "ams_icon",
-		"printer_ext_image": ["ext_image_xp"],
+		"printer_ext_image": [ "ext_image_xp" ],
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
 		"printer_series": "series_p1p",
 		"has_cali_line": false,
 		"printer_is_enclosed": true,
-		"enable_set_nozzle_info": false
+		"enable_set_nozzle_info": false,
+		"support_disable_cali_flow_type": true
 	},
 	"01.02.99.10": {
 		"print": {

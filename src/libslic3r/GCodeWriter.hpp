@@ -56,8 +56,10 @@ public:
     std::string set_chamber_temperature(int temperature, bool wait = false);
     void set_acceleration(unsigned int acceleration);
     void set_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
+    void set_travel_short_acceleration(const std::vector<unsigned int>& travel_short_accelerations);
     void reset_last_acceleration();
     std::vector<unsigned int> &get_travel_acceleration() { return m_travel_accelerations; }
+    std::vector<unsigned int> &get_travel_short_acceleration() { return m_travel_short_accelerations; }
     void set_first_layer_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
     void set_first_layer(bool is_first_layer);
     std::string set_pressure_advance(double pa) const;
@@ -75,7 +77,9 @@ public:
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string());
     double      get_current_speed() { return m_current_speed; };
     std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
+    std::string travel_to_xy(const Vec2d &point, const std::string &comment, bool use_short_travel_acceleration);
     std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
+    std::string travel_to_xyz(const Vec3d &point, const std::string &comment, bool use_short_travel_acceleration);
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
     std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
@@ -84,7 +88,8 @@ public:
     std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string(), bool force_no_extrusion = false);
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
-    std::string unretract();
+    std::string unretract(float extra_retract = 0.f);
+    double get_extruder_retracted_length(const int filament_id);
     // do lift instantly
     std::string eager_lift(const LiftType type,bool tool_change = false);
     // record a lift request, do realy lift in next travel
@@ -125,6 +130,7 @@ public:
 private:
     std::string set_extrude_acceleration();
     std::string set_travel_acceleration();
+    std::string set_travel_acceleration(bool use_short_travel_acceleration);
     std::string set_acceleration_impl(unsigned int acceleration);
 
 private:
@@ -165,6 +171,7 @@ private:
     bool m_is_first_layer{false};
     unsigned int m_acceleration{0};
     std::vector<unsigned int> m_travel_accelerations;  // multi extruder, extruder size
+    std::vector<unsigned int> m_travel_short_accelerations; // For short travels near external perimeters (VFA reduction)
     std::vector<unsigned int> m_first_layer_travel_accelerations; // multi extruder, extruder size
 
     std::string _travel_to_z(double z, const std::string &comment,bool tool_change=false);

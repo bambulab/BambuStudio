@@ -154,6 +154,15 @@ void GLGizmoMove3D::on_set_state() {
         m_last_selected_obejct_idx = -1;
         m_last_selected_volume_idx = -1;
         change_cs_by_selection();
+        Selection &selection = m_parent.get_selection();
+        size_t selection_count = selection.get_volume_idxs().size();
+        if (m_object_manipulation && m_object_manipulation->m_coordinates_type == ECoordinatesType::World) {
+            if (selection_count == 1) {
+                m_object_manipulation->m_align_choice_type = GizmoObjectManipulation::AlignChoiceType::AlignParent;
+            } else {
+                m_object_manipulation->m_align_choice_type = GizmoObjectManipulation::AlignChoiceType::AlignPartOrObject;
+            }
+       }
     }
     GLGizmoBase::on_set_state();
 }
@@ -189,9 +198,6 @@ void GLGizmoMove3D::on_render()
 {
     Selection& selection = m_parent.get_selection();
     if (selection.is_empty()) { return; }
-    glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
-    glsafe(::glEnable(GL_DEPTH_TEST));
-
     const auto &[box, box_trafo]    = selection.get_bounding_box_in_current_reference_system();
     m_bounding_box                  = box;
     m_center                        = box_trafo.translation();
@@ -203,6 +209,169 @@ void GLGizmoMove3D::on_render()
     const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
     if (!p_ogl_manager) {
         return;
+    }
+    glsafe(::glEnable(GL_DEPTH_TEST));
+    bool has_clear_depth_buffer = false;
+    if (m_object_manipulation) {
+        m_object_manipulation->set_dark_mode(m_is_dark_mode);
+        if (m_object_manipulation->m_align_type != GLGizmoAlignment::AlignType::NONE) {
+            if (!m_align_plane.is_initialized()) {
+                indexed_triangle_set its = its_make_xoy_center_rect(1.f, 1.f); // 1.f
+                m_align_plane.init_from(its);
+            }
+            Geometry::Transformation cur_tran; // update m_align_plane pos and tran
+            float                    scale             = 1.0f;
+            Vec3d                    box_size; // get parent box
+            BoundingBoxf3            cur_box;
+            Transform3d              cur_matrix{Transform3d::Identity()};
+            if (m_object_manipulation->m_align_to_parent_node) {
+                if (selection.is_single_full_object() || selection.is_multiple_full_object()) {
+                    auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+                    cur_box         = curr_plate->get_plate_box();
+                    auto temp_world_box = m_bounding_box.transformed(m_orient_matrix);
+                    cur_box.max[2]      = temp_world_box.max[2];
+                    // Adjust the bounding box by reducing max by 0.1 and increasing min by 0.1
+                    cur_box.min += Vec3d(0.1f, 0.1f, 0.1f);
+                    cur_box.max -= Vec3d(0.1f, 0.1f, 0.1f);
+                } else {
+                    ModelObject *mo = get_selected_model_object(m_parent);
+                    if (mo) {
+                        cur_box = mo->bounding_box();
+                    } else {
+                        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " error:get ModelObject box fail";
+                    }
+                }
+                m_object_manipulation->get_alignment_helper()->set_parent_box(cur_box);
+            } else {
+                cur_box    = m_bounding_box;
+                cur_matrix = m_orient_matrix;
+            }
+            box_size = cur_box.size();
+            switch (m_object_manipulation->m_align_type) {
+            case GLGizmoAlignment::AlignType::CENTER_X: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[2] * scale, box_size[1] * scale, 1));
+                auto offset = cur_matrix * cur_box.center();
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(0, PI / 2.f, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::DISTRIBUTE_X:
+            case GLGizmoAlignment::AlignType::X_MIN: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[2] * scale, box_size[1] * scale, 1));
+                auto center = cur_box.center();
+                center[0]   = cur_box.min[0];
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(0, PI / 2.f, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::X_MAX: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[2] * scale, box_size[1] * scale, 1));
+                auto center = cur_box.center();
+                center[0]   = cur_box.max[0];
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(0, PI / 2.f, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::CENTER_Y: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[2] * scale, 1));
+                auto center = cur_box.center();
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(PI / 2.f, 0, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::DISTRIBUTE_Y:
+            case GLGizmoAlignment::AlignType::Y_MIN: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[2] * scale, 1));
+                auto center = cur_box.center();
+                center[1]   = cur_box.min[1];
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(PI / 2.f, 0, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::Y_MAX: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[2] * scale, 1));
+                auto center = cur_box.center();
+                center[1]   = cur_box.max[1];
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                cur_tran.set_rotation(Vec3d(PI / 2.f, 0, 0));
+                break;
+            }
+            case GLGizmoAlignment::AlignType::CENTER_Z: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[1] * scale, 1));
+                auto center = cur_box.center();
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                break;
+            }
+            case GLGizmoAlignment::AlignType::DISTRIBUTE_Z:
+            case GLGizmoAlignment::AlignType::Z_MIN: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[1] * scale, 1));
+                auto center = cur_box.center();
+                center[2]   = cur_box.min[2];
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                break;
+            }
+            case GLGizmoAlignment::AlignType::Z_MAX: {
+                cur_tran.set_scaling_factor(Vec3d(box_size[0] * scale, box_size[1] * scale, 1));
+                auto center = cur_box.center();
+                center[2]   = cur_box.max[2];
+                auto offset = cur_matrix * center;
+                cur_tran.set_offset(offset);
+                break;
+            }
+            default: break;
+            }
+            // render
+            render_selected_bounding_boxes(cur_box.transformed(cur_matrix));
+
+            has_clear_depth_buffer = true;
+            glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
+            glsafe(::glDisable(GL_CULL_FACE));
+            glsafe(::glEnable(GL_BLEND));
+            glsafe(::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+            ColorRGBA cp_clr = {1.0f, 1.0f, 1.0f, 0.5f};
+
+            const Camera &camera            = wxGetApp().plater()->get_camera();
+            const auto &  view_matrix       = camera.get_view_matrix();
+            const auto &  projection_matrix = camera.get_projection_matrix();
+            auto          volume_size       = selection.get_volume_idxs().size() > 6 ? 6 : selection.get_volume_idxs().size();//limit max volume size,avoid rendering  render too much
+            if (GLGizmoAlignment::AlignType::DISTRIBUTE_X == m_object_manipulation->m_align_type) {
+                float step  = m_bounding_box.size()[0] / (volume_size + 1);
+                auto  start = cur_tran.get_offset();
+                for (int i = 0; i < volume_size; i++) {
+                    cur_tran.set_offset(start + Vec3d((i + 1) * step, 0.f, 0.f));
+                    render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+                }
+            } else if (GLGizmoAlignment::AlignType::DISTRIBUTE_Y == m_object_manipulation->m_align_type) {
+                float step  = m_bounding_box.size()[1] / (volume_size + 1);
+                auto  start = cur_tran.get_offset();
+                for (int i = 0; i < volume_size; i++) {
+                    cur_tran.set_offset(start + Vec3d(0.f, (i + 1) * step, 0.f));
+                    render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+                }
+            } else if (GLGizmoAlignment::AlignType::DISTRIBUTE_Z == m_object_manipulation->m_align_type) {
+                float step  = m_bounding_box.size()[2] / (volume_size + 1);
+                auto  start = cur_tran.get_offset();
+                for (int i = 0; i < volume_size; i++) {
+                    cur_tran.set_offset(start + Vec3d(0.f, 0.f, (i + 1) * step));
+                    render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+                }
+            } else {
+                render_glmodel(m_align_plane, cp_clr.get_data(), view_matrix * cur_tran.get_matrix(), projection_matrix);
+            }
+            glsafe(::glEnable(GL_CULL_FACE));
+            glsafe(::glDisable(GL_BLEND));
+        }
+    }
+    if (!has_clear_depth_buffer) {
+        glsafe(::glClear(GL_DEPTH_BUFFER_BIT));
     }
 
     float space_size = 20.f * INV_ZOOM * GLGizmoBase::Grabber::GrabberSizeFactor;
@@ -412,19 +581,22 @@ void GLGizmoMove3D::change_cs_by_selection() {
     }
     m_last_selected_obejct_idx = obejct_idx;
     m_last_selected_volume_idx = volume_idx;
-    if (m_parent.get_selection().is_multiple_full_object()) {
-        m_object_manipulation->set_use_object_cs(false);
-    }
-    else if (model_volume) {
-         m_object_manipulation->set_use_object_cs(true);
-    } else {
-        m_object_manipulation->set_use_object_cs(false);
-    }
+    m_object_manipulation->set_use_object_cs(false);
     if (m_object_manipulation->get_use_object_cs()) {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::Instance);
     } else {
         m_object_manipulation->set_coordinates_type(ECoordinatesType::World);
     }
+}
+
+void GLGizmoMove3D::render_selected_bounding_boxes(const BoundingBoxf3 &box)
+{
+    const float     CORNER_BOX_LINE_SCALE = 1.0f;
+    const std::array<float, 4> hover_rgba   = {66.f / 255.f, 174.f / 255.f, 0, 1}; // abgr_u32_to_rgba(MeshBooleanConfig::COLOR_HOVER_BORDER);
+    float            border_color_rgb[3] = {hover_rgba[0], hover_rgba[1], hover_rgba[2]};
+
+    Selection &selection = m_parent.get_selection();
+    selection.render_bounding_box(box, border_color_rgb, CORNER_BOX_LINE_SCALE);
 }
 
 } // namespace GUI

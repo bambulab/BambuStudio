@@ -1221,7 +1221,7 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
         }
     }
 
-    if (obj && !obj->get_lan_mode_connection_state()) {
+    if (obj) {
         obj->command_get_version();
         obj->command_request_push_all();
         if (!dev->get_selected_machine()) {
@@ -1288,10 +1288,6 @@ void SendToPrinterDialog::update_show_status()
     }
     else if (obj_->is_in_upgrading()) {
         show_status(PrintDialogStatus::PrintStatusInUpgrading);
-        return;
-    }
-    else if (obj_->is_system_printing()) {
-        show_status(PrintDialogStatus::PrintStatusInSystemPrinting);
         return;
     }
 
@@ -1926,7 +1922,11 @@ void SendToPrinterDialog::CreateMediaAbilityJob()
              }
          });
      });
-     m_filetransfer_mediability_job->start_on(*m_filetransfer_tunnel);
+     if (m_filetransfer_tunnel) {
+        m_filetransfer_mediability_job->start_on(*m_filetransfer_tunnel);
+     } else {
+        BOOST_LOG_TRIVIAL(info) << "CreateMediaAbilityJob:: file transfer tunnel is null";
+     }
 }
 
 void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std::string &name)
@@ -1966,7 +1966,11 @@ void SendToPrinterDialog::CreateUploadFileJob(const std::string &path, const std
             }
         });
     });
-    m_filetransfer_uploadfile_job->start_on(*m_filetransfer_tunnel);
+    if (m_filetransfer_tunnel) {
+        m_filetransfer_uploadfile_job->start_on(*m_filetransfer_tunnel);
+    } else {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": file transfer tunnel is null";
+    }
 }
 
 void SendToPrinterDialog::UploadFileProgressCallback(int progress)
@@ -2012,7 +2016,8 @@ void SendToPrinterDialog::UploadFileRessultCallback(int res, int resp_ec, std::s
             if (ParseErrorCode(resp_ec) != "")
                 update_print_status_msg(ParseErrorCode(resp_ec), false, true);
             else
-                update_print_status_msg("Sending failed, please try again!", false, true);
+                update_print_status_msg(_L("Sending failed, please try again!"), false, true);
+
             m_filetransfer_uploadfile_job.reset();
             m_filetransfer_uploadfile_job = nullptr;
         }

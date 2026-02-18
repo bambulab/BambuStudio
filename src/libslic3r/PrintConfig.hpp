@@ -56,7 +56,7 @@ enum AuthorizationType {
 enum InfillPattern : int {
     ipConcentric, ipRectilinear, ipGrid, ipLine, ipCubic, ipTriangles, ipStars, ipGyroid, ipHoneycomb, ipAdaptiveCubic, ipMonotonic, ipMonotonicLine, ipAlignedRectilinear, ip3DHoneycomb,
     ipHilbertCurve, ipArchimedeanChords, ipOctagramSpiral, ipSupportCubic, ipSupportBase, ipConcentricInternal,
-    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric, ipLockedZag,
+    ipLightning, ipCrossHatch, ipZigZag, ipCrossZag,ipFloatingConcentric, ipLockedZag, ip2DLattice,
     ipCount,
 };
 
@@ -237,6 +237,13 @@ enum OverhangThresholdParticipatingCooling {
     Overhang_threshold_participating_cooling_bridge
 };
 
+// Cooling slowdown logic - determines how printer slows down for layer cooling
+// Ported from PrusaSlicer 2.9.3 for VFA reduction
+enum CoolingSlowdownLogicType {
+    cslUniformCooling = 0,      // Default: slow down all features equally
+    cslConsistentSurface = 1,   // Prioritize slowing infill/internal perimeters first
+};
+
 // BBS
 enum BedType {
     btDefault = 0,
@@ -266,6 +273,11 @@ enum FanDirection {
     fdLeft,
     fdRight,
     fdBoth
+};
+
+enum PrimeVolumeMode {
+    pvmDefault = 0,
+    pvmSaving
 };
 
 static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
@@ -314,20 +326,33 @@ enum ExtruderType {
 enum NozzleVolumeType {
     nvtStandard = 0,
     nvtHighFlow,
-    nvtMaxNozzleVolumeType = nvtHighFlow
+    nvtHybrid,
+    nvtTPUHighFlow,
+    nvtMaxNozzleVolumeType = nvtTPUHighFlow
 };
 
 enum FilamentMapMode {
     fmmAutoForFlush,
     fmmAutoForMatch,
     fmmManual,
+    fmmNozzleManual,
     fmmDefault
 };
 
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
-std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 
+static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
+    std::set<NozzleVolumeType> type;
+    for (int i = 0; i <= nvtMaxNozzleVolumeType; ++i) {
+        auto t = static_cast<NozzleVolumeType>(i);
+        if (t == nvtHybrid) continue;
+        type.insert(t);
+    }
+    return type;
+}
+
+std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -401,6 +426,9 @@ extern const std::vector<std::string> filament_extruder_override_keys;
 // for parse extruder_ams_count
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
+extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
+extern std::vector<std::map<NozzleVolumeType, int>> get_extruder_nozzle_stats(const std::vector<std::string> & strs);
+extern std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType, int>> &extruder_nozzle_stats);
 
 #define CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NAME) \
     template<> const t_config_enum_names& ConfigOptionEnum<NAME>::get_enum_names(); \
@@ -502,7 +530,7 @@ public:
     // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
     const ConfigDef*    def() const override { return &print_config_def; }
 
-    void                normalize_fdm(int used_filaments = 0);
+    void                normalize_fdm();
     void                normalize_fdm_1();
     //return the changed param set
     t_config_option_keys normalize_fdm_2(int num_objects, int used_filaments = 0);
@@ -530,9 +558,11 @@ public:
     //BBS
     bool is_using_different_extruders();
     bool support_different_extruders(int& extruder_count);
+    int get_extruder_nozzle_volume_count(int extruder_count, std::vector<std::vector<NozzleVolumeType>>& nozzle_volume_types) const;
     int get_index_for_extruder(int extruder_or_filament_id, std::string id_name, ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type, std::string variant_name, unsigned int stride = 1) const;
-    std::vector<int> update_values_to_printer_extruders(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0);
-    void update_values_to_printer_extruders_for_multiple_filaments(DynamicPrintConfig& printer_config, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
+    std::vector<int> update_values_to_printer_extruders(DynamicPrintConfig& printer_config, int extruder_count, int extruder_nozzle_volume_count, std::vector<std::vector<NozzleVolumeType>>& nv_types,
+        std::set<std::string>& key_set, std::string id_name, std::string variant_name, unsigned int stride = 1, unsigned int extruder_id = 0, NozzleVolumeType filament_nvt = nvtStandard);
+    void update_values_to_printer_extruders_for_multiple_filaments(DynamicPrintConfig& printer_config, int extruder_count, int extruder_nozzle_volume_count, std::set<std::string>& key_set, std::string id_name, std::string variant_name);
 
     void update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys, std::string extruder_id_name, std::string extruder_variant_name,
         std::set<std::string>& key_set1, std::set<std::string>& key_set2);
@@ -556,11 +586,14 @@ extern std::set<std::string> print_options_with_variant;
 extern std::set<std::string> filament_options_with_variant;
 extern std::set<std::string> printer_options_with_variant_1;
 extern std::set<std::string> printer_options_with_variant_2;
+extern std::set<std::string> multi_variant_text_ctrl_options;
 extern std::set<std::string> empty_options;
+
+extern std::set<std::string> filament_dev_options;
 
 extern void update_static_print_config_from_dynamic(ConfigBase& config, const DynamicPrintConfig& dest_config, std::vector<int> variant_index, std::set<std::string>& key_set1, int stride = 1);
 extern void compute_filament_override_value(const std::string& opt_key, const ConfigOption *opt_old_machine, const ConfigOption *opt_new_machine, const ConfigOption *opt_new_filament, const DynamicPrintConfig& new_full_config,
-    t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_maps);
+    t_config_option_keys& diff_keys, DynamicPrintConfig& filament_overrides, std::vector<int>& f_map_indices);
 
 void handle_legacy_sla(DynamicPrintConfig &config);
 
@@ -830,6 +863,14 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                 support_interface_bottom_layers))
     // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
     ((ConfigOptionFloat,               support_interface_spacing))
+    // ironing support related configs
+    ((ConfigOptionBool, enable_support_ironing))
+    ((ConfigOptionEnum<InfillPattern>, support_ironing_pattern))
+    ((ConfigOptionPercent, support_ironing_flow))
+    ((ConfigOptionFloat, support_ironing_spacing))
+    ((ConfigOptionFloat, support_ironing_inset))
+    ((ConfigOptionFloat, support_ironing_direction))
+    ((ConfigOptionFloat, support_ironing_speed))
     ((ConfigOptionFloatsNullable,      support_interface_speed))
     ((ConfigOptionEnum<SupportMaterialPattern>, support_base_pattern))
     ((ConfigOptionEnum<SupportMaterialInterfacePattern>, support_interface_pattern))
@@ -908,16 +949,21 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, bottom_surface_pattern))
+    ((ConfigOptionPercent, top_surface_density))
+    ((ConfigOptionPercent, bottom_surface_density))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))
     ((ConfigOptionFloat, outer_wall_line_width))
     ((ConfigOptionFloatsNullable, outer_wall_speed))
     ((ConfigOptionFloat, infill_direction))
     ((ConfigOptionBool, symmetric_infill_y_axis))
     ((ConfigOptionFloat, infill_shift_step))
+    ((ConfigOptionFloat, sparse_infill_lattice_angle_1))
+    ((ConfigOptionFloat, sparse_infill_lattice_angle_2))
     ((ConfigOptionFloat, infill_rotate_step))
     ((ConfigOptionPercent, skeleton_infill_density))
     ((ConfigOptionPercent, skin_infill_density))
     ((ConfigOptionPercent, sparse_infill_density))
+    ((ConfigOptionInt, fill_multiline))
     ((ConfigOptionFloat, infill_lock_depth))
     ((ConfigOptionFloat, skin_infill_depth))
     ((ConfigOptionEnum<InfillPattern>, sparse_infill_pattern))
@@ -967,6 +1013,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercentsNullable, vertical_shell_speed))
     ((ConfigOptionInt, top_color_penetration_layers))
     ((ConfigOptionInt, bottom_color_penetration_layers))
+    ((ConfigOptionBool, infill_instead_top_bottom_surfaces))
     ((ConfigOptionEnum<WallSequence>, wall_sequence))
     //BBS
     ((ConfigOptionBoolsNullable, enable_overhang_speed))
@@ -984,7 +1031,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor))
     ((ConfigOptionFloatOrPercent, sparse_infill_anchor_max))
     //OrcaSlicer
-    ((ConfigOptionFloat, top_solid_infill_flow_ratio))
+    ((ConfigOptionFloatsNullable, top_solid_infill_flow_ratio))
     ((ConfigOptionFloat, initial_layer_flow_ratio))
     ((ConfigOptionFloat, filter_out_gap_fill))
     ((ConfigOptionBool, precise_outer_wall))
@@ -1000,6 +1047,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,                seam_slope_min_length))
     ((ConfigOptionInt,                  seam_slope_steps))
     ((ConfigOptionBool,                 seam_slope_inner_walls))
+    ((ConfigOptionBool,                 embedding_wall_into_infill))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1063,6 +1111,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsOrPercents,    filament_scarf_gap))
     ((ConfigOptionFloats,              filament_scarf_length))
     ((ConfigOptionFloats,              filament_change_length))
+    ((ConfigOptionFloats,              filament_change_length_nc))
     ((ConfigOptionFloats,              filament_cost))
     ((ConfigOptionFloats,              impact_strength_z))
     ((ConfigOptionString,              filament_notes))
@@ -1071,17 +1120,26 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,      filament_ramming_travel_time))  //BBS
     ((ConfigOptionIntsNullable,        filament_pre_cooling_temperature))// BBS
     ((ConfigOptionFloatsNullable,      filament_max_volumetric_speed))
-    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed))
+    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed))//extruder change
+    ((ConfigOptionFloatsNullable,      filament_ramming_travel_time_nc))//nc:nozzle change
+    ((ConfigOptionIntsNullable,        filament_pre_cooling_temperature_nc))
+    ((ConfigOptionFloatsNullable,      filament_max_volumetric_speed_nc))
+    ((ConfigOptionFloatsNullable,      filament_ramming_volumetric_speed_nc))
     ((ConfigOptionFloat,               prime_tower_lift_speed))
     ((ConfigOptionFloat,               prime_tower_lift_height))
     ((ConfigOptionInts,                required_nozzle_HRC))
     ((ConfigOptionEnum<FilamentMapMode>, filament_map_mode))
     ((ConfigOptionInts,                filament_map))
+    ((ConfigOptionInts,                filament_volume_map))
+    ((ConfigOptionInts,                filament_nozzle_map))
+    ((ConfigOptionInts,                filament_map_2)) //used for multi nozzle, map filament to the index identified by extruder+nozzle_volume_type
     //((ConfigOptionInts,                filament_extruder_id))
     ((ConfigOptionStrings,             filament_extruder_variant))
     ((ConfigOptionFloat,               machine_load_filament_time))
     ((ConfigOptionFloat,               machine_unload_filament_time))
     ((ConfigOptionFloat,               machine_switch_extruder_time))
+    ((ConfigOptionFloat,               machine_hotend_change_time))
+    ((ConfigOptionBool,                group_algo_with_time))
     ((ConfigOptionFloat,               machine_prepare_compensation_time))
     ((ConfigOptionBool,                enable_pre_heating))
     ((ConfigOptionBool,                support_object_skip_flush))
@@ -1121,6 +1179,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,      z_hop))
     // BBS
     ((ConfigOptionEnumsGenericNullable,z_hop_types))
+    ((ConfigOptionFloatsNullable,      filament_retract_length_nc))
     ((ConfigOptionFloatsNullable,      retract_restart_extra))
     ((ConfigOptionFloatsNullable,      retract_restart_extra_toolchange))
     ((ConfigOptionFloatsNullable,      retraction_speed))
@@ -1146,16 +1205,38 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                apply_top_surface_compensation))
     ((ConfigOptionBool,                support_air_filtration))
+    ((ConfigOptionBool,                support_cooling_filter))
+    ((ConfigOptionBool,                cooling_filter_enabled))
+    ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
     ((ConfigOptionEnumsGeneric,        nozzle_volume_type))
     ((ConfigOptionStrings,             extruder_ams_count))
+    ((ConfigOptionStrings,             extruder_nozzle_stats))
+    ((ConfigOptionEnum<PrimeVolumeMode>,prime_volume_mode))
     ((ConfigOptionInts,                printer_extruder_id))
     ((ConfigOptionInt,                 master_extruder_id))
     ((ConfigOptionStrings,             printer_extruder_variant))
     //Orca
     ((ConfigOptionBool,                has_scarf_joint_seam))
+    ((ConfigOptionBoolsNullable,       override_process_overhang_speed))
+    ((ConfigOptionBoolsNullable,       filament_enable_overhang_speed))
+    ((ConfigOptionFloatsNullable,      filament_bridge_speed))
+    ((ConfigOptionFloatsNullable,      filament_overhang_1_4_speed))
+    ((ConfigOptionFloatsNullable,      filament_overhang_2_4_speed))
+    ((ConfigOptionFloatsNullable,      filament_overhang_3_4_speed))
+    ((ConfigOptionFloatsNullable,      filament_overhang_4_4_speed))
+    ((ConfigOptionFloatsNullable,      filament_overhang_totally_speed))
+    //ams chamber
+    ((ConfigOptionStrings,  filament_dev_ams_drying_ams_limitations))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_temperature))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_time))
+    ((ConfigOptionFloats,   filament_dev_ams_drying_heat_distortion_temperature))
+    ((ConfigOptionFloats,   filament_dev_chamber_drying_bed_temperature))
+    ((ConfigOptionFloats,   filament_dev_chamber_drying_time))
+    ((ConfigOptionFloats,   filament_dev_drying_softening_temperature))
+    ((ConfigOptionFloats,   filament_dev_drying_cooling_temperature))
 )
 
 // This object is mapped to Perl as Slic3r::Config::Print.
@@ -1199,8 +1280,11 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInt,                other_layers_print_sequence_nums))
     ((ConfigOptionBools,              slow_down_for_layer_cooling))
     ((ConfigOptionBools,              no_slow_down_for_cooling_on_outwalls))
+    ((ConfigOptionEnumsGeneric,       cooling_slowdown_logic))
+    ((ConfigOptionFloats,             cooling_perimeter_transition_distance))
     ((ConfigOptionFloatsNullable,     default_acceleration))
     ((ConfigOptionFloatsNullable,     travel_acceleration))
+    ((ConfigOptionFloatsNullable,     travel_short_distance_acceleration))
     ((ConfigOptionFloatsNullable,     initial_layer_travel_acceleration))
     ((ConfigOptionFloatsNullable,     inner_wall_acceleration))
     ((ConfigOptionFloatsOrPercentsNullable,   sparse_infill_acceleration))
@@ -1321,7 +1405,15 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             counter_limit_max))
     ((ConfigOptionFloats,             hole_limit_min))
     ((ConfigOptionFloats,             hole_limit_max))
-    ((ConfigOptionFloats,             filament_prime_volume)))
+    ((ConfigOptionFloats,             filament_prime_volume))
+    ((ConfigOptionFloats,             filament_prime_volume_nc))
+    ((ConfigOptionFloatsNullable,     filament_cooling_before_tower))
+    ((ConfigOptionFloats,             filament_tower_interface_pre_extrusion_dist))
+    ((ConfigOptionFloats,             filament_tower_interface_pre_extrusion_length))
+    ((ConfigOptionFloats,             filament_tower_ironing_area))
+    ((ConfigOptionFloats,             filament_tower_interface_purge_volume))
+    ((ConfigOptionInts,               filament_tower_interface_print_temp))
+    ((ConfigOptionBool,               enable_tower_interface_features)))
 // This object is mapped to Perl as Slic3r::Config::Full.
 PRINT_CONFIG_CLASS_DERIVED_DEFINE0(
     FullPrintConfig,
@@ -1702,6 +1794,9 @@ public:
     bool                timestamp_matches(const ModelConfig &rhs) const throw() { return m_timestamp == rhs.m_timestamp; }
     // Not thread safe! Should not be called from other than the main thread!
     void                touch() { m_timestamp = ++ s_last_timestamp; }
+    bool operator==(const ModelConfig &other) const {
+        return m_data == other.m_data;
+    }
 
 private:
     friend class cereal::access;
@@ -1741,6 +1836,7 @@ static void set_flush_volumes_matrix(std::vector<T> &out_matrix, const std::vect
 }
 
 size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id);
+size_t get_config_idx_for_filament(const GCodeConfig& config, unsigned int filament_id);
 
 } // namespace Slic3r
 

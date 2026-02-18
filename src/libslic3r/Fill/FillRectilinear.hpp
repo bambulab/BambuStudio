@@ -185,6 +185,18 @@ public:
     };
 };
 
+class Fill2DLattice : public FillRectilinear
+{
+public:
+    Fill *clone() const override { return new Fill2DLattice(*this); }
+    ~Fill2DLattice() override = default;
+    Polylines fill_surface(const Surface *surface, const FillParams &params) override;
+
+protected:
+    // The grid fill will keep the angle constant between the layers, see the implementation of Slic3r::Fill.
+    float _layer_angle(size_t idx) const override { return 0.f; }
+};
+
 Points sample_grid_pattern(const ExPolygon &expolygon, coord_t spacing, const BoundingBox &global_bounding_box);
 Points sample_grid_pattern(const ExPolygons &expolygons, coord_t spacing, const BoundingBox &global_bounding_box);
 Points sample_grid_pattern(const Polygons &polygons, coord_t spacing, const BoundingBox &global_bounding_box);

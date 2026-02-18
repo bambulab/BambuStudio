@@ -25,19 +25,24 @@
     ],
     "enable_long_retraction_when_cut": "0",
     "enable_pre_heating": "0",
-    "bed_temperature_formula": "by_first_filament",
+    "extruder_height_gap": "0",
+    "extruder_offset": [
+        "0x0"
+    ],
+    "fan_direction": "undefine",
+    "gcode_flavor": "marlin",
+    "grab_length": [
+        "0"
+    ],
+    "group_algo_with_time": "0",
+    "extruder_max_nozzle_count": [
+        "1"
+    ],
     "hotend_cooling_rate": [
         "2"
     ],
     "hotend_heating_rate": [
         "2"
-    ],
-    "extruder_offset": [
-        "0x0"
-    ],
-    "gcode_flavor": "marlin",
-    "grab_length": [
-        "0"
     ],
     "long_retractions_when_cut": [
         "0"
@@ -94,6 +99,7 @@
     "machine_prepare_compensation_time": "260",
     "machine_switch_extruder_time": "0",
     "machine_unload_filament_time": "29",
+    "machine_hotend_change_time": "0",
     "master_extruder_id": "1",
     "max_layer_height": [
         "0.28"
@@ -140,6 +146,8 @@
     "silent_mode": "0",
     "single_extruder_multi_material": "1",
     "support_air_filtration": "0",
+    "support_cooling_filter": "0",
+    "cooling_filter_enabled": "0",
     "support_chamber_temp_control": "0",
     "support_object_skip_flush": "0",
     "wipe": [

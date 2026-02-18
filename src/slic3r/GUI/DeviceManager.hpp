@@ -21,6 +21,9 @@
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFirmware.h"
+#include "DeviceCore/DevUtil.h"
+#include "DeviceCore/DevCalib.h"
+
 #include "DeviceErrorDialog.hpp"
 
 #include <wx/object.h>
@@ -47,35 +50,32 @@
 #define GET_VERSION_RETRYS      10
 #define RETRY_INTERNAL          2000
 
-#define START_SEQ_ID            20000
-#define END_SEQ_ID              30000
 #define SUBSCRIBE_RETRY_COUNT   5
 
 using namespace nlohmann;
 namespace Slic3r {
+class Print;
 
 namespace GUI
 {
 class DeviceErrorDialog; // Previous definitions
+class Plater;
 }
 
 class NetworkAgent;
-enum ManualPaCaliMethod {
-    PA_LINE = 0,
-    PA_PATTERN,
+
+enum class CalibSendStatus {
+    IDLE = 0,
+    SENDING,
+    FAILED,
 };
-
-
-#define UpgradeNoError          0
-#define UpgradeDownloadFailed   -1
-#define UpgradeVerfifyFailed    -2
-#define UpgradeFlashFailed      -3
-#define UpgradePrinting         -4
 
 // Previous definitions
 class DevAms;
 class DevAmsTray;
+class DevAxis;
 class DevBed;
+class DevChamber;
 class DevConfig;
 class DevCtrl;
 class DevExtensionTool;
@@ -84,11 +84,16 @@ class DevFan;
 class DevFilaSystem;
 class DevPrintOptions;
 class DevHMS;
+class DevInfo;
 class DevLamp;
 class DevNozzleSystem;
+class DevNozzleRack;
 class DeviceManager;
+class DevStatus;
 class DevStorage;
+class DevUpgrade;
 struct DevPrintTaskRatingInfo;
+struct DevNozzle;
 
 
 class MachineObject
@@ -99,30 +104,42 @@ private:
     std::shared_ptr<int> m_token = std::make_shared<int>(1);
 
     /* properties */
-    std::string dev_id;
     std::string dev_name;
     std::string dev_ip;
     std::string access_code;
     std::string user_access_code;
+    std::shared_ptr<DevInfo>  m_dev_info;
 
     // type, time stamp, delay
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
 
+    // the latest nozzle mapping
+    DevNozzleMappingResult m_auto_nozzle_mapping;
+
     /*parts*/
+    std::shared_ptr<DevAxis>    m_axis;
+    std::shared_ptr<DevChamber> m_chamber;
     DevLamp*          m_lamp;
     std::shared_ptr<DevExtensionTool> m_extension_tool;
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
-    DevFilaSystem*    m_fila_system;
+    std::shared_ptr<DevFilaSystem> m_fila_system;
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
+    DevCalib*         m_calib;
 
     /*Ctrl*/
     DevCtrl* m_ctrl;
 
     /*Print Options/Speed*/
     DevPrintOptions* m_print_options;
+
+    /*Upgrade*/
+    std::shared_ptr<DevUpgrade> m_upgrade;
+
+    /*Status*/
+    DevStatus* m_status;
 
     /*HMS*/
     DevHMS* m_hms_system;
@@ -149,7 +166,7 @@ public:
 public:
 
     /* static members and functions */
-    static inline int m_sequence_id = START_SEQ_ID;
+    static inline int m_sequence_id = STUDIO_START_SEQ_ID;
 
     /* properties */
     std::string get_dev_name() const { return dev_name; }
@@ -158,27 +175,26 @@ public:
     std::string get_dev_ip() const { return dev_ip; }
     void set_dev_ip(std::string ip) { dev_ip = ip;  }
 
-    std::string get_dev_id() const { return dev_id; }
-    void set_dev_id(std::string val) { dev_id = val; }
+    std::string get_dev_id() const;
+    void set_dev_id(std::string val);
+
+    std::string connection_type() const;
+    bool        is_lan_mode_printer() const;
+    bool        is_cloud_mode_printer() const;
 
     bool        local_use_ssl_for_mqtt { true };
     bool        local_use_ssl_for_ftp { true };
     std::string get_ftp_folder();
 
     int         subscribe_counter{3};
+    std::string dev_connection_name;    /* lan | eth */
 
-    std::string dev_connection_type;    /* lan | cloud */
-    std::string connection_type() const { return dev_connection_type; }
-    bool is_lan_mode_printer() { return dev_connection_type == "lan"; }
-    bool is_cloud_mode_printer() { return dev_connection_type == "cloud"; }
-
+    /* message time*/
     std::chrono::system_clock::time_point last_cloud_msg_time_;
     std::chrono::system_clock::time_point last_lan_msg_time_;
 
     bool HasRecentCloudMessage();
     bool HasRecentLanMessage();
-
-    std::string dev_connection_name;    /* lan | eth */
 
     /*access code*/
     bool has_access_right() const { return !get_access_code().empty(); }
@@ -189,6 +205,9 @@ public:
     void set_user_access_code(std::string code, bool only_refresh = true);
     void erase_user_access_code();
     std::string get_user_access_code() const;
+
+    void record_user_access_dev_ip();
+    void erase_user_access_dev_ip();
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
@@ -215,8 +234,6 @@ public:
     void reload_printer_settings();
     std::string get_printer_thumbnail_img_str() const;
 
-    std::string dev_product_name;       // set by iot service, get /user/print
-
     std::string bind_user_name;
     std::string bind_user_id;
     std::string bind_sec_link;
@@ -224,12 +241,8 @@ public:
     std::string bind_state;     /* free | occupied */
     bool is_avaliable() { return bind_state == "free"; }
 
-    time_t last_alive;
     bool m_is_online;
-    bool m_lan_mode_connection_state{false};
     bool m_set_ctt_dlg{ false };
-    void set_lan_mode_connection_state(bool state) {m_lan_mode_connection_state = state;};
-    bool get_lan_mode_connection_state() {return m_lan_mode_connection_state;};
     void set_ctt_dlg( wxString text);
     int  parse_msg_count = 0;
     int  keep_alive_count = 0;
@@ -259,7 +272,6 @@ public:
     int   ams_status_sub;
     int   ams_version = 0;
 
-    int extrusion_cali_hold_count = 0;
     std::chrono::system_clock::time_point last_extrusion_cali_start_time;
     int extrusion_cali_set_tray_id = -1;
     std::chrono::system_clock::time_point extrusion_cali_set_hold_start;
@@ -267,6 +279,9 @@ public:
 
     bool is_in_extrusion_cali();
     bool is_extrusion_cali_finished();
+
+    /* Networking */
+    NetworkAgent *get_agent() const { return m_agent; }
 
     /* AMS */
     DevAms*     get_curr_Ams();
@@ -282,7 +297,6 @@ public:
 
     bool is_target_slot_unload() const;
     bool can_unload_filament();
-    bool is_support_amx_ext_mix_mapping() const { return true;}
 
     void get_ams_colors(std::vector<wxColour>& ams_colors);
 
@@ -291,10 +305,26 @@ public:
     bool is_multi_extruders() const;
     int  get_extruder_id_by_ams_id(const std::string& ams_id);
 
+    /* nozzle */
+    DevNozzle get_nozzle_by_id_code(int id_code) const;
+    DevNozzle get_nozzle_by_sn(const std::string& sn) const;
+
+    // auto nozzle mapping
+    DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
+    void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id) { m_auto_nozzle_mapping.SetManualNozzleMapping(this, fila_id, nozzle_pos_id); };// nozzle_pos_id is O\0x10\0x20\0x30...
+    void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
+    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+
+    /* ams settings*/
+    std::optional<bool> IsDetectOnInsertEnabled() const;
+    //bool IsDetectOnPowerupEnabled() const { return m_enable_detect_on_powerup; }
+    //bool IsDetectRemainEnabled() const { return m_enable_detect_remain; }
+    //bool IsAutoRefillEnabled() const { return m_enable_auto_refill; }
+
     /* E3D has extra nozzle flow type info */
     bool has_extra_flow_type{false};
 
-    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np | has_extra_flow_type; };
+    [[nodiscard]] bool is_nozzle_flow_type_supported() const { return is_enable_np | has_extra_flow_type; }
     [[nodiscard]] wxString get_nozzle_replace_url() const;
 
     /*online*/
@@ -304,8 +334,6 @@ public:
     int    last_online_version = -1;
 
     /* temperature */
-    float  chamber_temp;
-    float  chamber_temp_target;
     float  frame_temp;
 
     /* signals */
@@ -313,20 +341,26 @@ public:
     std::string link_th;
     std::string link_ams;
     bool        network_wired { false };
+    std::shared_ptr<DevInfo> GetInfo() const { return m_dev_info; }
 
     /* parts */
     DevExtderSystem* GetExtderSystem() const { return m_extder_system; }
     std::weak_ptr<DevExtensionTool> GetExtensionTool() const { return m_extension_tool; }
 
-    DevNozzleSystem* GetNozzleSystem() const { return m_nozzle_system;}
+    DevNozzleSystem*               GetNozzleSystem() const { return m_nozzle_system;}
+    std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
-    DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSystem>   GetFilaSystem() const { return m_fila_system;}
     bool             HasAms() const;
 
-    DevLamp*         GetLamp() const { return m_lamp; }
-    DevFan*          GetFan() const { return m_fan; }
-    DevBed *         GetBed() const { return m_bed; };
-    DevStorage      *GetStorage() const { return m_storage; }
+    std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
+    std::shared_ptr<DevChamber> GetChamber() const { return m_chamber; }
+    DevLamp*        GetLamp()   const { return m_lamp; }
+    DevFan*         GetFan()    const { return m_fan; }
+    DevBed *        GetBed()    const { return m_bed; };
+    DevStorage*     GetStorage()const { return m_storage; }
+    DevCalib*       GetCalib()  const { return m_calib; }
+    DevStatus*      GetStatus() const { return m_status; }; /* status*/
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
     DevHMS*    GetHMS() const { return m_hms_system; }   /* hms*/
@@ -335,20 +369,10 @@ public:
     DevPrintOptions*      GetPrintOptions() const { return m_print_options; } /* print options */
     DevPrintingSpeedLevel GetPrintingSpeedLevel() const; /* print speed */
 
+    std::weak_ptr<DevUpgrade> GetUpgrade() const { return m_upgrade;}
+
     /* upgrade */
-    bool upgrade_force_upgrade { false };
-    bool upgrade_new_version { false };
-    bool upgrade_consistency_request { false };
-    DevFirmwareUpgradingState upgrade_display_state;
-    int upgrade_display_hold_count = 0;
-    PrinterFirmwareType       firmware_type; // engineer|production
-    PrinterFirmwareType       lifecycle { PrinterFirmwareType::FIRMWARE_TYPE_PRODUCTION };
-    std::string upgrade_progress;
-    std::string upgrade_message;
-    std::string upgrade_status;
-    std::string upgrade_module;
     std::string ams_new_version_number;
-    std::string ota_new_version_number;
     std::string ahb_new_version_number;
     int get_version_retry = 0;
 
@@ -356,20 +380,15 @@ public:
     DevFirmwareVersionInfo laser_version_info;
     DevFirmwareVersionInfo cutting_module_version_info;
     DevFirmwareVersionInfo extinguish_version_info;
+    DevFirmwareVersionInfo rotary_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
-    std::map<std::string, DevFirmwareVersionInfo> new_ver_list;
-    bool    m_new_ver_list_exist = false;
-    int upgrade_err_code = 0;
     std::vector<FirmwareInfo> firmware_list;
 
     std::string get_firmware_type_str();
     std::string get_lifecycle_type_str();
     bool is_in_upgrading() const;
-    bool is_upgrading_avalable();
-    int get_upgrade_percent() const;
     std::string get_ota_version();
     bool check_version_valid();
-    wxString get_upgrade_result_str(int upgrade_err_code);
     // key: ams_id start as 0,1,2,3
     std::map<int, DevFirmwareVersionInfo> get_ams_version();
 
@@ -393,6 +412,7 @@ public:
     bool    is_system_printing();
 
     int     print_error;
+    std::string m_print_error_img_id;
     static std::string get_error_code_str(int error_code);
     std::string get_print_error_str() const { return MachineObject::get_error_code_str(this->print_error); }
 
@@ -402,55 +422,15 @@ public:
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
-    bool    nozzle_blob_detection_enabled{ false };
-    time_t  nozzle_blob_detection_hold_start = 0;
 
-    bool    is_support_new_auto_cali_method{false};
-    int last_cali_version = -1;
-    int cali_version = -1;
-    float                      cali_selected_nozzle_dia { 0.0 };
-    // 1: record when start calibration in preset page
-    // 2: reset when start calibration in start page
-    // 3: save tray_id, filament_id, setting_id, and name, nozzle_dia
-    std::vector<CaliPresetInfo> selected_cali_preset;
-    float                      cache_flow_ratio { 0.0 };
-    bool                       cali_finished = true;
-    FlowRatioCalibrationType   flow_ratio_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
-
-    ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
-    bool                       has_get_pa_calib_tab{ false };
-    bool                       request_tab_from_bbs { false };
-    std::vector<PACalibResult> pa_calib_tab;
-    bool                       get_pa_calib_result { false };
-    std::vector<PACalibResult> pa_calib_results;
-    bool                       get_flow_calib_result { false };
-    std::vector<FlowRatioCalibResult> flow_ratio_results;
-    void reset_pa_cali_history_result()
-    {
-        has_get_pa_calib_tab = false;
-        pa_calib_tab.clear();
-    }
-
-    void reset_pa_cali_result() {
-        get_pa_calib_result = false;
-        pa_calib_results.clear();
-    }
-
-    void reset_flow_rate_cali_result() {
-        get_flow_calib_result = false;
-        flow_ratio_results.clear();
-    }
-
-    bool check_pa_result_validation(PACalibResult& result);
+    CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
-    int stage_remaining_seconds = 0;
+    int stage_remaining_seconds = -1;
     int m_push_count = 0;
     int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
     bool calibration_done { false };
-
-    bool is_axis_at_home(std::string axis);
 
     bool is_filament_at_extruder();
 
@@ -483,8 +463,6 @@ public:
     int  camera_resolution_hold_count = 0;
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
-    bool xcam_first_layer_inspector { false };
-    time_t  xcam_first_layer_hold_start = 0;
     std::string local_rtsp_url;
     std::string tutk_state;
     enum LiveviewLocal {
@@ -511,11 +489,6 @@ public:
         FR_TutkAgora
     } file_remote{ FR_None };
 
-    enum PlateMakerDectect : int
-    {
-        POS_CHECK      = 1,
-        TYPE_POS_CHECK = 2,
-    };
 
     enum DoorOpenCheckState : int
     {
@@ -524,39 +497,9 @@ public:
         DOOR_OPEN_CHECK_ENABLE_PAUSE_PRINT = 2,/*pause print*/
     };
 
-    enum DeviceMode : unsigned int
-    {
-        DEVICE_MODE_FDM   = 0x00000001,
-        DEVICE_MODE_LASER = 0x00000010,
-        DEVICE_MODE_CUT   = 0x00000100,
-    };
-
     bool        file_model_download{false};
     bool        virtual_camera{false};
-
-    bool xcam_ai_monitoring{ false };
-    bool xcam_disable_ai_detection_display{false};
-    bool xcam_spaghetti_detection{false};
-    bool xcam_purgechutepileup_detection{false};
-    bool xcam_nozzleclumping_detection{false};
-    bool xcam_airprinting_detection{false};
-
-    time_t xcam_ai_monitoring_hold_start = 0;
-    std::string xcam_ai_monitoring_sensitivity;
-    std::string xcam_spaghetti_detection_sensitivity;
-    std::string xcam_purgechutepileup_detection_sensitivity;
-    std::string xcam_nozzleclumping_detection_sensitivity;
-    std::string xcam_airprinting_detection_sensitivity;
-
-    bool xcam_buildplate_marker_detector{ false };
-    time_t  xcam_buildplate_marker_hold_start = 0;
-    bool xcam_auto_recovery_step_loss{ false };
-    bool xcam_allow_prompt_sound{ false };
-    bool xcam_filament_tangle_detect{ false };
-    time_t  xcam_auto_recovery_hold_start = 0;
-    time_t  xcam_prompt_sound_hold_start = 0;
-    time_t  xcam_filament_tangle_detect_hold_start = 0;
-
+    bool        m_has_timelapse_kit{false};
     // part skip
     std::vector<int> m_partskip_ids;
 
@@ -565,23 +508,18 @@ public:
 
     //supported features
 
-    bool is_support_build_plate_marker_detect{false};
-    PlateMakerDectect m_plate_maker_detect_type{ POS_CHECK };
 
     /*PA flow calibration is using in sending print*/
     bool is_support_pa_calibration{false};
     bool is_support_flow_calibration{false};
 
     bool is_support_send_to_sdcard {false};
-
     bool is_support_filament_backup{false};
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
+    bool is_support_update_remain_hide_display{ false};
     int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
-    bool is_support_auto_recovery_step_loss{false};
     bool is_support_ams_humidity {false};
-    bool is_support_prompt_sound{false};
-    bool is_support_filament_tangle_detect{false};
     bool is_support_1080dpi {false};
     bool is_support_cloud_print_only {false};
     bool is_support_command_ams_switch{false};
@@ -590,27 +528,22 @@ public:
     bool is_support_motor_noise_cali{false};
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
-    bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
     bool is_support_filament_setting_inprinting{false};
     bool is_support_internal_timelapse { false };// fun[28], support timelapse without SD card
-    bool m_support_mqtt_homing { false };// fun[32]
     bool is_support_brtc{false};                 // fun[31], support tcp and upload protocol
     bool is_support_ext_change_assist{false};
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
+    bool is_support_fila_change_abort{false};
 
-      // refine printer function options
-    bool is_support_spaghetti_detection{false};
-    bool is_support_purgechutepileup_detection{false};
-    bool is_support_nozzleclumping_detection{false};
-    bool is_support_airprinting_detection{false};
-    bool is_support_idelheadingprotect_detection{false};
 
     // fun2
     bool is_support_print_with_emmc{false};
+    bool is_support_pa_mode{false};
+    bool is_support_remote_dry = false;
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -620,8 +553,6 @@ public:
 
     /*temp temp range*/
     std::vector<int>    bed_temp_range;
-
-
 
     /* machine mqtt apis */
     int connect(bool use_openssl = true);
@@ -647,10 +578,6 @@ public:
 
     bool is_makeworld_subtask();
 
-    /* device type */
-    DeviceMode  m_device_mode{ DEVICE_MODE_FDM };
-    inline bool is_fdm_type() const { return m_device_mode == DEVICE_MODE_FDM; }
-
     int m_plate_index { -1 };
     std::string m_gcode_file;
     int gcode_file_prepare_percent = 0;
@@ -673,7 +600,6 @@ public:
 
     std::string parse_version();
     void parse_version_func();
-    bool is_studio_cmd(int seq);
 
     /* quick check*/
     bool canEnableTimelapse(wxString& error_message) const;
@@ -689,16 +615,7 @@ public:
     int command_get_access_code();
     int command_ack_proceed(json& proceed);
 
-    /* command upgrade */
-    int command_upgrade_confirm();
-    int command_consistency_upgrade_confirm();
-    int command_upgrade_firmware(FirmwareInfo info);
-    int command_upgrade_module(std::string url, std::string module_type, std::string version);
-
     /* control apis */
-    int command_xyz_abs();
-    int command_auto_leveling();
-    int command_go_home();
 
     int command_task_abort();
     /* cancelled the job_id */
@@ -720,7 +637,6 @@ public:
     int command_set_nozzle(int temp);
     int command_set_nozzle_new(int nozzle_id, int temp);
     int command_refresh_nozzle();
-    int command_set_chamber(int temp);
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
@@ -742,21 +658,8 @@ public:
     // set printing speed
     int command_set_printing_speed(DevPrintingSpeedLevel lvl);
 
-    //set prompt sound
-    int command_set_prompt_sound(bool prompt_sound);
-
-    //set fliament tangle detect
-    int command_set_filament_tangle_detect(bool fliament_tangle_detect);
-
-
     // set print option
     int command_set_printing_option(bool auto_recovery);
-
-    int command_nozzle_blob_detect(bool nozzle_blob_detect);
-
-    // axis string is X, Y, Z, E
-    bool m_support_mqtt_axis_control = false;
-    int command_axis_control(std::string axis, double unit = 1.0f, double input_val = 1.0f, int speed = 3000);
 
     int command_extruder_control(int nozzle_id, double val);
     // calibration printer
@@ -779,20 +682,6 @@ public:
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
-    int command_xcam_control(std::string module_name, bool on_off, std::string lvl = "");
-
-    //refine printer
-    int command_xcam_control_ai_monitoring(bool on_off, std::string lvl);
-    int command_xcam_control_spaghetti_detection(bool on_off, std::string lvl);
-    int command_xcam_control_purgechutepileup_detection(bool on_off, std::string lvl);
-    int command_xcam_control_nozzleclumping_detection(bool on_off, std::string lvl);
-    int command_xcam_control_airprinting_detection(bool on_off, std::string lvl);
-
-    int command_xcam_control_first_layer_inspector(bool on_off, bool print_halt);
-    int command_xcam_control_buildplate_marker_detector(bool on_off);
-    int command_xcam_control_auto_recovery_step_loss(bool on_off);
-    int command_xcam_control_allow_prompt_sound(bool on_off);
-    int command_xcam_control_filament_tangle_detect(bool on_off);
 
     /* common apis */
     inline bool is_local() { return !get_dev_ip().empty(); }
@@ -806,7 +695,6 @@ public:
     bool is_in_printing_pause() const;
     bool is_in_prepare();
     bool is_printing_finished();
-    bool is_core_xy();
     void reset_update_time();
     void reset();
     static bool is_in_printing_status(std::string status);
@@ -846,6 +734,7 @@ public:
 
     bool m_firmware_valid { false };
     bool m_firmware_thread_started { false };
+    std::optional<bool> m_firmware_support_print_tpu_left;
     void get_firmware_info();
     bool is_firmware_info_valid();
 
@@ -859,7 +748,7 @@ public:
 
     /*get ams slot info*/
     bool    contains_tray(const std::string &ams_id, const std::string &tray_id) const;
-    DevAmsTray get_tray(const std::string &ams_id, const std::string &tray_id) const;/*use contains_tray() check first*/
+    std::optional<DevAmsTray> get_tray(const std::string &ams_id, const std::string &tray_id) const;/*use contains_tray() check first*/
 
     /*for parse new info*/
     bool check_enable_np(const json& print) const;

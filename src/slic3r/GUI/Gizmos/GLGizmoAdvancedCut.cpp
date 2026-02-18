@@ -2715,8 +2715,8 @@ bool GLGizmoAdvancedCut::render_slider_double_input(const std::string &label, fl
     constexpr float UndefMinVal = -0.1f;
 
     const BoundingBoxf3 bbox      = bounding_box();
-    float               mean_size = float((bbox.size().x() + bbox.size().y() + bbox.size().z()) / 9.0);
-    float               min_size  = value_in < 0.f ? UndefMinVal : 2.f;
+    float               mean_size = float((bbox.size().x() + bbox.size().y() + bbox.size().z()) / 2.0);
+    float               min_size  = value_in < 0.f ? UndefMinVal : 1.f;
     if (m_imperial_units) {
         mean_size *= float(units_mm_to_in);
         min_size *= float(units_mm_to_in);

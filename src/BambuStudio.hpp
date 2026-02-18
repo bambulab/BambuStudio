@@ -84,6 +84,9 @@ typedef struct _printer_plate_info {
     int                 printable_width{0};
     int                 printable_depth{0};
     int                 printable_height{0};
+    int                 shared_width{0};
+    int                 shared_depth{0};
+    int                 shared_height{0};
 
     int                 exclude_width{0};
     int                 exclude_depth{0};

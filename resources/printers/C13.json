@@ -46,12 +46,17 @@
 			"support_first_layer_inspect": true,
 			"support_chamber": true,
 			"support_chamber_temp_edit": true,
-			"support_chamber_temp_edit_range": [0, 60],
+			"support_chamber_temp_edit_range": [ 0, 60 ],
 			"support_extrusion_cali": false,
 			"support_user_preset": false,
 			"bed_temperature_limit": 110,
 			"nozzle_max_temperature": 320,
 			"support_ams_ext_mix_print": true
+		},
+		"fan": {
+			"-1": {
+				"3": "Chamber"
+			}
 		},
 		"model_id": "C13",
 		"support_wrapping_detection": false,
@@ -69,7 +74,8 @@
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": false
+		"support_safety_options": false,
+		"support_disable_cali_flow_type": true
 	},
 	"01.05.06.06": {
 		"rv2166": "00.00.21.20"

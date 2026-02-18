@@ -160,6 +160,7 @@ private:
     void        append_menu_item_merge_to_multipart_object(wxMenu *menu);
     void        append_menu_item_merge_to_single_object(wxMenu* menu);
     void        append_menu_item_merge_parts_to_single_part(wxMenu *menu);
+    void        append_menu_item_merge_some_parts_to_single_part(wxMenu *menu);
     void        append_menu_items_mirror(wxMenu *menu);
     void        append_menu_item_invalidate_cut_info(wxMenu *menu);
     void        append_menu_item_edit_text(wxMenu *menu);
@@ -170,6 +171,7 @@ private:
     //BBS add bbl menu item
     void        append_menu_item_clone(wxMenu* menu);
     void        append_menu_item_simplify(wxMenu* menu);
+    void        append_menu_item_smooth_mesh(wxMenu *menu);
     void        append_menu_item_center(wxMenu* menu);
     void        append_menu_item_sub_merge(wxMenu *menu);
     void        append_menu_item_per_object_process(wxMenu* menu);
@@ -179,6 +181,7 @@ private:
     void        append_menu_item_locked(wxMenu* menu);
     void        append_menu_item_fill_bed(wxMenu *menu);
     void        append_menu_item_plate_name(wxMenu *menu);
+    void        append_menu_item_align_distribute(wxMenu *menu);
 };
 
 }}

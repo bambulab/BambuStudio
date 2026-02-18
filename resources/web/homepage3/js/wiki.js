@@ -1,45 +1,4 @@
-var cardData = [
-  {
-    "title": "Bambu Lab A1 Mini",
-    "img": "img/printer_a1mini.png",
-    "link": "support/academy/3"
-  },
-  {
-    "title": "Bambu Lab A1",
-    "img": "img/printer_a1.png",
-    "link": "support/academy/8"
-  },
-  {
-    "title": "Bambu Lab P1S",
-    "img": "img/printer_p1s.png",
-    "link": "support/academy/6"
-  },
-  {
-    "title": "Bambu Lab X1C",
-    "img": "img/printer_x1c.png",
-    "link": "support/academy/9"
-  },
-  {
-    "title": "Bambu Lab H2D",
-    "img": "img/printer_h2d.png",
-    "link": "support/academy/10"
-  },
-  {
-    "title": "Bambu Studio",
-    "img": "img/studio.png",
-    "link": "support/academy/5"
-  },
-  {
-    "title": "Bambu Suite",
-    "img": "img/suite.png",
-    "link": "support/academy/11"
-  },
-  {
-    "title": "Bambu Handy",
-    "img": "img/handy.png",
-    "link": "support/academy/7"
-  },
-];
+var cardData = {"code":"000000","msg":"operation.successful","traceId":"71ce01ec38ce414692a88a2fd44e7330.18616.17631185286483121","data":[{"id":10,"printerType":"Bambu Lab H2D","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/H2_D_707d0aad42.jpg"},{"id":12,"printerType":"Bambu Lab H2S","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/H2_S_3a0c3a1ca4.png"},{"id":13,"printerType":"Bambu Lab P2S","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/p2s_9c0d9f2ea2.png"},{"id":6,"printerType":"Bambu Lab P1S","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/COVER_b084d22761.png"},{"id":9,"printerType":"Bambu Lab X1C","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/X1_C_f429ebb303.JPEG"},{"id":8,"printerType":"Bambu Lab A1","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/Group_47969_3x_bec3e4fd04.jpg"},{"id":3,"printerType":"Bambu Lab A1 mini","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/large_Bambu_Lab_A1_mini_8a462ea54c_21e037b9d7_9bb73390d0.png"},{"id":5,"printerType":"Bambu Studio","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/20250530_190020_7b93deceed.png"},{"id":11,"printerType":"Bambu Suite","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/suite_zh_35048b0409.png"},{"id":7,"printerType":"Bambu Handy","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/zh_5d9e7c4dbe.png"}]};
 
 var youtubeData = [
   {
@@ -306,7 +265,7 @@ var video_prev;
 var video_next;
 
 function OnInit() {
-  createCardHTML();
+  getAcademyData();
   createVideoHTML();
   if (IsChinese())
     $("#tutorial_block").hide();
@@ -375,7 +334,7 @@ function updateSearchResult(result) {
   $('#search_result_area').empty();
   if (data["totalHits"] > 0) {
     data["results"].forEach(element => {
-      if (IsChinese()) {
+      if (isMainland() || IsChinese()){
         if (element["locale"] != "zh")
           return;
       }else {
@@ -390,11 +349,18 @@ function updateSearchResult(result) {
 
 //--------------- Academy Cards -------------------
 
-function createCardHTML() {
-  for (let i = 0; i < cardData.length; i++) {
-    let html = `<div class="card" data-idx="${i}" onclick="openAcademyUrl('${cardData[i].link}')">
-                  <img class="cardImg" src="${cardData[i].img}" />
-                  <div class="cardTitle">${cardData[i].title}</div>
+function getAcademyData() {
+  var tSend={};
+	tSend['sequence_id']=Math.round(new Date() / 1000);
+	tSend['command']="get_academy_list";
+	SendWXMessage( JSON.stringify(tSend) );
+}
+
+function createCardHTML(data) {
+  for (let i = 0; i < data.length; i++) {
+    let html = `<div class="card" data-idx="${i}" onclick="openAcademyUrl('${data[i].id}')">
+                  <img class="cardImg" src="${get_image_url(data[i].printerType)}" />
+                  <div class="cardTitle TextS1">${data[i].printerType}</div>
                 </div>`;
     $('#academy_Card_Content').append(html)
   }
@@ -433,16 +399,29 @@ function scrollByStep(dir) {
   $('#academy_content').stop(true, false).animate({ scrollLeft: target }, 260, 'swing', updateButtons);
 }
 
-function openAcademyUrl(path)
+function openAcademyUrl(id)
 {
   let open_url = "";
-  if (IsChinese()){
+  if (isMainland()){
+    open_url = "https://bambulab.cn/zh-cn/support/academy/";
+  }else{
+    let strLang=langStringTransfer();
+    open_url = "https://bambulab.com/" + strLang + "/support/academy/";
+  }
+  open_url += id;
+  OpenUrlInLocalBrowser(open_url);
+}
+
+function openWebsiteUrl(id)
+{
+  let open_url = "";
+  if (isMainland()){
     open_url = "https://bambulab.cn/zh-cn/";
   }else{
     let strLang=langStringTransfer();
     open_url = "https://bambulab.com/" + strLang + "/";
   }
-  open_url += path;
+  open_url += id;
   OpenUrlInLocalBrowser(open_url);
 }
 
@@ -511,7 +490,7 @@ function createTopicHTML() {
       title = topicData[i].title;
     }
     let html = `<div class="topicCard">
-          <div class="topicTitle">${title}</div>
+          <div class="topicTitle TextS1">${title}</div>
           <ul>`
     for (let j=0; j < topicData[i].children.length; j++) {
       let child_title;
@@ -562,6 +541,11 @@ function IsChinese()
 		return false;
 }
 
+function isMainland(){
+  let strRegion=GetQueryString("region");
+  return strRegion=="CN";
+}
+
 function langStringTransfer()
 {
   let strLang=GetQueryString("lang");
@@ -593,13 +577,46 @@ function langStringTransfer()
   }
 }
 
+function get_image_url(printer_type) {
+  const raw = (printer_type || '').toLowerCase();
+  const normalized = raw.replace(/[^a-z0-9]/g, '');
+
+  const mappings = [
+    { keywords: ['h2d'], src: 'img/printer_h2d.png', useRaw: false },
+    { keywords: ['h2c'], src: 'img/printer_h2c.png', useRaw: false },
+    { keywords: ['h2s'], src: 'img/printer_h2s.png', useRaw: false },
+    { keywords: ['p2s'], src: 'img/printer_p2s.png', useRaw: false },
+    { keywords: ['p1s'], src: 'img/printer_p1s.png', useRaw: false },
+    { keywords: ['a1mini'], src: 'img/printer_a1mini.png', useRaw: false },
+    { keywords: ['a1'], src: 'img/printer_a1.png', useRaw: false },
+    { keywords: ['x1c'], src: 'img/printer_x1c.png', useRaw: false },
+    { keywords: ['studio'], src: 'img/studio.png', useRaw: false },
+    { keywords: ['suite'], src: 'img/suite.png', useRaw: false },
+    { keywords: ['handy'], src: 'img/handy.png', useRaw: false },
+    { keywords: ['拓竹耗材'], src: 'img/filament.png', useRaw: true },
+    { keywords: ['filament'], src: 'img/filament.png', useRaw: false },
+    { keywords: ['canvas'], src: 'img/canvas.png', useRaw: false },
+    { keywords: ['彩色版画生成器'], src: 'img/canvas.png', useRaw: true },
+  ];
+
+  for (const item of mappings) {
+    const haystack = item.useRaw ? raw : normalized;
+    if (item.keywords.some(keyword => haystack.includes(keyword))) {
+      return item.src;
+    }
+  }
+  return 'img/printer_a1.png';
+}
+
 function HandleStudio( pVal )
 {
   let strCmd = pVal['command'];
   if(strCmd=='search_wiki_get')
 	{
 		updateSearchResult(pVal['data']);
-	}
+	}else if(strCmd=='academy_list_get') {
+    createCardHTML(pVal['data']);
+  }
 }
 
 //---------------Global-----------------

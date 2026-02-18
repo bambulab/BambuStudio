@@ -49,6 +49,11 @@
 			"support_user_preset": false,
 			"support_ams_ext_mix_print": true
 		},
+		"fan": {
+			"-1": {
+				"3": "Chamber"
+			}
+		},
 		"model_id": "BL-P002",
 		"auto_pa_cali_thumbnail_image": "fd_calibration_auto",
 		"compatible_machine": [ "BL-P001", "C11", "C12", "C13" ],
@@ -58,14 +63,15 @@
 		"support_wrapping_detection": false,
 		"printer_connect_help_image": "input_access_code_x1",
 		"printer_use_ams_image": "ams_icon",
-		"printer_ext_image": ["ext_image_xp"],
+		"printer_ext_image": [ "ext_image_xp" ],
 		"use_ams_type": "generic",
 		"printer_arch": "core_xy",
 		"printer_series": "series_x1",
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": false
+		"support_safety_options": false,
+		"support_disable_cali_flow_type": true
 	},
 	"01.01.01.00": {
 		"print": {

@@ -117,6 +117,16 @@ public:
     wxBoxSizer *create_item_input(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::string param, std::function<void(wxString)> onchange = {});
     wxBoxSizer *create_item_range_input(
         wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital,std::function<void(wxString)> onchange = {});
+    wxBoxSizer *create_item_range_two_input(wxString                      title,
+                                            wxWindow *                    parent,
+                                            wxString                      tooltip,
+                                            std::string                   param,
+                                            std::string                   param1,
+                                            float                         range_min,
+                                            float                         range_max,
+                                            int                           keep_digital,
+                                            std::function<void(wxString)> onchange = {},
+                                            std::function<void(wxString)> onchange1 = {});
     wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxBoxSizer *create_item_multiple_combobox(
         wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);

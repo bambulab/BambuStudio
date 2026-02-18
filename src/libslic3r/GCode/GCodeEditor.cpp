@@ -35,7 +35,7 @@ void GCodeEditor::reset(const Vec3d &position)
     m_current_pos[0] = float(position.x());
     m_current_pos[1] = float(position.y());
     m_current_pos[2] = float(position.z());
-    m_current_pos[4] = float(m_config.travel_speed.get_at(get_extruder_index(m_config, m_current_extruder)));
+    m_current_pos[4] = float(m_config.travel_speed.get_at(get_config_idx_for_filament(m_config, m_current_extruder)));
     m_fan_speed = -1;
     m_additional_fan_speed = -1;
     m_current_fan_speed = -1;
@@ -113,6 +113,13 @@ std::vector<PerExtruderAdjustments> GCodeEditor::parse_layer_gcode(  const      
         adj.cooling_slow_down_enabled = m_config.slow_down_for_layer_cooling.get_at(extruder_id);
         adj.slow_down_layer_time = float(m_config.slow_down_layer_time.get_at(extruder_id));
         adj.slow_down_min_speed           = float(m_config.slow_down_min_speed.get_at(extruder_id));
+
+        // Read ConsistentSurface cooling settings
+        if (m_config.cooling_slowdown_logic.values.size() > extruder_id)
+            adj.cooling_slowdown_logic = static_cast<CoolingSlowdownLogicType>(m_config.cooling_slowdown_logic.values[extruder_id]);
+        if (m_config.cooling_perimeter_transition_distance.values.size() > extruder_id)
+            adj.cooling_perimeter_transition_distance = float(m_config.cooling_perimeter_transition_distance.values[extruder_id]);
+
         map_extruder_to_per_extruder_adjustment[extruder_id] = i;
     }
 

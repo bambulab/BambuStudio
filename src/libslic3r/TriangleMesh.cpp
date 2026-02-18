@@ -534,6 +534,30 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     return mesh;
 }
 
+void TriangleMesh::extract_son_mesh(TriangleMesh &temp_mesh, int face_start, int face_end) const
+{
+    indexed_triangle_set temp_its;
+    if (face_end > face_start && face_end  < its.indices.size()) {
+        auto new_face_count = face_end - face_start + 1;
+        temp_its.vertices.reserve(new_face_count *3);
+        temp_its.indices.reserve(new_face_count);
+
+        for (int i = face_start; i <= face_end; i++) {
+            auto face = its.indices[i];
+            auto v0   = its.vertices[face[0]];
+            auto v1   = its.vertices[face[1]];
+            auto v2   = its.vertices[face[2]];
+            temp_its.vertices.emplace_back(v0);
+            temp_its.vertices.emplace_back(v1);
+            temp_its.vertices.emplace_back(v2);
+            auto  new_i = i - face_start;
+            Vec3i new_face(new_i * 3 + 0, new_i * 3 + 1, new_i * 3 + 2);
+            temp_its.indices.emplace_back(new_face);
+        }
+        temp_mesh.its =temp_its;
+    }
+}
+
 std::vector<ExPolygons> TriangleMesh::slice(const std::vector<double> &z) const
 {
     // convert doubles to floats
@@ -910,6 +934,20 @@ Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Matrix3f
 Polygon its_convex_hull_2d_above(const indexed_triangle_set &its, const Transform3f &t, const float z)
 {
     return its_convex_hull_2d_above(its, [t](const Vec3f &p){ return t * p; }, z);
+}
+
+indexed_triangle_set its_make_xoy_center_rect(float width, float height, float depth)
+{
+    float x = width / 2.f, y = height /2.f, z = 0.f;
+    if (depth > 0.01f) {
+        z = depth / 2.f;
+        return {{{0, 3, 2}, {0, 2, 1}, {4, 5, 6}, {4, 6, 7}, {0, 4, 7}, {0, 7, 3}, {7, 6,2}, {7, 2,3}, {2, 6, 5}, {2, 5, 1}, {1, 5, 4}, {1, 4, 0}},
+                {{-x, -y, -z}, {x, -y, -z}, {x, y, -z}, {-x, y, -z},
+                 {-x, -y, z}, {x, -y, z}, {x, y, z}, {-x, y, z}}
+        };
+    } else {
+        return {{{0, 1, 2}, {0, 2, 3}}, {{-x, -y, z}, {x, -y, z}, {x, y, z}, {-x, y, z}}};
+    }
 }
 
 // Generate the vertex list for a cube solid of arbitrary size in X/Y/Z.

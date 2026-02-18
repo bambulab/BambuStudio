@@ -118,6 +118,7 @@ namespace Slic3r
                 { 0.00f, 1.00f, 0.00f, 1.0f },   // erSupportMaterial
                 { 0.00f, 0.50f, 0.00f, 1.0f },   // erSupportMaterialInterface
                 { 0.00f, 0.25f, 0.00f, 1.0f },   // erSupportTransition
+                { 0.60f, 1.00f, 0.60f, 1.0f },   // erSupportIroning
                 { 0.70f, 0.89f, 0.67f, 1.0f },   // erWipeTower
                 { 0.37f, 0.82f, 0.58f, 1.0f },    // erCustom
                 { 0.85f, 0.65f, 0.95f, 1.0f }    // erFlush
@@ -799,8 +800,12 @@ namespace Slic3r
                     {
                         auto plate_print_statistics = plate->get_slice_result()->print_statistics;
                         auto plate_extruders = plate->get_extruders(true);
+                        auto max_extruders_colors   = wxGetApp().plater()->get_extruders_colors().size();
                         for (size_t extruder_id : plate_extruders) {
                             extruder_id -= 1;
+                            if (extruder_id >= max_extruders_colors) {
+                                continue;
+                            }
                             if (plate_print_statistics.model_volumes_per_extruder.find(extruder_id) == plate_print_statistics.model_volumes_per_extruder.end())
                                 model_volume_of_extruders_all_plates[extruder_id] += 0;
                             else {
@@ -2100,7 +2105,7 @@ namespace Slic3r
                     ImGui::SameLine();
                     imgui.text(_u8L("Filament change times") + ":");
                     ImGui::SameLine();
-                    ::sprintf(buf, "%d", m_print_statistics.total_filament_changes);
+                    ::sprintf(buf, "%d", m_print_statistics.total_filament_changes + m_print_statistics.total_extruder_changes + m_print_statistics.total_nozzle_changes);
                     imgui.text(buf);
                     //BBS display cost
                     ImGui::Dummy({ window_padding, window_padding });
@@ -2112,9 +2117,43 @@ namespace Slic3r
                     break;
                 }
                 // helio
-                case EViewType::ThermalIndexMin: { append_range(m_p_extrusions->ranges.thermal_index_min, 0); break; }
-                case EViewType::ThermalIndexMax: { append_range(m_p_extrusions->ranges.thermal_index_max, 0); break; }
-                case EViewType::ThermalIndexMean: { append_range(m_p_extrusions->ranges.thermal_index_mean, 0); break; }
+                case EViewType::ThermalIndexMin: 
+                case EViewType::ThermalIndexMax: 
+                case EViewType::ThermalIndexMean: {
+                    if (m_view_type == EViewType::ThermalIndexMin)
+                        append_range(m_p_extrusions->ranges.thermal_index_min, 0);
+                    else if (m_view_type == EViewType::ThermalIndexMax)
+                        append_range(m_p_extrusions->ranges.thermal_index_max, 0);
+                    else
+                        append_range(m_p_extrusions->ranges.thermal_index_mean, 0);
+                    
+                    // Add "View Summary" link only if simulation/optimization result is available
+                    if (wxGetApp().plater()->has_helio_simulation_result()) {
+                        ImGui::Spacing();
+                        ImGui::Dummy({ window_padding, window_padding });
+                        ImGui::SameLine();
+                        
+                        // Render as hyperlink with green color and underline
+                        std::string label = _u8L("View Summary");
+                        ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
+                        ImGui::PushStyleColor(ImGuiCol_Text, HyperColor.Value);
+                        imgui.text(label.c_str());
+                        ImGui::PopStyleColor();
+                        // underline
+                        ImVec2 lineEnd = ImGui::GetItemRectMax();
+                        lineEnd.y -= 2.0f;
+                        ImVec2 lineStart = lineEnd;
+                        lineStart.x = ImGui::GetItemRectMin().x;
+                        ImGui::GetWindowDrawList()->AddLine(lineStart, lineEnd, HyperColor);
+                        // click behavior
+                        if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), true)) {
+                            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                                wxGetApp().plater()->show_helio_simulation_summary();
+                            }
+                        }
+                    }
+                    break;
+                }
                 // end helio
                 default: { break; }
                 }
@@ -3512,12 +3551,7 @@ namespace Slic3r
                     ImGui::PushItemWidth(item_size);
                     imgui.text(buf);
                     // helio
-                    if (view_type != EViewType::ThermalIndexMin && view_type != EViewType::ThermalIndexMax && view_type != EViewType::ThermalIndexMean) {
-                        sprintf(buf, "%s%.0f", speed.c_str(), m_curr_move.feedrate);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
-                    }
-                    else {
+                    if (view_type == EViewType::ThermalIndexMin || view_type == EViewType::ThermalIndexMax || view_type == EViewType::ThermalIndexMean) {
                         sprintf(buf, "%s", thermal_index.c_str());
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
@@ -3682,7 +3716,7 @@ namespace Slic3r
                         break;
                     }
                     case EType::Logarithmic: {
-                        global_t = (value > _min && _min > 0.0f && step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f;
+                        global_t = (value > _min  && step != 0.0f) ? std::max(0.0f, value - _min) / step : 0.0f;
                         break;
                     }
                     }

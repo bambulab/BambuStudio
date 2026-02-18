@@ -49,6 +49,7 @@ namespace GUI {
 
 // Previous definitions
 class MessageDialog;
+class wgtDeviceNozzleRack;
 
 enum CameraRecordingStatus {
     RECORDING_NONE,
@@ -312,6 +313,8 @@ private:
     int             m_plate_index { -1 };
     wxStaticBitmap* m_bitmap_static_use_time;
     wxStaticBitmap* m_bitmap_static_use_weight;
+    AnimaIcon*      m_pausing_icon;
+    AnimaIcon*      m_stopping_icon;
     ScalableButton* m_button_pause_resume;
     ScalableButton* m_button_abort;
     Button*         m_button_partskip;
@@ -348,6 +351,8 @@ public:
 
 public:
     void enable_partskip_button(MachineObject* obj, bool enable);
+    void update_pausing_state(bool enter);
+    void update_stopping_state(bool enter);
     void enable_pause_resume_button(bool enable, std::string type);
     void enable_abort_button(bool enable);
     void update_subtask_name(wxString name);
@@ -356,7 +361,6 @@ public:
     void on_stage_clicked(wxMouseEvent& event);
 
     // Public interface to update remaining time text in the thermal dialog
-    void update_thermal_remaining_time(MachineObject* obj);
     void update_progress_percent(wxString percent, wxString icon);
     void update_left_time(wxString time);
     void update_finish_time(wxString finish_time);
@@ -369,6 +373,7 @@ public:
     void set_brightness_value(int value) { m_brightness_value = value; }
     void set_plate_index(int plate_idx = -1);
     void market_scoring_show(bool show);
+    bool is_market_scoring_show();
 
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
@@ -389,6 +394,8 @@ public:
     int get_part_skipped_dirty() { return m_part_skipped_dirty; }
     void set_part_skipped_dirty(int dirty) { m_part_skipped_dirty = dirty; }
     void                           set_has_reted_text(bool has_rated);
+
+private:
     void paint(wxPaintEvent&);
 };
 
@@ -513,12 +520,10 @@ protected:
     float           m_fixed_aspect_ratio{1.8};
 
     AxisCtrlButton *m_bpButton_xy;
-    //wxStaticText *  m_staticText_xy;
     Button *        m_bpButton_z_10;
     Button *        m_bpButton_z_1;
     Button *        m_bpButton_z_down_1;
     Button *        m_bpButton_z_down_10;
-    //Button *        m_button_unload;
     wxStaticText *  m_staticText_z_tip;
     Label *         m_extruder_label;
     Button *        m_bpButton_e_10;
@@ -527,15 +532,17 @@ protected:
 
     wxPanel *       m_temp_temp_line;
     wxPanel *       m_temp_extruder_line;
-    wxBoxSizer*     m_ams_list;
-    wxStaticText *  m_ams_debug;
-    bool            m_show_ams_group{false};
     bool            m_show_filament_group{ false };
+
+    /* switch*/
+    SwitchBoard*    m_ams_rack_switch;
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
     wxStaticBitmap *m_ams_extruder_img;
     wxStaticBitmap* m_bitmap_extruder_img;
+
+    wgtDeviceNozzleRack* m_panel_nozzle_rack{ nullptr };
 
     wxPanel *       m_panel_separator_right;
     wxPanel *       m_panel_separotor_bottom;
@@ -564,6 +571,7 @@ protected:
     wxStaticBitmap *m_filament_load_img;
 
     Button *m_button_retry {nullptr};
+    Button *m_fila_change_abort {nullptr};
     StaticBox* m_filament_load_box;
 
     // Virtual event handlers, override them in your derived class
@@ -610,14 +618,19 @@ public:
     void reset_temp_misc_control();
     int before_error_code = 0;
     int skip_print_error = 0;
-    wxBoxSizer *create_ams_group(wxWindow *parent);
-    wxBoxSizer *create_settings_group(wxWindow *parent);
+    StaticBox*  create_ams_group(wxWindow *parent);
+    wxBoxSizer* create_settings_group(wxWindow *parent);
     wxBoxSizer* create_filament_group(wxWindow* parent);
 
 	void           expand_filament_loading(wxMouseEvent &e);
     void           show_ams_group(bool show = true);
     void show_filament_load_group(bool show = true);
     MediaPlayCtrl* get_media_play_ctrl() {return m_media_play_ctrl;};
+
+    void jump_to_Rack();
+
+private:
+    void on_ams_rack_switch(wxCommandEvent& event);
 };
 
 
@@ -748,9 +761,6 @@ protected:
     void on_switch_vcamera(wxMouseEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
-    void on_auto_leveling(wxCommandEvent &event);
-    void on_xyz_abs(wxCommandEvent &event);
-
 
     void on_show_parts_options(wxCommandEvent& event);
     /* print options */
@@ -764,6 +774,7 @@ protected:
 
     /* update apis */
     void update(MachineObject* obj);
+
     void show_printing_status(bool ctrl_area = true, bool temp_area = true);
     void update_left_time(int mc_left_time);
     void update_basic_print_data(bool def = false);
@@ -779,9 +790,11 @@ protected:
 
     void update_extruder_status(MachineObject* obj);
     void update_ams_control_state(std::string ams_id, std::string slot_id);
+    void update_rack(MachineObject* obj);
     void update_cali(MachineObject* obj);
     void update_calib_bitmap();
 
+    void update_market_scoring(bool show);
     void reset_printing_values();
     void on_webrequest_state(wxWebRequestEvent &evt);
     bool is_task_changed(MachineObject* obj);

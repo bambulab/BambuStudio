@@ -60,6 +60,7 @@ enum ExtrusionRole : uint8_t {
     erSupportMaterial,
     erSupportMaterialInterface,
     erSupportTransition,
+    erSupportIroning,
     erWipeTower,
     erCustom,
     erFlush,
@@ -130,7 +131,8 @@ inline bool is_bridge(ExtrusionRole role) {
 inline bool is_support(ExtrusionRole role) {
     return role == erSupportMaterial
         || role == erSupportMaterialInterface
-        || role == erSupportTransition;
+        || role == erSupportTransition
+        || role == erSupportIroning;
 }
 
 class ExtrusionEntity

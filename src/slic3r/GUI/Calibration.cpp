@@ -52,13 +52,13 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     cali_step_select_title->SetBackgroundColour(BG_COLOR);
     cali_left_sizer->Add(cali_step_select_title, 0, wxLEFT, FromDIP(15));
 
-    select_xcam_cali    = create_check_option(_L("Micro lidar calibration"), cali_left_panel, _L("Micro lidar calibration"), "xcam_cali");
-    select_bed_leveling = create_check_option(_L("Bed leveling"),            cali_left_panel, _L("Bed leveling"),                       "bed_leveling");
-    select_vibration    = create_check_option(_L("Vibration compensation"), cali_left_panel, _L("Vibration compensation"), "vibration");
-    select_motor_noise  = create_check_option(_L("Motor noise cancellation"), cali_left_panel, _L("Motor noise cancellation"), "motor_noise");
-    select_nozzle_cali  = create_check_option(_L("Nozzle offset calibration"), cali_left_panel, _L("Nozzle offset calibration"), "nozzle_cali");
-    select_heatbed_cali  = create_check_option(_L("High-temperature Heatbed Calibration"), cali_left_panel, _L("High-temperature Heatbed Calibration"), "bed_cali");
-    select_clumppos_cali = create_check_option(_L("Nozzle clumping detection Calibration"), cali_left_panel, _L("Nozzle clumping detection Calibration"), "clump_pos_cali");
+    select_xcam_cali     = create_check_option(_L("Micro Lidar Calibration"), cali_left_panel, _L("Micro Lidar Calibration"), "xcam_cali");
+    select_bed_leveling  = create_check_option(_L("Auto Bed Leveling"), cali_left_panel, _L("Auto Bed Leveling"), "bed_leveling");
+    select_vibration     = create_check_option(_L("Vibration Compensation"), cali_left_panel, _L("Vibration Compensation"), "vibration");
+    select_motor_noise   = create_check_option(_L("Motor Noise Cancellation"), cali_left_panel, _L("Motor Noise Cancellation"), "motor_noise");
+    select_nozzle_cali   = create_check_option(_L("Nozzle Offset Calibration"), cali_left_panel, _L("Nozzle Offset Calibration"), "nozzle_cali");
+    select_heatbed_cali  = create_check_option(_L("High-temperature Bed Leveling"), cali_left_panel, _L("High-temperature Bed Leveling"), "bed_cali");
+    select_clumppos_cali = create_check_option(_L("Nozzle Clumping Detection Calibration"), cali_left_panel, _L("Nozzle Clumping Detection Calibration"), "clump_pos_cali");
 
     // STUDIO-10091 the default not checked option
     if(m_checkbox_list.count("bed_cali") != 0)
@@ -303,11 +303,15 @@ void CalibrationDialog::update_cali(MachineObject *obj)
         else {
             m_calibration_btn->Enable();
         }
+
         m_calibration_flow->DeleteAllItems();
+        last_stage_list_info = obj->stage_list_info;
+
         m_calibration_btn->SetLabel(_L("Start Calibration"));
         if (!m_checkbox_list["vibration"]->GetValue() && !m_checkbox_list["bed_leveling"]->GetValue() &&
             !m_checkbox_list["xcam_cali"]->GetValue() && !m_checkbox_list["motor_noise"]->GetValue() &&
-            !m_checkbox_list["nozzle_cali"]->GetValue() && !m_checkbox_list["bed_cali"]->GetValue())
+            !m_checkbox_list["nozzle_cali"]->GetValue() && !m_checkbox_list["bed_cali"]->GetValue() &&
+            !m_checkbox_list["clump_pos_cali"]->GetValue())
         {
             m_calibration_btn->Disable();
             m_calibration_btn->SetLabel(_L("No step selected"));
@@ -316,6 +320,8 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_btn->Enable();
         }
     }
+
+
 }
 
 bool CalibrationDialog::is_stage_list_info_changed(MachineObject *obj)

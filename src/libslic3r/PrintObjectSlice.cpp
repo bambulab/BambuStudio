@@ -1180,6 +1180,9 @@ void PrintObject::slice_volumes()
     InterlockingGenerator::generate_interlocking_structure(this);
     m_print->throw_if_canceled();
 
+    InterlockingGenerator::generate_embedding_wall(this);
+    m_print->throw_if_canceled();
+
     // SuperSlicer: filament shrink
     for (Layer *layer : m_layers) {
         for (size_t i = 0; i < layer->region_count(); ++i) {
@@ -1311,6 +1314,8 @@ void PrintObject::slice_volumes()
                         }
 	                }
 	                // Merge all regions' slices to get islands, chain them by a shortest path.
+                    if (this->config().enable_circle_compensation)
+                        layer->apply_auto_circle_compensation();
 	                layer->make_slices();
 	            }
 	        });

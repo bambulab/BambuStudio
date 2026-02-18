@@ -2,6 +2,7 @@
 #define slic3r_GUI_CalibrationWizardPresetPage_hpp_
 
 #include "CalibrationWizardPage.hpp"
+#include "DeviceCore/DevNozzleSystem.h"
 
 namespace Slic3r { namespace GUI {
 
@@ -158,6 +159,18 @@ enum CaliPresetPageStatus
     CaliPresetStatusDifferentNozzleDiameters
 };
 
+struct CaliFilamentInfo
+{
+    Preset *filament_preset{nullptr};
+    int         nozzle_pos_id{-1};
+    std::string nozzle_sn;
+
+    CaliFilamentInfo() {}
+    CaliFilamentInfo(Preset *preset, int nozzle_pos_id_, const std::string &nozzle_sn_)
+        : filament_preset(preset), nozzle_pos_id(nozzle_pos_id_), nozzle_sn(nozzle_sn_)
+    {}
+};
+
 class CalibrationPresetPage : public CalibrationWizardPage
 {
 public:
@@ -176,7 +189,7 @@ public:
     void stripWhiteSpace(std::string& str);
     void update_priner_status_msg(wxString msg, bool is_warning);
     void update(MachineObject* obj) override;
-    void update_flow_ratio_type(FlowRatioCalibrationType type) { curr_obj->flow_ratio_calibration_type = type; }
+    void update_flow_ratio_type(FlowRatioCalibrationType type) { if(curr_obj) curr_obj->GetCalib()->SetFlowRatioCalibType(type); }
 
     void on_device_connected(MachineObject* obj) override;
 
@@ -203,7 +216,7 @@ public:
     std::vector<FilamentComboBox*> get_selected_filament_combobox();
 
     // key is tray_id
-    std::map<int, Preset*> get_selected_filaments();
+    std::map<int, CaliFilamentInfo> get_selected_filaments();
 
     std::map<int, DynamicPrintConfig> get_filament_ams_list() const { return filament_ams_list; }
 
@@ -237,10 +250,15 @@ public:
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
-    wxBoxSizer* create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id);
+    wxSizer* create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id);
+    wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role);
+
+    void manage_filament_radio_btn(ExtruderRole extuder_role);
 
     void init_selection_values();
     void update_filament_combobox(std::string ams_id = "");
+
+    void update_nozzle_id_combox();
 
     void on_select_nozzle(wxCommandEvent& evt);
     void on_select_plate_type(wxCommandEvent& evt);
@@ -256,9 +274,9 @@ protected:
 
     void check_nozzle_diameter_for_auto_cali();
     void check_filament_compatible();
-    bool is_filaments_compatiable(const std::map<int, Preset *>& prests);
+    bool is_filaments_compatiable(const std::map<int, CaliFilamentInfo>& prests);
     bool is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips);
-    bool is_filaments_compatiable(const std::map<int, Preset *> &prests,
+    bool is_filaments_compatiable(const std::map<int, CaliFilamentInfo> &prests,
         int& bed_temp,
         std::string& incompatiable_filament_name,
         std::string& error_tips);
@@ -276,6 +294,12 @@ protected:
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
 
+    std::vector<std::pair<wxString, int>> make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const NozzleDiameterType& nozzle_diameter, const std::vector<NozzleFlowType>& nozzle_flows);
+
+    std::map<std::string, std::pair<bool, wxString>> m_tips_map;
+    void init_filament_list_tips();
+    wxString get_filament_tips();
+
     CaliPresetPageStatus  get_status() { return m_page_status; }
 
     CaliPageStepGuide* m_step_panel{ nullptr };
@@ -284,7 +308,6 @@ protected:
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };
     Label*             m_filament_list_tips{ nullptr };
-    wxPanel*                  m_multi_ams_panel { nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
     CaliPresetWarningPanel*   m_warning_panel{nullptr};
     CaliPresetWarningPanel*   m_error_panel { nullptr };
@@ -299,7 +322,6 @@ protected:
     ComboBox*       m_comboBox_nozzle_volume;
     ComboBox*       m_comboBox_bed_type;
     ComboBox*       m_comboBox_process;
-    Label*          m_nozzle_diameter_tips{nullptr};
 
     std::vector<BedType> m_displayed_bed_types;
 
@@ -320,13 +342,17 @@ protected:
     ComboBox * m_left_comboBox_nozzle_volume;
     ComboBox * m_right_comboBox_nozzle_volume;
 
+    wxPanel*    m_single_ams_preview_panel{nullptr};
     wxPanel*    m_main_ams_preview_panel{nullptr};
     wxPanel*    m_deputy_ams_preview_panel{nullptr};
-    wxBoxSizer*    m_main_ams_items_sizer{nullptr};
-    wxBoxSizer*    m_deputy_ams_items_sizer{nullptr};
+    wxPanel*    m_single_ams_items_panel{nullptr};
+    wxPanel*    m_main_ams_items_panel{nullptr};
+    wxPanel*    m_deputy_ams_items_panel{nullptr};
 
+    std::vector<AMSPreview *> m_single_ams_preview_list;
     std::vector<AMSPreview *> m_main_ams_preview_list;
     std::vector<AMSPreview *> m_deputy_ams_preview_list;
+    FilamentComboBoxList      m_single_filament_comboBox_list;
     FilamentComboBoxList      m_main_filament_comboBox_list;
     FilamentComboBoxList      m_deputy_filament_comboBox_list;
 
@@ -341,14 +367,13 @@ protected:
     wxStaticBoxSizer * m_deputy_sizer;
     wxStaticBoxSizer * m_left_nozzle_volume_type_sizer;
     wxStaticBoxSizer * m_right_nozzle_volume_type_sizer;
+    wxPanel*           m_main_filament_cali_panel;
+    wxPanel*           m_deputy_filament_cali_panel;
 
-
+    Label*          m_nozzle_diameter_tips{nullptr};
 
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
-
-
-    std::vector<AMSPreview*> m_ams_preview_list;
 
     // for update filament combobox, key : tray_id
     std::map<int, DynamicPrintConfig> filament_ams_list;

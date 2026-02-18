@@ -211,6 +211,110 @@ bool GLGizmosManager::init_icon_textures()
      else
          return false;
 
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_min.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_X_MIN, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_min_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_X_MIN_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_center.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_X_CENTER, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_center_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_X_CENTER_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_max.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_X_MAX, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_x_max_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_X_MAX_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_min.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_Y_MIN, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_min_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Y_MIN_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_center.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_Y_CENTER, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_center_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Y_CENTER_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_max.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_Y_MAX, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_y_max_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Y_MAX_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_min.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_Z_MIN, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_min_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Z_MIN_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_center.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_Z_CENTER, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_center_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Z_CENTER_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_max.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_ALIGN_Z_MAX, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/align_z_max_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_ALIGN_Z_MAX_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_x.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_X, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_x_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_DISTRIBUTE_X_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_y.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_Y, texture_id));
+    else
+        return false;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_y_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int) IC_DISTRIBUTE_Y_DARK, texture_id));
+    else
+        return false;
+
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/distribute_z_dark.svg", 64, 64, texture_id))
+        icon_list.insert(std::make_pair((int)IC_DISTRIBUTE_Z_DARK, texture_id));
+    else
+        return false;
+
     return true;
 }
 
@@ -571,6 +675,14 @@ bool GLGizmosManager::is_allow_select_all() const {
     if (m_current == Undefined || m_current == EType::Move||
         m_current == EType::Rotate ||
         m_current == EType::Scale) {
+        return true;
+    }
+    return false;
+}
+
+bool GLGizmosManager::is_allow_multi_select_parts_or_objects() const
+{
+    if (m_current == Undefined || m_current == EType::Move || m_current == EType::Rotate || m_current == EType::Scale) {
         return true;
     }
     return false;
@@ -1552,6 +1664,55 @@ int GLGizmosManager::get_shortcut_key(GLGizmosManager::EType type) const
 void GLGizmosManager::set_highlight(EType gizmo, bool highlight_shown)
 {
     m_highlight = std::pair<EType, bool>(gizmo, highlight_shown);
+}
+
+// Lazy-load an icon on demand if it wasn't loaded during init_icon_textures
+void* GLGizmosManager::ensure_icon_loaded(MENU_ICON_NAME icon)
+{
+    auto it = icon_list.find((int)icon);
+    if (it != icon_list.end())
+        return it->second;
+
+    std::string path;
+    int w = 20, h = 20; // default size for most icons
+
+    switch (icon) {
+        case IC_TOOLBAR_RESET:              path = "/images/toolbar_reset.svg"; w = h = 14; break;
+        case IC_TOOLBAR_RESET_HOVER:        path = "/images/toolbar_reset_hover.svg"; w = h = 14; break;
+        case IC_TOOLBAR_RESET_ZERO:         path = "/images/toolbar_reset_zero.svg"; w = h = 14; break;
+        case IC_TOOLBAR_RESET_ZERO_HOVER:   path = "/images/toolbar_reset_zero_hover.svg"; w = h = 14; break;
+        case IC_TOOLBAR_TOOLTIP:            path = "/images/toolbar_tooltip.svg"; w = 30; h = 22; break;
+        case IC_TOOLBAR_TOOLTIP_HOVER:      path = "/images/toolbar_tooltip_hover.svg"; w = 30; h = 22; break;
+        case IC_FIT_CAMERA:                 path = "/images/fit_camera.svg"; w = h = 64; break;
+        case IC_FIT_CAMERA_HOVER:           path = "/images/fit_camera_hover.svg"; w = h = 64; break;
+        case IC_FIT_CAMERA_DARK:            path = "/images/fit_camera_dark.svg"; w = h = 64; break;
+        case IC_FIT_CAMERA_DARK_HOVER:      path = "/images/fit_camera_dark_hover.svg"; w = h = 64; break;
+        case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 20; break;
+        case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 20; break;
+        case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 20; break;
+        case IC_TEXT_T_DARK:                path = "/images/text_T_dark.svg"; w = h = 20; break;
+        case IC_ALIGN_X_MIN:                path = "/images/align_x_min.svg"; w = h = 32; break;
+        case IC_ALIGN_X_CENTER:             path = "/images/align_x_center.svg"; w = h = 32; break;
+        case IC_ALIGN_X_MAX:                path = "/images/align_x_max.svg"; w = h = 32; break;
+        case IC_ALIGN_Y_MIN:                path = "/images/align_y_min.svg"; w = h = 32; break;
+        case IC_ALIGN_Y_CENTER:             path = "/images/align_y_center.svg"; w = h = 32; break;
+        case IC_ALIGN_Y_MAX:                path = "/images/align_y_max.svg"; w = h = 32; break;
+        case IC_ALIGN_Z_MIN:                path = "/images/align_z_min.svg"; w = h = 32; break;
+        case IC_ALIGN_Z_CENTER:             path = "/images/align_z_center.svg"; w = h = 32; break;
+        case IC_ALIGN_Z_MAX:                path = "/images/align_z_max.svg"; w = h = 32; break;
+        case IC_DISTRIBUTE_X:               path = "/images/distribute_x.svg"; w = h = 32; break;
+        case IC_DISTRIBUTE_Y:               path = "/images/distribute_y.svg"; w = h = 32; break;
+        case IC_DISTRIBUTE_Z:               path = "/images/distribute_z.svg"; w = h = 32; break;
+        case IC_NAME_COUNT:                 default: return nullptr;
+    }
+
+    ImTextureID texture_id;
+    if (IMTexture::load_from_svg_file(Slic3r::resources_dir() + path, w, h, texture_id)) {
+        icon_list[(int)icon] = texture_id;
+        return texture_id;
+    }
+
+    return nullptr;
 }
 
 } // namespace GUI

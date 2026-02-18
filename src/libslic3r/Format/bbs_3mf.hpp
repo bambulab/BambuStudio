@@ -14,6 +14,8 @@ class DynamicPrintConfig;
 class Preset;
 struct FilamentInfo;
 struct ThumbnailData;
+struct TriangleColor;
+struct VolumeColorInfo;
 
 
 #define PLATE_THUMBNAIL_SMALL_WIDTH     128
@@ -98,7 +100,7 @@ struct PlateData
     std::vector<int>          filament_maps;   // 1 base
     using LayerFilaments = std::unordered_map<std::vector<unsigned int>, std::vector<std::pair<int, int>>, GCodeProcessorResult::FilamentSequenceHash>;
     LayerFilaments layer_filaments;
-
+    std::vector<unsigned int> filament_change_sequence;
     // Hexadecimal number,
     // the 0th digit corresponds to extruder 1
     // the 1th digit corresponds to extruder 2
@@ -153,7 +155,7 @@ inline bool operator & (SaveStrategy & lhs, SaveStrategy rhs)
 }
 
 enum {
-    brim_points_format_version = 0
+    brim_points_format_version = 1
 };
 
 enum class LoadStrategy
@@ -221,6 +223,10 @@ typedef std::vector<PlateData*> PlateDataPtrs;
 
 typedef std::map<int, PlateData*> PlateDataMaps;
 
+// 3MF color data: Stores color information for all volumes.
+// key: Volume index (ID index in ModelObject)
+typedef std::unordered_map<int, VolumeColorInfo> VolumeColorInfoMap;
+
 struct StoreParams
 {
     const char* path;
@@ -248,7 +254,8 @@ struct StoreParams
 // add restore logic
 // Load the content of a 3mf file into the given model and preset bundle.
 extern bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
-        bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn = nullptr, LoadStrategy strategy = LoadStrategy::Default, BBLProject *project = nullptr, int plate_id = 0);
+        bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn = nullptr, LoadStrategy strategy = LoadStrategy::Default, BBLProject *project = nullptr, int plate_id = 0,
+        std::unordered_map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
 
 extern std::string bbs_3mf_get_thumbnail(const char * path);
 

@@ -171,6 +171,7 @@ const std::string BBS_PROJECT_CONFIG_FILE = "Metadata/project_settings.config";
 const std::string BBS_MODEL_CONFIG_FILE = "Metadata/model_settings.config";
 const std::string BBS_MODEL_CONFIG_RELS_FILE = "Metadata/_rels/model_settings.config.rels";
 const std::string SLICE_INFO_CONFIG_FILE = "Metadata/slice_info.config";
+const std::string FILAMENT_SEQUENCE_FILE = "Metadata/filament_sequence.json";
 const std::string BBS_LAYER_HEIGHTS_PROFILE_FILE = "Metadata/layer_heights_profile.txt";
 const std::string LAYER_CONFIG_RANGES_FILE = "Metadata/layer_config_ranges.xml";
 const std::string BRIM_EAR_POINTS_FILE = "Metadata/brim_ear_points.txt";
@@ -212,9 +213,14 @@ static constexpr const char* FILAMENT_TYPE_TAG = "type";
 static constexpr const char *FILAMENT_COLOR_TAG = "color";
 static constexpr const char *FILAMENT_USED_M_TAG = "used_m";
 static constexpr const char *FILAMENT_USED_G_TAG = "used_g";
+static constexpr const char *FILAMENT_USED_FOR_SUPPORT     = "used_for_support";
+static constexpr const char *FILAMENT_USED_FOR_OBJECT      = "used_for_object";
 static constexpr const char *FILAMENT_TRAY_INFO_ID_TAG     = "tray_info_idx";
 static constexpr const char *LAYER_FILAMENT_LISTS_TAG      = "layer_filament_lists";
 static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_list";
+static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
+static constexpr const char *FILAMENT_NOZZLE_DIAMETER_TAG    = "nozzle_diameter";
+static constexpr const char *FILAMENT_NOZZLE_VOLUME_TYPE_TAG = "volume_type";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -251,6 +257,10 @@ static constexpr const char* HIT_NORMAL_ATTR      = "hit_normal";
 // BBS: encrypt
 static constexpr const char* RELATIONSHIP_TAG = "Relationship";
 static constexpr const char* PID_ATTR = "pid";
+static constexpr const char* PINDEX_ATTR = "pindex";
+static constexpr const char* P1_ATTR = "p1";
+static constexpr const char* P2_ATTR = "p2";
+static constexpr const char* P3_ATTR = "p3";
 static constexpr const char* PUUID_ATTR = "p:UUID";
 static constexpr const char* PUUID_LOWER_ATTR = "p:uuid";
 static constexpr const char* PPATH_ATTR = "p:path";
@@ -302,6 +312,7 @@ static constexpr const char* SPIRAL_VASE_MODE = "spiral_mode";
 static constexpr const char* FILAMENT_MAP_MODE_ATTR = "filament_map_mode";
 static constexpr const char* FILAMENT_MAP_ATTR = "filament_maps";
 static constexpr const char* LIMIT_FILAMENT_MAP_ATTR = "limit_filament_maps";
+static constexpr const char* FILAMENT_VOL_MAP_ATTR = "filament_volume_maps";
 static constexpr const char* GCODE_FILE_ATTR = "gcode_file";
 static constexpr const char* THUMBNAIL_FILE_ATTR = "thumbnail_file";
 static constexpr const char* NO_LIGHT_THUMBNAIL_FILE_ATTR = "thumbnail_no_light_file";
@@ -616,14 +627,39 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         return ret;
     };
 
+    auto get_filament_info_by_id = [&result](int filament_id) -> GCodeProcessorResult::FilamentUseInfo* {
+        auto iter = std::find_if(result->used_filaments.begin(), result->used_filaments.end(), [&filament_id](const GCodeProcessorResult::FilamentUseInfo &item) {
+            return item.filament_id == filament_id;
+        });
+        if (iter != result->used_filaments.end()) {
+            return &(*iter);
+        }
+        return nullptr;
+    };
+
     for (auto it = ps.total_volumes_per_extruder.begin(); it != ps.total_volumes_per_extruder.end(); it++) {
         double volume                           = it->second;
         auto [used_filament_m, used_filament_g] = get_used_filament_from_volume(volume, it->first);
-
+        auto* filament_info = get_filament_info_by_id(it->first);
         FilamentInfo info;
         info.id = it->first;
         info.used_g = used_filament_g;
         info.used_m = used_filament_m;
+
+        if (result && result->nozzle_group_result) {
+            auto nozzle_for_filament = result->nozzle_group_result->get_nozzle_for_filament(it->first);
+            if (nozzle_for_filament) {
+                info.nozzle_diameter = string_to_double_decimal_point(nozzle_for_filament->diameter.c_str());
+                info.group_id = nozzle_for_filament->group_id;
+                info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
+            }
+        }
+
+        if (filament_info) {
+            info.used_for_support = filament_info->use_for_support;
+            info.used_for_object  = filament_info->use_for_object;
+        }
+
         slice_filaments_info.push_back(info);
     }
 
@@ -694,6 +730,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::vector<std::string> mmu_segmentation;
             // BBS
             std::vector<std::string> face_properties;
+            std::vector<TriangleColor> triangle_colors;
 
             bool empty() { return vertices.empty() || triangles.empty(); }
 
@@ -704,6 +741,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 std::swap(custom_supports, o.custom_supports);
                 std::swap(custom_fuzzy_skin, o.custom_fuzzy_skin);
                 std::swap(custom_seam, o.custom_seam);
+                std::swap(mmu_segmentation, o.mmu_segmentation);
+                std::swap(face_properties, o.face_properties);
+                std::swap(triangle_colors, o.triangle_colors);
             }
 
             void reset() {
@@ -713,6 +753,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 custom_fuzzy_skin.clear();
                 custom_seam.clear();
                 mmu_segmentation.clear();
+                face_properties.clear();
+                triangle_colors.clear();
             }
         };
 
@@ -730,7 +772,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             //int subobject_id;
             std::string name;
             std::string uuid;
-            int         pid{-1};
+            int pid{ -1 };
+            int pindex{ -1 };
             //bool is_model_object;
 
             CurrentObject() { reset(); }
@@ -744,6 +787,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 //BBS: sub object id
                 uuid.clear();
                 name.clear();
+                pid = -1;
+                pindex = -1;
             }
         };
 
@@ -870,7 +915,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string obj_curr_characters;
             float object_unit_factor;
             int object_current_color_group{-1};
-            std::map<int, std::string> object_group_id_to_color;
+            std::unordered_map<int, std::vector<std::string>> object_group_id_to_color;
             bool is_bbl_3mf { false };
 
             ObjectImporter(_BBS_3MF_Importer *importer, std::string file_path, std::string obj_path)
@@ -1071,7 +1116,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         CurrentInstance m_curr_instance;
 
         int m_current_color_group{-1};
-        std::map<int, std::string> m_group_id_to_color;
+        std::unordered_map<int, std::vector<std::string>> m_group_id_to_color;
+
+        // Store the color data for each volume(volume object id->VolumeColorInfo).
+        // Note: This mapping is populated in _generate_volumes_new.
+        std::unordered_map<int, VolumeColorInfo> m_volume_color_data;
 
     public:
         _BBS_3MF_Importer();
@@ -1084,6 +1133,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool get_thumbnail(const std::string &filename, std::string &data);
         bool load_gcode_3mf_from_stream(std::istream & data, Model& model, PlateDataPtrs& plate_data_list, DynamicPrintConfig& config, Semver& file_version);
         unsigned int version() const { return m_version; }
+
+        // Get the color group mapping information (color group ID -> color string) after parsing a standard 3MF file.
+        const std::unordered_map<int, std::vector<std::string>>& get_color_group_map() const { return m_group_id_to_color; }
+
+        // Get volume color data
+        const std::unordered_map<int, VolumeColorInfo>& get_volume_color_data() const { return m_volume_color_data; }
 
     private:
         void _destroy_xml_parser();
@@ -1125,6 +1180,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         void _extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
         void _extract_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_embossed_svg_shape_file(const std::string &filename, mz_zip_archive &archive, const mz_zip_archive_file_stat &stat);
+
+        void _extract_filament_sequence_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat &stat);
 
         // handlers to parse the .model file
         void _handle_start_model_xml_element(const char* name, const char** attributes);
@@ -1501,6 +1558,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
                     m_parsing_slice_info = false;
                 }
+                else if (boost::algorithm::iequals(name, FILAMENT_SEQUENCE_FILE)) {
+                    _extract_filament_sequence_from_archive(archive, stat);
+                }
             }
         }
 
@@ -1536,6 +1596,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->nozzle_diameters = it->second->nozzle_diameters;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
+            plate->filament_maps = it->second->filament_maps;
             if (plate->thumbnail_file.empty()) {
                 plate->thumbnail_file = plate->gcode_file;
                 boost::algorithm::replace_all(plate->thumbnail_file, ".gcode", ".png");
@@ -1546,6 +1607,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->pick_file = it->second->pick_file.empty();
             plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
             plate->config = it->second->config;
+            plate->filament_change_sequence = it->second->filament_change_sequence;
 
             if (!plate->thumbnail_file.empty())
                 _extract_from_archive(archive, plate->thumbnail_file, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
@@ -1718,8 +1780,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             for (auto obj_importer : m_object_importers) {
                 for (const IdToCurrentObjectMap::value_type&  obj : obj_importer->object_list)
                     m_current_objects.insert({ std::move(obj.first), std::move(obj.second)});
-                for (auto group_color : obj_importer->object_group_id_to_color)
-                    m_group_id_to_color.insert(std::move(group_color));
+                for (auto &group_color : obj_importer->object_group_id_to_color) {
+                    auto &dst = m_group_id_to_color[group_color.first];
+                    auto &src = group_color.second;
+                    dst.insert(dst.end(), src.begin(), src.end());
+                }
 
                 delete obj_importer;
             }
@@ -1876,6 +1941,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     _extract_xml_from_archive(archive, stat, _handle_start_config_xml_element, _handle_end_config_xml_element);
                     m_parsing_slice_info = false;
                 }
+                else if (!dont_load_config && boost::algorithm::iequals(name, FILAMENT_SEQUENCE_FILE)){
+                    _extract_filament_sequence_from_archive(archive,stat);
+                }
                 else if (boost::algorithm::istarts_with(name, AUXILIARY_DIR)) {
                     // extract auxiliary directory to temp directory, do nothing for restore
                     if (m_load_aux && !m_load_restore)
@@ -1947,17 +2015,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         }
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", process group colors, size %1%\n")%m_group_id_to_color.size();
-        std::map<int, int> color_group_id_to_extruder_id_map;
+        using ColorKey = std::pair<int, int>;
+        std::map<ColorKey, int> color_group_index_to_extruder_id_map;
         std::map<std::string, int> color_to_extruder_id_map;
         int extruder_id = 0;
-        for (auto group_iter = m_group_id_to_color.begin(); group_iter != m_group_id_to_color.end(); ++group_iter) {
-            auto color_iter = color_to_extruder_id_map.find(group_iter->second);
-            if (color_iter == color_to_extruder_id_map.end()) {
-                ++extruder_id;
-                color_to_extruder_id_map[group_iter->second] = extruder_id;
-                color_group_id_to_extruder_id_map[group_iter->first] = extruder_id;
-            } else {
-                color_group_id_to_extruder_id_map[group_iter->first] = color_iter->second;
+        for (const auto &group_pair : m_group_id_to_color) {
+            const int group_id = group_pair.first;
+            const auto &colors = group_pair.second;
+            for (size_t color_index = 0; color_index < colors.size(); ++color_index) {
+                const std::string &color_string = colors[color_index];
+                auto color_iter = color_to_extruder_id_map.find(color_string);
+                int mapped_extruder = 0;
+                if (color_iter == color_to_extruder_id_map.end()) {
+                    mapped_extruder = ++extruder_id;
+                    color_to_extruder_id_map[color_string] = mapped_extruder;
+                } else {
+                    mapped_extruder = color_iter->second;
+                }
+                color_group_index_to_extruder_id_map[ColorKey(group_id, static_cast<int>(color_index))] = mapped_extruder;
             }
         }
 
@@ -2060,9 +2135,19 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         model_object->name = "Object_"+std::to_string(object.second+1);
 
                     // get color
-                    auto extruder_itor = color_group_id_to_extruder_id_map.find(current_object->second.pid);
-                    if (extruder_itor != color_group_id_to_extruder_id_map.end()) {
-                        model_object->config.set_key_value("extruder", new ConfigOptionInt(extruder_itor->second));
+                    const int object_pid = current_object->second.pid;
+                    if (object_pid >= 0) {
+                        int object_pindex = current_object->second.pindex;
+                        auto group_iter = m_group_id_to_color.find(object_pid);
+                        if (group_iter != m_group_id_to_color.end() && !group_iter->second.empty()) {
+                            if (object_pindex < 0 || object_pindex >= (int)group_iter->second.size())
+                                object_pindex = 0;
+                            ColorKey key(object_pid, object_pindex);
+                            auto extruder_itor = color_group_index_to_extruder_id_map.find(key);
+                            if (extruder_itor != color_group_index_to_extruder_id_map.end()) {
+                                model_object->config.set_key_value("extruder", new ConfigOptionInt(extruder_itor->second));
+                            }
+                        }
                     }
                 }
 
@@ -2201,6 +2286,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->pick_file = (m_load_restore || it->second->pick_file.empty()) ? it->second->pick_file : m_backup_path + "/" + it->second->pick_file;
             plate_data_list[it->first-1]->pattern_bbox_file = (m_load_restore || it->second->pattern_bbox_file.empty()) ? it->second->pattern_bbox_file : m_backup_path + "/" + it->second->pattern_bbox_file;
             plate_data_list[it->first-1]->config = it->second->config;
+            plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
+            plate_data_list[it->first-1]->filament_change_sequence = it->second->filament_change_sequence;
 
             current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
@@ -2653,37 +2740,55 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
     void _BBS_3MF_Importer::_extract_auxiliary_file_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", stat.m_uncomp_size is %1%")%stat.m_uncomp_size;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", stat.m_uncomp_size is %1%") % stat.m_uncomp_size;
         if (stat.m_uncomp_size > 0) {
             std::string dest_file;
             if (stat.m_is_utf8) {
                 dest_file = stat.m_filename;
-            } else {
+            }
+            else {
                 std::string extra(1024, 0);
                 size_t n = mz_zip_reader_get_extra(&archive, stat.m_file_index, extra.data(), extra.size());
                 dest_file = ZipUnicodePathExtraField::decode(extra.substr(0, n), stat.m_filename);
             }
+
+            if (dest_file.empty() ||
+                dest_file.find("..") != std::string::npos ||
+                dest_file[0] == '/' ||
+                dest_file[0] == '\\') {
+                return;
+            }
+
             std::string temp_path = model.get_auxiliary_file_temp_path();
-            //aux directory from model
             boost::filesystem::path dir = boost::filesystem::path(temp_path);
+
             std::size_t found = dest_file.find(AUXILIARY_DIR);
             if (found != std::string::npos)
                 dest_file = dest_file.substr(found + AUXILIARY_STR_LEN);
             else
                 return;
 
-            if (dest_file.find('/') != std::string::npos) {
+            if (dest_file.empty() || dest_file.find("..") != std::string::npos || dest_file[0] == '/' || dest_file[0] == '\\') {
+                BOOST_LOG_TRIVIAL(error) << "Invalid sub path";
+                return;
+            }
+
+            if (dest_file.find('/') != std::string::npos || dest_file.find('\\') != std::string::npos) {
                 boost::filesystem::path src_path = boost::filesystem::path(dest_file);
                 boost::filesystem::path parent_path = src_path.parent_path();
-                std::string temp_path = dir.string() + std::string("/") + parent_path.string();
-                boost::filesystem::path parent_full_path =  boost::filesystem::path(temp_path);
+
+                boost::filesystem::path parent_full_path = dir / parent_path;
+
                 if (!boost::filesystem::exists(parent_full_path))
                     boost::filesystem::create_directories(parent_full_path);
             }
-            dest_file = dir.string() + std::string("/") + dest_file;
-            std::string dest_zip_file = encode_path(dest_file.c_str());
+
+            boost::filesystem::path final_path = dir / dest_file;
+            std::string dest_zip_file = encode_path(final_path.string().c_str());
+
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_file) % stat.m_filename % res;
+
             if (res == 0) {
                 add_error("Error while extract auxiliary file to file");
                 return;
@@ -2695,12 +2800,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         if (stat.m_uncomp_size > 0) {
             std::string src_file = decode_path(stat.m_filename);
-            // BBS: use backup path
-            //aux directory from model
-            boost::filesystem::path dest_path = boost::filesystem::path(m_backup_path + "/" + src_file);
+
+            if (src_file.find("..") != std::string::npos) {
+                add_error("invalid file name");
+                return;
+            }
+
+            boost::filesystem::path base_path(m_backup_path);
+            boost::filesystem::path dest_path = base_path / src_file;
+
+            if (dest_path.has_parent_path() && !boost::filesystem::exists(dest_path.parent_path())) {
+                boost::filesystem::create_directories(dest_path.parent_path());
+            }
+
             std::string dest_zip_file = encode_path(dest_path.string().c_str());
             mz_bool res = mz_zip_reader_extract_to_file(&archive, stat.m_file_index, dest_zip_file.c_str(), 0);
+
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", extract  %1% from 3mf %2%, ret %3%\n") % PathSanitizer::sanitize(dest_path) % stat.m_filename % res;
+
             if (res == 0) {
                 add_error("Error while extract file to temp directory");
                 return;
@@ -2892,6 +3009,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                                                     float(std::atof(object_data_points[i+1].c_str())),
                                                     float(std::atof(object_data_points[i+2].c_str())),
                                                     float(std::atof(object_data_points[i+3].c_str())));
+                }else if (version == 1) {
+                    for (unsigned int i=0; i<object_data_points.size(); i+=5)
+                    brim_ear_points.emplace_back(float(std::atof(object_data_points[i+0].c_str())),
+                                                    float(std::atof(object_data_points[i+1].c_str())),
+                                                    float(std::atof(object_data_points[i+2].c_str())),
+                                                    float(std::atof(object_data_points[i + 3].c_str())),
+                                                    int(std::atof(object_data_points[i+4].c_str())));
                 }
 
                 if (!brim_ear_points.empty())
@@ -3091,6 +3215,41 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     svg->file_data = m_path_to_emboss_shape_files[filename];
             }
     }
+
+    void _BBS_3MF_Importer::_extract_filament_sequence_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat &stat)
+    {
+        if(stat.m_uncomp_size <=0){
+            add_error("Error while reading layer config ranges data to buffer");
+            return;
+        }
+
+        std::string buffer((size_t)stat.m_uncomp_size, 0);
+        mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+        if (res == 0) {
+            add_error("Error while reading filament sequence data to buffer");
+            return;
+        }
+
+        try {
+            json j = json::parse(buffer);
+            for (auto& elem : m_plater_data) {
+                int plate_idx = elem.first;
+                auto plater_data = elem.second;
+                std::string key = "plate_" + std::to_string(plate_idx);
+                auto plate_seq = j[key]["sequence"];
+                std::vector<unsigned int> sequence;
+                for (auto& item : plate_seq) {
+                    sequence.push_back(item.get<unsigned int>() - 1); // data stored in file is 1 based, change to 0 based when loading
+                }
+                plater_data->filament_change_sequence = sequence;
+            }
+        }
+        catch (const std::exception& e) {
+            add_error(std::string("Error while parsing filament sequence JSON: ") + e.what());
+            return;
+        }
+    }
+
 
     void _BBS_3MF_Importer::_extract_custom_gcode_per_print_z_from_archive(::mz_zip_archive &archive, const mz_zip_archive_file_stat &stat)
     {
@@ -3431,7 +3590,13 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (m_curr_object->uuid.empty()) {
                 m_curr_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_LOWER_ATTR);
             }
-            m_curr_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+
+            if (bbs_has_attribute_value_int(attributes, num_attributes, PID_ATTR)) {
+                m_curr_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+            }
+            if (bbs_has_attribute_value_int(attributes, num_attributes, PINDEX_ATTR)) {
+                m_curr_object->pindex = bbs_get_attribute_value_int(attributes, num_attributes, PINDEX_ATTR);
+            }
         }
 
         return true;
@@ -3561,7 +3726,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_start_color(const char **attributes, unsigned int num_attributes)
     {
         std::string color = bbs_get_attribute_value_string(attributes, num_attributes, COLOR_ATTR);
-        m_group_id_to_color[m_current_color_group] = color;
+        auto &colors = m_group_id_to_color[m_current_color_group];
+        colors.push_back(color);
         return true;
     }
 
@@ -3620,8 +3786,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_start_triangles(const char** attributes, unsigned int num_attributes)
     {
         // reset current triangles
-        if (m_curr_object)
+        if (m_curr_object) {
             m_curr_object->geometry.triangles.clear();
+            m_curr_object->geometry.triangle_colors.clear();
+        }
         return true;
     }
 
@@ -3629,6 +3797,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     {
         // do nothing
         return true;
+    }
+
+    void modify_import_color(int *color_arr, int size)
+    {
+        int first_bigger_than_0 = -1;
+        for (int i = 0; i < size; i++) {
+            if (color_arr[i] >= 0) {
+                first_bigger_than_0 = color_arr[i];
+                break;
+            }
+        }
+        if (first_bigger_than_0 >= 0) {
+            for (int i = 0; i < size; i++) {
+                if (color_arr[i] < 0) {
+                    color_arr[i] = first_bigger_than_0;
+                }
+            }
+        }
     }
 
     bool _BBS_3MF_Importer::_handle_start_triangle(const char** attributes, unsigned int num_attributes)
@@ -3654,6 +3840,33 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             m_curr_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             // BBS
             m_curr_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
+            if (!m_is_bbl_3mf) {
+                TriangleColor color_info;
+                if (bbs_has_attribute_value_int(attributes, num_attributes, PID_ATTR)) {
+                    color_info.pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+                }
+                else {
+                    color_info.pid = m_curr_object->pid;
+                }
+                if (color_info.pid >= 0) {
+                    const char* color_attrs[3] = { P1_ATTR, P2_ATTR, P3_ATTR };
+                    for (int idx = 0; idx < 3; ++idx) {
+                        if (bbs_has_attribute_value_int(attributes, num_attributes, color_attrs[idx])) {
+                            color_info.indices[idx] = bbs_get_attribute_value_int(attributes, num_attributes, color_attrs[idx]);
+                        }
+                        else if (m_curr_object->pindex >= 0) {
+                            if (idx == 0) {
+                                color_info.indices[idx] = m_curr_object->pindex;
+                            }
+                            else {
+                                color_info.indices[idx] = color_info.indices[0];
+                            }
+                        }
+                    }
+                    modify_import_color(color_info.indices, 3);
+                    m_curr_object->geometry.triangle_colors.push_back(color_info);
+                }
+            }
         }
         return true;
     }
@@ -4187,6 +4400,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             }
             else if (key == OTHER_LAYERS_PRINT_SEQUENCE_ATTR) {
                 m_curr_plater->config.set_key_value("other_layers_print_sequence", new ConfigOptionInts(get_vector_from_string(value)));
+                auto temp_other_layers_print_sequence = m_curr_plater->config.option<ConfigOptionInts>("other_layers_print_sequence");
+                if (temp_other_layers_print_sequence && temp_other_layers_print_sequence->values.size() > 2) {
+                    if (temp_other_layers_print_sequence->values[0] > 0 && temp_other_layers_print_sequence->values[0] < INT_MAX &&
+                        temp_other_layers_print_sequence->values[1] == INT_MAX)
+                        temp_other_layers_print_sequence->values[1] = INT_MAX - 1;
+                }
             }
             else if (key == OTHER_LAYERS_PRINT_SEQUENCE_NUMS_ATTR) {
                 m_curr_plater->config.set_key_value("other_layers_print_sequence_nums", new ConfigOptionInt(stoi(value)));
@@ -4214,6 +4433,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         }
                     }
                     m_curr_plater->config.set_key_value("filament_map", new ConfigOptionInts(filament_map));
+                    m_curr_plater->filament_maps = filament_map;
+                }
+            }
+            else if (key == FILAMENT_VOL_MAP_ATTR) {
+                if (m_curr_plater){
+                    auto filament_volume_map = get_vector_from_string(value);
+                    for (size_t idx = 0; idx < filament_volume_map.size(); ++idx) {
+                        if (filament_volume_map[idx] > 1) {
+                            filament_volume_map[idx] = 0;
+                        }
+                    }
+                    m_curr_plater->config.set_key_value("filament_volume_map", new ConfigOptionInts(filament_volume_map));
                 }
             }
             else if (key == GCODE_FILE_ATTR)
@@ -4334,6 +4565,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string used_m = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_M_TAG);
             std::string used_g = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_USED_G_TAG);
             std::string filament_id = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_TRAY_INFO_ID_TAG);
+            std::string group_id = bbs_get_attribute_value_string(attributes,num_attributes, FILAMENT_NOZZLE_GROUP_ID_TAG);
+            std::string nozzle_diameter = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_NOZZLE_DIAMETER_TAG);
+            std::string volume_type = bbs_get_attribute_value_string(attributes, num_attributes, FILAMENT_NOZZLE_VOLUME_TYPE_TAG);
             FilamentInfo filament_info;
             filament_info.id = atoi(id.c_str()) - 1;
             filament_info.type = type;
@@ -4341,6 +4575,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
             filament_info.filament_id = filament_id;
+            if (!group_id.empty())
+                filament_info.group_id = atoi(group_id.c_str());
+            filament_info.nozzle_diameter = atof(nozzle_diameter.c_str());
+            filament_info.nozzle_volume_type = volume_type;
             m_curr_plater->slice_filaments_info.push_back(filament_info);
         }
         return true;
@@ -4789,6 +5027,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             volume->calculate_convex_hull();
 
+            // Save the color data of this volume（TriangleColor）
+            if (!m_is_bbl_3mf && sub_object->geometry.triangle_colors.size() == triangles_count) {
+                VolumeColorInfo vol_color_info;
+                vol_color_info.pid = sub_object->pid;
+                vol_color_info.pindex = sub_object->pindex;
+                vol_color_info.triangle_colors = sub_object->geometry.triangle_colors;
+                m_volume_color_data[volume->id().id] = std::move(vol_color_info);
+            }
+
             //set transform from 3mf
             Slic3r::Geometry::Transformation comp_transformatino(sub_comp.transform);
             volume->set_transformation(comp_transformatino * volume->get_transformation());
@@ -5112,7 +5359,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (current_object->uuid.empty()) {
                 current_object->uuid = bbs_get_attribute_value_string(attributes, num_attributes, PUUID_LOWER_ATTR);
             }
-            current_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+            if (bbs_has_attribute_value_int(attributes, num_attributes, PID_ATTR))
+                current_object->pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+            if (bbs_has_attribute_value_int(attributes, num_attributes, PINDEX_ATTR))
+                current_object->pindex = bbs_get_attribute_value_int(attributes, num_attributes, PINDEX_ATTR);
         }
 
         return true;
@@ -5196,7 +5446,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_color(const char **attributes, unsigned int num_attributes)
     {
         std::string color = bbs_get_attribute_value_string(attributes, num_attributes, COLOR_ATTR);
-        object_group_id_to_color[object_current_color_group] = color;
+        auto &colors = object_group_id_to_color[object_current_color_group];
+        colors.push_back(color);
         return true;
     }
 
@@ -5255,8 +5506,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::ObjectImporter::_handle_object_start_triangles(const char** attributes, unsigned int num_attributes)
     {
         // reset current triangles
-        if (current_object)
+        if (current_object) {
             current_object->geometry.triangles.clear();
+            current_object->geometry.triangle_colors.clear();
+        }
         return true;
     }
 
@@ -5289,6 +5542,35 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             current_object->geometry.mmu_segmentation.push_back(bbs_get_attribute_value_string(attributes, num_attributes, MMU_SEGMENTATION_ATTR));
             // BBS
             current_object->geometry.face_properties.push_back(bbs_get_attribute_value_string(attributes, num_attributes, FACE_PROPERTY_ATTR));
+
+            if (!is_bbl_3mf) {
+                TriangleColor color_info;
+                if (bbs_has_attribute_value_int(attributes, num_attributes, PID_ATTR)) {
+                    color_info.pid = bbs_get_attribute_value_int(attributes, num_attributes, PID_ATTR);
+                }
+                else {
+                    color_info.pid = current_object->pid;
+                }
+                if (color_info.pid >= 0) {
+                    const char* color_attrs[3] = { P1_ATTR, P2_ATTR, P3_ATTR };
+                    bool has_vertex_colors = false;
+                    for (int idx = 0; idx < 3; ++idx) {
+                        if (bbs_has_attribute_value_int(attributes, num_attributes, color_attrs[idx])) {
+                            color_info.indices[idx] = bbs_get_attribute_value_int(attributes, num_attributes, color_attrs[idx]);
+                        }
+                        else if (current_object->pindex >= 0) {
+                            if (idx == 0) {
+                                color_info.indices[idx] = current_object->pindex;
+                            }
+                            else {
+                                color_info.indices[idx] = color_info.indices[0];
+                            }
+                        }
+                    }
+                    modify_import_color(color_info.indices,3);
+                    current_object->geometry.triangle_colors.push_back(color_info);
+                }
+            }
         }
         return true;
     }
@@ -5657,6 +5939,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         bool _add_gcode_file_to_archive(mz_zip_archive& archive, const Model& model, PlateDataPtrs& plate_data_list, Export3mfProgressFn proFn = nullptr);
         bool _add_custom_gcode_per_print_z_file_to_archive(mz_zip_archive& archive, Model& model, const DynamicPrintConfig* config);
         bool _add_auxiliary_dir_to_archive(mz_zip_archive &archive, const std::string &aux_dir, PackingTemporaryData &data);
+        bool _add_filament_sequence_file_to_archive(mz_zip_archive& archive, const PlateDataPtrs& plate_data_list);
 
         static int convert_instance_id_to_resource_id(const Model& model, int obj_id, int instance_id)
         {
@@ -6192,6 +6475,11 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
+        if (!_add_filament_sequence_file_to_archive(archive,plate_data_list)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", _add_filament_sequence_file_to_archive failed\n");
+            return false;
+        }
+
         //BBS progress point
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", before add auxiliary dir to 3mf\n");
         if (proFn) {
@@ -6530,6 +6818,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string rating;
             std::string model_id;
             std::string region_code;
+            std::string profile_title;
+            std::string profile_cover;
+            std::string profile_description;
             if (model.design_info) {
                  user_name = model.design_info->Designer;
                  user_id = model.design_info->DesignerUserId;
@@ -6551,6 +6842,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 origin       = model.model_info->origin;
                 BOOST_LOG_TRIVIAL(trace) << "design_info, save_3mf found designer_cover = " << design_cover;
             }
+
+            if (model.profile_info) {
+                profile_title = model.profile_info->ProfileTile;
+                profile_cover = model.profile_info->ProfileCover;
+                profile_description = model.profile_info->ProfileDescription;
+            }
             // remember to use metadata_item_map to store metadata info
             std::map<std::string, std::string> metadata_item_map;
             if (!sub_model) {
@@ -6567,6 +6864,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 metadata_item_map[BBL_DESCRIPTION_TAG]          = xml_escape(description);
                 metadata_item_map[BBL_COPYRIGHT_NORMATIVE_TAG]  = xml_escape(copyright);
                 metadata_item_map[BBL_LICENSE_TAG]              = xml_escape(license);
+                metadata_item_map[BBL_PROFILE_TITLE_TAG]        = xml_escape(profile_title);
+                metadata_item_map[BBL_PROFILE_COVER_TAG]        = xml_escape(profile_cover);
+                metadata_item_map[BBL_PROFILE_DESCRIPTION_TAG]  = xml_escape(profile_description);
 
                 /* save model info */
                 if (!model_id.empty()) {
@@ -7268,7 +7568,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 // Store the layer height profile as a single space separated list.
                 for (size_t i = 0; i < brim_points.size(); ++i) {
-                    sprintf(buffer, (i==0 ? "%f %f %f %f" : " %f %f %f %f"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius);
+                    sprintf(buffer, (i==0 ? "%f %f %f %f %d" : " %f %f %f %f %d"),  brim_points[i].pos(0), brim_points[i].pos(1), brim_points[i].pos(2), brim_points[i].head_front_radius, brim_points[i].volume_idx);
                     out += buffer;
                 }
                 out += "\n";
@@ -7456,8 +7756,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
-        stream << BOLDNESS_ATTR << "=\"" << *text_info.text_configuration.style.prop.boldness << "\" ";
-        stream << SKEW_ATTR << "=\"" << *text_info.text_configuration.style.prop.skew << "\" ";
+        stream << BOLDNESS_ATTR << "=\"" << text_info.text_configuration.style.prop.boldness.value_or(0) << "\" ";
+        stream << SKEW_ATTR << "=\"" << text_info.text_configuration.style.prop.skew.value_or(0) << "\" ";
 
         stream << FONT_INDEX_ATTR << "=\"" << text_info.m_curr_font_idx << "\" ";
 
@@ -7699,6 +7999,18 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     for (int i = 0; i < values.size(); ++i) {
                         stream << values[i];
                         if (i != (values.size() - 1))
+                            stream << " ";
+                    }
+                    stream << "\"/>\n";
+                }
+
+                ConfigOptionInts* filament_volume_maps_opt = plate_data->config.option<ConfigOptionInts>("filament_volume_map");
+                if (filament_map_mode_opt != nullptr && filament_volume_maps_opt != nullptr) {
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_VOL_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
+                    const std::vector<int>& volume_values = filament_volume_maps_opt->values;
+                    for (int i = 0; i < volume_values.size(); ++i) {
+                        stream << volume_values[i];
+                        if (i != (volume_values.size() - 1))
                             stream << " ";
                     }
                     stream << "\"/>\n";
@@ -8009,11 +8321,16 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {
                     stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
-                           << FILAMENT_TRAY_INFO_ID_TAG <<"=\""<< it->filament_id <<"\" "
-                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
-                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
-                           << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
-                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" />\n";
+                        << FILAMENT_TRAY_INFO_ID_TAG << "=\"" << it->filament_id << "\" "
+                        << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                        << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                        << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
+                        << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
+                        << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
+                        << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
+                        << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
+                        << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
+                        << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
@@ -8235,6 +8552,36 @@ bool _BBS_3MF_Exporter::_add_auxiliary_dir_to_archive(mz_zip_archive &archive, c
     }
 
     return result;
+}
+
+
+bool _BBS_3MF_Exporter::_add_filament_sequence_file_to_archive(mz_zip_archive& archive, const PlateDataPtrs& plate_data_list)
+{
+    std::string sequence_str;
+    json j;
+
+    for(size_t idx =0 ;idx< plate_data_list.size();++idx){
+        PlateData* plate_data = plate_data_list[idx];
+        if(!plate_data)
+            continue;
+
+        std::string plate_idx = "plate_"+std::to_string(idx+1);
+        std::vector<unsigned int> sequence = plate_data->filament_change_sequence;
+        std::transform(sequence.begin(), sequence.end(), sequence.begin(), [](unsigned int v) { return v + 1; }); // to 1 based idx
+        j[plate_idx]["sequence"] = sequence;
+    }
+
+    if(j.empty())
+        return true;
+
+    sequence_str = j.dump();
+
+    if(!mz_zip_writer_add_mem(&archive, FILAMENT_SEQUENCE_FILE.c_str(), sequence_str.c_str(), sequence_str.size(), MZ_DEFAULT_COMPRESSION)){
+        add_error("Unable to add model config file to archive");
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", store  slice-info to 3mf,  length %1%, failed\n") % sequence_str.length();
+        return false;
+    }
+    return true;
 }
 
 // Perform conversions based on the config values available.
@@ -8613,7 +8960,8 @@ private:
 
 //BBS: add plate data list related logic
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
-                    bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id)
+                    bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id,
+                    std::unordered_map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
@@ -8623,6 +8971,17 @@ bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstituti
     _BBS_3MF_Importer importer;
     bool res = importer.load_model_from_file(path, *model, *plate_data_list, *project_presets, *config, *config_substitutions, strategy, is_bbl_3mf, *file_version, proFn, project, plate_id);
     importer.log_errors();
+
+    // If color mapping information is requested, return
+    if (color_group_map != nullptr) {
+        *color_group_map = importer.get_color_group_map();
+    }
+
+    // If volume color data is requested, return
+    if (volume_color_data != nullptr) {
+        *volume_color_data = importer.get_volume_color_data();
+    }
+
     //BBS: remove legacy project logic currently
     //handle_legacy_project_loaded(importer.version(), *config);
     return res;

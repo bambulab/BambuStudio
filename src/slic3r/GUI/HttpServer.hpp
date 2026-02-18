@@ -35,12 +35,23 @@ namespace GUI {
         std::string redirect_url;
     };
 
+    enum class HttpReqType {
+        Login,
+        RefreshToken,
+        Unknown,
+    };
+
     struct session : public std::enable_shared_from_this<session> {
         explicit session(boost::asio::ip::tcp::socket s) : socket_(std::move(s)) {}
 
         void run() { do_read(); }
 
+        void send_text_response(const std::string& text_data);
+
+        void set_scramble_key(std::string key);
+
     private:
+        std::string m_scramble_key = "";
         void do_read() {
             auto self = shared_from_this();
             req_ = {}; // reset
@@ -54,6 +65,10 @@ namespace GUI {
         void do_write_404();
 
         void do_write_302(LoginParams params, bool result);
+
+        void handle_login();
+
+        void handle_refresh_token();
 
         void handle_request();
 

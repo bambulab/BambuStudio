@@ -1240,15 +1240,9 @@ bool SyncAmsInfoDialog::do_ams_mapping(MachineObject *obj_)
     }
     // single nozzle
     else {
-        if (obj_->is_support_amx_ext_mix_mapping()) {
-            map_opt         = {false, true, false, true}; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
-                                                         wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
-            // auto_supply_with_ext(obj_->vt_slot);
-        } else {
-            map_opt         = {false, true, false, false};
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
-        }
+        map_opt = { false, true, false, true }; // four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(),
+                                                               wxGetApp().app_config->get_bool("ams_sync_match_full_use_color_dist") ? false : true);
     }
 
     if (filament_result == 0) {
@@ -1463,7 +1457,7 @@ bool SyncAmsInfoDialog::can_hybrid_mapping(DevExtderSystem data)
     for (auto it = data.GetExtruders().rbegin(); it != data.GetExtruders().rend(); it++) {
         // exist field is not updated, wait add
         // if (it->exist < 3) return false;
-        std::string type_str = it->GetNozzleFlowType() ? "High Flow" : "Standard";
+        std::string type_str = DevNozzle::ToNozzleFlowString(it->GetNozzleFlowType());
         flow_type_of_machine.push_back(type_str);
     }
     // get the nozzle type of preset --> flow_types
@@ -1528,11 +1522,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
     for (auto i = 0; i < used_extruders.size(); i++) {
         if (nozzle_volume_type_opt) {
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (nozzle_volume_type_opt->get_at(used_extruders[i]));
-            if (nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                used_extruders_flow[used_extruders[i]] = "Standard";
-            } else {
-                used_extruders_flow[used_extruders[i]] = "High Flow";
-            }
+            used_extruders_flow[used_extruders[i]] = DevNozzle::ToNozzleVolumeString(nozzle_volume_type);
         }
     }
 
@@ -1541,11 +1531,7 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
     // The default two extruders are left, right, but the order of the extruders on the machine is right, left.
     std::vector<std::string> flow_type_of_machine;
     for (auto it = data.GetExtruders().begin(); it != data.GetExtruders().end(); it++) {
-        if (it->GetNozzleFlowType() == NozzleFlowType::H_FLOW) {
-            flow_type_of_machine.push_back("High Flow");
-        } else if (it->GetNozzleFlowType() == NozzleFlowType::S_FLOW) {
-            flow_type_of_machine.push_back("Standard");
-        }
+        flow_type_of_machine.push_back(DevNozzle::ToNozzleFlowString(it->GetNozzleFlowType()));
     }
 
     // Only when all preset nozzle types and machine nozzle types are exactly the same, return true.
@@ -1964,7 +1950,7 @@ bool SyncAmsInfoDialog::is_same_nozzle_type(std::string &filament_type, NozzleTy
     while (iter != m_materialList.end()) {
         Material *    item                = iter->second;
         auto               m              = item->item;
-        auto          filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_type(m->m_material_name.ToStdString());
+        auto          filament_nozzle_hrc = preset_bundle->get_required_hrc_by_filament_id(m->m_filament_id);
 
         if (abs(filament_nozzle_hrc) > abs(printer_nozzle_hrc)) {
             filament_type = m->m_material_name.ToStdString();
@@ -2335,20 +2321,6 @@ void SyncAmsInfoDialog::update_show_status()
         do_ams_mapping(obj_);
     }
 
-
-    // reading done
-    if (wxGetApp().app_config) {
-        if (obj_->upgrade_force_upgrade) {
-            show_status(PrintDialogStatus::PrintStatusNeedForceUpgrading);
-            return;
-        }
-
-        if (obj_->upgrade_consistency_request) {
-            show_status(PrintStatusNeedConsistencyUpgrading);
-            return;
-        }
-    }
-
     if (is_blocking_printing(obj_)) {
         show_status(PrintDialogStatus::PrintStatusUnsupportedPrinter);
         return;
@@ -2679,10 +2651,10 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
         MaterialSyncItem *item = nullptr;
         if (use_double_extruder) {
             if (m_filaments_map[extruder] == 1) {
-                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_left_panel//special
+                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_left_panel//special
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_left
             } else if (m_filaments_map[extruder] == 2) {
-                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
+                item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_right_panel
                 m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                   // m_sizer_ams_mapping_right
             }
             else {
@@ -2690,7 +2662,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                 continue;
             }
         } else {
-            item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            item = new MaterialSyncItem(m_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         auto item_index_str = std::to_string(item_index);
@@ -2894,17 +2866,17 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
         MaterialSyncItem *item = nullptr;
         if (use_double_extruder) {
             if (m_filaments_map[extruder] == 1) {
-                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_left_panel//special
+                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_left_panel//special
                 m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                       // m_sizer_ams_mapping_left
             } else if (m_filaments_map[extruder] == 2) {
-                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder])); // m_filament_right_panel
+                item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]); // m_filament_right_panel
                 m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));                                       // m_sizer_ams_mapping_right
             } else {
                 BOOST_LOG_TRIVIAL(error) << "check error:MaterialItem *item = nullptr";
                 continue;
             }
         } else {
-            item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]));
+            item = new MaterialSyncItem(m_fix_filament_panel, colour_rgb, _L(display_materials[extruder]), m_filaments_id[extruder]);
             m_fix_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
         }
         item->set_material_index_str(std::to_string(item_index));

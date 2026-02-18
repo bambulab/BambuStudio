@@ -40,7 +40,7 @@ option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
-CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow perfoming desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
+CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
 set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
 
@@ -181,11 +181,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # We pick it from environment if it is not defined in another way
 if(WIN32)
     if(EXISTS "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"  AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-        message(STATUS ".git: directory")
-        configure_file(
-            "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"
-            "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit"
-        )
+       if(IS_DIRECTORY "${CMAKE_SOURCE_DIR}/.git")
+            message(STATUS ".git: directory")
+            configure_file(
+                "${CMAKE_SOURCE_DIR}/scripts/hooks/pre-commit"
+                "${CMAKE_SOURCE_DIR}/.git/hooks/pre-commit"
+            )
+       else()
+           message(STATUS "skip pre-commit git hook")
+       endif()
     endif()
 
     find_package(PkgConfig REQUIRED)
@@ -265,7 +269,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     endif()
 
     # Clang reports legacy OpenGL calls as deprecated. Turn off the warning for now
-    # to reduce the clutter, we know about this one. It should be reenabled after
+    # to reduce the clutter, we know about this one. It should be re-enabled after
     # we finally get rid of the deprecated code.
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         add_compile_options(-Wno-deprecated-declarations)
@@ -537,7 +541,7 @@ add_custom_target(gettext_make_pot
 )
 add_custom_target(gettext_merge_po_with_pot
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Merge localization po with new generted pot file"
+    COMMENT "Merge localization po with new generated pot file"
 )
 file(GLOB BBL_L10N_PO_FILES "${BBL_L18N_DIR}/*/BambuStudio*.po")
 foreach(po_file ${BBL_L10N_PO_FILES})
@@ -567,12 +571,12 @@ foreach(po_file ${BBL_L10N_PO_FILES})
 endforeach()
 
 # copy pt-BR/BamabuStudio.mo to pt_br/
-SET(PT_BR "${L10N_DIR}/pt-BR/BambuStudio.mo")
-SET(PT_BR_DST "${L10N_DIR}/pt_br/")
-add_custom_command(
-    TARGET gettext_po_to_mo POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PT_BR} ${PT_BR_DST}
-)
+#SET(PT_BR "${L10N_DIR}/pt-BR/BambuStudio.mo")
+#SET(PT_BR_DST "${L10N_DIR}/pt_br/")
+#add_custom_command(
+#    TARGET gettext_po_to_mo POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PT_BR} ${PT_BR_DST}
+#)
 
 find_package(NLopt 1.4 REQUIRED)
 
@@ -700,19 +704,31 @@ function(bambustudio_copy_sos target config postfix output_sos)
     set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
 
-    file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
-         DESTINATION ${_out_dir})
+    if (EXISTS "/usr/lib/aarch64-linux-gnu/libavcodec.so")
+        file(COPY /usr/lib/aarch64-linux-gnu/libavcodec.so
+                  /usr/lib/aarch64-linux-gnu/libavcodec.so.61
+                  /usr/lib/aarch64-linux-gnu/libavutil.so
+                  /usr/lib/aarch64-linux-gnu/libavutil.so.59
+                  /usr/lib/aarch64-linux-gnu/libswscale.so
+                  /usr/lib/aarch64-linux-gnu/libswscale.so.8
+                  /usr/lib/aarch64-linux-gnu/libswresample.so
+                  /usr/lib/aarch64-linux-gnu/libswresample.so.5
+             DESTINATION ${_out_dir})
+    else()
+        file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
+             DESTINATION ${_out_dir})
+    endif()
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so

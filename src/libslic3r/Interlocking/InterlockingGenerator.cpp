@@ -1,6 +1,8 @@
 // Copyright (c) 2023 UltiMaker
 // CuraEngine is released under the terms of the AGPLv3 or higher.
 
+#include <tbb/parallel_for.h>
+
 #include "ClipperUtils.hpp"
 #include "InterlockingGenerator.hpp"
 #include "Layer.hpp"
@@ -22,6 +24,48 @@ template<> struct hash<Slic3r::GridPoint3>
 
 
 namespace Slic3r {
+void InterlockingGenerator::generate_embedding_wall(PrintObject* print_object){
+    //params
+    const int      interface_depth    = 2;
+    const int      boundary_avoidance = 2;
+    constexpr coord_t DEFAULT_BEAM_WIDTH = scaled(0.2); // 例如默认2mm
+    const coord_t beam_width = DEFAULT_BEAM_WIDTH;
+
+    const DilationKernel interface_dilation(GridPoint3(interface_depth, interface_depth, interface_depth), DilationKernel::Type::PRISM);
+    const bool           air_filtering = boundary_avoidance > 0;
+    const DilationKernel air_dilation(GridPoint3(boundary_avoidance, boundary_avoidance, boundary_avoidance), DilationKernel::Type::PRISM);
+
+    const coord_t cell_width = beam_width + beam_width;
+    const Vec3crd cell_size(cell_width, cell_width, 2);
+
+    //generator
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, print_object->layers().size()),
+        [print_object, beam_width, boundary_avoidance, cell_size, interface_dilation, air_dilation, air_filtering](const tbb::blocked_range<size_t>& range) {
+            for (size_t i = range.begin(); i != range.end(); ++i) {
+                Layer* layer = print_object->layers()[i];
+                if (layer->id() % 2 == 0)
+                    continue;
+            for(size_t region_a_index = 0; region_a_index < layer->region_count(); region_a_index++){
+                const PrintRegionConfig& config = layer->get_region(region_a_index)->region().config();
+
+                for(size_t region_b_index = region_a_index + 1; region_b_index < layer->region_count(); region_b_index++){
+                    const PrintRegionConfig& config_other = layer->get_region(region_b_index)->region().config();
+                    // wall to infill
+                    if (!(config_other.embedding_wall_into_infill || config.embedding_wall_into_infill)|| layer->has_compatible_layer_regions(config, config_other) ||
+                        (config.wall_loops == 0 && config_other.wall_loops == 0) ||
+                        (config.wall_loops > 0 && config_other.wall_loops > 0)) {
+                        continue;
+                    }
+                    //has embedding part
+                    InterlockingGenerator gen(*print_object, region_a_index, region_b_index, beam_width, boundary_avoidance, 0, cell_size, 1,
+                                              interface_dilation, air_dilation, air_filtering);
+                    gen.generateInterlockingwall(layer);
+                }
+            }
+        }
+    });
+}
 
 void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_object)
 {
@@ -142,6 +186,32 @@ void InterlockingGenerator::handleThinAreas(const std::unordered_set<GridPoint3>
         layer->get_region(region_b_index)->slices.set(closing_ex(diff_ex(union_ex(polys_b, thin_expansion_b), thin_expansion_a), close_gaps), stInternal);
     }
 }
+void  InterlockingGenerator::generateInterlockingwall(Layer* layer) const{
+    // get shell shape
+    std::vector<std::unordered_set<GridPoint3>> voxels_per_mesh = getLayerShellVoxels(interface_dilation, layer);
+
+    std::unordered_set<GridPoint3>& has_any_mesh   = voxels_per_mesh[0];
+    std::unordered_set<GridPoint3>& has_all_meshes = voxels_per_mesh[1];
+    has_any_mesh.merge(has_all_meshes); // perform union and intersection simultaneously. Cannibalizes voxels_per_mesh
+
+    if (has_all_meshes.empty()) {
+        return; 
+    }
+
+    ExPolygons layer_regions;
+    expolygons_append(layer_regions, to_expolygons(layer->get_region(region_a_index)->slices.surfaces));
+    expolygons_append(layer_regions, to_expolygons(layer->get_region(region_b_index)->slices.surfaces));
+    layer_regions = closing_ex(layer_regions, ignored_gap_); // Morphological close to merge meshes into single volume
+
+    std::unordered_set<GridPoint3> air_cells;
+    addLayerBoundaryCells(layer_regions, layer->id(), air_dilation, air_cells);
+
+    for (const GridPoint3& p : air_cells) {
+        has_all_meshes.erase(p);
+    }
+
+    applyEmbeddingToOutlines(has_all_meshes, layer_regions, layer, layer->id());
+}
 
 void InterlockingGenerator::generateInterlockingStructure() const
 {
@@ -170,6 +240,19 @@ void InterlockingGenerator::generateInterlockingStructure() const
 
     applyMicrostructureToOutlines(has_all_meshes, layer_regions);
 }
+std::vector<std::unordered_set<GridPoint3>> InterlockingGenerator::getLayerShellVoxels(const DilationKernel& kernel, Layer* layer) const{
+    std::vector<std::unordered_set<GridPoint3>> voxels_per_mesh(2);
+
+    // mark all cells which contain some boundary
+    for (size_t region_idx = 0; region_idx < 2; region_idx++){
+        const size_t region = (region_idx == 0) ? region_a_index : region_b_index;
+        std::unordered_set<GridPoint3>& mesh_voxels = voxels_per_mesh[region_idx];
+        ExPolygons rotated_polygons_per_layer = to_expolygons(layer->get_region(region)->slices.surfaces);
+        addLayerBoundaryCells(rotated_polygons_per_layer, layer->id(), kernel, mesh_voxels);
+    }
+
+    return voxels_per_mesh;
+}
 
 std::vector<std::unordered_set<GridPoint3>> InterlockingGenerator::getShellVoxels(const DilationKernel& kernel) const
 {
@@ -194,6 +277,29 @@ std::vector<std::unordered_set<GridPoint3>> InterlockingGenerator::getShellVoxel
 
     return voxels_per_mesh;
 }
+void InterlockingGenerator::addLayerBoundaryCells(const ExPolygons &  layers,
+                                                  const int &layer_cnt,
+                                                 const DilationKernel&           kernel,
+                                                 std::unordered_set<GridPoint3>& cells) const
+{
+    auto voxel_emplacer = [&cells](GridPoint3 p) {
+        if (p.z() < 0) {
+            return true;
+        }
+        cells.emplace(p);
+        return true;
+    };
+
+    const coord_t z = static_cast<coord_t>(layer_cnt);
+    vu.walkDilatedPolygons(layers, z, kernel, voxel_emplacer);
+    ExPolygons skin;
+    // skin = xor_ex(skin, layers[layer_nr - 1]);
+
+    // skin = opening_ex(skin, cell_size.x() / 2.f); // remove superfluous small areas, which would anyway be included because of walkPolygons
+    vu.walkDilatedAreas(skin, z, kernel, voxel_emplacer);
+
+}
+
 
 void InterlockingGenerator::addBoundaryCells(const std::vector<ExPolygons>&  layers,
                                              const DilationKernel&           kernel,
@@ -237,6 +343,26 @@ std::vector<ExPolygons> InterlockingGenerator::computeUnionedVolumeRegions() con
     return layer_regions;
 }
 
+
+ExPolygons InterlockingGenerator::generateLayerMicrostructure() const
+{
+    ExPolygons cell_area_per_mesh_per_layer;
+    const coord_t middle     = cell_size.x() / 2;
+    const coord_t width[2]   = {middle, cell_size.x() - middle};
+    for (size_t mesh_idx : {0ul, 1ul}) {
+        Point offset(mesh_idx ? middle : 0, 0);
+        Point area_size(width[mesh_idx], cell_size.y());
+
+        Polygon poly;
+        poly.append(offset );
+        poly.append(offset + Point(area_size.x(), 0));
+        poly.append(offset + area_size);
+        poly.append(offset + Point(0, area_size.y()));
+        cell_area_per_mesh_per_layer.emplace_back(poly);
+    }
+    return cell_area_per_mesh_per_layer;
+}
+
 std::vector<std::vector<ExPolygons>> InterlockingGenerator::generateMicrostructure() const
 {
     std::vector<std::vector<ExPolygons>> cell_area_per_mesh_per_layer;
@@ -266,6 +392,39 @@ std::vector<std::vector<ExPolygons>> InterlockingGenerator::generateMicrostructu
         }
     }
     return cell_area_per_mesh_per_layer;
+}
+
+void InterlockingGenerator::applyEmbeddingToOutlines(const std::unordered_set<GridPoint3>& cells, const ExPolygons & layer_regions, Layer *layer, const int &idx) const{
+    ExPolygons cell_area_per_mesh_per_layer = generateLayerMicrostructure();
+
+    ExPolygons structure; // for each mesh the structure on each layer
+    // Every `beam_layer_count` number of layers are combined to an interlocking beam layer
+    // to store these we need ceil(max_layer_count / beam_layer_count) of these layers
+    // the formula is rewritten as (max_layer_count + beam_layer_count - 1) / beam_layer_count, so it works for integer division
+    // Only compute cell structure for half the layers, because since our beams are two layers high, every odd layer of the structure will
+    // be the same as the layer below.
+    for (const GridPoint3& grid_loc : cells) {
+        Vec3crd bottom_corner = vu.toLowerCorner(grid_loc);
+        ExPolygons areas_here = cell_area_per_mesh_per_layer;
+        for (auto & here : areas_here) {
+            here.translate(bottom_corner.x(), bottom_corner.y());
+        }
+        expolygons_append(structure, areas_here);
+    }
+
+    ExPolygons layer_outlines = layer_regions;
+    const ExPolygons areas_here = intersection_ex(structure, layer_regions);
+    for (size_t region_idx = 0; region_idx < 2; region_idx++) {
+        const size_t region = (region_idx == 0) ? region_a_index : region_b_index;
+        auto&      slices = layer->get_region(region)->slices;
+        ExPolygons polys  = to_expolygons(slices.surfaces);
+        if (layer->get_region(region)->region().config().wall_loops > 0)
+            slices.set(union_ex(polys, // reduce layer areas inward with beams from other mesh
+                            areas_here)// extend layer areas outward with newly added beams
+                          , stInternal);
+        else
+            slices.set(diff_ex(polys, areas_here), stInternal);
+    }
 }
 
 void InterlockingGenerator::applyMicrostructureToOutlines(const std::unordered_set<GridPoint3>& cells,

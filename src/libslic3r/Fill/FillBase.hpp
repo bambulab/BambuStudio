@@ -56,6 +56,7 @@ struct FillParams
     double      filter_out_gap_fill { 0.0 };
     // Fill density, fraction in <0, 1>
     float       density 		{ 0.f };
+    int         multiline       { 1 };
 
     // Length of an infill anchor along the perimeter.
     // 1000mm is roughly the maximum length line that fits into a 32bit coord_t.
@@ -81,6 +82,8 @@ struct FillParams
     // Layer height for Concentric infill with Arachne.
     coordf_t    layer_height    { 0.f };
 
+    InfillPattern pattern{ ipRectilinear };
+
     // BBS
     Flow            flow;
     ExtrusionRole   extrusion_role{ ExtrusionRole(0) };
@@ -94,6 +97,10 @@ struct FillParams
     bool            symmetric_infill_y_axis{false};
     coord_t         symmetric_y_axis{0};
     bool            locked_zag{false};
+
+    // For 2D lattice
+    coordf_t        lattice_angle_1{0.f};
+    coordf_t        lattice_angle_2{0.f};
 };
 static_assert(IsTriviallyCopyable<FillParams>::value, "FillParams class is not POD (and it should be - see constructor).");
 
@@ -211,6 +218,9 @@ public:
 
     static coord_t  _adjust_solid_spacing(const coord_t width, const coord_t distance);
 };
+
+//Fill  Multiline 
+void multiline_fill(Polylines& polylines, const FillParams& params, float spacing);
 
 } // namespace Slic3r
 

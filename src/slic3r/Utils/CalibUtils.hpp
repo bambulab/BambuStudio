@@ -20,6 +20,8 @@ public:
     int                                ams_id = 0;
     int                                slot_id = 0;
     float                              nozzle_diameter;
+    int                                nozzle_pos_id = -1;  //-1 means no nozzle pos;   0:right extruder, 1:left extruder, 0x10~0x15: nozzle pos
+    std::string                        nozzle_sn;
     ExtruderType                       extruder_type{ExtruderType::etDirectDrive};
     NozzleVolumeType                   nozzle_volume_type;
     Calib_Params                       params;
@@ -82,6 +84,8 @@ public:
     static bool check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message);
     static bool check_printable_status_before_cali(const MachineObject *obj, const CalibInfo &cali_info, wxString &error_message);
     static bool check_printable_status_before_cali(const MachineObject *obj, const std::vector<CalibInfo> &cali_infos, wxString &error_message);
+
+    static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message);
 
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);

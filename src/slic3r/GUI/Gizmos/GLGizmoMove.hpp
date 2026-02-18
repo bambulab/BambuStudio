@@ -27,7 +27,7 @@ class GLGizmoMove3D : public GLGizmoBase
     Vec3d m_starting_box_bottom_center;
 
     GLModel m_vbo_cone;
-
+    GLModel m_align_plane;
     //BBS: add size adjust related
     GizmoObjectManipulation* m_object_manipulation;
 
@@ -73,6 +73,8 @@ private:
     double calc_projection(const UpdateData& data) const;
     void render_grabber_extension(Axis axis, const BoundingBoxf3& box, bool picking) const;
     void   change_cs_by_selection(); //cs mean Coordinate System
+    void   render_selected_bounding_boxes(const BoundingBoxf3 &box);
+
 private:
     int m_last_selected_obejct_idx, m_last_selected_volume_idx;
 };

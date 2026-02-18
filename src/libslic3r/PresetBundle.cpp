@@ -48,7 +48,11 @@ static std::vector<std::string> s_project_options {
     "flush_multiplier",
     "nozzle_volume_type",
     "filament_map_mode",
-    "filament_map"
+    "filament_map",
+    "filament_volume_map",
+    "filament_nozzle_map",
+    "extruder_nozzle_stats",
+    "prime_volume_mode"
 };
 
 //BBS: add BBL as default
@@ -63,7 +67,8 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     const DynamicPrintConfig& project_config,
     std::vector<Preset>& in_filament_presets,
     bool apply_extruder,
-    std::optional<std::vector<int>> filament_maps_new)
+    std::optional<std::vector<int>> filament_maps_new,
+    std::optional<std::vector<int>> filament_volume_maps_new)
 {
     DynamicPrintConfig &printer_config = in_printer_preset.config;
     DynamicPrintConfig &print_config   = in_print_preset.config;
@@ -78,11 +83,22 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     size_t num_filaments = in_filament_presets.size();
 
     std::vector<int> filament_maps = out.option<ConfigOptionInts>("filament_map")->values;
+    std::vector<int> filament_volume_maps(num_filaments, (int)nvtStandard);
+
+    ConfigOptionInts* filament_volume_map_opt = out.option<ConfigOptionInts>("filament_volume_map");
     if (filament_maps_new.has_value())
         filament_maps = *filament_maps_new;
+    if (filament_volume_maps_new.has_value())
+        filament_volume_maps = *filament_volume_maps_new;
+    else if (filament_volume_map_opt && filament_volume_map_opt->values.size() == num_filaments)
+        filament_volume_maps = filament_volume_map_opt->values;
+
     // in some middle state, they may be different
     if (filament_maps.size() != num_filaments) {
         filament_maps.resize(num_filaments, 1);
+    }
+    if (filament_volume_maps.size() != num_filaments) {
+        filament_volume_maps.resize(num_filaments, nvtStandard);
     }
 
     auto *extruder_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(out.option("nozzle_diameter"));
@@ -103,18 +119,27 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     std::string print_inherits = in_print_preset.inherits();
     inherits.emplace_back(print_inherits);
 
-    // BBS: update printer config related with variants
+    //BBS: update printer config related with variants
+    std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
+    int extruder_count = 1, extruder_volume_type_count = 1;
+    bool different_extruder = false;
     if (apply_extruder) {
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
-        // update print config related with variants
-        out.update_values_to_printer_extruders(out, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        different_extruder = out.support_different_extruders(extruder_count);
+        extruder_volume_type_count = out.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
+
+        if ((extruder_count > 1) || different_extruder) {
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+            // update print config related with variants
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        }
     }
 
     if (num_filaments <= 1) {
         // BBS: update filament config related with variants
         DynamicPrintConfig filament_config = in_filament_presets[0].config;
-        if (apply_extruder) filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0]);
+        if (apply_extruder && ((extruder_count > 1) || different_extruder))
+            filament_config.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0], (NozzleVolumeType)filament_volume_maps[0]);
         out.apply(filament_config);
         compatible_printers_condition.emplace_back(in_filament_presets[0].compatible_printers_condition());
         compatible_prints_condition.emplace_back(in_filament_presets[0].compatible_prints_condition());
@@ -137,8 +162,8 @@ DynamicPrintConfig PresetBundle::construct_full_config(
         filament_temp_configs.resize(num_filaments);
         for (size_t i = 0; i < num_filaments; ++i) {
             filament_temp_configs[i] = *(filament_configs[i]);
-            if (apply_extruder)
-                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i]);
+            if (apply_extruder && ((extruder_count > 1) || different_extruder))
+                filament_temp_configs[i].update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i], (NozzleVolumeType)filament_volume_maps[i]);
         }
 
         // loop through options and apply them to the resulting config.
@@ -213,6 +238,7 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     out.option<ConfigOptionString>("printer_settings_id", true)->value    = in_printer_preset.name;
     out.option<ConfigOptionStrings>("filament_ids", true)->values         = filament_ids;
     out.option<ConfigOptionInts>("filament_map", true)->values            = filament_maps;
+    out.option<ConfigOptionInts>("filament_volume_map", true)->values     = filament_volume_maps;
 
     auto add_if_some_non_empty = [&out](std::vector<std::string> &&values, const std::string &key) {
         bool nonempty = false;
@@ -233,6 +259,79 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
 }
+
+int ExtruderNozzleStat::get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type) const
+{
+    if(extruder_id<0 || extruder_id >= extruder_nozzle_counts.size())
+        return 0;
+    if (!volume_type.has_value() || volume_type == NozzleVolumeType::nvtHybrid)
+        return std::accumulate(extruder_nozzle_counts[extruder_id].begin(), extruder_nozzle_counts[extruder_id].end(), 0,
+            [](int sum, const std::pair<NozzleVolumeType, int>& p) { return sum + p.second; });
+
+    auto iter = extruder_nozzle_counts[extruder_id].find(*volume_type);
+    if(iter == extruder_nozzle_counts[extruder_id].end())
+        return 0;
+    return iter->second;
+}
+
+void ExtruderNozzleStat::on_printer_model_change(PresetBundle* preset_bundle)
+{
+    if (force_keep_stat)
+        return;
+    BOOST_LOG_TRIVIAL(info)<< __FUNCTION__ << boost::format(": reset extruder nozzle stat by printer model change : %1%") % preset_bundle->printers.get_selected_preset().name;
+    auto nozzle_volume_type = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto max_nozzle_count = preset_bundle->printers.get_selected_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    extruder_nozzle_counts.resize(max_nozzle_count->size());
+    for (size_t eid = 0; eid < extruder_nozzle_counts.size(); ++eid) {
+        NozzleVolumeType type = nvtStandard;
+        if (eid >= nozzle_volume_type->size())
+            BOOST_LOG_TRIVIAL(error)<< __FUNCTION__ << boost::format(": eid out of bounds, use standard flow");
+        else
+            type = NozzleVolumeType(nozzle_volume_type->values[eid]);
+        set_extruder_nozzle_count(eid, type, max_nozzle_count->values[eid], true);
+    }
+}
+
+void ExtruderNozzleStat::on_printer_model_change_cli(const std::vector<int>& nozzle_volume_type, const std::vector<int>& max_nozzle_count)
+{
+    if (force_keep_stat) return;
+    extruder_nozzle_counts.resize(max_nozzle_count.size());
+    for (size_t eid = 0; eid < extruder_nozzle_counts.size(); ++eid) {
+        NozzleVolumeType type = nvtStandard;
+        if (eid >= nozzle_volume_type.size())
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": eid out of bounds, use standard flow");
+        else
+            type = NozzleVolumeType(nozzle_volume_type[eid]);
+        set_extruder_nozzle_count(eid, type, max_nozzle_count[eid], true);
+    }
+}
+
+
+void ExtruderNozzleStat::on_volume_type_switch(int extruder_id, NozzleVolumeType type)
+{
+
+    if (data_flag == NozzleDataFlag::ndfMachine) {
+        // do nothing here
+    }
+    else if (type != nvtHybrid) {
+        int current_count = get_extruder_nozzle_count(extruder_id, std::nullopt);
+        if (extruder_id >= extruder_nozzle_counts.size()) {
+            extruder_nozzle_counts.resize(extruder_id + 1);
+        }
+        extruder_nozzle_counts[extruder_id].clear();
+        extruder_nozzle_counts[extruder_id][type] = current_count;
+    }
+}
+
+void ExtruderNozzleStat::set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear)
+{
+    if (extruder_id >= extruder_nozzle_counts.size())
+        extruder_nozzle_counts.resize(extruder_id + 1);
+    if(clear)
+        extruder_nozzle_counts[extruder_id].clear();
+    extruder_nozzle_counts[extruder_id][type] = count;
+}
+
 
 PresetBundle::PresetBundle()
     : prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const PrintRegionConfig &>(FullPrintConfig::defaults()))
@@ -518,7 +617,7 @@ Semver PresetBundle::get_vendor_profile_version(std::string vendor_name)
     return result_ver;
 }
 
-std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name) const
+std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name, bool only_system) const
 {
     if (filament_id.empty())
         return std::nullopt;
@@ -530,6 +629,8 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
         const Preset& filament_preset = *iter;
         const auto& config = filament_preset.config;
         if (filament_preset.filament_id == filament_id) {
+            if (only_system && !filament_preset.is_system)
+                continue;
             FilamentBaseInfo info;
             info.filament_id = filament_id;
             info.is_system = filament_preset.is_system;
@@ -547,6 +648,7 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
             if(config.has("temperature_vitrification"))
                 info.temperature_vitrification = config.option<ConfigOptionInts>("temperature_vitrification")->values[0];
 
+            info.setting_id = filament_preset.setting_id;
             if (!printer_name.empty()) {
                 std::vector<std::string> compatible_printers = config.option<ConfigOptionStrings>("compatible_printers")->values;
                 auto iter = std::find(compatible_printers.begin(), compatible_printers.end(), printer_name);
@@ -1040,7 +1142,7 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
             const Preset &default_preset = collection->default_preset_for(config);
             new_config                   = default_preset.config;
             new_config.apply(std::move(config));
-            extend_default_config_length(new_config, true, default_preset.config);
+            extend_default_config_length(new_config, {}, true, default_preset.config);
         }
 
         Preset &preset     = collection->load_preset(collection->path_from_name(name, inherit_preset == nullptr), name, std::move(new_config), false);
@@ -1181,6 +1283,38 @@ void PresetBundle::update_system_preset_setting_ids(std::map<std::string, std::m
         }
     }
     return;
+}
+
+
+std::vector<std::vector<std::vector<float>>> PresetBundle::get_full_flush_matrix(bool with_multiplier) const
+{
+    auto full_config = this->full_config();
+    int extruder_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    std::vector<double> flush_volume_value = full_config.option<ConfigOptionFloatsNullable>("flush_volumes_matrix")->values;
+    int filament_nums = full_config.option<ConfigOptionStrings>("filament_type")->values.size();
+
+    std::vector<std::vector<std::vector<float>>> matrix;
+    for(size_t extruder_id = 0; extruder_id < extruder_nums; ++ extruder_id){
+        std::vector<float>              flush_matrix(cast<float>(get_flush_volumes_matrix(flush_volume_value, extruder_id, extruder_nums)));
+        std::vector<std::vector<float>> wipe_volumes;
+        for (unsigned int i = 0; i < filament_nums; ++i)
+            wipe_volumes.push_back(std::vector<float>(flush_matrix.begin() + i * filament_nums, flush_matrix.begin() + (i + 1) * filament_nums));
+
+        matrix.emplace_back(wipe_volumes);
+    }
+
+    if(with_multiplier){
+        auto flush_multiplies = project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
+        flush_multiplies.resize(extruder_nums, 1);
+        for (size_t extruder_id = 0; extruder_id < extruder_nums; ++extruder_id) {
+            for (auto& vec : matrix[extruder_id]) {
+                for (auto& v : vec)
+                    v *= flush_multiplies[extruder_id];
+            }
+        }
+    }
+
+    return matrix;
 }
 
 //BBS: validate printers from previous project
@@ -1663,25 +1797,13 @@ const std::string& PresetBundle::get_preset_name_by_alias( const Preset::Type& p
 }
 
 //BBS: get filament required hrc by filament type
-const int PresetBundle::get_required_hrc_by_filament_type(const std::string& filament_type) const
+const int PresetBundle::get_required_hrc_by_filament_id(const std::string& filament_id) const
 {
-    static std::unordered_map<std::string, int>filament_type_to_hrc;
-    if (filament_type_to_hrc.empty()) {
-        for (auto iter = filaments.m_presets.begin(); iter != filaments.m_presets.end(); iter++) {
-            if (iter->vendor && iter->vendor->id == "BBL") {
-                if (iter->config.has("filament_type") && iter->config.has("required_nozzle_HRC")) {
-                    auto type = iter->config.opt_string("filament_type", 0);
-                    auto hrc = iter->config.opt_int("required_nozzle_HRC", 0);
-                    filament_type_to_hrc[type] = hrc;
-                }
-            }
-        }
+    for (auto iter = filaments.m_presets.begin(); iter != filaments.m_presets.end(); iter++) {
+        if (!iter->filament_id.empty() && iter->filament_id == filament_id && iter->config.has("required_nozzle_HRC")) { return iter->config.opt_int("required_nozzle_HRC", 0); }
     }
-    auto iter = filament_type_to_hrc.find(filament_type);
-    if (iter != filament_type_to_hrc.end())
-        return iter->second;
-    else
-        return 0;
+
+    return 0;
 }
 
 //BBS: add project embedded preset logic
@@ -1883,6 +2005,12 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
     std::vector<int> filament_maps(filament_colors.size(), 1);
     project_config.option<ConfigOptionInts>("filament_map")->values = filament_maps;
 
+    std::vector<int> filament_nozzle_maps(filament_colors.size(),0);
+    project_config.option<ConfigOptionInts>("filament_nozzle_map")->values = filament_nozzle_maps;
+
+    std::vector<int> filament_volume_maps(filament_colors.size(), static_cast<int>(NozzleVolumeType::nvtStandard));
+    project_config.option<ConfigOptionInts>("filament_volume_map")->values = filament_volume_maps;
+
     std::vector<std::string> extruder_ams_count_str;
     if (config.has("presets", "extruder_ams_count")) {
         boost::algorithm::split(extruder_ams_count_str, config.get("presets", "extruder_ams_count"), boost::algorithm::is_any_of(","));
@@ -1949,13 +2077,20 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         if (!prev_nozzle_volume_type.empty()) {
             ConfigOptionEnumsGeneric* nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
+                for (size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid) {
+                    extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
+                }
                 use_default_nozzle_volume_type = false;
             }
         }
     }
 
     if (use_default_nozzle_volume_type) {
-        project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+        auto nozzle_volume_type_option = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        nozzle_volume_type_option->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+        for (size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid) {
+            extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
+        }
     }
 
     // Parse the initial physical printer name.
@@ -2033,11 +2168,15 @@ void PresetBundle::set_num_filaments(unsigned int n, std::string new_color)
     ConfigOptionStrings *filament_multi_color = project_config.option<ConfigOptionStrings>("filament_multi_colour");
     ConfigOptionStrings* filament_color_type = project_config.option<ConfigOptionStrings>("filament_colour_type");
     ConfigOptionInts* filament_map = project_config.option<ConfigOptionInts>("filament_map");
+    ConfigOptionInts* filament_nozzle_map = project_config.option<ConfigOptionInts>("filament_nozzle_map");
+    ConfigOptionInts* filament_volume_map = project_config.option<ConfigOptionInts>("filament_volume_map");
     filament_color->resize(n);
     filament_multi_color->resize(n);
     filament_color_type->resize(n);
     filament_map->values.resize(n, 1);
     ams_multi_color_filment.resize(n);
+    filament_nozzle_map->values.resize(n, 0);
+    filament_volume_map->values.resize(n, static_cast<int>(NozzleVolumeType::nvtStandard));
 
     //BBS set new filament color to new_color
     if (old_filament_count < n) {
@@ -2608,7 +2747,9 @@ Preset *PresetBundle::get_similar_printer_preset(std::string printer_model, std:
     else if (auto n = prefer_printer.find(printer_variant_old); n != std::string::npos)
         prefer_printer = printer_model + " " + printer_variant_old + prefer_printer.substr(n + printer_variant_old.length());
     if (auto iter = printer_presets.find(prefer_printer); iter != printer_presets.end()) {
-        return iter->second;
+        if (printer_variant.empty() || iter->second->config.opt_string("printer_variant") == printer_variant) {
+            return iter->second;
+        }
     }
     if (printer_variant.empty())
         printer_variant = printer_variant_old;
@@ -2650,7 +2791,10 @@ bool PresetBundle::is_the_only_edited_filament(unsigned int filament_index)
 void PresetBundle::reset_default_nozzle_volume_type()
 {
     Preset& current_printer = this->printers.get_edited_preset();
-    this->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+    auto nozzle_volume_type_option = this->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    nozzle_volume_type_option->values = current_printer.config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->values;
+    for(size_t eid = 0; eid < nozzle_volume_type_option->size(); ++eid)
+        extruder_nozzle_stat.on_volume_type_switch(eid, NozzleVolumeType(nozzle_volume_type_option->values[eid]));
 }
 
 int PresetBundle::get_printer_extruder_count() const
@@ -2671,10 +2815,26 @@ bool PresetBundle::support_different_extruders()
     return supported;
 }
 
-DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::optional<std::vector<int>>filament_maps) const
+std::vector<int> PresetBundle::get_default_nozzle_volume_types_for_filaments(std::vector<int>& f_maps)
+{
+    std::vector<int> result;
+    int filament_count = f_maps.size();
+    result.resize(filament_count, static_cast<int>(NozzleVolumeType::nvtStandard));
+
+    auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(this->project_config.option("nozzle_volume_type"));
+    for (int index = 0; index < filament_count; index++)
+    {
+        if (opt_nozzle_volume_type && opt_nozzle_volume_type->values.size() > (f_maps[index] - 1))
+            result[index] = opt_nozzle_volume_type->values[f_maps[index] - 1];
+    }
+
+    return result;
+}
+
+DynamicPrintConfig PresetBundle::full_config(bool apply_extruder, std::optional<std::vector<int>>filament_maps, std::optional<std::vector<int>> filament_volume_maps) const
 {
     return (this->printers.get_edited_preset().printer_technology() == ptFFF) ?
-        this->full_fff_config(apply_extruder, filament_maps) :
+        this->full_fff_config(apply_extruder, filament_maps, filament_volume_maps) :
         this->full_sla_config();
 }
 
@@ -2696,7 +2856,7 @@ const std::set<std::string> ignore_settings_list ={
     "print_settings_id", "filament_settings_id", "printer_settings_id"
 };
 
-DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps_new) const
+DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optional<std::vector<int>> filament_maps_new, std::optional<std::vector<int>> filament_volume_maps_new) const
 {
     DynamicPrintConfig out;
     out.apply(FullPrintConfig::defaults());
@@ -2710,11 +2870,23 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     size_t  num_filaments = this->filament_presets.size();
 
     std::vector<int> filament_maps = out.option<ConfigOptionInts>("filament_map")->values;
+    std::vector<int> filament_volume_maps(num_filaments, (int)nvtStandard);
+
+    ConfigOptionInts* filament_volume_map_opt = out.option<ConfigOptionInts>("filament_volume_map");
     if (filament_maps_new.has_value())
         filament_maps = *filament_maps_new;
+    if (filament_volume_maps_new.has_value()) {
+        filament_volume_maps = *filament_volume_maps_new;
+        out.option<ConfigOptionInts>("filament_volume_map", true)->values = filament_volume_maps;
+    }
+    else if (filament_volume_map_opt && filament_volume_map_opt->values.size() == num_filaments)
+        filament_volume_maps = filament_volume_map_opt->values;
     //in some middle state, they may be different
     if (filament_maps.size() != num_filaments) {
         filament_maps.resize(num_filaments, 1);
+    }
+    if (filament_volume_maps.size() != num_filaments) {
+        filament_volume_maps.resize(num_filaments, nvtStandard);
     }
 
     auto* extruder_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(out.option("nozzle_diameter"));
@@ -2745,18 +2917,26 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     different_settings.emplace_back(different_print_settings);
 
     //BBS: update printer config related with variants
+    std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
+    int extruder_count = 1, extruder_volume_type_count = 1;
+    bool different_extruder = false;
     if (apply_extruder) {
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
-        out.update_values_to_printer_extruders(out, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
-        //update print config related with variants
-        out.update_values_to_printer_extruders(out, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        different_extruder = out.support_different_extruders(extruder_count);
+        extruder_volume_type_count = out.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
+
+        if ((extruder_count > 1) || different_extruder) {
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_2, "printer_extruder_id", "printer_extruder_variant", 2);
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, printer_options_with_variant_1, "printer_extruder_id", "printer_extruder_variant");
+            //update print config related with variants
+            out.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, print_options_with_variant, "print_extruder_id", "print_extruder_variant");
+        }
     }
 
     if (num_filaments <= 1) {
         //BBS: update filament config related with variants
         DynamicPrintConfig filament_config = this->filaments.get_edited_preset().config;
-        if (apply_extruder)
-            filament_config.update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0]);
+        if (apply_extruder && ((extruder_count > 1) || different_extruder))
+            filament_config.update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[0],(NozzleVolumeType)filament_volume_maps[0]);
         out.apply(filament_config);
         compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
         compatible_prints_condition  .emplace_back(this->filaments.get_edited_preset().compatible_prints_condition());
@@ -2849,8 +3029,8 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
         filament_temp_configs.resize(num_filaments);
         for (size_t i = 0; i < num_filaments; ++i) {
             filament_temp_configs[i] = *(filament_configs[i]);
-            if (apply_extruder)
-                filament_temp_configs[i].update_values_to_printer_extruders(out, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i]);
+            if (apply_extruder && ((extruder_count > 1) || different_extruder))
+                filament_temp_configs[i].update_values_to_printer_extruders(out, extruder_count, extruder_volume_type_count, nozzle_volume_types, filament_options_with_variant, "", "filament_extruder_variant", 1, filament_maps[i],(NozzleVolumeType)filament_volume_maps[i]);
         }
 
         // loop through options and apply them to the resulting config.
@@ -2927,6 +3107,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.erase("inherits");
     //BBS: add logic for settings check between different system presets
     out.erase("different_settings_to_system");
+    out.erase("filament_map_2");
 
     static const char *keys[] = { "support_filament", "support_interface_filament" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
@@ -2961,6 +3142,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(different_settings),            "different_settings_to_system");
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
+    out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;
@@ -3088,31 +3270,55 @@ ConfigSubstitutions PresetBundle::load_config_file(const std::string &path, Forw
     return ConfigSubstitutions{};
 }
 
-
-//some filament presets split from one to sperate ones
-//following map recording these filament presets
-//for example: previously ''Bambu PLA Basic @BBL H2D 0.6 nozzle' was saved in ''Bambu PLA Basic @BBL H2D' with 0.4
-static std::map<std::string, std::map<std::string, std::string>> filament_preset_convert = {
-{"Bambu Lab H2D 0.6 nozzle", {{"Bambu PLA Basic @BBL H2D", "Bambu PLA Basic @BBL H2D 0.6 nozzle"},
-                              {"Bambu PLA Matte @BBL H2D", "Bambu PLA Matte @BBL H2D 0.6 nozzle"},
-                              {"Bambu ABS @BBL H2D", "Bambu ABS @BBL H2D 0.6 nozzle"}}},
-{"Bambu Lab H2D 0.8 nozzle", {{"Bambu PETG HF @BBL H2D 0.6 nozzle", "Bambu PETG HF @BBL H2D 0.8 nozzle"},
-                              {"Bambu ASA @BBL H2D 0.6 nozzle", "Bambu ASA @BBL H2D 0.8 nozzle"}}}
-};
-
-//convert the old filament preset to new one after split
-static void convert_filament_preset_name(std::string& machine_name, std::string& filament_name)
+// some filament presets split from one to sperate ones
+// following map recording these filament presets
+// for example: previously ''Bambu PLA Basic @BBL H2D 0.6 nozzle' was saved in ''Bambu PLA Basic @BBL H2D' with 0.4
+bool find_filament_preset_map_name(std::string machine_name, std::string filament_old_name, std::string &filament_new_name)
 {
-    auto machine_iter = filament_preset_convert.find(machine_name);
-    if (machine_iter != filament_preset_convert.end())
-    {
-        std::map<std::string, std::string>& filament_maps = machine_iter->second;
-        auto filament_iter = filament_maps.find(filament_name);
-        if (filament_iter != filament_maps.end())
-        {
-            filament_name = filament_iter->second;
+    static std::map<std::string, std::map<std::string, std::string>> filament_preset_convert;
+
+    if (filament_preset_convert.empty()) {
+        namespace fs  = boost::filesystem;
+        fs::path path = fs::path(Slic3r::resources_dir()) / "profiles" / "BBL" / "filament" / "filament_name_map.json";
+
+        std::ifstream file(path.string());
+        if (!file.is_open()) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("Failed to open filament preset map: %1%") % path.string();
+            return false;
+        }
+
+        json j;
+        try {
+            file >> j;
+        } catch (const std::exception &e) {
+            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format("JSON parse error: %1%") % e.what();
+            return false;
+        }
+
+        for (auto &[printer_name, filament_json] : j.items()) {
+            std::map<std::string, std::string> inner_map;
+            for (auto &[old_name, new_name] : filament_json.items()) inner_map[old_name] = new_name;
+            filament_preset_convert[printer_name] = std::move(inner_map);
         }
     }
+
+    auto machine_iter = filament_preset_convert.find(machine_name);
+    if (machine_iter != filament_preset_convert.end()) {
+        std::map<std::string, std::string> &filament_maps = machine_iter->second;
+        auto                                filament_iter = filament_maps.find(filament_old_name);
+        if (filament_iter != filament_maps.end()) {
+            filament_new_name = filament_iter->second;
+            return true;
+        }
+    }
+    return false;
+}
+
+// convert the old filament preset to new one after split
+void convert_filament_preset_name(std::string &machine_name, std::string &filament_name)
+{
+    std::string filament_new_name;
+    if (find_filament_preset_map_name(machine_name, filament_name, filament_new_name)) filament_name = filament_new_name;
 }
 // Load a config file from a boost property_tree. This is a private method called from load_config_file.
 // is_external == false on if called from ConfigWizard
@@ -3288,6 +3494,7 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         old_filament_profile_names->values.resize(num_filaments, std::string());
 
         auto old_machine_profile_name = config.option<ConfigOptionString>("printer_settings_id", true);
+        auto machine_inherit          = config.option<ConfigOptionString>("inherits", true);
 
         if (num_filaments <= 1) {
             // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
@@ -3311,10 +3518,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             //BBS: add config related logs
             BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": load single filament preset from filament_settings_id");
             if (is_external) {
+                auto machine_name = machine_inherit->empty() ? old_machine_profile_name->value : machine_inherit->value;
                 if (inherits.empty())
-                    convert_filament_preset_name(old_machine_profile_name->value, old_filament_profile_names->values.front());
+                    convert_filament_preset_name(machine_name, old_filament_profile_names->values.front());
                 else
-                    convert_filament_preset_name(old_machine_profile_name->value, inherits);
+                    convert_filament_preset_name(machine_name, inherits);
                 loaded = this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config, filament_different_keys_set, PresetCollection::LoadAndSelect::Always, file_version, filament_id).first;
             }
             else {
@@ -3382,10 +3590,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
 
                 // Load all filament presets, but only select the first one in the preset dialog.
                 std::string& filament_inherit = cfg.opt_string("inherits", true);
+                auto machine_name = machine_inherit->empty() ? old_machine_profile_name->value : machine_inherit->value;
                 if (filament_inherit.empty() && (i < int(old_filament_profile_names->values.size())))
-                    convert_filament_preset_name(old_machine_profile_name->value, old_filament_profile_names->values[i]);
+                    convert_filament_preset_name(machine_name, old_filament_profile_names->values[i]);
                 else
-                    convert_filament_preset_name(old_machine_profile_name->value, filament_inherit);
+                    convert_filament_preset_name(machine_name, filament_inherit);
                 auto [loaded, modified] = this->filaments.load_external_preset(name_or_path, name,
                     (i < int(old_filament_profile_names->values.size())) ? old_filament_profile_names->values[i] : "",
                     std::move(cfg),
@@ -4061,7 +4270,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
                 std::string version_str = it.value();
                 auto config_version = Semver::parse(version_str);
                 if (! config_version) {
-                    throw ConfigurationError((boost::format("vendor %1%'s config version: %2% invalid\nSuggest cleaning the directory %3% firstly")
+                    throw ConfigurationError((boost::format("vendor %1%'s config version: %2% invalid\nSuggest closing studio, deleting all files in %3%, and restarting studio")
                         % vendor_name % version_str % path).str());
                 } else {
                     vendor_profile.config_version = std::move(*config_version);
@@ -4099,7 +4308,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
     }
     catch(nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__<< ": parse "<<root_file<<" got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest cleaning the directory %3% firstly")
+        throw ConfigurationError((boost::format("Failed loading configuration file %1%: %2%\nSuggest closing studio, deleting all files in %3%, and restarting studio")
                 %root_file %err.what() % path).str());
         //goto __error_process;
     }
@@ -4257,9 +4466,20 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
 
             config.apply(config_src);
             if (instantiation == "false" && "Template" != vendor_name) {
-                config_maps.emplace(preset_name, std::move(config));
+                if (preset_name.empty() || preset_name.find("gcode") != std::string::npos) {
+                    //pure included gcode file
+                    config_maps.emplace(subfile_iter.first, std::move(config_src));
+                    return reason;
+                }
+                else
+                    config_maps.emplace(preset_name, std::move(config));
                 if ((presets_collection->type() == Preset::TYPE_FILAMENT) && (!filament_id.empty()))
                     filament_id_maps.emplace(preset_name, filament_id);
+                return reason;
+            }
+            else if (instantiation.empty() && (preset_name.empty() || preset_name.find("gcode") != std::string::npos)) {
+                //pure included config
+                config_maps.emplace(subfile_iter.first, std::move(config_src));
                 return reason;
             }
             if (config.has("alias"))
@@ -4391,7 +4611,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse process setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest closing studio, deleting all files in %2%, and restarting studio") % subfile_path % path).str());
         }
     }
 
@@ -4406,7 +4626,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse filament setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest closing studio, deleting all files in %2%, and restarting studio") % subfile_path % path).str());
         }
     }
 
@@ -4421,7 +4641,7 @@ std::pair<PresetsConfigSubstitutions, size_t> PresetBundle::load_vendor_configs_
             //parse error
             std::string subfile_path = path + "/" + vendor_name + "/" + subfile.second;
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", got error when parse printer setting from %1%") % subfile_path;
-            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest cleaning the directory %2% firstly") % subfile_path % path).str());
+            throw ConfigurationError((boost::format("Failed loading configuration file %1%\nSuggest closing studio, deleting all files in %2%, and restarting studio") % subfile_path % path).str());
         }
     }
 
@@ -4524,7 +4744,7 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
     } catch (nlohmann::detail::parse_error &err) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": parse "
                                  << " got a nlohmann::detail::parse_error, reason = " << err.what();
-        throw ConfigurationError((boost::format("Failed loading configuration file  %1%\nSuggest cleaning the directory %2% firstly") % err.what() % path).str());
+        throw ConfigurationError((boost::format("Failed loading configuration file  %1%\nSuggest closing studio, deleting all files in %2%, and restarting studio") % err.what() % path).str());
     }
     return model;
 }

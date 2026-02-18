@@ -89,8 +89,9 @@ struct SupportParameters {
             external_perimeter_width = std::max(external_perimeter_width, coordf_t(region.flow(object, frExternalPerimeter, slicing_params.layer_height).width()));
             bridge_flow_ratio += region.config().bridge_flow;
         }
-        this->gap_xy             = !print_config.top_z_overrides_xy_distance ? object_config.support_object_xy_distance.value :
-                                                                              std::min(object_config.support_object_xy_distance.value, object_config.support_top_z_distance.value);
+        this->gap_xy             = !print_config.top_z_overrides_xy_distance ?
+                                       object_config.support_object_xy_distance.value :
+                                       std::min(object_config.support_object_xy_distance.value, std::max(0.2, object_config.support_top_z_distance.value));
         this->gap_xy_first_layer = object_config.support_object_first_layer_gap.value;
         bridge_flow_ratio /= object.num_printing_regions();
 
@@ -123,6 +124,14 @@ struct SupportParameters {
             this->interface_spacing = this->support_spacing;
             this->interface_density = this->support_density;
         }
+
+        this->enable_support_ironing = object_config.enable_support_ironing;
+        this->ironing_angle          = object_config.support_ironing_direction;
+        this->ironing_flow_percent   = object_config.support_ironing_flow;
+        this->ironing_inset          = object_config.support_ironing_inset;
+        this->ironing_line_spacing   = object_config.support_ironing_spacing;
+        this->ironing_pattern        = object_config.support_ironing_pattern;
+        this->ironing_speed          = object_config.support_ironing_speed;
 
         support_style = object_config.support_style;
         if (support_style != smsDefault) {
@@ -302,5 +311,16 @@ struct SupportParameters {
 
     bool independent_layer_height = false;
     const double thresh_big_overhang = /*Slic3r::sqr(scale_(10))*/scale_(10);
+
+    // support ironing related configs
+    bool          enable_support_ironing = false;
+    InfillPattern ironing_pattern;
+    // Spacing of the ironing lines, also to calculate the extrusion flow from.
+    double ironing_line_spacing;
+    // Height of the extrusion, to calculate the extrusion flow from.
+    double ironing_flow_percent;
+    double ironing_speed;
+    double ironing_angle;
+    double ironing_inset;
 };
 } // namespace Slic3r

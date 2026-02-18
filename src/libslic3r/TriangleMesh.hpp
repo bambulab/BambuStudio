@@ -135,6 +135,7 @@ public:
     Vec3d center() const { return this->bounding_box().center(); }
     // Returns the convex hull of this TriangleMesh
     TriangleMesh convex_hull_3d() const;
+    void         extract_son_mesh(TriangleMesh& temp_mesh,int face_start, int face_end) const;
     // Slice this mesh at the provided Z levels and return the vector
     std::vector<ExPolygons> slice(const std::vector<double>& z) const;
     size_t facets_count() const { assert(m_stats.number_of_facets == this->its.indices.size()); return m_stats.number_of_facets; }
@@ -334,6 +335,7 @@ inline Vec3f its_face_normal(const indexed_triangle_set &its, const stl_triangle
 inline Vec3f its_face_normal(const indexed_triangle_set &its, const int face_idx)
     { return its_face_normal(its, its.indices[face_idx]); }
 
+indexed_triangle_set    its_make_xoy_center_rect(float width,float height,float depth =0.f);
 indexed_triangle_set    its_make_cube(double x, double y, double z);
 indexed_triangle_set    its_make_prism(float width, float length, float height);
 indexed_triangle_set    its_make_cylinder(double r, double h, double fa=(2*PI/360));

@@ -64,6 +64,8 @@ struct MsgDialog : DPIDialog
 	void show_dsa_button(wxString const & title = {});
 	bool get_checkbox_state();
 	virtual void on_dpi_changed(const wxRect& suggested_rect);
+
+	void AddButton(wxWindowID btn_id, const wxString& label, bool set_focus = false) { add_button(btn_id, set_focus, label); };
 	void SetButtonLabel(wxWindowID btn_id, const wxString& label, bool set_focus = false);
 
 protected:
@@ -428,6 +430,30 @@ private:
 
 public:
     bool m_show_again{false};
+};
+
+struct FilamentWarningInfo
+{
+   wxString info_msg;
+   wxString wiki_url;
+
+};
+
+class FilamentWarningDialog : public MsgDialog
+{
+public:
+    FilamentWarningDialog(wxWindow *parent, const wxString &title, std::vector<FilamentWarningInfo> infos);
+    FilamentWarningDialog(FilamentWarningDialog &&)                 = delete;
+    FilamentWarningDialog(const FilamentWarningDialog &)            = delete;
+    FilamentWarningDialog &operator=(FilamentWarningDialog &&)      = delete;
+    FilamentWarningDialog &operator=(const FilamentWarningDialog &) = delete;
+    virtual ~FilamentWarningDialog()                                = default;
+
+private:
+    void BuildContent();
+
+private:
+    std::vector<FilamentWarningInfo> m_messages;
 };
 
 }
