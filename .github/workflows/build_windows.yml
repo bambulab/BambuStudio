@@ -1,0 +1,52 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'bbl/**'
+      - 'resources/**'
+      - '.github/workflows/build_windows.yml'
+      - '.github/workflows/build_deps.yml'
+      - '.github/workflows/build_bambu.yml'
+      - '.github/workflows/build_check_cache.yml'
+      - 'build_win.bat'
+
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - '.github/workflows/build_windows.yml'
+      - '.github/workflows/build_deps.yml'
+      - '.github/workflows/build_bambu.yml'
+      - '.github/workflows/build_check_cache.yml'
+      - 'build_win.bat'
+
+  workflow_dispatch:
+    inputs:
+      build-deps-only:
+        description: 'Only build dependencies (bypasses caching)'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_windows:
+    name: Build Windows
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: windows-latest
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+    secrets: inherit
