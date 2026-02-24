@@ -1201,7 +1201,7 @@ FilamentGroupContext build_filament_group_context(
     std::vector<std::string> filament_colours = print_config.filament_colour.values;
     std::vector<unsigned char> filament_is_support = print_config.filament_is_support.values;
     std::vector<std::string> filament_ids = print_config.filament_ids.values;
-    std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
+    std::vector<FilamentUsageType> filament_usage_types(filament_types.size(),FilamentUsageType::ModelOnly);
 
     FGMode fg_mode = print_config.filament_map_mode.value == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
     context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
@@ -1499,9 +1499,9 @@ std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order2(
         // 3、动态调整分组id
         auto new_group_result = refine_groups_by_Nozzle_State(ctx, group_result, nozzle_filament_map);
         //auto new_group_result = group_result;
-        auto range_seq_function = [&order_ctx, &start_layer, &end_layer](int layer_idx, std::vector<int> &out_seq) -> bool {
-            if (layer_idx <= end_layer - start_layer) {
-                int global_idx = start_layer + layer_idx;
+        auto range_seq_function = [&order_ctx, start_layer_ = start_layer, end_layer_ = end_layer](int layer_idx, std::vector<int> &out_seq) -> bool {
+            if (layer_idx <= end_layer_ - start_layer_) {
+                int global_idx = start_layer_ + layer_idx;
                 return order_ctx.get_custom_seq(global_idx, out_seq);
             }
             return false;

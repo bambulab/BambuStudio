@@ -68,7 +68,7 @@ void FilamentLoad::SetFilamentStep(MachineObject* obj_, DevFilamentStep item_idx
 
     if (!IsShown()) {Show();}
     auto iter = FILAMENT_CHANGE_STEP_STRING.find(item_idx);
-    wxString step_str = (iter != FILAMENT_CHANGE_STEP_STRING.end()) ? iter->second : wxEmptyString;
+    wxString step_str = (iter != FILAMENT_CHANGE_STEP_STRING.end()) ? iter->second : wxString("");
     auto step_control = m_filament_load_steps;
     if (f_type == FilamentStepType::STEP_TYPE_LOAD) {
         step_control = m_filament_load_steps;
