@@ -373,16 +373,20 @@ namespace Slic3r
 // ==================== GeneralMinCostLowerBoundsSolver ====================
     GeneralMinCostLowerBoundsSolver::~GeneralMinCostLowerBoundsSolver() = default;
 
-    GeneralMinCostLowerBoundsSolver::GeneralMinCostLowerBoundsSolver(const std::vector<FlushMatrix> &matrix_,
-                                                                     const std::vector<int>         &u_nodes,
-                                                                     const std::vector<int>         &v_nodes,
-                                                                     const std::vector<int>         &v_nodes_group)
+    GeneralMinCostLowerBoundsSolver::GeneralMinCostLowerBoundsSolver(const std::vector<FlushMatrix>                  &matrix_,
+                                                                     const std::vector<int>                          &u_nodes,
+                                                                     const std::vector<int>                          &v_nodes,
+                                                                     const std::vector<int>                          &v_nodes_group,
+                                                                     const std::unordered_map<int, std::vector<int>> &uv_link_limits,
+                                                                     const std::unordered_map<int, std::vector<int>> &uv_unlink_limits)
     {
-        flush_matrix  = matrix_;
-        l_nodes = u_nodes;
-        r_nodes = v_nodes;
-        r_nodes_group = v_nodes_group;
-        num_groups    = *std::max_element(r_nodes_group.begin(), r_nodes_group.end()) + 1;
+        flush_matrix       = matrix_;
+        l_nodes            = u_nodes;
+        r_nodes            = v_nodes;
+        r_nodes_group      = v_nodes_group;
+        m_uv_link_limits   = uv_link_limits;
+        m_uv_unlink_limits = uv_unlink_limits;
+        num_groups         = *std::max_element(r_nodes_group.begin(), r_nodes_group.end()) + 1;
 
         m_solver_lower_bounds = std::make_unique<MaxFlowWithLowerBounds>();
         m_solver_min_cost = std::make_unique<MinCostMaxFlow>();
@@ -434,10 +438,23 @@ namespace Slic3r
         for (int i = 0; i < L; ++i)
             m_solver_lower_bounds->add_edge(m_solver_lower_bounds->source_id, i, 1);
 
-        // u -> v
+        // u -> v (with link/unlink limits)
         for (int i = 0; i < L; ++i) {
-            for (int j = 0; j < R; ++j)
+            if (auto it = m_uv_link_limits.find(i); it != m_uv_link_limits.end()) {
+                for (int j : it->second)
+                    m_solver_lower_bounds->add_edge(i, L + j, 1);
+                continue;
+            }
+
+            std::optional<std::vector<int>> unlink_limits;
+            if (auto it = m_uv_unlink_limits.find(i); it != m_uv_unlink_limits.end())
+                unlink_limits = it->second;
+
+            for (int j = 0; j < R; ++j) {
+                if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
+                    continue;
                 m_solver_lower_bounds->add_edge(i, L + j, 1);
+            }
         }
 
         // r -> group
@@ -523,6 +540,98 @@ namespace Slic3r
         lower_bound_edges.push_back({eid, lower});
         demand[from] -= lower;
         demand[to]   += lower;
+    }
+
+// ==================== GroupMinCostFlowSolver ====================
+    GroupMinCostFlowSolver::~GroupMinCostFlowSolver() = default;
+
+    GroupMinCostFlowSolver::GroupMinCostFlowSolver(const std::vector<FlushMatrix>                  &matrix_,
+                                                   const std::vector<int>                          &u_nodes,
+                                                   const std::vector<int>                          &v_nodes,
+                                                   const std::vector<int>                          &v_nodes_group,
+                                                   const std::unordered_map<int, std::vector<int>> &uv_link_limits,
+                                                   const std::unordered_map<int, std::vector<int>> &uv_unlink_limits)
+    {
+        flush_matrix       = matrix_;
+        l_nodes            = u_nodes;
+        r_nodes            = v_nodes;
+        r_nodes_group      = v_nodes_group;
+        m_uv_link_limits   = uv_link_limits;
+        m_uv_unlink_limits = uv_unlink_limits;
+        num_groups         = *std::max_element(r_nodes_group.begin(), r_nodes_group.end()) + 1;
+
+        m_solver = std::make_unique<MinCostMaxFlow>();
+        build_graph();
+    }
+
+    int GroupMinCostFlowSolver::get_flush_cost(int l_idx, int r_idx)
+    {
+        if (r_nodes[r_idx] == -1)
+            return 0;
+        int group_id = r_nodes_group[r_idx];
+        return (int)flush_matrix[group_id][l_nodes[l_idx]][r_nodes[r_idx]];
+    }
+
+    void GroupMinCostFlowSolver::build_graph()
+    {
+        const int L = (int)l_nodes.size();
+        const int R = (int)r_nodes.size();
+        const int G = num_groups;
+
+        m_solver->l_nodes    = l_nodes;
+        m_solver->r_nodes    = r_nodes;
+        m_solver->total_nodes = L + R + G + 2;
+        m_solver->source_id  = L + R + G;
+        m_solver->sink_id    = L + R + G + 1;
+        m_solver->adj.resize(m_solver->total_nodes);
+
+        int max_flush = 0;
+        for (const auto &mat : flush_matrix)
+            for (const auto &row : mat)
+                for (float v : row)
+                    max_flush = std::max(max_flush, (int)v);
+        int bonus = max_flush * L + 1;
+
+        // source -> l_i
+        for (int i = 0; i < L; ++i)
+            m_solver->add_edge(m_solver->source_id, i, 1, 0);
+
+        // l_i -> r_j (with link/unlink limits)
+        for (int i = 0; i < L; ++i) {
+            if (auto it = m_uv_link_limits.find(i); it != m_uv_link_limits.end()) {
+                for (int j : it->second)
+                    m_solver->add_edge(i, L + j, 1, get_flush_cost(i, j));
+                continue;
+            }
+
+            std::optional<std::vector<int>> unlink_limits;
+            if (auto it = m_uv_unlink_limits.find(i); it != m_uv_unlink_limits.end())
+                unlink_limits = it->second;
+
+            for (int j = 0; j < R; ++j) {
+                if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
+                    continue;
+                m_solver->add_edge(i, L + j, 1, get_flush_cost(i, j));
+            }
+        }
+
+        // r_j -> group_g
+        for (int j = 0; j < R; ++j) {
+            int g = r_nodes_group[j];
+            m_solver->add_edge(L + j, L + R + g, 1, 0);
+        }
+
+        // group_g -> sink (split: first unit gets -bonus, rest gets 0)
+        for (int g = 0; g < G; ++g) {
+            m_solver->add_edge(L + R + g, m_solver->sink_id, 1, -bonus);
+            if (R > 1)
+                m_solver->add_edge(L + R + g, m_solver->sink_id, R - 1, 0);
+        }
+    }
+
+    std::vector<int> GroupMinCostFlowSolver::solve()
+    {
+        return m_solver->solve();
     }
 
 // ==================== MinFlushFlowSolver ====================

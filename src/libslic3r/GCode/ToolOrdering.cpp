@@ -1442,7 +1442,7 @@ struct VectorHash {
     }
 };
 
-std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order2(
+std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
     Print*                                             print,
     const FilamentGroupContext&                        ctx,
     const ToolOrdering::OrderingContext&               order_ctx,
@@ -1754,7 +1754,7 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
                 auto grouping_context = GroupReorder::build_filament_group_context(m_print, layer_data.layer_filaments, layer_data.physical_unprintables,
                                                                                    layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
 
-                auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order2(m_print, grouping_context, ordering_context, FilamentMapMode::fmmAutoForFlush,
+                auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print, grouping_context, ordering_context, FilamentMapMode::fmmAutoForFlush,
                                                                                 layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
 
                 std::vector<std::vector<int>> nozzle_map_per_layer;
@@ -1921,7 +1921,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
         );
 
         // TODO(山苍)：逐件打印后面要考虑喷嘴状态
-        auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order2(m_print,
+        auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print,
                                                                        grouping_context,
                                                                        ordering_context,
                                                                        FilamentMapMode::fmmAutoForFlush,
