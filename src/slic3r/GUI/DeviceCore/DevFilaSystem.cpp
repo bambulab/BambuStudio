@@ -186,10 +186,10 @@ std::optional<int> DevAms::GetCurrentExtruderId() const
 }
 
 static unordered_map<DevAmsType, wxString> s_ams_display_formats = {
-    {DevAmsType::AMS,      "AMS-%d"},
-    {DevAmsType::AMS_LITE, "AMS Lite-%d"},
-    {DevAmsType::N3F,      "AMS 2 PRO-%d"},
-    {DevAmsType::N3S,      "AMS HT-%d"}
+    {DevAmsType::AMS,      "AMS(%d)"},
+    {DevAmsType::AMS_LITE, "AMS Lite(%d)"},
+    {DevAmsType::N3F,      "AMS 2 Pro(%d)"},
+    {DevAmsType::N3S,      "AMS HT(%d)"}
 };
 
 wxString DevAms::GetDisplayName() const
@@ -203,7 +203,7 @@ wxString DevAms::GetDisplayName() const
     else
     {
         assert(0 && __FUNCTION__);
-        ams_display_format = "AMS-%d";
+        ams_display_format = "AMS(%d)";
     }
 
     int num_id;
