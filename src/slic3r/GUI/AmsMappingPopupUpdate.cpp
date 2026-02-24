@@ -35,6 +35,7 @@
 #include "DeviceCore/DevMappingNozzle.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
+#include "DeviceTab/wgtMsgPanel.h"
 
 namespace Slic3r::GUI {
 
@@ -455,6 +456,9 @@ void AmsMapingPopup::update_title(MachineObject* obj)
         } else if (m_show_type == ShowType::RIGHT) {
             m_title_text->SetLabelText(_L("Please select the filament installed on the right nozzle."));
             return;
+        } else if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+            m_title_text->SetLabelText(_L("Please select the filament."));
+            return;
         }
     } else if (nozzle_nums == 1) {
         m_split_line_panel->Hide();
@@ -468,12 +472,40 @@ void AmsMapingPopup::update_ams_tips(MachineObject* obj)
 {
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-    if (m_ams_tips_panel) {
-        if (nozzle_nums == 1 || m_show_type == ShowType::LEFT_AND_RIGHT) {
-            update_amsmappping_tips(false);
-        } else {
-            update_amsmappping_tips(true);
+    if (m_ams_tips_msg_panel) {
+        m_ams_tips_msg_panel->Clear();
+        if (nozzle_nums == 2 && m_show_type != ShowType::LEFT_AND_RIGHT) {
+            m_ams_tips_msg_panel->AddMessage(_L("To learn about the filaments matching rules."),
+                                             "#FF6F00", "https://e.bambulab.com/t?c=v4Q4e7Rm2dR0dWkw");
         }
+
+        if (obj && obj->GetFilaSwitch()->IsInstalled()) {
+            const auto& msg = _L("External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
+            m_ams_tips_msg_panel->AddMessage(msg, "#FF6F00", "");
+        }
+
+        m_ams_tips_msg_panel->Show(m_ams_tips_msg_panel->GetMessageCount() > 0);
+    }
+}
+
+void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_switch)
+{
+    m_rack = obj ? obj->GetNozzleRack() : nullptr;
+
+    bool show_rack_select_area = false;
+    if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
+        obj && obj->GetNozzleRack()->IsSupported()) {
+        const auto& nozzle_pos_vec = obj->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(m_current_filament_id);
+        m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch);
+        show_rack_select_area = true;
+    }
+
+    if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
+        m_right_tip_text = show_rack_select_area ? _L("Select Filament && Hotends") : _L("Select Filament");
+        m_right_tips->SetLabel(m_right_tip_text);
+        m_rack_nozzle_select->Show(show_rack_select_area);
+        Layout();
+        Fit();
     }
 }
 
@@ -534,6 +566,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
 
         // traversal if can pick the item or not
         bool can_pick_the_item = true;
+        std::optional<wxString> item_tooltip_msg;
         // check filament area
         if (can_pick_the_item) {
             auto parent = container->GetParent();
@@ -542,6 +575,9 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
             } else if (parent == m_right_marea_panel) {
                 if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
                     can_pick_the_item = !devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id);
+                    if (!can_pick_the_item) {
+                        item_tooltip_msg = _L("External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
+                    }
                 } else if (m_show_type != ShowType::RIGHT) {
                     can_pick_the_item = false;
                 }
@@ -573,7 +609,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
             display_name = tray_data[i].name;
         }
 
-        m_mapping_item->set_data(m_tag_material, display_color, display_name, remain_detect_flag, tray_data[i], !can_pick_the_item);
+        m_mapping_item->set_data(m_tag_material, display_color, display_name, remain_detect_flag, tray_data[i], !can_pick_the_item, item_tooltip_msg);
         m_mapping_item->Bind(wxEVT_LEFT_DOWN, [this, can_pick_the_item, m_mapping_item](wxMouseEvent& e) {
             if (can_pick_the_item) {
                 m_mapping_item->send_event(m_current_filament_id);
