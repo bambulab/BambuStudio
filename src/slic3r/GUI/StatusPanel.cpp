@@ -3498,7 +3498,7 @@ void sGetSwitchInfo(MachineObject* obj,
     }
 
     for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
-        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) {
+        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) {
             load_error_info = _L("Current slot has alread been loaded");
         }
     }
