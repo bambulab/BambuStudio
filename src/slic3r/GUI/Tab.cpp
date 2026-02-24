@@ -2676,6 +2676,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("ironing_inset");
         optgroup->append_single_option_line("ironing_direction");
 
+        optgroup = page->new_optgroup("Z Contouring", L"param_advanced");
+        optgroup->append_single_option_line("zaa_enabled");
+        optgroup->append_single_option_line("zaa_region_disable");
+        optgroup->append_single_option_line("zaa_minimize_perimeter_height");
+        optgroup->append_single_option_line("zaa_dont_alternate_fill_direction");
+        optgroup->append_single_option_line("zaa_min_z");
+        optgroup->append_single_option_line("ironing_expansion");
+
         optgroup = page->new_optgroup(L("Wall generator"), L"param_wall");
         optgroup->append_single_option_line("wall_generator", "wall-generator");
         optgroup->append_single_option_line("wall_transition_angle");

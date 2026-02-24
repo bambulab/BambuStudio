@@ -2666,6 +2666,20 @@ void GUI_App::init_single_instance_checker(const std::string &name, const std::s
     m_single_instance_checker = std::make_unique<wxSingleInstanceChecker>(boost::nowide::widen(name), boost::nowide::widen(path));
 }
 
+bool GUI_App::CallOnInit()
+{
+    // Override wxApp::CallOnInit to catch exceptions from ~wxMacAutoreleasePool
+    try {
+        return wxApp::CallOnInit();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(fatal) << "Exception in CallOnInit: " << e.what();
+        return false;
+    } catch (...) {
+        // The app was initialized, just the autorelease pool cleanup threw.
+        // Return true to let the app continue.
+        return m_initialized;
+    }
+}
 
 #ifdef __APPLE__
 void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t messageType, void * messageArgument)
@@ -2735,7 +2749,11 @@ bool GUI_App::OnInit()
         return on_init_inner();
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(fatal) << "OnInit Got Fatal error: " << e.what();
-        generic_exception_handle();
+        flush_logs();
+        return false;
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(fatal) << "OnInit caught non-std exception";
+        flush_logs();
         return false;
     }
 }
@@ -3456,7 +3474,15 @@ __retry:
         //std::string data_dir = wxStandardPaths::Get().GetUserDataDir().ToUTF8().data();
         std::string data_directory = data_dir();
 
-        m_agent = new Slic3r::NetworkAgent(data_directory);
+        try {
+            m_agent = new Slic3r::NetworkAgent(data_directory);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to create network agent: " << e.what();
+            m_agent = nullptr;
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to create network agent: unknown exception (code signing?)";
+            m_agent = nullptr;
+        }
 
         if (!m_device_manager)
             m_device_manager = new Slic3r::DeviceManager(m_agent);
@@ -5613,6 +5639,7 @@ std::string GUI_App::format_display_version()
         else
             ++j;
     }
+    version_display += " / ZAA v" + std::string(ZAA_VERSION);
     return version_display;
 }
 
@@ -6494,7 +6521,8 @@ void GUI_App::update_mode()
 }
 
 void GUI_App::update_internal_development() {
-    mainframe->m_webview->update_mode();
+    if (mainframe->m_webview)
+        mainframe->m_webview->update_mode();
 }
 
 void GUI_App::show_ip_address_enter_dialog(wxString title)
