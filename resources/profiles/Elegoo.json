@@ -5,6 +5,10 @@
     "description": "Elegoo configurations",
     "machine_model_list": [
         {
+            "name": "Elegoo Centauri Carbon",
+            "sub_path": "machine/Elegoo Centauri Carbon.json"
+        },
+        {
             "name": "Elegoo Neptune",
             "sub_path": "machine/Elegoo Neptune.json"
         },
@@ -65,6 +69,90 @@
         {
             "name": "fdm_process_elegoo_common",
             "sub_path": "process/fdm_process_elegoo_common.json"
+        },
+        {
+            "name": "0.08mm Optimal @Elegoo CC 0.2 nozzle",
+            "sub_path": "process/0.08mm Optimal @Elegoo CC 0.2 nozzle.json"
+        },
+        {
+            "name": "0.10mm Standard @Elegoo CC 0.2 nozzle",
+            "sub_path": "process/0.10mm Standard @Elegoo CC 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Draft @Elegoo CC 0.2 nozzle",
+            "sub_path": "process/0.12mm Draft @Elegoo CC 0.2 nozzle.json"
+        },
+        {
+            "name": "0.14mm Extra Draft @Elegoo CC 0.2 nozzle",
+            "sub_path": "process/0.14mm Extra Draft @Elegoo CC 0.2 nozzle.json"
+        },
+        {
+            "name": "0.12mm Fine @Elegoo CC 0.4 nozzle",
+            "sub_path": "process/0.12mm Fine @Elegoo CC 0.4 nozzle.json"
+        },
+        {
+            "name": "0.16mm Optimal @Elegoo CC 0.4 nozzle",
+            "sub_path": "process/0.16mm Optimal @Elegoo CC 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Standard @Elegoo CC 0.4 nozzle",
+            "sub_path": "process/0.20mm Standard @Elegoo CC 0.4 nozzle.json"
+        },
+        {
+            "name": "0.20mm Strength @Elegoo CC 0.4 nozzle",
+            "sub_path": "process/0.20mm Strength @Elegoo CC 0.4 nozzle.json"
+        },
+        {
+            "name": "0.24mm Draft @Elegoo CC 0.4 nozzle",
+            "sub_path": "process/0.24mm Draft @Elegoo CC 0.4 nozzle.json"
+        },
+        {
+            "name": "0.28mm Extra Draft @Elegoo CC 0.4 nozzle",
+            "sub_path": "process/0.28mm Extra Draft @Elegoo CC 0.4 nozzle.json"
+        },
+        {
+            "name": "0.18mm Fine @Elegoo CC 0.6 nozzle",
+            "sub_path": "process/0.18mm Fine @Elegoo CC 0.6 nozzle.json"
+        },
+        {
+            "name": "0.24mm Optimal @Elegoo CC 0.6 nozzle",
+            "sub_path": "process/0.24mm Optimal @Elegoo CC 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Standard @Elegoo CC 0.6 nozzle",
+            "sub_path": "process/0.30mm Standard @Elegoo CC 0.6 nozzle.json"
+        },
+        {
+            "name": "0.30mm Strength @Elegoo CC 0.6 nozzle",
+            "sub_path": "process/0.30mm Strength @Elegoo CC 0.6 nozzle.json"
+        },
+        {
+            "name": "0.36mm Draft @Elegoo CC 0.6 nozzle",
+            "sub_path": "process/0.36mm Draft @Elegoo CC 0.6 nozzle.json"
+        },
+        {
+            "name": "0.42mm Extra Draft @Elegoo CC 0.6 nozzle",
+            "sub_path": "process/0.42mm Extra Draft @Elegoo CC 0.6 nozzle.json"
+        },
+        {
+            "name": "0.16mm Extra Fine @Elegoo CC 0.8 nozzle",
+            "sub_path": "process/0.16mm Extra Fine @Elegoo CC 0.8 nozzle.json"
+        },
+        {
+            "name": "0.24mm Fine @Elegoo CC 0.8 nozzle",
+            "sub_path": "process/0.24mm Fine @Elegoo CC 0.8 nozzle.json"
+        },
+        {
+            "name": "0.32mm Optimal @Elegoo CC 0.8 nozzle",
+            "sub_path": "process/0.32mm Optimal @Elegoo CC 0.8 nozzle.json"
+        },
+        {
+            "name": "0.40mm Standard @Elegoo CC 0.8 nozzle",
+            "sub_path": "process/0.40mm Standard @Elegoo CC 0.8 nozzle.json"
+        },
+        {
+            "name": "0.48mm Draft @Elegoo CC 0.8 nozzle",
+            "sub_path": "process/0.48mm Draft @Elegoo CC 0.8 nozzle.json"
         },
         {
             "name": "fdm_process_neptune4_common",
@@ -393,6 +481,22 @@
         {
             "name": "fdm_neptune_4_common",
             "sub_path": "machine/fdm_neptune_4_common.json"
+        },
+        {
+            "name": "Elegoo Centauri Carbon 0.2 nozzle",
+            "sub_path": "machine/Elegoo Centauri Carbon 0.2 nozzle.json"
+        },
+        {
+            "name": "Elegoo Centauri Carbon 0.4 nozzle",
+            "sub_path": "machine/Elegoo Centauri Carbon 0.4 nozzle.json"
+        },
+        {
+            "name": "Elegoo Centauri Carbon 0.6 nozzle",
+            "sub_path": "machine/Elegoo Centauri Carbon 0.6 nozzle.json"
+        },
+        {
+            "name": "Elegoo Centauri Carbon 0.8 nozzle",
+            "sub_path": "machine/Elegoo Centauri Carbon 0.8 nozzle.json"
         },
         {
             "name": "Elegoo Neptune 0.4 nozzle",
