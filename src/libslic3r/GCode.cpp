@@ -6073,7 +6073,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     auto _mm3_per_mm = path.mm3_per_mm * double(this->config().print_flow_ratio.value);
     if( path.role() == erTopSolidInfill )
         _mm3_per_mm *= NOZZLE_CONFIG(top_solid_infill_flow_ratio);
-    else if (this->on_first_layer())
+    else if (path.role() == erBottomSurface)
+        _mm3_per_mm *= NOZZLE_CONFIG(bottom_solid_infill_flow_ratio);
+
+    if (this->on_first_layer() && path.role() != erTopSolidInfill)
         _mm3_per_mm *= m_config.initial_layer_flow_ratio.value;
 
     double e_per_mm = m_writer.filament()->e_per_mm3() * _mm3_per_mm;
