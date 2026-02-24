@@ -619,6 +619,7 @@ struct Sidebar::priv
     std::vector<PlaterPresetComboBox*> combos_filament;
     int editing_filament = -1;
     wxBoxSizer *sizer_filaments = nullptr;
+    bool fila_switch_warning_shown = false;
 
     //BBS Sidebar widgets
     wxPanel* m_panel_print_title;
@@ -1883,15 +1884,19 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
                 }
                 // dual_panel->SetSeparatorState(CustomSeparator::State::Normal);
             } else {
-                MessageDialog
-                    dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                        _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
-                        _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
-                dlg.ShowModal();
+                if (!fila_switch_warning_shown) {
+                    fila_switch_warning_shown = true;
+                    MessageDialog
+                        dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                            _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
+                            _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
+                    dlg.ShowModal();
+                }
                 // dual_panel->SetSeparatorState(CustomSeparator::State::Error);
             }
         } else {
             // dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
+            fila_switch_warning_shown = false;
         }
         //wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(fila_switch_flag);
     }
