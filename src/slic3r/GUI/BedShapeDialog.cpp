@@ -11,6 +11,7 @@
 #include "libslic3r/BoundingBox.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include "FileHelp.hpp"
@@ -649,6 +650,32 @@ void BedShapePanel::load_model()
     m_custom_model = file_name;
     Utils::slash_to_back_slash(m_custom_model);
     update_shape();
+}
+
+const std::string& BedShapePanel::get_custom_texture() const 
+{
+    if (m_custom_texture != NONE) {
+        return m_custom_texture;
+    }
+
+    // PEI texture fallback - if no custom texture is set, use PEI texture as default
+    static const std::string& PEI_TEXTURE_PATH = []() -> const std::string& {
+        static std::string path;
+        try {
+            std::string full_path = Slic3r::resources_dir() + "/images/PEIdefault.png";
+            if (boost::filesystem::exists(full_path)) {
+                path = full_path;
+            }
+        } catch (...) {
+            path.clear();
+        }
+        return path;
+    }();
+
+    if (!PEI_TEXTURE_PATH.empty()) {
+        return PEI_TEXTURE_PATH;
+    }
+    return EMPTY_STRING; 
 }
 
 } // GUI

@@ -18870,6 +18870,15 @@ void Plater::set_bed_shape() const
             texture_filename         = bed_custom_texture->value;
         }
     }
+    // BBS: Set default PEI texture if no custom texture or system texture is available
+    std::string final_texture_filename = p->config->option<ConfigOptionString>("bed_custom_texture")->value.empty() ? texture_filename : p->config->option<ConfigOptionString>("bed_custom_texture")->value;
+    if (final_texture_filename.empty()) {
+        final_texture_filename = resources_dir() + "/images/PEIdefault.png";
+    }
+    // BBS: Always fallback to PEI texture if the final texture is still empty or invalid
+    if (final_texture_filename.empty() || !boost::filesystem::exists(final_texture_filename)) {
+        final_texture_filename = resources_dir() + "/images/PEIdefault.png";
+    }
     set_bed_shape(p->config->option<ConfigOptionPoints>("printable_area")->values,
         //BBS: add bed exclude areas
         p->config->option<ConfigOptionPoints>("bed_exclude_area")->values,
@@ -18877,7 +18886,7 @@ void Plater::set_bed_shape() const
         p->config->option<ConfigOptionFloat>("printable_height")->value,
         p->config->option<ConfigOptionPointsGroups>("extruder_printable_area")->values,
         p->config->option<ConfigOptionFloatsNullable>("extruder_printable_height")->values,
-        p->config->option<ConfigOptionString>("bed_custom_texture")->value.empty() ? texture_filename : p->config->option<ConfigOptionString>("bed_custom_texture")->value,
+        final_texture_filename,
         p->config->option<ConfigOptionString>("bed_custom_model")->value);
 }
 
