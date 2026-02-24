@@ -18,6 +18,12 @@
     "slow_down_min_speed": [
         "20"
     ],
+    "during_print_exhaust_fan_speed":[
+         "0"
+    ],
+    "chamber_temperatures" : [
+        "0"
+    ],
     "compatible_printers": [
         "Qidi Q1 Pro 0.2 nozzle"
 	]

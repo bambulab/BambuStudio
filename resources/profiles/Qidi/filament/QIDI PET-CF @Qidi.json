@@ -13,7 +13,7 @@
         "320"
     ],
     "filament_max_volumetric_speed": [
-        "12"
+        "8"
     ],
     "fan_max_speed": [
         "40"
@@ -53,6 +53,15 @@
     ],
     "filament_flow_ratio": [
         "1"
+    ],
+    "temperature_vitrification": [
+        "185"
+    ],
+    "nozzle_temperature_range_low": [
+        "280"
+    ],
+    "nozzle_temperature_range_high": [
+        "320"
     ],
     "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",

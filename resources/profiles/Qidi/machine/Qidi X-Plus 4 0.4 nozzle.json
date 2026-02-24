@@ -10,7 +10,19 @@
     ],
     "printer_model": "Qidi X-Plus 4",
     "bed_exclude_area": [
-        "0x0"
+        "0x305",
+        "0x302",
+        "35x302",
+        "35x305",
+        "305x305",
+        "305x305",
+        "305x305",
+        "305x20",
+		    "293x20",
+		    "293x0",
+		    "305x0",
+		    "305x20",
+		    "305x305""
     ],
     "default_print_profile": "0.20mm Standard @Qidi XPlus4",
     "deretraction_speed": [
@@ -30,27 +42,21 @@
         "0.08"
     ],
     "machine_max_jerk_e": [
-        "4",
         "4"
     ],
     "machine_max_jerk_x": [
-        "9",
         "9"
     ],
     "machine_max_jerk_y": [
-        "9",
         "9"
     ],
     "machine_max_jerk_z": [
-        "4",
         "4"
     ],
     "machine_max_acceleration_retracting": [
-        "20000",
         "20000"
     ],
     "machine_max_speed_z": [
-        "20",
         "20"
     ],
     "nozzle_type": "hardened_steel",
