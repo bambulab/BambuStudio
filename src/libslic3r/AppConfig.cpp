@@ -706,6 +706,13 @@ std::string AppConfig::load()
                     }
                     m_printer_cali_infos.emplace_back(cali_info);
                 }
+            } else if (it.key() == "printer_presets") {
+                // Load printer-specific preset settings (remembers presets per printer)
+                for (auto& j_model : it.value()) {
+                    if (j_model.contains("machine")) {
+                        m_printer_settings[j_model["machine"].get<std::string>()] = j_model;
+                    }
+                }
             } else {
                 if (it.value().is_object()) {
                     for (auto iter = it.value().begin(); iter != it.value().end(); iter++) {
@@ -891,6 +898,11 @@ void AppConfig::save()
             j_model["nozzle_diameter"] = escaped;
             j[MODELS_STR].push_back(j_model);
         }
+    }
+
+    // Write printer-specific preset settings (remembers presets per printer)
+    for (const auto& preset : m_printer_settings) {
+        j["printer_presets"].push_back(preset.second);
     }
 
     boost::nowide::ofstream c;
