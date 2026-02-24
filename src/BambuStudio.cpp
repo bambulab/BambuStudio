@@ -85,6 +85,11 @@ using namespace nlohmann;
 #include "slic3r/GUI/GuiColor.hpp"
 #include <GLFW/glfw3.h>
 
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#endif
+
 #ifdef __WXGTK__
 #include <X11/Xlib.h>
 #endif
@@ -5885,6 +5890,81 @@ int CLI::run(int argc, char **argv)
         glfwGetVersion(&gl_major, &gl_minor, &gl_verbos);
         BOOST_LOG_TRIVIAL(info) << boost::format("opengl version %1%.%2%.%3%")%gl_major %gl_minor %gl_verbos;
 
+#ifdef ENABLE_HEADLESS_RENDERING_MODE
+        // Use EGL for headless rendering in CLI mode (Docker/server environments)
+        EGLDisplay egl_display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        if (egl_display == EGL_NO_DISPLAY) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to get EGL display";
+            return false;
+        }
+        
+        EGLint major, minor;
+        if (!eglInitialize(egl_display, &major, &minor)) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to initialize EGL";
+            return false;
+        }
+        
+        EGLint config_attribs[] = {
+            EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+            EGL_RED_SIZE, 8,
+            EGL_GREEN_SIZE, 8,
+            EGL_BLUE_SIZE, 8,
+            EGL_ALPHA_SIZE, 8,
+            EGL_DEPTH_SIZE, 24,
+            EGL_NONE
+        };
+        
+        EGLConfig egl_config;
+        EGLint num_configs;
+        if (!eglChooseConfig(egl_display, config_attribs, &egl_config, 1, &num_configs) || num_configs == 0) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to choose EGL config";
+            eglTerminate(egl_display);
+            return false;
+        }
+        
+        if (!eglBindAPI(EGL_OPENGL_API)) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to bind OpenGL API";
+            eglTerminate(egl_display);
+            return false;
+        }
+        
+        EGLint context_attribs[] = {
+            EGL_CONTEXT_MAJOR_VERSION, 3,
+            EGL_CONTEXT_MINOR_VERSION, 3,
+            EGL_NONE
+        };
+        
+        EGLContext egl_context = eglCreateContext(egl_display, egl_config, EGL_NO_CONTEXT, context_attribs);
+        if (egl_context == EGL_NO_CONTEXT) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to create EGL context";
+            eglTerminate(egl_display);
+            return false;
+        }
+        
+        EGLint pbuffer_attribs[] = {
+            EGL_WIDTH, 512,
+            EGL_HEIGHT, 512,
+            EGL_NONE
+        };
+        
+        EGLSurface egl_surface = eglCreatePbufferSurface(egl_display, egl_config, pbuffer_attribs);
+        if (egl_surface == EGL_NO_SURFACE) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to create EGL pbuffer surface";
+            eglDestroyContext(egl_display, egl_context);
+            eglTerminate(egl_display);
+            return false;
+        }
+        
+        if (!eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context)) {
+            BOOST_LOG_TRIVIAL(error) << "Failed to make EGL context current";
+            eglDestroySurface(egl_display, egl_surface);
+            eglDestroyContext(egl_display, egl_context);
+            eglTerminate(egl_display);
+            return false;
+        }
+#else
+        // Use GLFW for Windows/Mac CLI mode
         glfwSetErrorCallback(glfw_callback);
         int ret = glfwInit();
         if (ret == GLFW_FALSE) {
@@ -5893,7 +5973,6 @@ int CLI::run(int argc, char **argv)
             return false;
         }
         else {
-            BOOST_LOG_TRIVIAL(info) << "glfwInit Success."<< std::endl;
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, gl_major);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, gl_minor);
             glfwWindowHint(GLFW_RED_BITS, 8);
@@ -5901,17 +5980,11 @@ int CLI::run(int argc, char **argv)
             glfwWindowHint(GLFW_BLUE_BITS, 8);
             glfwWindowHint(GLFW_ALPHA_BITS, 8);
             glfwWindowHint(GLFW_VISIBLE, false);
-            //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            //glfwDisable(GLFW_AUTO_POLL_EVENTS);
 #ifdef __WXMAC__
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #else
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-#endif
-
-#ifdef __linux__
-            glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_OSMESA_CONTEXT_API);
 #endif
 
             GLFWwindow* window = glfwCreateWindow(640, 480, "base_window", NULL, NULL);
@@ -5923,6 +5996,7 @@ int CLI::run(int argc, char **argv)
             else
                 glfwMakeContextCurrent(window);
         }
+#endif
 
         bool gl_valid = p_opengl_mgr->init_gl(false);
         if (!gl_valid) {
