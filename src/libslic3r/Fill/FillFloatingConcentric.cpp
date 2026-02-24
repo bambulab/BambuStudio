@@ -690,12 +690,12 @@ FloatingThickPolylines FillFloatingConcentric::resplit_order_loops(Point curr_po
         bool is_self_intersect = false;
         if(print_object_config->detect_floating_vertical_shell.value)
         {
-            Polyline polyline = thick_polyline;
+            auto polyline = VecOfPoints{thick_polyline.points};
             auto bbox_line = get_extents(polyline);
 
             EdgeGrid::Grid grid;
             grid.set_bbox(bbox_line);
-            grid.create({ polyline.points }, scaled<coord_t>(10.), !all_extrusions[idx]->is_closed);
+            grid.create(polyline, scaled<coord_t>(10.), !all_extrusions[idx]->is_closed);
             if (grid.has_intersecting_edges())
                 is_self_intersect = true;
         }

@@ -112,6 +112,15 @@ public:
 	void create(const ExPolygon &expoly, coord_t resolution);
 	void create(const ExPolygons &expolygons, coord_t resolution);
 
+	// Prevent calling with a temporary because pointers will be stored
+	void create(std::vector<Points> &&polylines_or_polygons, coord_t resolution, bool open) = delete;
+	void create(Polygons &&polygons, const Polylines &polylines, coord_t resolution) = delete;
+	void create(const Polygons &polygons, Polylines &&polylines, coord_t resolution) = delete;
+	void create(Polygons &&polygons, coord_t resolution) = delete;
+	void create(std::vector<Points> &&polygons, coord_t resolution) = delete;
+	void create(ExPolygon &&expoly, coord_t resolution) = delete;
+	void create(ExPolygons &&expolygons, coord_t resolution) = delete;
+
 	const std::vector<Contour>& contours() const { return m_contours; }
 
 #if 0
