@@ -2133,7 +2133,7 @@ wxString SelectMachineDialog::format_steel_name(NozzleType type)
         return _L("Tungsten Carbide");
     }
 
-    return _L("Unknown");
+    return wxString::Format(_L("Unknown nozzle type: '%s'"), name);
 }
 
 void SelectMachineDialog::EnableEditing(bool enable)
