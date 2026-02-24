@@ -684,12 +684,8 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
     m_simplebook_ams_left->SetSelection(0);
     m_simplebook_ams_right->SetSelection(0);
 
-    auto left_init_mode = findFirstMode(AMSPanelPos::LEFT_PANEL);
-    auto right_init_mode = findFirstMode(AMSPanelPos::RIGHT_PANEL);
-
-
-    m_down_road->UpdateLeft(2, left_init_mode);
-    m_down_road->UpdateRight(2, right_init_mode);
+    m_down_road->UpdateLeft(2, findFirstMode(AMSPanelPos::LEFT_PANEL));
+    m_down_road->UpdateRight(2, findFirstMode(AMSPanelPos::RIGHT_PANEL));
 
     m_extruder->updateNozzleNum(2);
 
@@ -1063,14 +1059,19 @@ void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSi
     book_panel->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
     book_panel->SetSize(AMS_PANEL_SIZE);
     book_panel->SetMinSize(AMS_PANEL_SIZE);
+    book_panel->SetSizer(book_sizer);
 
     AmsItem* ams1 = nullptr, * ams2 = nullptr;
     ams1 = new AmsItem(book_panel, infos[0], infos[0].ams_type, pos);
-    if (ams1->get_ext_image()) { ams1->get_ext_image()->setTotalExtNum(series_name, printer_type, total_ext_num); }
+    ams1->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
+    ams1->set_parent_book_idx(parent, idx);
+    m_ams_item_list[infos[0].ams_id] = ams1;
 
     if (infos.size() == MAX_AMS_NUM_IN_PANEL) {    //n3s and ? in a panel
         ams2 = new AmsItem(book_panel, infos[1], infos[1].ams_type, pos);
-        if (ams2->get_ext_image()) { ams2->get_ext_image()->setTotalExtNum(series_name, printer_type, total_ext_num); }
+        ams2->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
+        ams2->set_parent_book_idx(parent, idx);
+        m_ams_item_list[infos[1].ams_id] = ams2;
 
         if (pos == AMSPanelPos::LEFT_PANEL) {
             book_sizer->Add(ams1, 0, wxLEFT, FromDIP(4));
@@ -1080,38 +1081,16 @@ void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSi
             book_sizer->Add(ams1, 0, wxLEFT, FromDIP(72));
             book_sizer->Add(ams2, 0, wxLEFT, FromDIP(30));
         }
-    }
-    else {   //only an ext in a panel
-        if (ams1->get_ext_image()) { ams1->get_ext_image()->setShowAmsExt(false);}
-
+    } else { // only an ext in a panel
         if (ams1->get_ams_model() == DevAmsType::EXT_SPOOL) {
-            if (ams1->get_ext_type() == LITE_EXT) {
-                //book_sizer->Add(ams1, 0, wxALIGN_CENTER_HORIZONTAL, 0);
-                book_sizer->Add(ams1, 0, wxLEFT, (book_panel->GetSize().x - ams1->GetSize().x) / 2);
-            }
-            else{
-                auto ext_image = new AMSExtImage(book_panel, pos, m_total_ext_count, false);
-                book_sizer->Add(ams1, 0, wxLEFT, FromDIP(30));
-                book_sizer->Add(ext_image, 0, wxEXPAND | wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(30));
-                ext_image->setTotalExtNum(series_name, printer_type, total_ext_num);
-                m_ext_image_list[infos[0].ams_id] = ext_image;
-            }
+            book_sizer->Add(ams1, 0, wxLEFT, (book_panel->GetSize().x - ams1->GetSize().x) / 2);
         }
     }
 
-    book_panel->SetSizer(book_sizer);
     book_panel->Layout();
     book_panel->Fit();
 
     parent->InsertPage(idx, book_panel, wxEmptyString, true);
-    ams1->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
-    ams1->set_parent_book_idx(parent, idx);
-    m_ams_item_list[infos[0].ams_id] = ams1;
-    if (ams2) {
-        ams2->SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
-        ams2->set_parent_book_idx(parent, idx);
-        m_ams_item_list[infos[1].ams_id] = ams2;
-    }
     idx++;
 }
 
