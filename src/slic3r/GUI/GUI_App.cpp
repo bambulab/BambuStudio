@@ -2497,14 +2497,21 @@ void GUI_App::init_app_config()
 #endif
             //BBS create folder if not exists
             boost::filesystem::path data_dir_path(data_dir);
+            boost::filesystem::path log_dir_path = data_dir_path / "log";
             if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
+                boost::filesystem::create_directories(data_dir_path);
+            if (!boost::filesystem::exists(log_dir_path))
+                boost::filesystem::create_directories(log_dir_path);
             set_data_dir(data_dir);
 #if defined(__WINDOWS__)
             // Change current dirtory of application
-            _chdir(encode_path((data_dir + "/log").c_str()).c_str());
+            if (_chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
+                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+            }
 #else
-            chdir(encode_path((data_dir + "/log").c_str()).c_str());
+            if (chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
+                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+            }
 #endif
     } else {
         m_datadir_redefined = true;
