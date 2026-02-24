@@ -9,6 +9,7 @@
 #include "wgtDeviceNozzleRack.h"
 
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/DeviceTab/wgtMsgBox.h"
 
 static wxColour s_gray_clr("#B0B0B0");
 static wxColour s_hgreen_clr("#00AE42");
@@ -50,6 +51,18 @@ void wgtDeviceNozzleRackSelect::CreateGui()
 {
     wxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
+    m_title_tips_dynamic = new wgtMsgBox(this);
+    m_title_tips_dynamic->SetBackgroundColour(wxColour("#FF6F0026"));
+    m_title_tips_dynamic->SetBackgroundColor(wxColour("#FF6F0026"));
+    m_title_tips_dynamic->SetBorderColor(wxColour("#FF6F00"));
+    m_title_tips_dynamic->SetCornerRadius(2);
+    auto text_label = m_title_tips_dynamic->GetTextLabel();
+    text_label->SetFont(::Label::Body_13);
+    text_label->SetLabel(_L("Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."));
+    text_label->SetForegroundColour("#FF6F00");
+    m_title_tips_dynamic->Layout();
+    m_title_tips_dynamic->Refresh();
+
     // nozzles
     wxGridSizer *nozzle_sizer = new wxGridSizer(2, 3, FromDIP(10), FromDIP(10));
     for (auto idx : a_nozzle_seq) {
@@ -75,10 +88,11 @@ void wgtDeviceNozzleRackSelect::CreateGui()
     toolhead_sizer->Add(m_toolhead_nozzle_l, 0, wxRIGHT, FromDIP(5));
     toolhead_sizer->Add(m_toolhead_nozzle_r, 0, wxLEFT, FromDIP(5));
 
+    main_sizer->Add(m_title_tips_dynamic, 0, wxALIGN_CENTRE_VERTICAL | wxBOTTOM, FromDIP(10));
     main_sizer->Add(s_create_title(this, _L("Hotend Rack")), 0, wxEXPAND);
-    main_sizer->Add(nozzle_sizer, 0, wxTOP | wxBOTTOM | wxALIGN_LEFT, FromDIP(12));
+    main_sizer->Add(nozzle_sizer, 0, wxTOP | wxBOTTOM | wxALIGN_LEFT, FromDIP(10));
     main_sizer->Add(s_create_title(this, _L("ToolHead")), 0, wxEXPAND);
-    main_sizer->AddSpacer(FromDIP(12));
+    main_sizer->AddSpacer(FromDIP(10));
     main_sizer->Add(toolhead_sizer, 0, wxALIGN_LEFT);
 
     SetBackgroundColour(*wxWHITE);
@@ -155,6 +169,7 @@ void wgtDeviceNozzleRackSelect::UpdatSelectedNozzles(std::shared_ptr<DevNozzleRa
 {
     m_nozzle_rack = rack;
     m_enable_manual_nozzle_pick = !use_dynamic_switch;
+    m_title_tips_dynamic->Show(use_dynamic_switch);
 
     UpdateNozzleInfos(rack);
     if (!use_dynamic_switch) {

@@ -29,6 +29,7 @@
 #include "DeviceCore/DevMappingNozzle.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
+#include "DeviceTab/wgtMsgPanel.h"
 
 namespace Slic3r { namespace GUI {
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
@@ -781,23 +782,11 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_rack_nozzle_select->Bind(EVT_NOZZLE_SELECT_CLICKED, [this](wxCommandEvent &e) { this->Dismiss(); });
      m_rack_nozzle_select->Show(false);
 
-     m_ams_tips_panel = new wxPanel(m_scrolled_window);
-     m_ams_tips_panel->SetBackgroundColour(*wxWHITE);
-     auto m_ams_tips_sizer_h = new wxBoxSizer(wxHORIZONTAL);
+     m_ams_tips_msg_panel = new wgtMsgPanel(m_scrolled_window);
+     m_ams_tips_msg_panel->SetMaxSize(wxSize(400, -1));
+     m_ams_tips_msg_panel->SetMinSize(wxSize(400, -1));
+     m_ams_tips_msg_panel->SetSize(wxSize(400, -1));
 
-     auto ams_tips_notes  = new Label(m_ams_tips_panel, _L("Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"));
-     ams_tips_notes->SetForegroundColour("#FF6F00");
-     ams_tips_notes->Wrap(FromDIP(500));
-
-     ams_tips_notes->Bind(wxEVT_ENTER_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_HAND); });
-     ams_tips_notes->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { SetCursor(wxCURSOR_ARROW); });
-     ams_tips_notes->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
-         wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=v4Q4e7Rm2dR0dWkw");
-     });
-
-     m_ams_tips_sizer_h->Add(ams_tips_notes, 0, wxEXPAND | wxRIGHT, FromDIP(10));
-
-     m_ams_tips_panel->SetSizer(m_ams_tips_sizer_h);
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
      m_right_marea_panel->SetSizer(m_sizer_ams_right);
 
@@ -819,7 +808,7 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams_v->Add(m_reset_btn, 0, wxALIGN_RIGHT);
      m_sizer_ams_v->Add(m_sizer_ams, 0, wxEXPAND | wxBOTTOM, FromDIP(30));
      m_sizer_ams_v->AddStretchSpacer();
-     m_sizer_ams_v->Add(m_ams_tips_panel, 0, wxEXPAND | wxTop, FromDIP(30));
+     m_sizer_ams_v->Add(m_ams_tips_msg_panel, 0, wxEXPAND | wxTop, FromDIP(30));
 
      m_sizer_main_h->Add(m_sizer_ams_v, 0, wxEXPAND | wxRIGHT, FromDIP(10));
      m_sizer_main_h->Add(m_rack_nozzle_select, 0, wxEXPAND | wxTOP, FromDIP(15));
@@ -915,15 +904,6 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
 
 void AmsMapingPopup::set_reset_callback(ResetCallback callback) {
      m_reset_callback = callback;
-}
-
-void AmsMapingPopup::update_amsmappping_tips(bool show)
-{
-    if (m_ams_tips_panel->IsShown() != show)
-    {
-        m_ams_tips_panel->Show(show);
-
-    }
 }
 
 void AmsMapingPopup::show_reset_button() {
@@ -1046,27 +1026,6 @@ void AmsMapingPopup::paintEvent(wxPaintEvent &evt)
     dc.SetPen(wxColour(0xAC, 0xAC, 0xAC));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawRoundedRectangle(0, 0, GetSize().x, GetSize().y, 0);
-}
-
-void AmsMapingPopup::update_rack_select(MachineObject *obj, bool use_dynamic_switch)
-{
-    m_rack = obj ? obj->GetNozzleRack() : nullptr;
-
-    bool show_rack_select_area = false;
-    if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
-        obj && obj->GetNozzleRack()->IsSupported()) {
-        const auto& nozzle_pos_vec = obj->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(m_current_filament_id);
-        m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch);
-        show_rack_select_area = true;
-    }
-
-    if (show_rack_select_area != m_rack_nozzle_select->IsShown()) {
-        m_right_tip_text = show_rack_select_area ? _L("Select Filament && Hotends") : _L("Select Filament");
-        m_right_tips->SetLabel(m_right_tip_text);
-        m_rack_nozzle_select->Show(show_rack_select_area);
-        Layout();
-        Fit();
-    }
 }
 
 void AmsMapingPopup::OnNozzleMappingSelected(wxCommandEvent& evt)
@@ -1245,7 +1204,7 @@ void MappingItem::render(wxDC &dc)
     dc.DrawText(m_name, wxPoint((GetSize().x - txt_size.x) / 2, top));
 }
 
-void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString name, bool remain_dect, TrayData data, bool unmatch)
+void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString name, bool remain_dect, TrayData data, bool unmatch, std::optional<wxString> tooltip_opt)
 {
     m_unmatch = unmatch;
     m_tray_data = data;
@@ -1258,7 +1217,11 @@ void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString n
         Refresh();
     }
 
-    if (m_unmatch || (m_name == "-"))
+    if (tooltip_opt.has_value())
+    {
+        SetToolTip(tooltip_opt.value());
+    }
+    else if (m_unmatch || (m_name == "-"))
     {
         if (m_unmatch) {
             bool is_external_spool = (m_tray_data.ams_id == VIRTUAL_TRAY_MAIN_ID || m_tray_data.ams_id == VIRTUAL_TRAY_DEPUTY_ID);

@@ -14,6 +14,7 @@
 #include <memory>
 
 // Previous definitions
+class Label;
 namespace Slic3r
 {
     struct DevNozzle;
@@ -21,6 +22,7 @@ namespace Slic3r
 namespace GUI
 {
     class wgtDeviceNozzleRackNozzleItem;
+    class wgtMsgBox;
 }
 };
 
@@ -56,6 +58,9 @@ private:
 
     // pick
     bool m_enable_manual_nozzle_pick = true;
+
+    // Label
+    wgtMsgBox* m_title_tips_dynamic;
 
     // GUI
     wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle_l{nullptr};

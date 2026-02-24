@@ -49,6 +49,7 @@ class DevNozzleRack;
 namespace GUI
 {
 class wgtDeviceNozzleRackSelect;
+class wgtMsgPanel;
 };
 };
 
@@ -191,7 +192,7 @@ public:
 public:
     void update_data(TrayData data);
     void send_event(int fliament_id);
-    void set_data(const wxString& tag_name, wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
+    void set_data(const wxString& tag_name, wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false, std::optional<wxString> tooltip_opt = std::nullopt);
     void set_checked(bool checked);
     void set_tray_index(wxString t_index) { m_tray_index = t_index; };
 
@@ -300,7 +301,7 @@ public:
     wxPanel*     m_right_marea_panel{ nullptr }; // used as right if both left and right sides shown. used as single panel if only one side shown.
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
-    wxPanel *    m_ams_tips_panel{nullptr};
+    wgtMsgPanel* m_ams_tips_msg_panel{nullptr};
     wxPanel *    m_split_line_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
@@ -325,7 +326,6 @@ public:
     void         set_tag_texture(std::string texture);
     void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch = false);
     void         update_rack_select(MachineObject* obj, bool use_dynamic_switch);
-    void         update_amsmappping_tips(bool show);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
