@@ -3005,6 +3005,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
 {
+    // Reset external multi-color printing option to default value
+    m_ext_change_assist = false;
+    if (m_check_ext_change_assist) {
+        m_check_ext_change_assist->SetValue(false);
+    }
+
     /* reset timeout and reading printer info */
     m_status_bar->reset();
     m_timeout_count      = 0;
@@ -3695,6 +3701,11 @@ void SelectMachineDialog::set_default()
 
     // rset status bar
     m_status_bar->reset();
+
+    // reset ext_change status
+    if (m_check_ext_change_assist) {
+        m_check_ext_change_assist->SetValue(m_ext_change_assist);
+    }
 
     NetworkAgent* agent = wxGetApp().getAgent();
     if (agent) {
