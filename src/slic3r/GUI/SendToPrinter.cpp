@@ -1382,11 +1382,12 @@ void SendToPrinterDialog::Enable_Refresh_Button(bool en)
 
 void SendToPrinterDialog::show_status(PrintDialogStatus status, std::vector<wxString> params)
 {
-    if (m_print_status != status)
+    if (m_print_status != status) {
         BOOST_LOG_TRIVIAL(info) << "select_machine_dialog: show_status = " << status;
-    else
+    } else {
         return;
-	m_print_status = status;
+    }
+    m_print_status = status;
 
 	// m_comboBox_printer
 	if (status == PrintDialogStatus::PrintStatusRefreshingMachineList)

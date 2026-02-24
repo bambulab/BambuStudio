@@ -454,7 +454,7 @@ void adjust_layer_height_profile(
     if (z < z_span_variable.first || z > z_span_variable.second)
         return;
 
-	assert(layer_height_profile.size() >= 2);
+    assert(layer_height_profile.size() >= 2);
     assert(std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_params.object_print_z_height()) < EPSILON);
 
     // 1) Get the current layer thickness at z.

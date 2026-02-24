@@ -589,6 +589,8 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
         case MC_DEBUG_SOURCE_KERNEL:
             BOOST_LOG_TRIVIAL(debug)<<("Source: Kernel");
             break;
+        default:
+            break;
         }
 
     switch (type) {
@@ -600,6 +602,8 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
             break;
         case MC_DEBUG_TYPE_OTHER:
             BOOST_LOG_TRIVIAL(debug)<<("Type: Other");
+            break;
+        default:
             break;
         }
 
@@ -615,6 +619,8 @@ MCAPI_ATTR void MCAPI_CALL mcDebugOutput(McDebugSource source,
             break;
         case MC_DEBUG_SEVERITY_NOTIFICATION:
             BOOST_LOG_TRIVIAL(debug)<<("Severity: notification");
+            break;
+        default:
             break;
         }
 }
