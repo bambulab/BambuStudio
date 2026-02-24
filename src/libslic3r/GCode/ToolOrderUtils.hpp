@@ -75,7 +75,9 @@ public:
         const std::vector<FlushMatrix> &matrix_,
         const std::vector<int>& u_nodes,
         const std::vector<int>& v_nodes,
-        const std::vector<int>& v_nodes_group);
+        const std::vector<int>& v_nodes_group,
+        const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {});
 
     std::vector<int> solve();
     ~GeneralMinCostLowerBoundsSolver();
@@ -97,6 +99,8 @@ private:
     std::vector<int> l_nodes;
     std::vector<int> r_nodes;
     std::vector<int> r_nodes_group;
+    std::unordered_map<int, std::vector<int>> m_uv_link_limits;
+    std::unordered_map<int, std::vector<int>> m_uv_unlink_limits;
     int num_groups = 0;
 
     // support lower bounds
@@ -115,6 +119,33 @@ private:
     int max_flow_edges = 0;
 };
 
+class GroupMinCostFlowSolver
+{
+public:
+    GroupMinCostFlowSolver(
+        const std::vector<FlushMatrix> &matrix_,
+        const std::vector<int> &u_nodes,
+        const std::vector<int> &v_nodes,
+        const std::vector<int> &v_nodes_group,
+        const std::unordered_map<int, std::vector<int>> &uv_link_limits = {},
+        const std::unordered_map<int, std::vector<int>> &uv_unlink_limits = {});
+
+    std::vector<int> solve();
+    ~GroupMinCostFlowSolver();
+
+private:
+    void build_graph();
+    int get_flush_cost(int l_idx, int r_idx);
+
+    std::unique_ptr<MinCostMaxFlow> m_solver;
+    std::vector<FlushMatrix> flush_matrix;
+    std::vector<int> l_nodes;
+    std::vector<int> r_nodes;
+    std::vector<int> r_nodes_group;
+    std::unordered_map<int, std::vector<int>> m_uv_link_limits;
+    std::unordered_map<int, std::vector<int>> m_uv_unlink_limits;
+    int num_groups = 0;
+};
 
 class MinFlushFlowSolver
 {
