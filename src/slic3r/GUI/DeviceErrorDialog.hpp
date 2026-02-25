@@ -35,6 +35,7 @@ public:
         JUMP_TO_LIVEVIEW,
 
         NO_REMINDER_NEXT_TIME = 23,
+        REFRESH_NOZZLE = 24,
         IGNORE_NO_REMINDER_NEXT_TIME = 25,
         //LOAD_FILAMENT = 26*/
         IGNORE_RESUME = 27,
