@@ -1841,7 +1841,7 @@ bool PartPlate::check_high_temp_need_wrapping_detection(const DynamicPrintConfig
             }
             filament_names += *it;
         }
-        warning_text = GUI::format(_L("Risk of nozzle clogging detected with the current high-temperature filament (%s). Enable clogging detection (Process/Others/Advanced) to receive timely alerts and prevent further issues."), filament_names);
+        warning_text = GUI::format(_L("Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."), filament_names);
         return true;
     }
 

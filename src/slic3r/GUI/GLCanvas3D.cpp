@@ -11470,7 +11470,18 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         }
         else if (warning == EWarning::HighTempNeedWrappingDetection) {
             if (state) {
-                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel, text);
+                notification_manager.push_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel, text,
+                    _u8L("Enable Clumping Detection"),
+                    [](wxEvtHandler *) {
+                        if (Tab *tab = wxGetApp().get_tab(Preset::TYPE_PRINT)) {
+                            DynamicPrintConfig cfg;
+                            cfg.set_key_value("enable_wrapping_detection", new ConfigOptionBool(true));
+                            tab->load_config(cfg);
+                            tab->on_value_change("enable_wrapping_detection", boost::any(true));
+                        }
+                        wxGetApp().sidebar().jump_to_option("enable_wrapping_detection", Preset::TYPE_PRINT, L"");
+                        return false;
+                    });
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel);
             }

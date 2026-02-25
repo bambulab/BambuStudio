@@ -1957,9 +1957,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 m_config_manipulation.apply(m_config, &new_conf);
                 wxGetApp().plater()->update();
             }
-        } else {
-            wxGetApp().plater()->update();
         }
+        wxGetApp().plater()->update();
     }
 
     if (opt_key == "precise_z_height") {
