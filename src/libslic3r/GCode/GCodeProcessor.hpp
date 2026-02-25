@@ -745,7 +745,6 @@ namespace Slic3r {
             UsedFilaments used_filaments; // stores the accurate filament usage info
             std::vector<Extruder> filament_lists;
             std::vector<std::string> filament_types;
-            std::vector<int> filament_maps; // map each filament to extruder
             std::vector<int> filament_nozzle_temp;
             std::vector<int> physical_extruder_map;
 
@@ -780,7 +779,7 @@ namespace Slic3r {
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
-                filament_maps(filament_maps_),
+                nozzle_group_result(nozzle_group_result_),
                 filament_types(filament_types_),
                 filament_nozzle_temp(filament_nozzle_temp_),
                 physical_extruder_map(physical_extruder_map_),
@@ -900,7 +899,7 @@ namespace Slic3r {
             ) :
                 moves(moves_),
                 filament_types(filament_types_),
-                filament_maps(filament_maps_),
+                nozzle_group_result(nozzle_group_result_),
                 filament_nozzle_temps(filament_nozzle_temps_),
                 filament_nozzle_temps_initial_layer(filament_nozzle_temps_initial_layer_),
                 physical_extruder_map(physical_extruder_map_),

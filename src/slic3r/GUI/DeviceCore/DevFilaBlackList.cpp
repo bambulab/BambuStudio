@@ -85,10 +85,8 @@ static std::string _get_filament_name_from_ams(const std::string& dev_id, int am
 }
 
 // moved from tao.wang and zhimin.zeng
-DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info)
+void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevFilaBlacklist::CheckResult &result)
 {
-    DevFilaBlacklist::CheckResult result;
-
     std::string  tag_type = check_info.fila_type;
     std::string  tag_name = check_info.fila_name;
     std::string  tag_vendor = check_info.fila_vendor;
@@ -295,45 +293,26 @@ DevFilaBlacklist::CheckResult check_filaments(const DevFilaBlacklist::CheckFilam
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
         };
     }
-
-    return result;
 }
 
 
-bool check_filaments_printable(const std::string &dev_id,
-                               const std::string &tag_vendor,
-                               const std::string &filament_name,
-                               const std::string &tag_type,
-                               const std::string &filament_id,
-                               int                ams_id,
-                               bool              &in_blacklist,
-                               std::string       &ac,
-                               wxString          &info)
+void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_info, DevFilaBlacklist::CheckResult &result)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) {
-        return true;
-    }
+    if (!dev) { return; }
 
-    MachineObject* obj = dev->get_my_machine(dev_id);
-    if (obj == nullptr || !obj->is_multi_extruders()) {
-        return true;
-    }
+    MachineObject *obj = dev->get_my_machine(check_info.dev_id);
+    if (obj == nullptr || !obj->is_multi_extruders()) { return; }
 
     Preset *printer_preset = GUI::get_printer_preset(obj);
-    if (!printer_preset)
-        return true;
+    if (!printer_preset) { return; }
 
     ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
-    if (!physical_extruder_map_op) {
-        return;
-    }
+    if (!physical_extruder_map_op) { return; }
 
-    if (!check_info.extruder_id.has_value()) {
-        return;
-    }
+    if (!check_info.extruder_id.has_value()) { return; }
 
-    int extruder_idx = -1;
+    int              extruder_idx           = -1;
     std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
     for (int index = 0; index < physical_extruder_maps.size(); ++index) {
         if (physical_extruder_maps[index] == check_info.extruder_id.value()) {
@@ -342,25 +321,21 @@ bool check_filaments_printable(const std::string &dev_id,
         }
     }
 
-    if (extruder_idx == -1) {
-        return;
-    }
+    if (extruder_idx == -1) { return; }
 
-    PresetBundle *preset_bundle = GUI::wxGetApp().preset_bundle;
-    std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(filament_id, printer_preset->name);
+    PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
+    std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(check_info.fila_id, printer_preset->name);
     if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
-        wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-        std::string fila_name     = filament_name.empty() ? tag_type : filament_name;
-        ac                     = "prohibition";
-        info                   = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
-        in_blacklist           = true;
-        return false;
+        DevFilaBlacklist::CheckResultItem item;
+        wxString                          extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        std::string                       fila_name     = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
+        item.action                                     = "prohibition";
+        item.info_msg                                   = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
+        result.action_items[item.action].push_back(item);
     }
-
-    return true;
 };
 
-DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(const CheckFilamentInfo& info)
+DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(const CheckFilamentInfo &info)
 {
     CheckResult result;
     if (info.ams_id < 0 || info.slot_id < 0) {
@@ -368,14 +343,23 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
         return result;
     }
 
-    bool in_blacklist = false;
-    CheckResultItem blacklist_item;
-    if (!check_filaments_printable(info.dev_id, info.fila_vendor, info.fila_name, info.fila_type,info.fila_id, info.ams_id, in_blacklist, blacklist_item.action, blacklist_item.info_msg)) {
-        result.action_items[blacklist_item.action].push_back(blacklist_item);
-        return result;
+    // check the filaments in preset
+    check_filaments_printable(info, result);
+
+    // check the filaments in blacklist file
+    check_filaments(info, result);
+
+    // if skip_ams_blacklist_check is true, change prohibition to warning
+    if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
+        const auto &prohibit_items = result.get_items_by_action("prohibition");
+        if (!prohibit_items.empty()) {
+            for (const auto &prohibit_item : prohibit_items) { result.action_items["warning"].push_back(prohibit_item); }
+
+            result.action_items.erase("prohibition");
+        }
     }
 
-    return check_filaments(info);
+    return result;
 };
 
 }
