@@ -43,6 +43,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/ScrolledWindow.hpp"
 #include "Widgets/PopupWindow.hpp"
+#include "DeviceTab/uiAMSBestPositionPopup.hpp"
 #include <wx/simplebook.h>
 #include <wx/hashmap.h>
 
@@ -340,6 +341,8 @@ private:
     std::vector<POItem> ops_auto;
     std::vector<POItem> ops_no_auto;
 
+    std::optional<float>                m_save_time{nullopt};
+
 protected:
     PrintFromType                       m_print_type{FROM_NORMAL};
     AmsMapingPopup                      m_mapping_popup{ nullptr };
@@ -389,6 +392,7 @@ protected:
     wxStaticText*                       m_rename_text{nullptr};
     Label*                              m_stext_time{ nullptr };
     Label*                              m_stext_weight{ nullptr };
+    Label*                              m_saveTimeText{ nullptr };
     PrinterMsgPanel *                   m_statictext_ams_msg{nullptr};
     Label*                              m_txt_change_filament_times{ nullptr };
     CheckBox*                           m_check_ext_change_assist{ nullptr };
@@ -435,6 +439,7 @@ protected:
     wxGridSizer*                        m_sizer_ams_mapping_right{ nullptr };
 
     PrePrintChecker                     m_pre_print_checker;
+    ReselectMachineDialog*              m_best_pos_dialog{nullptr};
 
 public:
     static std::vector<wxString> MACHINE_BED_TYPE_STRING;
@@ -477,6 +482,7 @@ public:
 
     bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
 
+    void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
     void on_rename_click(wxMouseEvent &event);
@@ -485,6 +491,7 @@ public:
     void on_cancel(wxCloseEvent& event);
     void show_errors(wxString& info);
     void on_ok_btn(wxCommandEvent& event);
+    void on_reselect_dialog_btn_clicked(wxMouseEvent&);
     void Enable_Auto_Refill(bool enable);
     void on_send_print();
     void clear_ip_address_config(wxCommandEvent& e);
@@ -541,6 +548,13 @@ public:
 
 private:
     void EnableEditing(bool enable);
+    
+    // printing
+    bool is_at_suggested_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const;
+    std::map<int, DevFilaSwitch::SwitchPos> get_filament_suggest_pos(MachineObject* obj_) const;
+    std::optional<DevFilaSwitch::SwitchPos> get_filament_suggest_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const;
+    std::optional<float> get_filament_change_gap_time(MachineObject* obj_) const;
+    wxString FormatTime(float totalSeconds);
 
     // filament mapping
     ShowType get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const;
@@ -588,6 +602,8 @@ private:
 
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
+
+    void refresh_save_time();
 };
 
 class PrinterInfoBox : public StaticBox
@@ -649,8 +665,6 @@ private:
     // key(extruder_id) -> { key1(nozzle type info), val1(label)}
     std::unordered_map<int, std::unordered_map<NozzleDef, Label*>> m_slicing_labels;
 };
-
-
 
 wxDECLARE_EVENT(EVT_SWITCH_PRINT_OPTION, wxCommandEvent);
 

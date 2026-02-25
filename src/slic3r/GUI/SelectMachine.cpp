@@ -305,11 +305,26 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_stext_weight = new Label(m_basic_panel, wxEmptyString);
     m_stext_weight->SetFont(Label::Body_13);
 
+    /* save time info */
+    m_saveTimeText = new Label(m_basic_panel, wxEmptyString);
+    m_saveTimeText->SetForegroundColour(wxColour("#FF6F00"));
+    m_saveTimeText->SetFont(Label::Body_13);
+    m_saveTimeText->Hide();
+    
+    m_saveTimeText->Bind(wxEVT_LEFT_UP, &SelectMachineDialog::on_reselect_dialog_btn_clicked, this);
+    m_saveTimeText->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) {
+        m_saveTimeText->SetCursor(wxCURSOR_HAND);
+    });
+    m_saveTimeText->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) {
+        m_saveTimeText->SetCursor(wxCURSOR_DEFAULT);
+    });
+
     m_sizer_basic_weight_time->Add(timeimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_time, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
     m_sizer_basic_weight_time->AddSpacer(FromDIP(30));
     m_sizer_basic_weight_time->Add(weightimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_weight, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
+    m_sizer_basic_weight_time->Add(m_saveTimeText, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
 
     /*last & next page*/
     auto last_plate_sizer = new wxBoxSizer(wxVERTICAL);
@@ -850,6 +865,7 @@ void SelectMachineDialog::init_bind()
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
     Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
+    Bind(wxEVT_REFRESH_DATA, &SelectMachineDialog::update_best_pos_dialog, this);
     m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
     m_basic_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
     m_bitmap_last_plate->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) {SetCursor(wxCURSOR_HAND); });
@@ -1449,6 +1465,22 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
         }
     }
 }
+void SelectMachineDialog::refresh_save_time()
+{
+    if (m_save_time.has_value() && use_dynamic_switch())
+    {
+        wxString text = wxString::Format(_L("Recommended filament arrangement saves %s→"), FormatTime(*m_save_time));
+        m_saveTimeText->SetLabel(text);
+        m_saveTimeText->Wrap(FromDIP(300));
+        m_saveTimeText->Show();
+        m_basic_panel->Layout();
+        m_basic_panel->Fit();
+    }
+    else
+    {
+        m_saveTimeText->Hide();
+    }
+}
 
 
 bool SelectMachineDialog::is_ams_drying(MachineObject* obj)
@@ -1870,6 +1902,41 @@ void SelectMachineDialog::show_errors(wxString &info)
     ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Errors"));
     confirm_dlg.update_text(info);
     confirm_dlg.on_show();
+}
+
+void SelectMachineDialog::on_reselect_dialog_btn_clicked(wxMouseEvent&)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": on_reselect_dialog_btn_clicked";
+    if (m_best_pos_dialog == nullptr)
+    {
+        m_best_pos_dialog = new ReselectMachineDialog(static_cast<wxWindow*>(this));
+    }
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return;
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj) return;
+    // auto save_time = get_filament_change_gap_time(obj);
+    wxString text{};
+    if (m_save_time.has_value())
+    {
+        text = FormatTime(*m_save_time);
+    }
+
+    //key: logicID  value: posID
+    std::map<int, int>  best_pos_map;
+    for (const auto& slot : m_ams_mapping_result)
+    {
+        if (!is_at_suggested_pos(obj, slot.ams_id, slot.slot_id))
+        {
+            auto pos = get_filament_suggest_pos(obj, slot.ams_id, slot.slot_id);
+            if (pos.has_value())
+            {
+                best_pos_map[slot.id] = pos.value();
+            }
+        }
+    }
+    m_best_pos_dialog->Update(obj, best_pos_map, m_ams_mapping_result, text);
+    m_best_pos_dialog->ShowModal();
 }
 
 void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
@@ -2982,6 +3049,9 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     update_show_status(obj_);
     update_print_status_msg();
     //update_scroll_area_size();/*STUDIO-12867 the page maybe blank in some platform. FIXME*/
+
+    m_save_time = get_filament_change_gap_time(obj_);
+    refresh_save_time();
 }
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
@@ -3076,6 +3146,33 @@ void SelectMachineDialog::update_ams_check(MachineObject *obj)
     }
 }
 
+void SelectMachineDialog::update_best_pos_dialog(wxCommandEvent &evt)
+{
+    MachineObject* obj_ = get_current_machine();
+    if(!obj_) return;
+    update_show_status(obj_);
+    // auto save_time = get_filament_change_gap_time(obj_);
+    wxString text{};
+    if (m_save_time.has_value())
+    {
+        text = FormatTime(*m_save_time);
+    }
+
+    //key: logicID  value: posID
+    std::map<int, int>  best_pos_map;
+    for (const auto& slot : m_ams_mapping_result)
+    {
+        if (!is_at_suggested_pos(obj_, slot.ams_id, slot.slot_id))
+        {
+            auto pos = get_filament_suggest_pos(obj_, slot.ams_id, slot.slot_id);
+            if (pos.has_value())
+            {
+                best_pos_map[slot.id] = pos.value();
+            }
+        }
+    }
+    m_best_pos_dialog->Update(obj_, best_pos_map, m_ams_mapping_result, text);
+}
 
 void SelectMachineDialog::update_filament_change_count()
 {
@@ -4242,6 +4339,34 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 
     m_stext_time->SetLabel(time);
     m_stext_weight->SetLabel(weight);
+    // auto save_time = get_filament_change_gap_time(obj_);
+    refresh_save_time();
+}
+
+wxString SelectMachineDialog::FormatTime(float totalSeconds)
+{
+    totalSeconds = std::abs(totalSeconds);
+    int secs = static_cast<int>(std::round(totalSeconds));
+    
+    int hours = secs / 3600;
+    int remaining = secs % 3600;
+    int minutes = remaining / 60;
+    int seconds = remaining % 60;
+
+    wxString timeStr;
+    if (hours > 0) 
+    {
+        timeStr = wxString::Format("%dm%ds", hours * 60 + minutes, seconds);
+    } 
+    else if (minutes > 0) 
+    {
+        timeStr = wxString::Format("%dm%ds", minutes, seconds);
+    } 
+    else 
+    {
+        timeStr = wxString::Format("%ds", seconds);
+    }
+    return timeStr;
 }
 
 static wxSize s_get_full_resolution()
@@ -4449,6 +4574,8 @@ void SelectMachineDialog::set_default_from_sdcard()
         ::sprintf(weight, "  %.2f g", float_weight);
         m_stext_time->SetLabel(time);
         m_stext_weight->SetLabel(weight);
+        // auto save_time = get_filament_change_gap_time(obj_);
+        refresh_save_time();
     }
     catch (...) {}
 }
@@ -5620,6 +5747,207 @@ bool SelectMachineDialog::use_dynamic_switch() const
     return false;
 }
 
+
+/**
+ * @brief 
+ * @param obj_ 
+ * @return the estimated time gap, optional.
+ */
+std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineObject* obj_) const
+{
+    return 1000;
+    if (m_print_type != FROM_NORMAL) {
+        return std::nullopt;;
+    }
+
+    if (!m_plater || !use_dynamic_switch()) {
+        return std::nullopt;
+    }
+
+    GCodeProcessorResult* gcode_result = m_plater->background_process().get_current_gcode_result();
+    auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
+    if (!nozzle_group_res || !gcode_result) {
+        return std::nullopt;
+    }
+
+    std::vector<int> group_of_filaments;
+    const auto& logic_filaments = cast<int>(nozzle_group_res->get_used_filaments());
+    for (const auto& fila_idx : logic_filaments) {
+        bool found = false;
+        for (const auto& item : m_ams_mapping_result) {
+            if (fila_idx != item.id) {
+                continue;
+            }
+
+            const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(item.ams_id);
+            if (ams_item && ams_item->GetSwitcherPos().has_value()) {
+                if (ams_item->GetSwitcherPos().value() == DevFilaSwitch::POS_IN_A) {
+                    group_of_filaments.push_back(0);
+                    found = true;
+                    break;
+                } else if (ams_item->GetSwitcherPos().value() == DevFilaSwitch::POS_IN_B) {
+                    group_of_filaments.push_back(1);
+                    found = true;
+                    break;
+                }
+            } else {
+                return std::nullopt;
+            }
+        }
+
+        if (!found) {
+            return std::nullopt;
+        }
+    }
+
+    const auto& nozzle_list = nozzle_group_res->get_used_nozzles_in_extruder();
+    const auto& fila_change_seq = cast<int>(gcode_result->filament_change_sequence);
+    const auto& nozzle_change_seq = cast<int>(gcode_result->nozzle_change_sequence);
+
+    MultiNozzleUtils::FilamentChangeTimeParams params;
+    const auto& full_config = wxGetApp().preset_bundle->full_config();
+    const auto& load_time_opt = full_config.option<ConfigOptionFloat>("machine_load_filament_time");
+    if (load_time_opt) {
+        params.standard_load_time = load_time_opt->value;;
+    }
+
+    const auto& unload_time_opt = full_config.option<ConfigOptionFloat>("machine_unload_filament_time");
+    if (unload_time_opt) {
+        params.standard_unload_time = unload_time_opt->value;;
+    }
+    params.selector_load_time = params.standard_load_time * 0.5;
+    params.selector_unload_time = params.standard_unload_time * 0.5;
+
+    try {
+        return MultiNozzleUtils::calc_filament_change_gap_for_assignment(logic_filaments,
+                                                                         nozzle_list,
+                                                                         fila_change_seq,
+                                                                         nozzle_change_seq,
+                                                                         group_of_filaments,
+                                                                         params);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
+        return std::nullopt;
+    }
+
+    return std::nullopt;
+}
+/**
+ * @brief Get suggested switch position for each filament according to slicing result and AMS mapping result.
+ * @return logic filament id as key, and the suggested switch position as value.
+ */
+std::map<int, DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_suggest_pos(MachineObject* obj_) const
+{
+    std::map<int, DevFilaSwitch::SwitchPos> suggest_pos_map;
+    if (m_print_type != FROM_NORMAL) {
+        return suggest_pos_map;
+    }
+
+    if (!m_plater || !obj_ || !use_dynamic_switch() || !obj_->GetFilaSwitch()->IsInstalled()) {
+        return suggest_pos_map;
+    }
+
+    std::map<int, std::set<int>> pos2group;
+    const auto& optimal_assignment = m_plater->background_process().get_current_gcode_result()->optimal_assignment;
+    for (int fila_idx = 0; fila_idx < optimal_assignment.size(); fila_idx++) {
+        pos2group[optimal_assignment.at(fila_idx)].insert(fila_idx);
+    };
+
+    std::set<int> in_a_fila_set;
+    std::set<int> in_b_fila_set;
+    for (const auto& item : m_ams_mapping_result) {
+        const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(item.ams_id);
+        if (ams_item && ams_item->GetSwitcherPos().has_value()) {
+            if (ams_item->GetSwitcherPos().value() == DevFilaSwitch::POS_IN_A) {
+                in_a_fila_set.insert(item.id);
+            } else if (ams_item->GetSwitcherPos().value() == DevFilaSwitch::POS_IN_B) {
+                in_b_fila_set.insert(item.id);
+            }
+        } else{
+            return suggest_pos_map;
+        }
+    }
+
+    if (pos2group.size() == 1) {
+        if (in_a_fila_set.size() > in_b_fila_set.size()) {
+            for (const auto& item : m_ams_mapping_result) {
+                suggest_pos_map[item.id] = DevFilaSwitch::POS_IN_A;
+            }
+        } else if (in_a_fila_set.size() < in_b_fila_set.size()) {
+            for (const auto& item : m_ams_mapping_result) {
+                suggest_pos_map[item.id] = DevFilaSwitch::POS_IN_B;
+            }
+        } else {
+            for (const auto& item : m_ams_mapping_result) {
+                suggest_pos_map[item.id] = DevFilaSwitch::POS_IN_A;
+            }
+        }
+    } else if (pos2group.size() == 2) {
+        auto iter = pos2group.begin();
+        const auto& group_1 = iter->second;
+        iter++;
+        const auto& group_2 = iter->second;
+        int offset_1_ina = group_1.size() - in_a_fila_set.size();
+        int offset_1_inb = group_1.size() - in_b_fila_set.size();
+        int offset_2_ina = group_2.size() - in_a_fila_set.size();
+        int offset_2_inb = group_2.size() - in_b_fila_set.size();
+        if ((offset_1_ina + offset_1_inb) <= (offset_2_ina + offset_2_inb)) {
+            for (const auto& fila_idx : group_1) {
+                suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_A;
+            }
+
+            for (const auto& fila_idx : group_2) {
+                suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_B;
+            }
+        } else if((offset_1_ina + offset_1_inb) > (offset_2_ina + offset_2_inb)){
+            for (const auto& fila_idx : group_1) {
+                suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_B;
+            }
+
+            for (const auto& fila_idx : group_2) {
+                suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_A;
+            }
+        }
+    }
+
+    return suggest_pos_map;
+}
+
+std::optional<DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_suggest_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const
+{
+    const auto& suggest_pos_opt = get_filament_suggest_pos(obj_);
+    if (suggest_pos_opt.empty()) {
+        return std::nullopt;
+    }
+
+    for (const auto& item : m_ams_mapping_result) {
+        if (item.ams_id == ams_id && item.slot_id == slot_id) {
+            if (suggest_pos_opt.count(item.id) != 0) {
+                return suggest_pos_opt.at(item.id);
+            } else {
+                return std::nullopt;
+            }
+        }
+    }
+
+    return std::nullopt;
+}
+
+bool SelectMachineDialog::is_at_suggested_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const
+{
+    auto opt = get_filament_suggest_pos(obj_, ams_id, slot_id);
+    if (!opt.has_value()) {
+        return true;
+    }
+
+    const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(ams_id);
+    if (ams_item) {
+        return ams_item->GetSwitcherPos() != opt;
+    }
+
+    return true;
+}
+
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)
      : wxPanel(parent, winid, pos, size)
  {
@@ -6551,7 +6879,6 @@ void NozzleStatePanel::UpdateLabelColour()
         }
     }
 }
-// end of class NozzleStatePanel
 
 }
 } // namespace Slic3r::GUI
