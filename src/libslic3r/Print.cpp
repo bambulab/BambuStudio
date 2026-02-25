@@ -1468,7 +1468,7 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
             double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
             if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
-                || std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1)
+                /*|| std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1*/)
                 // BBS: remove L()
                 return { L("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
         }
