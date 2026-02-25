@@ -1664,13 +1664,15 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         return false;
     }
     if (machine_print_name != target_model_id) {
-        wxString msg = wxString::Format(_L("Do you want to sync the preset printer with the connected printer, %s \n%s\n%s"), machine_display_name,
-                                        wxString::Format("<span style=\"color:gray !important\">%s</span>",
-                                                         wxString::Format(_L("Current connected printer (Device page): %s (%s)"), machine_display_name,
-                                                                          wxString::FromUTF8(obj->get_dev_name()))),
-                                        wxString::Format("<span style=\"color:gray !important\">%s</span>",
-                                                         wxString::Format(_L("Current printer preset (Prepare page): %s"), target_display_name)));
-        MessageDialog dlg(this->plater, msg, _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
+        wxString msg = _L("Do you want to sync the preset printer with the connected printer, ") + machine_display_name + "\n" +
+               wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                wxString::Format(_L("Current connected printer (Device page): %s (%s)"), machine_display_name,
+                                                 wxString::FromUTF8(obj->get_dev_name()))) + "\n" +
+               wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                wxString::Format(_L("Current printer preset (Prepare page): %s"), target_display_name));
+        MessageDialog dlg(this->plater, msg, _L("Sync printer information"), wxYES | wxNO, wxEmptyString, wxEmptyString, nullptr, true);
+        dlg.SetButtonLabel(wxID_YES, _L("Sync now"));
+        dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
         if (dlg.ShowModal() == wxID_NO) {
             return false;
         }
