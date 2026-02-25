@@ -1749,6 +1749,13 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(100));
 
+    def          = this->add("monotonic_travel_into_wall", coFloat);
+    def->label   = L("Monotonic line travel extend");
+    def->tooltip = L("Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.");
+    def->mode    = comDevelop;
+    def->min     = 0;
+    def->set_default_value(new ConfigOptionFloat(0.0));
+
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
     def->category = L("Strength");
@@ -3080,12 +3087,6 @@ void PrintConfigDef::init_fff_params()
     def->mode=comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
     def->readonly=false;
-
-    def = this->add("apply_top_surface_compensation", coBool);
-    def->label  = L("Apply top surface compensation");
-    def->tooltip = L("Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def =this->add("support_air_filtration",coBool);
     def->label=L("Air filtration enhancement");
@@ -6682,7 +6683,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
-        "prime_volume"
+        "prime_volume",
+        "apply_top_surface_compensation"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {

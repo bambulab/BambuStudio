@@ -252,5 +252,6 @@
         "80%",
         "80%"
     ],
+    "monotonic_travel_into_wall": "1.0",
     "z_direction_outwall_speed_continuous": "1"
 }

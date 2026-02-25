@@ -175,6 +175,7 @@
         "80%",
         "80%"
     ],
+    "monotonic_travel_into_wall": "1.0",
     "compatible_printers": [
         "Bambu Lab H2S 0.8 nozzle"
     ]
