@@ -106,6 +106,34 @@ std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
 
 
 // ==================== LayeredNozzleGroupResult 实现 ====================
+static bool has_filament_mapped_to_multiple_nozzles(const std::vector<std::vector<int>> &layer_filament_nozzle_maps,
+                                                    const std::vector<unsigned int>     &used_filaments)
+{
+    if (layer_filament_nozzle_maps.empty() || used_filaments.empty())
+        return false;
+
+    for (auto filament_id_u : used_filaments) {
+        int filament_id = static_cast<int>(filament_id_u);
+        std::set<int> nozzle_ids;
+
+        for (size_t layer_id = 0; layer_id < layer_filament_nozzle_maps.size(); ++layer_id) {
+            const auto &map = layer_filament_nozzle_maps[layer_id];
+            if (filament_id < 0 || filament_id >= static_cast<int>(map.size()))
+                continue;
+
+            int nozzle_id = map[filament_id];
+            if (nozzle_id < 0)
+                continue;
+
+            nozzle_ids.insert(nozzle_id);
+            if (nozzle_ids.size() > 1)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     const std::vector<int>& filament_nozzle_map,
     const std::vector<NozzleInfo>& nozzle_list,
@@ -133,7 +161,8 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
         return std::nullopt;
     }
 
-    LayeredNozzleGroupResult result(true);
+    bool support_dynamic_nozzle_map = has_filament_mapped_to_multiple_nozzles(layer_filament_nozzle_maps, used_filaments);
+    LayeredNozzleGroupResult result(support_dynamic_nozzle_map);
     result._layer_filament_nozzle_maps = layer_filament_nozzle_maps;
     result._layer_filament_sequences   = layer_filament_sequences;
     result._nozzle_list                = nozzle_list;

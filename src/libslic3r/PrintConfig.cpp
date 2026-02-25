@@ -102,7 +102,7 @@ size_t get_filament_config_idx(const GCodeConfig &config, unsigned int filament_
     ExtruderType     extruder_type         = ExtruderType(config.extruder_type.get_at(get_extruder_index(config, filament_id)));
     auto             filament_variant_list = config.filament_extruder_variant.values;
     auto             filament_self_idx     = config.filament_self_index.values;
-    return get_config_index_base(volume_type, extruder_type, filament_id, filament_variant_list, filament_self_idx);
+    return get_config_index_base(volume_type, extruder_type, filament_id+1, filament_variant_list, filament_self_idx);
 }
 
 size_t get_process_config_idx(const GCodeConfig& config, unsigned int filament_id)
