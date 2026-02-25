@@ -468,7 +468,8 @@ public:
 
     bool CheckErrorRackStatus(MachineObject* obj_);//return true if no errors
     bool CheckErrorExtruderNozzleWithSlicing(MachineObject* obj_);//return true if no errors
-    bool CheckErrorSyncNozzleMappingResult(MachineObject* obj);// return true if no errors
+    bool CheckErrorSyncNozzleMappingResultV1(MachineObject* obj);// return true if no errors
+    bool CheckErrorSyncNozzleMappingResultV0(MachineObject* obj);// return true if no errors
     bool CheckErrorDynamicSwitchNozzle(MachineObject* obj);// return true if no errors
 
     void UpdateStatusCheckWarning_ExtensionTool(MachineObject* obj_);
@@ -549,6 +550,9 @@ private:
     // nozzle mapping
     void clear_nozzle_mapping();
 
+    // dynamic nozzle switch
+    bool use_dynamic_switch() const;
+
     /* update ams backup*/
     void update_ams_backup(MachineObject* obj_);
 
@@ -581,6 +585,7 @@ private:
 
     // get mapping nozzle for all
     std::optional<DevNozzle> get_mapped_nozzle(int fila_id) const;
+    std::map<int, DevNozzle> get_mapped_nozzles(int fila_id) const;
 
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);

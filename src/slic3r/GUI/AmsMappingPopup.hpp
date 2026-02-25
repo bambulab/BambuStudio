@@ -68,7 +68,7 @@ enum ShowType {
     LEFT,   //  only show left ams and left ext
     RIGHT,  //only show right ams and right ext
     LEFT_AND_RIGHT,  //show left and right ams at the same time
-    LEFT_AND_RIGHT_DYNAMIC  //show left and right when use_dynamic_switch enabled
+    LEFT_AND_RIGHT_DYNAMIC  //show all left and right at one panel when use_dynamic_switch
 };
 
 struct TrayData
@@ -296,15 +296,15 @@ public:
     MappingItem* m_left_extra_slot{nullptr};
     MappingItem* m_right_extra_slot{nullptr};
 
-    wxPanel *    m_main_panel{nullptr};
     wxPanel *    m_left_marea_panel{nullptr};
-    wxPanel *    m_right_marea_panel{nullptr};
+    wxPanel*     m_right_marea_panel{ nullptr }; // used as right if both left and right sides shown. used as single panel if only one side shown.
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
     wxPanel *    m_ams_tips_panel{nullptr};
     wxPanel *    m_split_line_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
+    wxBoxSizer * m_right_split_ext_sizer{ nullptr };
     Label *      m_left_tips{nullptr};
     Label *      m_right_tips{nullptr};
 
@@ -346,7 +346,6 @@ public:
     void  show_reset_button();
     void  set_material_index_str(std::string str) { m_material_index = str; }
     const std::string &get_material_index_str() { return m_material_index; }
-    void  set_only_show_ext_spool(bool flag);
 
 public:
     void msw_rescale();
@@ -357,6 +356,7 @@ private:
     // update
     void update_title(MachineObject* obj);
     void update_ams_tips(MachineObject* obj);
+    void update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch);
 
     // events
     void OnNozzleMappingSelected(wxCommandEvent& evt);
@@ -367,7 +367,6 @@ private:
 
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
-    bool m_only_show_ext_spool{false};
 };
 
 class AmsMapingTipPopup : public PopupWindow

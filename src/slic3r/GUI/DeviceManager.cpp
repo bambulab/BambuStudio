@@ -1486,7 +1486,7 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
 
         if (extruder_id.has_value())
         {
-            j["print"]["extruder"] = *extruder_id;
+            j["print"]["extruder_id"] = *extruder_id;
         }
 
     } catch (const std::exception &) {}
@@ -3867,6 +3867,7 @@ bool MachineObject::is_firmware_info_valid()
 DevAmsTray MachineObject::parse_vt_tray(json vtray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
+    vt_tray.ams_type = DevAmsType::DUMMY;
 
     if (vtray.contains("id"))
         vt_tray.id = vtray["id"].get<std::string>();

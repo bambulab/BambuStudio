@@ -24,7 +24,8 @@ namespace GUI
 }
 };
 
-wxDECLARE_EVENT(EVT_NOZZLE_RACK_ITEM_CLICKED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_NOZZLE_SELECT_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_NOZZLE_SELECT_CLICKED, wxCommandEvent);
 namespace Slic3r::GUI
 {
 class wgtDeviceNozzleRackSelect : public wxPanel
@@ -59,7 +60,7 @@ private:
     // GUI
     wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle_l{nullptr};
     wgtDeviceNozzleRackNozzleItem * m_toolhead_nozzle_r{nullptr};
-    std::unordered_map<int, wgtDeviceNozzleRackNozzleItem *> m_nozzle_items; // from 0 to 5
+    std::unordered_map<int, wgtDeviceNozzleRackNozzleItem *> m_nozzle_items; // from 16 to 21
 };
 
 };// end of namespace Slic3r::GUI

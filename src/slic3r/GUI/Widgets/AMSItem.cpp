@@ -3920,25 +3920,25 @@ FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
     wxGridSizer* topSizer = new wxGridSizer (1, 3, FromDIP(5), 0);
 
     m_radioHelper = new wxRadioButton(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    m_leftRadio = new wxRadioButton(this, wxID_ANY, _L("left side"));
-    m_rightRadio = new wxRadioButton(this, wxID_ANY, _L("right side"));
+    m_leftRadio = new wxRadioButton(this, wxID_ANY, _L("Left Extruder"));
+    m_rightRadio = new wxRadioButton(this, wxID_ANY, _L("Right Extruder"));
     m_radioHelper->Show(false);
     m_radioHelper->SetCanFocus(false);
 
     m_leftRadio->SetFont(customFont);
     m_rightRadio->SetFont(customFont);
 
-    topSizer->Add(m_leftRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    topSizer->Add(m_leftRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(20));
     m_extruderImage = new DevExtruderImage(this, wxID_ANY, m_extruder_num);
     topSizer->Add(m_extruderImage, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
-    topSizer->Add(m_rightRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    topSizer->Add(m_rightRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(20));
 
     mainSizer->AddStretchSpacer(1);
     mainSizer->Add(topSizer, 1, wxEXPAND);
     mainSizer->AddStretchSpacer(1);
 
     wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
-    m_confirmBtn = new Button(this, _L("confirm"));
+    m_confirmBtn = new Button(this, _L("Confirm"));
     m_confirmBtn->Enable(false);
     m_confirmBtn->SetFont(customFont);
     bottomSizer->Add(m_confirmBtn, 0, wxALIGN_RIGHT);

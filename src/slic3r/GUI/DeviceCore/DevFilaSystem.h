@@ -4,6 +4,7 @@
 
 #include "DevDefs.h"
 #include "DevFilaAmsSetting.h"
+#include "DevFilaSwitch.h"
 #include "DevUtil.h"
 
 #include <map>
@@ -20,6 +21,7 @@
 namespace Slic3r
 {
 class MachineObject;
+class DevFilaSystem;
 struct DevFilamentDryingPreset;
 
 enum DevFilaColorType : int
@@ -27,6 +29,15 @@ enum DevFilaColorType : int
     CTYPE_MULTI = 0,
     CTYPE_GRADIANT = 1,
     CTYPE_SINGLE = 2,
+};
+
+enum DevAmsType : int
+{
+    DUMMY = 0,          // EXT
+    AMS = 1,            // AMS
+    AMS_LITE = 2,       // AMS-Lite
+    N3F = 3,            // N3F
+    N3S = 4,            // N3S
 };
 
 class DevAmsTray
@@ -39,6 +50,7 @@ public:
     }
 
     std::string              id;
+    DevAmsType               ams_type = DevAmsType::DUMMY;
     std::string              tag_uid;             // tag_uid
     std::string              setting_id;          // tray_info_idx
     std::string              filament_setting_id; // setting_id
@@ -100,14 +112,6 @@ class DevAms
 {
     friend class DevFilaSystemParser;
 public:
-    enum AmsType : int
-    {
-        DUMMY = 0,
-        AMS = 1,      // AMS
-        AMS_LITE = 2, // AMS-Lite
-        N3F = 3,      // N3F
-        N3S = 4,      // N3S
-    };
 
     enum class DryCtrlMode : int
     {
@@ -162,17 +166,17 @@ public:
     };
 
 public:
-    DevAms(const std::string& ams_id, const std::set<int>& binded_extruder_set, AmsType type);
-    DevAms(const std::string& ams_id, const std::set<int>& binded_extruder_set, int type);
+    DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type);
+    DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, int type);
     ~DevAms();
 
 public:
     std::string GetAmsId() const { return m_ams_id; }
     wxString    GetDisplayName() const; // display
 
-    void     SetAmsType(int type) { m_ams_type = (AmsType)type; }
-    void     SetAmsType(AmsType type) { m_ams_type = type; }
-    AmsType  GetAmsType() const { return m_ams_type; }
+    void     SetAmsType(int type) { m_ams_type = (DevAmsType) type; }
+    void     SetAmsType(DevAmsType type) { m_ams_type = type; }
+    DevAmsType  GetAmsType() const { return m_ams_type;}
 
     // exist or not
     bool  IsExist() const { return m_exist; }
@@ -182,22 +186,28 @@ public:
     DevAmsTray* GetTray(const std::string& tray_id) const;
     const std::map<std::string, DevAmsTray*>& GetTrays() const { return m_trays; }
 
-    // installed on the extruder
+    // the ams can be used on the binded extruders
     int GetBindedExtruderCount() const { return m_binded_extruder_set.size(); }
     std::optional<int> GetUniqueBindedExtruderId() const;
-    std::set<int> GetBindedExtruderSet() const { return m_binded_extruder_set; }; // vector if filament switcher on
+    std::set<int> GetBindedExtruderSet() const { return m_binded_extruder_set; }; 
+
+    // the ams is used on the extruder currently
+    std::optional<int> GetCurrentExtruderId() const;
+
+    // filament switcher
+    std::optional<DevFilaSwitch::SwitchPos> GetSwitcherPos() const { return m_binded_switcher_pos; };
 
     // temperature and humidity
     float GetCurrentTemperature() const { return m_current_temperature; }
 
     // humidity ans drytime
-    bool  SupportHumidityLevel() const { return m_ams_type == AMS; }
+    bool  SupportHumidityLevel() const { return m_ams_type == DevAmsType::AMS; }
     int   GetHumidityLevel() const { return m_humidity_level; }
 
-    bool  SupportHumidityPercent() const { return (m_ams_type == N3F) || (m_ams_type == N3S); }
+    bool  SupportHumidityPercent() const { return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S); }
     int   GetHumidityPercent() const { return m_humidity_percent; }
 
-    bool  SupportDrying() const { return m_ams_type == N3F || m_ams_type == N3S; }
+    bool  SupportDrying() const { return m_ams_type == DevAmsType::N3F || m_ams_type == DevAmsType::N3S; }
     int   GetLeftDryTime() const { return m_left_dry_time; } //miniutes
 
     // remote drying control
@@ -212,7 +222,9 @@ public:
     bool AmsIsDrying();
 
 private:
-    AmsType       m_ams_type = AmsType::AMS;
+    std::weak_ptr<DevFilaSystem> m_fila_system;
+
+    DevAmsType    m_ams_type = DevAmsType::AMS;
     std::string   m_ams_id;
     bool          m_exist = false;
 
@@ -220,6 +232,8 @@ private:
     // normally, one ams binds to one extruder
     // for filament switcher, one ams may bind to multiple extruders
     std::set<int> m_binded_extruder_set;
+
+    std::optional<DevFilaSwitch::SwitchPos> m_binded_switcher_pos;
 
     // slots and trays
     std::map<std::string, DevAmsTray*> m_trays;//id -> DevAmsTray*
@@ -320,11 +334,11 @@ struct DevFilamentDryingPreset
 {
     std::string filament_id;
 
-    std::unordered_set<DevAms::AmsType> ams_limitations; // only use ams types in the set
-    std::unordered_map<DevAms::AmsType, float> filament_dev_ams_drying_time_on_idle; // hour
-    std::unordered_map<DevAms::AmsType, float> filament_dev_ams_drying_temperature_on_idle;
-    std::unordered_map<DevAms::AmsType, float> filament_dev_ams_drying_time_on_print; // hour
-    std::unordered_map<DevAms::AmsType, float> filament_dev_ams_drying_temperature_on_print;
+    std::unordered_set<DevAmsType> ams_limitations; // only use ams types in the set
+    std::unordered_map<DevAmsType, float> filament_dev_ams_drying_time_on_idle; // hour
+    std::unordered_map<DevAmsType, float> filament_dev_ams_drying_temperature_on_idle;
+    std::unordered_map<DevAmsType, float> filament_dev_ams_drying_time_on_print; // hour
+    std::unordered_map<DevAmsType, float> filament_dev_ams_drying_temperature_on_print;
     float filament_dev_drying_cooling_temperature;
     float filament_dev_drying_softening_temperature;
     float filament_dev_ams_drying_heat_distortion_temperature;

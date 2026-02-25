@@ -1727,12 +1727,12 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 
         // Main (first) extruder at right
         if (uniq_extruder_id.value() == 0) {
-            if (ams.second->GetAmsType() == DevAms::N3S) // N3S
+            if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
                 ++main_1;
             else
                 ++main_4;
         } else if (uniq_extruder_id.value() == 1) {
-            if (ams.second->GetAmsType() == DevAms::N3S) // N3S
+            if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
                 ++deputy_1;
             else
                 ++deputy_4;
@@ -1892,7 +1892,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         if (uniq_extruder_id.value() >= machine_extruder_infos.size())
             continue;
 
-        if (item.second->GetAmsType() == DevAms::N3S)
+        if (item.second->GetAmsType() == DevAmsType::N3S)
         { // N3S
             machine_extruder_infos[uniq_extruder_id.value()].ams_1++;
             machine_extruder_infos[uniq_extruder_id.value()].ams_v1.push_back(item.second);
@@ -13442,12 +13442,12 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
 
             // Main (first) extruder at right
             if (unique_extruder_id_opt.value() == 0) {
-                if (ams.second->GetAmsType() == DevAms::N3S) // N3S
+                if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
                     ++main_1;
                 else
                     ++main_4;
             } else if (unique_extruder_id_opt.value() == 1) {
-                if (ams.second->GetAmsType() == DevAms::N3S) // N3S
+                if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
                     ++deputy_1;
                 else
                     ++deputy_4;

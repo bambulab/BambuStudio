@@ -501,6 +501,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
+    GUI/AmsMappingPopupUpdate.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
     GUI/HelioReleaseNote.hpp

@@ -2347,31 +2347,6 @@ void SyncAmsInfoDialog::update_show_status()
             return;
         }
     }
-
-    // check ams and vt_slot mix use status
-    {
-        struct ExtruderStatus
-        {
-            bool has_ams{false};
-            bool has_vt_slot{false};
-        };
-        std::vector<ExtruderStatus> extruder_status(nozzle_nums);
-        for (const FilamentInfo &item : m_ams_mapping_result) {
-            if (item.ams_id.empty()) continue;
-
-            int extruder_id = obj_->get_extruder_id_by_ams_id(item.ams_id);
-            if (devPrinterUtil::IsVirtualSlot(item.ams_id))
-                extruder_status[extruder_id].has_vt_slot = true;
-            else
-                extruder_status[extruder_id].has_ams = true;
-        }
-        for (auto extruder : extruder_status) {
-            if (extruder.has_ams && extruder.has_vt_slot) {
-                show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
-                return;
-            }
-        }
-    }
 }
 
 bool SyncAmsInfoDialog::has_timelapse_warning()
