@@ -257,7 +257,7 @@ public:
     CalibrateFilamentComboBox(wxWindow *parent);
     ~CalibrateFilamentComboBox();
 
-    void load_tray(DynamicPrintConfig & config);
+    void load_tray(const DynamicPrintConfig & config);
 
     void update() override;
     void msw_rescale() override;

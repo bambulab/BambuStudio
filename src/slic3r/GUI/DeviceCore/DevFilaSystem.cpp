@@ -346,7 +346,7 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
                 try {
                     int ams_id_int = stoi(ams_id);
                     int slot_id_int = stoi(slot_id);
-                    int tray_index= ams_item->GetAmsType() == DevAms::AmsType::N3S ? ams_id_int : (ams_id_int * 4 + slot_id_int);
+                    int tray_index= ams_item->GetAmsType() == DevAmsType::N3S ? ams_id_int : (ams_id_int * 4 + slot_id_int);
                     tray_id_map[tray_index] = {ams_id_int, slot_id_int};
                 } catch(...) {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
@@ -760,11 +760,13 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
             ams_id_int = atoi(ams_id.c_str());
             tray_id_int = atoi(curr_tray->id.c_str());
 
-            if(curr_ams->GetAmsType() == DevAmsType::AMS_LITE) {
+            if (curr_ams->GetAmsType() == DevAmsType::AMS_LITE) {
                 int tray_exist_bits = DevUtil::get_flag_bits(obj->tray_exist_bits, 24 + (ams_id_int - 16), 4);
                 curr_tray->is_exists = tray_exist_bits & (1 << tray_id_int);
-            } else if(curr_ams->GetAmsType() == DevAmsType::N3S){
+            } else if (curr_ams->GetAmsType() == DevAmsType::N3S) {
                 curr_tray->is_exists = DevUtil::get_flag_bits(obj->tray_exist_bits, 16 + (ams_id_int - 128));
+            } else {
+                curr_tray->is_exists = (obj->tray_exist_bits & (1 << (ams_id_int * 4 + tray_id_int))) != 0 ? true : false;
             }
 
         }

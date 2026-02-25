@@ -91,7 +91,7 @@ public:
 
     void set_select_mode(CalibrationFilamentMode mode);
     CalibrationFilamentMode get_select_mode() { return m_mode; }
-    void load_tray_from_ams(int id, DynamicPrintConfig& tray);
+    void load_tray_from_ams(int id, const DynamicPrintConfig& tray);
     void update_from_preset();
     int get_index() { return m_index; }
     int get_tray_id() { return m_tray_id; }

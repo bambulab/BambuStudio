@@ -31,15 +31,6 @@ enum DevFilaColorType : int
     CTYPE_SINGLE = 2,
 };
 
-enum DevAmsType : int
-{
-    DUMMY = 0,          // EXT
-    AMS = 1,            // AMS
-    AMS_LITE = 2,       // AMS-Lite
-    N3F = 3,            // N3F
-    N3S = 4,            // N3S
-};
-
 class DevAmsTray
 {
 public:

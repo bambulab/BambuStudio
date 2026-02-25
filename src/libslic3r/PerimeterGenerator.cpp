@@ -273,7 +273,7 @@ static bool is_enable_overhang_speed(const PerimeterGenerator& perimeter_generat
     bool use_filament_overhang_speed = perimeter_generator.print_config->override_process_overhang_speed.get_at(filament_idx);
 
     return use_filament_overhang_speed ? perimeter_generator.print_config->filament_enable_overhang_speed.get_at(filament_idx) :
-        perimeter_generator.config->enable_overhang_speed.get_at(extruder_id);
+        perimeter_generator.config->enable_overhang_speed.get_at(config_idx);
 }
 
 

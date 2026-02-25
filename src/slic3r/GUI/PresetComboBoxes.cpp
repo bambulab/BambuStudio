@@ -1802,7 +1802,7 @@ GUI::CalibrateFilamentComboBox::~CalibrateFilamentComboBox()
 {
 }
 
-void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
+void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
 {
     m_tray_name = config.opt_string("tray_name", 0u);
     size_t pos = m_tray_name.find("HT-");
