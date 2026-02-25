@@ -2186,6 +2186,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     // BBS
     const ConfigOptionStrings* printer_extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant");
     if (printer_extruder_variant != nullptr) {
+        m_result.printer_extruder_variant.resize(printer_extruder_variant->size());
         for (size_t i = 0; i < printer_extruder_variant->size(); ++i) {
             m_result.printer_extruder_variant[i] = printer_extruder_variant->values[i];
         }
@@ -2194,6 +2195,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     // BBS
     const ConfigOptionInts* printer_extruder_id = config.option<ConfigOptionInts>("printer_extruder_id");
     if (printer_extruder_id != nullptr) {
+        m_result.printer_extruder_id.resize(printer_extruder_id->values.size());
         for (size_t i = 0; i < printer_extruder_id->values.size(); ++i) {
             m_result.printer_extruder_id[i] = static_cast<int>(printer_extruder_id->values[i]);
         }
@@ -2201,6 +2203,7 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
 
     const ConfigOptionEnumsGeneric* extruder_types = config.option<ConfigOptionEnumsGeneric>("extruder_type");
     if (extruder_types != nullptr ) {
+        m_result.extruder_types.resize(extruder_types->values.size());
         for (size_t i = 0; i < extruder_types->values.size(); ++i) {
             m_result.extruder_types[i] = static_cast<ExtruderType>(extruder_types->values[i]);
         }
