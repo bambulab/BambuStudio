@@ -344,6 +344,6 @@ bool obj_color_deal_algo(std::vector<Slic3r::RGBA> &input_colors,
 // Returns whether color information was successfully extracted.
 bool extract_colors_to_obj_dialog(
     Slic3r::Model* model,
-    const std::unordered_map<int, std::vector<std::string>>& color_group_map,
+    const std::map<int, std::vector<std::string>>& color_group_map,
     const std::unordered_map<int, Slic3r::VolumeColorInfo>& volume_color_data,
     Slic3r::ObjDialogInOut& out);

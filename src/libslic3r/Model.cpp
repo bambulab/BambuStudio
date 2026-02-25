@@ -378,7 +378,7 @@ Model Model::read_from_file(const std::string&                                  
 // Loading model from a file (3MF or AMF), not from a simple geometry file (STL or OBJ).
 Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type, LoadStrategy options,
         PlateDataPtrs* plate_data, std::vector<Preset*>* project_presets, Semver* file_version, Import3mfProgressFn proFn, BBLProject *project,
-        std::unordered_map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
+        std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
 {
     assert(config != nullptr);
     assert(config_substitutions != nullptr);
@@ -3783,7 +3783,7 @@ static void get_real_filament_id(const unsigned char &id, std::string &result) {
     }
 };
 
-bool Model::obj_import_color_deal(const std::vector<unsigned char>& filament_ids, const unsigned char& first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback /*= nullptr*/)
+bool Model::obj_import_color_deal(const std::vector<unsigned char>& filament_ids, std::optional<unsigned char> first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback /*= nullptr*/)
 {
     if (filament_ids.empty() || nullptr == model) {
         return false;
@@ -3794,12 +3794,16 @@ bool Model::obj_import_color_deal(const std::vector<unsigned char>& filament_ids
         if (nullptr == obj) {
             continue;
         }
-        obj->config.set("extruder", first_extruder_id);
+        if (first_extruder_id.has_value()) {
+            obj->config.set("extruder", first_extruder_id.value());
+        }
         for (auto& volume : obj->volumes) {
             if (nullptr == volume || !volume->is_model_part()) {
                 continue;
             }
-            volume->config.set("extruder", first_extruder_id);
+            if (first_extruder_id.has_value()) {
+                volume->config.set("extruder", first_extruder_id.value());
+            }
             int vol_idx = volume->id().id;
             if (nullptr == deal_vertex_callback || !deal_vertex_callback(vol_idx)) {
                 success |= obj_import_face_color_deal(filament_ids, first_extruder_id, volume, get_filament_id_callback);
@@ -3812,7 +3816,7 @@ bool Model::obj_import_color_deal(const std::vector<unsigned char>& filament_ids
     return success;
 }
 
-bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, const unsigned char &first_extruder_id, ModelVolume* volume, std::function<int(int, int, int)> filament_id_callback /*= nullptr*/)
+bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &vertex_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume* volume, std::function<int(int, int, int)> filament_id_callback /*= nullptr*/)
 {
     if (vertex_filament_ids.size() == 0 || nullptr == volume) {
         return false;
@@ -3845,7 +3849,9 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
     auto calc_tri_area = [](const Vec3f &v0, const Vec3f &v1, const Vec3f &v2) {
         return std::abs((v0 - v1).cross(v0 - v2).norm()) / 2;
     };
-    volume->config.set("extruder", first_extruder_id);
+    if (first_extruder_id.has_value()) {
+        volume->config.set("extruder", first_extruder_id.value());
+    }
     auto face_count = volume->mesh().its.indices.size();
     volume->mmu_segmentation_facets.reset();
     volume->mmu_segmentation_facets.reserve(face_count);
@@ -3926,11 +3932,13 @@ bool Model::obj_import_vertex_color_deal(const std::vector<unsigned char> &verte
     return true;
 }
 
-bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, ModelVolume* volume, std::function<int(int, int, int)> filament_id_callback /*= nullptr*/)
+bool Model::obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume* volume, std::function<int(int, int, int)> filament_id_callback /*= nullptr*/)
 {
     if (face_filament_ids.size() == 0 || nullptr == volume) { return false; }
     // 2.generate mmu_segmentation_facets
-    volume->config.set("extruder", first_extruder_id);
+    if (first_extruder_id.has_value()) {
+        volume->config.set("extruder", first_extruder_id.value());
+    }
     auto face_count = volume->mesh().its.indices.size();
     volume->mmu_segmentation_facets.reset();
     volume->mmu_segmentation_facets.reserve(face_count);

@@ -6280,7 +6280,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
                     // Used to store color group mapping information in standard 3MF files
-                    std::unordered_map<int, std::vector<std::string>> color_group_map;
+                    std::map<int, std::vector<std::string>> color_group_map;
                     VolumeColorInfoMap volume_color_data;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,

@@ -31,7 +31,7 @@ bool check_is_all_undefined_color(const std::vector<Slic3r::RGBA>& colors) {
 // Construct the color of each face from TriangleColors and color_group_map
 Slic3r::RGBA get_face_color_from_binding(
     const Slic3r::TriangleColor& binding,
-    const std::unordered_map<int, std::vector<std::string>>& color_group_map,
+    const std::map<int, std::vector<std::string>>& color_group_map,
     const std::unordered_map<std::string, Slic3r::RGBA>& color_str_to_rgba)
 {
     // If the PID is invalid, return "undefined color".
@@ -75,7 +75,7 @@ Slic3r::RGBA get_face_color_from_binding(
 
 bool extract_colors_to_obj_dialog(
     Slic3r::Model* model,
-    const std::unordered_map<int, std::vector<std::string>>& color_group_map,
+    const std::map<int, std::vector<std::string>>& color_group_map,
     const std::unordered_map<int, Slic3r::VolumeColorInfo>& volume_color_data,
     Slic3r::ObjDialogInOut& out)
 {

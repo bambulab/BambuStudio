@@ -599,12 +599,24 @@ void ObjColorPanel::send_new_filament_to_ui()
 
 void ObjColorPanel::cancel_paint_color() {
     m_filament_ids.clear();
-    auto mo = m_obj_in_out.model->objects[0];
-    mo->config.set("extruder", 1);
+    for (auto& mo : m_obj_in_out.model->objects) {
+        if (nullptr == mo) {
+            continue;
+        }
+        if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Obj) {
+            mo->config.set("extruder", 1);
+        }
+        for (auto& mv : mo->volumes) {
+            if (nullptr == mv || !mv->is_model_part()) {
+                continue;
+            }
+            if (m_obj_in_out.input_type == ObjDialogInOut::FormatType::Obj) {
+                mv->config.set("extruder", 1);
+            }
+            mv->mmu_segmentation_facets.reset();
+        }
+    }
     clear_instance_and_revert_offset();
-    auto mv = mo->volumes[0];
-    mv->mmu_segmentation_facets.reset();
-    mv->config.set("extruder", 1);
     m_first_extruder_id = 1;
 }
 
@@ -1050,7 +1062,8 @@ void ObjColorPanel::deal_thumbnail() {
         return result_filament_id;
     } : std::function<int(int, int, int)>(nullptr);
 
-    m_deal_thumbnail_flag = Model::obj_import_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.first_extruder_id, m_obj_in_out.model, check_deal_vertex_color, get_filament_id_callback);
+    m_deal_thumbnail_flag = Model::obj_import_color_deal(m_obj_in_out.filament_ids, m_obj_in_out.input_type == ObjDialogInOut::FormatType::Obj
+        ? std::optional<unsigned char>(m_obj_in_out.first_extruder_id) : std::nullopt, m_obj_in_out.model, check_deal_vertex_color, get_filament_id_callback);
     generate_thumbnail();
 }
 
