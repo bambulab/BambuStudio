@@ -13,6 +13,8 @@
 #include <wx/animate.h>
 #include <wx/dynarray.h>
 
+#include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
+
 
 #define AMS_CONTROL_BRAND_COLOUR wxColour(0, 174, 66)
 #define AMS_CONTROL_GRAY700 wxColour(107, 107, 107)
@@ -31,14 +33,6 @@
 
 
 namespace Slic3r { namespace GUI {
-
-enum AMSModel {
-    EXT_AMS             = 0,    //ext
-    GENERIC_AMS         = 1,
-    AMS_LITE            = 2,    //ams-lite
-    N3F_AMS             = 3,
-    N3S_AMS             = 4     //n3s  single_ams
-};
 
 enum AMSModelOriginType {
     GENERIC_EXT,
@@ -63,9 +57,8 @@ enum class AMSRoadMode : int {
 };
 
 enum class AMSPanelPos : int {
-    SINGLE_PANEL,
-    LEFT_PANEL,
-    RIGHT_PANEL,
+    RIGHT_PANEL = 0, // equal to main extruder id
+    LEFT_PANEL = 1  // equal to deputy extruder id
 };
 
 enum class AMSRoadShowMode : int {
@@ -120,20 +113,6 @@ enum class AMSCanType : int {
     AMS_CAN_TYPE_EMPTY,
     AMS_CAN_TYPE_VIRTUAL,
 };
-
-enum FilamentStep {
-    STEP_IDLE,
-    STEP_HEAT_NOZZLE,
-    STEP_CUT_FILAMENT,
-    STEP_PULL_CURR_FILAMENT,
-    STEP_PUSH_NEW_FILAMENT,
-    STEP_GRAB_NEW_FILAMENT,
-    STEP_PURGE_OLD_FILAMENT,
-    STEP_CONFIRM_EXTRUDED,
-    STEP_CHECK_POSITION,
-    STEP_COUNT,
-};
-
 
 enum FilamentStepType {
     STEP_TYPE_LOAD      = 0,
@@ -213,7 +192,6 @@ struct AMSinfo
 public:
     std::string             ams_id;
     std::vector<Caninfo>    cans;
-    int                     nozzle_id = 0;
     std::string             current_can_id;
     AMSPassRoadSTEP         current_step = AMSPassRoadSTEP::AMS_ROAD_STEP_NONE;
     AMSAction               current_action;
@@ -222,16 +200,19 @@ public:
     int                     ams_humidity_percent = -1;
     int                     left_dray_time = 0;
     float                   current_temperature = INVALID_AMS_TEMPERATURE;
-    AMSModel                ams_type = AMSModel::GENERIC_AMS;
+    DevAmsType              ams_type = DevAmsType::AMS;
     AMSModelOriginType      ext_type = AMSModelOriginType::GENERIC_EXT;
     bool                    m_ams_drying = false;
+
+    std::set<int>                           binded_extruder_set;
+    std::optional<int>                      current_extruder_id;
+    std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
 
 public:
     bool operator== (const AMSinfo& other) const
     {
         if (ams_id == other.ams_id &&
             cans == other.cans &&
-            nozzle_id == other.nozzle_id &&
             current_can_id == other.current_can_id &&
             current_step == other.current_step &&
             current_action == other.current_action &&
@@ -241,7 +222,9 @@ public:
             m_ams_drying == other.m_ams_drying &&
             current_temperature == other.current_temperature &&
             ams_type == other.ams_type &&
-            ext_type == other.ext_type)
+            ext_type == other.ext_type &&
+            binded_extruder_set == other.binded_extruder_set &&
+            binded_switcher_pos == other.binded_switcher_pos)
         {
             return true;
         }
@@ -262,11 +245,13 @@ public:
     bool parse_ams_info(MachineObject* obj, DevAms *ams, bool remain_flag = false, bool humidity_flag = false);
     void parse_ext_info(MachineObject* obj, DevAmsTray tray);
 
-    bool support_drying() const { return (ams_type == AMSModel::N3S_AMS) || (ams_type == AMSModel::N3F_AMS); };
+    bool support_drying() const { return (ams_type == DevAmsType::N3S) || (ams_type == DevAmsType::N3F); };
     bool support_humidity() const { return  1 <= get_humidity_display_idx() && get_humidity_display_idx() <= 5; }
     Caninfo get_caninfo(const std::string& can_id, bool& found) const;
 
     int  get_humidity_display_idx() const;
+
+    AMSPanelPos GetDefaultPanelPos(int total_extruder_count) const;
 };
 
 /*************************************************
@@ -456,7 +441,7 @@ public:
 
     int          m_can_index = 0;
     bool         transparent_changed = { false };
-    AMSModel     m_ams_model;
+    DevAmsType         m_ams_model;
     AMSModelOriginType m_ext_type = { AMSModelOriginType::GENERIC_EXT };
 
     void         Update(Caninfo info, std::string ams_idx, bool refresh = true);
@@ -552,7 +537,7 @@ public:
     int      m_humidity = { 0 };
     bool     m_show_humidity = { false };
     bool     m_vams_loading{false};
-    AMSModel m_ams_model;
+    DevAmsType m_ams_model;
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
@@ -573,7 +558,7 @@ class AMSRoadUpPart : public wxWindow
 {
 public:
     AMSRoadUpPart();
-    AMSRoadUpPart(wxWindow* parent, wxWindowID id, AMSinfo info, AMSModel mode, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    AMSRoadUpPart(wxWindow* parent, wxWindowID id, AMSinfo info, DevAmsType mode, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     void create(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
 public:
@@ -615,7 +600,7 @@ private:
     int      m_humidity      = {0};
     bool     m_show_humidity = {false};
     bool     m_vams_loading{false};
-    AMSModel m_ams_model;
+    DevAmsType m_ams_model;
 };
 
 
@@ -662,7 +647,7 @@ private:
 
     std::map<int, wxColour> m_road_color;
     bool m_vams_loading{false};
-    AMSModel m_ams_model;
+    DevAmsType m_ams_model;
 };
 
 /*************************************************
@@ -672,7 +657,7 @@ class AMSPreview : public wxWindow
 {
 public:
     AMSPreview();
-    AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, AMSModel itemType = AMSModel::GENERIC_AMS, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
     bool m_open = {false};
     void Open();
@@ -688,9 +673,8 @@ public:
     void         msw_rescale();
     bool         IsSelected() const;
 
-
+    DevAmsType   get_ams_type() const { return m_ams_item_type; }
     std::string  get_ams_id() const { return m_amsinfo.ams_id; };
-    int          get_nozzle_id() const { return m_amsinfo.nozzle_id; };
 
 protected:
     AMSinfo  m_amsinfo;
@@ -701,7 +685,7 @@ protected:
     float    m_space;
     bool     m_hover             = {false};
     bool     m_selected          = {false};
-    AMSModel m_ams_item_type = AMSModel::GENERIC_AMS;
+    DevAmsType m_ams_item_type = DevAmsType::AMS;
 
     ScalableBitmap m_ts_bitmap_cube;
     ScalableBitmap m_ts_bitmap_cube_dark;
@@ -743,7 +727,7 @@ public:
     ScalableBitmap ams_drying_img;
 
     bool     m_vams_loading{ false };
-    AMSModel m_ams_model;
+    DevAmsType m_ams_model;
 
     void paintEvent(wxPaintEvent& evt);
     void render(wxDC& dc);
@@ -761,7 +745,7 @@ Description:AmsItem
 class AmsItem : public wxWindow
 {
 public:
-    AmsItem(wxWindow *parent, AMSinfo info, AMSModel model, AMSPanelPos pos);
+    AmsItem(wxWindow *parent, AMSinfo info, DevAmsType model, AMSPanelPos pos);
     ~AmsItem();
 
     void     Update(AMSinfo info);
@@ -788,7 +772,7 @@ public:
     AMSinfo             get_ams_info() const { return m_info; };
 
     std::string         get_ams_id() const { return m_info.ams_id; };
-    AMSModel            get_ams_model() const { return m_info.ams_type; };
+    DevAmsType            get_ams_model() const { return m_info.ams_type; };
 
     AMSModelOriginType  get_ext_type() const { return m_info.ext_type; };
     AMSExtImage        *get_ext_image() const { return m_ext_image; };
@@ -796,11 +780,11 @@ public:
     size_t                         get_can_count() const { return m_info.cans.size(); };
     std::map<std::string, AMSLib*> get_can_lib_list() const { return m_can_lib_list; };
 
-    int  get_selection() const { return m_selection; };
-    void set_selection(int selection) { m_selection = selection; };
+    wxSimplebook* get_parent_book() const { return m_parent_book; };
+    std::optional<int> get_parent_book_index() const { return m_parent_book_page_index; };
+    void set_parent_book_idx(wxSimplebook* book, int book_idx) { m_parent_book = book;  m_parent_book_page_index = book_idx; };
 
     AMSPanelPos get_panel_pos() const { return m_panel_pos; };
-    int         get_nozzle_id() const { return m_info.nozzle_id; };
 
 private:
     ScalableBitmap  m_bitmap_extra_framework;
@@ -808,7 +792,10 @@ private:
     int             m_selection = { 0 };
     int             m_can_count = { 0 };
 
-    AMSModel        m_ams_model;
+    wxSimplebook*   m_parent_book = { nullptr };
+    std::optional<int> m_parent_book_page_index;
+
+    DevAmsType        m_ams_model;
     AMSPanelPos     m_panel_pos;
     std::string     m_canlib_id;
 

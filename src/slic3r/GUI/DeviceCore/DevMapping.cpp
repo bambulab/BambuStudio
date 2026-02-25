@@ -186,7 +186,7 @@ namespace Slic3r
                         }
                     }
                     FilamentInfo info;
-                    _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::DUMMY, tray, info);
+                    _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::EXT_SPOOL, tray, info);
                     tray_filaments.emplace(std::make_pair(info.tray_id, info));
                 }
             }
