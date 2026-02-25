@@ -149,6 +149,21 @@ NozzleDiameterType DevNozzle::ToNozzleDiameterType(float diameter)
     }
 }
 
+NozzleDiameterType DevNozzle::ToNozzleDiameterType(const std::string& diameter)
+{
+    if(diameter == "0.2") {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_2;
+    } else if(diameter == "0.4") {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_4;
+    } else if(diameter == "0.6") {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_6;
+    } else if(diameter == "0.8") {
+        return NozzleDiameterType::NOZZLE_DIAMETER_0_8;
+    } else{
+        return NozzleDiameterType::NONE_DIAMETER_TYPE;
+    }
+}
+
 bool DevNozzle::IsInfoReliable() const
 {
     if (IsEmpty()) { return false;}

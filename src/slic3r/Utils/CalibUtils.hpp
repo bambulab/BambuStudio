@@ -78,7 +78,10 @@ public:
     static std::vector<std::string> get_supported_nozzle_diameters_by_model(const std::string &printer_model);
 
     // Get all supported NozzleVolumeTypes for a given printer model and nozzle diameter
-    static std::vector<NozzleVolumeType> get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &model_id, const std::string &nozzle_diameter);
+    static std::vector<NozzleVolumeType> get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &printer_model, const std::string &nozzle_diameter);
+
+    // key:supported volume type; value: volume type supported diameter
+    static std::map<NozzleVolumeType, std::set<NozzleDiameterType>> get_supported_nozzle_volume_and_diameters(const MachineObject *obj);
 
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
     static bool get_pa_k_n_value_by_cali_idx(const MachineObject* obj, int cali_idx, float& out_k, float& out_n);
