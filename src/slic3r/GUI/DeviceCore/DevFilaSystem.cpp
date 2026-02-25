@@ -346,7 +346,7 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
                 try {
                     int ams_id_int = stoi(ams_id);
                     int slot_id_int = stoi(slot_id);
-                    int tray_index= ams_item->GetAmsType() == DevAmsType::N3S ? ams_id_int : (ams_id_int * 4 + slot_id_int);
+                    int tray_index= ams_item->GetAmsType() == DevAms::AmsType::N3S ? ams_id_int : (ams_id_int * 4 + slot_id_int);
                     tray_id_map[tray_index] = {ams_id_int, slot_id_int};
                 } catch(...) {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;

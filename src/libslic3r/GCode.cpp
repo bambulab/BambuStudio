@@ -2841,7 +2841,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                         coordf_t                 initial_layer_print_height = print.config().initial_layer_print_height.value;
 
                         if (m_enable_label_object && print.config().support_object_skip_flush.value) {
-                            m_filament_instances_code = _encode_label_ids_to_base64({instance->model_instance->get_labeled_id()});
+                            m_filament_instances_code = _encode_label_ids_to_base64({(*print_object_instance_sequential_active)->model_instance->get_labeled_id()});
                         }
 
                         file.write(this->set_extruder(initial_extruder_id, initial_layer_print_height, true));

@@ -964,7 +964,10 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             nozzle_id = context.nozzle_group_result.get_nozzle_id(filament_id, current_layer_id);
 
         int extruder_id = 0;
-        extruder_id = context.nozzle_group_result.get_nozzle_from_id(nozzle_id)->extruder_id;
+        if (context.handle_hotend_as_extruder)
+            extruder_id = nozzle_id;
+        else
+            extruder_id = context.nozzle_group_result.get_nozzle_from_id(nozzle_id)->extruder_id;
 
         filament_blocks.emplace_back(filament_id, extruder_id, nozzle_id, line_id, -1);
         };
@@ -1142,7 +1145,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         auto pre_cooling_injector = std::make_unique<PreCoolingInjector>(
             moves,
             context.filament_types,
-            context.nozzle_group_result,
+            context.filament_maps,
             context.filament_nozzle_temp,
             context.filament_nozzle_temp,
             context.physical_extruder_map,
@@ -6529,8 +6532,7 @@ void GCodeProcessor::PreCoolingInjector::build_by_filament_blocks(const std::vec
     ExtruderPreHeating::FilamentUsageBlock start_filament_block(-1,-1,-1, 0, machine_start_gcode_end_id);
     ExtruderPreHeating::FilamentUsageBlock end_filament_block(-1,-1,-1, machine_end_gcode_start_id, std::numeric_limits<unsigned int>::max());
 
-    for (auto& elem : per_extruder_usage_blocks) {
-        auto &blocks = elem.second;
+    for (auto& blocks : per_extruder_usage_blocks) {
         blocks.insert(blocks.begin(), start_filament_block);
         blocks.emplace_back(end_filament_block);
     }

@@ -361,6 +361,17 @@ std::string AMSControl::GetCurrentCan(std::string amsid)
     return current_can;
 }
 
+bool AMSControl::IsAmsMixed(const std::vector<AMSinfo> &ams_info)
+{
+    std::set<DevAmsType> ams_kind;
+
+    for (auto info : ams_info) {
+        ams_kind.insert(info.ams_type);
+    }
+
+    return ams_kind.size() > 1  && ams_kind.find(DevAmsType::AMS_LITE) != ams_kind.end();
+}
+
 std::tuple<bool, bool> AMSControl::isFilaSwitchReady()
 {
     // return false;
@@ -721,6 +732,10 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     //add ams data
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++) {
         auto panel_pos = ams_info->GetDefaultPanelPos(s_extruder_count_single);
+        if (m_ams_mixed && ams_info->ams_type == DevAmsType::AMS_LITE) {
+            panel_pos = AMSPanelPos::RIGHT_PANEL;
+        }
+
         if (ams_info->cans.size() == GENERIC_AMS_SLOT_NUM) {
             m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
             AddAmsPreview(*ams_info, panel_pos);
@@ -1260,6 +1275,10 @@ void AMSControl::AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos)
 void AMSControl::SwitchAms(std::string ams_id)
 {
     if (ams_id == m_current_show_ams_left || ams_id == m_current_show_ams_right) {
+        return;
+    }
+
+    if (m_ams_mixed && ams_id == m_current_show_ams_center) {
         return;
     }
 
