@@ -968,7 +968,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string obj_curr_characters;
             float object_unit_factor;
             int object_current_color_group{-1};
-            std::unordered_map<int, std::vector<std::string>> object_group_id_to_color;
+            std::map<int, std::vector<std::string>> object_group_id_to_color;
             bool is_bbl_3mf { false };
 
             ObjectImporter(_BBS_3MF_Importer *importer, std::string file_path, std::string obj_path)
@@ -1169,7 +1169,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         CurrentInstance m_curr_instance;
 
         int m_current_color_group{-1};
-        std::unordered_map<int, std::vector<std::string>> m_group_id_to_color;
+        std::map<int, std::vector<std::string>> m_group_id_to_color;
 
         // Store the color data for each volume(volume object id->VolumeColorInfo).
         // Note: This mapping is populated in _generate_volumes_new.
@@ -1188,7 +1188,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         unsigned int version() const { return m_version; }
 
         // Get the color group mapping information (color group ID -> color string) after parsing a standard 3MF file.
-        const std::unordered_map<int, std::vector<std::string>>& get_color_group_map() const { return m_group_id_to_color; }
+        const std::map<int, std::vector<std::string>>& get_color_group_map() const { return m_group_id_to_color; }
 
         // Get volume color data
         const std::unordered_map<int, VolumeColorInfo>& get_volume_color_data() const { return m_volume_color_data; }
@@ -9118,7 +9118,7 @@ private:
 //BBS: add plate data list related logic
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
                     bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id,
-                    std::unordered_map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
+                    std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
