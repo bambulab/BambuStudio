@@ -161,13 +161,16 @@ enum CaliPresetPageStatus
 
 struct CaliFilamentInfo
 {
-    Preset *filament_preset{nullptr};
+    Preset *    filament_preset{nullptr};
     int         nozzle_pos_id{-1};
     std::string nozzle_sn;
 
+    int         extruder_id;
+    int         tray_id;
+
     CaliFilamentInfo() {}
-    CaliFilamentInfo(Preset *preset, int nozzle_pos_id_, const std::string &nozzle_sn_)
-        : filament_preset(preset), nozzle_pos_id(nozzle_pos_id_), nozzle_sn(nozzle_sn_)
+    CaliFilamentInfo(Preset *preset, int nozzle_pos_id_, const std::string &nozzle_sn_, int extruder_id_, int tray_id_)
+        : filament_preset(preset), nozzle_pos_id(nozzle_pos_id_), nozzle_sn(nozzle_sn_), extruder_id(extruder_id_), tray_id(tray_id_)
     {}
 };
 
@@ -216,9 +219,9 @@ public:
     std::vector<FilamentComboBox*> get_selected_filament_combobox();
 
     // key is tray_id
-    std::map<int, CaliFilamentInfo> get_selected_filaments();
+    std::vector<CaliFilamentInfo> get_selected_filaments();
 
-    std::map<int, DynamicPrintConfig> get_filament_ams_list() const { return filament_ams_list; }
+    std::map<int, DynamicPrintConfig> get_filament_ams_list() const { return m_filament_ams_list; }
 
     void get_preset_info(
         float& nozzle_dia,
@@ -242,7 +245,6 @@ public:
     void msw_rescale() override;
     void on_sys_color_changed() override;
 
-    int get_extruder_id(int ams_id);
     float get_nozzle_diameter(int extruder_id) const;
     NozzleVolumeType get_nozzle_volume_type(int extruder_id) const;
     ExtruderType get_extruder_type(int extruder_id) const;
@@ -250,13 +252,12 @@ public:
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
-    wxSizer* create_ams_items_sizer(MachineObject* obj, wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, int nozzle_id);
+    wxSizer* create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, ExtruderRole role);
     wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role);
 
     void manage_filament_radio_btn(ExtruderRole extuder_role);
 
     void init_selection_values();
-    void update_filament_combobox(std::string ams_id = "");
 
     void update_nozzle_id_combox();
 
@@ -274,9 +275,9 @@ protected:
 
     void check_nozzle_diameter_for_auto_cali();
     void check_filament_compatible();
-    bool is_filaments_compatiable(const std::map<int, CaliFilamentInfo>& prests);
+    bool is_filaments_compatiable(const std::vector<CaliFilamentInfo>& prests);
     bool is_filament_in_blacklist(int tray_id, Preset* preset, std::string& error_tips);
-    bool is_filaments_compatiable(const std::map<int, CaliFilamentInfo> &prests,
+    bool is_filaments_compatiable(const std::vector<CaliFilamentInfo> &prests,
         int& bed_temp,
         std::string& incompatiable_filament_name,
         std::string& error_tips);
@@ -284,6 +285,8 @@ protected:
     void check_filament_cali_reliability(const std::vector<Preset *> &prests);
 
     float get_nozzle_value();
+
+    void update_slots_panel(FilamentComboBoxList& fila_combox_list, const std::string& ams_id, std::map<int, DynamicPrintConfig>& fila_ams_list);
 
     void update_plate_type_collection(CalibrationMethod method);
     void update_combobox_filaments(MachineObject* obj);
@@ -325,8 +328,9 @@ protected:
 
     std::vector<BedType> m_displayed_bed_types;
 
+    void update_extruder_filament_combobox(ExtruderRole role, const std::string &ams_id);
+
     // multi_extruder
-    void update_multi_extruder_filament_combobox(const std::string &ams_id, int nozzle_id);
     void create_multi_extruder_filament_list_panel(wxWindow *parent);
     void on_select_nozzle_volume_type(wxCommandEvent &evt, size_t extruder_id);
 
@@ -376,7 +380,7 @@ protected:
     FilamentComboBoxList m_filament_comboBox_list;
 
     // for update filament combobox, key : tray_id
-    std::map<int, DynamicPrintConfig> filament_ams_list;
+    std::map<int, DynamicPrintConfig> m_filament_ams_list;
 
     CaliPresetPageStatus    m_page_status { CaliPresetPageStatus::CaliPresetStatusInit };
     bool                    m_stop_update_page_status{ false };

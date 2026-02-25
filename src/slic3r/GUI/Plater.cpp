@@ -164,6 +164,7 @@
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevDefs.h"
 #include "ImageMessageDialog.hpp"
 
 #include "HelioReleaseNote.hpp"
@@ -1718,26 +1719,17 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
 
         target_types[index] = target_type;
     }
-
-    int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
+    // key:(extruder_id, slot_num) val: count
+    std::map<std::pair<int, int>, int> ams_cnt_map{
+        {{MAIN_EXTRUDER_ID, 1}, 0},
+        {{DEPUTY_EXTRUDER_ID, 1}, 0},
+        {{MAIN_EXTRUDER_ID, 4}, 0},
+        {{DEPUTY_EXTRUDER_ID, 4}, 0},
+    };
     for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
-        // TODO: support filament switcher 
-        const auto& uniq_extruder_id = ams.second->GetUniqueBindedExtruderId();
-        if (!uniq_extruder_id.has_value()) {
-            continue;
-        }
-
-        // Main (first) extruder at right
-        if (uniq_extruder_id.value() == 0) {
-            if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
-                ++main_1;
-            else
-                ++main_4;
-        } else if (uniq_extruder_id.value() == 1) {
-            if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
-                ++deputy_1;
-            else
-                ++deputy_4;
+        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+            std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+            ams_cnt_map[key]++;
         }
     }
     only_external_material = !obj->GetFilaSystem()->HasAms();
@@ -1763,8 +1755,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         is_switching_diameter = true;
         switch_diameter(false);
         is_switching_diameter = false;
-        AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
-        AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
+        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
         AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     } else {
@@ -3639,17 +3631,19 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
 
     auto list = obj->GetFilaSystem()->GetAmsList();
     for (const auto& ams : list) {
-        const auto& unique_extruder_id = ams.second->GetUniqueBindedExtruderId(); //TODO: filament switcher
-        if (!unique_extruder_id.has_value()) {
-            continue;
-        }
-
-        int ams_id   = std::stoi(ams.first);
-        int extruder = unique_extruder_id.value() ? 0 : 0x10000; // Main (first) extruder at right
-        for (auto tray : ams.second->GetTrays()) {
-            int  slot_id = std::stoi(tray.first);
-            filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
-                                      build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+            int extruder = extruder_id == MAIN_EXTRUDER_ID ? 0 : 0x10000; // Main (first) extruder at right
+            for (auto tray : ams.second->GetTrays()) {
+                int ams_id = -1;
+                int slot_id = -1;
+                try {
+                    ams_id  = std::stoi(ams.first);
+                    slot_id = std::stoi(tray.first);
+                    filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id), build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+                } catch(...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                }
+            }
         }
     }
     return filament_ams_list;

@@ -580,15 +580,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         std::string default_name;
         // extruder _id
         {
-            int extruder_id = 0;
-            if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
-                extruder_id = 0;
-            } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                extruder_id = 1;
-            } else {
-                int ams_id  = info.tray_id / 4;
-                extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-            }
+            int extruder_id = info.extruder_id;
 
             if (extruder_id == MAIN_EXTRUDER_ID) {
                 default_name += "Right Nozzle";
@@ -954,14 +946,15 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
         auto selected_cali_preset = m_obj->GetCalib()->GetSelectedCalibPreset();
         assert(selected_cali_preset.size() <= 1);
         if (!selected_cali_preset.empty()) {
-            out_result.tray_id = selected_cali_preset[0].tray_id;
-            out_result.nozzle_diameter = selected_cali_preset[0].nozzle_diameter;
-            out_result.filament_id = selected_cali_preset[0].filament_id;
-            out_result.setting_id = selected_cali_preset[0].setting_id;
-            out_result.extruder_id = selected_cali_preset[0].extruder_id;
-            out_result.nozzle_pos_id = selected_cali_preset[0].nozzle_pos_id;
-            out_result.nozzle_sn = selected_cali_preset[0].nozzle_sn;
-            out_result.nozzle_volume_type    = selected_cali_preset[0].nozzle_volume_type;
+            auto item       = selected_cali_preset[0];
+            out_result.tray_id              = item.tray_id;
+            out_result.nozzle_diameter      = item.nozzle_diameter;
+            out_result.filament_id          = item.filament_id;
+            out_result.setting_id           = item.setting_id;
+            out_result.extruder_id          = item.extruder_id;
+            out_result.nozzle_pos_id        = item.nozzle_pos_id;
+            out_result.nozzle_sn            = item.nozzle_sn;
+            out_result.nozzle_volume_type   = item.nozzle_volume_type;
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual: obj->selected_cali_preset is empty";
@@ -987,31 +980,13 @@ bool CaliPASaveManualPanel::Show(bool show) {
                     CaliPresetInfo info = selected_cali_preset[0];
                     // extruder _id
                     {
-                        int extruder_id = 0;
-                        if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
-                            extruder_id = 0;
-                        } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                            extruder_id = 1;
-                        } else {
-                            int ams_id  = info.tray_id / 4;
-                            extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-                        }
-
-                        if (extruder_id == 0) {
-                            recommend_name += "Right";
-                        } else if (extruder_id == 1) {
-                            recommend_name += "Left";
-                        }
+                        recommend_name += info.extruder_id == MAIN_EXTRUDER_ID ? "Right" : "Left";
                     }
 
                     // nozzle_volume_type
                     {
                         recommend_name += "_";
-                        if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                            recommend_name += "SF";
-                        } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                            recommend_name += "HF";
-                        }
+                        recommend_name += DevNozzle::ToNozzleVolumeShortString(info.nozzle_volume_type);
                     }
 
                     default_name = recommend_name + "_" + default_name;

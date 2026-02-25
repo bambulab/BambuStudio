@@ -248,6 +248,25 @@ DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
     return nullptr;
 }
 
+int DevAms::GetTrayIdByAmsSlot(std::string ams_id, std::string slot_id)
+{
+    int tray_id = -1;
+
+    if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+        return stoi(ams_id);
+    }
+
+    if (!slot_id.empty() && !ams_id.empty()) {
+        try {
+            tray_id =  stoi(ams_id) * 4 + stoi(slot_id);
+        }
+        catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams_id:" << ams_id << "\t  or slot_id:" << slot_id;
+        }
+    }
+    return tray_id;
+}
+
 bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const
 {
     if (obj && obj->is_support_remote_dry) {

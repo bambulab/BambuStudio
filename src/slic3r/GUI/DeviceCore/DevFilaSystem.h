@@ -195,7 +195,7 @@ public:
     // the ams can be used on the binded extruders
     int GetBindedExtruderCount() const { return m_binded_extruder_set.size(); }
     std::optional<int> GetUniqueBindedExtruderId() const;
-    std::set<int> GetBindedExtruderSet() const { return m_binded_extruder_set; }; 
+    std::set<int> GetBindedExtruderSet() const { return m_binded_extruder_set; };
 
     // the ams is used on the extruder currently
     std::optional<int> GetCurrentExtruderId() const;
@@ -226,6 +226,8 @@ public:
     std::optional<DrySettings> GetDrySettings() const { return m_dry_settings; };
 
     bool AmsIsDrying();
+
+    static int GetTrayIdByAmsSlot(std::string ams_id, std::string slot_id);
 
 private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
