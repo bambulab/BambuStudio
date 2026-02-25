@@ -91,9 +91,8 @@ namespace Slic3r
 
     std::optional<DevExtder> DevExtderSystem::GetLoadingExtder() const
     {
-        if (m_current_loading_extder_id != INVALID_EXTRUDER_ID)
-        {
-            return GetExtderById(m_current_loading_extder_id);
+        if (m_current_loading_extder_id.has_value()) {
+            return GetExtderById(m_current_loading_extder_id.value());
         }
 
         return std::nullopt;
@@ -232,11 +231,9 @@ namespace Slic3r
 
         system->m_current_busy_for_loading = false;
         system->m_current_loading_extder_id = INVALID_EXTRUDER_ID;
-        if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty())
-        {
-            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow == system->m_extders[MAIN_EXTRUDER_ID].m_star);
-            if (system->m_current_busy_for_loading)
-            {
+        if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty()) {
+            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow != system->m_extders[MAIN_EXTRUDER_ID].m_star);
+            if (system->m_current_busy_for_loading) {
                 system->m_current_loading_extder_id = MAIN_EXTRUDER_ID;
             }
         }
@@ -294,6 +291,11 @@ namespace Slic3r
 
             extder_obj.m_ams_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 16);
             extder_obj.m_rfid_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 16, 16);
+
+            extder_obj.m_current_filament_change_step = static_cast<DevFilamentStep> (DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 8));
+            if (extder_obj.m_current_filament_change_step >= DevFilamentStep::STEP_COUNT) {
+                extder_obj.m_current_filament_change_step.reset();
+            }
 
             //current nozzle info
             extder_obj.m_current_nozzle_id = njon["hnow"].get<int>();

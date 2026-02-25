@@ -1358,7 +1358,9 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
 
     // AMS group
     for (size_t i = 0; i < 4; ++i) {
-        ams[i] = new AMSPreview(this, wxID_ANY, AMSinfo(), AMSModel::GENERIC_AMS);
+        AMSinfo info;
+        info.ams_type = DevAmsType::AMS;
+        ams[i] = new AMSPreview(this, wxID_ANY, info);
         ams[i]->Close();
     }
 
@@ -1456,7 +1458,7 @@ void ExtruderGroup::update_ams()
     static AMSinfo info1;
     if (info4.cans.empty()) {
         for (size_t i = 0; i < 4; ++i) info4.cans.push_back({});
-        info1.ams_type = AMSModel::N3S_AMS;
+        info1.ams_type = DevAmsType::N3S;
         info1.cans.push_back({});
     }
 

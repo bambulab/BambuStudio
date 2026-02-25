@@ -27,21 +27,38 @@ FilamentLoad::FilamentLoad(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     this->AddPage(m_filament_vt_load_steps, wxEmptyString, false);
     //UpdateStepCtrl(false);
 
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_IDLE]                = _L("Idling...");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]         = _L("Heat the nozzle");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]        = _L("Cut filament");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]  = _L("Pull back current filament");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PUSH_NEW_FILAMENT]   = _L("Push new filament into extruder");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_GRAB_NEW_FILAMENT]   = _L("Grab new filament");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PURGE_OLD_FILAMENT]  = _L("Purge old filament");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_IDLE]                = _L("Idling...");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PAUSE]               = _L("Pause");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]         = _L("Heat the nozzle");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CUT_FILAMENT]        = _L("Cut filament");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_CURR_FILAMENT]  = _L("Pull back current filament");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_NEW_FILAMENT]   = _L("Push new filament into extruder");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_GRAB_NEW_FILAMENT]   = _L("Grab new filament");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PURGE_OLD_FILAMENT]  = _L("Purge old filament");
     //FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_FEED_FILAMENT]       = _L("Feed Filament");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CONFIRM_EXTRUDED]    = _L("Confirm extruded");
-    FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CHECK_POSITION]      = _L("Check filament location");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_SWITCH_EXTRUDER]     = _L("Switch") + " " + _L("extruder");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_SWITCH_HOTEND]       = _L("Switch") + " " + _L("hotend");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_AMS_FILA_COOLING]    = _L("Wait for AMS cooling");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_SWITCHER_FILA]  = _L("Switch current filament at Filament Track Switch");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_SWITCHER_FILA]  = _L("Pull back current filament at Filament Track Switch");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_SWITCHER_SWITCH]     = _L("Switch track at Filament Track Switch");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CONFIRM_EXTRUDED]    = _L("Confirm extruded");
+    FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CHECK_POSITION]      = _L("Check filament location");
 }
 
-void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_type)
+void FilamentLoad::SetFilamentStep(MachineObject* obj_, DevFilamentStep item_idx, FilamentStepType f_type)
 {
-    if (item_idx == FilamentStep::STEP_IDLE) {
+    // in latest protocol
+    // filament change steps are sent by AMS, so we can directly use them without hardcoding for each model.
+    // If steps are provided by AMS, we will ignore the hardcoded steps below.
+    if (obj_ && obj_->GetFilaSystem()->GetCurrentFilamentChangeStep().has_value()) {
+        item_idx = obj_->GetFilaSystem()->GetCurrentFilamentChangeStep().value();
+        if (item_idx == DevFilamentStep::STEP_PAUSE) {
+            return; // skip it
+        }
+    }
+
+    if (item_idx == DevFilamentStep::STEP_IDLE) {
         m_filament_load_steps->Idle();
         m_filament_unload_steps->Idle();
         m_filament_vt_load_steps->Idle();
@@ -50,46 +67,33 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
     }
 
     if (!IsShown()) {Show();}
-    wxString step_str = wxEmptyString;
-    if (item_idx < FilamentStep::STEP_COUNT) {
-        step_str = FILAMENT_CHANGE_STEP_STRING[item_idx];
-    }
-
+    auto iter = FILAMENT_CHANGE_STEP_STRING.find(item_idx);
+    wxString step_str = (iter != FILAMENT_CHANGE_STEP_STRING.end()) ? iter->second : wxEmptyString;
     auto step_control = m_filament_load_steps;
     if (f_type == FilamentStepType::STEP_TYPE_LOAD) {
         step_control = m_filament_load_steps;
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+        if (item_idx > 0 && item_idx < DevFilamentStep::STEP_COUNT) {
             if (GetSelection() != 0) {
                 SetSelection(0);
             }
             m_filament_load_steps->SelectItem(m_filament_load_steps->GetItemUseText(step_str));
         }
-        else {
-            m_filament_load_steps->Idle();
-            Hide();
-            Layout();
-        }
     }
     else if (f_type == FilamentStepType::STEP_TYPE_UNLOAD) {
         step_control = m_filament_unload_steps;
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+        if (item_idx > 0 && item_idx < DevFilamentStep::STEP_COUNT) {
             if (GetSelection() != 1) {
                 SetSelection(1);
                 Layout();
             }
             m_filament_unload_steps->SelectItem(m_filament_unload_steps->GetItemUseText(step_str));
         }
-        else {
-            m_filament_unload_steps->Idle();
-            Hide();
-            Layout();
-        }
     }
     else if (f_type == FilamentStepType::STEP_TYPE_VT_LOAD) {
         step_control = m_filament_vt_load_steps;
         SetSelection(2);
         Layout();
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+        if (item_idx > 0 && item_idx < DevFilamentStep::STEP_COUNT) {
             if (item_idx == STEP_CONFIRM_EXTRUDED) {
                 m_filament_vt_load_steps->SelectItem(2);
             }
@@ -97,22 +101,12 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
                 m_filament_vt_load_steps->SelectItem(m_filament_vt_load_steps->GetItemUseText(step_str));
             }
         }
-        else {
-            m_filament_vt_load_steps->Idle();
-            Hide();
-            Layout();
-        }
     }
     else {
         step_control = m_filament_load_steps;
-        if (item_idx > 0 && item_idx < FilamentStep::STEP_COUNT) {
+        if (item_idx > 0 && item_idx < DevFilamentStep::STEP_COUNT) {
             SetSelection(0);
             m_filament_load_steps->SelectItem(m_filament_load_steps->GetItemUseText(step_str));
-        }
-        else {
-            m_filament_load_steps->Idle();
-            Hide();
-            Layout();
         }
     }
 
@@ -124,55 +118,85 @@ void FilamentLoad::SetFilamentStep(FilamentStep item_idx, FilamentStepType f_typ
     step_control->SetSlotInformation(slot_info);
 }
 
-void FilamentLoad::SetupSteps(bool has_fila_to_switch) {
+void FilamentLoad::SetupSteps(MachineObject* obj_, bool has_fila_to_switch) {
     m_filament_load_steps->DeleteAllItems();
     m_filament_unload_steps->DeleteAllItems();
     m_filament_vt_load_steps->DeleteAllItems();
 
-    if (m_ams_model == AMSModel::GENERIC_AMS || m_ext_model == AMSModel::N3F_AMS || m_ext_model == AMSModel::N3S_AMS) {
+    set_min_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
+    set_max_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
+
+    // in latest protocol
+    // filament change steps are sent by AMS, so we can directly use them without hardcoding for each model.
+    // If steps are provided by AMS, we will ignore the hardcoded steps below.
+    if (obj_ && obj_->GetFilaSystem() && !obj_->GetFilaSystem()->GetFilamentChangeSteps().empty()) {
+        const auto& steps = obj_->GetFilaSystem()->GetFilamentChangeSteps();
+        if(steps.size() > 5){
+            set_min_size(wxSize(wxSize(FromDIP(300), FromDIP(215) + (steps.size() - 5) * 30)));
+            set_max_size(wxSize(wxSize(FromDIP(300), FromDIP(215) + (steps.size() - 5) * 30)));
+        }
+
+        for (auto step : steps) {
+            auto iter = FILAMENT_CHANGE_STEP_STRING.find(step);
+            if (iter == FILAMENT_CHANGE_STEP_STRING.end()) {
+                BOOST_LOG_TRIVIAL(error) << "Unknown filament change step: " << static_cast<int>(step);
+                continue;
+            }
+
+            m_filament_load_steps->AppendItem(iter->second);
+            m_filament_unload_steps->AppendItem(iter->second);
+            m_filament_vt_load_steps->AppendItem(iter->second);
+        }
+
+        Layout();
+        Fit();
+        return;
+    }
+
+    if (m_ams_model == DevAmsType::AMS || m_ext_model == DevAmsType::N3F || m_ext_model == DevAmsType::N3S) {
         if (has_fila_to_switch) {
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PUSH_NEW_FILAMENT]);
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PURGE_OLD_FILAMENT]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CUT_FILAMENT]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_CURR_FILAMENT]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_NEW_FILAMENT]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PURGE_OLD_FILAMENT]);
         }
         else {
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PUSH_NEW_FILAMENT]);
-            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PURGE_OLD_FILAMENT]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_NEW_FILAMENT]);
+            m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PURGE_OLD_FILAMENT]);
         }
 
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PUSH_NEW_FILAMENT]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_GRAB_NEW_FILAMENT]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PURGE_OLD_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_NEW_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_GRAB_NEW_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PURGE_OLD_FILAMENT]);
 
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CUT_FILAMENT]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_CURR_FILAMENT]);
     }
 
 
-    if (m_ams_model == AMSModel::AMS_LITE || m_ext_model == AMSModel::AMS_LITE) {
-        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CHECK_POSITION]);
-        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
-        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
-        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PUSH_NEW_FILAMENT]);
-        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PURGE_OLD_FILAMENT]);
+    if (m_ams_model == DevAmsType::AMS_LITE || m_ext_model == DevAmsType::AMS_LITE) {
+        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CHECK_POSITION]);
+        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CUT_FILAMENT]);
+        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_CURR_FILAMENT]);
+        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_NEW_FILAMENT]);
+        m_filament_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PURGE_OLD_FILAMENT]);
 
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CHECK_POSITION]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PUSH_NEW_FILAMENT]);
-        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PURGE_OLD_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CHECK_POSITION]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CUT_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_CURR_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PUSH_NEW_FILAMENT]);
+        m_filament_vt_load_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PURGE_OLD_FILAMENT]);
 
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_HEAT_NOZZLE]);
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CHECK_POSITION]);
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_CUT_FILAMENT]);
-        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[FilamentStep::STEP_PULL_CURR_FILAMENT]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_HEAT_NOZZLE]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CHECK_POSITION]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_CUT_FILAMENT]);
+        m_filament_unload_steps->AppendItem(FILAMENT_CHANGE_STEP_STRING[DevFilamentStep::STEP_PULL_CURR_FILAMENT]);
     }
 
     Layout();

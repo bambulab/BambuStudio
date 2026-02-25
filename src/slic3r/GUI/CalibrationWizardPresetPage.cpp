@@ -1047,7 +1047,7 @@ wxSizer* CalibrationPresetPage::create_ams_items_sizer(MachineObject* obj, wxPan
     /* create ams_preview_list */
     auto ams_items_sizer = new wxBoxSizer(wxHORIZONTAL);
     for (auto &info : ams_info) {
-        auto preview_ams_item = new AMSPreview(ams_preview_panel, wxID_ANY, info, info.ams_type);
+        auto preview_ams_item = new AMSPreview(ams_preview_panel, wxID_ANY, info);
         preview_ams_item->Update(info);
         preview_ams_item->Open();
         ams_preview_list.push_back(preview_ams_item);
@@ -2472,14 +2472,20 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         info.ams_id = ams->first;
         if (ams->second->IsExist()
             && info.parse_ams_info(obj, ams->second, obj->GetFilaSystem()->IsDetectRemainEnabled(), obj->is_support_ams_humidity)) {
-            ams_info.push_back(info);
-            if (info.nozzle_id == 0) {
-                main_ams_info.push_back(info);
-            } else {
-                deputy_ams_info.push_back(info);
+            // TODO 禾麦适配选料器
+            const auto& binded_extruder_set = ams->second->GetBindedExtruderSet();
+            for(const auto& extruder_id : binded_extruder_set){
+                //if (extruder_id == MAIN_EXTRUDER_ID) {
+                //    ams_info.push_back(info);
+                //    main_ams_info.push_back(info);
+                //    m_ams_id_to_extruder_id_map[stoi(info.ams_id)] = MAIN_EXTRUDER_ID;
+                //} else if (extruder_id == DEPUTY_EXTRUDER_ID) {
+                //    ams_info.push_back(info);
+                //    deputy_ams_info.push_back(info);
+                //    m_ams_id_to_extruder_id_map[stoi(info.ams_id)] = DEPUTY_EXTRUDER_ID;
+                //}
             }
         }
-        m_ams_id_to_extruder_id_map[stoi(info.ams_id)] = info.nozzle_id;
     }
     if (obj->is_multi_extruders()) {
         m_ams_id_to_extruder_id_map[VIRTUAL_TRAY_MAIN_ID] = 0;
@@ -2490,7 +2496,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     for (const DevAmsTray& vt_tray : obj->vt_slot) {
         AMSinfo     info;
         info.parse_ext_info(obj, vt_tray);
-        info.ams_type = AMSModel::EXT_AMS;
+        info.ams_type = DevAmsType::EXT_SPOOL;
 
         if (vt_tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
             ams_info.push_back(info);

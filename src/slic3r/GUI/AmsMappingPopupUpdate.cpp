@@ -191,21 +191,23 @@ static std::optional<TrayData> sGetTrayData(DevAmsTray* tray,
 
     TrayData td;
     td.ams_id = ams_id;
-    if (tray->ams_type != DevAmsType::DUMMY) {
+    if (tray->ams_type != DevAmsType::EXT_SPOOL) {
         td.slot_id = tray_id;
     } else {
         td.slot_id = 0;
     }
 
-    if (tray->ams_type == DevAmsType::AMS || tray->ams_type == DevAmsType::AMS_LITE || tray->ams_type == DevAmsType::N3F) {
+    if (tray->ams_type == DevAmsType::AMS ||
+        tray->ams_type == DevAmsType::AMS_LITE ||
+        tray->ams_type == DevAmsType::N3F) {
         td.id = ams_id * 4 + tray_id;
     } else if (tray->ams_type == DevAmsType::N3S) {
         td.id = ams_id + tray_id;
-    } else if(tray->ams_type == AMSModel::EXT_AMS){
+    } else if(tray->ams_type == DevAmsType::EXT_SPOOL){
         td.id = tray_id;
     }
 
-    if (tray->ams_type != DUMMY && !tray->is_exists) {
+    if (tray->ams_type != EXT_SPOOL && !tray->is_exists) {
         td.type = EMPTY;
     } else {
         if (!tray->is_tray_info_ready()) {
@@ -235,16 +237,20 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
 
     const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
     for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
+        const auto& extruder_set = ams_iter->second->GetBindedExtruderSet();
+        if (extruder_set.size() < 0) {
+            continue;
+        }
+
         wxPanel* target_panel = nullptr;
         if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
             target_panel = m_right_marea_panel;
         } else {
-            if (const auto& extruder_id_opt = ams_iter->second->GetUniqueBindedExtruderId(); extruder_id_opt.has_value()) {
-                if (extruder_id_opt.value() == 0) {
-                    target_panel = m_right_marea_panel;
-                } else {
-                    target_panel = m_left_marea_panel;
-                }
+            int extruder_id = *extruder_set.begin();
+            if (extruder_id == MAIN_EXTRUDER_ID) {
+                target_panel = m_right_marea_panel;
+            } else if (extruder_id == DEPUTY_EXTRUDER_ID) {
+                target_panel = m_left_marea_panel;
             }
         }
 
@@ -291,7 +297,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
         }
     }
 
-    for (int i = 0; i < obj->vt_slot.size(); i++) {
+    for (int i = obj->vt_slot.size() - 1; i >= 0; i--) {
         DevAmsTray* tray_data = &obj->vt_slot[i];
         const auto& td_opt = sGetTrayData(tray_data, tray_data->id);
         if (!td_opt.has_value()) {

@@ -20,6 +20,7 @@ struct DevAmsSlotInfo
     std::string slot_id;
 
 public:
+    bool operator!=(const DevAmsSlotInfo& other) const { return !(*this == other); }
     bool operator==(const DevAmsSlotInfo& other) const { return ams_id == other.ams_id && slot_id == other.slot_id;}
 };
 
@@ -65,6 +66,7 @@ public:
     bool             HasFilamentInBuffer() const = delete; //{ return m_buffer_has_filament; }  
     bool             HasFilamBackup() const { return !m_filam_bak.empty(); }
     std::vector<int> GetFilamBackup() const { return m_filam_bak; }
+    std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const { return m_current_filament_change_step; }
 
     // ams binding on current extruder
     const DevAmsSlotInfo& GetSlotPre() const { return m_spre; }
@@ -101,6 +103,7 @@ private:
 
     int m_ams_stat = 0;
     int m_rfid_stat = 0;
+    std::optional<DevFilamentStep> m_current_filament_change_step;
 };
 
 // ExtderSystem is the extruder management system for the device.
@@ -156,7 +159,7 @@ public:
 
     // filament
     bool IsBusyLoading() const { return m_current_busy_for_loading; }
-    int  GetLoadingExtderId() const { return m_current_loading_extder_id; }
+    std::optional<int>  GetLoadingExtderId() const { return m_current_loading_extder_id; }
     bool HasFilamentBackup() const;
     bool HasFilamentInExt(int exter_id) { return GetExtderById(exter_id) ? GetExtderById(exter_id)->HasFilamentInExt() : false; }
 
@@ -179,7 +182,7 @@ private:
 
     // loading extruder
     bool m_current_busy_for_loading{ false };
-    int m_current_loading_extder_id = INVALID_EXTRUDER_ID;
+    std::optional<int> m_current_loading_extder_id;
 };
 
 class ExtderSystemParser

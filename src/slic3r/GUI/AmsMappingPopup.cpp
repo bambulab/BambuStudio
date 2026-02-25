@@ -391,9 +391,11 @@ void MaterialItem::doRender(wxDC& dc)
         int bitmap_l = wheel_left + (m_ams_wheel_mitem.GetBmpWidth() - m_rack_nozzle_bitmap.GetBmpWidth()) / 2 + FromDIP(2);
         dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), bitmap_l, bitmap_y);
 
-        int text_y = up + (size.y - up - dc.GetTextExtent(m_mapped_nozzle_str).y) / 2;
+        const auto& text_size = dc.GetTextExtent(m_mapped_nozzle_str);
+        int text_x = (size.x + bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() - text_size.x) / 2;
+        int text_y = up + (size.y - up - text_size.y) / 2;
         dc.SetFont(::Label::Head_12);
-        dc.DrawText(m_mapped_nozzle_str, bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() + FromDIP(12), text_y);
+        dc.DrawText(m_mapped_nozzle_str, text_x, text_y);
     }
 }
 
@@ -1949,7 +1951,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     if (obj)
     {
         m_obj = obj;
-        if (obj->GetExtderSystem()->GetTotalExtderCount() > 1)
+        if (obj->GetExtderSystem()->GetTotalExtderCount() > 1 || !obj->GetFilaSwitch()->IsReady())
         {
             m_nozzle_btn_panel->updateState("right");
             m_nozzle_btn_panel->Show();

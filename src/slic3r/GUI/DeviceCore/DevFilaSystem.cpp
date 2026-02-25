@@ -394,6 +394,16 @@ bool DevFilaSystem::CanShowFilamentBackup() const
     return m_owner->is_support_filament_backup && IsAutoRefillEnabled() && HasAms() && m_owner->GetExtderSystem()->HasFilamentBackup();
 }
 
+
+std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() const
+{
+    if (auto ext_opt = m_owner->GetExtderSystem()->GetLoadingExtder()) {
+        return ext_opt->GetCurrentFilamentChangeStep();
+    };
+
+    return std::nullopt;
+}
+
 void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaSystem* system, bool key_field_only)
 {
     if (jj.contains("ams"))
@@ -414,6 +424,12 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
 
             if (!key_field_only)
             {
+                if (jj["ams"].contains("cfs")) {
+                    system->m_filament_change_steps = DevJsonValParser::GetVal<std::vector<DevFilamentStep>>(jj["ams"], "cfs");
+                } else {
+                    system->m_filament_change_steps.clear();
+                }
+
                 if (jj["ams"].contains("tray_read_done_bits"))
                 {
                     obj->tray_read_done_bits = stol(jj["ams"]["tray_read_done_bits"].get<std::string>(), nullptr, 16);
@@ -502,14 +518,13 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         if (extuder_id == 0xE && obj->GetFilaSwitch()->IsInstalled()) {
             int bind_switch_in = DevUtil::get_flag_bits(info, 24, 4);
             if (bind_switch_in == 0 || bind_switch_in == 1) {
-                if (obj->GetFilaSwitch()->GetOutA_ExtruderId().has_value()) { binded_extruder_set.insert(obj->GetFilaSwitch()->GetOutA_ExtruderId().value()); }
-                if (obj->GetFilaSwitch()->GetOutB_ExtruderId().has_value()) { binded_extruder_set.insert(obj->GetFilaSwitch()->GetOutB_ExtruderId().value()); }
+                binded_extruder_set = { MAIN_EXTRUDER_ID, DEPUTY_EXTRUDER_ID };
+            }
 
-                if (bind_switch_in == 0) {
-                    binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_A;
-                } else if (bind_switch_in == 1) {
-                    binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_B;
-                }
+            if (bind_switch_in == 0) {
+                binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_A;
+            } else if (bind_switch_in == 1) {
+                binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_B;
             }
         } else {
             binded_extruder_set = { extuder_id };
@@ -652,6 +667,9 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     }
 
     curr_tray->ams_type = curr_ams->GetAmsType();
+    curr_tray->current_extruder_id = curr_ams->GetCurrentExtruderId();
+    curr_tray->binded_extruder_set = curr_ams->GetBindedExtruderSet();
+    curr_tray->binded_switcher_pos = curr_ams->GetSwitcherPos();
     if (curr_tray->hold_count > 0) {
         curr_tray->hold_count--;
         return curr_tray;

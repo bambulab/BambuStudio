@@ -584,7 +584,6 @@ private:
     wxString get_mapped_nozzle_str(int fila_id);
 
     // get mapping nozzle for all
-    std::optional<DevNozzle> get_mapped_nozzle(int fila_id) const;
     std::map<int, DevNozzle> get_mapped_nozzles(int fila_id) const;
 
     // enbale or disable external change assist

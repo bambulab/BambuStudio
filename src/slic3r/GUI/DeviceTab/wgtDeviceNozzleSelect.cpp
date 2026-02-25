@@ -172,11 +172,13 @@ void wgtDeviceNozzleRackSelect::UpdatSelectedNozzles(std::shared_ptr<DevNozzleRa
                 m_toolhead_nozzle_r->SetSelected(true);
             } else if (pos_id == DEPUTY_EXTRUDER_ID) {
                 m_toolhead_nozzle_l->SetSelected(true);
-            } else {
-                if (auto it = m_nozzle_items.find(pos_id - 0x10); it != m_nozzle_items.end()) {
-                    it->second->SetSelected(true);
-                }
+            } else if (auto it = m_nozzle_items.find(pos_id); it != m_nozzle_items.end()) {
+                it->second->SetSelected(true);
             }
+        }
+
+        if (!m_toolhead_nozzle_l->IsSelected()) {
+            m_toolhead_nozzle_l->SetDisable(true);
         }
 
         if (!m_toolhead_nozzle_r->IsSelected()) {

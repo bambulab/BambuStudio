@@ -49,6 +49,7 @@ namespace Slic3r { namespace GUI {
 bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, bool humidity_flag)
 {
     if (!ams) return false;
+    if (ams->GetBindedExtruderSet().empty()) return false;
     this->ams_id = ams->GetAmsId();
 
     this->ams_humidity = ams->SupportHumidityLevel() ? ams->GetHumidityLevel() : -1;
@@ -56,10 +57,10 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->left_dray_time = ams->GetLeftDryTime();
     this->m_ams_drying = ams->AmsIsDrying();
     this->current_temperature = ams->GetCurrentTemperature();
-    this->ams_type = AMSModel(ams->GetAmsType());
-    if (auto extruder_opt = ams->GetUniqueBindedExtruderId(); extruder_opt.has_value()) {
-        this->nozzle_id = extruder_opt.value(); // TODO: filament switcher support
-    };
+    this->ams_type = ams->GetAmsType(); 
+    this->current_extruder_id = ams->GetCurrentExtruderId();
+    this->binded_extruder_set = ams->GetBindedExtruderSet();
+    this->binded_switcher_pos = ams->GetSwitcherPos();
 
     cans.clear();
     for (int i = 0; i < ams->GetTrays().size(); i++) {
@@ -132,15 +133,13 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
 void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
 
     this->ams_id = tray.id;
-    this->ams_type = AMSModel::EXT_AMS;
+    this->ams_type = DevAmsType::EXT_SPOOL;
+    this->current_extruder_id = tray.current_extruder_id;
+    this->binded_extruder_set = tray.binded_extruder_set;
+    this->binded_switcher_pos = tray.binded_switcher_pos;
     Caninfo info;
     info.can_id = std::to_string(0);
     this->cans.clear();
-
-    if (tray.id == std::to_string(VIRTUAL_TRAY_MAIN_ID))
-        this->nozzle_id = 0;
-    else if (tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID))
-        this->nozzle_id = 1;
 
     if (tray.is_tray_info_ready()) {
         info.ctype = tray.ctype;
@@ -196,14 +195,14 @@ Caninfo AMSinfo::get_caninfo(const std::string& can_id, bool& found) const
 
 int AMSinfo::get_humidity_display_idx() const
 {
-    if (ams_type == AMSModel::GENERIC_AMS)
+    if (ams_type == DevAmsType::AMS)
     {
         if (ams_humidity > 0 && ams_humidity < 6)
         {
             return ams_humidity;
         }
     }
-    else if (ams_type == AMSModel::N3F_AMS || ams_type == AMSModel::N3S_AMS)
+    else if (ams_type == DevAmsType::N3F || ams_type == DevAmsType::N3S)
     {
         if (ams_humidity_percent < 20)
         {
@@ -230,6 +229,39 @@ int AMSinfo::get_humidity_display_idx() const
     //assert(false && "Invalid AMS type for humidity display");
     return 1;
 }
+
+AMSPanelPos AMSinfo::GetDefaultPanelPos(int total_extruder_count) const
+{
+    if (total_extruder_count == 1) {
+        if (ams_type != DevAmsType::EXT_SPOOL) {
+            return AMSPanelPos::LEFT_PANEL;
+        } else {
+            return AMSPanelPos::RIGHT_PANEL;
+        }
+    } else if (total_extruder_count == 2) {
+        if (binded_switcher_pos.has_value()) {
+            if (binded_switcher_pos.value() == DevFilaSwitch::POS_IN_A) {
+                return AMSPanelPos::LEFT_PANEL;
+            } else if (binded_switcher_pos.value() == DevFilaSwitch::POS_IN_B) {
+                return AMSPanelPos::RIGHT_PANEL;
+            }
+        }
+
+        if (binded_extruder_set.size() == 1) {
+            const auto& the_extruder_id = *binded_extruder_set.begin();
+            if (the_extruder_id == MAIN_EXTRUDER_ID) {
+                return AMSPanelPos::RIGHT_PANEL;
+            } else if (the_extruder_id == DEPUTY_EXTRUDER_ID) {
+                return AMSPanelPos::LEFT_PANEL;
+            };
+        }
+
+        return AMSPanelPos::RIGHT_PANEL;
+    }
+
+    return AMSPanelPos::RIGHT_PANEL;
+}
+
 
 /*************************************************
 Description:AMSExtText
@@ -941,11 +973,11 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
             auto top = 0;
             auto bottom = 0;
 
-            if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS || m_ams_model == AMSModel::EXT_AMS) {
+            if (m_ams_model == DevAmsType::AMS || m_ams_model == DevAmsType::N3F || m_ams_model == DevAmsType::N3S || m_ams_model == DevAmsType::EXT_SPOOL) {
                 top = (size.y - FromDIP(15) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(15);
             }
-            else if (m_ams_model == AMSModel::AMS_LITE) {
+            else if (m_ams_model == DevAmsType::AMS_LITE) {
                 top = (size.y - FromDIP(20) - m_bitmap_editable_light.GetBmpSize().y);
                 bottom = size.y - FromDIP(20);
             }
@@ -994,7 +1026,7 @@ void AMSLib::render(wxDC &dc)
 #endif
 
     // text
-    if (m_ams_model == AMSModel::AMS_LITE || (m_ams_model == AMSModel::EXT_AMS && m_ext_type == AMSModelOriginType::LITE_EXT)) {
+    if (m_ams_model == DevAmsType::AMS_LITE || (m_ams_model == DevAmsType::EXT_SPOOL && m_ext_type == AMSModelOriginType::LITE_EXT)) {
         render_lite_text(dc);
     }
     else{
@@ -1228,7 +1260,7 @@ void AMSLib::render_generic_text(wxDC &dc)
 
 void AMSLib::doRender(wxDC &dc)
 {
-    if (m_ams_model == AMSModel::AMS_LITE || m_ext_type == AMSModelOriginType::LITE_EXT) {
+    if (m_ams_model == DevAmsType::AMS_LITE || m_ext_type == AMSModelOriginType::LITE_EXT) {
         render_lite_lib(dc);
     }
     else {
@@ -1241,7 +1273,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     wxSize size = GetSize();
     auto libsize = AMS_LITE_CAN_LIB_SIZE;
     ScalableBitmap tray_bitmap, tray_bitmap_hover, tray_bitmap_selected;
-    if (m_ams_model == AMSModel::AMS_LITE){
+    if (m_ams_model == DevAmsType::AMS_LITE){
         tray_bitmap = (m_can_index <= 1) ? m_bitmap_extra_tray_left : m_bitmap_extra_tray_right;
         tray_bitmap_hover = (m_can_index <= 1) ? m_bitmap_extra_tray_left_hover : m_bitmap_extra_tray_right_hover;
         tray_bitmap_selected = (m_can_index <= 1) ? m_bitmap_extra_tray_left_selected : m_bitmap_extra_tray_right_selected;
@@ -1278,7 +1310,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     //draw def background
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.SetBrush(wxBrush(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR)));
-    if (m_ams_model == AMSModel::EXT_AMS){
+    if (m_ams_model == DevAmsType::EXT_SPOOL){
         dc.DrawRoundedRectangle(FromDIP(10), FromDIP(6), libsize.x - FromDIP(20), libsize.y - FromDIP(12), 0);
     }
     dc.DrawRoundedRectangle(FromDIP(10), FromDIP(10), libsize.x - FromDIP(20), libsize.y - FromDIP(20), 0);
@@ -1301,7 +1333,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
         temp_bitmap_third = m_bitmap_editable;
         temp_bitmap_brand = m_bitmap_readonly;
 
-        if (m_ams_model == AMSModel::EXT_AMS) {
+        if (m_ams_model == DevAmsType::EXT_SPOOL) {
             dc.DrawBitmap(m_bitmap_transparent_lite.bmp(), FromDIP(8), (size.y - libsize.y) / 2 + FromDIP(8));
         } else {
             dc.DrawBitmap(m_bitmap_transparent_lite.bmp(), FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8));
@@ -1332,7 +1364,7 @@ void AMSLib::render_lite_lib(wxDC& dc)
     }
     else  {
         dc.SetBrush(wxBrush(tmp_lib_colour));
-        if (m_ams_model == AMSModel::EXT_AMS) {
+        if (m_ams_model == DevAmsType::EXT_SPOOL) {
             dc.DrawRoundedRectangle(FromDIP(10), (size.y - libsize.y) / 2 + FromDIP(8), libsize.x - FromDIP(17), libsize.y - FromDIP(16), 0);
         }
         else{
@@ -1414,7 +1446,7 @@ void AMSLib::render_generic_lib(wxDC &dc)
 
     int top = height - curr_height;
 
-    if (m_ams_model == EXT_AMS){
+    if (m_ams_model == DevAmsType::EXT_SPOOL){
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(2), size.y - FromDIP(1), m_radius - 1);
         if (alpha == 0) {
             dc.DrawBitmap(m_bitmap_transparent_def.bmp(), FromDIP(2), FromDIP(2));
@@ -2028,7 +2060,7 @@ void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
 Description:AMSRoadUpPart
 **************************************************/
 AMSRoadUpPart::AMSRoadUpPart() : m_road_def_color(AMS_CONTROL_GRAY500), m_road_color(AMS_CONTROL_GRAY500) {}
-AMSRoadUpPart::AMSRoadUpPart(wxWindow* parent, wxWindowID id, AMSinfo info, AMSModel model, const wxPoint& pos, const wxSize& size)
+AMSRoadUpPart::AMSRoadUpPart(wxWindow* parent, wxWindowID id, AMSinfo info, DevAmsType model, const wxPoint& pos, const wxSize& size)
     : AMSRoadUpPart()
 {
     m_amsinfo = info;
@@ -2036,7 +2068,7 @@ AMSRoadUpPart::AMSRoadUpPart(wxWindow* parent, wxWindowID id, AMSinfo info, AMSM
     auto mode = AMSRoadMode::AMS_ROAD_MODE_END;
     m_ams_model = model;
 
-    if (m_ams_model == AMSModel::GENERIC_AMS){
+    if (m_ams_model == DevAmsType::AMS){
         create(parent, id, pos, wxSize(FromDIP(264), FromDIP(34)));
     }
     else{
@@ -2149,7 +2181,7 @@ void AMSRoadUpPart::doRender(wxDC& dc)
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
-    if ((m_ams_model == N3S_AMS || m_ams_model == EXT_AMS) && m_amsinfo.cans.size() != 4){
+    if ((m_ams_model == DevAmsType::N3S || m_ams_model == DevAmsType::EXT_SPOOL) && m_amsinfo.cans.size() != 4){
         dc.DrawLine(((float)size.x / 2), (0), ((float)size.x / 2), (size.y));
         if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
             dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
@@ -2172,10 +2204,6 @@ void AMSRoadUpPart::doRender(wxDC& dc)
         dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
         auto temp = m_amsinfo;
         if (m_load_step != AMSPassRoadSTEP::AMS_ROAD_STEP_NONE){
-            if (m_amsinfo.cans.size() <= m_load_slot_index || m_load_slot_index < 0){
-                BOOST_LOG_TRIVIAL(trace) << "up road render error";
-                return;
-            }
             x = x_start + m_load_slot_index * width;
             dc.DrawLine((x), (0), (x), (height));
             if (x < size.x / 2){
@@ -2202,10 +2230,15 @@ void AMSRoadUpPart::UpdatePassRoad(std::string ams_index, std::string slot_index
 {
     int ams_idx = atoi(ams_index.c_str());
     int slot_idx = atoi(slot_index.c_str());
-    if (m_load_ams_index == ams_idx && m_load_slot_index == slot_idx && m_load_step == step)
-    {
+    if (m_load_ams_index == ams_idx && m_load_slot_index == slot_idx && m_load_step == step) {
         return;
     };
+
+    if (m_amsinfo.cans.size() <= m_load_slot_index || m_load_slot_index < 0) {
+        BOOST_LOG_TRIVIAL(error) << "[Dev][error] up road render error: m_load_slot_index=" << m_load_slot_index;
+        assert(false);
+        return;
+    }
 
     m_load_ams_index  = ams_idx;
     m_load_slot_index = slot_idx;
@@ -2525,10 +2558,12 @@ Description:AMSPreview
 **************************************************/
 AMSPreview::AMSPreview() {}
 
-AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, AMSModel itemType, const wxPoint& pos, const wxSize& size) : AMSPreview()
+AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size) : AMSPreview()
 {
     wxWindow::Create(parent, id, pos);
-    if (itemType == AMSModel::GENERIC_AMS || itemType == AMSModel::AMS_LITE || itemType == AMSModel::N3F_AMS) {
+
+    const auto& itemType = amsinfo.ams_type;
+    if (itemType == DevAmsType::AMS || itemType == DevAmsType::AMS_LITE || itemType == DevAmsType::N3F) {
         create(parent, id, pos, AMS_PREV_FOUR_SIZE);
     }
     else {
@@ -2564,7 +2599,7 @@ void AMSPreview::Update(AMSinfo amsinfo)
     m_amsinfo = amsinfo;
     m_ams_item_type = amsinfo.ams_type;
 
-    if (m_ams_item_type == AMSModel::GENERIC_AMS || m_ams_item_type == AMSModel::AMS_LITE || m_ams_item_type == AMSModel::N3F_AMS) {
+    if (m_ams_item_type == DevAmsType::AMS || m_ams_item_type == DevAmsType::AMS_LITE || m_ams_item_type == DevAmsType::N3F) {
         SetMinSize(AMS_PREV_FOUR_SIZE);
         SetMaxSize(AMS_PREV_FOUR_SIZE);
     } else {
@@ -2676,7 +2711,7 @@ void AMSPreview::doRender(wxDC &dc)
 
     auto left = 0;
     //four slot
-    if (m_ams_item_type != AMSModel::EXT_AMS && m_ams_item_type != AMSModel::N3S_AMS){
+    if (m_ams_item_type != DevAmsType::EXT_SPOOL && m_ams_item_type != DevAmsType::N3S){
         left =  FromDIP(8);
         int can_idx = 0;
         for (std::vector<Caninfo>::iterator iter = m_amsinfo.cans.begin(); iter != m_amsinfo.cans.end(); iter++) {
@@ -2805,7 +2840,7 @@ void AMSPreview::doRender(wxDC &dc)
             dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
             dc.SetBrush(iter.material_colour);
             //dc.SetBrush(*wxGREEN);
-            if (m_ams_item_type == AMSModel::N3S_AMS) {
+            if (m_ams_item_type == DevAmsType::N3S) {
                 auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE.y) / 2), (AMS_ITEM_CUBE_SIZE.x), (AMS_ITEM_CUBE_SIZE.y));
                 dc.DrawRoundedRectangle(rect, 0);
             } else {
@@ -2814,7 +2849,7 @@ void AMSPreview::doRender(wxDC &dc)
             }
         }
 
-        if (m_ams_item_type == AMSModel::N3S_AMS) {
+        if (m_ams_item_type == DevAmsType::N3S) {
             //auto pot = wxPoint(((size.x - m_single_slot_bitmap.GetBmpSize().x) / 2), ((size.y - m_single_slot_bitmap.GetBmpSize().y) / 2));
             if (wxGetApp().dark_mode())
             {
@@ -2827,7 +2862,7 @@ void AMSPreview::doRender(wxDC &dc)
 
         }
         if (((iter.material_colour.Red() >= 238 && iter.material_colour.Green() >= 238 && iter.material_colour.Blue() >= 238)
-            || iter.material_colour.Alpha() == 0) && m_ams_item_type == AMSModel::EXT_AMS) {
+            || iter.material_colour.Alpha() == 0) && m_ams_item_type == DevAmsType::EXT_SPOOL) {
             dc.SetPen(wxPen(AMS_CONTROL_GRAY500));
             dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
             auto rect = wxRect(((size.x - AMS_ITEM_CUBE_SIZE2.x) / 2), ((size.y - AMS_ITEM_CUBE_SIZE2.y) / 2), (AMS_ITEM_CUBE_SIZE2.x), (AMS_ITEM_CUBE_SIZE2.y));
@@ -2936,7 +2971,7 @@ void AMSHumidity::Update(AMSinfo amsinfo)
 void AMSHumidity::update_size()
 {
     wxSize size;
-    if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) {
+    if (m_amsinfo.ams_type == DevAmsType::AMS) {
         size = AMS_HUMIDITY_NO_PERCENT_SIZE;
     } else {
         size = AMS_HUMIDITY_SIZE;
@@ -2993,7 +3028,7 @@ void AMSHumidity::doRender(wxDC& dc)
         dc.DrawRoundedRectangle(0, 0, (size.x), (size.y), (size.y / 2));
 
         wxPoint pot;
-        if (m_amsinfo.ams_type == AMSModel::GENERIC_AMS) /*image with stage*/
+        if (m_amsinfo.ams_type == DevAmsType::AMS) /*image with stage*/
         {
             ScalableBitmap hum_img;
             if (!wxGetApp().dark_mode()) {
@@ -3084,7 +3119,7 @@ void AMSHumidity::msw_rescale() {
 /*************************************************
 Description:AmsItem
 **************************************************/
-AmsItem::AmsItem(wxWindow *parent,AMSinfo info,  AMSModel model, AMSPanelPos pos)
+AmsItem::AmsItem(wxWindow *parent,AMSinfo info,  DevAmsType model, AMSPanelPos pos)
 {
     m_bitmap_extra_framework = ScalableBitmap(this, "ams_extra_framework_mid_new", 134);
 
@@ -3093,7 +3128,7 @@ AmsItem::AmsItem(wxWindow *parent,AMSinfo info,  AMSModel model, AMSPanelPos pos
     m_info      = info;
     m_panel_pos = pos;
 
-    if (m_ams_model == AMSModel::GENERIC_AMS){
+    if (m_ams_model == DevAmsType::AMS){
         wxWindow::Create(parent, wxID_ANY, wxDefaultPosition, AMS_CANS_WINDOW_SIZE);
         SetSize(AMS_CANS_WINDOW_SIZE);
         SetMinSize(AMS_CANS_WINDOW_SIZE);
@@ -3119,8 +3154,8 @@ AmsItem::~AmsItem()
 void AmsItem::create(wxWindow *parent)
 {
     Freeze();
-    //if (m_ams_model == AMSModel::GENERIC_AMS)
-    if (m_ams_model != AMSModel::AMS_LITE) {
+    //if (m_ams_model == DevAmsType::AMS)
+    if (m_ams_model != DevAmsType::AMS_LITE) {
         sizer_can = new wxBoxSizer(wxHORIZONTAL);
         sizer_item = new wxBoxSizer(wxVERTICAL);
         auto it = m_info.cans.begin();
@@ -3133,12 +3168,12 @@ void AmsItem::create(wxWindow *parent)
         //auto        road_panel = new wxPanel(this, wxID_ANY);
         //road_panel->SetSize(AMS_CAN_ROAD_SIZE);
         //road_panel->SetMinSize(AMS_CAN_ROAD_SIZE);
-        if (m_ams_model == AMSModel::GENERIC_AMS || m_ams_model == AMSModel::N3F_AMS || m_ams_model == AMSModel::N3S_AMS){
+        if (m_ams_model == DevAmsType::AMS || m_ams_model == DevAmsType::N3F || m_ams_model == DevAmsType::N3S){
             m_humidity = new AMSHumidity(this, wxID_ANY, m_info);
             sizer_item->Add(m_humidity, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         }
         else{
-            if (m_ams_model == EXT_AMS){
+            if (m_ams_model == DevAmsType::EXT_SPOOL){
                 m_ext_image = new AMSExtImage(this, m_panel_pos, 1, true);
                 sizer_item->Add(m_ext_image, 0, wxALIGN_CENTER, 0);
             }
@@ -3188,17 +3223,17 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
     wxBoxSizer* m_sizer_ams = new wxBoxSizer(wxVERTICAL);
 
     AMSrefresh* m_panel_refresh;
-    if (m_ams_model != AMSModel::EXT_AMS)
+    if (m_ams_model != DevAmsType::EXT_SPOOL)
     {
         m_panel_refresh = new AMSrefresh(amscan, m_info.ams_id, m_can_count, caninfo);
         m_can_refresh_list[caninfo.can_id] = m_panel_refresh;
     }
-    else if (m_ams_model == AMSModel::EXT_AMS){
+    else if (m_ams_model == DevAmsType::EXT_SPOOL){
         m_ext_text = new AMSExtText(amscan, wxID_ANY);
     }
 
     AMSLib* m_panel_lib = nullptr;
-    if (m_ams_model == AMSModel::EXT_AMS && m_info.ext_type == AMSModelOriginType::LITE_EXT) {
+    if (m_ams_model == DevAmsType::EXT_SPOOL && m_info.ext_type == AMSModelOriginType::LITE_EXT) {
         m_panel_lib = new AMSLib(amscan, m_info.ams_id, caninfo, AMSModelOriginType::LITE_EXT);
     }
     else{
@@ -3238,14 +3273,14 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
 
     //auto m_panel_road = new AMSRoad(amscan, wxID_ANY, caninfo, canindex, maxcan, wxDefaultPosition, AMS_CAN_ROAD_SIZE);
 
-    if (m_ams_model != AMSModel::AMS_LITE && m_ams_model != AMSModel::EXT_AMS) {
+    if (m_ams_model != DevAmsType::AMS_LITE && m_ams_model != DevAmsType::EXT_SPOOL) {
         m_sizer_ams->Add(0, 0, 0, wxALIGN_CENTER_HORIZONTAL, 0);
         m_sizer_ams->Add(m_panel_refresh, 0, wxALIGN_CENTER_HORIZONTAL | wxDOWN, FromDIP(4));
         m_sizer_ams->Add(m_panel_lib, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     }
     else
     {
-        if (m_ams_model == AMSModel::EXT_AMS){
+        if (m_ams_model == DevAmsType::EXT_SPOOL){
             m_sizer_ams->Add(0, 0, 0, wxALIGN_CENTER_HORIZONTAL, 0);
             //m_sizer_ams->Add(m_panel_text, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, 4);
             m_sizer_ams->Add(m_ext_text, 0, wxALIGN_CENTER_HORIZONTAL | wxDOWN, FromDIP(4));
@@ -3382,7 +3417,7 @@ void AmsItem::Update(AMSinfo info)
         m_panel_road->Update(m_info);
     }
 
-    if (true || m_ams_model == AMSModel::GENERIC_AMS) {
+    if (true || m_ams_model == DevAmsType::AMS) {
         /*m_panel_road->Update(m_info, info.cans[0]);
         m_panel_road->Show();*/
     }
@@ -3459,7 +3494,7 @@ void AmsItem::SetAmsStep(std::string amsid, std::string canid, AMSPassRoadType t
     }
 
     SetAmsStepExtra(canid, type, step);
-    /*if (m_info.ams_type == AMSModel::EXTRA_AMS){
+    /*if (m_info.ams_type == DevAmsType::EXTRA_AMS){
         SetAmsStepExtra(canid, type, step);
     }*/
 
@@ -3609,7 +3644,7 @@ void AmsItem::doRender(wxDC& dc)
     wxSize     size = GetSize();
 
     //road for extra
-    if (m_ams_model == AMSModel::AMS_LITE) {
+    if (m_ams_model == DevAmsType::AMS_LITE) {
         dc.DrawBitmap(m_bitmap_extra_framework.bmp(), (size.x - m_bitmap_extra_framework.GetBmpSize().x) / 2, (size.y - m_bitmap_extra_framework.GetBmpSize().y) / 2 - FromDIP(4));
 
         // A1

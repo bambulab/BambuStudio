@@ -50,7 +50,7 @@ public:
     }
 
     std::string              id;
-    DevAmsType               ams_type = DevAmsType::DUMMY;
+    DevAmsType               ams_type = DevAmsType::EXT_SPOOL;
     std::string              tag_uid;             // tag_uid
     std::string              setting_id;          // tray_info_idx
     std::string              filament_setting_id; // setting_id
@@ -79,11 +79,17 @@ public:
     int             hold_count = 0;
     int             remain = 0;         // filament remain: 0 ~ 100
 
+    std::optional<int>                      current_extruder_id;// the ams is used on the extruder currently
+    std::set<int>                           binded_extruder_set;// the ams can be used on the binded extruders
+    std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
+
 public:
     // operators
     bool operator==(DevAmsTray const& o) const
     {
-        return id == o.id && m_fila_type == o.m_fila_type && filament_setting_id == o.filament_setting_id && color == o.color;
+        return id == o.id && m_fila_type == o.m_fila_type && setting_id == o.setting_id &&
+               filament_setting_id == o.filament_setting_id && color == o.color &&
+               current_extruder_id == o.current_extruder_id && binded_extruder_set == o.binded_extruder_set && binded_switcher_pos == o.binded_switcher_pos;
     }
     bool operator!=(DevAmsTray const& o) const { return !operator==(o); }
 
@@ -286,6 +292,10 @@ public:
     // filament backup
     bool CanShowFilamentBackup() const;
 
+    // filament change steps
+    std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const;
+    std::vector<DevFilamentStep> GetFilamentChangeSteps() const { return m_filament_change_steps; }
+
     /* AMS settings*/
     DevAmsSystemSetting& GetAmsSystemSetting() { return m_ams_system_setting; }
     std::optional<bool>  IsDetectOnInsertEnabled() const { return m_ams_system_setting.IsDetectOnInsertEnabled(); };
@@ -312,6 +322,9 @@ private:
 
     /* ams properties */
     int  m_ams_cali_stat = 0;
+
+    /* filament change step*/
+    std::vector<DevFilamentStep> m_filament_change_steps; // some firmwares support this
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0
 
