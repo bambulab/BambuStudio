@@ -1818,7 +1818,6 @@ std::vector<std::vector<unsigned int>> ToolOrdering::execute_filament_ordering(
 {
     std::vector<std::vector<unsigned int>> filament_sequences;
     if(ordering_context.support_multi_nozzle){
-        assert(m_print->get_layered_nozzle_group_result());
         reorder_filaments_for_multi_nozzle_extruder(
             ordering_context.filament_lists,
             grouping_result,
