@@ -1,0 +1,1043 @@
+//**********************************************************/
+/* File: uiAMSBestPositionPopup.hpp
+*  Description: The popup with suggest best ams position
+*
+//**********************************************************/
+
+#include "uiAMSBestPositionPopup.hpp"
+
+#include "slic3r/Utils/WxFontUtils.hpp"
+
+#include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/Widgets/StateColor.hpp"
+
+
+#include <wx/dcgraph.h>
+#include <wx/grid.h>
+
+namespace Slic3r { namespace GUI {
+    
+wxDEFINE_EVENT(wxEVT_REFRESH_DATA, wxCommandEvent);
+
+UiStyledAMSPanel::UiStyledAMSPanel(wxWindow* parent,
+                         wxWindowID id,
+                         const wxPoint& pos,
+                         const wxSize& size,
+                         const wxColour& borderColor,
+                         const wxColour& bgColor,
+                         bool borderDashed,
+                         int borderWidth,
+                         int radius,
+                         wxString name,
+                         bool isTop)
+                         : wxPanel(parent, id, pos, size),
+                            m_borderDashed(borderDashed),
+                            m_borderWidth(borderWidth),
+                            m_radius(radius),
+                            m_borderColor(borderColor),
+                            m_bgColor(bgColor),
+                            m_name(name),
+                            m_isTop(isTop)
+{
+
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+    Bind(wxEVT_PAINT, &UiStyledAMSPanel::OnPaint, this);
+}
+
+
+void UiStyledAMSPanel::OnPaint(wxPaintEvent& event)
+{
+
+    wxPaintDC dc(this);
+
+    wxSize clientSize = GetClientSize();
+    int width = clientSize.GetWidth();
+    int height = clientSize.GetHeight();
+
+
+    dc.SetBrush(wxBrush(m_bgColor));
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.DrawRoundedRectangle(wxRect(0, 0, width, height), m_radius);
+    
+
+    wxPen borderPen;
+    if (m_borderDashed)
+    {
+
+        borderPen = wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH);
+    }
+    else
+    {
+
+        borderPen = wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SOLID);
+    }
+    dc.SetPen(borderPen);
+
+    int offset = m_borderWidth;
+    dc.DrawRoundedRectangle(wxRect(offset, offset, width - 2 * offset, height - 2 * offset), m_radius);
+
+
+    int labelX = offset;
+    int labelY = m_isTop ? offset : (height - offset - 27);  // true=顶部, false=底部
+
+
+    wxRect labelRect(labelX, labelY, width - 2 * offset, 10);
+    wxRect labelRoundRect(labelX, labelY, width - 2 * offset, 27);
+    dc.SetBrush(wxBrush(m_borderColor));
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.DrawRoundedRectangle(labelRoundRect, m_radius);
+    dc.DrawRectangle(labelRect);
+    
+
+    wxFont font12(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    dc.SetTextForeground(wxColour("#858585"));
+    // dc.SetFont(font12);
+    dc.SetFont(::Label::Body_12);
+    wxCoord textWidth, textHeight;
+    dc.GetTextExtent(m_name, &textWidth, &textHeight);
+
+    int textPosX = labelX + 4 * offset;
+    int textPosY = labelY + (27 -textHeight ) / 2;
+    dc.DrawText(m_name, textPosX, textPosY);
+
+
+    // event.Skip();
+}
+
+UiStyledSwitchPanel::UiStyledSwitchPanel(wxWindow* parent,
+                                    wxWindowID id = wxID_ANY,
+                                    const wxPoint& pos = wxDefaultPosition,
+                                    const wxSize& size = wxDefaultSize,
+                                    const wxColour& borderColor = wxColour(200, 200, 200),
+                                    const wxColour& bgColor = wxColour(255, 255, 255),
+                                    bool borderDashed = true,
+                                    int borderWidth = 2,
+                                    int radius = 1,
+                                    bool isTop = true)
+                                    : wxPanel(parent, id, pos, size),
+                                        m_borderDashed(borderDashed),
+                                        m_borderWidth(borderWidth),
+                                        m_radius(radius),
+                                        m_borderColor(borderColor),
+                                        m_bgColor(bgColor),
+                                        m_isTop(isTop)
+{
+
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+    Bind(wxEVT_PAINT, &UiStyledSwitchPanel::OnPaint, this);
+
+    
+
+    m_mainSizer = new wxBoxSizer(wxVERTICAL);
+
+
+    m_mainSizer->AddSpacer(labelHeight);
+
+
+    m_contentSizer = new wxBoxSizer(wxVERTICAL);
+
+
+    m_splitSizer = new wxBoxSizer(wxHORIZONTAL);
+
+
+    m_leftSizer = new wxBoxSizer(wxVERTICAL);
+    m_splitSizer->Add(m_leftSizer, 1, wxEXPAND | wxALL, 0);  // proportion=1，等分宽度
+
+
+    m_rightSizer = new wxBoxSizer(wxVERTICAL);
+    m_splitSizer->Add(m_rightSizer, 1, wxEXPAND | wxALL, 0);  // proportion=1，等分宽度
+
+
+    m_contentSizer->Add(m_splitSizer, 1, wxEXPAND | wxALL, 0);
+
+
+    m_mainSizer->Add(m_contentSizer, 1, wxEXPAND | wxALL, 0);
+
+    SetSizer(m_mainSizer);
+}
+
+void UiStyledSwitchPanel::Clear(bool deleteWindows)
+{
+    if (m_leftSizer)
+    {
+        m_leftSizer->Clear(deleteWindows);
+        m_leftSizer->Layout();
+    }
+
+    if (m_rightSizer)
+    {
+        m_rightSizer->Clear(deleteWindows);
+        m_rightSizer->Layout();
+    }
+
+    LayoutAndFit();
+
+    Refresh();
+    Update();
+}
+
+void UiStyledSwitchPanel::AddToLeft(wxWindow* window, int proportion, int flag, int border)
+{
+    m_leftSizer->Add(window, proportion, flag, border);
+    Layout();
+}
+
+void UiStyledSwitchPanel::AddToRight(wxWindow* window, int proportion, int flag, int border)
+{
+    m_rightSizer->Add(window, proportion, flag, border);
+    Layout();
+}
+
+
+void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
+{
+    wxPaintDC dc(this);
+    wxSize clientSize = GetClientSize();
+    int width = clientSize.GetWidth();
+    int height = clientSize.GetHeight() - 90; // for selector space
+
+    dc.SetBrush(wxBrush(m_bgColor));
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.DrawRoundedRectangle(wxRect(0, 0, width, height), m_radius);
+    
+    wxPen borderPen;
+    if (m_borderDashed)
+    {
+        borderPen = wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH);
+    }
+    else
+    {
+        borderPen = wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SOLID);
+    }
+    dc.SetPen(borderPen);
+    int offset = m_borderWidth;
+    dc.DrawRoundedRectangle(wxRect(offset, offset, width - 2 * offset, height - 2 * offset), m_radius);
+
+    int labelX = offset;
+    int labelY = m_isTop ? offset : (height - offset - labelHeight);  // true=顶部, false=底部
+
+    wxRect labelRoundRect(labelX, labelY, width - 2 * offset, labelHeight);
+    wxRect labelRect(labelX, labelY + m_radius, width - 2 * offset, labelHeight - m_radius);
+    dc.SetBrush(wxBrush(m_borderColor));
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.DrawRoundedRectangle(labelRoundRect, m_radius);
+    dc.DrawRectangle(labelRect);
+
+    // dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH));
+    dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH));
+    dc.DrawLine(width / 2, offset, width / 2, height - offset);
+
+    wxFont font12(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    dc.SetTextForeground(wxColour("#000000"));
+    // dc.SetFont(font12);
+    dc.SetFont(::Label::Body_14);
+    wxCoord textWidth, textHeight;
+    dc.GetTextExtent(_L("Filament Switch IN-A"), &textWidth, &textHeight);
+
+    int aTextPosX = labelX + 4 * offset;
+    int aTextPosY = labelY + (labelHeight - textHeight ) / 2;
+    dc.DrawText(_L("Filament Switch IN-A"), aTextPosX, aTextPosY);
+
+    int bTextPosX = labelX + 4 * offset + width / 2;
+    int bTextPosY = aTextPosY;
+    dc.DrawText(_L("Filament Switch IN-B"), bTextPosX, bTextPosY);
+
+    height += 90; //total height
+
+    dc.SetBrush(wxBrush(m_bgColor));
+    dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SOLID));
+    int selBaseX = width / 2 - 35;
+    int selBaseY = height - 56;
+    int selWidth = 70;
+    int selHeight = 44;
+    dc.DrawRoundedRectangle(wxRect(selBaseX, selBaseY, selWidth, selHeight), 4);
+    // wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    dc.SetTextForeground(wxColour("#262E30"));
+    // dc.SetFont(font);
+    wxCoord selTextWidth, selTextHeight;
+    dc.GetTextExtent(_L("Selector"), &selTextWidth, &selTextHeight);
+    int selTextPosX = selBaseX + (selWidth - selTextWidth) / 2;
+    int selTextPosY = selBaseY + (selHeight - selTextHeight) / 2;
+    dc.DrawText(_L("Selector"), selTextPosX, selTextPosY);
+
+    //draw Horizontal
+    int hLBaseX = (width - 184) / 2;
+    int hLBaseY = selBaseY - 17;
+    int hWidth = 76;
+    int hHeight = 5;
+    int hGap = 32;
+    wxRect HL(hLBaseX, hLBaseY, hWidth, hHeight);
+    wxRect HR(hLBaseX + hWidth + hGap, hLBaseY, hWidth, hHeight);
+    dc.SetBrush(wxBrush(wxColour("#D9D9D9")));
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.DrawRectangle(HL);
+    dc.DrawRectangle(HR);
+    //draw vertical
+    int vLTopBaseX = hLBaseX;
+    int vLTopBaseY = height - 90 - 1;
+    int vWidht = 5;
+    int vHeight = 23;
+    // vtopL vtopR
+    dc.DrawRectangle(wxRect(vLTopBaseX, vLTopBaseY, vWidht, vHeight));
+    dc.DrawRectangle(wxRect(vLTopBaseX + 184 - vWidht, vLTopBaseY, vWidht, vHeight));
+
+    // vmidL vmidR
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth - vWidht, vLTopBaseY + vHeight - vWidht, vWidht, 17));
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth + hGap, vLTopBaseY + vHeight - vWidht, vWidht, 17));
+
+    //vbotL vbotR
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth - vWidht, height - 12, vWidht, 12));
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth + hGap, height - 12, vWidht, 12));
+    // event.Skip();
+}
+
+UiAMSSlot::UiAMSSlot(wxWindow* parent,
+                 const wxColour& bgColour,
+                 const wxString& text,
+                 wxWindowID id = wxID_ANY,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& size = wxDefaultSize,
+                 double colourFactor = 1.0,
+                 double scaleFactor = 1.0)
+    : wxPanel(parent, id, pos, wxDefaultSize, wxBORDER_NONE),
+      m_bgColour(bgColour), m_text(text), m_colourFactor(colourFactor), m_scaleFactor(scaleFactor)
+{
+    // 计算缩放后的尺寸
+    m_size = wxSize(
+        static_cast<int>(size.GetWidth() * scaleFactor),
+        static_cast<int>(size.GetHeight() * scaleFactor)
+    );
+    SetMinSize(m_size);
+    SetMaxSize(m_size);
+    rectangleW = static_cast<int>(rectangleW * m_scaleFactor);
+    rectangleH = static_cast<int>(rectangleH * m_scaleFactor);
+    Bind(wxEVT_PAINT, &UiAMSSlot::OnPaint, this);
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+}
+
+void UiAMSSlot::DrawRectangle(wxAutoBufferedPaintDC& dc, const wxSize& cli)
+{
+    wxRect rr(FromDIP((cli.x -rectangleW) / 2), FromDIP((cli.y - rectangleH) / 2), FromDIP(rectangleW), FromDIP(rectangleH));
+
+    dc.SetBrush(wxBrush(LightenColour(m_bgColour)));
+    dc.SetPen(wxPen(LightenColour(m_bgColour)));
+    dc.DrawRectangle(rr);
+
+    wxString line1 = m_text.BeforeFirst('\n');
+    wxString line2 = m_text.AfterFirst ('\n');
+    wxFont font12 = ::Label::Body_12;
+    wxFont font14 = ::Label::Body_14;
+    int newSizeFont12 = static_cast<int>(font12.GetPointSize() * m_scaleFactor);
+    int newSizeFont14 = static_cast<int>(font14.GetPointSize() * m_scaleFactor);
+    newSizeFont12 = std::max(1, newSizeFont12);
+    newSizeFont14 = std::max(1, newSizeFont14);
+    font12.SetPointSize(newSizeFont12);
+    font14.SetPointSize(newSizeFont14);
+    wxColour textColour = IsDark(m_bgColour) ? wxColour("#FFFFFF") 
+                                               : wxColour("#000000");
+    dc.SetTextForeground(textColour);
+
+    dc.SetFont(font12);
+    // dc.SetFont(::Label::Body_12);
+    wxCoord w1, h1;
+    dc.GetTextExtent(line1, &w1, &h1);
+
+    dc.SetFont(font14);
+    // dc.SetFont(::Label::Body_14);
+    wxCoord w2, h2;
+    dc.GetTextExtent(line2, &w2, &h2);
+
+    int topGap = static_cast<int>(FromDIP(5) * m_scaleFactor);
+    int textGap = static_cast<int>(FromDIP(5) * m_scaleFactor);
+    int baseY = (cli.y - h1 - h2 - topGap - textGap) / 2;
+
+    dc.SetFont(font12);
+    // dc.SetFont(::Label::Body_12);
+    dc.DrawText(line1, FromDIP((cli.x - w1) / 2), FromDIP(baseY + topGap));
+    dc.SetFont(font14);
+    // dc.SetFont(::Label::Body_14);
+    dc.DrawText(line2, FromDIP((cli.x - w2) / 2), FromDIP(baseY + topGap + h1 + textGap));
+}
+
+void UiAMSSlot::DrawLine(wxAutoBufferedPaintDC& dc, const wxSize& cli)
+{
+    // no scaled
+    if (std::abs(m_scaleFactor - 1.0) < 1e-3)
+    {
+        int bgRemainPointX = FromDIP((cli.x - 30) / 2);
+        int bgRemainPointY = 0;
+        int bgRemainH = FromDIP(4);
+        int bgRemainW = FromDIP(30);
+        int forRemainW = FromDIP(30 - 8);
+        //remain status bar
+        dc.SetBrush(wxBrush(wxColour("#c2c2c2")));
+        dc.SetPen(wxPen(wxColour("#c2c2c2")));
+        dc.DrawRoundedRectangle(wxRect(bgRemainPointX, 0, bgRemainW, bgRemainH), FromDIP(3));
+
+        dc.SetBrush(wxBrush(LightenColour(m_bgColour)));
+        dc.SetPen(wxPen(LightenColour(m_bgColour)));
+        dc.DrawRoundedRectangle(wxRect(bgRemainPointX, 0, forRemainW, bgRemainH), FromDIP(3));
+    }
+
+    if (std::abs(m_colourFactor - 1.0) < 1e-3)
+    {
+        dc.SetBrush(wxColour("#ff6f00"));
+        dc.SetPen(wxPen(wxColour("#ff6f00")));
+        //top
+        int topGap = static_cast<int>(8 * m_scaleFactor);
+        int bottomGap = static_cast<int>(4 * m_scaleFactor);
+        int tbHeight = static_cast<int>(3 * m_scaleFactor);
+        dc.DrawRectangle(wxRect(FromDIP((cli.x - rectangleW)) / 2, FromDIP((cli.y - rectangleH - topGap) / 2), FromDIP(rectangleW), FromDIP(tbHeight)));
+        //bottom
+        dc.DrawRectangle(wxRect(FromDIP((cli.x - rectangleW)) / 2, FromDIP((cli.y - rectangleH - topGap) / 2 + rectangleH + bottomGap), FromDIP(rectangleW), FromDIP(tbHeight)));
+
+        // left
+        int radius = static_cast<int>(4 * m_scaleFactor);
+        int width = static_cast<int>(10 * m_scaleFactor);
+        int height = static_cast<int>(m_size.GetHeight() - 3);
+        dc.DrawRoundedRectangle(wxRect(0, FromDIP(static_cast<int>(3 * m_scaleFactor)), FromDIP(width), FromDIP(height)), FromDIP(radius));
+        //right
+        // dc.DrawRectangle(wxRect(55, 7, 3, 78));
+        dc.DrawRoundedRectangle(wxRect(FromDIP(static_cast<int>(m_size.GetWidth() - 10 * m_scaleFactor)),
+                                       FromDIP(static_cast<int>(3 * m_scaleFactor)),
+                                       FromDIP(static_cast<int>(10 * m_scaleFactor)),
+                                       FromDIP(static_cast<int>(m_size.GetHeight() - 3))), FromDIP(radius));
+    }
+
+    dc.SetBrush(wxColour("#ffffff"));
+    dc.SetPen(wxPen(wxColour("#ffffff")));  
+    dc.DrawRoundedRectangle(wxRect(FromDIP(static_cast<int>(3 * m_scaleFactor)), 
+                                   FromDIP(static_cast<int>(6 * m_scaleFactor)), 
+                                   FromDIP(static_cast<int>(4 * m_scaleFactor)), 
+                                   FromDIP(static_cast<int>(81 * m_scaleFactor))), FromDIP(static_cast<int>(2 * m_scaleFactor)));
+    dc.DrawRoundedRectangle(wxRect(FromDIP(static_cast<int>(51 * m_scaleFactor)), 
+                                   FromDIP(static_cast<int>(6 * m_scaleFactor)), 
+                                   FromDIP(static_cast<int>(4 * m_scaleFactor)), 
+                                   FromDIP(static_cast<int>(81 * m_scaleFactor))), FromDIP(static_cast<int>(2 * m_scaleFactor)));                                   
+    // dc.DrawRoundedRectangle(wxRect(51, 6, 4, 81), 2);
+}
+
+wxColour UiAMSSlot::LightenColour(const wxColour& original)
+{
+    if (std::abs(m_colourFactor - 1.0) < 1e-3)
+    {
+        return original;
+    }
+    m_colourFactor = std::clamp(m_colourFactor, 0.0, 1.0);
+    
+    int r = original.Red();
+    int g = original.Green();
+    int b = original.Blue();
+    int a = original.Alpha();
+    
+    r = static_cast<int>(r + (255 - r) * (1 - m_colourFactor));
+    g = static_cast<int>(g + (255 - g) * (1 - m_colourFactor));
+    b = static_cast<int>(b + (255 - b) * (1 - m_colourFactor));
+    
+    r = std::min(r, 255);
+    g = std::min(g, 255);
+    b = std::min(b, 255);
+
+    return wxColour(r, g, b, a);
+}
+
+void UiAMSSlot::OnPaint(wxPaintEvent&)
+{
+    wxAutoBufferedPaintDC dc(this);
+    dc.Clear();
+    //draw all background
+    wxSize cli = GetClientSize();
+    dc.SetBrush(wxBrush(wxColour("#ffffff")));
+    dc.SetPen(wxPen(wxColour("#ffffff")));
+    dc.DrawRectangle(wxRect(0, 0, cli.x, cli.y));
+    DrawLine(dc, cli);
+    DrawRectangle(dc, cli);
+}
+
+
+UiAMS::UiAMS( wxWindow* parent,
+         const std::vector<DataAmsSlotInfo>& amsInfo,
+         wxWindowID id = wxID_ANY,
+         const wxPoint& pos = wxDefaultPosition,
+         const wxSize& minSize = wxDefaultSize)
+    // : UiStyledAMSPanel(parent, id, pos, wxSize( minSize.GetWidth() * amsInfo.size(), minSize.GetHeight()), wxColour("#dbdbdb"), wxColour("#ffffff"), false, 2, 5),
+    : UiStyledAMSPanel(parent, id, pos, wxDefaultSize, wxColour("#dbdbdb"), wxColour("#ffffff"), false, 2, 5, amsInfo.front().amsName),
+
+     m_amsInfo(amsInfo), m_minSize(minSize)
+{
+    if (m_amsInfo.size() == 1)
+    {
+        wxSize size(FromDIP(92), FromDIP(134));
+        SetMinSize(size);
+        m_minSize = size;
+    }
+    else // 4 slot
+    {
+        wxSize size(FromDIP(262), FromDIP(134));
+        SetMinSize(size);
+        m_minSize = size;
+    }
+    init();
+}
+
+void UiAMS::init()
+{
+    // int minW =  m_minSize.GetWidth() * m_amsInfo.size();
+    int minW =  m_minSize.GetWidth();
+    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+    //ams model
+    wxPanel* amsPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
+
+    wxBoxSizer* amsPanelSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxSize wxSlotSize = wxSize(FromDIP(58), FromDIP(90));
+    int allEmptySpacer = minW - m_amsInfo.size() * wxSlotSize.GetWidth();
+    int gap = (m_amsInfo.size() == 1 ? allEmptySpacer / 2 : allEmptySpacer / ( 2 * m_amsInfo.size() - 1));
+    for (const auto& slot : m_amsInfo)
+    {
+        amsPanelSizer->AddStretchSpacer(gap);
+        amsPanelSizer->Add(new UiAMSSlot(amsPanel, slot.colour, slot.name, wxID_ANY, wxDefaultPosition, wxSlotSize, slot.colourFactor, slot.scaleFactor));
+        amsPanelSizer->AddStretchSpacer(gap);
+    }
+    amsPanel->SetSizer(amsPanelSizer);
+    // mainSizer->AddStretchSpacer();
+    mainSizer->Add(amsPanel, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(5));
+    // mainSizer->AddStretchSpacer();
+    SetSizer(mainSizer);
+}
+
+UiStatusContainer::UiStatusContainer(wxWindow* parent) : wxPanel(parent, wxID_ANY)
+{
+    SetBackgroundColour(wxColour("#F8F8F8"));
+    SetMinSize(wxSize(FromDIP(570), -1));
+
+    m_mainSizer = new wxBoxSizer(wxVERTICAL);
+    SetSizer(m_mainSizer);
+
+    m_currentRow = new wxBoxSizer(wxHORIZONTAL);
+    m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
+
+    m_isFirstStatus = true;
+}
+
+void UiStatusContainer::ClearAll()
+{
+    m_mainSizer->Clear(true);
+    m_currentRow = new wxBoxSizer(wxHORIZONTAL);
+    m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxBOTTOM, 5);
+    m_isFirstStatus = true;
+}
+
+void UiStatusContainer::SetStatusParams(const DataStatusParam& adjustParam, 
+                                      const DataStatusParam& okParam, 
+                                      const DataStatusParam& unmatchedParam)
+{
+
+    ClearAll();
+
+    AddStatusGroup(ADJUST, adjustParam);
+    AddStatusGroup(OK, okParam);
+    AddStatusGroup(UNMATCHED, unmatchedParam);
+
+
+    m_mainSizer->Fit(this);
+    Layout();
+    // GetParent()->Layout();
+}
+
+void UiStatusContainer::AddStatusGroup(DataStatusType type, const DataStatusParam& param)
+{
+    if (param.slots.size() <= 0 || param.width <= 0 || param.height <= 0) {
+        return;
+    }
+
+    int statusSpacing = 0;
+    if (!m_isFirstStatus) 
+    {
+        statusSpacing = FromDIP(20);
+    }
+    m_isFirstStatus = false;
+
+    for (int i = 0; i < param.slots.size(); i++)
+    {
+        const auto& slot = param.slots[i];
+        int usedWidth = m_currentRow->CalcMin().GetWidth();
+        int itemTotalWidth = param.width + (i == 0 ? statusSpacing : 0);
+        if (usedWidth + itemTotalWidth > 570) {
+            m_currentRow = new wxBoxSizer(wxHORIZONTAL);
+            m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxALL, FromDIP(5));
+            usedWidth = 0;
+        }
+
+        UiAMSSlot* amsSlot = new UiAMSSlot(this, slot.colour, slot.name, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(58), FromDIP(90)), slot.colourFactor, slot.scaleFactor);
+        m_currentRow->Add(amsSlot, 0, wxALIGN_CENTER | (i == 0 ? wxLEFT : 0), (i == 0 ? FromDIP(statusSpacing) : FromDIP(5)));
+    }
+
+    wxString statusText = "";
+    wxColour textColor = *wxBLACK;
+    switch (type) 
+    {
+        case ADJUST:     statusText = _L("Position adjustment required"); textColor = wxColour("#6B6B6B"); break;
+        case OK:         statusText = _L("OK");                 textColor = wxColour("#6B6B6B"); break;
+        case UNMATCHED:  statusText = _L("Unused");      textColor = wxColour("#6B6B6B"); break;
+        default: break;
+    }
+
+    wxStaticText* statusLabel = new wxStaticText(this, wxID_ANY, statusText);
+    statusLabel->SetFont(wxGetApp().normal_font());
+    statusLabel->SetMinSize(wxSize(-1, FromDIP(22)));
+    statusLabel->SetForegroundColour(textColor);
+    
+    int labelWidth = statusLabel->GetBestSize().GetWidth();
+    int usedWidth = m_currentRow->CalcMin().GetWidth();
+    if (usedWidth + FromDIP(15) + labelWidth > FromDIP(570)) 
+    {
+        m_currentRow = new wxBoxSizer(wxHORIZONTAL);
+        m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxALL, FromDIP(5));
+        m_currentRow->Add(statusLabel, 0, wxALL | wxALIGN_CENTER, FromDIP(5));
+    } 
+    else 
+    {
+        m_currentRow->Add(statusLabel, 0, wxLEFT | wxALIGN_CENTER, FromDIP(15));
+    }
+}
+
+ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, _L("Suggest to rearrange materials"), 
+               wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+{
+    SetBackgroundColour(wxColour("#FFFFFF"));
+    // SetSize(wxSize(FromDIP(630), FromDIP(719)));
+    SetMinSize(wxSize(FromDIP(630), -1));
+    SetMaxSize(wxSize(FromDIP(630), -1));
+
+    mainSizer = new wxBoxSizer(wxVERTICAL);
+    
+
+    textPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+    textSizer = new wxBoxSizer(wxVERTICAL);
+    suggestText = new Label(textPanel, wxEmptyString);
+    // linkwiki = new wxHyperlinkCtrl(textPanel, wxID_ANY, _L("why can save time→"), wxString("https://wiki.bambulab.com/zh/home"), wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+    // linkwiki->SetFont(wxGetApp().normal_font());
+    // linkwiki->SetNormalColour(wxColour("#00AE42"));
+    // linkwiki->SetFont(Label::Head_14);
+    // suggestText->SetFont(wxGetApp().normal_font());
+    linkwiki = new Label(textPanel, _L("How to save time?→"));
+    linkwiki->SetForegroundColour(wxColour("#00AE42"));
+    linkwiki->SetBackgroundColour(wxColour("#FFFFFF"));
+    linkwiki->SetFont(Label::Body_14);
+    linkwiki->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&){
+    std::string language = wxGetApp().app_config->get("language");
+        wxString    region   = "en";
+        if (language.find("zh") == 0) {
+            region = "zh";
+        }
+        wxString url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
+        wxLaunchDefaultBrowser(url);
+        // e.Skip();
+    });
+    textSizer->Add(suggestText, 0, wxALIGN_LEFT | wxTOP, FromDIP(5));
+    textSizer->Add(linkwiki, 0, wxALIGN_LEFT | wxTOP, FromDIP(2));
+    textPanel->SetSizer(textSizer);
+    
+    summaryText = new Label(this, wxEmptyString);
+    // summaryText->SetFont(wxGetApp().normal_font());
+
+    filamentSwitch = new UiStyledSwitchPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(571), FromDIP(439)),
+                                                    wxColour("#dbdbdb"), wxColour("#ffffff"), true, 2, 5, true);
+    // m_bitmapSelectMachine = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("selector_diagram", this, 183), wxDefaultPosition, wxSize(FromDIP(183), FromDIP(90)), 0);
+
+    //耗材丝
+    filamentTips = new wxStaticText(this, wxID_ANY, _L("Filament Status:"));
+    filamentTips->SetFont(wxGetApp().normal_font());
+
+    // StatusBarContainer* statusBar = new StatusBarContainer(this);
+    statusBar = new UiStatusContainer(this);
+
+    btnSizer = new wxBoxSizer(wxHORIZONTAL);
+    m_buttonRefresh = new Button(this, _L("Refresh"));
+    m_buttonRefresh->Bind(wxEVT_BUTTON, &ReselectMachineDialog::OnRefreshButton, this);
+    m_buttonClose = new Button(this, _L("Close"));
+    m_buttonClose->SetBackgroundColor(wxColour("#00AE42"));
+    m_buttonClose->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e){
+        this->Close();
+    });
+    btnSizer->Add(m_buttonRefresh, 0, wxALIGN_LEFT);
+    btnSizer->Add(m_buttonClose, 0, wxALIGN_LEFT | wxLEFT, FromDIP(10));
+    //btn
+
+    mainSizer->Add(0, FromDIP(20));
+    mainSizer->Add(textPanel, 0, wxALIGN_LEFT | wxLEFT, FromDIP(26));
+    mainSizer->Add(0, FromDIP(12));
+    mainSizer->Add(summaryText, 0, wxALIGN_LEFT | wxLEFT, FromDIP(30));
+    mainSizer->Add(0, FromDIP(15));
+    mainSizer->Add(filamentSwitch, 0, wxALIGN_LEFT | wxLEFT, FromDIP(26));
+    // mainSizer->Add(m_bitmapSelectMachine, 0,  wxALIGN_LEFT | wxLEFT, FromDIP(214));
+    mainSizer->Add(0, FromDIP(8));
+    mainSizer->Add(filamentTips, 0, wxALIGN_LEFT | wxLEFT, FromDIP(23));
+    mainSizer->Add(0, FromDIP(7));
+    mainSizer->Add(statusBar, 0, wxALIGN_LEFT | wxLEFT, FromDIP(23));
+    mainSizer->Add(btnSizer, 0, wxALIGN_RIGHT | wxALL, FromDIP(23));
+    SetSizer(mainSizer);
+    Fit();
+    Centre();
+}
+
+void ReselectMachineDialog::Update(MachineObject* obj, const std::map<int, int>&  best_pos_map, const std::vector<FilamentInfo>& ams_mapping, wxString save_time)
+{
+
+    if (suggestText)
+    {
+        suggestText->SetLabel(wxString::Format(_L("Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."), save_time));
+        suggestText->Wrap(FromDIP(600));
+        suggestText->SetBackgroundColour(wxColour("#FFFFFF"));
+        suggestText->SetFont(Label::Body_14);
+        suggestText->Show();
+    }
+
+    if (summaryText)
+    {
+        std::vector<wxString> toINA;
+        std::vector<wxString> toINB;
+        for (const auto& pair : best_pos_map)
+        {
+            for (auto fila : ams_mapping)
+            {
+                if (fila.id == pair.first)
+                {
+                    auto trayID = getTrayID(fila.ams_id, fila.slot_id);
+                    pair.second == DevFilaSwitch::SwitchPos::POS_IN_A ? toINA.push_back(trayID) : toINB.push_back(trayID);
+                    break;
+                }
+            }
+        }
+        auto summaryInfo = FormatFilamentComment(toINB, toINA);
+        summaryText->SetLabel(summaryInfo);
+        summaryText->SetFont(Label::Body_14);
+    }
+
+    auto switchHight = GetSwitchHeight(obj, best_pos_map, ams_mapping);
+    wxSize switchSize;
+    if (122 == switchHight) //32 + 90 fixed size
+    {
+        switchSize = wxSize(FromDIP(571), FromDIP(439));
+    }
+    else
+    {
+        switchSize = wxSize(FromDIP(571), FromDIP(switchHight));
+    }
+    if (filamentSwitch)
+    {
+        filamentSwitch->Clear(true);
+        filamentSwitch->SetMinSize(switchSize);
+        filamentSwitch->SetMaxSize(switchSize);
+        filamentSwitch->SetSize(switchSize);
+        std::sort(inAAMS.begin(), inAAMS.end(), [](const auto& a, const auto& b) {
+            return a.size() > b.size();
+        });
+        std::sort(inBAMS.begin(), inBAMS.end(), [](const auto& a, const auto& b) {
+            return a.size() > b.size();
+        });
+
+        auto addToSwitchFun = [this] (DevFilaSwitch::SwitchPos dir) {
+            const auto& INAMS = (dir == DevFilaSwitch::SwitchPos::POS_IN_A ? inAAMS : inBAMS);
+            for (size_t i = 0; i < INAMS.size(); ++i)
+            {
+                const auto& slots = INAMS[i];
+                if (slots.size() == 4)
+                {
+                    UiAMS* ams = new UiAMS(this->filamentSwitch, slots, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(92), FromDIP(134)));
+                    if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
+                    {
+                        this->filamentSwitch->AddToLeft(ams, 0, wxALL, 10);
+                        this->filamentSwitch->GetLeftSizer()->Add(0, FromDIP(20));
+                    }
+                    if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
+                    {
+                        this->filamentSwitch->AddToRight(ams, 0, wxALL, 10);
+                        this->filamentSwitch->GetRightSizer()->Add(0, FromDIP(20));
+                    }
+                }
+                if (slots.size() == 2)
+                {
+                    if (i + 1 < INAMS.size())
+                    {
+                        const auto& slots2 = INAMS[i + 1];
+                        
+                        wxPanel* pairPanel = new wxPanel(this->filamentSwitch);
+                        wxBoxSizer* pairSizer = new wxBoxSizer(wxHORIZONTAL);
+                        
+                        UiAMS* ams1 = new UiAMS(pairPanel, slots, wxID_ANY,
+                                        wxDefaultPosition, wxSize(FromDIP(92), FromDIP(134)));
+                        pairSizer->Add(ams1, 0, wxALL, FromDIP(5));
+                        
+                        UiAMS* ams2 = new UiAMS(pairPanel, slots2, wxID_ANY,
+                                        wxDefaultPosition, wxSize(FromDIP(92), FromDIP(134)));
+                        pairSizer->Add(ams2, 0, wxALL, FromDIP(5));
+                        
+                        pairPanel->SetSizer(pairSizer);
+                        if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
+                        {
+                            this->filamentSwitch->AddToLeft(pairPanel, 0, wxALL, FromDIP(10));
+                        }
+                        if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
+                        {
+                            this->filamentSwitch->AddToRight(pairPanel, 0, wxALL, FromDIP(10));
+                        }
+                    
+                        ++i;
+                    }
+                    else
+                    {
+                        UiAMS* ams = new UiAMS(this->filamentSwitch, slots, wxID_ANY,
+                                        wxDefaultPosition, wxSize(FromDIP(92), FromDIP(134)));
+                        if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
+                        {
+                            this->filamentSwitch->AddToLeft(ams, 0, wxALL, FromDIP(10));
+                        }
+                        if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
+                        {
+                            this->filamentSwitch->AddToRight(ams, 0, wxALL, FromDIP(10));
+                        }
+                    }
+                    
+                    if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
+                    {
+                        this->filamentSwitch->GetLeftSizer()->Add(0, FromDIP(20));
+                    }
+                    if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
+                    {
+                        this->filamentSwitch->GetRightSizer()->Add(0, FromDIP(20));
+                    }
+                }
+            }
+        };
+        addToSwitchFun(DevFilaSwitch::SwitchPos::POS_IN_A);
+        addToSwitchFun(DevFilaSwitch::SwitchPos::POS_IN_B);
+        filamentSwitch->LayoutAndFit();
+    }
+
+    if (statusBar)
+    {
+        statusBar->SetStatusParams({30, 45, adjust}, {30, 45, ok}, {30, 45, unused});
+    }
+
+    //FilamentInfo
+    mainSizer->Layout();
+    Fit();
+}
+
+int ReselectMachineDialog::GetSwitchHeight(MachineObject* obj, const std::map<int, int>&  best_pos_map, const std::vector<FilamentInfo>& ams_mapping)
+{
+    if (!obj)
+    {
+        return 0;
+    }
+    this->adjust.clear();
+    this->ok.clear();
+    this->unused.clear();
+
+    const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+    std::map<DevFilaSwitch::SwitchPos, std::vector<AMSinfo>> ams_info; //all ams set
+    std::map<DevFilaSwitch::SwitchPos, std::vector<wxString>> ams_DisplayName;
+    int inAFourSlotNum = 0, inAOneSlotNum = 0;
+    int inBFourSlotNum = 0, inBOneSlotNum = 0;
+    for (auto ams = ams_list.begin(); ams != ams_list.end(); ams++) //not include extend ams
+    {
+        AMSinfo info;
+        info.ams_id = ams->first;
+        if (ams->second->IsExist() && info.parse_ams_info(obj, ams->second, obj->GetFilaSystem()->IsDetectRemainEnabled(), obj->is_support_ams_humidity))
+        {
+            auto pos = ams->second->GetSwitcherPos();
+            auto amsName = ams->second->GetDisplayName();
+            if (pos.has_value())
+            {
+                ams_info[pos.value()].push_back(info);
+                ams_DisplayName[pos.value()].push_back(amsName);
+                if (pos.value() == DevFilaSwitch::SwitchPos::POS_IN_A)
+                {
+                    ams->second->GetSlotCount() == 4 ? ++inAFourSlotNum : ++inAOneSlotNum;
+                }
+                if (pos.value() == DevFilaSwitch::SwitchPos::POS_IN_B)
+                {
+                    ams->second->GetSlotCount() == 4 ? ++inBFourSlotNum : ++inBOneSlotNum;
+                }
+            }
+        }
+    }
+                                //ams id       //slot id
+    using trayHelper = std::tuple<std::string, std::string>;
+    std::vector<trayHelper> posOK, posAdjust, posUnused;
+    for (const auto& fila : ams_mapping)
+    {
+        auto it = std::find_if(best_pos_map.begin(), best_pos_map.end(), [&](const std::pair<int, int>& p){
+            return fila.id == p.first;
+        });
+        if (it != best_pos_map.end())
+        {
+            posAdjust.push_back({fila.ams_id, fila.slot_id});
+        }
+        else
+        {
+            posOK.push_back({fila.ams_id, fila.slot_id});
+        }
+    }
+    std::vector<AMSinfo> total = ams_info[DevFilaSwitch::SwitchPos::POS_IN_A];
+    total.insert(total.end(), ams_info[DevFilaSwitch::SwitchPos::POS_IN_B].begin(),
+                              ams_info[DevFilaSwitch::SwitchPos::POS_IN_B].end());
+
+    for (const auto& ams : total)
+    {
+        for (const auto& can : ams.cans)
+        {
+            bool amsEq = false;
+            auto itOK = std::find_if(posOK.begin(), posOK.end(), [&](const trayHelper& tray){
+                auto amsID = std::get<0>(tray);
+                auto slotID = std::get<1>(tray);
+                amsEq = (amsID == ams.ams_id);
+                return amsID == ams.ams_id && slotID == can.can_id;
+            });
+            auto itAdjust = std::find_if(posAdjust.begin(), posAdjust.end(), [&](const trayHelper& tray){
+                auto amsID = std::get<0>(tray);
+                auto slotID = std::get<1>(tray);
+                amsEq = (amsID == ams.ams_id);
+                return amsID == ams.ams_id && slotID == can.can_id;
+            });
+
+            auto id = getTrayID(ams.ams_id, can.can_id);
+            auto material = can.material_name.empty() ? "Empty" : can.material_name;
+            if (itOK != posOK.end())
+            {
+                ok.push_back(DataAmsSlotInfo{{}, wxString(id + "\n" + material), can.material_colour, 1.0, 0.5});
+            }
+            else if (itAdjust != posAdjust.end())
+            {
+                adjust.push_back(DataAmsSlotInfo{{}, wxString(id + "\n" + material), can.material_colour, 1.0, 0.5});
+            }
+            else
+            {
+                if (amsEq)
+                {
+                    unused.push_back(DataAmsSlotInfo{{}, wxString(id + "\n" + material), can.material_colour, 0.5, 0.5});
+                }
+            }
+        }
+    }
+
+    int inAHeight = (inAFourSlotNum + (inAOneSlotNum / 2 + inAOneSlotNum % 2)) * 150;   //150 one AMS height and spacer
+    int inBHeight = (inBFourSlotNum + (inBOneSlotNum / 2 + inBOneSlotNum % 2)) * 150;
+
+    auto caculateAMSDistribution = [this] (std::map<DevFilaSwitch::SwitchPos, std::vector<AMSinfo>>& amsInfo, 
+                                           std::map<DevFilaSwitch::SwitchPos, std::vector<wxString>>& amsDisplayName, 
+                                           const std::vector<trayHelper>& posOK, DevFilaSwitch::SwitchPos dir) {
+        if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
+        {
+            this->inAAMS.clear();
+        }
+        if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
+        {
+            this->inBAMS.clear();
+        }
+        auto& AMSVector = amsInfo[dir];
+        auto& AMSNameVector = amsDisplayName[dir];
+        for (auto i = 0; i < AMSVector.size(); i++)
+        {
+            const auto& ams = AMSVector[i];
+            std::vector<DataAmsSlotInfo> allSlot;
+            for (auto j = 0; j < ams.cans.size(); j++)
+            {
+                const auto& can = ams.cans[j];
+                auto id = getTrayID(ams.ams_id, can.can_id);
+                auto material = can.material_name.empty() ? "Empty" : can.material_name;
+
+                auto itOK = std::find_if(posOK.begin(), posOK.end(), [&](const trayHelper& tray){
+                    auto amsID = std::get<0>(tray);
+                    auto slotID = std::get<1>(tray);
+                    return amsID == ams.ams_id && slotID == can.can_id;
+                });
+                double colourFactor = itOK != posOK.end() ? 1.0 : 0.5;
+                allSlot.push_back(DataAmsSlotInfo{AMSNameVector[i], wxString(id + "\n" + material), can.material_colour, colourFactor, 1.0});
+            }
+            if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
+            {
+                this->inAAMS.push_back(allSlot);
+            }
+            if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
+            {
+                this->inBAMS.push_back(allSlot);
+            }
+        }
+    };
+
+    caculateAMSDistribution(ams_info, ams_DisplayName, posOK, DevFilaSwitch::SwitchPos::POS_IN_A);
+    caculateAMSDistribution(ams_info, ams_DisplayName, posOK, DevFilaSwitch::SwitchPos::POS_IN_B);
+    return std::max(inAHeight, inBHeight) + 32 + 90; //32 label height //184 * 90 selector  width height
+}
+
+wxString ReselectMachineDialog::getTrayID(const std::string& amsID, const std::string& slotID)
+{
+    if (!amsID.empty() && !slotID.empty())
+    {
+        auto aid = atoi(amsID.c_str());
+        auto tid = atoi(slotID.c_str());
+        auto tray_id = aid * 4 + tid;
+        auto id = wxGetApp().transition_tridid(tray_id);
+        return id;
+    }
+    return "";
+}
+
+wxString ReselectMachineDialog::FormatFilamentComment(const std::vector<wxString>& toINB, const std::vector<wxString>& toINA)
+{
+    auto formatList = [](const std::vector<wxString>& list) -> wxString {
+        if (list.empty()) return wxEmptyString;
+        
+        wxString result = list[0];
+        for (size_t i = 1; i < list.size(); ++i) {
+            if (i == list.size() - 1) {
+                result += " and " + list[i];
+            } else {
+                result += ", " + list[i];
+            }
+        }
+        return result;
+    };
+    
+    wxString comment = "Summary: ";
+    
+    if (!toINB.empty() && !toINA.empty()) {
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
+        comment += "\n";
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
+
+    } else if (!toINB.empty()) {
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
+    } else if (!toINA.empty()) {
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
+    } else {
+        return wxString::Format(_L("Summary: This is currently the most suitable position for placement."));
+    }
+    
+    return comment;
+}
+
+
+void ReselectMachineDialog::OnRefreshButton(wxCommandEvent& event)
+{
+    // EndModal(wxID_CANCEL);
+    wxCommandEvent evt(wxEVT_REFRESH_DATA, GetId());
+    evt.SetEventObject(this);
+    GetParent()->ProcessWindowEvent(evt);
+}
+
+ReselectMachineDialog::~ReselectMachineDialog()
+{
+
+}
+
+} // namespace GUI
+
+} // namespace Slic3r
