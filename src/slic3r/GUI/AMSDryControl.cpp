@@ -45,14 +45,14 @@ static std::string get_humidity_level_img_path(int humidity_percent)
 
 }
 
-static std::string get_dry_status_img_path(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
+static std::string get_dry_status_img_path(DevAms::AmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status)
 {
     std::string img_name = "dev_ams_dry_ctr_";
     switch (type) {
-        case DevAmsType::N3S:
+        case DevAms::AmsType::N3S:
             img_name += "n3s";
             break;
-        case DevAmsType::N3F:
+        case DevAms::AmsType::N3F:
             img_name += "n3f";
             break;
         default:
@@ -1044,7 +1044,7 @@ void AMSDryCtrWin::update_img_description(DevAms::DryStatus status, DevAms::DryS
     }
 }
 
-int AMSDryCtrWin::update_image(DevAmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent)
+int AMSDryCtrWin::update_image(DevAms::AmsType model, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent)
 {
     if (model == m_ams_info.m_model && status == m_ams_info.m_dry_status
         && sub_status == m_ams_info.m_dry_sub_status && humidity_percent == m_ams_info.m_humidity_percent) {
@@ -1109,12 +1109,12 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     m_temperature_input->GetValue().ToLong(&temp_val);
     m_time_input->GetValue().ToLong(&time_val);
     std::optional<Slic3r::DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(info.filament_id);
-    auto total_dry = preset.has_value() ? preset.value().ams_limitations : std::unordered_set<DevAmsType>();
+    auto total_dry = preset.has_value() ? preset.value().ams_limitations : std::unordered_set<DevAms::AmsType>();
 
-    struct AmsTempLimit { DevAmsType type; int min_temp; int max_temp; const char* name; };
+    struct AmsTempLimit { DevAms::AmsType type; int min_temp; int max_temp; const char* name; };
     static const AmsTempLimit ams_limits[] = {
-        { DevAmsType::N3F, 45, 65, "AMS2" },
-        { DevAmsType::N3S, 45, 85, "AMS-S" }
+        { DevAms::AmsType::N3F, 45, 65, "AMS2" },
+        { DevAms::AmsType::N3S, 45, 85, "AMS-S" }
     };
 
     for (const auto& lim : ams_limits) {
@@ -1343,9 +1343,9 @@ int AMSDryCtrWin::update_ams_change(DevAms* dev_ams)
     }
 
     m_ams_info.m_ams_id = dev_ams->GetAmsId();
-    if (dev_ams->GetAmsType() == DevAmsType::N3F) {
+    if (dev_ams->GetAmsType() == DevAms::AmsType::N3F) {
         m_temperature_input->SetHint("45-65" + wxString::FromUTF8("°C"));
-    } else if (dev_ams->GetAmsType() == DevAmsType::N3S) {
+    } else if (dev_ams->GetAmsType() == DevAms::AmsType::N3S) {
         m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
     }
 
