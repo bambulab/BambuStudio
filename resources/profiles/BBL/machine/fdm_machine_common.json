@@ -8,7 +8,6 @@
     ],
     "printer_variant": "0.4",
     "auxiliary_fan": "1",
-    "apply_top_surface_compensation": "0",
     "fan_direction": "undefine",
     "best_object_pos": "0.5x0.5",
     "default_filament_profile": [],

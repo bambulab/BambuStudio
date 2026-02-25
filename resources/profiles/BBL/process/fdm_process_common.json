@@ -38,6 +38,7 @@
     "infill_combination": "0",
     "infill_direction": "45",
     "infill_wall_overlap": "15%",
+    "monotonic_travel_into_wall": "0.0",
     "initial_layer_line_width": "0.5",
     "initial_layer_print_height": "0.2",
     "initial_layer_speed": [

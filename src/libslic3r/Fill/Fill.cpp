@@ -45,6 +45,8 @@ struct SurfaceFillParams
     // FillParams
     float       	density = 0.f;
 	int 			multiline = 1;
+	// travel into wall length, ratio to line width
+    float           monotonic_travel_into_wall = 0.f;
     // Don't adjust spacing to fill the space evenly.
 //    bool        	dont_adjust = false;
     // Length of the infill anchor along the perimeter line.
@@ -228,7 +230,7 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                         params.density = surface.is_top() ? region_config.top_surface_density.value : region_config.bottom_surface_density.value;
                     } else
 						params.pattern = region_config.top_surface_pattern == ipMonotonic ? ipMonotonic : ipRectilinear;
-
+                    if (params.pattern == ipMonotonicLine) params.monotonic_travel_into_wall = region_config.monotonic_travel_into_wall.value;
 		        } else if (params.density <= 0)
 		            continue;
 
@@ -631,7 +633,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		}
 		else if (surface_fill.params.pattern == ipMonotonicLine){
 			FillMonotonicLineWGapFill* fill_monoline = dynamic_cast<FillMonotonicLineWGapFill*>(f.get());
-			fill_monoline->apply_gap_compensation = this->object()->print()->config().apply_top_surface_compensation;
+            fill_monoline->gap_compensation_ratio    = surface_fill.params.monotonic_travel_into_wall;
 		}
 		else if (surface_fill.params.pattern == ipFloatingConcentric) {
 			FillFloatingConcentric* fill_contour = dynamic_cast<FillFloatingConcentric*>(f.get());

@@ -668,7 +668,7 @@ inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines
 }
 
 //BBS: a kind of special extrusion path has start and end wiping for half spacing
-inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, float nozzle_diameter, bool apply_overlap_compensation)
+inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, float nozzle_diameter, float overlap_gap_compensation_ratio)
 {
     constexpr double overlap_rate = 0.45;
     dst.reserve(dst.size() + polylines.size());
@@ -684,13 +684,13 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
                 if (Vec2d(temp.x(), temp.y()).norm() <= 3 * scaled(width)) {
                     multi_path->paths.push_back(ExtrusionPath(role, mm3_per_mm, width, height, true));
 
-                    if(apply_overlap_compensation){
+                    if (overlap_gap_compensation_ratio > EPSILON) {
                         Polyline connect_line;
                         Vec2d curr_direction  = (polyline.first_point()-polyline.last_point()).cast<double>().normalized();
-                        Vec2d offset_vector = last_direction * overlap_rate * scaled(nozzle_diameter);
+                        Vec2d    offset_vector  = last_direction * overlap_rate * scaled(width * overlap_gap_compensation_ratio);
                         Point overlap_last_p = last_end_point + offset_vector.cast<coord_t>();
 
-                        offset_vector = curr_direction * overlap_rate * scaled(nozzle_diameter);
+                        offset_vector        = curr_direction * overlap_rate * scaled(width * overlap_gap_compensation_ratio);
                         Point overlap_curr_p = polyline.first_point() + offset_vector.cast<coord_t>();
 
                         connect_line.points.push_back(last_end_point);
