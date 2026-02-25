@@ -802,7 +802,7 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
         _obj->config.set_key_value("sparse_infill_pattern", new ConfigOptionEnum<InfillPattern>(ipRectilinear));
         _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
-        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));  
+        _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloatsNullable(internal_solid_speed_opt->values));
@@ -1514,6 +1514,73 @@ void CalibUtils::calib_retraction(const CalibInfo &calib_info, wxString &error_m
 bool CalibUtils::is_support_auto_pa_cali(std::string filament_id)
 {
     return not_support_auto_pa_cali_filaments.find(filament_id) == not_support_auto_pa_cali_filaments.end();
+}
+
+std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(const std::string &printer_model)
+{
+    std::vector<std::string> result;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle || printer_model.empty())
+        return result;
+
+    std::vector<const Preset *> machine_presets = preset_bundle->printers.find_all_presets_by_model(printer_model, true);
+
+    std::set<std::string> nozzle_diameters_set;
+    for (const Preset *preset : machine_presets) {
+        std::string variant = preset->config.opt_string("printer_variant");
+        if (!variant.empty())
+            nozzle_diameters_set.insert(variant);
+    }
+
+    result.assign(nozzle_diameters_set.begin(), nozzle_diameters_set.end());
+    return result;
+}
+
+std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &model_id, const std::string &nozzle_diameter)
+{
+    std::vector<NozzleVolumeType> result;
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle || model_id.empty())
+        return result;
+
+    // Find the system preset by model and nozzle diameter variant
+    const Preset *matched_preset = preset_bundle->printers.find_system_preset_by_model_and_variant(model_id, nozzle_diameter);
+    if (!matched_preset)
+        return result;
+
+    // Get supported NozzleVolumeTypes from printer_extruder_variant
+    auto variants = matched_preset->config.option<ConfigOptionStrings>("printer_extruder_variant");
+    if (!variants)
+        return result;
+
+    std::set<NozzleVolumeType> unique_types;
+    for (const std::string &v : variants->values) {
+        NozzleVolumeType nvt = convert_to_nvt_type(v);
+        unique_types.insert(nvt);
+    }
+
+    return std::vector<NozzleVolumeType>(unique_types.begin(), unique_types.end());
+}
+
+std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_supported_nozzle_volume_and_diameters(const MachineObject *obj)
+{
+    std::map<NozzleVolumeType, std::set<NozzleDiameterType>> volume_diameters_map;
+    if (!obj) return volume_diameters_map;
+
+    std::string printer_model = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
+
+    std::vector<std::string> diameters = get_supported_nozzle_diameters_by_model(printer_model);
+
+    for (auto& diameter : diameters)
+    {
+        std::vector<NozzleVolumeType> volumes = get_supported_nozzle_volume_types_by_model_and_nozzle(printer_model, diameter);
+        for (auto& volume : volumes)
+        {
+            volume_diameters_map[volume].insert(DevNozzle::ToNozzleDiameterType(diameter));
+        }
+    }
+
+    return volume_diameters_map;
 }
 
 int CalibUtils::get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx) {

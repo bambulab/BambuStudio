@@ -44,6 +44,7 @@ namespace Slic3r
 
         static float                ToNozzleDiameterFloat(const NozzleDiameterType& type);
         static NozzleDiameterType   ToNozzleDiameterType(float diameter);
+        static NozzleDiameterType   ToNozzleDiameterType(const std::string& diameter);
         static wxString             ToNozzleDiameterStr(const NozzleDiameterType& type);
 
    public:
