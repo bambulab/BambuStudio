@@ -1471,37 +1471,53 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
         m_trays_combo->Clear();
         m_tray_ids.clear();
 
-        auto& preset_bundle = GUI::wxGetApp().preset_bundle;
-        Preset* printer_preset = GUI::get_printer_preset(obj);
-        if (!(preset_bundle && printer_preset)) {
+        PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+        if (!preset_bundle || !obj) {
             return false;
         }
 
         std::set<std::string> filament_id_set;
         auto & filaments = preset_bundle->filaments;
 
-        for (auto& fila : preset_bundle->filaments) {
-            auto opt_info = preset_bundle->get_filament_by_filament_id(fila.filament_id, printer_preset->name);
+        // Get nozzle diameter using the same method as AMSMaterialsSetting::Popup
+        std::ostringstream stream;
+        int extruder_id = obj->get_extruder_id_by_ams_id(m_ams_info.m_ams_id);
+        if (!obj->GetExtderSystem()->GetExtderById(extruder_id)) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get extruder id failed";
+            extruder_id = 0;
+        }
+        stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
+        std::string nozzle_diameter_str = stream.str();
+        std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(
+            DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
-            if (!opt_info.has_value()) {
-                BOOST_LOG_TRIVIAL(warning) << "AMSDryCtrWin::update_filament_list: No preset found for filament_id " << fila.filament_id;
+        for (auto filament_it = filaments.begin(); filament_it != filaments.end(); ++filament_it) {
+            Preset& preset = *filament_it;
+            // Filter by system preset: root preset and (system preset or user preset is supported)
+            if (filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
                 continue;
             }
 
-            std::string filament_alias;
-            auto preset_info = opt_info.value();
-            filament_alias = preset_info.filament_name;
-            if (filament_alias.empty()) {
-                filament_alias = filaments.get_preset_alias(fila, true);
-            }
+            ConfigOption *       printer_opt  = filament_it->config.option("compatible_printers");
+            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
+            if (!printer_strs) continue;
 
-            if (filament_alias.empty()) {
-                BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update_filament_list: No alias found for filament_id " << fila.filament_id;
-            }
+            for (auto printer_str : printer_strs->values) {
+                if (printer_names.find(printer_str) != printer_names.end()) {
+                    if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
+                        continue;
+                    }
 
-            if (!filament_alias.empty() && filament_id_set.insert(opt_info->filament_id).second) {
-                m_tray_ids.push_back(*opt_info);
-                m_trays_combo->Append(wxString::FromUTF8(filament_alias));
+                    filament_id_set.insert(filament_it->filament_id);
+                    auto filament_alias = filaments.get_preset_alias(*filament_it, true);
+                    if (!filament_alias.empty()) {
+                        auto opt_info = preset_bundle->get_filament_by_filament_id(filament_it->filament_id);
+                        if (opt_info.has_value()) {
+                            m_tray_ids.push_back(opt_info.value());
+                            m_trays_combo->Append(wxString::FromUTF8(filament_alias));
+                        }
+                    }
+                }
             }
         }
 
