@@ -4322,11 +4322,16 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
-wxString GUI_App::transition_tridid(int trid_id) const
+wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extruder_count) const
 {
-    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID)
-    {
-        assert(0);
+    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        if (total_extruder_count.value_or(-1) == 2) {
+            if (trid_id == VIRTUAL_TRAY_MAIN_ID) {
+                return wxString("Ext-R");
+            } else {
+                return wxString("Ext-L");
+            }
+        }
         return wxString("Ext");
     }
 

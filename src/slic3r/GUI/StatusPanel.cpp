@@ -3498,6 +3498,13 @@ void sGetSwitchInfo(MachineObject* obj,
         return;
     }
 
+    //if (obj->GetFilaSwitch()->IsInstalled() && devPrinterUtil::IsVirtualSlot(ams_id)) {
+    //    const auto& err_info = _L("External spool is not supported while using Filament Track Switch.");
+    //    load_error_info = err_info;
+    //    unload_error_info = err_info;
+    //    return;
+    //}
+
     for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
         if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) {
             load_error_info = _L("Current slot has alread been loaded");
@@ -3507,17 +3514,21 @@ void sGetSwitchInfo(MachineObject* obj,
         load_error_info = _L("The selected slot is empty.");
     }
 
-    auto extder = obj->GetExtderSystem()->GetExtderById(obj->GetFilaSystem()->GetExtruderIdByAmsId(ams_id));
-    if (!extder) {
-        unload_error_info = _L("No extruder found for the selected slot.");
-    }
-
-    if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
-        if (!extder->HasFilamentInExt() ||
-            extder->GetSlotNow().ams_id != ams_id ||
-            extder->GetSlotNow().slot_id != slot_id) {
-            unload_error_info = _L("The selected slot is not loaded in the extruder.");
-        };
+    auto ams_item = obj->GetFilaSystem()->GetAmsById(ams_id);
+    if (ams_item) {
+        if (auto extder_id_opt = ams_item->GetCurrentExtruderId(); extder_id_opt.has_value()) {
+            auto extder = obj->GetExtderSystem()->GetExtderById(extder_id_opt.value());
+            if (extder && !extder->HasFilamentInExt() ||
+                (extder->GetSlotNow().ams_id != ams_id || extder->GetSlotNow().slot_id != slot_id)) {
+                unload_error_info = _L("The selected slot is not loaded in the extruder.");
+            };
+        } else {
+            if (obj->GetFilaSwitch()->IsInstalled()) {
+                unload_error_info = _L("The selected slot is not loaded in the extruder.");
+            } else {
+                unload_error_info = _L("No extruder found for the selected slot.");
+            }
+        }
     }
 };
 
@@ -4221,22 +4232,19 @@ void StatusPanel::on_ams_load_curr()
 {
     if (obj) {
         std::optional<int> extruder_id = std::nullopt;
-        if (obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled())
-        {
-            if (!obj->GetFilaSwitch()->IsReady())
-            {
-                MessageDialog msg_dlg(nullptr, _L("The filament switcher has not been setup. Please setup on printer."), wxEmptyString, wxICON_WARNING | wxOK);
+        if (obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled()) {
+            if (!obj->GetFilaSwitch()->IsReady()) {
+                MessageDialog msg_dlg(nullptr, _L("The Filament Track Switch has not been setup. Please setup on printer."), wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
                 return;
             }
-            FeedDirectionDialog dialog = FeedDirectionDialog(nullptr, 2, _L("Ax input material: "));
+
+            FeedDirectionDialog dialog = FeedDirectionDialog(nullptr, 2, _L("Load filament to"));
             auto rtn = dialog.ShowModal();
-            if (rtn != wxID_OK)
-            {
+            if (rtn != wxID_OK) {
                 return;
             }
             extruder_id = dialog.GetExtruderID();
-
         }
 
         std::string curr_ams_id = m_ams_control->GetCurentAms();
@@ -4587,11 +4595,9 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 
         if (obj->is_enable_np || obj->is_enable_ams_np) {
             use_new_command = true;
-
-            // TODO: support filament extruders
-            auto unique_extruder_id = it->second->GetUniqueBindedExtruderId();
-            if (unique_extruder_id.has_value()) {
-                has_filament_at_extruder = obj->GetExtderSystem()->HasFilamentInExt(unique_extruder_id.value());
+            auto current_extruder_id = it->second->GetCurrentExtruderId();
+            if (current_extruder_id.has_value()) {
+                has_filament_at_extruder = obj->GetExtderSystem()->HasFilamentInExt(current_extruder_id.value());
             }
         } else {
             has_filament_at_extruder = obj->is_filament_at_extruder();

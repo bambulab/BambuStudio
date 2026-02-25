@@ -55,9 +55,9 @@ std::unordered_map<NozzleDef, int> DevUtilBackend::CollectNozzleInfo(MultiNozzle
     return need_nozzle_map;
 }
 
-static std::unordered_map<std::string, DevAms::AmsType> s_ams_type_map = {
-    {"0", DevAms::AmsType::N3F},
-    {"1", DevAms::AmsType::N3S},
+static std::unordered_map<std::string, DevAmsType> s_ams_type_map = {
+    {"0", DevAmsType::N3F},
+    {"1", DevAmsType::N3S},
 };
 
 std::optional<Slic3r::DevFilamentDryingPreset> DevUtilBackend::GetFilamentDryingPreset(const std::string& fila_id)
@@ -85,17 +85,17 @@ std::optional<Slic3r::DevFilamentDryingPreset> DevUtilBackend::GetFilamentDrying
                 }
 
                 if (config.has("filament_dev_ams_drying_temperature")) {
-                    info.filament_dev_ams_drying_temperature_on_idle[DevAms::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(0);
-                    info.filament_dev_ams_drying_temperature_on_idle[DevAms::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(1);
-                    info.filament_dev_ams_drying_temperature_on_print[DevAms::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(2);
-                    info.filament_dev_ams_drying_temperature_on_print[DevAms::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(3);
+                    info.filament_dev_ams_drying_temperature_on_idle[DevAmsType::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(0);
+                    info.filament_dev_ams_drying_temperature_on_idle[DevAmsType::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(1);
+                    info.filament_dev_ams_drying_temperature_on_print[DevAmsType::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(2);
+                    info.filament_dev_ams_drying_temperature_on_print[DevAmsType::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_temperature")->get_at(3);
                 }
 
                 if (config.has("filament_dev_ams_drying_time")) {
-                    info.filament_dev_ams_drying_time_on_idle[DevAms::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(0);
-                    info.filament_dev_ams_drying_time_on_idle[DevAms::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(1);
-                    info.filament_dev_ams_drying_time_on_print[DevAms::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(2);
-                    info.filament_dev_ams_drying_time_on_print[DevAms::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(3);
+                    info.filament_dev_ams_drying_time_on_idle[DevAmsType::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(0);
+                    info.filament_dev_ams_drying_time_on_idle[DevAmsType::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(1);
+                    info.filament_dev_ams_drying_time_on_print[DevAmsType::N3F] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(2);
+                    info.filament_dev_ams_drying_time_on_print[DevAmsType::N3S] = config.option<ConfigOptionFloats>("filament_dev_ams_drying_time")->get_at(3);
                 }
 
                 if (config.has("filament_dev_drying_softening_temperature")) {
