@@ -5367,10 +5367,10 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     };
 
-    // if (!CheckWarningFilamentRemain(obj_)) {
-    //     wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
-    //     show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
-    // }
+    if (!CheckWarningFilamentRemain(obj_)) {
+        wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
+        show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
+    }
 
     return true;
 };
