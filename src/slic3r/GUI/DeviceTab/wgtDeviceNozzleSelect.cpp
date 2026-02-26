@@ -51,15 +51,19 @@ void wgtDeviceNozzleRackSelect::CreateGui()
 {
     wxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
 
+    wxColour tip_bg_clr("#FFF0E0");
     m_title_tips_dynamic = new wgtMsgBox(this);
-    m_title_tips_dynamic->SetBackgroundColour(wxColour("#FF6F0026"));
-    m_title_tips_dynamic->SetBackgroundColor(wxColour("#FF6F0026"));
+    m_title_tips_dynamic->SetBackgroundColour(tip_bg_clr);
     m_title_tips_dynamic->SetBorderColor(wxColour("#FF6F00"));
-    m_title_tips_dynamic->SetCornerRadius(2);
+    m_title_tips_dynamic->SetCornerRadius(1);
+    m_title_tips_dynamic->SetBorderWidth(1);
     auto text_label = m_title_tips_dynamic->GetTextLabel();
-    text_label->SetFont(::Label::Body_13);
-    text_label->SetLabel(_L("Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."));
+    text_label->SetFont(::Label::Body_12);
     text_label->SetForegroundColour("#FF6F00");
+    text_label->SetBackgroundColour(tip_bg_clr);
+    text_label->SetLabel(_L("Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."));
+    text_label->Wrap(FromDIP(300));
+    text_label->Fit();
     m_title_tips_dynamic->Layout();
     m_title_tips_dynamic->Refresh();
 

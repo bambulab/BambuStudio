@@ -484,6 +484,8 @@ void AmsMapingPopup::update_ams_tips(MachineObject* obj)
             m_ams_tips_msg_panel->AddMessage(msg, "#FF6F00", "");
         }
 
+        m_ams_tips_msg_panel->Layout();
+        m_ams_tips_msg_panel->Fit();
         m_ams_tips_msg_panel->Show(m_ams_tips_msg_panel->GetMessageCount() > 0);
     }
 }
