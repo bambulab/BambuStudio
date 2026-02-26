@@ -1749,12 +1749,15 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(100));
 
-    def          = this->add("monotonic_travel_into_wall", coFloat);
+    def          = this->add("monotonic_travel_into_wall", coPercent);
+    def->category = L("Strength");
     def->label   = L("Monotonic line travel extend");
-    def->tooltip = L("Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.");
+    def->tooltip = L("Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)");
     def->mode    = comDevelop;
     def->min     = 0;
-    def->set_default_value(new ConfigOptionFloat(0.0));
+    def->max     = 200;
+    def->sidetext = "%";
+    def->set_default_value(new ConfigOptionPercent(0.0));
 
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");

@@ -670,7 +670,7 @@ inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines
 //BBS: a kind of special extrusion path has start and end wiping for half spacing
 inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst, Polylines &&polylines, ExtrusionRole role, double mm3_per_mm, float width, float height, float nozzle_diameter, float overlap_gap_compensation_ratio)
 {
-    constexpr double overlap_rate = 0.45;
+    constexpr double overlap_rate = 1.0;
     dst.reserve(dst.size() + polylines.size());
     Point last_end_point;
     Vec2d last_direction;
