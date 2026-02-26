@@ -290,9 +290,9 @@ int DevNozzle::GetExtruderId() const
     if (total_ext_count == 1) {
         return MAIN_EXTRUDER_ID;
     } else if (total_ext_count == 2) {
-        if (AtLeftExtruder()) {
+        if (AtRightExtruder()) {
             return MAIN_EXTRUDER_ID;
-        } else if (AtRightExtruder()) {
+        } else if (AtLeftExtruder()) {
             return DEPUTY_EXTRUDER_ID;
         }
     }
