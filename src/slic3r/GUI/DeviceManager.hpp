@@ -540,6 +540,8 @@ public:
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
     bool is_support_fila_change_abort{false};
+    bool is_support_ext_change_assist_old{false}; //for a and p
+
 
 
     // fun2

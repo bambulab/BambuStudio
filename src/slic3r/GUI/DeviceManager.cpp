@@ -2852,6 +2852,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             is_support_filament_setting_inprinting =  get_flag_bits(flag3, 3);
                             is_enable_ams_np =  get_flag_bits(flag3, 9);
                             is_support_fila_change_abort = get_flag_bits(flag3, 13);
+                            is_support_ext_change_assist_old = get_flag_bits(flag3, 16);
                         }
                     }
                     if (!key_field_only) {
