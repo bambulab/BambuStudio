@@ -968,7 +968,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
     ((ConfigOptionEnum<InfillPattern>, top_surface_pattern))
     ((ConfigOptionEnum<InfillPattern>, bottom_surface_pattern))
-    ((ConfigOptionFloat, monotonic_travel_into_wall))
+    ((ConfigOptionPercent, monotonic_travel_into_wall))
     ((ConfigOptionPercent, top_surface_density))
     ((ConfigOptionPercent, bottom_surface_density))
     ((ConfigOptionEnum<InfillPattern>, internal_solid_infill_pattern))

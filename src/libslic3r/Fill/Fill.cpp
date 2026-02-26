@@ -633,7 +633,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
 		}
 		else if (surface_fill.params.pattern == ipMonotonicLine){
 			FillMonotonicLineWGapFill* fill_monoline = dynamic_cast<FillMonotonicLineWGapFill*>(f.get());
-            fill_monoline->gap_compensation_ratio    = surface_fill.params.monotonic_travel_into_wall;
+            fill_monoline->gap_compensation_ratio    = surface_fill.params.monotonic_travel_into_wall * (float) 0.01;
 		}
 		else if (surface_fill.params.pattern == ipFloatingConcentric) {
 			FillFloatingConcentric* fill_contour = dynamic_cast<FillFloatingConcentric*>(f.get());
