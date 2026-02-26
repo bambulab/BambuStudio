@@ -6730,7 +6730,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             if (wipe_tower_y_opt)
                                 file_wipe_tower_y = *wipe_tower_y_opt;
 
-                            preset_bundle->project_config.option<ConfigOptionStrings>("extruder_full_stats")->values.clear();
                             preset_bundle->load_config_model(filename.string(), std::move(config), file_version);
                             // BBS: do not change extruder nozzle stat when loading 3mf
 
