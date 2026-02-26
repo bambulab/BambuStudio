@@ -4980,7 +4980,7 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
         return nozzle_map;
     }
 
-    if (!obj_->GetNozzleRack()->IsSupported()) {
+    if (!obj_->GetNozzleRack()->IsSupported() && !use_dynamic_switch()) {
         if (total_ext_count == 1) {
             nozzle_map[MAIN_EXTRUDER_ID] = obj_->GetNozzleSystem()->GetNozzleByPosId(MAIN_EXTRUDER_ID);
         } else if (total_ext_count == 2) {
@@ -4994,9 +4994,23 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
         };
     } else {
         if (m_print_type == FROM_NORMAL) {
-            const auto& nozzle_pos_vec = obj_->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(fila_id);
-            for (const auto& nozzle_pos : nozzle_pos_vec) {
-                nozzle_map[nozzle_pos] = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
+            if (obj_->GetNozzleRack()->IsSupported()) {
+                const auto& nozzle_pos_vec = obj_->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(fila_id);
+                for (const auto& nozzle_pos : nozzle_pos_vec) {
+                    nozzle_map[nozzle_pos] = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
+                }
+            } else {
+                auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
+                if (nozzle_group_res) {
+                    const auto& nozzles = nozzle_group_res->get_nozzles_for_filament(fila_id);
+                    for (const auto& item : nozzles) {
+                        if (item.extruder_id == 0) {
+                            nozzle_map[DEPUTY_EXTRUDER_ID] = obj_->GetNozzleSystem()->GetNozzleByPosId(DEPUTY_EXTRUDER_ID);
+                        } else if (item.extruder_id == 1) {
+                            nozzle_map[MAIN_EXTRUDER_ID] = obj_->GetNozzleSystem()->GetNozzleByPosId(MAIN_EXTRUDER_ID);
+                        };
+                    };
+                }
             }
         } else {
             // the mapping is not supported
