@@ -2588,6 +2588,7 @@ void CalibrationPresetPage::select_default_compatible_filament()
                 continue;
             int tray_id = fcb->get_tray_id();
             int nozzle_pos_id = fcb->GetNozzleIdCode();
+            int extruder_id = fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
             std::string nozzle_sn;
             if (nozzle_pos_id != -1) {
                 DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(nozzle_pos_id);
@@ -2596,9 +2597,13 @@ void CalibrationPresetPage::select_default_compatible_filament()
             Preset* preset = const_cast<Preset *>(fcb->GetComboBox()->get_selected_preset());
             if (m_cali_filament_mode == CalibrationFilamentMode::CALI_MODEL_SINGLE) {
                 selected_filament.clear();
-                selected_filament[tray_id].filament_preset = preset;
-                selected_filament[tray_id].nozzle_pos_id   = nozzle_pos_id;
-                selected_filament[tray_id].nozzle_sn       = nozzle_sn;
+                CaliFilamentInfo info;
+                info.tray_id         = tray_id;
+                info.filament_preset = preset;
+                info.nozzle_pos_id   = nozzle_pos_id;
+                info.nozzle_sn       = nozzle_sn;
+                info.extruder_id     = extruder_id;
+                selected_filament.emplace_back(info);
                 if (preset && is_filaments_compatiable(selected_filament)) {
                     fcb->GetRadioBox()->SetValue(true);
                     wxCommandEvent event(wxEVT_RADIOBUTTON);
@@ -2616,7 +2621,6 @@ void CalibrationPresetPage::select_default_compatible_filament()
                 if (!is_filaments_compatiable(selected_filament)) {
                     fcb->GetCheckBox()->SetValue(false);
                 } else {
-                    int extruder_id = fcb->GetExtuderRole() == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
                     selected_filament.emplace_back(CaliFilamentInfo(preset, nozzle_pos_id, nozzle_sn, extruder_id, tray_id));
                     fcb->GetCheckBox()->SetValue(true);
                 }
@@ -2629,21 +2633,24 @@ void CalibrationPresetPage::select_default_compatible_filament()
         }
     }
     else {
-        std::vector<CaliFilamentInfo> selected_filament;
+        CaliFilamentInfo selected_fila_info;
         Preset  *preset  = const_cast<Preset *>(m_filament_comboBox_list[0]->GetComboBox()->get_selected_preset());
         int tray_id = m_filament_comboBox_list[0]->get_tray_id();
-        selected_filament[tray_id].filament_preset = preset;
-        selected_filament[tray_id].nozzle_pos_id   = m_filament_comboBox_list[0]->GetNozzleIdCode();
+
+        selected_fila_info.tray_id         = tray_id;
+        selected_fila_info.filament_preset = preset;
+        selected_fila_info.nozzle_pos_id   = m_filament_comboBox_list[0]->GetNozzleIdCode();
+
         std::string nozzle_sn;
-        if (selected_filament[tray_id].nozzle_pos_id == -1) {
-            DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(selected_filament[tray_id].nozzle_pos_id);
+        if (selected_fila_info.nozzle_pos_id == -1) {
+            DevNozzle nozzle = curr_obj->get_nozzle_by_id_code(selected_fila_info.nozzle_pos_id);
             nozzle_sn                    = nozzle.GetSerialNumber().ToStdString();
         }
-        selected_filament[tray_id].filament_preset = preset;
-        if (preset && is_filaments_compatiable(selected_filament)) {
+        if (preset && is_filaments_compatiable({selected_fila_info})) {
             m_filament_comboBox_list[0]->GetRadioBox()->SetValue(true);
-        } else
+        } else {
             m_filament_comboBox_list[0]->GetRadioBox()->SetValue(false);
+        }
 
         wxCommandEvent event(wxEVT_RADIOBUTTON);
         event.SetEventObject(this);
