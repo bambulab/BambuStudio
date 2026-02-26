@@ -1799,7 +1799,9 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             notification_manager->push_notification(NotificationType::BBLPlateInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
         }
     }
-    wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(true);
+    if (is_fila_switch_ready()) {
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(true);
+    }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
     return true;
