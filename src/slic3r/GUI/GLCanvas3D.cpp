@@ -1012,14 +1012,11 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
         imgui.set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.5f);
         imgui.begin(owner.title, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
-        float win_w = ImGui::GetWindowWidth();
         ImGui::AlignTextToFramePadding();
         imgui.text(owner.label);
 
         if (!owner.print_order.empty()) {
             ImGui::Separator();
-            float po_len = imgui.calc_text_size(owner.print_order).x;
-            ImGui::SetCursorPosX(0.5f * (win_w - po_len));
             ImGui::AlignTextToFramePadding();
             imgui.text(owner.print_order);
         }
