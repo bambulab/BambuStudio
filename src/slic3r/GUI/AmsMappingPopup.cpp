@@ -675,9 +675,9 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      wxBoxSizer *title_sizer_v = new wxBoxSizer(wxVERTICAL);
 
      m_title_text = new wxStaticText(title_panel, wxID_ANY, _L("AMS Slots"));
-     m_title_text->SetForegroundColour(wxColour(0x32, 0x3A, 0x3D));
-     m_title_text->SetFont(::Label::Head_13);
-     title_sizer_v->Add(m_title_text, 0, wxALIGN_CENTER, 5);
+     m_title_text->SetForegroundColour(wxColour("#262E30"));
+     m_title_text->SetFont(::Label::Body_16);
+     title_sizer_v->Add(m_title_text, 0, wxALIGN_LEFT | wxLEFT,  FromDIP(15));
      title_sizer_h->Add(title_sizer_v, 1, wxALIGN_CENTER, 5);
      title_panel->SetSizer(title_sizer_h);
      title_panel->Layout();
@@ -783,9 +783,6 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_rack_nozzle_select->Show(false);
 
      m_ams_tips_msg_panel = new wgtMsgPanel(m_scrolled_window);
-     m_ams_tips_msg_panel->SetMaxSize(wxSize(400, -1));
-     m_ams_tips_msg_panel->SetMinSize(wxSize(400, -1));
-     m_ams_tips_msg_panel->SetSize(wxSize(400, -1));
 
      m_left_marea_panel->SetSizer(m_sizer_ams_left);
      m_right_marea_panel->SetSizer(m_sizer_ams_right);
@@ -808,10 +805,10 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_sizer_ams_v->Add(m_reset_btn, 0, wxALIGN_RIGHT);
      m_sizer_ams_v->Add(m_sizer_ams, 0, wxEXPAND | wxBOTTOM, FromDIP(30));
      m_sizer_ams_v->AddStretchSpacer();
-     m_sizer_ams_v->Add(m_ams_tips_msg_panel, 0, wxEXPAND | wxTop, FromDIP(30));
+     m_sizer_ams_v->Add(m_ams_tips_msg_panel, 0, wxEXPAND | wxBottom, FromDIP(10));
 
      m_sizer_main_h->Add(m_sizer_ams_v, 0, wxEXPAND | wxRIGHT, FromDIP(10));
-     m_sizer_main_h->Add(m_rack_nozzle_select, 0, wxEXPAND | wxTOP, FromDIP(15));
+     m_sizer_main_h->Add(m_rack_nozzle_select, 0, wxEXPAND | wxTOP | wxLEFT, FromDIP(15));
 
      m_scrolled_window->SetSizer(m_sizer_main_h);
      m_sizer_main->Add(title_panel, 0, wxEXPAND | wxALL, FromDIP(2));

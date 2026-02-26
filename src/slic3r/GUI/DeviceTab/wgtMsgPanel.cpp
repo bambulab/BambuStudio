@@ -44,7 +44,12 @@ void wgtMsgPanelItem::CreateGui()
     m_text_label->SetFont(::Label::Body_13);
     m_text_label->SetBackgroundColour(*wxWHITE);
     m_text_label->SetForegroundColour(m_colour);
-    m_text_label->Wrap(m_max_width - FromDIP(10)); // Wrap text to fit within a reasonable width
+    if (!m_wiki_url.IsEmpty()) {
+        m_text_label->Wrap(m_max_width - FromDIP(20)); // Wrap text to fit within a reasonable width
+    } else {
+        m_text_label->Wrap(m_max_width - FromDIP(10)); // Wrap text to fit within a reasonable width
+    }
+
     text_sizer->Add(m_text_label, 0, wxALIGN_CENTER_VERTICAL);
 
     if (!m_wiki_url.IsEmpty()) {
@@ -53,14 +58,15 @@ void wgtMsgPanelItem::CreateGui()
         m_wiki_link->SetHoverColour(wxColour(0, 0, 200));
         m_wiki_link->SetVisitedColour(*wxBLUE);
         Bind(wxEVT_HYPERLINK, &wgtMsgPanelItem::OnClickWiki, this, m_wiki_link->GetId());
-        text_sizer->AddSpacer(FromDIP(6));
-        text_sizer->Add(m_wiki_link, 0, wxALIGN_CENTER_VERTICAL);
+        text_sizer->AddSpacer(FromDIP(4));
+        text_sizer->Add(m_wiki_link, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     }
 
-    main_sizer->Add(text_sizer, 0, wxALIGN_LEFT);
+    main_sizer->Add(text_sizer, 0, wxALIGN_LEFT | wxEXPAND);
 
     SetSizer(main_sizer);
     Layout();
+    Fit();
 }
 
 void wgtMsgPanelItem::SetColour(const wxColour& colour)
@@ -108,7 +114,7 @@ void wgtMsgPanel::CreateGui()
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_label_title = new Label(this, _L("Note:"));
-    m_label_title->SetFont(::Label::Head_13);
+    m_label_title->SetFont(::Label::Body_14);
     main_sizer->Add(m_label_title, 0, wxEXPAND | wxALL, FromDIP(4));
 
     m_list_sizer = new wxBoxSizer(wxVERTICAL);
@@ -126,7 +132,7 @@ void wgtMsgPanel::AddMessage(const wxString& text,
 
     auto* label = new ::Label(this, wxString::Format("%d. ", GetMessageCount() + 1));
     label->SetBackgroundColour(*wxWHITE);
-    label->SetFont(::Label::Body_13);
+    label->SetFont(::Label::Body_14);
     label->SetBackgroundColour(*wxWHITE);
     label->SetForegroundColour(colour);
 
