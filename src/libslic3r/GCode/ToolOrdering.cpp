@@ -1709,7 +1709,8 @@ MultiNozzleUtils::LayeredNozzleGroupResult refine_groups_by_Nozzle_State(const F
             new_default_filament_nozzle_maps[fil] = global_uv_match[ori_noz];
     }
 
-    auto new_group = MultiNozzleUtils::LayeredNozzleGroupResult::create(new_default_filament_nozzle_maps, ctx.nozzle_info.nozzle_list, fils);
+    auto new_group = MultiNozzleUtils::LayeredNozzleGroupResult::create(
+        new_default_filament_nozzle_maps, ctx.nozzle_info.nozzle_list, fils, group.is_handle_nozzle_as_extruder());
     if (!new_group.has_value()) new_group = group;
 
     return *new_group;
@@ -1877,7 +1878,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
     if (mode == FilamentMapMode::fmmManual && !has_multiple_nozzle){
         auto manual_filament_map = print_config.filament_map.values;
         std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-        auto result = LayeredNozzleGroupResult::create(manual_filament_map, nozzle_list, used_filaments);
+        auto result = LayeredNozzleGroupResult::create(manual_filament_map, nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
         return result ? *result : LayeredNozzleGroupResult();
     }
 
@@ -1886,7 +1887,11 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         // directly build group result based on filament nozzle map
         auto manual_filament_map = print_config.filament_map.values;
         std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-        auto nozzle_result = LayeredNozzleGroupResult::create(used_filaments, manual_filament_map, print_config.filament_volume_map.values, print_config.filament_nozzle_map.values, get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values), print_config.nozzle_diameter.values.front());
+        auto nozzle_result = LayeredNozzleGroupResult::create(used_filaments, manual_filament_map, print_config.filament_volume_map.values,
+                                                              print_config.filament_nozzle_map.values,
+                                                              get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values),
+                                                              print_config.nozzle_diameter.values.front(),
+                                                              print_config.handle_hotend_as_extruder);
         if (!nozzle_result) {
             BOOST_LOG_TRIVIAL(error) << "Failed to build nozzle group result from filament nozzle map!";
             return LayeredNozzleGroupResult();
@@ -1930,7 +1935,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         }
     }
 
-    auto result_opt = LayeredNozzleGroupResult::create(ret, nozzle_list, used_filaments);
+    auto result_opt = LayeredNozzleGroupResult::create(ret, nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
     return result_opt ? *result_opt : LayeredNozzleGroupResult();
 }
 
@@ -1981,7 +1986,7 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
             tmp.extruder_id = 0;
             tmp.volume_type = NozzleVolumeType::nvtStandard;
 
-            auto result_opt = MultiNozzleUtils::LayeredNozzleGroupResult::create(maps_without_group, {tmp}, layer_data.used_filaments);
+            auto result_opt = MultiNozzleUtils::LayeredNozzleGroupResult::create(maps_without_group, {tmp}, layer_data.used_filaments, false);
             if (!result_opt) return;
             auto result = *result_opt;
 
@@ -2010,7 +2015,9 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
                     nozzle_map_per_layer.emplace_back(res.fil_nozzle_match);
                 }
 
-                auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);
+                auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list,
+                                                                                 layer_data.used_filaments, filament_sequences,
+                                                                                 print_config.handle_hotend_as_extruder);
 
                 if (result)
                     m_stats_by_multi_extruder_best = calc_filament_change_info_by_toolorder(print_config, *result, nozzle_flush_mtx, best_seq);
@@ -2794,7 +2801,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             nozzle_map_per_layer.emplace_back(res.fil_nozzle_match);
         }
 
-        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list, layer_data.used_filaments, filament_sequences);
+        auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(nozzle_map_per_layer, grouping_context.nozzle_info.nozzle_list,
+                                                                         layer_data.used_filaments, filament_sequences,
+                                                                         print_config->handle_hotend_as_extruder);
         grouping_result = result ? *result : MultiNozzleUtils::LayeredNozzleGroupResult();
     }
 

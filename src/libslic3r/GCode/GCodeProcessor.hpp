@@ -803,6 +803,7 @@ namespace Slic3r {
                 const size_t total_layer_num_,
                 const std::vector<double>& cooling_rate_,
                 const std::vector<double>& heating_rate_,
+                const std::vector<double>& filament_max_temperature_drop_when_ec_,
                 const std::vector<int>& pre_cooling_temp_,
                 const float inject_time_threshold_,
                 const bool enable_pre_heating_,
@@ -822,6 +823,7 @@ namespace Slic3r {
                 total_layer_num(total_layer_num_),
                 cooling_rate(cooling_rate_),
                 heating_rate(heating_rate_),
+                filament_max_temperature_drop_when_ec(filament_max_temperature_drop_when_ec_),
                 pre_cooling_temp(pre_cooling_temp_),
                 enable_pre_heating(enable_pre_heating_),
                 handle_hotend_as_extruder(handle_hotend_as_extruder_),
@@ -1159,6 +1161,7 @@ namespace Slic3r {
         std::vector<double> m_nozzle_diameter;
         std::vector<double> m_hotend_cooling_rate{ 2.f };
         std::vector<double> m_hotend_heating_rate{ 2.f };
+        std::vector<double> m_max_temperature_drop_when_ec {0.f};
         std::vector<int> m_filament_pre_cooling_temp{ 0 };
         std::vector<double> m_filament_preheat_temperature_delta;
         bool m_enable_pre_heating{ false };

@@ -1962,6 +1962,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_nozzle_diameter = config.nozzle_diameter.values;
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
+    m_max_temperature_drop_when_ec = config.max_temperature_drop_when_ec.values;
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
     m_filament_preheat_temperature_delta = config.filament_preheat_temperature_delta.values;
     m_enable_pre_heating = config.enable_pre_heating;
@@ -2107,6 +2108,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionFloatsNullable* hotend_heating_rate = config.option<ConfigOptionFloatsNullable>("hotend_heating_rate");
     if (hotend_heating_rate != nullptr) {
         m_hotend_heating_rate = hotend_heating_rate->values;
+    }
+
+    const ConfigOptionFloatsNullable* max_temperature_drop_when_ec = config.option<ConfigOptionFloatsNullable>("max_temperature_drop_when_ec");
+    if (max_temperature_drop_when_ec != nullptr) {
+        m_max_temperature_drop_when_ec = max_temperature_drop_when_ec->values;
     }
 
     const ConfigOptionIntsNullable* filament_pre_cooling_temp = config.option<ConfigOptionIntsNullable>("filament_pre_cooling_temperature");
@@ -2539,6 +2545,7 @@ void GCodeProcessor::reset()
     m_enable_pre_heating = false;
     m_has_filament_switcher = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
+    m_max_temperature_drop_when_ec = { 0.f };
 
     m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
     m_highest_bed_temp = 0;
@@ -2755,6 +2762,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_layer_id,
             m_hotend_cooling_rate,
             m_hotend_heating_rate,
+            m_max_temperature_drop_when_ec,
             m_filament_pre_cooling_temp,
             inject_time_threshold,
             m_enable_pre_heating,
@@ -5949,7 +5957,6 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
                 return;
             target_nozzle_info   = used_nozzles.front();
         }
-
         if(!target_nozzle_info)
             return;
 
@@ -6741,7 +6748,11 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return;
         }
     // perform cooling first and then perform heating
-    float mid_temp = std::max(room_temperature, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
+    float cooling_thres = 0;
+    if(filament_max_temperature_drop_when_ec[extruder_id] > 0)
+        cooling_thres = curr_temp - filament_max_temperature_drop_when_ec[extruder_id]; // 计算最低降温温度
+    // 计算中间温度，保证不低于最低降温温度
+    float mid_temp = std::max(cooling_thres, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
     float heating_temp = target_temp - mid_temp;
     float heating_start_time = move_iter_upper->time[valid_machine_id] - heating_temp / ext_heating_rate;
     auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
@@ -6751,8 +6762,8 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     heating_move_iter = adjust_iter(heating_move_iter, move_iter_lower, move_iter_upper, false);
 
     // get the insert pos of heat cmd and recalculate time gap and delta temp
-    float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id];
-    int real_delta_temp = std::min((int)(real_cooling_time * ext_cooling_rate), (int)curr_temp);
+    float real_cooling_time = heating_move_iter->time[valid_machine_id] - move_iter_lower->time[valid_machine_id]; // 计算实际降温时间
+    int real_delta_temp = std::min((int)(real_cooling_time * ext_cooling_rate), (int)filament_max_temperature_drop_when_ec[extruder_id]); // 根据实际降温时间，计算实际降温温度
     if (real_delta_temp == 0)
         return;
     int cooling_temp = std::max((int)room_temperature, (int)curr_temp - real_delta_temp);
@@ -6861,4 +6872,3 @@ void GCodeProcessor::PreCoolingInjector::build_by_extruder_blocks(const std::vec
 }
 
 } /* namespace Slic3r */
-

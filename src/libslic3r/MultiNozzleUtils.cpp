@@ -161,7 +161,8 @@ static bool has_filament_mapped_to_multiple_nozzles(const std::vector<std::vecto
 std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     const std::vector<int>& filament_nozzle_map,
     const std::vector<NozzleInfo>& nozzle_list,
-    const std::vector<unsigned int>& used_filaments)
+    const std::vector<unsigned int>& used_filaments,
+    bool                             handle_nozzle_as_extruder)
 {
     if (filament_nozzle_map.empty() || nozzle_list.empty()) {
         return std::nullopt;
@@ -171,6 +172,7 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     result._default_filament_nozzle_map = filament_nozzle_map;
     result._nozzle_list = nozzle_list;
     result._used_filaments = used_filaments;
+    result.handle_nozzle_as_extruder = handle_nozzle_as_extruder;
 
     return result;
 }
@@ -179,7 +181,8 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     const std::vector<std::vector<int>>&          layer_filament_nozzle_maps,
     const std::vector<NozzleInfo>&                nozzle_list,
     const std::vector<unsigned int>&              used_filaments,
-    const std::vector<std::vector<unsigned int>>& layer_filament_sequences)
+    const std::vector<std::vector<unsigned int>>& layer_filament_sequences,
+    bool                                          handle_nozzle_as_extruder)
 {
     if (layer_filament_nozzle_maps.empty() || nozzle_list.empty()) {
         return std::nullopt;
@@ -191,6 +194,7 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     result._layer_filament_sequences   = layer_filament_sequences;
     result._nozzle_list                = nozzle_list;
     result._used_filaments             = used_filaments;
+    result.handle_nozzle_as_extruder   = handle_nozzle_as_extruder;
 
     if (!layer_filament_nozzle_maps.empty()) {
         result._default_filament_nozzle_map = layer_filament_nozzle_maps[0];
@@ -205,7 +209,8 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
     const std::vector<int>&             filament_volume_map,
     const std::vector<int>&             filament_nozzle_map,
     const std::vector<std::map<NozzleVolumeType, int>> &nozzle_count,
-    float                                               diameter)
+    float                                               diameter,
+    bool                                                handle_nozzle_as_extruder)
 {
     std::vector<NozzleGroupInfo> nozzle_groups;
     for (size_t extruder_id = 0; extruder_id < nozzle_count.size(); ++extruder_id) {
@@ -251,7 +256,7 @@ std::optional<LayeredNozzleGroupResult> LayeredNozzleGroupResult::create(
         output_nozzle_map[filament_idx] = output_nozzle_idx;
     }
 
-    return create(output_nozzle_map, nozzle_list, used_filaments);
+    return create(output_nozzle_map, nozzle_list, used_filaments, handle_nozzle_as_extruder);
 }
 
 bool LayeredNozzleGroupResult::are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id) const
@@ -260,6 +265,9 @@ bool LayeredNozzleGroupResult::are_filaments_same_extruder(int filament_id1, int
     std::optional<NozzleInfo> nozzle_info2 = get_nozzle_for_filament(filament_id2, layer_id);
 
     if (!nozzle_info1 || !nozzle_info2) return false;
+
+    if (handle_nozzle_as_extruder)
+        return are_filaments_same_nozzle(filament_id1, filament_id2, layer_id);
 
     return nozzle_info1->extruder_id == nozzle_info2->extruder_id;
 }

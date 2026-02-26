@@ -177,7 +177,8 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
             nozzle_map_per_layer,
             grouping_context.nozzle_info.nozzle_list,
             used_filaments,
-            all_filaments
+            all_filaments,
+            print->config().handle_hotend_as_extruder
         );
 
         print->set_nozzle_group_result(

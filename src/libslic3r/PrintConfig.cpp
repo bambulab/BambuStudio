@@ -2725,6 +2725,10 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable{2});
 
+    def = this->add("max_temperature_drop_when_ec", coFloats);
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
+
     def = this->add("enable_pre_heating", coBool);
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -4361,6 +4365,9 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable{ 1 });
+
+    def = this->add("handle_hotend_as_extruder", coBool);
+    def->set_default_value(new ConfigOptionBool{false});
 
     def = this->add("support_fast_purge_mode", coBool);
     def->label = L("Support fast purge mode");

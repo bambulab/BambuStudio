@@ -114,6 +114,7 @@ private:
     std::vector<int>                                   _default_filament_nozzle_map; // 默认映射，全局材料
     std::vector<unsigned int>                          _used_filaments; // 所有使用的材料idx
     std::vector<NozzleInfo>                            _nozzle_list; // 全局的喷嘴列表
+    bool handle_nozzle_as_extruder{ false };
 
 public:
     LayeredNozzleGroupResult(bool support_dynamic_map = false) : NozzleGroupResultBase(support_dynamic_map) {}
@@ -122,14 +123,16 @@ public:
     static std::optional<LayeredNozzleGroupResult> create(
         const std::vector<int>&          filament_nozzle_map,
         const std::vector<NozzleInfo>&   nozzle_list,
-        const std::vector<unsigned int>& used_filaments);
+        const std::vector<unsigned int>& used_filaments,
+        bool                             handle_nozzle_as_extruder = false);
 
     // 有选料器：从逐层映射构建（每层可能不同）
     static std::optional<LayeredNozzleGroupResult> create(
         const std::vector<std::vector<int>>&          layer_filament_nozzle_maps,
         const std::vector<NozzleInfo>&                nozzle_list,
         const std::vector<unsigned int>&              used_filaments,
-        const std::vector<std::vector<unsigned int>>& layer_filament_sequences);
+        const std::vector<std::vector<unsigned int>>& layer_filament_sequences,
+        bool                                          handle_nozzle_as_extruder = false);
 
     // O1C + 无选料器 + 命令行切片
     static std::optional<LayeredNozzleGroupResult> create(
@@ -138,7 +141,8 @@ public:
         const std::vector<int>&                             filament_volume_map,
         const std::vector<int>&                             filament_nozzle_map,
         const std::vector<std::map<NozzleVolumeType, int>>& nozzle_count,
-        float                                               diameter);
+        float                                               diameter,
+        bool                                                handle_nozzle_as_extruder = false);
 
     bool are_filaments_same_extruder(int filament_id1, int filament_id2, int layer_id = -1) const; // 判断两个材料是否处于同一个挤出机
     bool are_filaments_same_nozzle(int filament_id1, int filament_id2, int layer_id = -1) const; // 判断两个材料是否处于同一个喷嘴
@@ -168,6 +172,7 @@ public:
     const std::vector<int>& get_layer_filament_nozzle_map(int layer_id) const;
     const std::vector<std::vector<int>> &get_layer_filament_nozzle_maps() const { return _layer_filament_nozzle_maps; }
     const std::vector<std::vector<unsigned int>>& get_layer_filament_sequences() const { return _layer_filament_sequences; }
+    bool is_handle_nozzle_as_extruder() const { return handle_nozzle_as_extruder; }
 
     /**
      * @brief 预估给定序列的冲刷重量

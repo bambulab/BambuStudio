@@ -332,6 +332,11 @@ namespace Slic3r
     void ExtderSystemParser::ParseV2_0(const nlohmann::json& extruder_json, DevExtderSystem* system)
     {
         system->m_total_extder_count = DevUtil::get_flag_bits(extruder_json["state"].get<int>(), 0, 4);
+        // limit extuder count to 2
+        if (system->m_total_extder_count > 2){
+            system->m_total_extder_count = 2;
+        }
+
         if (system->m_current_extder_id != DevUtil::get_flag_bits(extruder_json["state"].get<int>(), 4, 4))
         {
             system->Owner()->targ_nozzle_id_from_pc = INVALID_EXTRUDER_ID;
@@ -405,7 +410,11 @@ namespace Slic3r
 
             //current nozzle info
             extder_obj.m_current_nozzle_id = njon["hnow"].get<int>();
-            system->m_extders.push_back(extder_obj);
+
+            // limit extuder count to 2
+            if(system->m_extders.size() < 2){
+                system->m_extders.push_back(extder_obj);
+            }
         }
     }
 }

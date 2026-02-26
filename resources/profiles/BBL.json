@@ -84,6 +84,10 @@
             "sub_path": "filament/fdm_filament_template_direct_dual_e3d.json"
         },
         {
+            "name": "fdm_filament_template_n10",
+            "sub_path": "filament/fdm_filament_template_n10.json"
+        },
+        {
             "name": "fdm_filament_common",
             "sub_path": "filament/fdm_filament_common.json"
         },
@@ -8178,6 +8182,10 @@
         {
             "name": "fdm_filament_tpu",
             "sub_path": "filament/fdm_filament_tpu.json"
+        },
+        {
+            "name": "Bambu TPU 75A(2.85mm) @base",
+            "sub_path": "filament/Bambu TPU 75A(2.85mm) @base.json"
         },
         {
             "name": "Bambu TPU 75A(2.85mm) @BBL N10",
