@@ -281,6 +281,7 @@ void FanSwitchButton::render(wxDC& dc)
 
     //int content_height = icon.GetBmpHeight() + textSize.y + m_padding;
 
+    // start a bit closer to the left edge so longer labels (e.g. "Air Management") have more space
     wxPoint pt = wxPoint(FromDIP(10), (size.y - icon.GetBmpHeight()) / 2);
 
     if (icon.bmp().IsOk()) {
@@ -292,8 +293,9 @@ void FanSwitchButton::render(wxDC& dc)
         if (m_text == _L("Fan")) {
             dc.SetFont(::Label::Head_15);
             pt.x += icon.GetBmpWidth() + FromDIP(9);
-        } else if (m_text == _L("Air Condition")) {
-            dc.SetFont(::Label::Head_14);
+        } else if (m_text == _L("Air Management")) {
+            dc.SetFont(::Label::Head_12);
+            // slightly reduce the gap between icon and text to fit the longer label
             pt.x += icon.GetBmpWidth() + FromDIP(6);
         }
 
@@ -364,7 +366,7 @@ void FanSwitchButton::setFanValue(int val)
 }
 
 void FanSwitchButton::UseTextFan() { SetText(_L("Fan")); }
-void FanSwitchButton::UseTextAirCondition() { SetText(_L("Air Condition")); }
+void FanSwitchButton::UseTextAirCondition() { SetText(_L("Air Management")); }
 
 void FanSwitchButton::SetText(const wxString &text)
 {
