@@ -10601,10 +10601,12 @@ public:
             }
         }
         
-        wxString warning_msg = _L("Multicolour simulation currently supports only a single filament material.\n");
+        wxString warning_msg = _L("Multicolour simulation currently supports only a single filament material.");
+        warning_msg += "\n";
         warning_msg += wxString::Format(_L("You have selected multiple materials: %s"), filaments_str);
         if (has_unsupported) {
-            warning_msg += _L("\n\nNote: Unsupported materials will use the selected reference material for simulation.");
+            warning_msg += "\n\n";
+            warning_msg += _L("Note: Unsupported materials will use the selected reference material for simulation.");
         }
         
         Label* warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
@@ -10883,7 +10885,8 @@ public:
             unsupported_str += wxString::FromUTF8(info.preset_name);
         }
         
-        wxString warning_msg = _L("Some of your selected materials are not directly supported by Helio:\n");
+        wxString warning_msg = _L("Some of your selected materials are not directly supported by Helio:");
+        warning_msg += "\n";
         warning_msg += unsupported_str;
         
         Label* warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
