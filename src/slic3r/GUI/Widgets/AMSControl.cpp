@@ -1374,7 +1374,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, int extruder_
         return;
     }
 
-    bool in_same_page = ams->IsShown();
+    bool in_same_page = ams->IsShown() && (ams->get_parent_book_index() == ams->get_parent_book()->GetSelection());/*ams->IsShown() maybe wrong*/
     const auto& pos = ams->get_panel_pos();
     const auto& left = (pos == AMSPanelPos::LEFT_PANEL);
     const auto& model = ams->get_ams_model();
@@ -1422,7 +1422,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, int extruder_
             if (in_pair) {
                 length = left ? 110 : 232;
             } else {
-                length = left ? 192 : 82;
+                length = left ? 129 : 82;
             }
         }
     }
