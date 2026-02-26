@@ -516,6 +516,8 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
                 icon_width = 32;
         }
 
+        std::set<std::pair<std::string, std::string>> added_filaments;
+
         for (auto &entry : m_preset_bundle->filament_ams_list) {
             if (!fila_switch_ready && dual_extruder && (entry.first & 0x10000)) {
                 dual_extruder = false;
@@ -531,6 +533,15 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             if (fila_switch_ready && name == "Ext") {
                 continue;
             }
+
+            if (fila_switch_ready) {
+                auto filament_pair = std::make_pair(name, filament_id);
+                if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                    continue;
+                }
+                added_filaments.insert(filament_pair);
+            }
+
             auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
             if (iter == filaments.end()) {

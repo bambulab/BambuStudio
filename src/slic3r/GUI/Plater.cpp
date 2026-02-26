@@ -614,6 +614,7 @@ struct Sidebar::priv
     void layout_printer(bool isBBL, bool isDual);
 
     void flush_printer_sync(bool restart = false);
+    void show_filament_switcher_dialog(bool is_ready, bool is_manual);
 
     PlaterPresetComboBox *combo_print = nullptr;
     std::vector<PlaterPresetComboBox*> combos_filament;
@@ -759,6 +760,38 @@ void Sidebar::priv::flush_printer_sync(bool restart)
     btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#00AE42");
     if (--*counter_sync_printer <= 0)
         timer_sync_printer->Stop();
+}
+
+void Sidebar::priv::show_filament_switcher_dialog(bool is_ready, bool is_manual)
+{
+    if (is_ready) {
+        if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
+            wxGetApp().app_config->set("show_fila_switch_tips", "false");
+            MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                              _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
+                                 "will be automatically allocated to the optimal extruder during slicing."),
+                              _L("Filament Switcher Detected"), wxICON_INFORMATION | wxOK);
+            dlg.ShowModal();
+        }
+    } else {
+        if (is_manual) {
+            fila_switch_warning_shown = true;
+            MessageDialog
+                dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                    _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
+                    _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+        } else {
+            if (!fila_switch_warning_shown) {
+                fila_switch_warning_shown = true;
+                MessageDialog
+                    dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                        _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
+                        _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
+                dlg.ShowModal();
+            }
+        }
+    }
 }
 
 void Sidebar::priv::adjust_filament_title_layout()
@@ -1790,6 +1823,15 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         printer_tab->set_extruder_volume_type(idx, target_types[idx]);
     }
 
+    if (extruder_nums > 1) {
+        auto fila_switch = obj->GetFilaSwitch();
+        if (fila_switch->IsInstalled()) {
+            show_filament_switcher_dialog(fila_switch->IsReady(), is_manual);
+        } else {
+            fila_switch_warning_shown = false;
+        }
+    }
+
     if (obj->is_support_active_arc_fitting) {
         auto tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
         if (tab->disable_arc_fitting()) {
@@ -1877,32 +1919,16 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (extruder_nums > 1) {
         auto fila_switch = obj->GetFilaSwitch();
         if (fila_switch->IsInstalled()) {
+            show_filament_switcher_dialog(fila_switch->IsReady(), false);
             if (fila_switch->IsReady()) {
-                if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
-                    wxGetApp().app_config->set("show_fila_switch_tips", "false");
-                    MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                                      _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
-                                         "will be automatically allocated to the optimal extruder during slicing."),
-                                      _L("Filament Switcher Detected"), wxICON_INFORMATION | wxOK);
-                    dlg.ShowModal();
-                }
                 // dual_panel->SetSeparatorState(CustomSeparator::State::Normal);
             } else {
-                if (!fila_switch_warning_shown) {
-                    fila_switch_warning_shown = true;
-                    MessageDialog
-                        dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                            _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
-                            _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
-                    dlg.ShowModal();
-                }
                 // dual_panel->SetSeparatorState(CustomSeparator::State::Error);
             }
         } else {
             // dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
             fila_switch_warning_shown = false;
         }
-        //wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(fila_switch_flag);
     }
 
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
