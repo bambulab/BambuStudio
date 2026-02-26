@@ -4724,7 +4724,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             auto volume_type_str_to_enum = ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
 
             MultiNozzleUtils::NozzleInfo nozzle_info;
-            nozzle_info.group_id = atoi(id.c_str()) - 1; // to 0 based
+            nozzle_info.group_id = atoi(id.c_str());
             nozzle_info.extruder_id = atoi(extruder_id.c_str());
             nozzle_info.diameter = nozzle_diameter;
 

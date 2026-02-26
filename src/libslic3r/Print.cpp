@@ -1168,7 +1168,7 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     }
 
     int              extruder_id        = nozzle_info->extruder_id + 1; // to 1 based
-    ExtruderType     extruder_type      = ExtruderType(m_config.extruder_type.get_at(extruder_id));
+    ExtruderType     extruder_type      = ExtruderType(m_config.extruder_type.get_at(nozzle_info->extruder_id));
     NozzleVolumeType nozzle_volume_type = nozzle_info->volume_type;
 
     PrintIndexKey key{filament_id, extruder_id, extruder_type, nozzle_volume_type};
