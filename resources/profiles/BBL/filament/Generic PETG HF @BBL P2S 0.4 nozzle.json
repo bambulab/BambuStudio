@@ -6,6 +6,10 @@
     "setting_id": "GFSG96_24",
     "instantiation": "true",
     "description": "This is a water-soluble support filament, and usually it is only for the support structure and not for the model body. Printing this filament is of many requirements, and to get better printing quality, please refer to this wiki: PVA Printing Guide.",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flush_temp": [
         "240",
         "0"
@@ -14,15 +18,15 @@
         "16",
         "16"
     ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "filament_retraction_length": [
         "0.4",
         "0.4"
     ],
     "first_x_layer_fan_speed": [
-        "0"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
         "0"
     ],
     "include": [
