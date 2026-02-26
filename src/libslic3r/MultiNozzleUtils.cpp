@@ -61,7 +61,25 @@ std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
     if(!has_nozzle_info && !has_valid_filament_info){
         BOOST_LOG_TRIVIAL(warning)<<__FUNCTION__ << ": building nozzle list from filament map and volume types";
 
-        std::vector<NozzleInfo> result(extruder_volume_types.size());
+        // Backward compatibility for older gcode.3mf:
+        // - nozzle_diameter is always present and its size defines extruder count.
+        // - filament_map may be missing; treat it as [0, 0, ...] for each extruder.
+        // - extruder_volume_types may be missing; treat it as all Standard.
+        const size_t extruder_count = nozzle_diameter.size();
+
+        std::vector<NozzleVolumeType> volume_types_fixed = extruder_volume_types;
+        volume_types_fixed.resize(extruder_count, NozzleVolumeType::nvtStandard);
+
+        std::vector<NozzleInfo> result;
+        result.reserve(extruder_count);
+        for (size_t extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
+            NozzleInfo info;
+            info.diameter    = format_diameter_to_str(nozzle_diameter[extruder_id]);
+            info.group_id    = static_cast<int>(extruder_id);
+            info.extruder_id = static_cast<int>(extruder_id);
+            info.volume_type = volume_types_fixed[extruder_id];
+            result.emplace_back(std::move(info));
+        }
         return result;
     }
 
