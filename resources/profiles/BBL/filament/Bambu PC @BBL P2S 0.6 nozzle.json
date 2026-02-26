@@ -17,6 +17,10 @@
     "fan_max_speed": [
         "40"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.94",
         "0.94"
@@ -24,6 +28,10 @@
     "filament_max_volumetric_speed": [
         "18",
         "35"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -44,10 +52,6 @@
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "hot_plate_temp": [
         "100"

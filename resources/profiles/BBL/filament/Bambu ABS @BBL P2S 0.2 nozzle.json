@@ -14,6 +14,10 @@
     "fan_min_speed": [
         "40"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flush_volumetric_speed": [
         "3",
         "3"
@@ -22,13 +26,13 @@
         "2",
         "2"
     ],
-    "filament_retraction_distances_when_cut": [
-        "10",
-        "10"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_retraction_distances_when_cut": [
+        "10",
+        "10"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

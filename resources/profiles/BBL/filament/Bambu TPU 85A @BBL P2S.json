@@ -11,6 +11,10 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -19,13 +23,13 @@
         "2.2",
         "2.2"
     ],
-    "filament_retraction_length": [
-        "1",
-        "1"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_retraction_length": [
+        "1",
+        "1"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

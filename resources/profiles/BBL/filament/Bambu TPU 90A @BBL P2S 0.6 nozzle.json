@@ -14,6 +14,10 @@
     "eng_plate_temp_initial_layer": [
         "35"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -21,6 +25,10 @@
     "filament_max_volumetric_speed": [
         "2.8",
         "2.8"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_retraction_length": [
         "0.6",
@@ -37,10 +45,6 @@
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
