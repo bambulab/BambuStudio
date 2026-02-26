@@ -1992,8 +1992,13 @@ std::vector<const PrintInstance*> sort_object_instances_by_model_order(const Pri
     for (const PrintObject *print_object : print.objects())
         for (const PrintInstance &print_instance : print_object->instances())
         {
-            if (init_order)
-                const_cast<ModelInstance*>(print_instance.model_instance)->arrange_order = print_instance.model_instance->id().id;
+            if (init_order) {
+                if (print.objects().size() == 1) {
+                    const_cast<ModelInstance *>(print_instance.model_instance)->arrange_order = 1;
+                } else {
+                    const_cast<ModelInstance *>(print_instance.model_instance)->arrange_order = print_instance.model_instance->id().id;
+                }
+            }
             model_instance_to_print_instance.emplace_back(print_instance.model_instance, &print_instance);
         }
     std::sort(model_instance_to_print_instance.begin(), model_instance_to_print_instance.end(), [](auto &l, auto &r) { return l.first->arrange_order < r.first->arrange_order; });
