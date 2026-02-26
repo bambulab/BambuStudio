@@ -3921,7 +3921,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         m_current_filament_id = first_enabled_id;
         first_enabled->on_selected();
     }
-    
+
     if (sizer_count > 0) {
         m_sizer_ams_mapping->SetCols(8);
         m_sizer_ams_mapping->Layout();
@@ -5367,10 +5367,10 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     };
 
-    if (!CheckWarningFilamentRemain(obj_)) {
-        wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
-        show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
-    }
+    // if (!CheckWarningFilamentRemain(obj_)) {
+    //     wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
+    //     show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
+    // }
 
     return true;
 };
