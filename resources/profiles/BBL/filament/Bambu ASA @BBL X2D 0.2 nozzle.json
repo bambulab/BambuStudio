@@ -174,13 +174,13 @@
         "nil"
     ],
     "filament_wipe": [
-        "nil",
+        "1",
         "nil",
         "1",
         "nil"
     ],
     "filament_wipe_distance": [
-        "nil",
+        "1",
         "nil",
         "1",
         "nil"
@@ -192,7 +192,7 @@
         "nil"
     ],
     "filament_z_hop_types": [
-        "nil",
+        "Spiral Lift",
         "nil",
         "Spiral Lift",
         "nil"

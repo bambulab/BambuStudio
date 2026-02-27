@@ -160,7 +160,7 @@
     ],
     "filament_retraction_length": [
         "0.4",
-        "0.4",
+        "nil",
         "nil",
         "nil"
     ],
@@ -178,15 +178,15 @@
     ],
     "filament_wipe": [
         "1",
+        "nil",
         "1",
-        "1",
-        "1"
+        "nil"
     ],
     "filament_wipe_distance": [
         "1",
+        "nil",
         "1",
-        "1",
-        "1"
+        "nil"
     ],
     "filament_z_hop": [
         "nil",
@@ -196,9 +196,9 @@
     ],
     "filament_z_hop_types": [
         "Spiral Lift",
+        "nil",
         "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift"
+        "nil"
     ],
     "long_retractions_when_ec": [
         "1",
