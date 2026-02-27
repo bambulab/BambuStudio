@@ -2254,14 +2254,22 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
 void PresetBundle::get_ams_cobox_infos(AMSComboInfo &combox_info, bool skip_ext)
 {
     combox_info.clear();
+    std::set<std::pair<std::string, std::string>> added_filaments;
     for (auto &entry : filament_ams_list) {
         auto &ams                  = entry.second;
-        if (ams.opt_string("tray_name", 0u) == "Ext" && skip_ext) {
-            continue;
-        }
         auto  filament_id          = ams.opt_string("filament_id", 0u);
         auto  filament_color       = ams.opt_string("filament_colour", 0u);
         auto  ams_name             = ams.opt_string("tray_name", 0u);
+        if (ams_name == "Ext" && skip_ext) {
+            continue;
+        }
+        if (skip_ext) {
+            auto filament_pair = std::make_pair(ams_name, filament_id);
+            if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                continue;
+            }
+            added_filaments.insert(filament_pair);
+        }
         auto  filament_changed     = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
         auto  filament_multi_color = ams.opt<ConfigOptionStrings>("filament_multi_colour")->values;
         if (filament_id.empty()) {
@@ -2332,12 +2340,21 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     auto is_double_extruder = get_printer_extruder_count() == 2;
     std::vector<AmsInfo> ams_infos;
     int                  index = 0;
+    std::set<std::pair<std::string, std::string>> added_filaments;
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
-        if (ams.opt_string("tray_name", 0u) == "Ext" && skip_ext) {
+        auto filament_id = ams.opt_string("filament_id", 0u);
+        auto tray_name = ams.opt_string("tray_name", 0u);
+        if (tray_name == "Ext" && skip_ext) {
             continue;
         }
-        auto filament_id = ams.opt_string("filament_id", 0u);
+        if (skip_ext) {
+            auto filament_pair = std::make_pair(tray_name, filament_id);
+            if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                continue;
+            }
+            added_filaments.insert(filament_pair);
+        }
         auto filament_color = ams.opt_string("filament_colour", 0u);
         auto filament_color_type = ams.opt_string("filament_colour_type", 0u);
         auto filament_changed = !ams.has("filament_changed") || ams.opt_bool("filament_changed");
