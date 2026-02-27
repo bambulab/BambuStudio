@@ -724,15 +724,18 @@ void MediaPlayCtrl::start_device_image_flow()
     }
 
     m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
-    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+
+    // Reset transfer object completely to avoid stale state after CancelAll
+    if (m_image_transfer) {
+        m_image_transfer->CancelAll();
+    }
+    m_image_transfer = std::make_shared<FileTransferObject>();
 
     if (!IsEnabled()) {
-        m_image_transfer->CancelAll();
         m_image_token = std::make_shared<int>(0);
         return;
     }
 
-    m_image_transfer->CancelAll();
     m_image_token = std::make_shared<int>(0);
     auto image_token = std::weak_ptr<int>(m_image_token);
     std::string request_machine = m_machine;
@@ -747,7 +750,7 @@ void MediaPlayCtrl::start_device_image_flow()
     };
 
     // Helper: Process downloaded image data
-    auto process_image_data = [this, request_machine, mode_to_string](const std::vector<std::byte>& data, DownloadMode mode) -> bool {
+    auto process_image_data = [this, request_machine, mode_to_string](const std::vector<std::byte> &data, DownloadMode mode) -> bool {
         if (data.empty()) {
             BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer (" << mode_to_string(mode) << ") received empty data";
             return false;
@@ -767,7 +770,7 @@ void MediaPlayCtrl::start_device_image_flow()
                 return;
             }
             if (m_media_ctrl) {
-                m_media_ctrl->SetIdleImage(img);
+                m_media_ctrl->SetIdleImage(img, true);
             }
         });
         return true;

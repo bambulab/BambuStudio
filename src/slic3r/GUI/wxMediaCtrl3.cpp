@@ -4,6 +4,7 @@
 #include "libslic3r/Utils.hpp"
 #include <boost/log/trivial.hpp>
 #include <wx/dcclient.h>
+#include <wx/dcgraph.h>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
@@ -74,14 +75,29 @@ void wxMediaCtrl3::Stop()
     Refresh();
 }
 
-void wxMediaCtrl3::SetIdleImage(wxString const &image)
+void wxMediaCtrl3::SetIdleImage(wxString const &image, bool show_watermark)
 {
-    if (m_idle_image == image)
+    if (m_idle_image == image && m_show_watermark == show_watermark)
         return;
     m_idle_image = image;
+    m_show_watermark = show_watermark;
     if (m_url == nullptr) {
         std::unique_lock<std::mutex> lk(m_mutex);
         m_frame = wxImage(m_idle_image);
+        assert(m_frame.IsOk());
+        Refresh();
+    }
+}
+
+void wxMediaCtrl3::SetIdleImage(const wxImage &image, bool show_watermark)
+{
+    if (!image.IsOk())
+        return;
+    m_idle_image.clear();
+    m_show_watermark = show_watermark;
+    if (m_url == nullptr) {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        m_frame = image;
         assert(m_frame.IsOk());
         Refresh();
     }
@@ -143,7 +159,49 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
         dc.SetUserScale(scale, scale);
         size3 = (size3 - size2) / 2;
     }
-    dc.DrawBitmap(m_frame, size3.x, size3.y);
+    dc.DrawBitmap(current_frame, size3.x, size3.y);
+
+    // Draw watermark overlay when showing device preview image
+    if (m_show_watermark && m_url == nullptr) {
+        // Reset user scale for watermark (draw at 1:1)
+        dc.SetUserScale(1.0, 1.0);
+
+        // Generate timestamp text
+        time_t now = time(nullptr);
+        std::tm *local_tm = std::localtime(&now);
+        char time_buf[32];
+        strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M", local_tm);
+        wxString watermark_text = _L("Printer Preview") + wxString::Format("  %s", time_buf);
+
+        // Setup font
+        wxFont font = dc.GetFont();
+        font.SetPointSize(10);
+        font.SetWeight(wxFONTWEIGHT_BOLD);
+        dc.SetFont(font);
+        wxSize text_size = dc.GetTextExtent(watermark_text);
+
+        // Calculate watermark rectangle with padding
+        int pad_h = FromDIP(12);
+        int pad_v = FromDIP(8);
+        int wm_w = text_size.GetWidth() + 2 * pad_h;
+        int wm_h = text_size.GetHeight() + 2 * pad_v;
+        int wm_x = (size.GetWidth() - wm_w) / 2;
+        int wm_y = size.GetHeight() - wm_h - FromDIP(10);
+        int radius = 8;
+
+        // Use wxGCDC for alpha-blended rounded rectangle
+        wxGCDC gcdc(dc);
+        gcdc.SetBrush(wxBrush(wxColour(51, 51, 51, 160)));
+        gcdc.SetPen(*wxTRANSPARENT_PEN);
+        gcdc.DrawRoundedRectangle(wm_x, wm_y, wm_w, wm_h, radius);
+
+        // Draw text centered in the rectangle
+        gcdc.SetTextForeground(wxColour(220, 220, 220));
+        gcdc.SetFont(font);
+        int tx = wm_x + (wm_w - text_size.GetWidth()) / 2;
+        int ty = wm_y + (wm_h - text_size.GetHeight()) / 2;
+        gcdc.DrawText(watermark_text, tx, ty);
+    }
 }
 
 void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)

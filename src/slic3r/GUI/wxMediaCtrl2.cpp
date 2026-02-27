@@ -198,7 +198,9 @@ void wxMediaCtrl2::Stop()
 {
     wxMediaCtrl::Stop(); }
 
-void wxMediaCtrl2::SetIdleImage(wxString const &image) {}
+void wxMediaCtrl2::SetIdleImage(wxString const &image, bool show_watermark) {}
+
+void wxMediaCtrl2::SetIdleImage(const wxImage &image, bool show_watermark) {}
 
 #ifdef __LINUX__
 extern "C" int gst_bambu_last_error;
