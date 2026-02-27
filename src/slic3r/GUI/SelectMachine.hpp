@@ -600,6 +600,9 @@ private:
     // get mapping nozzle for all
     std::map<int, DevNozzle> get_mapped_nozzles(int fila_id) const;
 
+    // print task
+    int get_print_task_total_extruder_count() const;
+
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 
