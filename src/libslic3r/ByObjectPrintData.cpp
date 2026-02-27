@@ -121,7 +121,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
     }
 
     auto grouping_result = print->get_layered_nozzle_group_result();
-    if (!print->is_dynamic_group_reorder()) {
+    if (!grouping_result->is_support_dynamic_nozzle_map()) {
         print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print->config().filament_map.values, grouping_result->get_extruder_map(false),
                                                                                               grouping_result->get_used_filaments()),
                                               FilamentGroupUtils::update_used_filament_values(print->config().filament_volume_map.values, grouping_result->get_volume_map(),

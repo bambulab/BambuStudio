@@ -1943,7 +1943,7 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
 
     if (!m_print->is_sequential_print()) {
         m_print->set_nozzle_group_result(std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(grouping_result));
-        if (!m_print->is_dynamic_group_reorder()) {
+        if (!grouping_result.is_support_dynamic_nozzle_map()) {
             m_print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values, grouping_result.get_extruder_map(false),
                                                                                                     layer_data.used_filaments),
                                                     FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values, grouping_result.get_volume_map(),
