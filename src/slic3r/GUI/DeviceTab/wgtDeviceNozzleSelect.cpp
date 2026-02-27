@@ -237,24 +237,32 @@ void wgtDeviceNozzleRackSelect::SetSelectedNozzle(const DevNozzle &nozzle)
     }
 }
 
+volatile int sGetNozzlePosId(wgtDeviceNozzleRackNozzleItem* item,
+                             wgtDeviceNozzleRackNozzleItem* l_item,
+                             wgtDeviceNozzleRackNozzleItem* r_item)
+{
+    int to_select_pos_id = -1;
+    if (item == l_item) {
+        to_select_pos_id = DEPUTY_EXTRUDER_ID;
+    } else if (item == r_item) {
+        to_select_pos_id = MAIN_EXTRUDER_ID;
+    } else {
+        to_select_pos_id = item->GetNozzleId() + 0x10;
+    }
+
+    return to_select_pos_id;
+}
+
 void wgtDeviceNozzleRackSelect::OnNozzleItemSelected(wxCommandEvent &evt)
 {
     if (!m_enable_manual_nozzle_pick) {
         return;
     }
 
-    int to_select_pos_id = -1;
     auto *item = dynamic_cast<wgtDeviceNozzleRackNozzleItem *>(evt.GetEventObject());
     if (item; auto ptr = m_nozzle_rack.lock()) {
-        if (item == m_toolhead_nozzle_l) {
-            to_select_pos_id = DEPUTY_EXTRUDER_ID;
-        } else if (item == m_toolhead_nozzle_r) {
-            to_select_pos_id = MAIN_EXTRUDER_ID;
-        } else {
-            to_select_pos_id = item->GetNozzleId() + 0x10;
-        }
-
-        if (to_select_pos_id > 0 && to_select_pos_id != GetSelectedNozzlePosID()) {
+        int to_select_pos_id = sGetNozzlePosId(item, m_toolhead_nozzle_l, m_toolhead_nozzle_r);
+        if (to_select_pos_id > -1 && to_select_pos_id != GetSelectedNozzlePosID()) {
             SetSelectedNozzle(ptr->GetNozzleSystem()->GetNozzleByPosId(to_select_pos_id));
             wxCommandEvent change_evt(EVT_NOZZLE_SELECT_CHANGED, GetId());
             change_evt.SetEventObject(this);

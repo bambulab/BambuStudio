@@ -1911,7 +1911,7 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
     if (obj)
     {
         m_obj = obj;
-        if (obj->GetExtderSystem()->GetTotalExtderCount() > 1 || !obj->GetFilaSwitch()->IsReady())
+        if (obj->GetExtderSystem()->GetTotalExtderCount() > 1 && !obj->GetFilaSwitch()->IsReady())
         {
             m_nozzle_btn_panel->updateState("right");
             m_nozzle_btn_panel->Show();
