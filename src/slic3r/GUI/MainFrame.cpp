@@ -2531,6 +2531,9 @@ void MainFrame::on_sys_color_changed()
 
     MenuFactory::sys_color_changed(m_menubar);
 
+    // update DiffPresetDialog from here, we're friends
+    diff_dialog.on_sys_color_changed();
+
     WebView::RecreateAll();
 
     this->Refresh();
