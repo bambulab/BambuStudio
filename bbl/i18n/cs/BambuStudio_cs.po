@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-05 19:18+0800\n"
+"POT-Creation-Date: 2026-02-27 14:42+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -67,7 +67,7 @@ msgstr ""
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
-msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr ""
 
 msgid "How to feed TPU filament."
@@ -264,6 +264,12 @@ msgstr "SN"
 msgid "Version"
 msgstr "Verze"
 
+msgid "Used Time"
+msgstr ""
+
+msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
+msgstr ""
+
 msgid "Hotend Rack"
 msgstr ""
 
@@ -271,6 +277,9 @@ msgid "ToolHead"
 msgstr ""
 
 msgid "Nozzle information needs to be read"
+msgstr ""
+
+msgid "Note:"
 msgstr ""
 
 msgid "Supports Painting"
@@ -2016,6 +2025,18 @@ msgstr "Přidat nastavení"
 msgid "Change type"
 msgstr "Změnit typ"
 
+msgid "Negative Part"
+msgstr "Negativní díl"
+
+msgid "Support Blocker"
+msgstr "Blokátor podpěr"
+
+msgid "Support Enforcer"
+msgstr "Vynucení podpěr"
+
+msgid "Change part type"
+msgstr ""
+
 msgid "Set as an individual object"
 msgstr "Nastavit jako samostatný objekt"
 
@@ -2435,15 +2456,6 @@ msgstr ""
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr ""
 
-msgid "Negative Part"
-msgstr "Negativní díl"
-
-msgid "Support Blocker"
-msgstr "Blokátor podpěr"
-
-msgid "Support Enforcer"
-msgstr "Vynucení podpěr"
-
 msgid "Type:"
 msgstr "Typ:"
 
@@ -2683,6 +2695,11 @@ msgstr ""
 msgid "Unload"
 msgstr "Vysunout"
 
+msgid ""
+"The consumables changer has not been calibrated. \n"
+"Please calibrate it on the printer before using."
+msgstr ""
+
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
@@ -2812,6 +2829,24 @@ msgstr "Vezměte nový filament"
 
 msgid "Purge old filament"
 msgstr "Vyčistit starý filament"
+
+msgid "Switch"
+msgstr ""
+
+msgid "hotend"
+msgstr ""
+
+msgid "Wait for AMS cooling"
+msgstr ""
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Switch track at Filament Track Switch"
+msgstr ""
 
 msgid "Confirm extruded"
 msgstr ""
@@ -3322,27 +3357,6 @@ msgstr ""
 msgid "Right AMS"
 msgstr ""
 
-msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
-
-msgid "Please select the filament installed on the left nozzle."
-msgstr ""
-
-msgid "Please select the filament installed on the right nozzle."
-msgstr ""
-
-msgid "Nozzle"
-msgstr "Tryska"
-
-msgid "Ext"
-msgstr ""
-
-msgid "Select Filament && Hotends"
-msgstr ""
-
-msgid "Select Filament"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr ""
@@ -3437,6 +3451,33 @@ msgid "DRY"
 msgstr ""
 
 msgid "WET"
+msgstr ""
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr ""
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr ""
+
+msgid "Please select the filament."
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Tryska"
+
+msgid "To learn about the filaments matching rules."
+msgstr ""
+
+msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
+msgstr ""
+
+msgid "Select Filament && Hotends"
+msgstr ""
+
+msgid "Select Filament"
+msgstr ""
+
+msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -4096,6 +4137,9 @@ msgstr ""
 msgid "No Reminder Next Time"
 msgstr ""
 
+msgid "Recheck"
+msgstr ""
+
 msgid "Ignore. Don't Remind Next Time"
 msgstr ""
 
@@ -4121,6 +4165,9 @@ msgid "Proceed"
 msgstr ""
 
 msgid "Abort"
+msgstr ""
+
+msgid "Disable Purification for This Print"
 msgstr ""
 
 msgid "Done"
@@ -4308,6 +4355,9 @@ msgstr "Teplota (°C)"
 
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Objemový průtok (mm³/s)"
+
+msgid "Nozzles"
+msgstr ""
 
 msgid "Travel"
 msgstr "Rychloposun"
@@ -4794,6 +4844,9 @@ msgid "Click Wiki for help."
 msgstr ""
 
 msgid "Jump to: Prime tower"
+msgstr ""
+
+msgid "Enable Clumping Detection"
 msgstr ""
 
 msgid "Click here to regroup"
@@ -5654,7 +5707,7 @@ msgstr "Stahování dokončeno"
 msgid "Downloading %d%%..."
 msgstr "Stahování %d%%..."
 
-msgid "Air Condition"
+msgid "Air Management"
 msgstr ""
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
@@ -5929,16 +5982,22 @@ msgstr ""
 msgid "Current extruder is busy changing filament"
 msgstr ""
 
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr ""
+
 msgid "Current slot has alread been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
 msgstr ""
 
-msgid "No extruder found for the selected slot."
+msgid "The selected slot is not loaded in the extruder."
 msgstr ""
 
-msgid "The selected slot is not loaded in the extruder."
+msgid "No extruder found for the selected slot."
 msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
@@ -5987,11 +6046,14 @@ msgstr ""
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr ""
 
+msgid "Load filament to"
+msgstr ""
+
 msgid "Please select an AMS slot before calibration"
 msgstr "Před kalibrací vyberte slot AMS"
 
-msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
-msgstr "Nelze přečíst informace o filamentu: filament je vložen do hlavy nástroje, prosím vyjměte filament a zkuste to znovu."
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr "Toto se projeví pouze během tisku"
@@ -6457,6 +6519,12 @@ msgstr ""
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr ""
 
+msgid "Foreign Object Detection"
+msgstr ""
+
+msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr ""
 
@@ -6639,6 +6707,10 @@ msgstr ""
 msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " podložka %1%: "
@@ -6669,6 +6741,15 @@ msgstr "Odhadovaný čas"
 
 msgid "Filament changes"
 msgstr "Výměna filamentu"
+
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgstr ""
+
+msgid "Filament Switcher Detected"
+msgstr ""
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
+msgstr ""
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr ""
@@ -6702,15 +6783,29 @@ msgstr ""
 msgid "Sync printer information"
 msgstr ""
 
-msgid ""
-"The currently selected machine preset is inconsistent with the connected printer type.\n"
-"Are you sure to continue syncing?"
+msgid "Do you want to sync the preset printer with the connected printer, "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Current connected printer (Device page): %s (%s)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Current printer preset (Prepare page): %s"
+msgstr ""
+
+msgid "Sync now"
 msgstr ""
 
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr ""
 
 msgid "Sync extruder infomation"
+msgstr ""
+
+msgid ""
+"Tips:\n"
+"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -7023,17 +7118,14 @@ msgstr ""
 msgid " (unsupported)"
 msgstr ""
 
-msgid "Multicolour simulation currently supports only a single filament material.\n"
+msgid "Multicolour simulation currently supports only a single filament material."
 msgstr ""
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr ""
 
-msgid ""
-"\n"
-"\n"
-"Note: Unsupported materials will use the selected reference material for simulation."
+msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr ""
 
 msgid "True multi-material support will be added in a future update."
@@ -7072,7 +7164,7 @@ msgstr ""
 msgid "⚠ Unsupported Materials Detected"
 msgstr ""
 
-msgid "Some of your selected materials are not directly supported by Helio:\n"
+msgid "Some of your selected materials are not directly supported by Helio:"
 msgstr ""
 
 msgid "Option 1: Proceed with a reference material"
@@ -7223,9 +7315,6 @@ msgid ""
 "The nozzle type and AMS quantity information has not been synced from the connected printer.\n"
 "After syncing, software can optimize printing time and filament usage when slicing.\n"
 "Would you like to sync now ?"
-msgstr ""
-
-msgid "Sync now"
 msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -7587,6 +7676,12 @@ msgstr "Imperiální"
 msgid "Units"
 msgstr "Jednotky"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
@@ -7942,11 +8037,11 @@ msgstr "Nekompatibilní předvolby"
 msgid "My Printer"
 msgstr ""
 
-msgid "Left filaments"
-msgstr ""
-
 msgid "AMS filaments"
 msgstr "AMS Filament"
+
+msgid "Left filaments"
+msgstr ""
 
 msgid "Right filaments"
 msgstr ""
@@ -8247,6 +8342,10 @@ msgid "Error code"
 msgstr "Chybový kód"
 
 #, c-format, boost-format
+msgid "Recommended filament arrangement saves %s->"
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament %s neodpovídá filamentu ve slotu AMS %s. Aktualizujte prosím firmware tiskárny pro podporu přiřazení slotu AMS."
 
@@ -8369,6 +8468,12 @@ msgstr ""
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr ""
 
+msgid "This print requires a Filament Track Switch. Please install it first."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup it first."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
@@ -8464,7 +8569,7 @@ msgstr ""
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr ""
 
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr ""
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
@@ -10034,9 +10139,7 @@ msgstr ""
 msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
 msgstr ""
 
-msgid ""
-"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
-"\n"
+msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
 msgstr ""
 
 msgid "Supported printers and materials"
@@ -11417,6 +11520,12 @@ msgstr ""
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
 msgstr ""
 
+msgid "Monotonic line travel extend"
+msgstr ""
+
+msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Vzor spodního povrchu"
 
@@ -12149,12 +12258,6 @@ msgid "Support control chamber temperature"
 msgstr ""
 
 msgid "This option is enabled if machine support controlling chamber temperature"
-msgstr ""
-
-msgid "Apply top surface compensation"
-msgstr ""
-
-msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
 msgstr ""
 
 msgid "Air filtration enhancement"
@@ -14897,6 +15000,9 @@ msgstr ""
 msgid "The start, end or step is not valid value."
 msgstr ""
 
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr ""
 
@@ -15448,6 +15554,9 @@ msgstr ""
 msgid "Filament grouping"
 msgstr ""
 
+msgid "Fila Saving"
+msgstr ""
+
 msgid "Don't remind me again"
 msgstr ""
 
@@ -15510,6 +15619,9 @@ msgid "Right Extruder(%d)"
 msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+msgstr ""
+
+msgid "Filament grouping is automatically optimized based on filament-saving principles"
 msgstr ""
 
 msgid "Skip Objects"
@@ -16144,6 +16256,9 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
+#~ msgstr "Nelze přečíst informace o filamentu: filament je vložen do hlavy nástroje, prosím vyjměte filament a zkuste to znovu."
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "Filamenty CF/GF jsou tvrdé a křehké, snadno se mohou zlomit nebo zaseknout v AMS, používejte je s opatrností."
