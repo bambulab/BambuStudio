@@ -1469,7 +1469,7 @@ void SelectMachineDialog::refresh_save_time()
 {
     if (m_save_time.has_value() && use_dynamic_switch())
     {
-        wxString text = wxString::Format(_L("Recommended filament arrangement saves %s→"), FormatTime(*m_save_time));
+        wxString text = wxString::Format(_L("Recommended filament arrangement saves %s->"), FormatTime(*m_save_time));
         m_saveTimeText->SetLabel(text);
         m_saveTimeText->Wrap(FromDIP(300));
         m_saveTimeText->Show();
@@ -4422,7 +4422,9 @@ void SelectMachineDialog::set_default_from_sdcard()
     }
 
     // ams mapping area
-    if (diameters_count > 1) {
+    auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
+    bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
+    if (diameters_count > 1 && !has_switcher) {
         m_filament_left_panel->Show();
         m_filament_right_panel->Show();
         m_filament_panel->Hide();
@@ -4471,8 +4473,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
 
         MaterialItem* item = nullptr;
-
-        if (diameters_count > 1) {
+        if (diameters_count > 1 && !has_switcher) {
             if (fo.id < m_filaments_map.size()) {
                 auto nozzle_id = m_filaments_map[fo.id];
 
@@ -5683,10 +5684,9 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const
 {
     try {
-        const auto& full_config = wxGetApp().preset_bundle->full_config();
-        size_t nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
-        if (nozzle_nums < 2) {
-            return ShowType::RIGHT;// TODO from sd card case
+        int total_ext_count = get_print_task_total_extruder_count();
+        if (total_ext_count < 2) {
+            return ShowType::RIGHT;
         }
 
         if (can_hybrid_mapping(obj_)) {
@@ -5741,6 +5741,11 @@ bool SelectMachineDialog::use_dynamic_switch() const
         auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
         if (nozzle_group_res && nozzle_group_res->is_support_dynamic_nozzle_map()) {
             return true;
+        }
+    } else if (m_print_type == FROM_SDCARD_VIEW) {
+        auto dynamic_nozzle_map = m_required_data_config.option<ConfigOptionBool>("enable_filament_dynamic_map");
+        if (dynamic_nozzle_map) {
+            return dynamic_nozzle_map->value;
         }
     }
 
@@ -5946,6 +5951,21 @@ bool SelectMachineDialog::is_at_suggested_pos(MachineObject* obj_, const std::st
     }
 
     return true;
+}
+
+int SelectMachineDialog::get_print_task_total_extruder_count() const
+{
+    if (m_print_type == FROM_NORMAL) {
+        const auto& full_config = wxGetApp().preset_bundle->full_config();
+        return full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+    } else if (m_print_type == FROM_SDCARD_VIEW) {
+        auto opt_nozzle_diameters = m_required_data_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        if (opt_nozzle_diameters) {
+            return opt_nozzle_diameters->size();
+        }
+    }
+
+    return 1;
 }
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)
