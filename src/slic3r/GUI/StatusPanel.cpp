@@ -2156,7 +2156,7 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
         if (obj) { obj->command_ams_control("resume"); }
     });
 
-    m_fila_change_abort = new Button(m_filament_load_box, _L("Abort"));
+    m_fila_change_abort = new Button(m_filament_load_box, _L("Stop"));
     m_fila_change_abort->SetFont(Label::Body_13);
     m_fila_change_abort->SetBorderColor(btn_bd_white);
     m_fila_change_abort->SetTextColor(btn_text_white);
