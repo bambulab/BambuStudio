@@ -2123,8 +2123,6 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
 
     m_filament_step = new FilamentLoad(m_filament_load_box, wxID_ANY);
     m_filament_step->SetDoubleBuffered(true);
-    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
-    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
     m_filament_step->SetBackgroundColour(*wxWHITE);
 
     m_filament_load_img = new wxStaticBitmap(m_filament_load_box, wxID_ANY, wxNullBitmap);
