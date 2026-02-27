@@ -2372,22 +2372,51 @@ void AMSRoadDownPart::render(wxDC& dc)
 #endif
 }
 
+// Suggest use sDrawPath to optimize the render logic. FIXME
 void AMSRoadDownPart::doRender(wxDC& dc)
 {
+    auto fill_rpen = wxPen(_get_diff_clr(this, m_road_color[0]), 4, wxPENSTYLE_SOLID);
+    auto fill_lpen = wxPen(_get_diff_clr(this, m_road_color[1]), 4, wxPENSTYLE_SOLID);
+    auto empty_pen = wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID);
+    auto sDrawPath = [&dc](wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2, const wxPen& pen) {
+        dc.SetPen(pen);
+        dc.DrawLine(x1, y1, x2, y2);
+    };
+
     wxSize size = GetSize();
     wxPoint left_nozzle_pos = wxPoint(std::ceil((float)size.x / 2 - FromDIP(8)), FromDIP(258));
     wxPoint right_nozzle_pos = wxPoint(std::ceil((float)size.x / 2 + FromDIP(6)), FromDIP(258));
-    /*if (m_road_color.Alpha() == 0) { dc.SetPen(wxPen(*wxWHITE, m_passroad_width, wxPENSTYLE_SOLID)); }
-    else { dc.SetPen(wxPen(m_road_color, m_passroad_width, wxPENSTYLE_SOLID)); }*/
-    dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
+    dc.SetPen(empty_pen);
     auto xpos = left_nozzle_pos.x;
     if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE){
-        auto length = 50;
-        if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE)
-            length = -13;
-        dc.DrawLine(left_nozzle_pos.x - FromDIP(length), (size.y / 2), (left_nozzle_pos.x), (size.y / 2));
-        dc.DrawLine(left_nozzle_pos.x - FromDIP(length), (0), left_nozzle_pos.x - FromDIP(length), (size.y / 2));
-        dc.DrawLine(left_nozzle_pos.x, size.y / 2, left_nozzle_pos.x, size.y);
+        //switch (m_left_rode_mode) {
+        //    default: break;
+        //};
+
+        switch (m_right_rode_mode) {
+            case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
+            case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S:
+            {
+                int xoffset = FromDIP(13);
+                sDrawPath(left_nozzle_pos.x + xoffset, 0, left_nozzle_pos.x + xoffset, (size.y / 2),
+                          m_pass_road_right_step >= AMSPassRoadSTEP::AMS_ROAD_STEP_1 ? fill_rpen : empty_pen);
+                sDrawPath(left_nozzle_pos.x + xoffset, (size.y / 2), (left_nozzle_pos.x), (size.y / 2),
+                          m_pass_road_right_step >= AMSPassRoadSTEP::AMS_ROAD_STEP_2 ? fill_rpen : empty_pen);
+                sDrawPath(left_nozzle_pos.x, size.y / 2, left_nozzle_pos.x, size.y,
+                          m_pass_road_right_step >= AMSPassRoadSTEP::AMS_ROAD_STEP_2 ? fill_rpen : empty_pen);
+                break;
+            }
+            default:
+            {
+                auto length = 50;
+                if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE)
+                    length = -13;
+                dc.DrawLine(left_nozzle_pos.x - FromDIP(length), (size.y / 2), (left_nozzle_pos.x), (size.y / 2));
+                dc.DrawLine(left_nozzle_pos.x - FromDIP(length), (0), left_nozzle_pos.x - FromDIP(length), (size.y / 2));
+                dc.DrawLine(left_nozzle_pos.x, size.y / 2, left_nozzle_pos.x, size.y);
+                break;
+            }
+        }
     }
     else {
         switch (m_left_rode_mode)
@@ -2445,6 +2474,7 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     }
 
     if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE){
+        dc.SetPen(empty_pen);
         if (m_nozzle_num == 2) {
             /*dc.DrawLine(FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x), FromDIP(size.y));
             dc.DrawLine(FromDIP(right_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(right_nozzle_pos.x), FromDIP(size.y));*/
@@ -2454,30 +2484,15 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         else {
             if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE && m_left_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
                 dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (right_nozzle_pos.x), (size.y / 2));
+                dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (left_nozzle_pos.x), (size.y));
             }
-            dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (left_nozzle_pos.x), (size.y));
         }
     }
-
-
-    /*if (m_nozzle_mode == AMSRoadDownPartMode::AMS_ROAD_MODE_SINGLE)
-    {
-        dc.DrawLine(left_nozzle_pos.x, left_nozzle_pos.y, FromDIP(left_nozzle_pos.x + 30), left_nozzle_pos.y);
-    }*/
-    //dc.SetBrush(wxBrush(*wxBLUE));
 
     if (m_pass_road_right_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_pass_road_right_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3) {
         dc.SetPen(wxPen(_get_diff_clr(this, m_road_color[0]), 4, wxPENSTYLE_SOLID));
         if (m_right_road_length > 0) {
             if (m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE){
-                /* dc.SetPen(wxPen(*wxRED));
-                 dc.DrawLine(right_nozzle_pos.x, 0, right_nozzle_pos.x + , size.y / 2);
-                 xpos = left_nozzle_pos.x;
-                 if (m_nozzle_num >= 2) xpos = right_nozzle_pos.x;
-                 dc.SetPen(wxPen(*wxGREEN));
-                 dc.DrawLine(xpos, size.y / 2, right_nozzle_pos.x, size.y / 2);
-                 dc.SetPen(wxPen(*wxYELLOW));
-                 dc.DrawLine(xpos, size.y / 2, xpos, size.y);*/
                 int x   = left_nozzle_pos.x;
                 int len = m_right_road_length;
                 if (m_nozzle_num == 2) {
@@ -2493,12 +2508,14 @@ void AMSRoadDownPart::doRender(wxDC& dc)
                 int len = m_right_road_length;
                 if (m_nozzle_num == 2) {
                     x = right_nozzle_pos.x;
-                    len = len - 14;
+                    len = len - (right_nozzle_pos.x - left_nozzle_pos.x);
                 }
 
-                dc.DrawLine((x), (size.y / 2), (x), (size.y));
-                dc.DrawLine(x, (size.y / 2), right_nozzle_pos.x + FromDIP(131), (size.y / 2));
-                dc.DrawLine(right_nozzle_pos.x + FromDIP(131), 0, right_nozzle_pos.x + FromDIP(131), (size.y / 2));
+                if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE && m_left_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
+                    dc.DrawLine((x), (size.y / 2), (x), (size.y));
+                    dc.DrawLine(x, (size.y / 2), x + FromDIP(len), (size.y / 2));
+                    dc.DrawLine(x + FromDIP(len), 0, x + FromDIP(len), (size.y / 2));
+                }
             }
         }
     }
