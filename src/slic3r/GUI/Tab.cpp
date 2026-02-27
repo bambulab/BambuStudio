@@ -5153,6 +5153,7 @@ void TabPrinter::on_preset_loaded()
         // only reset nozzle count when printer model is changed
         if (base_model != m_base_preset_model) {
             wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(false);
+            wxGetApp().plater()->sidebar().reset_fila_switch();
             m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_filament_dynamic_map",true)->value =false;
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");

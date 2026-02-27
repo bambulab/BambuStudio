@@ -205,6 +205,7 @@ public:
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
+    void reset_fila_switch();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
 

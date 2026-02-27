@@ -628,6 +628,8 @@ struct Sidebar::priv
     wxPanel* m_panel_print_content;
     wxBoxSizer *sizer_params;
 
+    wxStaticBitmap *extruder_separator_icon = nullptr;
+
     //wxComboBox *                m_comboBox_print_preset;
     wxStaticLine *              m_staticline1;
     StaticBox* m_panel_filament_title;
@@ -681,6 +683,8 @@ struct Sidebar::priv
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
     bool is_fila_switch_ready();
+    void update_extruder_separator_icon(bool show, bool ready);
+    void show_fila_switch_msg(bool ready);
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -736,6 +740,17 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         hsizer_extruder->AddSpacer(FromDIP(4));
         hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
 
+        if (!extruder_separator_icon) {
+            auto bitmap = ScalableBitmap(m_panel_printer_content, "fila_switch", 10);
+            extruder_separator_icon = new wxStaticBitmap(m_panel_printer_content, wxID_ANY, bitmap.bmp(), wxDefaultPosition, bitmap.GetBmpSize());
+            extruder_separator_icon->Hide();
+            extruder_separator_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+                bool ready = is_fila_switch_ready();
+                show_fila_switch_msg(ready);
+                evt.Skip();
+            });
+        }
+
         // single
         vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
@@ -767,28 +782,16 @@ void Sidebar::priv::show_filament_switcher_dialog(bool is_ready, bool is_manual)
     if (is_ready) {
         if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
             wxGetApp().app_config->set("show_fila_switch_tips", "false");
-            MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                              _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
-                                 "will be automatically allocated to the optimal extruder during slicing."),
-                              _L("Filament Switcher Detected"), wxICON_INFORMATION | wxOK);
-            dlg.ShowModal();
+            show_fila_switch_msg(true);
         }
     } else {
         if (is_manual) {
             fila_switch_warning_shown = true;
-            MessageDialog
-                dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                    _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
-                    _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
-            dlg.ShowModal();
+            show_fila_switch_msg(false);
         } else {
             if (!fila_switch_warning_shown) {
                 fila_switch_warning_shown = true;
-                MessageDialog
-                    dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                        _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
-                        _L("Filament Switcher Detected"), wxICON_WARNING | wxOK);
-                dlg.ShowModal();
+                show_fila_switch_msg(false);
             }
         }
     }
@@ -864,6 +867,62 @@ bool Sidebar::priv::is_fila_switch_ready()
     if (fila_switch == nullptr) return false;
 
     return fila_switch->IsInstalled() && fila_switch->IsReady();
+}
+
+void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
+{
+    if (!extruder_separator_icon) return;
+    if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
+        extruder_separator_icon->Hide();
+        m_panel_printer_content->Refresh();
+        return;
+    }
+    if (show) {
+        wxPoint left_box_pos = left_extruder->GetPosition();
+        wxSize  left_box_size = left_extruder->GetSize();
+        wxPoint ams_local_pos = left_extruder->hsizer_ams->GetPosition();
+        wxSize  left_size = left_extruder->sizer->GetSize();
+        wxSize  ams_size = left_extruder->hsizer_ams->GetSize();
+        wxSize  icon_size = extruder_separator_icon->GetSize();
+        int ams_abs_y = left_box_pos.y + ams_local_pos.y + FromDIP(4);
+        int     center_x  = left_size.GetWidth() + FromDIP(6);
+        int     center_y  = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
+        center_x -= icon_size.GetWidth() / 2;
+        center_y -= icon_size.GetHeight() / 2;
+        extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
+
+        auto normal_bitmap = ScalableBitmap(m_panel_printer_content, "fila_switch", 10);
+        auto error_bitmap  = ScalableBitmap(m_panel_printer_content, "fila_switch_error", 10);
+
+        if (ready) {
+            extruder_separator_icon->SetBitmap(normal_bitmap.bmp());
+        } else {
+            extruder_separator_icon->SetBitmap(error_bitmap.bmp());
+        }
+
+        extruder_separator_icon->Show();
+        extruder_separator_icon->Raise();
+    } else {
+        extruder_separator_icon->Hide();
+    }
+
+    m_panel_printer_content->Refresh();
+}
+
+void Sidebar::priv::show_fila_switch_msg(bool ready)
+{
+    if (ready) {
+        MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                          _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
+                             "will be automatically allocated to the optimal extruder during slicing."),
+                          _L("Tips"), wxICON_INFORMATION | wxOK, "", _L("Learn more"), [](const wxString &url) { wxLaunchDefaultBrowser("https://wiki.bambulab.com"); });
+        dlg.ShowModal();
+    } else {
+        MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
+                          _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
+                          _L("Tips"), wxICON_WARNING | wxOK);
+        dlg.ShowModal();
+    }
 }
 
 Sidebar::priv::~priv()
@@ -1921,12 +1980,12 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         if (fila_switch->IsInstalled()) {
             show_filament_switcher_dialog(fila_switch->IsReady(), false);
             if (fila_switch->IsReady()) {
-                // dual_panel->SetSeparatorState(CustomSeparator::State::Normal);
+                update_extruder_separator_icon(true, true);
             } else {
-                // dual_panel->SetSeparatorState(CustomSeparator::State::Error);
+                update_extruder_separator_icon(true, false);
             }
         } else {
-            // dual_panel->SetSeparatorState(CustomSeparator::State::Hidden);
+            update_extruder_separator_icon(false, false);
             fila_switch_warning_shown = false;
         }
     }
@@ -2417,6 +2476,23 @@ Sidebar::Sidebar(Plater *parent)
             wxGetApp().plater()->update();
             });
         p->single_extruder->SetEditEnabled(false);
+        p->left_extruder->Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {
+            if (!p->extruder_separator_icon->IsShown()) return;
+            wxPoint left_box_pos  = p->left_extruder->GetPosition();
+            wxSize  left_box_size = p->left_extruder->GetSize();
+            wxPoint ams_local_pos = p->left_extruder->hsizer_ams->GetPosition();
+            wxSize  left_size     = p->left_extruder->sizer->GetSize();
+            wxSize  ams_size      = p->left_extruder->hsizer_ams->GetSize();
+            wxSize  icon_size     = p->extruder_separator_icon->GetSize();
+            int     ams_abs_y     = left_box_pos.y + ams_local_pos.y + FromDIP(4);
+            int     center_x      = left_size.GetWidth() + FromDIP(6);
+            int     center_y      = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
+            center_x -= icon_size.GetWidth() / 2;
+            center_y -= icon_size.GetHeight() / 2;
+            p->extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
+            p->m_panel_printer_content->Refresh();
+            evt.Skip();
+        });
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
@@ -3802,6 +3878,11 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
     else if (extruder_id == 1) {
         p->right_extruder->SetCount(nozzle_count);
     }
+}
+
+void Sidebar::reset_fila_switch()
+{
+    p->update_extruder_separator_icon(false, false);
 }
 
 void Sidebar::enable_nozzle_count_edit(bool enable){
