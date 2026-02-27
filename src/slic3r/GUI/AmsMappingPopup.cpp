@@ -2221,7 +2221,11 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
                     if (elem.second)
                     {
                         DevAmsTray* cur_tray = id2tray[elem.first];
-                        if (cur_tray)
+                        if (!cur_tray)
+                            continue;
+                        auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
+                        auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
+                        if (it != m_tray_used.end())
                         {
                             auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
                             auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);

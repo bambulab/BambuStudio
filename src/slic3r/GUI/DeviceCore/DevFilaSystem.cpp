@@ -361,6 +361,8 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
                     int tray_index  = -1;
                     if (ams_item->GetAmsType() == DevAmsType::N3S) {
                         tray_index = ams_id_int;
+                    } else if(ams_item->GetAmsType() == DevAmsType::AMS_LITE && ams_item->IsAmsLiteMixed()) {
+                        tray_index = 24 + slot_id_int;
                     } else {
                         tray_index = (ams_id_int * 4 + slot_id_int);
                     }
