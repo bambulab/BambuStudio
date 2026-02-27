@@ -5166,7 +5166,7 @@ msgstr "Экспорт в G-код"
 
 # в двух местах используется!!! ????
 msgid "Send"
-msgstr "Отправить G-код стола на SD-карту"
+msgstr "Отправить"
 
 msgid "Export plate sliced file"
 msgstr "Экспорт стола в файл проекта"
