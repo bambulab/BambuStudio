@@ -736,7 +736,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         int old_filament_id_before_toolchange = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
         int old_extruder_id_before_toolchange = old_filament_id_before_toolchange >= 0 ? (int)gcodegen.get_extruder_id(old_filament_id_before_toolchange) : -1;
 
-        bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1);
+        bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty();
         std::string gcode;
 
         // Toolchangeresult.gcode assumes the wipe tower corner is at the origin (except for priming lines)

@@ -537,6 +537,7 @@ private:
     bool                       m_contact_ironing = false;
     bool                       m_has_filament_switcher = false;
     float                      m_contact_speed   = 20 * 60.f;
+    bool                       m_handle_hotend_as_extruder = false;
     std::vector<int>           m_physical_extruder_map;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {

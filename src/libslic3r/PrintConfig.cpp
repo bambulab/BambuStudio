@@ -2727,7 +2727,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("max_temperature_drop_when_ec", coFloats);
     def->nullable = true;
-    def->set_default_value(new ConfigOptionFloatsNullable{0});
+    def->set_default_value(new ConfigOptionFloatsNullable{-1}); // -1 means no limit
 
     def = this->add("enable_pre_heating", coBool);
     def->set_default_value(new ConfigOptionBool(false));
