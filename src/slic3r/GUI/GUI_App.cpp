@@ -4445,6 +4445,11 @@ wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extrud
         prefix.append(base);
         return prefix;
     }
+    else if (trid_id >= 24 && trid_id <= 27 )
+    {
+        int id_suffix = trid_id - 24 + 1;//ams lite for n9 trid_id start from 24
+        return wxString::Format("Q%d", id_suffix);
+    }
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
