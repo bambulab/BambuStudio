@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-05 19:18+0800\n"
+"POT-Creation-Date: 2026-02-27 14:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -62,8 +62,8 @@ msgstr "El filamento actual no es compatible con la boquilla de alto flujo TPU y
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "La calibración automática del flujo dinámico no es compatible con el filamento de TPU."
 
-msgid "Dynamic flow calibration is not supported for TPU 85A filament."
-msgstr "La calibración dinámica del flujo no es compatible con el filamento TPU 85A."
+msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
+msgstr "Bambu TPU 85A no es compatible con la impresión con boquillas estándar o de alto flujo de 0,4 mm."
 
 msgid "How to feed TPU filament."
 msgstr "Cómo alimentar el filamento de TPU."
@@ -259,6 +259,12 @@ msgstr "SN"
 msgid "Version"
 msgstr "Versión"
 
+msgid "Used Time"
+msgstr "Tiempo de uso"
+
+msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
+msgstr ""
+
 msgid "Hotend Rack"
 msgstr "Rack del hotend"
 
@@ -267,6 +273,9 @@ msgstr "Cabezal"
 
 msgid "Nozzle information needs to be read"
 msgstr "Es necesario leer la información de la boquilla"
+
+msgid "Note:"
+msgstr ""
 
 msgid "Supports Painting"
 msgstr "Pintando Soportes"
@@ -2032,6 +2041,18 @@ msgstr "Agregar configuraciones"
 msgid "Change type"
 msgstr "Cambiar tipo"
 
+msgid "Negative Part"
+msgstr "Parte negativa"
+
+msgid "Support Blocker"
+msgstr "Bloqueador de soporte"
+
+msgid "Support Enforcer"
+msgstr "Refuerzo de Soportes"
+
+msgid "Change part type"
+msgstr ""
+
 msgid "Set as an individual object"
 msgstr "Establecer como un objeto individual"
 
@@ -2452,15 +2473,6 @@ msgstr "Si el primer elemento seleccionado es un objeto, el segundo también deb
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "Si el primer elemento seleccionado es una pieza, el segundo debe formar parte del mismo objeto."
 
-msgid "Negative Part"
-msgstr "Parte negativa"
-
-msgid "Support Blocker"
-msgstr "Bloqueador de soporte"
-
-msgid "Support Enforcer"
-msgstr "Refuerzo de Soportes"
-
 msgid "Type:"
 msgstr "Tipo:"
 
@@ -2698,6 +2710,11 @@ msgstr "Cargar"
 msgid "Unload"
 msgstr "Descarga"
 
+msgid ""
+"The consumables changer has not been calibrated. \n"
+"Please calibrate it on the printer before using."
+msgstr ""
+
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
 
@@ -2827,6 +2844,24 @@ msgstr "Coge un nuevo filamento"
 
 msgid "Purge old filament"
 msgstr "Purgar el filamento viejo"
+
+msgid "Switch"
+msgstr ""
+
+msgid "hotend"
+msgstr ""
+
+msgid "Wait for AMS cooling"
+msgstr ""
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Switch track at Filament Track Switch"
+msgstr ""
 
 msgid "Confirm extruded"
 msgstr "Confirme que el filamento se ha extruido"
@@ -3348,27 +3383,6 @@ msgstr "Restablecer el mapeo actual de filamentos"
 msgid "Right AMS"
 msgstr "AMS derecho"
 
-msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr "Consejos: Para aprender sobre las reglas de compatibilidad de filamentos, consulte la Wiki antes de usar->"
-
-msgid "Please select the filament installed on the left nozzle."
-msgstr "Seleccione el filamento instalado en la boquilla izquierda."
-
-msgid "Please select the filament installed on the right nozzle."
-msgstr "Seleccione el filamento instalado en la boquilla derecha."
-
-msgid "Nozzle"
-msgstr "Boquilla"
-
-msgid "Ext"
-msgstr ""
-
-msgid "Select Filament && Hotends"
-msgstr "Seleccionar Filamento && Hotends"
-
-msgid "Select Filament"
-msgstr "Seleccione el filamento"
-
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
 msgstr "La impresión con la boquilla actual puede producir un extra de %0.2f g de desperdicio."
@@ -3466,6 +3480,33 @@ msgstr "SECO"
 
 msgid "WET"
 msgstr "MOJADO"
+
+msgid "Please select the filament installed on the left nozzle."
+msgstr "Seleccione el filamento instalado en la boquilla izquierda."
+
+msgid "Please select the filament installed on the right nozzle."
+msgstr "Seleccione el filamento instalado en la boquilla derecha."
+
+msgid "Please select the filament."
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Boquilla"
+
+msgid "To learn about the filaments matching rules."
+msgstr ""
+
+msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
+msgstr ""
+
+msgid "Select Filament && Hotends"
+msgstr "Seleccionar Filamento && Hotends"
+
+msgid "Select Filament"
+msgstr "Seleccione el filamento"
+
+msgid "Ext"
+msgstr ""
 
 msgid "AMS Settings"
 msgstr "Ajustes del AMS"
@@ -4152,6 +4193,9 @@ msgstr "Ver Liveview"
 msgid "No Reminder Next Time"
 msgstr "La próxima vez no habrá recordatorio"
 
+msgid "Recheck"
+msgstr ""
+
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Ignorar. No recordar la próxima vez"
 
@@ -4178,6 +4222,9 @@ msgstr "Proceder"
 
 msgid "Abort"
 msgstr "Abortar"
+
+msgid "Disable Purification for This Print"
+msgstr "Desactivar la purificación de aire para esta impresión"
 
 msgid "Done"
 msgstr "Listo"
@@ -4365,6 +4412,9 @@ msgstr "Temperatura (°C)"
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Tasa del flujo volumétrico (mm³/seg)"
 
+msgid "Nozzles"
+msgstr ""
+
 msgid "Travel"
 msgstr "Recorrido"
 
@@ -4402,7 +4452,7 @@ msgid "Filament change times"
 msgstr "Tiempos de cambio en el filamento"
 
 msgid "View Summary"
-msgstr ""
+msgstr "Ver resumen"
 
 msgid "Color change"
 msgstr "Cambio de color"
@@ -4854,6 +4904,9 @@ msgstr "Haga clic en la Wiki para obtener ayuda."
 msgid "Jump to: Prime tower"
 msgstr "Saltar a: Torre principal"
 
+msgid "Enable Clumping Detection"
+msgstr ""
+
 msgid "Click here to regroup"
 msgstr "Haga clic aquí para reagruparse"
 
@@ -4990,7 +5043,7 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "se cerrará antes de crear un nuevo modelo. ¿Quieres continuar?"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
-msgstr ""
+msgstr "Desbloquee impresiones rápidas, más confiables sin warp con Helio Aditivo."
 
 msgid "Slice plate"
 msgstr "Laminar placa"
@@ -5719,8 +5772,8 @@ msgstr "Descarga finalizada"
 msgid "Downloading %d%%..."
 msgstr "Descargando %d%%..."
 
-msgid "Air Condition"
-msgstr "Aire acondicionado"
+msgid "Air Management"
+msgstr ""
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Al volver a conectar la impresora, la operación no se puede completar de inmediato. Vuelva a intentarlo más tarde."
@@ -6002,17 +6055,23 @@ msgstr "Cuando la impresión está en pausa, la carga y descarga de filamento so
 msgid "Current extruder is busy changing filament"
 msgstr "El extrusor actual está ocupado cambiando el filamento"
 
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr ""
+
 msgid "Current slot has alread been loaded"
 msgstr "La ranura actual ya se ha cargado"
 
 msgid "The selected slot is empty."
 msgstr "La ranura seleccionada está vacía."
 
-msgid "No extruder found for the selected slot."
-msgstr "No se ha encontrado el extrusor para la ranura seleccionada."
-
 msgid "The selected slot is not loaded in the extruder."
 msgstr "La ranura seleccionada no está cargada en el extrusor."
+
+msgid "No extruder found for the selected slot."
+msgstr "No se ha encontrado el extrusor para la ranura seleccionada."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "El modo 2D de la impresora no admite la calibración 3D"
@@ -6060,11 +6119,14 @@ msgstr "La temperatura de la cámara no se puede cambiar en el modo de enfriamie
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Si la temperatura de la cámara supera los 40 ℃, el sistema cambiará automáticamente al modo de calefacción. Confirme si desea cambiar."
 
+msgid "Load filament to"
+msgstr ""
+
 msgid "Please select an AMS slot before calibration"
 msgstr "Seleccione una ranura AMS antes de la calibración"
 
-msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
-msgstr "No se puede leer la información del filamento: el filamento está cargado en el cabezal; descargue el filamento e inténtelo de nuevo."
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr "Esto solo tiene efecto durante la impresión"
@@ -6536,6 +6598,12 @@ msgstr "Comprueba si la boquilla está obstruida por filamentos u otros objetos 
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Detecta la impresión por aire causada por la obstrucción de las boquillas o la trituración de los filamentos."
 
+msgid "Foreign Object Detection"
+msgstr "Detección de objetos extraños"
+
+msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
+msgstr "Comprueba si hay objetos en la placa de construcción al comenzar una impresión para evitar colisiones."
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Garantice que el tipo y la colocación de la placa de construcción sean correctos."
 
@@ -6718,6 +6786,10 @@ msgstr "La boquilla %s no admite el cambio automático de filamento.\n"
 msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr "Cambie el tipo de boquilla o reasigne los filamentos y vuelva a intentarlo."
 
+#, c-format, boost-format
+msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " placa %1%:"
@@ -6749,6 +6821,15 @@ msgstr "Tiempo estimado"
 msgid "Filament changes"
 msgstr "Cambios de filamento"
 
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgstr ""
+
+msgid "Filament Switcher Detected"
+msgstr ""
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
+msgstr ""
+
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Establezca el número de AMS instalados en la boquilla."
 
@@ -6766,9 +6847,9 @@ msgid ""
 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
 "Please confirm which nozzle you would like to use for this project."
 msgstr ""
-"El software no admite el uso de boquillas de diferentes diámetros para una impresión.\n"
-"Si las boquillas izquierda y derecha son inconsistentes, solo podemos proceder con la impresión de un solo cabezal.\n"
-"Confirme qué boquilla desea utilizar para este proyecto."
+"El software no admite el uso de boquillas de diámetros diferentes para una misma impresión.\n"
+"Si las boquillas izquierda y derecha no son consistentes, solo podemos proceder con la impresión de un solo cabezal.\n"
+"Por favor, confirme cuál boquilla desea usar para este proyecto."
 
 msgid "Switch diameter"
 msgstr "Diámetro del interruptor"
@@ -6784,18 +6865,30 @@ msgstr "Boquilla derecha: %s mm"
 msgid "Sync printer information"
 msgstr "Sincronizar información de la impresora"
 
-msgid ""
-"The currently selected machine preset is inconsistent with the connected printer type.\n"
-"Are you sure to continue syncing?"
+msgid "Do you want to sync the preset printer with the connected printer, "
 msgstr ""
-"La configuración predeterminada de la máquina seleccionada actualmente no es compatible con el tipo de impresora conectada. \n"
-"¿Está seguro de que desea continuar con la sincronización?"
+
+#, c-format, boost-format
+msgid "Current connected printer (Device page): %s (%s)"
+msgstr "Impresora conectada actual (página del dispositivo): %s (%s)"
+
+#, c-format, boost-format
+msgid "Current printer preset (Prepare page): %s"
+msgstr "Ajuste preestablecido de impresora actual (Preparar página): %s"
+
+msgid "Sync now"
+msgstr "Sincronizar ahora"
 
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr "Hay tipos de boquillas sin configurar. Configure los tipos de boquillas de todos los extrusores antes de sincronizar."
 
 msgid "Sync extruder infomation"
 msgstr "Información sobre el extrusor sincronizado"
+
+msgid ""
+"Tips:\n"
+"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+msgstr ""
 
 msgid "Click to edit preset"
 msgstr "Clic para cambiar el ajuste inicial"
@@ -7096,84 +7189,81 @@ msgid "Slicing Canceled"
 msgstr "Se canceló el proceso de slicing"
 
 msgid "Great! Now click the Helio button to start optimization."
-msgstr ""
+msgstr "¡Genial! Ahora haga clic en el botón Helio para iniciar la optimización."
 
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Placa de corte %d"
 
 msgid "Multiple Filament Materials Detected"
-msgstr ""
+msgstr "Se han detectado múltiples materiales de filamentos"
 
 msgid "⚠ Multiple Filament Materials Detected"
-msgstr ""
+msgstr "⚠ Se han detectado múltiples materiales de filamentos"
 
 msgid " (unsupported)"
-msgstr ""
+msgstr " (no compatible)"
 
-msgid "Multicolour simulation currently supports only a single filament material.\n"
+msgid "Multicolour simulation currently supports only a single filament material."
 msgstr ""
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
-msgstr ""
+msgstr "Ha seleccionado múltiples materiales: %s"
 
-msgid ""
-"\n"
-"\n"
-"Note: Unsupported materials will use the selected reference material for simulation."
+msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr ""
 
 msgid "True multi-material support will be added in a future update."
-msgstr ""
+msgstr "Se agregará soporte multi-material real en una futura actualización."
 
 msgid "Option 1: Proceed using a single filament type"
-msgstr ""
+msgstr "Opción 1: Proceder utilizando un solo tipo de filamento"
 
 msgid "Select which filament to use for simulation:"
-msgstr ""
+msgstr "Seleccione el filamento que desea utilizar para la simulación:"
 
 msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
-msgstr ""
+msgstr "⚠ Esto no se recomienda. Las formulaciones de los filamentos varían considerablemente entre fabricantes y materiales. Helio no puede garantizar resultados fiables con esta configuración."
 
 msgid "Proceed Anyway"
-msgstr ""
+msgstr "Proceder de todos modos"
 
 msgid "Option 2: Go back and change filament selection"
-msgstr ""
+msgstr "Opción 2: Regresar y cambiar la selección de filamento"
 
 msgid "✓ Recommended"
-msgstr ""
+msgstr "✓ Recomendado"
 
 msgid "Change your filament selection to use the same type for all colours, then try again."
-msgstr ""
+msgstr "Cambie su selección de filamento para usar el mismo tipo para todos los colores y luego inténtelo nuevamente."
 
 msgid "See supported materials"
-msgstr ""
+msgstr "Ver materiales compatibles"
 
 msgid "Go Back"
-msgstr ""
+msgstr "Atrás"
 
 msgid "Unsupported Materials Detected"
-msgstr ""
+msgstr "Materiales no compatibles detectados"
 
 msgid "⚠ Unsupported Materials Detected"
-msgstr ""
+msgstr "⚠ Materiales no compatibles detectados"
 
-msgid "Some of your selected materials are not directly supported by Helio:\n"
+msgid "Some of your selected materials are not directly supported by Helio:"
 msgstr ""
 
 msgid "Option 1: Proceed with a reference material"
-msgstr ""
+msgstr "Opción 1: Proceder con un material de referencia"
 
 msgid "Select a similar material type to use for simulation:"
-msgstr ""
+msgstr "Seleccione un tipo de material similar para usar en la simulación:"
 
 msgid "Note: Using a reference material may result in approximate or erroneous results."
-msgstr ""
+msgstr "Nota: El uso de un material de referencia puede generar resultados aproximados o erróneos."
 
 msgid "Change your filament selection to use a supported material, then try again."
-msgstr ""
+msgstr "Cambie su selección de filamento para usar un material compatible y luego inténtelo nuevamente."
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Está en curso una tarea de simulación u optimización de Helio."
@@ -7190,37 +7280,43 @@ msgid ""
 "\n"
 "Do you want to use this match, or would you prefer to rename your printer profile?"
 msgstr ""
+"Helio encontró una posible coincidencia de impresora usando la coincidencia basada en token:\n"
+"\n"
+"Su impresora: %s\n"
+"Impresora coincidente: %s\n"
+"\n"
+"¿Quiere usar esta coincidencia o prefiere cambiar el nombre de su perfil de impresora?"
 
 msgid "Helio Printer Match Confirmation"
-msgstr ""
+msgstr "Confirmación de coincidencia de la impresora Helio"
 
 msgid "Unsupported Printer Detected"
-msgstr ""
+msgstr "Impresora no compatible detectada"
 
 msgid "⚠ Unsupported Printer Detected"
-msgstr ""
+msgstr "⚠ Impresora no compatible detectada"
 
 #, c-format, boost-format
 msgid "You're using %s which is not officially supported by Helio."
-msgstr ""
+msgstr "Está utilizando %s, que no es compatible oficialmente con Helio."
 
 msgid "Option 1: Proceed with a reference printer"
-msgstr ""
+msgstr "Opción 1: Proceder con una impresora de referencia"
 
 msgid "Select a similar printer to use for simulation:"
-msgstr ""
+msgstr "Seleccione una impresora similar para usar en la simulación:"
 
 msgid "Note: Using a reference printer may result in approximate or erroneous results."
-msgstr ""
+msgstr "Nota: El uso de una impresora de referencia puede generar resultados aproximados o erróneos."
 
 msgid "Option 2: Go back and change printer selection"
-msgstr ""
+msgstr "Opción 2: Regresar y cambiar la selección de impresora"
 
 msgid "Change your printer selection to use a supported printer, then try again."
-msgstr ""
+msgstr "Cambie su selección de impresora para utilizar una impresora compatible y luego inténtelo nuevamente."
 
 msgid "See supported printers"
-msgstr ""
+msgstr "Ver impresoras compatibles"
 
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "El ajuste preestablecido actual de la impresora no puede ser cortado utilizando Helio."
@@ -7234,18 +7330,24 @@ msgid ""
 "\n"
 "Do you want to use this match, or would you prefer to rename your material profile?"
 msgstr ""
+"Helio encontró una posible coincidencia de impresora usando la coincidencia basada en token:\n"
+"\n"
+"Su impresora: %s\n"
+"Impresora coincidente: %s\n"
+"\n"
+"¿Quiere usar esta coincidencia o prefiere cambiar el nombre de su perfil de impresora?"
 
 msgid "Helio Material Match Confirmation"
-msgstr ""
+msgstr "Confirmación de coincidencia del material de helio"
 
 msgid "Unsupported Material Detected"
-msgstr ""
+msgstr "Material no compatible detectado"
 
 msgid "⚠ Unsupported Material Detected"
-msgstr ""
+msgstr "⚠ Material no compatible detectado"
 
 msgid "Choose a Reference Material"
-msgstr ""
+msgstr "Elija un material de referencia"
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -7258,12 +7360,17 @@ msgid ""
 "\n"
 "Do you want to continue anyway?"
 msgstr ""
+"Advertencia: Helio actualmente no admite la combinación de relleno.\n"
+"\n"
+"Si continúa con esta configuración habilitada, es posible que se obtengan resultados erróneos.\n"
+"\n"
+"¿Desea continuar de todos modos?"
 
 msgid "Helio Warning"
-msgstr ""
+msgstr "Advertencia de helio"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
-msgstr ""
+msgstr "Haga clic en el botón Optimizar/Mejorar para iniciar su primera optimización."
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -7317,9 +7424,6 @@ msgstr ""
 "La información sobre el tipo de boquilla y la cantidad de AMS no se sincronizó desde la impresora conectada.\n"
 "Tras la sincronización, el software puede optimizar el tiempo de impresión y el uso del filamento al cortar.\n"
 "¿Desea realizar la sincronización ahora?"
-
-msgid "Sync now"
-msgstr "Sincronizar ahora"
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "Puedes conservar los preajustes modificados en el nuevo proyecto o descartarlos"
@@ -7696,6 +7800,12 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Unidades"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Mantenga solo una instancia de Bambu Studio"
 
@@ -8051,11 +8161,11 @@ msgstr "Ajustes preestablecidos imcompatibles"
 msgid "My Printer"
 msgstr "Mi impresora"
 
-msgid "Left filaments"
-msgstr "Filamentos izquierda"
-
 msgid "AMS filaments"
 msgstr "Filamentos AMS"
+
+msgid "Left filaments"
+msgstr "Filamentos izquierda"
 
 msgid "Right filaments"
 msgstr "Filamentos derecha"
@@ -8366,6 +8476,10 @@ msgid "Error code"
 msgstr "Código de error:"
 
 #, c-format, boost-format
+msgid "Recommended filament arrangement saves %s->"
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "El filamento %s no coincide con el filamento de la ranura AMS %s. Actualice el firmware de la impresora para admitir la asignación de ranuras AMS."
 
@@ -8494,6 +8608,12 @@ msgstr "El %s diámetro (%.1fmm) de la impresora actual no coincide con el de la
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "El diámetro actual de la boquilla (%.1fmm) no coincide con el de la lima de corte (%.1fmm). Asegúrese de que la boquilla instalada coincida con los ajustes de la impresora y, a continuación, configure el ajuste preestablecido de la impresora correspondiente al cortar."
 
+msgid "This print requires a Filament Track Switch. Please install it first."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup it first."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "No se pudo enviar la solicitud de mapeo automático de la boquilla a la impresora { código: %d }. Por favor, intente actualizar la información de la impresora. Si el problema persiste, puede intentar reasignar la impresora y verificar la conexión de red."
@@ -8589,8 +8709,8 @@ msgstr "Es necesario insertar el almacenamiento para registrar el lapso de tiemp
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Ha seleccionado filamentos externos y AMS para una extrusora. Tendrá que cambiar manualmente el filamento externo durante la impresión."
 
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A es demasiado blando y no admite la calibración automática de Flow Dynamics."
+msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
+msgstr ""
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Establezca la calibración de flujo dinámico en «DESACTIVADA» para habilitar un valor de flujo dinámico personalizado."
@@ -10052,52 +10172,52 @@ msgid "reconnect"
 msgstr "reconectar"
 
 msgid "Welcome to Helio Additive"
-msgstr ""
+msgstr "Bienvenido a Helio Additive"
 
 msgid "Know Your Print Will Work — Before You Hit Print"
-msgstr ""
+msgstr "Asegúrese de que su impresión funcionará antes de imprimir"
 
 msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
-msgstr ""
+msgstr "Análisis y optimización basados en la física que hacen que las impresiones sean más rápidas, más resistentes y mucho más confiables."
 
 msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
-msgstr ""
+msgstr "Descubra un mundo de impresión más rápida y confiable con la tecnología de simulación de impresión 3D basada en física de última generación de Helio."
 
 msgid "Fewer Failed Prints"
-msgstr ""
+msgstr "Menos impresiones fallidas"
 
 msgid "Catch issues before printing and improve first-try success."
-msgstr ""
+msgstr "Detecte problemas antes de imprimir y mejore el éxito en el primer intento."
 
 msgid "Faster Prints, Better Quality"
-msgstr ""
+msgstr "Impresiones más rápidas, mejor calidad"
 
 msgid "Automatically tune speed and extrusion without manual tweaking."
-msgstr ""
+msgstr "Ajuste automáticamente la velocidad y la extrusión sin necesidad de realizar ajustes manuales."
 
 msgid "Enable Helio Additive"
-msgstr ""
+msgstr "Habilitar Helio Additive"
 
 msgid "Uninstall"
-msgstr ""
+msgstr "Desinstalar"
 
 msgid "After slicing, click the Helio button to analyze your print."
-msgstr ""
+msgstr "Después del slicing, haga clic en el botón Helio para analizar su impresión."
 
 msgid "Helio Additive does not change your printer's firmware."
-msgstr ""
+msgstr "Helio Additive no cambia el firmware de su impresora."
 
 msgid "Designed to help prints succeed — even if you're new to 3D printing."
-msgstr ""
+msgstr "Diseñado para ayudar a que las impresiones sean exitosas, incluso si eres nuevo en la impresión 3D."
 
 msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
-msgstr ""
+msgstr "¿Seguro que desea desinstalar Helio Additive? Esto deshabilitará todas las funciones de Helio."
 
 msgid "Uninstall Helio Additive"
-msgstr ""
+msgstr "Desinstalar Helio Additive"
 
 msgid "Legal & Activation Terms"
-msgstr ""
+msgstr "Términos legales y de activación"
 
 msgid "Got it"
 msgstr "Entendido"
@@ -10109,10 +10229,10 @@ msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot b
 msgstr "No se ha podido obtener el PAT. Se alcanzó el límite de cantidad, por lo que no se puede obtener. Haga clic en el botón Actualizar para volver a obtener el PAT."
 
 msgid "You are activating Helio Additive's advanced simulation services."
-msgstr ""
+msgstr "Está activando los servicios avanzados de simulación de Helio Additive."
 
 msgid "Software Service Terms && Conditions"
-msgstr ""
+msgstr "Términos y condiciones del servicio de software"
 
 msgid "^"
 msgstr ""
@@ -10121,86 +10241,86 @@ msgid "Helio Additive"
 msgstr "Helio Adicional"
 
 msgid "Helio Additive Privacy Agreement"
-msgstr ""
+msgstr "Acuerdo de privacidad de Helio Additive"
 
 msgid "Helio Additive User Agreement"
-msgstr ""
+msgstr "Acuerdo de usuario de Helio Additive"
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
-msgstr ""
+msgstr "A menos que se especifique lo contrario, Bambu Lab solo ofrece soporte para las funciones de software oficialmente proporcionadas. Las funciones de evaluación y optimización de slicing basadas en "
 
 msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
-msgstr ""
+msgstr "El servicio en la nube de este software será desarrollado, operado, proporcionado y mantenido por "
 
 msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
-msgstr ""
+msgstr "Helio Additive es responsable de la eficacia y disponibilidad de este servicio. La función de optimización de este servicio puede modificar los comandos de impresión predeterminados, lo que supone un riesgo de daños a la impresora. Estas funciones recopilarán la información y los datos necesarios del usuario para realizar las funciones pertinentes del servicio. Es posible que se requieran suscripciones y pagos. Visite "
 
 msgid " and refer to the "
-msgstr ""
+msgstr " y referirse a la "
 
 msgid " and "
-msgstr ""
+msgstr " y "
 
 msgid " for detailed information."
-msgstr ""
+msgstr " para obtener información detallada."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
-msgstr ""
+msgstr "Mientras tanto, usted comprende que este producto se le proporciona \"tal cual\" en función de "
 
 msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr "los servicios, y Bambu Lab no otorga garantías expresas ni implícitas de ningún tipo, ni puede controlar los efectos del servicio. En la máxima medida permitida por la ley aplicable, Bambu Lab o sus licenciantes/afiliados no ofrecen ninguna declaración ni garantía expresa o implícita, incluyendo pero no limitándose a garantías sobre comerciabilidad, calidad satisfactoria, idoneidad para un propósito particular, exactitud, confidencialidad y no infracción de derechos de terceros. Debido a la naturaleza de los servicios de red, Bambu Lab no garantiza que el servicio esté disponible en todo momento, y se reserva el derecho de terminar el servicio conforme a las circunstancias relevantes. Usted acepta no usar este producto ni sus actualizaciones relacionadas para participar en las siguientes actividades:"
 
 msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
-msgstr ""
+msgstr "1. Copiar o usar cualquier parte de este producto fuera del ámbito autorizado por Helio Additive y Bambu Lab;"
 
 msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
-msgstr ""
+msgstr "2. Intentar interrumpir, eludir, modificar, invalidar o evadir cualquier sistema de Gestión de Derechos Digitales relacionado y/o parte integral de este producto;"
 
 msgid "3. Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. Usar este software y los servicios para cualquier actividad indebida o ilegal."
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr "Al confirmar la activación de esta función, indica que ha leído y aceptado las declaraciones anteriores."
+msgstr "Al confirmar la activación de esta función, significa que usted ha confirmado y aceptado las declaraciones anteriores."
 
 msgid "Special Note && Privacy Policy"
-msgstr ""
+msgstr "Nota especial y política de privacidad"
 
 msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
-msgstr ""
+msgstr "Este servicio es proporcionado y alojado por un tercero, Helio Additive. Todas las actividades de recopilación y procesamiento de datos son gestionadas exclusivamente por Helio Additive, y Bambu Lab no asume ninguna responsabilidad al respecto. Al hacer clic en \"Aceptar y continuar\", usted acepta la política de privacidad de Helio Additive."
 
 msgid ""
 "I have read and agree to the terms\n"
 "and policies."
 msgstr ""
+"He leído y acepto los términos\n"
+"y las políticas."
 
 msgid "Agree and Proceed"
-msgstr ""
+msgstr "Aceptar y continuar"
 
 msgid "Activation Successful!"
-msgstr ""
+msgstr "¡Activación exitosa!"
 
 msgid "Helio Additive is now active. You have unlocked free optimizations!"
-msgstr ""
+msgstr "Helio Additive ya está activo. ¡Ha desbloqueado optimizaciones gratuitas!"
 
 msgid "Applies only when first activated"
-msgstr ""
+msgstr "Se aplica solo cuando se activa por primera vez"
 
 msgid "Run Your First Optimization"
-msgstr ""
+msgstr "Ejecute su primera optimización"
 
 msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
-msgstr ""
+msgstr "¡Ya casi lo tiene! Ahora que Helio está activado, su primera optimización para una impresión más rápida y fiable solo le llevará unos minutos. (Ahora se denomina \"Mejorar\")"
 
-msgid ""
-"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
-"\n"
+msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
 msgstr ""
 
 msgid "Supported printers and materials"
-msgstr ""
+msgstr "Impresoras y materiales compatibles"
 
 msgid "Copy PAT"
-msgstr ""
+msgstr "Copiar PAT"
 
 msgid ""
 "Personal Access Token (PAT)\n"
@@ -10212,39 +10332,47 @@ msgid ""
 "• Use the Helio API directly\n"
 "• Provide to support when troubleshooting"
 msgstr ""
+"Token de Acceso Personal (PAT)\n"
+"\n"
+"Una credencial segura que verifique su identidad con los servicios de Helio. Es utilizado automáticamente por BambuStudio para optimizaciones y simulaciones.\n"
+"\n"
+"Es posible que necesite copiar esto para:\n"
+"• Integrar Helio con otros slicers o herramientas\n"
+"• Usar directamente la API de Helio\n"
+"• Proporcionarlo al soporte técnico para resolver problemas"
 
 msgid "Copy successful!"
 msgstr "¡Copia completada!"
 
 msgid "History"
-msgstr ""
+msgstr "Historial"
 
 msgid "View and download recent optimizations and simulations"
-msgstr ""
+msgstr "Ver y descargar optimizaciones y simulaciones recientes"
 
 msgid "Terms of Use"
-msgstr ""
+msgstr "Términos de uso"
 
 msgid "Activation Successful"
-msgstr ""
+msgstr "Activación exitosa"
 
 msgid "Assess"
-msgstr ""
+msgstr "Evaluar"
 
 msgid "Formerly referred to as 'Simulate' or 'Simulation'"
-msgstr ""
+msgstr "Anteriormente conocido como 'Simular' o 'Simulación'"
 
 msgid "See where it will fail"
-msgstr ""
+msgstr "Ver dónde fallará"
 
 msgid "Enhance"
-msgstr ""
+msgstr "Mejorar"
 
 msgid "Formerly referred to as 'Optimize' or 'Optimization'"
-msgstr ""
+msgstr "Anteriormente conocido como 'Optimizar' u 'Optimización'"
 
 msgid "Auto-fix with new speeds"
-msgstr ""
+msgstr "Corrección automática con nuevas velocidades"
 
 msgid "Environment Temperature"
 msgstr "Temperatura ambiental"
@@ -10253,46 +10381,46 @@ msgid "Chamber Temperature"
 msgstr "Temperatura de la cámara"
 
 msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
-msgstr ""
+msgstr "Se refiere a la temperatura ambiente de la impresión (p. ej., serie A: temperatura ambiente). Cambiar la temperatura de la cámara al ejecutar una evaluación/simulación permite experimentar con diferentes escenarios de temperatura."
 
 msgid "Optional. More accurate temperatures ensures better results."
-msgstr ""
+msgstr "Opcional. Unas temperaturas más precisas garantizan mejores resultados."
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "Función avanzada de Helio para usuarios potenciales: la compra de postales disponible en su sitio web oficial."
 
 msgid "Account Status"
-msgstr ""
+msgstr "Estado de la cuenta"
 
 msgid "Subscription:"
-msgstr ""
+msgstr "Suscripción:"
 
 msgid "Loading subscription status..."
-msgstr ""
+msgstr "Cargando estado de la suscripción..."
 
 msgid "Monthly quota:"
-msgstr ""
+msgstr "Cuota mensual:"
 
 msgid "Add-ons:"
-msgstr ""
+msgstr "Complementos:"
 
 msgid "Plans / Upgrades"
-msgstr ""
+msgstr "Planes / Actualizaciones"
 
 msgid "Manage Account"
-msgstr ""
+msgstr "Gestionar cuenta"
 
 msgid "Environment Settings"
-msgstr ""
+msgstr "Configuración del entorno"
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
-msgstr ""
+msgstr "Utilice la temperatura de la cámara de la configuración del filamento cuando está disponible; de lo contrario, la estima a partir de la temperatura de la placa de construcción."
 
 msgid "Optimization Settings"
-msgstr ""
+msgstr "Configuración de la optimización"
 
 msgid "Now referred to as 'Enhance' or 'Enhancement'"
-msgstr ""
+msgstr "Ahora conocido como 'Mejorar' o 'Mejora'"
 
 msgid "Helio default (recommended)"
 msgstr "Helio por defecto (recomendado)"
@@ -10304,7 +10432,7 @@ msgid "Limits"
 msgstr "Límites"
 
 msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
-msgstr ""
+msgstr "Establezca sus propios límites de velocidad y caudal, o utilice la configuración de límites personalizada de Helio. Con materiales no compatibles, deberá proporcionar sus propios datos o utilizar los datos integrados del cortador."
 
 msgid "Min Velocity"
 msgstr "Velocidad mínima"
@@ -10325,55 +10453,55 @@ msgid "Click for more details"
 msgstr "Haga clic para más detalles"
 
 msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
-msgstr ""
+msgstr "La mejora solo tardará unos minutos en completarse, dependiendo del tamaño del objeto. (Se realiza una gran cantidad de procesamiento en segundo plano). (Anteriormente conocido como \"Optimizar\" u \"Optimización\")"
 
 msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
-msgstr ""
+msgstr "La evaluación solo tardará unos minutos en completarse, dependiendo del tamaño del objeto. (Se realiza una gran cantidad de procesamiento en segundo plano). (Anteriormente conocido como \"Simular\" o \"Simulación\")"
 
 msgid "Start Free Trial"
-msgstr ""
+msgstr "Comience una prueba gratuita"
 
 msgid "Activate your free trial to unlock premium enhancements"
-msgstr ""
+msgstr "Active su prueba gratuita para desbloquear las mejoras premium"
 
 msgid "Go to our storefront to purchase more enhancements"
-msgstr ""
+msgstr "Visite nuestra tienda para comprar más mejoras"
 
 msgid "Free Trial"
-msgstr ""
+msgstr "Prueba gratuita"
 
 msgid "Free Trial Expired"
-msgstr ""
+msgstr "Prueba gratuita expirada"
 
 msgid "Your free trial has ended. Explore our plans to continue using premium features."
-msgstr ""
+msgstr "Su prueba gratuita ha finalizado. Explore nuestros planes para continuar utilizando las funciones premium."
 
 msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
-msgstr ""
+msgstr "¡Comience su prueba gratuita para desbloquear mejoras premium e impresiones más rápidas y sin deformaciones!"
 
 msgid "Unlimited*"
-msgstr ""
+msgstr "Ilimitado*"
 
 msgid "*Fair usage terms apply - click to learn more"
-msgstr ""
+msgstr "*Se aplican términos de uso justo - haga clic para saber más"
 
 msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
-msgstr ""
+msgstr "Limite las correcciones de Helio a ciertas capas o consérvelas para todas: ¡Usted decide! (La capa 1, conectada a la cama, suele omitirse)."
 
 msgid "Print Priority"
-msgstr ""
+msgstr "Prioridad de impresión"
 
 msgid "Loading print priority options..."
-msgstr ""
+msgstr "Cargando opciones de prioridad de impresión..."
 
 msgid "Fetching material-specific options from Helio API..."
-msgstr ""
+msgstr "Obteniendo opciones específicas del material desde la API de Helio..."
 
 msgid "Preserve Surface Finish"
-msgstr ""
+msgstr "Conservar el acabado de la superficie"
 
 msgid "Speed & Strength"
-msgstr ""
+msgstr "Velocidad y fuerza"
 
 msgid ""
 "Speed & Strength: Optimizes outer walls for improved performance.\n"
@@ -10381,29 +10509,35 @@ msgid ""
 "\n"
 "Note: Using fallback options - couldn't fetch material-specific settings from API."
 msgstr ""
+"Velocidad y Resistencia: Optimice las paredes exteriores para mejorar el rendimiento.\n"
+"Preservar el Acabado Superficial: Mantiene las velocidades originales de las paredes para conservar el acabado visual.\n"
+"\n"
+"Nota: Usando opciones de respaldo: no se pudieron obtener ajustes específicos del material desde la API."
 
 msgid "No print priority options available for this material"
-msgstr ""
+msgstr "No hay opciones de prioridad de impresión disponibles para este material"
 
 msgid "This material does not support print priority optimization."
-msgstr ""
+msgstr "Este material no admite la optimización de la prioridad de impresión."
 
 msgid "Optimizes outer walls for improved performance."
-msgstr ""
+msgstr "Optimice las paredes exteriores para un mejor rendimiento."
 
 msgid "Maintains original wall speeds to preserve visual finish."
-msgstr ""
+msgstr "Mantiene las velocidades originales de la pared para preservar el acabado visual."
 
 msgid "Enhance Surface Gloss"
-msgstr ""
+msgstr "Mejorar el brillo de la superficie"
 
 msgid "Optimizes for enhanced surface gloss."
-msgstr ""
+msgstr "Optimice para mejorar el brillo de la superficie."
 
 msgid ""
 "Failed to load print priority options from Helio API.\n"
 "Using standard optimization method instead (same as before print priority feature)."
 msgstr ""
+"No se pudieron cargar las opciones de prioridad de impresión desde la API de Helio.\n"
+"Se utiliza el método de optimización estándar en su lugar (igual que antes de la función de prioridad de impresión)."
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "No se ha podido obtener el PAT de Helio. El número de PATs emitidos ha alcanzado el límite superior. Por favor, preste atención a la información en el sitio web oficial de Helio. Haga clic en Actualizar para obtenerlo nuevamente una vez que esté disponible."
@@ -10421,130 +10555,130 @@ msgid "Consistency Improvement"
 msgstr "Mejora de la consistencia"
 
 msgid "Estimate of improvement in print time before and after enhancement"
-msgstr ""
+msgstr "Estimación de la mejora en el tiempo de impresión antes y después de la mejora"
 
 msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
-msgstr ""
+msgstr "Nivel de mejora de resistencia y deformación para esta pieza después de la mejora: promedio para la pieza"
 
 msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
-msgstr ""
+msgstr "Nivel de fuerza y mejora de deformación para esta parte después de la mejora - cambio en la consistencia general"
 
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
 msgstr "Su G-code se ha mejorado para la mejor impresión posible. Para mejorar aún más su impresión, por favor revise nuestro wiki para consejos y trucos sobre qué hacer después."
 
 msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
-msgstr ""
+msgstr "Califique la mejora según sus expectativas. ¡5 estrellas significa excelente! 1 estrella significa que no se agregó mucho valor."
 
 msgid "Save the enhanced gcode locally"
-msgstr ""
+msgstr "Guardar el G-code mejorado localmente"
 
 msgid "Print Plate"
-msgstr ""
+msgstr "Placa de impresión"
 
 msgid "Print the enhanced part immediately"
-msgstr ""
+msgstr "Imprima la parte mejorada inmediatamente"
 
 msgid "View Details"
-msgstr ""
+msgstr "Ver detalles"
 
 msgid "Verify Print Success Results"
-msgstr ""
+msgstr "Verificar resultados de impresión exitosa"
 
 msgid "Simulates the thermal process to confirm your part will print without failure."
-msgstr ""
+msgstr "Simula el proceso térmico para confirmar que la pieza se imprimirá sin fallos."
 
 msgid "Now referred to as 'Assess' or 'Assessment'"
-msgstr ""
+msgstr "Ahora conocido como 'Evaluar' o 'Evaluación'"
 
 msgid "Time saved: "
-msgstr ""
+msgstr "Tiempo ahorrado: "
 
 msgid "From "
-msgstr ""
+msgstr "Desde "
 
 msgid "Expected Outcome:"
-msgstr ""
+msgstr "Resultado esperado:"
 
 msgid "Analysis:"
-msgstr ""
+msgstr "Análisis:"
 
 msgid "Additional observations:"
-msgstr ""
+msgstr "Observaciones adicionales:"
 
 msgid "Fix suggestions"
-msgstr ""
+msgstr "Corregir sugerencias"
 
 msgid "With Enhance Speed & Quality:"
-msgstr ""
+msgstr "Con velocidad y calidad mejoradas:"
 
 msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
-msgstr ""
+msgstr "Este es el tiempo que se puede ahorrar si se ejecuta la función Helio Additive Enhance. Haga clic en el botón \"Mejorar velocidad y calidad\" para continuar."
 
 msgid "Enhance Speed & Quality"
-msgstr ""
+msgstr "Con velocidad y calidad mejoradas"
 
 msgid "Applies Helio's optimized speed/flow/fan strategy."
-msgstr ""
+msgstr "Aplica la estrategia optimizada de velocidad/flujo/ventilador de Helio."
 
 msgid "✅ Will Print"
-msgstr ""
+msgstr "✅ Se imprimirá"
 
 msgid "⚠️ May Print with Issues"
-msgstr ""
+msgstr "⚠️ Puede imprimir con problemas"
 
 msgid "❌ Likely to Fail"
-msgstr ""
+msgstr "❌Probablemente falle"
 
 msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
-msgstr ""
+msgstr "Las condiciones térmicas están equilibradas. La pieza se imprime dentro de los límites de temperatura seguros."
 
 msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
-msgstr ""
+msgstr "El material se enfría demasiado rápido antes de aplicar la siguiente capa. Esto puede provocar una adhesión débil, deformaciones o grietas en las capas."
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
-msgstr ""
+msgstr "El calor se acumula en pequeñas capas a mayor velocidad de la que se disipa. Esto puede causar flacidez o pérdida de detalle en rasgos finos."
 
 msgid "Ready to print"
-msgstr ""
+msgstr "Listo para imprimir"
 
 msgid "Too cold overall — see suggestions"
-msgstr ""
+msgstr "Demasiado frío en general — ver sugerencias"
 
 msgid "Too hot overall — see suggestions"
-msgstr ""
+msgstr "Demasiado calor en general — ver sugerencias"
 
 msgid "Your part is ready to print! Thermal conditions are within safe limits."
-msgstr ""
+msgstr "¡Su pieza está lista para imprimir! Las condiciones térmicas son seguras."
 
 msgid "Too cold (overall)"
-msgstr ""
+msgstr "Demasiado frío (en general)"
 
 msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
-msgstr ""
+msgstr "La pieza se enfría demasiado rápido entre las capas en promedio. Algunas capas pueden comportarse de forma diferente- consulte las observaciones."
 
 msgid "Too hot (overall)"
-msgstr ""
+msgstr "Demasiado caliente (en general)"
 
 msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
-msgstr ""
+msgstr "La pieza se mantiene demasiado caliente entre las capas en promedio. Algunas capas pueden comportarse de forma diferente- consulte las observaciones."
 
 msgid "Suggestions"
-msgstr ""
+msgstr "Sugerencias"
 
 msgid "Quick fixes (beginner):"
-msgstr ""
+msgstr "Soluciones rápidas (principiante):"
 
 msgid "Expert"
-msgstr ""
+msgstr "Experto"
 
 msgid "Learn more"
 msgstr "Conocer más"
 
 msgid "Helio Flowchart"
-msgstr ""
+msgstr "Diagrama de flujo de Helio"
 
 msgid "Fixing cold prints"
-msgstr ""
+msgstr "Reparación de impresiones en frío"
 
 msgid "Air Pump"
 msgstr "Bomba de aire"
@@ -11590,6 +11724,12 @@ msgstr "Densidad de la superficie superior"
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
 msgstr "Densidad del relleno de la superficie superior, 100% significa una capa superior completamente llena de sólidos. Los valores más bajos crean una superficie superior texturizada, al 0%, solo se crean las paredes en la capa superior. Destinado a fines estéticos o funcionales, no para solucionar problemas como la sobreextrusión."
 
+msgid "Monotonic line travel extend"
+msgstr ""
+
+msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
+msgstr ""
+
 msgid "Bottom surface pattern"
 msgstr "Patrón de la superficie inferior"
 
@@ -12325,12 +12465,6 @@ msgstr "Soporte para controlar la temperatura de la cámara"
 
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Esta opción se activa si la máquina admite el control de la temperatura de la cámara"
-
-msgid "Apply top surface compensation"
-msgstr "Aplicar compensación de superficie superior"
-
-msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr "Active esta opción para extender la distancia de desplazamiento entre las líneas de la superficie superior, mejorando la adherencia entre el relleno de la superficie superior y las paredes."
 
 msgid "Air filtration enhancement"
 msgstr "Mejora de la filtración de aire"
@@ -15146,6 +15280,9 @@ msgstr "Necesidad de seleccionar impresora"
 msgid "The start, end or step is not valid value."
 msgstr "El inicio, el final o el paso no son valores válidos."
 
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A es demasiado blando y no admite la calibración automática de Flow Dynamics."
+
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "La cantidad de extrusores de impresora y la impresora seleccionada para la calibración no coinciden."
 
@@ -15537,7 +15674,7 @@ msgid "Helio: optimization working"
 msgstr "Helio: optimización en funcionamiento"
 
 msgid "Helio: optimization failed"
-msgstr ""
+msgstr "Helio: la optimización ha fallado"
 
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: Ha fallado la comprobación de optimización"
@@ -15711,6 +15848,9 @@ msgstr ""
 msgid "Filament grouping"
 msgstr "Agrupación de filamentos"
 
+msgid "Fila Saving"
+msgstr ""
+
 msgid "Don't remind me again"
 msgstr "No me lo vuelvas a recordar"
 
@@ -15774,6 +15914,9 @@ msgstr "Extrusor derecho(%d)"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "El método de agrupamiento de filamentos para la placa actual se determina mediante la opción desplegable del botón de la placa de corte."
+
+msgid "Filament grouping is automatically optimized based on filament-saving principles"
+msgstr ""
 
 msgid "Skip Objects"
 msgstr "Omitir objetos"
@@ -16038,50 +16181,50 @@ msgid "Terms of Bambu Lab User Experience Improvement Program"
 msgstr "Condiciones del Programa de Mejora de la Experiencia del Usuario de Bambu Lab"
 
 msgid "Recent Helio Runs"
-msgstr ""
+msgstr "Recientes carreras de Helio"
 
 msgid "Showing recent completed optimizations and simulations"
-msgstr ""
+msgstr "Mostrando optimizaciones y simulaciones completadas recientemente"
 
 msgid "Loading recent runs..."
-msgstr ""
+msgstr "Cargando ejecuciones recientes..."
 
 msgid "No Recent Runs Found"
-msgstr ""
+msgstr "No se encontraron ejecuciones recientes"
 
 msgid "No completed simulations or optimizations found"
-msgstr ""
+msgstr "No se encontraron simulaciones ni optimizaciones completadas"
 
 #, c-format, boost-format
 msgid "OPTIMIZATIONS (%d)"
-msgstr ""
+msgstr "OPTIMIZACIONES (%d)"
 
 #, c-format, boost-format
 msgid "SIMULATIONS (%d)"
-msgstr ""
+msgstr "SIMULACIONES (%d)"
 
 #, c-format, boost-format
 msgid "%d layers"
-msgstr ""
+msgstr "%d capas"
 
 #, c-format, boost-format
 msgid "Quality: %s | Consistency: %s"
-msgstr ""
+msgstr "Calidad: %s | Consistencia: %s"
 
 msgid "Download GCode"
-msgstr ""
+msgstr "Descargar G-code"
 
 msgid "View Results"
-msgstr ""
+msgstr "Ver resultados"
 
 msgid "GCode URL is not available"
-msgstr ""
+msgstr "La URL de G-code no está disponible"
 
 msgid "Download Error"
-msgstr ""
+msgstr "Error de descarga"
 
 msgid "Save GCode File"
-msgstr ""
+msgstr "Guardar archivo G-code"
 
 #, c-format, boost-format
 msgid ""
@@ -16089,19 +16232,24 @@ msgid ""
 "\n"
 "Saved to: %s"
 msgstr ""
+"¡Archivo G-code se ha descargado correctamente!\n"
+"\n"
+"Guardado en: %s"
 
 msgid "Download Complete"
-msgstr ""
+msgstr "Descarga completada"
 
 #, c-format, boost-format
 msgid ""
 "Failed to open file for writing:\n"
 "%s"
 msgstr ""
+"No se ha podido abrir el archivo para escribir:\n"
+"%s"
 
 #, c-format, boost-format
 msgid "Error saving file: %s"
-msgstr ""
+msgstr "Error al guardar el archivo: %s"
 
 #, c-format, boost-format
 msgid ""
@@ -16109,40 +16257,43 @@ msgid ""
 "\n"
 "Error: %s"
 msgstr ""
+"No se pudo descargar el archivo G-code.\n"
+"\n"
+"Error: %s"
 
 msgid "Optimization Details"
-msgstr ""
+msgstr "Detalles de la optimización"
 
 msgid "Simulation Details"
-msgstr ""
+msgstr "Detalles de la simulación"
 
 #, c-format, boost-format
 msgid "%d seconds ago"
-msgstr ""
+msgstr "Hace %d segundos"
 
 #, c-format, boost-format
 msgid "%d minutes ago"
-msgstr ""
+msgstr "Hace %d minutos"
 
 #, c-format, boost-format
 msgid "%d hours ago"
-msgstr ""
+msgstr "Hace %d horas"
 
 #, c-format, boost-format
 msgid "%d days ago"
-msgstr ""
+msgstr "Hace %d días"
 
 msgid "Print Outcome: WILL_PRINT"
-msgstr ""
+msgstr "Resultado de la impresión: WILL_PRINT"
 
 msgid "Print Outcome: MAY_PRINT"
-msgstr ""
+msgstr "Resultado de la impresión: MAY_PRINT"
 
 msgid "Print Outcome: LIKELY_FAIL"
-msgstr ""
+msgstr "Resultado de la impresión: LIKELY_FAIL"
 
 msgid "Print Outcome: "
-msgstr ""
+msgstr "Resultado de la impresión: "
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -16370,6 +16521,8 @@ msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
+"Imprima Nylon y PC (y otros materiales avanzados) como un profesional\n"
+"¿Imprimiendo Nylon 612, policarbonato u otros materiales avanzados? Helio le ayuda a evitar el fallo de \"casi funcionó\"."
 
 #: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
 #: (Safely)]
@@ -16377,13 +16530,15 @@ msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
+"Realice impresiones hasta un 30 % más rápidas (de forma segura)\n"
+"Obtenga rendimiento real, no un \"modo rápido\" riesgoso. Una impresión que normalmente toma 8 horas podría reducirse a ~5,6 horas."
 
 #: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
 #: Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
 "Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
-msgstr ""
+msgstr "Deje de perder valioso tiempo de diseño ajustando. Menos impresiones de prueba, ajustes más rápidos. En lugar de múltiples pruebas, detecta problemas y acierte a la primera."
 
 #: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
 #: advanced materials]
@@ -16391,30 +16546,65 @@ msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
+"Reducir la deformación en ASA/ABS y otros materiales avanzados\n"
+"La deformación arruina trabajos largos. Helio muestra dónde el riesgo es mayor antes de imprimir y, con enhance, reduce el riesgo de deformación casi a cero."
 
 #: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
 "Quality Check Before You Hit Print\n"
 "Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
+"Revisión de calidad antes de imprimir\n"
+"Piénselo como una inspección previa al vuelo. Por ejemplo: si un soporte de PC muestra un TQI bajo en nervaduras finas, sabrá que debe ajustar antes de comprometerte con una impresión nocturna."
 
 #: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
 "Stronger Parts With One Click\n"
 "Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
+"Piezas más fuertes con un solo clic\n"
+"Mejor adherencia, menos fallos por fragilidad. Ejemplo: para policarbonato, los resultados muestran ~+65 % de resistencia a la tracción tras la optimización."
 
 #: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
 "Save Money Every Run\n"
 "Faster + fewer failures = real savings."
 msgstr ""
+"Ahorre dinero en cada ejecución\n"
+"Más rápido + menos fallas = ahorros reales."
 
 #: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+"Fiabilidad a la primera\n"
+"Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+#~ msgstr "La calibración dinámica del flujo no es compatible con el filamento TPU 85A."
+
+#~ msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+#~ msgstr "Consejos: Para aprender sobre las reglas de compatibilidad de filamentos, consulte la Wiki antes de usar->"
+
+#~ msgid "Air Condition"
+#~ msgstr "Aire acondicionado"
+
+#~ msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
+#~ msgstr "No se puede leer la información del filamento: el filamento está cargado en el cabezal; descargue el filamento e inténtelo de nuevo."
+
+#~ msgid ""
+#~ "The currently selected machine preset is inconsistent with the connected printer type.\n"
+#~ "Are you sure to continue syncing?"
+#~ msgstr ""
+#~ "La configuración predeterminada de la máquina seleccionada actualmente no es compatible con el tipo de impresora conectada. \n"
+#~ "¿Está seguro de que desea continuar con la sincronización?"
+
+#~ msgid "Apply top surface compensation"
+#~ msgstr "Aplicar compensación de superficie superior"
+
+#~ msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+#~ msgstr "Active esta opción para extender la distancia de desplazamiento entre las líneas de la superficie superior, mejorando la adherencia entre el relleno de la superficie superior y las paredes."
 
 #~ msgid "Helio does not support using a number of materials greater than 1."
 #~ msgstr "Helio no admite el uso de una cantidad de materiales mayor que 1."
