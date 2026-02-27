@@ -189,7 +189,8 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
         return;
     }
 
-    EnsureConnected([this, mem_path = std::move(mem_path), target_path = std::move(target_path), cb = std::move(cb)](bool ok, int ec, std::string msg) mutable {
+    auto self = shared_from_this();
+    EnsureConnected([self, mem_path = std::move(mem_path), target_path = std::move(target_path), cb = std::move(cb)](bool ok, int ec, std::string msg) mutable {
         if (!ok) {
             if (cb) cb(ec, ec, std::string("{\"error\":\"connection failed: ") + msg + "\"}", {});
             return;
@@ -208,8 +209,8 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
                 mod = &module();
             } catch (const std::exception &e) {
                 {
-                    std::lock_guard<std::mutex> lock(impl_->mutex);
-                    impl_->reset_locked();
+                    std::lock_guard<std::mutex> lock(self->impl_->mutex);
+                    self->impl_->reset_locked();
                 }
                 if (cb) cb(FT_ESTATE, FT_ESTATE, std::string("{\"error\":\"") + e.what() + "\"}", {});
                 return;
@@ -218,51 +219,51 @@ void FileTransferObject::DownloadMemFile(std::string mem_path, std::string targe
             std::shared_ptr<FileTransferTunnel> tunnel;
             uint64_t request_id = 0;
             {
-                std::lock_guard<std::mutex> lock(impl_->mutex);
+                std::lock_guard<std::mutex> lock(self->impl_->mutex);
 
-                if (impl_->state != Impl::ConnState::Connected || !impl_->tunnel) {
+                if (self->impl_->state != Impl::ConnState::Connected || !self->impl_->tunnel) {
                     if (cb) cb(FT_ESTATE, FT_ESTATE, "{\"error\":\"tunnel not connected\"}", {});
                     return;
                 }
 
-                tunnel = impl_->tunnel;
-                request_id = ++impl_->request_seq;
-                impl_->active_request_id = request_id;
+                tunnel = self->impl_->tunnel;
+                request_id = ++self->impl_->request_seq;
+                self->impl_->active_request_id = request_id;
             }
 
             // Create FTDownloadFiles job (via JSON parameters)
             auto job = std::make_shared<FileTransferJob>(*mod, params.dump());
             {
-                std::lock_guard<std::mutex> lock(impl_->mutex);
-                impl_->track_job_locked(job);
+                std::lock_guard<std::mutex> lock(self->impl_->mutex);
+                self->impl_->track_job_locked(job);
             }
 
-            job->on_result([this, job, request_id, cb = std::move(cb)](int ec2, int resp_ec, std::string json, std::vector<std::byte> bin) mutable {
+            job->on_result([self, job, request_id, cb = std::move(cb)](int ec2, int resp_ec, std::string json, std::vector<std::byte> bin) mutable {
                 if (cb) cb(ec2, resp_ec, std::move(json), std::move(bin));
 
                 // Cleanup resources after callback completes (one-shot design)
                 {
-                    std::lock_guard<std::mutex> lock(impl_->mutex);
-                    impl_->untrack_job_locked(job);
-                    if (request_id == impl_->active_request_id) {
-                        impl_->reset_locked();
+                    std::lock_guard<std::mutex> lock(self->impl_->mutex);
+                    self->impl_->untrack_job_locked(job);
+                    if (request_id == self->impl_->active_request_id) {
+                        self->impl_->reset_locked();
                     }
                 }
             });
 
             {
-                std::lock_guard<std::mutex> lock(impl_->mutex);
+                std::lock_guard<std::mutex> lock(self->impl_->mutex);
                 if (tunnel) {
                     job->start_on(*tunnel);
                 } else {
-                    impl_->reset_locked();
+                    self->impl_->reset_locked();
                     if (cb) cb(FT_ESTATE, FT_ESTATE, "{\"error\":\"tunnel released\"}", {});
                 }
             }
         } catch (const std::exception &e) {
             {
-                std::lock_guard<std::mutex> lock(impl_->mutex);
-                impl_->reset_locked();
+                std::lock_guard<std::mutex> lock(self->impl_->mutex);
+                self->impl_->reset_locked();
             }
             if (cb) cb(FT_EIO, FT_EIO, std::string("{\"error\":\"") + e.what() + "\"}", {});
         }
