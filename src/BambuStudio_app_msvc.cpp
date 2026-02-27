@@ -190,7 +190,15 @@ extern "C" {
 }
 extern "C" {
 #ifdef SLIC3R_WRAPPER_NOCONSOLE
-    int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, PWSTR /* lpCmdLine */, int /* nCmdShow */)    {
+    int APIENTRY wWinMain(HINSTANCE /* hInstance */, HINSTANCE /* hPrevInstance */, PWSTR /* lpCmdLine */, int /* nCmdShow */)
+    {
+        // if started from console/CLI then reopen stdout/stderr pipes to it for printf/cout output,
+        // which includes --help content and any option parsing errors.
+        if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+          freopen("CONOUT$", "w", stdout);
+          freopen("CONOUT$", "w", stderr);
+        }
+
         int 	  argc;
         wchar_t** argv = ::CommandLineToArgvW(::GetCommandLineW(), &argc);
 #else
