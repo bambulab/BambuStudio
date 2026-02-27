@@ -1141,6 +1141,7 @@ namespace Slic3r
                 m_ssid_to_moveid_map.shrink_to_fit();
                 m_plater_extruder.clear();
                 m_contained_in_bed = true;
+                m_config = nullptr;
 
                 if (m_p_extrusions) {
                     m_p_extrusions->reset_ranges();
