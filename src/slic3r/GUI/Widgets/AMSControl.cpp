@@ -1206,7 +1206,7 @@ void AMSControl::AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos)
         if (single_info.size() == 2)
         {
             ams_prv2 = new AMSPreview(m_panel_prv_right, wxID_ANY, single_info[1]);
-            m_sizer_prv_right->Add(ams_prv2, 0, wxALIGN_CENTER | wxLEFT, 0);
+            m_sizer_prv_right->Add(ams_prv2, 0, wxALIGN_CENTER | wxLEFT, FromDIP(6));
         }
     }
     else
@@ -1216,7 +1216,7 @@ void AMSControl::AddAmsPreview(std::vector<AMSinfo>single_info, AMSPanelPos pos)
         if (single_info.size() == 2)
         {
             ams_prv2 = new AMSPreview(m_panel_prv_left, wxID_ANY, single_info[1]);
-            m_sizer_prv_left->Add(ams_prv2, 0, wxALIGN_CENTER | wxLEFT, 0);
+            m_sizer_prv_left->Add(ams_prv2, 0, wxALIGN_CENTER | wxLEFT, FromDIP(6));
         }
     }
 
