@@ -1683,7 +1683,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " check_printer_initialized fail";
         return false;
     }
-    
+
     std::string machine_print_name = obj->get_show_printer_type();
     wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
@@ -3918,16 +3918,33 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         return;
     }
     auto skip_ext = m_sync_dlg->has_selector(nullptr);
-    list2.resize(list.size());
+    if (skip_ext) {
+        list2.clear();
+    } else {
+        list2.resize(list.size());
+    }
     auto iter = list.begin();
+    std::set<std::pair<std::string, std::string>> added_filaments;
     for (int i = 0; i < list.size(); ++i, ++iter) {
         auto & ams = iter->second;
-        if (ams.opt_string("tray_name", 0u) == "Ext" && skip_ext) {
+        auto filament_id = ams.opt_string("filament_id", 0u);
+        auto tray_name = ams.opt_string("tray_name", 0u);
+        if (tray_name == "Ext" && skip_ext) {
             continue;
         }
-        auto filament_id = ams.opt_string("filament_id", 0u);
-        ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
-        list2[i] = filament_id;
+        if (skip_ext) {
+            auto filament_pair = std::make_pair(tray_name, filament_id);
+            if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                continue;
+            }
+            added_filaments.insert(filament_pair);
+
+             ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
+            list2.emplace_back(filament_id);
+        } else {
+            ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
+            list2[i] = filament_id;
+        }
     }
 
     // BBS:Record consumables information before synchronization
