@@ -100,6 +100,7 @@ public:
 
     void allow_paint_dropdown(bool flag);
 
+    void set_ams_text(const wxString& txt);
     void set_ams_info(wxColour col, wxString txt,
                       int ctype = 0, std::vector<wxColour> cols = std::vector<wxColour>(),
                       bool record_back_info = false);
@@ -324,8 +325,8 @@ public:
     void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
-    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch = false);
-    void         update_rack_select(MachineObject* obj, bool use_dynamic_switch);
+    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch = false, std::optional<PrintFromType> print_type = std::nullopt);
+    void         update_rack_select(MachineObject* obj, bool use_dynamic_switch, std::optional<PrintFromType> print_type);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);

@@ -151,6 +151,15 @@ public:
     static bool IsVirtualSlot(const std::string& ams_id) { return (ams_id == VIRTUAL_AMS_MAIN_ID_STR || ams_id == VIRTUAL_AMS_DEPUTY_ID_STR); }
 };
 
+namespace GUI
+{
+enum PrintFromType
+{
+    FROM_NORMAL,
+    FROM_SDCARD_VIEW,
+};
+}
+
 };// namespace Slic3r
 
 struct NozzleDef

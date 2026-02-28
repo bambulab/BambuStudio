@@ -169,7 +169,8 @@ void wgtDeviceNozzleRackSelect::UpdatSelectedNozzle(std::shared_ptr<DevNozzleRac
 
 void wgtDeviceNozzleRackSelect::UpdatSelectedNozzles(std::shared_ptr<DevNozzleRack> rack,
                                                      std::vector<int> selected_nozzle_pos_vec,
-                                                     bool use_dynamic_switch)
+                                                     bool use_dynamic_switch,
+                                                     std::optional<PrintFromType> /*print_from_type*/)
 {
     m_nozzle_rack = rack;
     m_enable_manual_nozzle_pick = !use_dynamic_switch;

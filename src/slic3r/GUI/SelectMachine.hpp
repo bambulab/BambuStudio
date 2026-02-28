@@ -60,10 +60,6 @@ namespace Slic3r { namespace GUI {
 
 std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type);
 void        print_ams_mapping_result(std::vector<FilamentInfo> &result);
-enum PrintFromType {
-    FROM_NORMAL,
-    FROM_SDCARD_VIEW,
-};
 
 enum PrintPageMode {
     PrintPageModePrepare = 0,
@@ -569,6 +565,9 @@ private:
 
     /* update ams backup*/
     void update_ams_backup(MachineObject* obj_);
+
+    /* update material items position*/
+    void update_material_item_pos(MachineObject* obj_);
 
     /* update scroll area size*/
     void update_scroll_area_size();
