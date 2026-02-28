@@ -1481,7 +1481,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 
         // Get nozzle diameter using the same method as AMSMaterialsSetting::Popup
         std::ostringstream stream;
-        int extruder_id = obj->get_extruder_id_by_ams_id(m_ams_info.m_ams_id);
+        int extruder_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(m_ams_info.m_ams_id);
         if (!obj->GetExtderSystem()->GetExtderById(extruder_id)) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " get extruder id failed";
             extruder_id = 0;

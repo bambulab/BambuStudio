@@ -4667,11 +4667,6 @@ bool MachineObject::is_multi_extruders() const
     return m_extder_system->GetTotalExtderCount() > 1;
 }
 
-int MachineObject::get_extruder_id_by_ams_id(const std::string& ams_id)
-{
-    return m_fila_system->GetExtruderIdByAmsId(ams_id);
-}
-
 DevNozzle MachineObject::get_nozzle_by_id_code(int id_code) const
 {
     /* toolhead nozzle*/

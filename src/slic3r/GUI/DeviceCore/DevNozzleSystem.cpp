@@ -238,10 +238,10 @@ std::string to_string_with_precision(T num, int decimal_places = 2)
 wxString DevNozzle::ToNozzleDiameterStr(const NozzleDiameterType& type)
 {
     switch (type) {
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return to_string_with_precision(0.2f) + " mm";
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return to_string_with_precision(0.4f) + " mm";
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return to_string_with_precision(0.6f) + " mm";
-    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return to_string_with_precision(0.8f) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_2: return to_string_with_precision(0.2f, 1) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_4: return to_string_with_precision(0.4f, 1) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_6: return to_string_with_precision(0.6f, 1) + " mm";
+    case NozzleDiameterType::NOZZLE_DIAMETER_0_8: return to_string_with_precision(0.8f, 1) + " mm";
     default: return _L("Unknown");
     }
 }
