@@ -2149,16 +2149,39 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         m_enable_label_object = true;
         m_label_objects_ids.clear();
         m_label_objects_ids.reserve(print.num_object_instances());
-        for (const PrintObject* print_object : print.objects())
-            for (const PrintInstance& print_instance : print_object->instances())
-                m_label_objects_ids.push_back(print_instance.model_instance->get_labeled_id());
+        std::vector<std::pair<size_t, coordf_t>> label_object_heights;
+        label_object_heights.reserve(print.num_object_instances());
+        for (const PrintObject* print_object : print.objects()) {
+            const auto& object_layers = print_object->layers();
+            coordf_t object_max_height = object_layers.empty() ? 0 : object_layers.back()->print_z;
+            for (const PrintInstance& print_instance : print_object->instances()) {
+                size_t label_id = print_instance.model_instance->get_labeled_id();
+                m_label_objects_ids.push_back(label_id);
+                label_object_heights.emplace_back(label_id, object_max_height);
+            }
+        }
 
-        std::sort(m_label_objects_ids.begin(), m_label_objects_ids.end());
+        std::sort(label_object_heights.begin(), label_object_heights.end(),
+            [](const auto& left, const auto& right) { return left.first < right.first; });
+        m_label_objects_ids.clear();
+        m_label_objects_ids.reserve(label_object_heights.size());
+        for (const auto& label_object_height : label_object_heights)
+            m_label_objects_ids.push_back(label_object_height.first);
 
         std::string objects_id_list = "; model label id: ";
         for (auto it = m_label_objects_ids.begin(); it != m_label_objects_ids.end(); it++)
             objects_id_list += (std::to_string(*it) + (it != m_label_objects_ids.end() - 1 ? "," : "\n"));
         file.writeln(objects_id_list);
+
+        std::ostringstream object_max_height_list;
+        object_max_height_list << "; object max height: " << std::fixed << std::setprecision(2);
+        for (size_t idx = 0; idx < label_object_heights.size(); ++idx) {
+            if (idx != 0)
+                object_max_height_list << ",";
+            object_max_height_list << label_object_heights[idx].second;
+        }
+        object_max_height_list << '\n';
+        file.writeln(object_max_height_list.str());
     }
     else {
         m_enable_label_object = false;
