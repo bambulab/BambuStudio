@@ -3320,8 +3320,11 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
 {
     auto format_line_M106 = []() { return std::string{"M106 S255\n"};};
     auto format_line_M633 = []() { return std::string{"M633\n"};};
-    auto format_line_M632 = [](int filament_id) {
-        std::string buffer = "M632 S" + std::to_string(filament_id) + " M N" + "\n";
+    auto format_line_M632 = [](int filament_id, int nozzle_id) {
+        std::string buffer = "M632 S" + std::to_string(filament_id);
+        if (nozzle_id >= 0)
+            buffer += " H" + std::to_string(nozzle_id);
+        buffer += " M N\n";
         return buffer;
     };
 
@@ -3366,7 +3369,10 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
     //only for nozzle change
     if (!extruder_change)
     {
-        writer.append(format_line_M632(new_filament_id));
+        int new_nozzle_id = m_multi_nozzle_group_result->is_support_dynamic_nozzle_map()
+                                ? get_nozzle_id(new_filament_id, m_cur_layer_id) 
+                                : -1;
+        writer.append(format_line_M632(new_filament_id, new_nozzle_id));
         if (m_filpar[m_current_tool].precool_target_temp.second != 0) {
             writer.append(format_line_M104(m_filpar[m_current_tool].precool_target_temp.second, m_filament_map[m_current_tool] - 1))
                 .append(format_line_M106());
@@ -3439,7 +3445,12 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
     block->cur_depth += nozzle_change_depth;
     block->last_nozzle_change_id = old_filament_id;
     if (!extruder_change)
-        writer.append(format_line_M632(new_filament_id));
+    {
+        int new_nozzle_id = m_multi_nozzle_group_result->is_support_dynamic_nozzle_map()
+                                ? get_nozzle_id(new_filament_id, m_cur_layer_id) 
+                                : -1;
+        writer.append(format_line_M632(new_filament_id, new_nozzle_id));
+    }
     NozzleChangeResult result;
     if (is_need_reverse_travel(m_current_tool,extruder_change)) {
         bool   left_to_right     = !m_left_to_right;
