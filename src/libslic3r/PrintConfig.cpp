@@ -513,16 +513,16 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
-int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids)
+int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based)
 {
-    assert(variant_list.size() == variant_ids.size());
+    assert(variant_list.size() == variant_ids_1based.size());
     std::string extruder_variant = get_extruder_variant_string(extruder_type, volume_type);
     for (int index = 0; index < int(variant_list.size()); ++index) {
-        if (extruder_variant == variant_list[index] && variant_ids[index] == variant_id) { return index; }
+        if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
     }
     BOOST_LOG_TRIVIAL(error) << __FUNCTION__
                              << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
-                                    extruder_variant % variant_id;
+                                    extruder_variant % variant_id_1based;
     return 0;
 }
 

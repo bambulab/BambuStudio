@@ -4715,7 +4715,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     bool _BBS_3MF_Importer::_handle_start_config_nozzle(const char** attributes, unsigned int num_attributes)
     {
         if (m_curr_plater) {
-            // id="0" extruder_id="0" nozzle_diameter="0.4" volume_type="nvtNormal"
+            // id="0" extruder_id="1" nozzle_diameter="0.4" volume_type="nvtNormal"
             std::string id = bbs_get_attribute_value_string(attributes, num_attributes, "id");
             std::string extruder_id = bbs_get_attribute_value_string(attributes, num_attributes, "extruder_id");
             std::string nozzle_diameter= bbs_get_attribute_value_string(attributes, num_attributes, "nozzle_diameter");
@@ -4725,7 +4725,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
             MultiNozzleUtils::NozzleInfo nozzle_info;
             nozzle_info.group_id = atoi(id.c_str());
-            nozzle_info.extruder_id = atoi(extruder_id.c_str());
+            nozzle_info.extruder_id = atoi(extruder_id.c_str()) - 1;
             nozzle_info.diameter = nozzle_diameter;
 
             if(volume_type_str_to_enum.count(volume_type))
