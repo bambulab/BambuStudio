@@ -638,7 +638,60 @@ AMSextruderImage::AMSextruderImage(wxWindow *parent, wxWindowID id, string file_
 
 AMSextruderImage::~AMSextruderImage() {}
 
+void SwitcherImage::paintEvent(wxPaintEvent &evt)
+{
+    wxPaintDC dc(this);
+    render(dc);
+}
 
+void SwitcherImage::render(wxDC &dc)
+{
+#ifdef __WXMSW__
+    wxSize     size = GetSize();
+    wxMemoryDC memdc;
+    wxBitmap   bmp(size.x, size.y);
+    memdc.SelectObject(bmp);
+    memdc.Blit({0, 0}, size, &dc, {0, 0});
+
+    {
+        wxGCDC dc2(memdc);
+        doRender(dc2);
+    }
+
+    memdc.SelectObject(wxNullBitmap);
+    dc.DrawBitmap(bmp, 0, 0);
+#else
+    doRender(dc);
+#endif
+}
+
+void SwitcherImage::doRender(wxDC &dc)
+{
+    auto size = GetSize();
+    if (m_show_state){
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(*wxWHITE);
+        dc.DrawBitmap(m_switcher.bmp(), wxPoint((size.x - m_switcher.GetBmpSize().x) / 2, 0));
+    }
+    Layout();
+}
+
+SwitcherImage::SwitcherImage(wxWindow *parent, wxWindowID id, string file_name, const wxSize& size, const wxPoint &pos)
+{
+    wxWindow::Create(parent, id, pos, size);
+    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    m_show_state = true;
+    m_switcher = ScalableBitmap(this, file_name, 16);
+    m_file_name = file_name;
+    SetSize(size);
+    SetMinSize(size);
+    SetMaxSize(size);
+
+
+    Bind(wxEVT_PAINT, &SwitcherImage::paintEvent, this);
+}
+
+SwitcherImage::~SwitcherImage() {}
 
 
 /*************************************************

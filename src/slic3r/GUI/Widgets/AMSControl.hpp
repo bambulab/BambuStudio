@@ -52,6 +52,7 @@ protected:
 
     int         m_total_ext_count = 1;
     AMSextruder *m_extruder{nullptr};
+    SwitcherImage *m_switcher{nullptr};
     AMSRoadDownPart* m_down_road{ nullptr };
 
     /*tips text*/
@@ -74,6 +75,7 @@ protected:
 
     /*option*/
     wxBoxSizer *m_sizer_ams_option{nullptr};
+    wxBoxSizer *m_sizer_switcher_option{nullptr};
     wxBoxSizer* m_sizer_option_left{nullptr};
     wxBoxSizer* m_sizer_option_mid{nullptr};
     wxBoxSizer* m_sizer_option_right{nullptr};
