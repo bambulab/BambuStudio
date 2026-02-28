@@ -5758,12 +5758,12 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         if (prev_filament_id != -1)
             m_result.print_statistics.total_filament_changes++;
 
-        if (extruder_change || nozzle_in_extruder_change) {
-            process_filaments(CustomGCode::ToolChange);
-        }
+        process_filaments(CustomGCode::ToolChange);
+
         m_result.unlock();
 
-        if (new_extruder_id != -1) { m_filament_id[new_extruder_id] = new_filament_id;
+        if (new_extruder_id != -1) {
+            m_filament_id[new_extruder_id] = new_filament_id;
         }
         m_extruder_id = new_extruder_id;
 
