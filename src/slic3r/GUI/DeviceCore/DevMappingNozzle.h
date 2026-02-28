@@ -28,6 +28,19 @@ public:
         Version_V1 = 1, // V1 means support logical nozzle_id -> physical nozzle_id mapping
     };
 
+    enum class ErrNoV1 : int {
+        Success = 0,
+        ErrorBadRequest3mf = 1,
+        ErrorBadRequestVersion = 2,
+        ErrorBadRequestGroupId = 3,
+        ErrorNoValidNozzles = 4,
+        ErrorBadRequestReadFail = 5,
+        ErrorRackCaliFail = 6,
+        ErrorRackMoving = 7,
+        ErrorRackFull = 8,
+        WarningNotEnoughNozzles = 9
+    };
+
 public:
     DevNozzleMappingCtrl(MachineObject* obj) : m_obj(obj) {};
 
@@ -43,6 +56,7 @@ public:
 
     // command error info
     int GetErrno() const { return m_errno; }
+    ErrNoV1 GetErrnoV1() const { return static_cast<ErrNoV1>(m_errno); }
     std::string GetDetailMsg() const { return m_detail_msg; }
 
     // nozzle mapping

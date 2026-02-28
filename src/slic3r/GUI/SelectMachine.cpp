@@ -4815,6 +4815,23 @@ static std::unordered_multimap<int, NozzleDef> s_get_slicing_extuder_nozzles()
     }
 
     try {
+        auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
+        if (nozzle_group_res && nozzle_group_res->is_support_dynamic_nozzle_map() && nozzle_volume_type_opt->values.size() == 2) {
+            const auto& used_nozzles = nozzle_group_res->get_used_nozzles_in_extruder();
+            for (const auto& used_nozzle : used_nozzles) {
+                NozzleDef nozzle_data;
+                nozzle_data.nozzle_diameter = std::stof(used_nozzle.diameter);
+                nozzle_data.nozzle_flow_type = (used_nozzle.volume_type == NozzleVolumeType::nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::S_FLOW);
+                if (used_nozzle.extruder_id == 0) {
+                    used_extuder_nozzles.insert({ DEPUTY_EXTRUDER_ID, nozzle_data });
+                } else if (used_nozzle.extruder_id == 1) {
+                    used_extuder_nozzles.insert({ MAIN_EXTRUDER_ID, nozzle_data });
+                }
+            };
+
+            return used_extuder_nozzles;
+        }
+
         const auto& used_filament_idxs = cur_plate->get_used_filaments(); /*the index is started from 1*/
         for (int used_filament_idx : used_filament_idxs) {
             int physical_idx = cur_plate->get_physical_extruder_by_filament_id(preset_bundle->full_config(), used_filament_idx);
