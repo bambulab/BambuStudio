@@ -1783,7 +1783,7 @@ namespace DoExport {
                         // BBS: remove small small_perimeter_speed config, and will absolutely
                         // remove related code if no other issue in the coming release.
 	                    //region.config().get_abs_value("small_perimeter_speed") == 0 ||
-	                    region.config().outer_wall_speed.get_at(cur_config_index()) == 0 ||
+	                    region.config().outer_wall_speed.get_at(get_nozzle_config_index(m_writer.filament()->id())) == 0 ||
 	                    region.config().get_abs_value("bridge_speed") == 0)
 	                    mm3_per_mm.push_back(layerm->perimeters.min_mm3_per_mm());
 	                if (region.config().get_abs_value("sparse_infill_speed") == 0 ||
@@ -2823,7 +2823,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         CalibPressureAdvanceLine pa_test(this);
         double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow                   pattern_line                  = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
-        auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(cur_config_index()), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
+        auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(get_nozzle_config_index(m_writer.filament()->id())), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
         auto                   slow_speed = fast_speed / 4; /*std::max(20.0, fast_speed / 10.0);*/
         pa_test.set_speed(fast_speed, slow_speed);
         pa_test.draw_numbers() = print.calib_params().print_numbers;
@@ -5147,14 +5147,14 @@ double GCode::get_path_speed(const ExtrusionPath &path)
     // set speed
     double speed = 0;
     if (path.role() == erPerimeter) {
-        speed = m_config.inner_wall_speed.get_at(cur_extruder_index());
+        speed = NOZZLE_CONFIG(inner_wall_speed);
         if (is_enable_overhang_speed()) {
             double new_speed = 0;
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
             speed            = new_speed == 0.0 ? speed : new_speed;
         }
     } else if (path.role() == erExternalPerimeter) {
-        speed = m_config.outer_wall_speed.get_at(cur_extruder_index());
+        speed = NOZZLE_CONFIG(outer_wall_speed);
         if (is_enable_overhang_speed()) {
             double new_speed = 0;
             new_speed        = get_overhang_degree_corr_speed(speed, path.overhang_degree);
@@ -5703,17 +5703,17 @@ double GCode::get_overhang_degree_corr_speed(float normal_speed, double path_deg
     // BBS: use lower speed of 75%-100% for better cooling
     if (path_degree >= 4 || path_degree == lower_degree_bound) {
         return use_filament_overhang_speed ? m_config.get_abs_value_at(filament_overhang_speed_key_map[lower_degree_bound].c_str(), filament_idx) :
-                                             m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), cur_extruder_index());
+                                             m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), get_nozzle_config_index(m_writer.filament()->id()));
     }
     int upper_degree_bound = lower_degree_bound + 1;
 
     double lower_speed_bound = lower_degree_bound == 0     ? normal_speed :
                                use_filament_overhang_speed ? m_config.get_abs_value_at(filament_overhang_speed_key_map[lower_degree_bound].c_str(), filament_idx) :
-                                                             m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), cur_extruder_index());
+                                                             m_config.get_abs_value_at(overhang_speed_key_map[lower_degree_bound].c_str(), get_nozzle_config_index(m_writer.filament()->id()));
 
     double upper_speed_bound = upper_degree_bound == 0     ? normal_speed :
                                use_filament_overhang_speed ? m_config.get_abs_value_at(filament_overhang_speed_key_map[upper_degree_bound].c_str(), filament_idx) :
-                                                             m_config.get_abs_value_at(overhang_speed_key_map[upper_degree_bound].c_str(), cur_extruder_index());
+                                                             m_config.get_abs_value_at(overhang_speed_key_map[upper_degree_bound].c_str(), get_nozzle_config_index(m_writer.filament()->id()));
 
     lower_speed_bound = lower_speed_bound == 0 ? normal_speed : lower_speed_bound;
     upper_speed_bound = upper_speed_bound == 0 ? normal_speed : upper_speed_bound;
@@ -6170,8 +6170,8 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             acceleration = NOZZLE_CONFIG(top_surface_acceleration);
         } else if (NOZZLE_CONFIG(inner_wall_acceleration) > 0 && path.role() == erPerimeter) {
             acceleration = NOZZLE_CONFIG(inner_wall_acceleration);
-        } else if (m_config.get_abs_value_at("sparse_infill_acceleration", cur_config_index()) > 0 && (path.role() == erInternalInfill)) {
-            acceleration = m_config.get_abs_value_at("sparse_infill_acceleration", cur_config_index());
+        } else if (m_config.get_abs_value_at("sparse_infill_acceleration", get_nozzle_config_index(m_writer.filament()->id())) > 0 && (path.role() == erInternalInfill)) {
+            acceleration = m_config.get_abs_value_at("sparse_infill_acceleration", get_nozzle_config_index(m_writer.filament()->id()));
         } else {
             acceleration = NOZZLE_CONFIG(default_acceleration);
         }
