@@ -7962,20 +7962,13 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
 
             if (nozzle_volume_type == nvtHybrid) {
-                if (extruder_nozzle_volume_count > extruder_count) {
-                    //use the one passed
-                    nozzle_volume_type = filament_nvt;
-                }
-                else {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: nozzle_volume_type is default in unsupported machine.")%__LINE__;
-                    assert(false);
-                }
+                // use the one passed
+                nozzle_volume_type = filament_nvt;
             }
             else if (nozzle_volume_type != filament_nvt) {
-                if (extruder_nozzle_volume_count > extruder_count) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%")%__LINE__ %nozzle_volume_type %filament_nvt;
-                    //assert(false);
-                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                        << boost::format(", Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%") % __LINE__ % nozzle_volume_type % filament_nvt;
+                // assert(false);
             }
 
             //variant index
@@ -7992,7 +7985,11 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
         else {
             if  (extruder_nozzle_volume_count > extruder_count){
                 variant_count = extruder_nozzle_volume_count;
-            }
+            } else
+                for (int e_index = 0; e_index < extruder_count; e_index++) {
+                    NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(e_index));
+                    if (nozzle_volume_type == nvtHybrid) { variant_count = extruder_nozzle_volume_count; }
+                }
             variant_index.resize(variant_count);
 
             int v_index = 0;
@@ -8002,12 +7999,12 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
 
                 int nvt_count = 1;
-                if  (extruder_nozzle_volume_count > extruder_count) {
+                if (extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) {
                     nvt_count = nv_types[e_index].size();
                 }
                 for (int nvt_index = 0; nvt_index < nvt_count; nvt_index++)
                 {
-                    if  (extruder_nozzle_volume_count > extruder_count)
+                    if (extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid)
                         nozzle_volume_type = nv_types[e_index][nvt_index];
                     //variant index
                     variant_index[v_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
@@ -8177,7 +8174,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(filament_maps[f_index] - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(filament_maps[f_index] - 1));
 
-            if ((extruder_nozzle_volume_count > extruder_count)&&(!filament_volume_maps.empty())) {
+            if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) && (!filament_volume_maps.empty())) {
                 nozzle_volume_type = (NozzleVolumeType)(filament_volume_maps[f_index]);
             }
 
@@ -8388,7 +8385,7 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                 }
             } else {
                 // filament not used in slicing
-                if ((extruder_nozzle_volume_count > extruder_count) && (!filament_volume_maps.empty())) {
+                if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type==nvtHybrid) && (!filament_volume_maps.empty())) {
                     nozzle_volume_type = (NozzleVolumeType) (filament_volume_maps[f_index]);
                 }
                 int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
