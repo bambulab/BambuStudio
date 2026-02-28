@@ -75,12 +75,12 @@ void wxMediaCtrl3::Stop()
     Refresh();
 }
 
-void wxMediaCtrl3::SetIdleImage(wxString const &image, bool show_watermark)
+void wxMediaCtrl3::SetIdleImage(wxString const &image, wxString const &watermark_text)
 {
-    if (m_idle_image == image && m_show_watermark == show_watermark)
+    if (m_idle_image == image && m_watermark_text == watermark_text)
         return;
     m_idle_image = image;
-    m_show_watermark = show_watermark;
+    m_watermark_text = watermark_text;
     if (m_url == nullptr) {
         std::unique_lock<std::mutex> lk(m_mutex);
         m_frame = wxImage(m_idle_image);
@@ -89,12 +89,12 @@ void wxMediaCtrl3::SetIdleImage(wxString const &image, bool show_watermark)
     }
 }
 
-void wxMediaCtrl3::SetIdleImage(const wxImage &image, bool show_watermark)
+void wxMediaCtrl3::SetIdleImage(const wxImage &image, wxString const &watermark_text)
 {
     if (!image.IsOk())
         return;
     m_idle_image.clear();
-    m_show_watermark = show_watermark;
+    m_watermark_text = watermark_text;
     if (m_url == nullptr) {
         std::unique_lock<std::mutex> lk(m_ui_mutex);
         m_frame = image;
@@ -162,16 +162,11 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     dc.DrawBitmap(current_frame, size3.x, size3.y);
 
     // Draw watermark overlay when showing device preview image
-    if (m_show_watermark && m_url == nullptr) {
+    if (!m_watermark_text.empty() && m_url == nullptr) {
         // Reset user scale for watermark (draw at 1:1)
         dc.SetUserScale(1.0, 1.0);
 
-        // Generate timestamp text
-        time_t now = time(nullptr);
-        std::tm *local_tm = std::localtime(&now);
-        char time_buf[32];
-        strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M", local_tm);
-        wxString watermark_text = _L("Printer Preview") + wxString::Format("  %s", time_buf);
+        wxString watermark_text = m_watermark_text;
 
         // Setup font
         wxFont font = dc.GetFont();

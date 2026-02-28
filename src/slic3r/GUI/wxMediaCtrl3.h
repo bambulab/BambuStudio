@@ -45,8 +45,8 @@ public:
 
     void Stop();
 
-    void SetIdleImage(wxString const & image, bool show_watermark = false);
-    void SetIdleImage(const wxImage &image, bool show_watermark = false);
+    void SetIdleImage(wxString const & image, wxString const & watermark_text = {});
+    void SetIdleImage(const wxImage &image, wxString const & watermark_text = {});
 
     wxMediaState GetState();
 
@@ -71,7 +71,7 @@ protected:
 
 private:
     wxString m_idle_image;
-    bool m_show_watermark = false;
+    wxString m_watermark_text;
     wxMediaState m_state  = wxMEDIASTATE_STOPPED;
     int m_error  = 0;
     wxSize m_video_size = wxDefaultSize;

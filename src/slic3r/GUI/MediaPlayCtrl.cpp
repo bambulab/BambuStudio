@@ -211,6 +211,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
+    m_image_last_machine.clear();
     m_last_user_play = wxDateTime::Now();
     std::string stream_url;
     if (get_stream_url(&stream_url)) {
@@ -720,10 +721,26 @@ void MediaPlayCtrl::start_device_image_flow()
 {
     // if liveview is playing, do not request the image
     if (m_last_state == wxMEDIASTATE_PLAYING) {
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview is playing";
         return;
     }
 
-    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    // If we already have a valid cached image for this machine fetched within 30s, skip
+    auto now = std::chrono::steady_clock::now();
+    if (!m_machine.empty() && m_image_last_machine == m_machine
+        && m_image_last_success_time.time_since_epoch().count() > 0
+        && std::chrono::duration_cast<std::chrono::seconds>(now - m_image_last_success_time).count() < 30) {
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, using cached image (fetched "
+            << std::chrono::duration_cast<std::chrono::seconds>(now - m_image_last_success_time).count() << "s ago)";
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: begin requesting device image";
+
+    // Only reset to default image if we don't have a cached preview for this machine
+    if (m_image_last_machine != m_machine) {
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    }
 
     // Reset transfer object completely to avoid stale state after CancelAll
     if (m_image_transfer) {
@@ -752,7 +769,7 @@ void MediaPlayCtrl::start_device_image_flow()
     // Helper: Process downloaded image data
     auto process_image_data = [this, request_machine, mode_to_string](const std::vector<std::byte> &data, DownloadMode mode) -> bool {
         if (data.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer (" << mode_to_string(mode) << ") received empty data";
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: received empty data (" << mode_to_string(mode) << ")";
             return false;
         }
 
@@ -760,17 +777,27 @@ void MediaPlayCtrl::start_device_image_flow()
         wxImage image(stream, wxBITMAP_TYPE_ANY);
 
         if (!image.IsOk()) {
-            BOOST_LOG_TRIVIAL(warning) << "Failed to parse image data (" << mode_to_string(mode) << ")";
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: failed to parse image data (" << mode_to_string(mode) << ")";
             return false;
         }
 
-        CallAfter([this, img = std::move(image), request_machine]() {
+        std::string mode_str = mode_to_string(mode);
+        // Generate watermark text at image fetch time, not at paint time
+        time_t fetch_time = time(nullptr);
+        std::tm *local_tm = std::localtime(&fetch_time);
+        char time_buf[32];
+        strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", local_tm);
+        wxString watermark = _L("Printer Preview") + wxString::Format("  %s", time_buf);
+        CallAfter([this, img = std::move(image), request_machine, mode_str, watermark]() {
             if (request_machine != m_machine) {
-                BOOST_LOG_TRIVIAL(info) << "DeviceImage: machine changed, skip display.";
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed, skip display";
                 return;
             }
             if (m_media_ctrl) {
-                m_media_ctrl->SetIdleImage(img, true);
+                m_media_ctrl->SetIdleImage(img, watermark);
+                m_image_last_success_time = std::chrono::steady_clock::now();
+                m_image_last_machine = m_machine;
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: successfully received and displayed device image (" << mode_str << ")";
             }
         });
         return true;
@@ -783,7 +810,7 @@ void MediaPlayCtrl::start_device_image_flow()
             if (image_token.expired() || url.empty()) return;
 
             if (request_machine != m_machine) {
-                BOOST_LOG_TRIVIAL(info) << "DeviceImage: machine changed during URL request, skip.";
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed during URL request, skip";
                 return;
             }
 
@@ -794,7 +821,7 @@ void MediaPlayCtrl::start_device_image_flow()
                 if (image_token.expired()) return;
 
                 if (ec != 0) {
-                    BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer " << mode_to_string(mode) << " failed with error code: " << ec;
+                    BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: download failed (" << mode_to_string(mode) << "), error code: " << ec;
                     if (on_failure) {
                         on_failure();
                     }
@@ -809,10 +836,10 @@ void MediaPlayCtrl::start_device_image_flow()
     // Try LAN mode first, fallback to remote mode if failed
     download_image(DownloadMode::DOWNLOAD_MODE_LOCAL, [this, download_image, image_token]() {
         if (m_remote_proto && !image_token.expired()) {
-            BOOST_LOG_TRIVIAL(warning) << "DeviceImageTransfer LAN failed, trying remote mode...";
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: LAN failed, trying remote mode";
             download_image(DownloadMode::DOWNLOAD_MODE_REMOTE);
         } else if (image_token.expired()) {
-            BOOST_LOG_TRIVIAL(info) << "DeviceImage: token expired, download cancelled.";
+            BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: token expired, download cancelled";
         }
     });
 }

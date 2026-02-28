@@ -25,6 +25,11 @@
 #include <chrono>
 #include <deque>
 #include <set>
+#include <memory>
+#include <vector>
+#include <cstddef>
+#include <string>
+#include <atomic>
 
 class Button;
 class Label;
@@ -120,6 +125,10 @@ private:
     std::chrono::system_clock::time_point m_play_timer;
     int           m_print_idle = 0;
     int           m_load_duration = 0;
+
+    std::shared_ptr<int> m_image_token = std::make_shared<int>(0);
+    std::chrono::steady_clock::time_point m_image_last_success_time;
+    std::string m_image_last_machine;
 
     ::Button *m_button_play;
     ::Label * m_label_stat;
