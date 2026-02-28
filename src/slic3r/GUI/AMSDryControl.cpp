@@ -1513,7 +1513,9 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
                     if (!filament_alias.empty()) {
                         auto opt_info = preset_bundle->get_filament_by_filament_id(filament_it->filament_id);
                         if (opt_info.has_value()) {
-                            m_tray_ids.push_back(opt_info.value());
+                            auto real_info = opt_info.value();
+                            real_info.filament_name = filament_alias;
+                            m_tray_ids.push_back(std::move(real_info));
                             m_trays_combo->Append(wxString::FromUTF8(filament_alias));
                         }
                     }
@@ -1578,7 +1580,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
     }
 
     // Idle state: avoid re-selecting / firing selection change unless the list was rebuilt.
-    if (!rebuilt_filament_list && !ams_changed) {
+    if (!rebuilt_filament_list && !ams_changed && is_dry_ctr_idle()) {
         return 0;
     }
 
