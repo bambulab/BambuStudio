@@ -750,27 +750,33 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     single_info.push_back(m_ext_info[0]);
     m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info[0].ams_id);
     AddAms(single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL);
+    AddAmsPreview(single_info, AMSPanelPos::RIGHT_PANEL);
     auto left_init_mode = findFirstMode(AMSPanelPos::LEFT_PANEL);
     auto right_init_mode = findFirstMode(AMSPanelPos::RIGHT_PANEL);
 
-    m_panel_prv_right->Hide();
-    m_panel_prv_left->Hide();
+    if (left_init_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
+        m_panel_prv_left->Layout();
+        m_panel_prv_left->Show();
+    } else {
+        m_panel_prv_left->Hide();
+    }
+
+    if (right_init_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
+        m_panel_prv_right->Layout();
+        m_panel_prv_right->Show();
+    } else {
+        m_panel_prv_right->Hide();
+    }
+
     if (m_ams_info.size() > 0){
         m_simplebook_ams_left->Show();
         m_simplebook_ams_right->Show();
         m_simplebook_ams_left->SetSelection(0);
         m_simplebook_ams_right->SetSelection(0);
-
-        if (m_ams_info.size() > 1){
-            m_sizer_prv_right->Layout();
-            m_panel_prv_right->Show();
-        }
         m_down_road->UpdateLeft(1, left_init_mode);
         m_down_road->UpdateRight(1, right_init_mode);
     }
     else {
-        m_panel_prv_left->Hide();
-        m_panel_prv_right->Hide();
         m_simplebook_ams_left->Hide();
         m_simplebook_ams_right->Show();
 
@@ -985,9 +991,9 @@ void AMSControl::UpdateAms(const std::string   &series_name,
     }
 
     /*update ams extruder*/
-    if (m_extruder->updateNozzleNum(m_total_ext_count, series_name))
-    {
+    if (m_extruder->updateNozzleNum(m_total_ext_count, series_name)) {
         m_amswin->Layout();
+        Layout();
     }
 
     /*update switch status*/

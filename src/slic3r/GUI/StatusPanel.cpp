@@ -2905,6 +2905,7 @@ void StatusPanel::update(MachineObject *obj)
     update_camera_state(obj);
 
     // m_machine_ctrl_panel->Thaw();
+    Layout(); 
 }
 
 void StatusPanel::show_recenter_dialog()
