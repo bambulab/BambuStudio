@@ -6493,6 +6493,15 @@ void PrintOptionItem::setValue(std::string value)
     }
 }
 
+void PrintOptionItem::msw_rescale()
+{
+    m_selected_bk.msw_rescale();
+    m_selected_bk_dark.msw_rescale();
+    m_selected_disabled_bk.msw_rescale();
+    m_selected_disabled_bk_dark.msw_rescale();
+    Refresh();
+}
+
  SendModeSwitchButton::SendModeSwitchButton(wxWindow *parent, wxString mode, bool sel)
      : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
  {

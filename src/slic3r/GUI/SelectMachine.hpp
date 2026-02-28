@@ -172,7 +172,7 @@ public:
         }
     }
 
-    void msw_rescale() { m_selected_bk.msw_rescale(); Refresh(); };
+    void msw_rescale();
 
 private:
     void OnPaint(wxPaintEvent& event);
