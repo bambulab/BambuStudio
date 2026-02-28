@@ -306,7 +306,6 @@ public:
     /*extruder*/
     bool is_main_extruder_on_left() const { return false;  } // only means the extruder is on the left hand when extruder id is 0
     bool is_multi_extruders() const;
-    int  get_extruder_id_by_ams_id(const std::string& ams_id);
 
     /* nozzle */
     DevNozzle get_nozzle_by_id_code(int id_code) const;
