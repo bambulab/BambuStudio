@@ -3036,14 +3036,14 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     MachineObject* obj_ = get_current_machine();
     if(!obj_) return;
 
-    if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1)
-    {
+    if (obj_->GetExtderSystem()->GetTotalExtderCount() > 1) {
         change_materialitem_tip(false); /*mapping to both ams and ext, is supported while total_extder_count is 2*/
     } else {
         change_materialitem_tip(true);
     }
 
     update_ams_backup(obj_);
+    update_material_item_pos(obj_);
 
     load_option_vals(obj_);
     update_show_status(obj_);
@@ -3921,7 +3921,7 @@ void SelectMachineDialog::on_material_item_clicked(MaterialItem* item,
             m_mapping_popup.set_tag_texture(preset_fila_infos[used_filament_idx].filament_type);
             m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
             m_mapping_popup.set_show_type(get_filament_mapping_show_type(obj_, used_filament_idx));
-            m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_switch());
+            m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_switch(), m_print_type);
             m_mapping_popup.Popup();
         }
     }
@@ -4041,8 +4041,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         m_filament_right_panel->Layout();
     }
     m_filament_panel->Show(sizer_count > 0);
-    m_filament_left_panel->Show(left_sizer_count > 0);
-    m_filament_right_panel->Show(right_sizer_count > 0);
+    m_filament_left_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
+    m_filament_right_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
 
     // reset_ams_material();//show "-"
 }
@@ -4497,7 +4497,7 @@ void SelectMachineDialog::set_default_from_sdcard()
             selected_any = true;
         }
         if (!first_enabled && item->m_enable) {
-            first_enabled    = item;
+            first_enabled = item;
             first_enabled_id = fo.id;
         }
 
@@ -4543,13 +4543,6 @@ void SelectMachineDialog::set_default_from_sdcard()
 
         // build for ams mapping
         m_filaments.push_back(fo);
-    }
-
-    if (m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size() <= 4) {
-        m_sizer_ams_mapping->SetCols(m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size());
-    }
-    else {
-        m_sizer_ams_mapping->SetCols(4);
     }
 
     m_basic_panel->Layout();
@@ -5966,6 +5959,94 @@ int SelectMachineDialog::get_print_task_total_extruder_count() const
     }
 
     return 1;
+}
+
+void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
+{
+    if (!obj_) {
+        return;
+    }
+
+    if (obj_->GetExtderSystem()->GetTotalExtderCount() < 2) {
+        return;
+    }
+
+    bool to_change_pos = false;
+    for (const auto& iter : m_materialList) {
+        const auto& material_id = iter.second->id;
+        const auto& material_item = iter.second->item;
+        if (obj_->GetFilaSwitch()->IsInstalled()) {
+            if (!m_sizer_ams_mapping->IsShown(material_item)) {
+                to_change_pos = true;
+            }
+        } else {
+            if (m_filaments_map[material_id] == 1 && !m_sizer_ams_mapping_left->IsShown(material_item)) {
+                to_change_pos = true;
+            } else if (m_filaments_map[material_id] == 2 && !m_sizer_ams_mapping_right->IsShown(material_item)) {
+                to_change_pos = true;
+            }
+        }
+
+        if (to_change_pos) break;
+    }
+
+    if (!to_change_pos) {
+        return;
+    }
+
+    m_sizer_ams_mapping->Clear(false);
+    m_sizer_ams_mapping_left->Clear(false);
+    m_sizer_ams_mapping_right->Clear(false);
+
+    int sizer_count = 0;
+    int left_sizer_count = 0;
+    int right_sizer_count = 0;
+    for (const auto& iter : m_materialList) {
+        const auto& material_id = iter.second->id;
+        const auto& material_item = iter.second->item;
+        if (obj_->GetFilaSwitch()->IsInstalled()) {
+            if (!m_sizer_ams_mapping->IsShown(material_item)) {
+                material_item->Reparent(m_filament_panel);
+                m_sizer_ams_mapping->Add(material_item, 0, wxALL, FromDIP(5));
+                sizer_count++;
+            }
+        } else {
+            if (m_filaments_map[material_id] == 1) {
+                material_item->Reparent(m_filament_left_panel);
+                m_sizer_ams_mapping_left->Add(material_item, 0, wxALL, FromDIP(5));
+                left_sizer_count++;
+            } else if(m_filaments_map[material_id] == 2){
+                material_item->Reparent(m_filament_right_panel);
+                m_sizer_ams_mapping_right->Add(material_item, 0, wxALL, FromDIP(5));
+                right_sizer_count++;
+            }
+        }
+    }
+
+    if (sizer_count > 0) {
+        m_sizer_ams_mapping->SetCols(8);
+        m_sizer_ams_mapping->Layout();
+        m_filament_panel_sizer->Layout();
+    }
+
+    if (left_sizer_count > 0) {
+        m_sizer_ams_mapping_left->SetCols(4);
+        m_sizer_ams_mapping_left->Layout();
+        m_filament_panel_left_sizer->Layout();
+        m_filament_left_panel->Layout();
+    }
+
+    if (right_sizer_count > 0) {
+        m_sizer_ams_mapping_right->SetCols(4);
+        m_sizer_ams_mapping_right->Layout();
+        m_filament_panel_right_sizer->Layout();
+        m_filament_right_panel->Layout();
+    }
+
+    m_filament_panel->Show(sizer_count > 0);
+    m_filament_left_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
+    m_filament_right_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
+    Layout();
 }
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)

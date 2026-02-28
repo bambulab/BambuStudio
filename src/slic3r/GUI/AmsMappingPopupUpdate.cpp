@@ -62,7 +62,8 @@ static void _add_containers(const AmsMapingPopup* win,
 
 void AmsMapingPopup::update(MachineObject* obj,
                             const std::vector<FilamentInfo>& ams_mapping_result,
-                            bool use_dynamic_switch)
+                            bool use_dynamic_switch,
+                            std::optional<PrintFromType> print_type)
 {
     BOOST_LOG_TRIVIAL(info) << "ams_mapping total count " << obj->GetFilaSystem()->GetAmsCount();
 
@@ -84,7 +85,7 @@ void AmsMapingPopup::update(MachineObject* obj,
     update_mapping_items(obj, ams_mapping_result, use_dynamic_switch);
 
     /*rack*/
-    update_rack_select(obj, use_dynamic_switch);
+    update_rack_select(obj, use_dynamic_switch, print_type);
     update_flush_waste(obj);
 
     if (wxGetApp().dark_mode() && m_reset_btn->GetName() != "erase_dark") {
@@ -490,15 +491,16 @@ void AmsMapingPopup::update_ams_tips(MachineObject* obj)
     }
 }
 
-void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_switch)
+void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_switch, std::optional<PrintFromType> print_from_type)
 {
     m_rack = obj ? obj->GetNozzleRack() : nullptr;
 
     bool show_rack_select_area = false;
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
-        obj && obj->GetNozzleRack()->IsSupported()) {
+        obj && obj->GetNozzleRack()->IsSupported() &&
+        print_from_type.has_value() && print_from_type.value() == PrintFromType::FROM_NORMAL) {
         const auto& nozzle_pos_vec = obj->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(m_current_filament_id);
-        m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch);
+        m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch, print_from_type);
         show_rack_select_area = true;
     }
 

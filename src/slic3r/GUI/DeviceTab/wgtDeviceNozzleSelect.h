@@ -38,7 +38,7 @@ public:
 
 public:
     int  GetSelectedNozzlePosID() const { return m_selected_nozzle.GetNozzlePosId();}
-    void UpdatSelectedNozzles(std::shared_ptr<DevNozzleRack> rack, std::vector<int> selected_nozzle_pos_vec, bool use_dynamic_switch);// for slicing with dynamic switch
+    void UpdatSelectedNozzles(std::shared_ptr<DevNozzleRack> rack, std::vector<int> selected_nozzle_pos_vec, bool use_dynamic_switch, std::optional<PrintFromType> print_from_type);// for slicing with dynamic switch
     void Rescale();
 
 private:

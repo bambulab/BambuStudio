@@ -84,6 +84,15 @@ void MaterialItem::allow_paint_dropdown(bool flag) {
     }
 }
 
+void MaterialItem::set_ams_text(const wxString& txt)
+{
+    if (m_ams_name != txt) {
+        m_ams_name = txt;
+        messure_size();
+        Refresh();
+    }
+}
+
 void MaterialItem::set_ams_info(wxColour col, wxString txt, int ctype, std::vector<wxColour> cols, bool record_back_info)
 {
     auto need_refresh = false;
