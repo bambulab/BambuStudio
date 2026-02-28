@@ -1113,13 +1113,13 @@ void Print::update_filament_self_index_cache()
         m_nozzle_index_map.clear();
         return;
     }
-    m_filament_self_index.resize(expected_size, 0);
+    m_filament_self_index.resize(expected_size, 1);
     if (!values.empty()) {
         for (size_t i = 0; i < expected_size; ++i) {
             int v = i < values.size() ? values[i] : 1;
             if (v <= 0)
                 v = 1;
-            m_filament_self_index[i] = v - 1;
+            m_filament_self_index[i] = v;
         }
     }
     m_filament_index_map.clear();
@@ -1148,7 +1148,7 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
     FilamentIndexKey key{filament_id, extruder_type, nozzle_volume_type};
     auto             iter = index_map.find(key);
     if (iter == index_map.end()) {
-        int index = get_config_index_base(nozzle_volume_type, extruder_type, filament_id,variant_list, self_index_list);
+        int index = get_config_index_base(nozzle_volume_type, extruder_type, filament_id + 1, variant_list, self_index_list);
         index_map[key] = index;
         return index;
     } else {
