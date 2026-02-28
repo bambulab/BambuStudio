@@ -3793,7 +3793,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     auto list = obj->GetFilaSystem()->GetAmsList();
     for (const auto& ams : list) {
         for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
-            int extruder = extruder_id == MAIN_EXTRUDER_ID ? 0 : 0x10000; // Main (first) extruder at right
+            int extruder = extruder_id ? 0 : 0x10000; // Main (first) extruder at right
             for (auto tray : ams.second->GetTrays()) {
                 int ams_id = -1;
                 int slot_id = -1;
