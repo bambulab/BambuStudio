@@ -116,6 +116,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
 
 
     m_sizer_ams_option = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_switcher_option = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_option_left = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_option_mid = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_option_right = new wxBoxSizer(wxHORIZONTAL);
@@ -157,6 +158,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     StateColor btn_text_white(std::pair<wxColour, int>(wxColour(255, 255, 254), StateColor::Disabled),
         std::pair<wxColour, int>(wxColour(38, 46, 48), StateColor::Enabled));
 
+    /*option switch*/
+    m_switcher = new SwitcherImage(m_amswin, wxID_ANY, "fila_switch", wxSize(FromDIP(29), FromDIP(16)), wxDefaultPosition);
+    m_sizer_switcher_option->Add(m_switcher, 0, wxALIGN_CENTER, 0 );
 
     /*option left*/
     m_button_auto_refill = new Button(m_panel_option_left, _L("Auto-refill"));
@@ -247,6 +251,7 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_sizer_body->Add(0, 0, 1, wxEXPAND | wxTOP, FromDIP(10));
     m_sizer_body->Add(m_sizer_ams_body, 0, wxALIGN_CENTER, 0);
     m_sizer_body->Add(m_sizer_down_road, 0, wxALIGN_CENTER, 0);
+    m_sizer_body->Add(m_sizer_switcher_option, 0, wxALIGN_CENTER, 0);
     m_sizer_body->Add(m_sizer_ams_option, 0, wxEXPAND, 0);
 
     m_amswin->SetSizer(m_sizer_body);
@@ -988,6 +993,16 @@ void AMSControl::UpdateAms(const std::string   &series_name,
     /*update switch status*/
     const auto[install, ready] = isFilaSwitchReady();
     show_switcher_status(install && (!ready));
+    bool isShow = install && m_total_ext_count >= 2;
+    if (m_switcher->IsShown() != isShow)
+    {
+        m_switcher->Show(isShow);
+        m_sizer_body->Layout();
+        m_sizer_body->Fit(this);
+        this->Layout();
+        this->Refresh(true);
+        this->Update();
+    }
 }
 
 void AMSControl::AddAmsPreview(AMSinfo info, AMSPanelPos pos)
