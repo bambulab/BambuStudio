@@ -911,18 +911,17 @@ void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
 
 void Sidebar::priv::show_fila_switch_msg(bool ready)
 {
-    if (ready) {
-        MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                          _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
-                             "will be automatically allocated to the optimal extruder during slicing."),
-                          _L("Tips"), wxICON_INFORMATION | wxOK, "", _L("Learn more"), [](const wxString &url) { wxLaunchDefaultBrowser("https://wiki.bambulab.com"); });
-        dlg.ShowModal();
-    } else {
-        MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe),
-                          _L("A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."),
-                          _L("Tips"), wxICON_WARNING | wxOK);
-        dlg.ShowModal();
-    }
+    wxString msg = ready ? _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
+                              "will be automatically allocated to the optimal extruder during slicing. ") :
+                           _L("A filament switcher is detected but not calibrated and thus currently unavailable. "
+                              "Please calibrate it on the printer and synchronize before use. ");
+
+    long style = ready ? (wxICON_INFORMATION | wxOK) : (wxICON_WARNING | wxOK);
+    MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), msg, _L("Tips"), style, "", _L("Learn more"),
+                      [](const wxString &url) { wxLaunchDefaultBrowser("https://wiki.bambulab.com"); });
+    dlg.SetSize(wxSize(FromDIP(520), FromDIP(180)));
+    dlg.CenterOnParent();
+    dlg.ShowModal();
 }
 
 Sidebar::priv::~priv()
@@ -13620,7 +13619,7 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
 
         std::vector<std::map<int, int>> ams_count_info;
         ams_count_info.resize(2);
-
+        
         std::map<std::pair<int, int>, int> ams_cnt_map{
             {{MAIN_EXTRUDER_ID, 1}, 0},
             {{DEPUTY_EXTRUDER_ID, 1}, 0},
