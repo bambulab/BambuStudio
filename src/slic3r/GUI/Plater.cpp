@@ -20760,12 +20760,13 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
         if (need_invalidate) {
             if (need_slice) {
+                update(false, true);
                 wxPostEvent(this, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
             }
             else {
                 curr_plate->update_slice_result_valid_state(false);
                 set_plater_dirty(true);
-                update();
+                update(false, true);
             }
         }
     }

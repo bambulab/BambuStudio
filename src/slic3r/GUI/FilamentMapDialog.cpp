@@ -116,7 +116,7 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
                 plater_ref->set_global_filament_volume_map(new_volume_maps);
             }
         }
-        plater_ref->update();
+        plater_ref->update(false, true);
         // check whether able to slice, if not, return false
         if (!get_left_extruder_unprintable_text().empty() || !get_right_extruder_unprintable_text().empty()){
             return false;
