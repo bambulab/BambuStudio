@@ -4120,6 +4120,7 @@ void MachineObject::parse_new_info(json print)
         }
 
         installed_upgrade_kit = get_flag_bits(cfg, 25);
+        is_support_liveview_preview = get_flag_bits(cfg, 42);
     }
 
     /*fun*/

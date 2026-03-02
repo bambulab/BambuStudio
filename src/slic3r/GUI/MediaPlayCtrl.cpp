@@ -158,6 +158,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
         m_camera_exists  = obj->has_ipcam;
+        m_support_liveview_preview = obj->is_support_liveview_preview;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
@@ -168,6 +169,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_tutk_state     = obj->tutk_state;
     } else {
         m_camera_exists = false;
+        m_support_liveview_preview = false;
         m_lan_mode = false;
         m_lan_proto = MachineObject::LVL_None;
         m_lan_ip.clear();
@@ -719,6 +721,12 @@ void MediaPlayCtrl::RequestFileSystemUrl(std::function<void(std::string url)> cb
 
 void MediaPlayCtrl::start_device_image_flow()
 {
+    if (!m_support_liveview_preview) {
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview preview not supported";
+        return;
+    }
+
     // if liveview is playing, do not request the image
     if (m_last_state == wxMEDIASTATE_PLAYING) {
         BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview is playing";
@@ -803,7 +811,6 @@ void MediaPlayCtrl::start_device_image_flow()
         return true;
     };
 
-    // Helper: Download image with specified mode
     auto download_image = [this, image_token, request_machine, process_image_data, mode_to_string](DownloadMode mode, std::function<void()> on_failure = nullptr) {
         bool lan_mode = (mode == DownloadMode::DOWNLOAD_MODE_LOCAL);
         RequestFileSystemUrl([this, image_token, request_machine, mode, process_image_data, on_failure, mode_to_string](std::string url) {
@@ -823,7 +830,10 @@ void MediaPlayCtrl::start_device_image_flow()
                 if (ec != 0) {
                     BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: download failed (" << mode_to_string(mode) << "), error code: " << ec;
                     if (on_failure) {
-                        on_failure();
+                        CallAfter([on_failure, image_token]() {
+                            if (!image_token.expired())
+                                on_failure();
+                        });
                     }
                     return;
                 }
@@ -835,12 +845,16 @@ void MediaPlayCtrl::start_device_image_flow()
 
     // Try LAN mode first, fallback to remote mode if failed
     download_image(DownloadMode::DOWNLOAD_MODE_LOCAL, [this, download_image, image_token]() {
-        if (m_remote_proto && !image_token.expired()) {
-            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: LAN failed, trying remote mode";
-            download_image(DownloadMode::DOWNLOAD_MODE_REMOTE);
-        } else if (image_token.expired()) {
+        if (image_token.expired()) {
             BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: token expired, download cancelled";
+            return;
         }
+        if (!m_remote_proto) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: no remote protocol, giving up";
+            return;
+        }
+        BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: LAN failed, trying remote mode";
+        download_image(DownloadMode::DOWNLOAD_MODE_REMOTE);
     });
 }
 

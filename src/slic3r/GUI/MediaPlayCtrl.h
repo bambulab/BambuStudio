@@ -103,6 +103,7 @@ private:
     std::string m_dev_ver;
     std::string m_tutk_state;
     bool m_camera_exists = false;
+    bool m_support_liveview_preview = false;
     bool m_lan_mode = false;
     int m_remote_proto = 0;
     bool m_device_busy = false;
