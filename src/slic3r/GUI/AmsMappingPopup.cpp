@@ -2187,19 +2187,18 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
         {
             for (const auto& ams_info : m_obj->GetFilaSystem()->GetAmsList())
             {
-                int ams_device_id = atoi(ams_info.first.c_str());
-                if (ams_device_id < 128)
-                {
-                    int ams_base_id = ams_device_id * 4;
-                    for (auto tray_info : ams_info.second->GetTrays())
-                    {
-                        int tray_offset = atoi(tray_info.first.c_str());
-                        id2tray[ams_base_id + tray_offset] = tray_info.second;
+                for (auto& tray : ams_info.second->GetTrays()) {
+                    try {
+                        int ams_id  = std::stoi(ams_info.first);
+                        int slot_id = std::stoi(tray.first);
+
+                        int tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
+                        if (tray_id != -1) {
+                            id2tray[tray_id] = tray.second;
+                        }
+                    } catch(...) {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid ams_id:" << ams_info.first << ", slot_id:" << tray.first;
                     }
-                }
-                else if (ams_info.second->GetTrays().size() == 1)/*n3f*/
-                {
-                    id2tray[ams_device_id] = ams_info.second->GetTrays().begin()->second;
                 }
             }
         }
@@ -2227,16 +2226,10 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
                         auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
                         if (it != m_tray_used.end())
                         {
-                            auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
-                            auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
-                            if (it != m_tray_used.end())
-                            {
-                                is_in_tray = true;
-                            }
-
-                            group_info[tray_name] = DevAmsTray::decode_color(cur_tray->color);
-                            group_material = cur_tray->get_display_filament_type();
+                            is_in_tray = true;
                         }
+                        group_info[tray_name] = DevAmsTray::decode_color(cur_tray->color);
+                        group_material = cur_tray->get_display_filament_type();
                     }
                 }
 
