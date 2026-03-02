@@ -100,11 +100,8 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     //m_sizer_ams_area_right->Add(m_simplebook_ams_right, 0, wxLEFT | wxRIGHT, FromDIP(5));
     m_sizer_ams_area_right->Add(m_simplebook_ams_right, 0, wxALIGN_CENTER, 0);
 
-    m_panel_down_road = new wxPanel(m_amswin, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE, 0);
-    m_panel_down_road->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-
-    m_down_road = new AMSRoadDownPart(m_panel_down_road, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE);
-    m_sizer_down_road->Add(m_panel_down_road, 0, wxTOP, 0);
+    m_down_road = new AMSRoadDownPart(m_amswin, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE);
+    m_sizer_down_road->Add(m_down_road, 0, wxTOP, 0);
 
     // ams mode
     //
@@ -176,6 +173,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     m_button_ams_setting_press = ScalableBitmap(this, "ams_setting_press", 24);
 
     m_button_ams_setting = new wxStaticBitmap(m_panel_option_left, wxID_ANY, m_button_ams_setting_normal.bmp(), wxDefaultPosition, wxSize(FromDIP(24), FromDIP(24)));
+    m_button_ams_setting->SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_button_ams_setting->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_button_ams_setting->SetSize(wxSize(FromDIP(24), FromDIP(24)));
     m_sizer_option_left->Add(m_button_auto_refill, 0, wxALIGN_CENTER, 0);
     m_sizer_option_left->Add(0, 0, 0, wxLEFT, FromDIP(20));
     m_sizer_option_left->Add(m_button_ams_setting, 0, wxALIGN_CENTER, 0);
@@ -761,7 +761,7 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
         m_panel_prv_left->Hide();
     }
 
-    if (right_init_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
+    if (right_init_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE && !m_ams_info.empty()) {
         m_panel_prv_right->Layout();
         m_panel_prv_right->Show();
     } else {
