@@ -1215,6 +1215,25 @@ void AMSMaterialsSetting::update_pa_profile_items()
 {
     if (!obj || !obj->GetNozzleSystem()) return;
 
+    wxArrayString items;
+    {
+        m_pa_profile_items.clear();
+        m_comboBox_cali_result->SetValue(wxEmptyString);
+        m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
+        // add default item
+        PACalibResult default_item;
+        default_item.cali_idx    = -1;
+        default_item.filament_id = ams_filament_id;
+        if (obj->GetConfig()->SupportCalibrationPA_FlowAuto()) {
+            default_item.k_value = -1;
+            default_item.n_coef  = -1;
+        } else {
+            get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
+        }
+        m_pa_profile_items.emplace_back(default_item);
+        items.push_back(_L("Default"));
+    }
+
     DevAms* curr_ams = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id));
     if (!curr_ams) return;
 
@@ -1236,25 +1255,6 @@ void AMSMaterialsSetting::update_pa_profile_items()
                                        << ", nozzle_pos_id=" << cali_item.nozzle_pos_id
                                        << ", extruder_id=" << cali_item.extruder_id;
         }
-    }
-
-    wxArrayString items;
-    {
-        m_pa_profile_items.clear();
-        m_comboBox_cali_result->SetValue(wxEmptyString);
-        m_input_k_val->GetTextCtrl()->SetValue(wxEmptyString);
-        // add default item
-        PACalibResult default_item;
-        default_item.cali_idx    = -1;
-        default_item.filament_id = ams_filament_id;
-        if (obj->GetConfig()->SupportCalibrationPA_FlowAuto()) {
-            default_item.k_value = -1;
-            default_item.n_coef  = -1;
-        } else {
-            get_default_k_n_value(ams_filament_id, default_item.k_value, default_item.n_coef);
-        }
-        m_pa_profile_items.emplace_back(default_item);
-        items.push_back(_L("Default"));
     }
 
     for (int extruder_id : curr_ams->GetBindedExtruderSet()) {
