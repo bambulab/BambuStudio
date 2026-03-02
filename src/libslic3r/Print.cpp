@@ -2743,7 +2743,9 @@ void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<
             m_ori_full_print_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_nozzle_maps;
             m_config.filament_nozzle_map.values = f_nozzle_maps;
         }
+    }
 
+    {
         int extruder_count, extruder_volume_type_count;
         bool support_multi = m_ori_full_print_config.support_different_extruders(extruder_count);
         std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
