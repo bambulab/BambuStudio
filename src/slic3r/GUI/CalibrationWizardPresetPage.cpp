@@ -2326,8 +2326,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
     };
 
     std::map<int, ComboBox*> nozzle_volume_combox_map {
-        {MAIN_EXTRUDER_ID, m_left_comboBox_nozzle_volume},
-        {DEPUTY_EXTRUDER_ID, m_right_comboBox_nozzle_volume}
+        {MAIN_EXTRUDER_ID, m_right_comboBox_nozzle_volume},
+        {DEPUTY_EXTRUDER_ID, m_left_comboBox_nozzle_volume}
     };
 
     if (obj->is_multi_extruders()) {
