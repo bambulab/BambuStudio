@@ -13620,36 +13620,29 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
 
         std::vector<std::map<int, int>> ams_count_info;
         ams_count_info.resize(2);
-        int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-        for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
-            const auto& unique_extruder_id_opt = ams.second->GetUniqueBindedExtruderId(); //TODO support filament switcher
-            if (!unique_extruder_id_opt.has_value()) {
-                continue;
-            }
 
-            // Main (first) extruder at right
-            if (unique_extruder_id_opt.value() == 0) {
-                if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
-                    ++main_1;
-                else
-                    ++main_4;
-            } else if (unique_extruder_id_opt.value() == 1) {
-                if (ams.second->GetAmsType() == DevAmsType::N3S) // N3S
-                    ++deputy_1;
-                else
-                    ++deputy_4;
+        std::map<std::pair<int, int>, int> ams_cnt_map{
+            {{MAIN_EXTRUDER_ID, 1}, 0},
+            {{DEPUTY_EXTRUDER_ID, 1}, 0},
+            {{MAIN_EXTRUDER_ID, 4}, 0},
+            {{DEPUTY_EXTRUDER_ID, 4}, 0},
+        };
+        for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
+            for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+                std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+                ams_cnt_map[key]++;
             }
         }
 
-        int left_4  = main_4;
-        int left_1  = main_1;
-        int right_4 = deputy_4;
-        int right_1 = deputy_1;
+        int left_4  = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
+        int left_1  = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
+        int right_4 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
+        int right_1 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
         if (!obj->is_main_extruder_on_left()) {
-            left_4  = deputy_4;
-            left_1  = deputy_1;
-            right_4 = main_4;
-            right_1 = main_1;
+            left_4  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
+            left_1  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
+            right_4 = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
+            right_1 = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
         }
 
         if (!preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
