@@ -5770,7 +5770,7 @@ bool SelectMachineDialog::use_dynamic_switch() const
  */
 std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineObject* obj_) const
 {
-    return 1000;
+    // return 1000;
     if (m_print_type != FROM_NORMAL) {
         return std::nullopt;;
     }
