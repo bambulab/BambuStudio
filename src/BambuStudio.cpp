@@ -7095,7 +7095,7 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
-                                        if (gcode_result->gcode_check_result.error_code == (1 < 11))
+                                        if (gcode_result->gcode_check_result.error_code == (1 << 11))
                                             BOOST_LOG_TRIVIAL(warning)
                                                 << "plate " << index + 1 << ": found too heavy printed weight for i3. gcode_result->gcode_check_result.error_code = "
                                                 << gcode_result->gcode_check_result.error_code << std::endl;
