@@ -29,8 +29,6 @@ public:
                 const wxColour& borderColor = wxColour(200, 200, 200),
                 const wxColour& bgColor = wxColour(255, 255, 255),
                 bool borderDashed = true,
-                int borderWidth = 2,
-                int radius = 1,
                 wxString name = "",
                 bool isTop = false);
 
@@ -46,12 +44,6 @@ private:
     wxColour m_bgColor;
     wxString m_name;
     bool m_isTop;
-
-    void OnSize(wxSizeEvent& event)
-    {
-        Refresh();
-        event.Skip();
-    }
 };
 
 class UiStyledSwitchPanel : public wxPanel
@@ -107,14 +99,6 @@ private:
     wxSizer* m_rightSizer{nullptr};
     
     static constexpr int labelHeight = 30;
-    /**
-     * 尺寸变化事件处理：刷新面板绘制
-     */
-    void OnSize(wxSizeEvent& event)
-    {
-        // Refresh();
-        event.Skip();
-    }
 
 };
 
@@ -136,18 +120,21 @@ public:
 
 private:
     void OnPaint(wxPaintEvent&);
-    void DrawRectangle(wxAutoBufferedPaintDC& dc, const wxSize& cli);
-    void DrawLine(wxAutoBufferedPaintDC& dc, const wxSize& cli);
+    void DrawRectangle(wxPaintDC& dc, const wxSize& cli);
+    void DrawLine(wxPaintDC& dc, const wxSize& cli);
     wxColour LightenColour(const wxColour& original);
     bool IsDark(const wxColour& c)
     {
         int brightness = (c.Red() * 299 + c.Green() * 587 + c.Blue() * 114) / 1000;
-        return brightness < 128;  // 0-255 范围，128为中值
+        return brightness < 128;  // 0-255 range，128 mid
     }
 private:
     wxColour m_bgColour;
     wxString m_text;
     wxSize m_size;
+    ScalableBitmap *m_ams_slot_readonly{nullptr};
+    int m_rectangleW = 44;
+    int m_rectangleH = 62;
     int rectangleW = 44;
     int rectangleH = 62;
     double m_colourFactor = 1.0f;

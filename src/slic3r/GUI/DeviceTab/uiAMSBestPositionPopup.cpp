@@ -27,20 +27,16 @@ UiStyledAMSPanel::UiStyledAMSPanel(wxWindow* parent,
                          const wxColour& borderColor,
                          const wxColour& bgColor,
                          bool borderDashed,
-                         int borderWidth,
-                         int radius,
                          wxString name,
                          bool isTop)
                          : wxPanel(parent, id, pos, size),
                             m_borderDashed(borderDashed),
-                            m_borderWidth(borderWidth),
-                            m_radius(radius),
                             m_borderColor(borderColor),
                             m_bgColor(bgColor),
                             m_name(name),
                             m_isTop(isTop)
 {
-
+    SetDoubleBuffered(true);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     Bind(wxEVT_PAINT, &UiStyledAMSPanel::OnPaint, this);
@@ -51,7 +47,9 @@ void UiStyledAMSPanel::OnPaint(wxPaintEvent& event)
 {
 
     wxPaintDC dc(this);
-
+    dc.Clear();
+    m_borderWidth = FromDIP(2);
+    m_radius = FromDIP(5);
     wxSize clientSize = GetClientSize();
     int width = clientSize.GetWidth();
     int height = clientSize.GetHeight();
@@ -59,7 +57,8 @@ void UiStyledAMSPanel::OnPaint(wxPaintEvent& event)
 
     dc.SetBrush(wxBrush(m_bgColor));
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
-    dc.DrawRoundedRectangle(wxRect(0, 0, width, height), m_radius);
+    dc.DrawRectangle(wxRect(0, 0, width, height));
+    // dc.DrawRoundedRectangle(wxRect(0, 0, width, height), m_radius);
     
 
     wxPen borderPen;
@@ -80,11 +79,11 @@ void UiStyledAMSPanel::OnPaint(wxPaintEvent& event)
 
 
     int labelX = offset;
-    int labelY = m_isTop ? offset : (height - offset - 27);  // true=顶部, false=底部
+    int labelY = m_isTop ? offset : (height - offset - FromDIP(27));  // true=顶部, false=底部
 
 
-    wxRect labelRect(labelX, labelY, width - 2 * offset, 10);
-    wxRect labelRoundRect(labelX, labelY, width - 2 * offset, 27);
+    wxRect labelRect(labelX, labelY, width - 2 * offset, FromDIP(10));
+    wxRect labelRoundRect(labelX, labelY, width - 2 * offset, FromDIP(27));
     dc.SetBrush(wxBrush(m_borderColor));
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.DrawRoundedRectangle(labelRoundRect, m_radius);
@@ -99,7 +98,7 @@ void UiStyledAMSPanel::OnPaint(wxPaintEvent& event)
     dc.GetTextExtent(m_name, &textWidth, &textHeight);
 
     int textPosX = labelX + 4 * offset;
-    int textPosY = labelY + (27 -textHeight ) / 2;
+    int textPosY = labelY + (FromDIP(27) -textHeight ) / 2;
     dc.DrawText(m_name, textPosX, textPosY);
 
 
@@ -110,8 +109,8 @@ UiStyledSwitchPanel::UiStyledSwitchPanel(wxWindow* parent,
                                     wxWindowID id = wxID_ANY,
                                     const wxPoint& pos = wxDefaultPosition,
                                     const wxSize& size = wxDefaultSize,
-                                    const wxColour& borderColor = wxColour(200, 200, 200),
-                                    const wxColour& bgColor = wxColour(255, 255, 255),
+                                    const wxColour& borderColor = wxColour("#EEEEEE"),
+                                    const wxColour& bgColor = wxColour("#FFFFFF"),
                                     bool borderDashed = true,
                                     int borderWidth = 2,
                                     int radius = 1,
@@ -125,6 +124,7 @@ UiStyledSwitchPanel::UiStyledSwitchPanel(wxWindow* parent,
                                         m_isTop(isTop)
 {
 
+    SetDoubleBuffered(true);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     Bind(wxEVT_PAINT, &UiStyledSwitchPanel::OnPaint, this);
@@ -144,17 +144,17 @@ UiStyledSwitchPanel::UiStyledSwitchPanel(wxWindow* parent,
 
 
     m_leftSizer = new wxBoxSizer(wxVERTICAL);
-    m_splitSizer->Add(m_leftSizer, 1, wxEXPAND | wxALL, 0);  // proportion=1，等分宽度
+    m_splitSizer->Add(m_leftSizer, 1, wxEXPAND | wxALL, 0);
 
 
     m_rightSizer = new wxBoxSizer(wxVERTICAL);
-    m_splitSizer->Add(m_rightSizer, 1, wxEXPAND | wxALL, 0);  // proportion=1，等分宽度
+    m_splitSizer->Add(m_rightSizer, 1, wxEXPAND | wxALL, 0);
 
 
     m_contentSizer->Add(m_splitSizer, 1, wxEXPAND | wxALL, 0);
 
 
-    m_mainSizer->Add(m_contentSizer, 1, wxEXPAND | wxALL, 0);
+    m_mainSizer->Add(m_contentSizer, 1, wxEXPAND | wxALL, FromDIP(1));
 
     SetSizer(m_mainSizer);
 }
@@ -195,9 +195,14 @@ void UiStyledSwitchPanel::AddToRight(wxWindow* window, int proportion, int flag,
 void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
 {
     wxPaintDC dc(this);
+    dc.Clear();
     wxSize clientSize = GetClientSize();
     int width = clientSize.GetWidth();
-    int height = clientSize.GetHeight() - 90; // for selector space
+    int height = clientSize.GetHeight() - FromDIP(90); // for selector space
+
+    dc.SetBrush(wxBrush(m_bgColor));
+    dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
+    dc.DrawRectangle(wxRect(0, 0, width, height + FromDIP(90)));
 
     dc.SetBrush(wxBrush(m_bgColor));
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
@@ -206,28 +211,33 @@ void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
     wxPen borderPen;
     if (m_borderDashed)
     {
-        borderPen = wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH);
+        borderPen = wxPen(wxColour("#ACACAC"), m_borderWidth, wxPENSTYLE_SHORT_DASH);
     }
     else
     {
-        borderPen = wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SOLID);
+        borderPen = wxPen(wxColour("#ACACAC"), m_borderWidth, wxPENSTYLE_SOLID);
     }
+    dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
     dc.SetPen(borderPen);
+    // dc.DrawRoundedRectangle(wxRect(offset, offset, width - 2 * offset, height - 2 * offset), m_radius);
+    dc.DrawRoundedRectangle(wxRect(FromDIP(1), FromDIP(1), width - FromDIP(1), height), m_radius);
+
     int offset = m_borderWidth;
-    dc.DrawRoundedRectangle(wxRect(offset, offset, width - 2 * offset, height - 2 * offset), m_radius);
-
     int labelX = offset;
-    int labelY = m_isTop ? offset : (height - offset - labelHeight);  // true=顶部, false=底部
+    int labelY = m_isTop ? offset : (height - offset - labelHeight);  // true=top, false=bottom
+    labelX += FromDIP(1);
+    labelY += FromDIP(1);
 
-    wxRect labelRoundRect(labelX, labelY, width - 2 * offset, labelHeight);
-    wxRect labelRect(labelX, labelY + m_radius, width - 2 * offset, labelHeight - m_radius);
+    wxRect labelRoundRect(labelX, labelY, width - 2 * offset - FromDIP(2), FromDIP(labelHeight));
+    wxRect labelRect(labelX, labelY + m_radius, width - 2 * offset - FromDIP(2), FromDIP(labelHeight) - m_radius);
     dc.SetBrush(wxBrush(m_borderColor));
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     dc.DrawRoundedRectangle(labelRoundRect, m_radius);
     dc.DrawRectangle(labelRect);
 
     // dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH));
-    dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SHORT_DASH));
+    dc.SetPen(wxPen(wxColour("#ACACAC"), m_borderWidth, wxPENSTYLE_SHORT_DASH));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
     dc.DrawLine(width / 2, offset, width / 2, height - offset);
 
     wxFont font12(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -245,15 +255,15 @@ void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
     int bTextPosY = aTextPosY;
     dc.DrawText(_L("Filament Switch IN-B"), bTextPosX, bTextPosY);
 
-    height += 90; //total height
+    height += FromDIP(90); //total height
 
     dc.SetBrush(wxBrush(m_bgColor));
     dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SOLID));
-    int selBaseX = width / 2 - 35;
-    int selBaseY = height - 56;
-    int selWidth = 70;
-    int selHeight = 44;
-    dc.DrawRoundedRectangle(wxRect(selBaseX, selBaseY, selWidth, selHeight), 4);
+    int selBaseX = width / 2 - FromDIP(35);
+    int selBaseY = height - FromDIP(56);
+    int selWidth = FromDIP(70);
+    int selHeight = FromDIP(44);
+    dc.DrawRoundedRectangle(wxRect(selBaseX, selBaseY, selWidth, selHeight), FromDIP(4));
     // wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     dc.SetTextForeground(wxColour("#262E30"));
     // dc.SetFont(font);
@@ -264,11 +274,11 @@ void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
     dc.DrawText(_L("Selector"), selTextPosX, selTextPosY);
 
     //draw Horizontal
-    int hLBaseX = (width - 184) / 2;
-    int hLBaseY = selBaseY - 17;
-    int hWidth = 76;
-    int hHeight = 5;
-    int hGap = 32;
+    int hLBaseX = (width - FromDIP(184)) / 2;
+    int hLBaseY = selBaseY - FromDIP(17);
+    int hWidth = FromDIP(76);
+    int hHeight = FromDIP(5);
+    int hGap = FromDIP(32);
     wxRect HL(hLBaseX, hLBaseY, hWidth, hHeight);
     wxRect HR(hLBaseX + hWidth + hGap, hLBaseY, hWidth, hHeight);
     dc.SetBrush(wxBrush(wxColour("#D9D9D9")));
@@ -277,20 +287,20 @@ void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
     dc.DrawRectangle(HR);
     //draw vertical
     int vLTopBaseX = hLBaseX;
-    int vLTopBaseY = height - 90 - 1;
-    int vWidht = 5;
-    int vHeight = 23;
+    int vLTopBaseY = height - FromDIP(90);
+    int vWidht = FromDIP(5);
+    int vHeight = FromDIP(23);
     // vtopL vtopR
     dc.DrawRectangle(wxRect(vLTopBaseX, vLTopBaseY, vWidht, vHeight));
-    dc.DrawRectangle(wxRect(vLTopBaseX + 184 - vWidht, vLTopBaseY, vWidht, vHeight));
+    dc.DrawRectangle(wxRect(vLTopBaseX + FromDIP(184) - vWidht, vLTopBaseY, vWidht, vHeight));
 
     // vmidL vmidR
-    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth - vWidht, vLTopBaseY + vHeight - vWidht, vWidht, 17));
-    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth + hGap, vLTopBaseY + vHeight - vWidht, vWidht, 17));
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth - vWidht, vLTopBaseY + vHeight - vWidht, vWidht, FromDIP(17)));
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth + hGap, vLTopBaseY + vHeight - vWidht, vWidht, FromDIP(17)));
 
     //vbotL vbotR
-    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth - vWidht, height - 12, vWidht, 12));
-    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth + hGap, height - 12, vWidht, 12));
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth - vWidht, height - FromDIP(12), vWidht,  FromDIP(12)));
+    dc.DrawRectangle(wxRect(vLTopBaseX + hWidth + hGap, height -  FromDIP(12), vWidht,  FromDIP(12)));
     // event.Skip();
 }
 
@@ -303,24 +313,24 @@ UiAMSSlot::UiAMSSlot(wxWindow* parent,
                  double colourFactor = 1.0,
                  double scaleFactor = 1.0)
     : wxPanel(parent, id, pos, wxDefaultSize, wxBORDER_NONE),
-      m_bgColour(bgColour), m_text(text), m_colourFactor(colourFactor), m_scaleFactor(scaleFactor)
+      m_bgColour(bgColour), m_text(text), m_size(size), m_colourFactor(colourFactor), m_scaleFactor(scaleFactor)
 {
-    // 计算缩放后的尺寸
+    SetDoubleBuffered(true);
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
+    m_ams_slot_readonly = new ScalableBitmap(this, "ams_slot_readonly", 10 * m_scaleFactor);
+
     m_size = wxSize(
         static_cast<int>(size.GetWidth() * scaleFactor),
         static_cast<int>(size.GetHeight() * scaleFactor)
     );
     SetMinSize(m_size);
-    SetMaxSize(m_size);
-    rectangleW = static_cast<int>(rectangleW * m_scaleFactor);
-    rectangleH = static_cast<int>(rectangleH * m_scaleFactor);
+    // SetMaxSize(m_size);
     Bind(wxEVT_PAINT, &UiAMSSlot::OnPaint, this);
-    SetBackgroundStyle(wxBG_STYLE_PAINT);
 }
 
-void UiAMSSlot::DrawRectangle(wxAutoBufferedPaintDC& dc, const wxSize& cli)
+void UiAMSSlot::DrawRectangle(wxPaintDC& dc, const wxSize& cli)
 {
-    wxRect rr(FromDIP((cli.x -rectangleW) / 2), FromDIP((cli.y - rectangleH) / 2), FromDIP(rectangleW), FromDIP(rectangleH));
+    wxRect rr((cli.x -rectangleW) / 2, (cli.y - rectangleH) / 2, rectangleW, rectangleH);
 
     dc.SetBrush(wxBrush(LightenColour(m_bgColour)));
     dc.SetPen(wxPen(LightenColour(m_bgColour)));
@@ -352,22 +362,29 @@ void UiAMSSlot::DrawRectangle(wxAutoBufferedPaintDC& dc, const wxSize& cli)
 
     int topGap = static_cast<int>(FromDIP(5) * m_scaleFactor);
     int textGap = static_cast<int>(FromDIP(5) * m_scaleFactor);
-    int baseY = (cli.y - h1 - h2 - topGap - textGap) / 2;
+    int bmpH = m_ams_slot_readonly->GetBmpHeight();
+    int bmpW = m_ams_slot_readonly->GetBmpWidth();
+    int baseY = (cli.y - h1 - h2 - topGap - textGap - bmpH - textGap) / 2;
 
     dc.SetFont(font12);
     // dc.SetFont(::Label::Body_12);
-    dc.DrawText(line1, FromDIP((cli.x - w1) / 2), FromDIP(baseY + topGap));
+    dc.DrawText(line1, (cli.x - w1) / 2, baseY + topGap);
     dc.SetFont(font14);
     // dc.SetFont(::Label::Body_14);
-    dc.DrawText(line2, FromDIP((cli.x - w2) / 2), FromDIP(baseY + topGap + h1 + textGap));
+    dc.DrawText(line2, (cli.x - w2) / 2, baseY + topGap + h1 + textGap);
+
+    //draw svg
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(*wxWHITE);
+    dc.DrawBitmap(m_ams_slot_readonly->bmp(), wxPoint((cli.x - bmpW) / 2, baseY + topGap + h1 + textGap + h2 + textGap));
 }
 
-void UiAMSSlot::DrawLine(wxAutoBufferedPaintDC& dc, const wxSize& cli)
+void UiAMSSlot::DrawLine(wxPaintDC& dc, const wxSize& cli)
 {
     // no scaled
     if (std::abs(m_scaleFactor - 1.0) < 1e-3)
     {
-        int bgRemainPointX = FromDIP((cli.x - 30) / 2);
+        int bgRemainPointX = (cli.x - FromDIP(30)) / 2;
         int bgRemainPointY = 0;
         int bgRemainH = FromDIP(4);
         int bgRemainW = FromDIP(30);
@@ -387,28 +404,28 @@ void UiAMSSlot::DrawLine(wxAutoBufferedPaintDC& dc, const wxSize& cli)
         dc.SetBrush(wxColour("#ff6f00"));
         dc.SetPen(wxPen(wxColour("#ff6f00")));
         //top
-        int topGap = static_cast<int>(8 * m_scaleFactor);
-        int bottomGap = static_cast<int>(4 * m_scaleFactor);
-        int tbHeight = static_cast<int>(3 * m_scaleFactor);
-        dc.DrawRectangle(wxRect(FromDIP((cli.x - rectangleW)) / 2, FromDIP((cli.y - rectangleH - topGap) / 2), FromDIP(rectangleW), FromDIP(tbHeight)));
+        int topGap = static_cast<int>(FromDIP(8) * m_scaleFactor);
+        int bottomGap = static_cast<int>(FromDIP(4) * m_scaleFactor);
+        int tbHeight = static_cast<int>(FromDIP(3) * m_scaleFactor);
+        dc.DrawRectangle(wxRect((cli.x - rectangleW) / 2, (cli.y - rectangleH - topGap) / 2, rectangleW, tbHeight));
         //bottom
-        dc.DrawRectangle(wxRect(FromDIP((cli.x - rectangleW)) / 2, FromDIP((cli.y - rectangleH - topGap) / 2 + rectangleH + bottomGap), FromDIP(rectangleW), FromDIP(tbHeight)));
+        dc.DrawRectangle(wxRect((cli.x - rectangleW) / 2, (cli.y - rectangleH - topGap) / 2 + rectangleH + bottomGap, rectangleW, tbHeight));
 
         // left
-        int radius = static_cast<int>(4 * m_scaleFactor);
-        int width = static_cast<int>(10 * m_scaleFactor);
-        int height = static_cast<int>(m_size.GetHeight() - 3);
-        dc.DrawRoundedRectangle(wxRect(0, FromDIP(static_cast<int>(3 * m_scaleFactor)), FromDIP(width), FromDIP(height)), FromDIP(radius));
+        int radius = static_cast<int>(FromDIP(4) * m_scaleFactor);
+        int width = static_cast<int>(FromDIP(10) * m_scaleFactor);
+        int height = static_cast<int>(cli.y - FromDIP(3));
+        dc.DrawRoundedRectangle(wxRect(0, FromDIP(static_cast<int>(3 * m_scaleFactor)), width, height), radius);
         //right
         // dc.DrawRectangle(wxRect(55, 7, 3, 78));
-        dc.DrawRoundedRectangle(wxRect(FromDIP(static_cast<int>(m_size.GetWidth() - 10 * m_scaleFactor)),
-                                       FromDIP(static_cast<int>(3 * m_scaleFactor)),
-                                       FromDIP(static_cast<int>(10 * m_scaleFactor)),
-                                       FromDIP(static_cast<int>(m_size.GetHeight() - 3))), FromDIP(radius));
+        dc.DrawRoundedRectangle(wxRect(static_cast<int>(cli.x - FromDIP(10) * m_scaleFactor),
+                                static_cast<int>(FromDIP(3) * m_scaleFactor),
+                                static_cast<int>(FromDIP(10) * m_scaleFactor),
+                                static_cast<int>(cli.y - FromDIP(3))), radius);
     }
 
-    dc.SetBrush(wxColour("#ffffff"));
-    dc.SetPen(wxPen(wxColour("#ffffff")));  
+    dc.SetBrush(wxColour("#EBEBEB"));
+    dc.SetPen(wxPen(wxColour("#EBEBEB")));  
     dc.DrawRoundedRectangle(wxRect(FromDIP(static_cast<int>(3 * m_scaleFactor)), 
                                    FromDIP(static_cast<int>(6 * m_scaleFactor)), 
                                    FromDIP(static_cast<int>(4 * m_scaleFactor)), 
@@ -417,7 +434,6 @@ void UiAMSSlot::DrawLine(wxAutoBufferedPaintDC& dc, const wxSize& cli)
                                    FromDIP(static_cast<int>(6 * m_scaleFactor)), 
                                    FromDIP(static_cast<int>(4 * m_scaleFactor)), 
                                    FromDIP(static_cast<int>(81 * m_scaleFactor))), FromDIP(static_cast<int>(2 * m_scaleFactor)));                                   
-    // dc.DrawRoundedRectangle(wxRect(51, 6, 4, 81), 2);
 }
 
 wxColour UiAMSSlot::LightenColour(const wxColour& original)
@@ -446,9 +462,13 @@ wxColour UiAMSSlot::LightenColour(const wxColour& original)
 
 void UiAMSSlot::OnPaint(wxPaintEvent&)
 {
-    wxAutoBufferedPaintDC dc(this);
-    dc.Clear();
+    wxPaintDC dc(this);
+    dc.Clear();  
     //draw all background
+    rectangleW = FromDIP(m_rectangleW);
+    rectangleH = FromDIP(m_rectangleH);
+    rectangleW = static_cast<int>(rectangleW * m_scaleFactor);
+    rectangleH = static_cast<int>(rectangleH * m_scaleFactor);
     wxSize cli = GetClientSize();
     dc.SetBrush(wxBrush(wxColour("#ffffff")));
     dc.SetPen(wxPen(wxColour("#ffffff")));
@@ -463,8 +483,7 @@ UiAMS::UiAMS( wxWindow* parent,
          wxWindowID id = wxID_ANY,
          const wxPoint& pos = wxDefaultPosition,
          const wxSize& minSize = wxDefaultSize)
-    // : UiStyledAMSPanel(parent, id, pos, wxSize( minSize.GetWidth() * amsInfo.size(), minSize.GetHeight()), wxColour("#dbdbdb"), wxColour("#ffffff"), false, 2, 5),
-    : UiStyledAMSPanel(parent, id, pos, wxDefaultSize, wxColour("#dbdbdb"), wxColour("#ffffff"), false, 2, 5, amsInfo.front().amsName),
+    : UiStyledAMSPanel(parent, id, pos, wxDefaultSize, wxColour("#dbdbdb"), wxColour("#ffffff"), false, amsInfo.front().amsName),
 
      m_amsInfo(amsInfo), m_minSize(minSize)
 {
@@ -490,7 +509,7 @@ void UiAMS::init()
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
     //ams model
-    wxPanel* amsPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
+    // wxPanel* amsPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition);
 
     wxBoxSizer* amsPanelSizer = new wxBoxSizer(wxHORIZONTAL);
     wxSize wxSlotSize = wxSize(FromDIP(58), FromDIP(90));
@@ -499,12 +518,12 @@ void UiAMS::init()
     for (const auto& slot : m_amsInfo)
     {
         amsPanelSizer->AddStretchSpacer(gap);
-        amsPanelSizer->Add(new UiAMSSlot(amsPanel, slot.colour, slot.name, wxID_ANY, wxDefaultPosition, wxSlotSize, slot.colourFactor, slot.scaleFactor));
+        amsPanelSizer->Add(new UiAMSSlot(this, slot.colour, slot.name, wxID_ANY, wxDefaultPosition, wxSlotSize, slot.colourFactor, slot.scaleFactor));
         amsPanelSizer->AddStretchSpacer(gap);
     }
-    amsPanel->SetSizer(amsPanelSizer);
+    // amsPanel->SetSizer(amsPanelSizer);
     // mainSizer->AddStretchSpacer();
-    mainSizer->Add(amsPanel, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(5));
+    mainSizer->Add(amsPanelSizer, 0, wxALIGN_CENTER | wxEXPAND | wxALL, FromDIP(5));
     // mainSizer->AddStretchSpacer();
     SetSizer(mainSizer);
 }
@@ -527,7 +546,7 @@ void UiStatusContainer::ClearAll()
 {
     m_mainSizer->Clear(true);
     m_currentRow = new wxBoxSizer(wxHORIZONTAL);
-    m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxBOTTOM, 5);
+    m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxBOTTOM, FromDIP(5));
     m_isFirstStatus = true;
 }
 
@@ -554,7 +573,7 @@ void UiStatusContainer::AddStatusGroup(DataStatusType type, const DataStatusPara
         return;
     }
 
-    int statusSpacing = 0;
+    int statusSpacing = FromDIP(5);
     if (!m_isFirstStatus) 
     {
         statusSpacing = FromDIP(20);
@@ -566,14 +585,22 @@ void UiStatusContainer::AddStatusGroup(DataStatusType type, const DataStatusPara
         const auto& slot = param.slots[i];
         int usedWidth = m_currentRow->CalcMin().GetWidth();
         int itemTotalWidth = param.width + (i == 0 ? statusSpacing : 0);
-        if (usedWidth + itemTotalWidth > 570) {
+        if (usedWidth + itemTotalWidth > FromDIP(570)) {
             m_currentRow = new wxBoxSizer(wxHORIZONTAL);
-            m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxALL, FromDIP(5));
+            m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
             usedWidth = 0;
         }
 
         UiAMSSlot* amsSlot = new UiAMSSlot(this, slot.colour, slot.name, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(58), FromDIP(90)), slot.colourFactor, slot.scaleFactor);
-        m_currentRow->Add(amsSlot, 0, wxALIGN_CENTER | (i == 0 ? wxLEFT : 0), (i == 0 ? FromDIP(statusSpacing) : FromDIP(5)));
+        // m_currentRow->Add(amsSlot, 0, wxALIGN_CENTER | (i == 0 ? wxLEFT : 0), (i == 0 ? FromDIP(statusSpacing) : FromDIP(5)));
+        if (i == 0)
+        {
+            m_currentRow->Add(amsSlot, 0, wxALIGN_CENTER | wxLEFT, FromDIP(statusSpacing));
+        }
+        else
+        {
+            m_currentRow->Add(amsSlot, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+        }
     }
 
     wxString statusText = "";
@@ -596,7 +623,7 @@ void UiStatusContainer::AddStatusGroup(DataStatusType type, const DataStatusPara
     if (usedWidth + FromDIP(15) + labelWidth > FromDIP(570)) 
     {
         m_currentRow = new wxBoxSizer(wxHORIZONTAL);
-        m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxALL, FromDIP(5));
+        m_mainSizer->Add(m_currentRow, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(5));
         m_currentRow->Add(statusLabel, 0, wxALL | wxALIGN_CENTER, FromDIP(5));
     } 
     else 
@@ -606,7 +633,7 @@ void UiStatusContainer::AddStatusGroup(DataStatusType type, const DataStatusPara
 }
 
 ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, _L("Suggest to rearrange materials"), 
+    : wxDialog(parent, wxID_ANY, _L("Suggested rearrangement"), 
                wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     SetBackgroundColour(wxColour("#FFFFFF"));
@@ -620,11 +647,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     textPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     textSizer = new wxBoxSizer(wxVERTICAL);
     suggestText = new Label(textPanel, wxEmptyString);
-    // linkwiki = new wxHyperlinkCtrl(textPanel, wxID_ANY, _L("why can save time→"), wxString("https://wiki.bambulab.com/zh/home"), wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
-    // linkwiki->SetFont(wxGetApp().normal_font());
-    // linkwiki->SetNormalColour(wxColour("#00AE42"));
-    // linkwiki->SetFont(Label::Head_14);
-    // suggestText->SetFont(wxGetApp().normal_font());
+
     linkwiki = new Label(textPanel, _L("How to save time?→"));
     linkwiki->SetForegroundColour(wxColour("#00AE42"));
     linkwiki->SetBackgroundColour(wxColour("#FFFFFF"));
@@ -646,21 +669,23 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     summaryText = new Label(this, wxEmptyString);
     // summaryText->SetFont(wxGetApp().normal_font());
 
-    filamentSwitch = new UiStyledSwitchPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(571), FromDIP(439)),
-                                                    wxColour("#dbdbdb"), wxColour("#ffffff"), true, 2, 5, true);
-    // m_bitmapSelectMachine = new wxStaticBitmap(this, wxID_ANY, create_scaled_bitmap("selector_diagram", this, 183), wxDefaultPosition, wxSize(FromDIP(183), FromDIP(90)), 0);
+    filamentSwitch = new UiStyledSwitchPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, //wxSize(FromDIP(571), FromDIP(439)),
+                                                    wxColour("#EEEEEE"), wxColour("#ffffff"), true, FromDIP(1), FromDIP(5), true);
 
-    //耗材丝
+
     filamentTips = new wxStaticText(this, wxID_ANY, _L("Filament Status:"));
     filamentTips->SetFont(wxGetApp().normal_font());
 
-    // StatusBarContainer* statusBar = new StatusBarContainer(this);
     statusBar = new UiStatusContainer(this);
 
     btnSizer = new wxBoxSizer(wxHORIZONTAL);
     m_buttonRefresh = new Button(this, _L("Refresh"));
+    m_buttonRefresh->SetMinSize(wxSize(FromDIP(80), FromDIP(32)));
+    m_buttonRefresh->SetMaxSize(wxSize(FromDIP(80), FromDIP(32)));
     m_buttonRefresh->Bind(wxEVT_BUTTON, &ReselectMachineDialog::OnRefreshButton, this);
     m_buttonClose = new Button(this, _L("Close"));
+    m_buttonClose->SetMinSize(wxSize(FromDIP(80), FromDIP(32)));
+    m_buttonClose->SetMaxSize(wxSize(FromDIP(80), FromDIP(32)));
     m_buttonClose->SetBackgroundColor(wxColour("#00AE42"));
     m_buttonClose->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e){
         this->Close();
@@ -683,6 +708,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     mainSizer->Add(btnSizer, 0, wxALIGN_RIGHT | wxALL, FromDIP(23));
     SetSizer(mainSizer);
     Fit();
+    Layout();
     Centre();
 }
 
@@ -752,16 +778,17 @@ void ReselectMachineDialog::Update(MachineObject* obj, const std::map<int, int>&
                     UiAMS* ams = new UiAMS(this->filamentSwitch, slots, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(92), FromDIP(134)));
                     if (dir == DevFilaSwitch::SwitchPos::POS_IN_A)
                     {
-                        this->filamentSwitch->AddToLeft(ams, 0, wxALL, 10);
+                        this->filamentSwitch->AddToLeft(ams, 0, wxALL, FromDIP(10));
                         this->filamentSwitch->GetLeftSizer()->Add(0, FromDIP(20));
+
                     }
                     if (dir == DevFilaSwitch::SwitchPos::POS_IN_B)
                     {
-                        this->filamentSwitch->AddToRight(ams, 0, wxALL, 10);
+                        this->filamentSwitch->AddToRight(ams, 0, wxALL, FromDIP(10));
                         this->filamentSwitch->GetRightSizer()->Add(0, FromDIP(20));
                     }
                 }
-                if (slots.size() == 2)
+                if (slots.size() == 1)
                 {
                     if (i + 1 < INAMS.size())
                     {
@@ -822,12 +849,14 @@ void ReselectMachineDialog::Update(MachineObject* obj, const std::map<int, int>&
 
     if (statusBar)
     {
-        statusBar->SetStatusParams({30, 45, adjust}, {30, 45, ok}, {30, 45, unused});
+        statusBar->SetStatusParams({FromDIP(30), FromDIP(45), adjust}, {FromDIP(30), FromDIP(45), ok}, {FromDIP(30), FromDIP(45), unused});
     }
 
     //FilamentInfo
     mainSizer->Layout();
     Fit();
+    Refresh(true);
+    // wxDialog::Update();
 }
 
 int ReselectMachineDialog::GetSwitchHeight(MachineObject* obj, const std::map<int, int>&  best_pos_map, const std::vector<FilamentInfo>& ams_mapping)
@@ -903,7 +932,7 @@ int ReselectMachineDialog::GetSwitchHeight(MachineObject* obj, const std::map<in
             auto itAdjust = std::find_if(posAdjust.begin(), posAdjust.end(), [&](const trayHelper& tray){
                 auto amsID = std::get<0>(tray);
                 auto slotID = std::get<1>(tray);
-                amsEq = (amsID == ams.ams_id);
+                amsEq = (amsEq || (amsID == ams.ams_id));
                 return amsID == ams.ams_id && slotID == can.can_id;
             });
 
@@ -919,10 +948,10 @@ int ReselectMachineDialog::GetSwitchHeight(MachineObject* obj, const std::map<in
             }
             else
             {
-                if (amsEq)
-                {
-                    unused.push_back(DataAmsSlotInfo{{}, wxString(id + "\n" + material), can.material_colour, 0.5, 0.5});
-                }
+                // if (amsEq)
+                // {
+                unused.push_back(DataAmsSlotInfo{{}, wxString(id + "\n" + material), can.material_colour, 0.5, 0.5});
+                // }
             }
         }
     }
@@ -1011,6 +1040,7 @@ wxString ReselectMachineDialog::FormatFilamentComment(const std::vector<wxString
     if (!toINB.empty() && !toINA.empty()) {
         comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
         comment += "\n";
+        comment += "        ";
         comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
 
     } else if (!toINB.empty()) {
