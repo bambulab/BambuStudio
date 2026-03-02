@@ -104,9 +104,11 @@ void AmsMapingPopup::update(MachineObject* obj,
         m_split_line_panel->Hide();
         m_right_marea_panel->Show();
         m_right_marea_panel->Enable(true);
-        m_right_extra_slot->Show();
-        m_right_extra_slot->Enable(true);
-        m_right_split_ext_sizer->Show(true);
+
+        bool show_right_ext = (obj->GetFilaSystem()->GetVirtualTrays().size() <= extruder_num);
+        m_right_extra_slot->Show(show_right_ext);
+        m_right_extra_slot->Enable(show_right_ext);
+        m_right_split_ext_sizer->Show(show_right_ext);
         set_sizer_title(m_right_split_ams_sizer, _L("AMS"));
     } else if (extruder_num > 1) {
         if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
@@ -179,7 +181,9 @@ void AmsMapingPopup::update(MachineObject* obj,
     Refresh();
 }
 
-static std::optional<TrayData> sGetTrayData(DevAmsTray* tray,
+static std::optional<TrayData> sGetTrayData(MachineObject* obj,
+                                            DevAms* ams /*= nullptr*/,
+                                            DevAmsTray* tray,
                                             const std::string& ams_id_str)
 {
     int ams_id = 0;
@@ -194,20 +198,18 @@ static std::optional<TrayData> sGetTrayData(DevAmsTray* tray,
 
     TrayData td;
     td.ams_id = ams_id;
+    td.ams_type = tray->ams_type;
     if (tray->ams_type != DevAmsType::EXT_SPOOL) {
         td.slot_id = tray_id;
+        if (ams) {
+            td.id = ams->GetTrayId(td.slot_id);
+        }
     } else {
         td.slot_id = 0;
-    }
-
-    if (tray->ams_type == DevAmsType::AMS ||
-        tray->ams_type == DevAmsType::AMS_LITE ||
-        tray->ams_type == DevAmsType::N3F) {
-        td.id = ams_id * 4 + tray_id;
-    } else if (tray->ams_type == DevAmsType::N3S) {
-        td.id = ams_id + tray_id;
-    } else if(tray->ams_type == DevAmsType::EXT_SPOOL){
-        td.id = tray_id;
+        td.id = td.ams_id;
+        if (obj->GetFilaSystem()->GetVirtualTrays().size() > 2) {
+            td.ams_slot_name = wxString::Format("Ext-%d", 256 - td.id).ToStdString();
+        }
     }
 
     if (tray->ams_type != EXT_SPOOL && !tray->is_exists) {
@@ -274,7 +276,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
         std::vector<TrayData>                      tray_datas;
         std::map<std::string, DevAmsTray*>::const_iterator tray_iter;
         for (tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
-            const auto& td_opt = sGetTrayData(tray_iter->second, ams_group->GetAmsId());
+            const auto& td_opt = sGetTrayData(obj, ams_group, tray_iter->second, ams_group->GetAmsId());
             if (td_opt.has_value()) {
                 tray_datas.push_back(td_opt.value());
             }
@@ -300,36 +302,61 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
         }
     }
 
-    for (int i = obj->vt_slot.size() - 1; i >= 0; i--) {
-        DevAmsTray* tray_data = &obj->vt_slot[i];
-        const auto& td_opt = sGetTrayData(tray_data, tray_data->id);
-        if (!td_opt.has_value()) {
-            continue;
-        }
+    const auto& vir_list = obj->GetFilaSystem()->GetVirtualTrays();
+    if (vir_list.size() <= 2) {
+        for (auto iter = vir_list.rbegin(); iter != vir_list.rend(); iter++) {
+            DevAmsTray tray_data = iter->second;
+            const auto& td_opt = sGetTrayData(obj, nullptr, &tray_data, tray_data.id);
+            if (!td_opt.has_value()) {
+                continue;
+            }
 
-        if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-            auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
-            const auto& shown_name = td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID ? "Ext-R" : "Ext-L";
-            auto ams_mapping_item_container = new MappingContainer(m_right_marea_panel, shown_name, 1);
-            ams_mapping_item_container->SetName(m_right_marea_panel->GetName());
-            ams_mapping_item_container->SetSizer(sizer_mapping_list);
-            ams_mapping_item_container->Layout();
+            if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+                auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
+                const auto& shown_name = td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID ? "Ext-R" : "Ext-L";
+                auto ams_mapping_item_container = new MappingContainer(m_right_marea_panel, shown_name, 1);
+                ams_mapping_item_container->SetName(m_right_marea_panel->GetName());
+                ams_mapping_item_container->SetSizer(sizer_mapping_list);
+                ams_mapping_item_container->Layout();
 
-            std::vector<TrayData>  tray_datas;
-            tray_datas.push_back(td_opt.value());
-            add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
-            m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
-            m_amsmapping_container_list.push_back(ams_mapping_item_container);
-            right_one_slot_containers.push_back(ams_mapping_item_container);
-        } else {
-            if (td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID) {
-                m_right_extra_slot->send_win = send_win;
-                add_ext_ams_mapping(td_opt.value(), m_right_extra_slot);
-            } else if (td_opt->ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                m_left_extra_slot->send_win = send_win;
-                add_ext_ams_mapping(td_opt.value(), m_left_extra_slot);
+                std::vector<TrayData>  tray_datas;
+                tray_datas.push_back(td_opt.value());
+                add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
+                m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
+                m_amsmapping_container_list.push_back(ams_mapping_item_container);
+                right_one_slot_containers.push_back(ams_mapping_item_container);
+            } else {
+                if (td_opt->ams_id == VIRTUAL_TRAY_MAIN_ID) {
+                    m_right_extra_slot->send_win = send_win;
+                    add_ext_ams_mapping(td_opt.value(), m_right_extra_slot);
+                } else if (td_opt->ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                    m_left_extra_slot->send_win = send_win;
+                    add_ext_ams_mapping(td_opt.value(), m_left_extra_slot);
+                }
             }
         }
+    } else {
+        wxPanel* target_panel = m_right_marea_panel;
+        auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
+        auto ams_mapping_item_container = new MappingContainer(target_panel, "External Spools", vir_list.size());
+        ams_mapping_item_container->SetName(target_panel->GetName());
+        ams_mapping_item_container->SetSizer(sizer_mapping_list);
+        ams_mapping_item_container->Layout();
+
+        std::vector<TrayData> tray_datas;
+        for (auto iter = vir_list.rbegin(); iter != vir_list.rend(); iter++) {
+            DevAmsTray tray_data = iter->second;
+            const auto& td_opt = sGetTrayData(obj, nullptr, &tray_data, tray_data.id);
+            if (!td_opt.has_value()) {
+                continue;
+            }
+            tray_datas.push_back(td_opt.value());
+        }
+
+        add_ams_mapping(tray_datas, false, ams_mapping_item_container, sizer_mapping_list);
+        m_amsmapping_container_sizer_list.push_back(sizer_mapping_list);
+        m_amsmapping_container_list.push_back(ams_mapping_item_container);
+        right_four_slot_containers.push_back(ams_mapping_item_container);
     }
 
     _add_containers(this, left_one_slot_containers, left_four_slots_containers, m_sizer_ams_basket_left);
@@ -563,10 +590,14 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         m_mapping_item->send_win = send_win;
         m_mapping_item->m_ams_id = tray_data[i].ams_id;
         m_mapping_item->m_slot_id = tray_data[i].slot_id;
-        if (m_show_type == ShowType::LEFT_AND_RIGHT || m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
-            m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id, 2));
+        if (tray_data[i].ams_slot_name.empty()) {
+            if (m_show_type == ShowType::LEFT_AND_RIGHT || m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+                m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id, 2));
+            } else {
+                m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id));
+            }
         } else {
-            m_mapping_item->set_tray_index(wxGetApp().transition_tridid(tray_data[i].id));
+            m_mapping_item->set_tray_index(tray_data[i].ams_slot_name);
         }
 
         m_mapping_item->SetSize(wxSize(FromDIP(48), FromDIP(60)));
@@ -644,6 +675,8 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         sizer->Add(m_mapping_item, 0, wxTOP, FromDIP(1));
         m_mapping_item_list.push_back(m_mapping_item);
     }
+
+    container->Layout();
 }
 
 void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)

@@ -337,6 +337,10 @@ namespace Slic3r
             system->m_total_extder_count = 2;
         }
 
+        if (system->Owner()->GetFilaSystem()->GetVirtualTrays().size() > 2) {
+            system->m_total_extder_count = 1;// hint to 1 since firmware, to be removed if firmware fixed
+        }
+
         if (system->m_current_extder_id != DevUtil::get_flag_bits(extruder_json["state"].get<int>(), 4, 4))
         {
             system->Owner()->targ_nozzle_id_from_pc = INVALID_EXTRUDER_ID;
@@ -412,7 +416,7 @@ namespace Slic3r
             extder_obj.m_current_nozzle_id = njon["hnow"].get<int>();
 
             // limit extuder count to 2
-            if(system->m_extders.size() < 2){
+            if (system->m_extders.size() < system->m_total_extder_count) {
                 system->m_extders.push_back(extder_obj);
             }
         }

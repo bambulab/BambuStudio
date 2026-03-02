@@ -708,7 +708,6 @@ Description:AMSPreview
 class AMSPreview : public wxWindow
 {
 public:
-    AMSPreview();
     AMSPreview(wxWindow *parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 
     bool m_open = {false};

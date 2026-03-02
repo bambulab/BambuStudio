@@ -283,10 +283,10 @@ public:
 
     //AmsTray vt_tray;                        // virtual tray
     long  ams_exist_bits = 0;
-    long  tray_exist_bits = 0;
-    long  tray_is_bbl_bits = 0;
-    long  tray_read_done_bits = 0;
-    long  tray_reading_bits = 0;
+    long long tray_exist_bits = 0;
+    long long tray_is_bbl_bits = 0;
+    long long tray_read_done_bits = 0;
+    long long tray_reading_bits = 0;
     bool  ams_air_print_status { false };
     bool  ams_support_virtual_tray { true };
     time_t ams_user_setting_start = 0;
@@ -801,9 +801,10 @@ public:
     // Returns 0 when there is no explicit upper bound (legacy behavior for is_enable_np).
     int get_max_filament_color_count() const;
 
-    /*vi slot data*/
+    /*vi slot data*/ 
+    // to be removed, use DevFilaSystem::GetVirtualTrays() instead
     std::vector<DevAmsTray> vt_slot;
-    DevAmsTray parse_vt_tray(json vtray);
+    static DevAmsTray parse_vt_tray(MachineObject* obj_, const json& vtray);
     DevAmsTray* get_vt_tray(const std::string &ams_id);
 
     /*get ams slot info*/

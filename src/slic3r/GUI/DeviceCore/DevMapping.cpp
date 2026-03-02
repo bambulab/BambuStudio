@@ -163,23 +163,7 @@ namespace Slic3r
             {
                 int ams_id = atoi(ams->first.c_str());
                 int tray_id = atoi(tray->first.c_str());
-                int tray_index = 0;
-                if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F)
-                {
-                    tray_index = ams_id * 4 + tray_id;
-                }
-                else if (ams_type == DevAmsType::AMS_LITE_MIXED)
-                {
-                    tray_index = AMS_LITE_MIXED_TRAY_INDEX_OFFSET + tray_id;
-                }
-                else if (ams_type == DevAmsType::N3S)
-                {
-                    tray_index = ams_id + tray_id;
-                }
-                else
-                {
-                    assert(0);
-                }
+                int tray_index = ams->second->GetTrayId(tray_id);
 
                 // skip exclude id
                 for (int i = 0; i < exclude_id.size(); i++)

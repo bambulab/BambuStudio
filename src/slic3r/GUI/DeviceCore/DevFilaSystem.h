@@ -43,6 +43,7 @@ public:
         Initializing = 4,
     };
 
+    DevAmsTray() = default;
     DevAmsTray(std::string tray_id)
     {
         is_bbl = false;
@@ -91,9 +92,9 @@ public:
     int             remain = 0;         // filament remain: 0 ~ 100
     int             remain_g = -1;      // accurate remaining weight in grams; -1 means not edited / not provided by firmware
 
-    std::optional<int>                      current_extruder_id;// the ams is used on the extruder currently
+    std::optional<int>                      current_extruder_id = std::nullopt;// the ams is used on the extruder currently
     std::set<int>                           binded_extruder_set;// the ams can be used on the binded extruders
-    std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
+    std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos = std::nullopt;
 
 public:
     // operators
@@ -124,6 +125,8 @@ public:
     std::string get_filament_type();
 
     std::optional<int> get_filament_remain_weight() const;
+
+    std::optional<int> get_extruder_id(MachineObject* obj) const;
 
     // static
     static wxColour decode_color(const std::string& color);
@@ -210,7 +213,10 @@ public:
     DevAmsType GetAmsType() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED ? DevAmsType::AMS_LITE : m_ams_type; }
 
     // exist or not
-    bool  IsExist() const { return m_exist; }
+    bool  IsExist() const;
+
+    // tray id
+    int  GetTrayId(int slot_id) const; //same as tray_exist_bits
 
     // mixed ams lite for N9
     bool IsAmsLiteMixed() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED; }
@@ -239,10 +245,10 @@ public:
     bool  SupportHumidityLevel() const { return m_ams_type == DevAmsType::AMS; }
     int   GetHumidityLevel() const { return m_humidity_level; }
 
-    bool  SupportHumidityPercent() const { return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S); }
+    bool  SupportHumidityPercent() const;
     int   GetHumidityPercent() const { return m_humidity_percent; }
 
-    bool  SupportDrying() const { return m_ams_type == DevAmsType::N3F || m_ams_type == DevAmsType::N3S; }
+    bool  SupportDrying() const;
     int   GetLeftDryTime() const { return m_left_dry_time; } //miniutes
 
     // remote drying control
@@ -263,7 +269,6 @@ private:
 
     DevAmsType    m_ams_type = DevAmsType::AMS;
     std::string   m_ams_id;
-    bool          m_exist = false;
 
     // bind extruder id set
     // normally, one ams binds to one extruder
@@ -315,6 +320,10 @@ public:
     DevAmsTray* GetAmsTray(const std::string& ams_id, const std::string& tray_id) const;
     void        CollectAmsColors(std::vector<wxColour>& ams_colors) const;
 
+    /* external trays*/
+    std::optional<DevAmsTray> GetVirtualTray(int virtual_tray_id) const;
+    const std::map<std::string, DevAmsTray>& GetVirtualTrays() const { return m_vt_trays; }
+
     std::map<int, DevAmsSlotId> GetTrayIndexMap();
     int GetTrayIdByAmsSlotId(int ams_id, int slot_id);
     std::string GetTrayNameByTrayId(int tray_id);
@@ -349,6 +358,10 @@ public:
     int  CtrlAmsStartDryingHour(int ams_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
     int  CtrlAmsStopDrying(int ams_id) const;
 
+    // Parse
+    void ParseVirtualTrayInfos(const nlohmann::json& j_print);
+
+
 public:
     static bool IsBBL_Filament(std::string tag_uid);
 
@@ -362,6 +375,7 @@ private:
     std::vector<DevFilamentStep> m_filament_change_steps; // some firmwares support this
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0
+    std::map<std::string, DevAmsTray> m_vt_trays; // virutal tray info
 
     DevAmsSystemSetting m_ams_system_setting{ this };
     std::shared_ptr<DevAmsSystemFirmwareSwitch> m_ams_firmware_switch = DevAmsSystemFirmwareSwitch::Create(this);

@@ -2335,6 +2335,14 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     }
 
+    if (obj->ams_support_virtual_tray && !fila_switch_flag) {
+        for (const auto &[_, tray] : obj->GetFilaSystem()->GetVirtualTrays()) {
+            int extruder_id = tray.current_extruder_id ? tray.current_extruder_id.value() : 0;
+            machine_extruder_infos[extruder_id].ext++;
+            machine_extruder_infos[extruder_id].ext_v.push_back(tray);
+        }
+    }
+
     std::reverse(machine_extruder_infos.begin(), machine_extruder_infos.end());
 
     std::vector<bool> extruder_synced(extruder_nums, false);
@@ -4583,7 +4591,7 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     }
 
     auto get_ams_name = [](int ams_id, int slot_id)->std::string {
-        if (ams_id >= 0 && ams_id < 26) {
+        if (ams_id >= 0 && ams_id < 64) {
             char slot_name = slot_id + '1';
             return std::string(1, 'A' + ams_id) + std::string(1, slot_name);
         } else if (ams_id >= 128 && ams_id < 153) {

@@ -4798,6 +4798,16 @@ wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extrud
         int id_suffix = trid_id - 24 + 1;//ams lite for n9 trid_id start from 24
         return wxString::Format("Q%d", id_suffix);
     }
+    else if (trid_id >= 28 && trid_id <= 36)
+    {
+        int id_suffix = trid_id - 28 + 1;
+        return wxString::Format("AMS-A%d", id_suffix);
+    }
+    else if (trid_id >= 37 && trid_id <= 43)
+    {
+        int id_suffix = trid_id - 27 + 1;
+        return wxString::Format("AMS-B%d", id_suffix);
+    }
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;

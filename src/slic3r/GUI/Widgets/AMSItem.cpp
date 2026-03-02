@@ -2827,9 +2827,7 @@ bool AMSRoadDownPart::shouldHideExtRoad() const
 /*************************************************
 Description:AMSPreview
 **************************************************/
-AMSPreview::AMSPreview() {}
-
-AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size) : AMSPreview()
+AMSPreview::AMSPreview(wxWindow* parent, wxWindowID id, AMSinfo amsinfo, const wxPoint& pos, const wxSize& size)
 {
     wxWindow::Create(parent, id, pos);
 

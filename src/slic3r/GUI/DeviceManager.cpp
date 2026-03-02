@@ -3500,11 +3500,13 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                     /* vitrual tray*/
                     if (!key_field_only) {
+                        m_fila_system->ParseVirtualTrayInfos(jj);
+
                         try {
                             if (jj.contains("vir_slot") && jj["vir_slot"].is_array()) {
 
                                 for (auto it = jj["vir_slot"].begin(); it != jj["vir_slot"].end(); it++) {
-                                    auto vslot = parse_vt_tray(it.value().get<json>());
+                                    auto vslot = parse_vt_tray(this, it.value().get<json>());
 
                                     if (vslot.id == std::to_string(VIRTUAL_TRAY_MAIN_ID)) {
                                         auto it = std::next(vt_slot.begin(), 0);
@@ -3528,7 +3530,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 
                             }
                             else if (jj.contains("vt_tray")) {
-                                auto main_slot = parse_vt_tray(jj["vt_tray"].get<json>());
+                                auto main_slot = parse_vt_tray(this, jj["vt_tray"].get<json>());
                                 main_slot.id = std::to_string(VIRTUAL_TRAY_MAIN_ID);
 
 
@@ -4143,7 +4145,7 @@ DevAmsTray* MachineObject::get_vt_tray(const std::string &ams_id)
     return nullptr;
 }
 
-DevAmsTray MachineObject::parse_vt_tray(json vtray)
+DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
@@ -4167,7 +4169,7 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
     }
     vt_tray.ams_id = vt_tray.id;
 
-    if (auto old_vt_tray = get_vt_tray(vt_tray.id)) {
+    if (auto old_vt_tray = obj_->get_vt_tray(vt_tray.id)) {
         if (old_vt_tray->hold_count > 0) {
             old_vt_tray->hold_count--;
             return *old_vt_tray;
@@ -4175,15 +4177,15 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
     }
 
     auto curr_time = std::chrono::system_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - extrusion_cali_set_hold_start);
+    auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - obj_->extrusion_cali_set_hold_start);
     if (diff.count() > HOLD_TIMEOUT || diff.count() < 0
-        || extrusion_cali_set_tray_id != VIRTUAL_TRAY_MAIN_ID) {
+        || obj_->extrusion_cali_set_tray_id != VIRTUAL_TRAY_MAIN_ID) {
         if (vtray.contains("k"))
             vt_tray.k = vtray["k"].get<float>();
         if (vtray.contains("n"))
             vt_tray.n = vtray["n"].get<float>();
     }
-    ams_support_virtual_tray = true;
+    obj_->ams_support_virtual_tray = true;
 
     if (vt_tray.hold_count > 0) {
         vt_tray.hold_count--;
@@ -4333,19 +4335,26 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
     return false;
 }
 
-std::optional<DevAmsTray> MachineObject::get_tray(const std::string &ams_id, const std::string &tray_id) const
+std::optional<DevAmsTray> MachineObject::get_tray(const std::string& ams_id, const std::string& tray_id) const
 {
     if (ams_id.empty() && tray_id.empty()) {
-        return std::nullopt;
+        return DevAmsTray(tray_id);
     }
 
-    if (ams_id != VIRTUAL_AMS_MAIN_ID_STR && ams_id != VIRTUAL_AMS_DEPUTY_ID_STR) {
-        auto tray = m_fila_system->GetAmsTray(ams_id, tray_id);
-        if (tray) { return *tray;};
+    auto ams_tray = m_fila_system->GetAmsTray(ams_id, tray_id);
+    if (ams_tray) {
+        return *ams_tray;
+    };
+
+    try {
+        return m_fila_system->GetVirtualTray(stoi(ams_id));
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invaild ams id" << std::endl;
     }
-    else {
-        for (const auto &tray : vt_slot) {
-            if (tray.id == ams_id) { return tray; }
+
+    for (const auto& tray : vt_slot) {
+        if (tray.id == ams_id) {
+            return tray;
         }
     }
 

@@ -59,6 +59,8 @@ enum DevAmsType : int
     N3F = 3,            // N3F, AMS 2PRO
     N3S = 4,            // N3S, AMS HT
     AMS_LITE_MIXED = 5, // AMS-Lite for N9
+    ZMULTI_A = 6,
+    ZMULTI_B = 7,
 };
 
 enum DevFilamentStep

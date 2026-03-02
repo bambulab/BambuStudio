@@ -75,7 +75,7 @@ enum ShowType {
 struct TrayData
 {
     TrayType        type;
-    int             id;
+    int             id;// same as tray_id
     int             ctype = 0;
     int             remain = MAPPING_ITEM_INVALID_REMAIN;
     std::string     name;
@@ -85,6 +85,8 @@ struct TrayData
 
     int             ams_id = 0;
     int             slot_id = 0;
+    DevAmsType      ams_type = DevAmsType::EXT_SPOOL;
+    std::string     ams_slot_name; // cloud be empty
 };
 
 class MaterialItem: public wxPanel

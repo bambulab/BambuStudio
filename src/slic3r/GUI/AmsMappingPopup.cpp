@@ -1453,7 +1453,7 @@ void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString n
         m_coloul = colour;
         m_name   = name;
         m_support_remain_detect = remain_dect;
-        m_to_paint_remain       = (m_tray_data.ams_id != VIRTUAL_TRAY_MAIN_ID && m_tray_data.ams_id != VIRTUAL_TRAY_DEPUTY_ID);
+        m_to_paint_remain       = (data.ams_type != DevAmsType::EXT_SPOOL);
         Refresh();
     }
 
@@ -1994,18 +1994,21 @@ MappingContainer::MappingContainer(wxWindow *parent, const wxString &ams_type, i
 
     m_ams_type  = ams_type;
     m_slots_num = slots_num;
-    if (slots_num == 1)
-    {
+    if (slots_num == 1) {
         ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_1", this, 82);
         SetMinSize(wxSize(FromDIP(74), FromDIP(82)));
         SetMaxSize(wxSize(FromDIP(74), FromDIP(82)));
-    }
-    else
-    {
+    } else if (slots_num == 4) {
         ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_4", this, 82);
         SetMinSize(wxSize(FromDIP(230), FromDIP(82)));
         SetMaxSize(wxSize(FromDIP(230), FromDIP(82)));
+    } else {
+        ams_mapping_item_container = create_scaled_bitmap("ams_mapping_container_4", this, 82);
+        SetMinSize(wxSize(FromDIP(m_slots_num * 54 + 20), FromDIP(82)));
+        SetMaxSize(wxSize(FromDIP(m_slots_num * 54 + 20), FromDIP(82)));
     }
+
+    Layout();
 }
 
 MappingContainer::~MappingContainer()

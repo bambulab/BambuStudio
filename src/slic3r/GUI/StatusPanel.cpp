@@ -4179,7 +4179,6 @@ void StatusPanel::update_ams(MachineObject *obj)
     last_tray_is_bbl_bits = obj->tray_is_bbl_bits;
     last_read_done_bits   = obj->tray_read_done_bits;
     last_reading_bits     = obj->tray_reading_bits;
-    last_ams_version      = obj->ams_version;
 
     /*right*/
     if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value()) {
@@ -4213,26 +4212,13 @@ void StatusPanel::update_ams(MachineObject *obj)
     for (auto ams_it = amslist.begin(); ams_it != amslist.end(); ams_it++) {
         std::string ams_id = ams_it->first;
         try {
-            int ams_id_int = atoi(ams_id.c_str());
             for (auto tray_it = ams_it->second->GetTrays().begin(); tray_it != ams_it->second->GetTrays().end(); tray_it++) {
-                std::string tray_id     = tray_it->first;
-                int         tray_id_int = atoi(tray_id.c_str());
-                // new protocol
-                if (ams_id_int < 128) {
-                    if ((ams_it->second->GetAmsType() == DevAmsType::AMS_LITE && ams_it->second->IsAmsLiteMixed()) && ((obj->tray_reading_bits & (1 << (24 + tray_id_int))) == 0)) {
-                        m_ams_control->StopRridLoading(ams_id, tray_id);
-                    } else if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
-                        m_ams_control->StopRridLoading(ams_id, tray_id);
-                    } else {
-                        m_ams_control->PlayRridLoading(ams_id, tray_id);
-                    }
+                auto slot_id = tray_it->first;
+                int tray_id = ams_it->second->GetTrayId(atoi(tray_it->first.c_str()));
+                if ((obj->tray_reading_bits & (1 << tray_id)) == 0) {
+                    m_ams_control->StopRridLoading(ams_id, slot_id);
                 } else {
-                    int check_flag = (1 << (16 + ams_id_int - 128));
-                    if ((obj->tray_reading_bits & check_flag) != 0) {
-                        m_ams_control->PlayRridLoading(ams_id, tray_id);
-                    } else {
-                        m_ams_control->StopRridLoading(ams_id, tray_id);
-                    }
+                    m_ams_control->PlayRridLoading(ams_id, slot_id);
                 }
             }
         } catch (...) {}

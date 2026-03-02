@@ -2689,7 +2689,7 @@ void SelectMachineDialog::timelapse_button_click()
 void SelectMachineDialog::update_timelapse_folder_btn_icon()
 {
     if (!m_timelapse_folder_btn) return;
-    // always restore to normal (grey) �� active state is managed by popup open/close
+    // always restore to normal (grey) ?? active state is managed by popup open/close
     m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed", m_timelapse_folder_btn, 16));
     m_timelapse_folder_btn->Refresh();
 }
@@ -2861,20 +2861,20 @@ void SelectMachineDialog::on_timelapse_storage_check_result()
     MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
     if (!obj) { on_send_print(); return; }
 
-    // query failed �� ignore, proceed with print
+    // query failed ?? ignore, proceed with print
     if (obj->timelapse_storage_check_result != 0) {
         BOOST_LOG_TRIVIAL(info) << "timelapse storage check failed (result=" << obj->timelapse_storage_check_result << "), proceeding";
         on_send_print();
         return;
     }
 
-    // space is enough �� proceed
+    // space is enough ?? proceed
     if (obj->timelapse_storage_is_enough) {
         on_send_print();
         return;
     }
 
-    // space not enough �� show dialog
+    // space not enough ?? show dialog
     show_timelapse_storage_dialog(obj);
 }
 
@@ -2948,8 +2948,8 @@ void SelectMachineDialog::show_timelapse_storage_dialog(MachineObject* obj)
     dlg.Fit();
     dlg.CenterOnParent();
 
-    // ShowModal returns after dialog closes �� handle action outside modal stack
-    // wxID_CANCEL is returned when user clicks X (close button) �� do nothing in that case
+    // ShowModal returns after dialog closes ?? handle action outside modal stack
+    // wxID_CANCEL is returned when user clicks X (close button) ?? do nothing in that case
     int result = dlg.ShowModal();
 
     if (result == wxID_OK) {
@@ -2998,7 +2998,7 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     if (!config) return;
     if (!obj) return;
 
-    // Read saved values from config �� only called once on open / switch machine
+    // Read saved values from config ?? only called once on open / switch machine
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
@@ -3162,7 +3162,7 @@ void SelectMachineDialog::check_tpu_aero_flow_cali(MachineObject* obj)
     if (has_mapped && all_tpu_or_aero) {
         m_checkbox_list["flow_cali"]->setValue("off");
 
-        // Immediately update pa_panel visibility �� same as on_flow_pa_caliation_option_changed
+        // Immediately update pa_panel visibility ?? same as on_flow_pa_caliation_option_changed
         if (obj->is_support_pa_mode) {
             m_pa_value_panel->Show();
             Layout();
@@ -5989,14 +5989,30 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
 // return ? if not mapped
 wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
 {
-    if (m_print_type != FROM_NORMAL) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": from normal";
-        return wxEmptyString;// there are no slicing data when print from sdcard
-    }
-
     auto obj_ = get_current_machine();
     if (!obj_) {
         return wxEmptyString;
+    }
+
+    if (obj_->GetExtderSystem()->GetTotalExtderCount() == 1 &&
+        obj_->GetNozzleSystem()->GetExtNozzles().size() > 1) {
+        try {
+            const auto& physical_fila = m_ams_mapping_result.at(fila_id);
+            if (const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(physical_fila.ams_id); ams_item) {
+                if (ams_item->GetAmsType() == DevAmsType::ZMULTI_A || ams_item->GetAmsType() == DevAmsType::ZMULTI_B) {
+                    return physical_fila.slot_id;
+                }
+            }
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": e=" << e.what();
+        }
+
+        return "?";
+    }
+
+    if (m_print_type != FROM_NORMAL) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": from normal";
+        return wxEmptyString;// there are no slicing data when print from sdcard
     }
 
     if (use_dynamic_nozzle_map() && !obj_->GetFilaSwitch()->IsInstalled()) {
