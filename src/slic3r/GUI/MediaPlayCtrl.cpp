@@ -135,6 +135,10 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
     m_button_play->SetCanFocus(false);
 
+    m_button_camera_switch = new Button(this, "", "dev_camera_switch_icon", wxBORDER_NONE);
+    m_button_camera_switch->SetCanFocus(false);
+    m_button_camera_switch->Hide();  // Initially hidden, will be shown based on support_liveview_cams
+
     m_label_status = new Label(this, "");
     m_label_status->SetForegroundColour(wxColour("#323A3C"));
 
@@ -174,6 +178,39 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_button_play->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) { TogglePlay(); });
     m_button_play->Bind(wxEVT_RIGHT_UP, [this](auto & e) { m_media_ctrl->Play(); });
+
+    m_button_camera_switch->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &e) {
+        // Capture m_obj locally to ensure consistent pointer during event handling
+        MachineObject* obj = m_obj;
+        if (!obj || obj->support_liveview_cams.empty()) {
+            return;
+        }
+
+        // Find the next camera index
+        int next_camera = 0;
+        int current_idx = -1;
+
+        // Find current camera in supported cameras list
+        for (size_t i = 0; i < obj->support_liveview_cams.size(); ++i) {
+            if (obj->support_liveview_cams[i] == obj->liveview_current_camera) {
+                current_idx = i;
+                break;
+            }
+        }
+
+        // Get the next camera (wrap around to 0 if at the end)
+        if (current_idx >= 0) {
+            next_camera = obj->support_liveview_cams[(current_idx + 1) % obj->support_liveview_cams.size()];
+        } else if (!obj->support_liveview_cams.empty()) {
+            // If current camera not found in list, use the first one
+            next_camera = obj->support_liveview_cams[0];
+        }
+
+        BOOST_LOG_TRIVIAL(info) << "Camera switch: current_camera=" << obj->liveview_current_camera
+                                << " (idx=" << current_idx << "), switch_to=" << next_camera;
+        obj->command_switch_camera(next_camera);
+    });
+
     m_label_status->Bind(wxEVT_LEFT_UP, [this](auto &e) {
         auto url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/faq/live-view", wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
         wxLaunchDefaultBrowser(url);
@@ -199,9 +236,10 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(m_button_play, 0, wxEXPAND | wxALL, 0);
+    sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(5));
     sizer->Add(m_label_stat, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(25));
     sizer->AddStretchSpacer(1);
-    sizer->Add(m_label_status, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(25));
+    sizer->Add(m_button_camera_switch, 0, wxEXPAND | wxRIGHT, FromDIP(25));
     SetSizer(sizer);
 
     m_thread = boost::thread([this] {
@@ -234,9 +272,82 @@ MediaPlayCtrl::~MediaPlayCtrl()
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": " << this;
 }
 
+bool MediaPlayCtrl::is_valid_camera(int camera_id)
+{
+    return camera_id == static_cast<int>(LiveviewCameraType::CAMERA_OLD_VERSION) || // -1 is for old version which does not have camera info, treat it as valid
+           camera_id == static_cast<int>(LiveviewCameraType::CAMERA_MAIN) ||
+           camera_id == static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY);
+}
+
+bool MediaPlayCtrl::is_support_switch_cam(const std::vector<int>& support_liveview_cams)
+{
+    return support_liveview_cams.size() >= 2;
+}
+
+void MediaPlayCtrl::update_camera_switch_tooltip()
+{
+    if (!m_button_camera_switch) {
+        return;
+    }
+
+    if (!m_obj || !is_support_switch_cam(m_obj->support_liveview_cams)) {
+        if (m_last_camera != static_cast<int>(LiveviewCameraType::CAMERA_OLD_VERSION)) {
+            m_button_camera_switch->SetToolTip(wxEmptyString);
+            m_last_camera = static_cast<int>(LiveviewCameraType::CAMERA_OLD_VERSION);
+        }
+        return;
+    }
+
+    // Only update tooltip if camera value has changed
+    if (m_last_camera == m_obj->liveview_current_camera) {
+        return;
+    }
+
+    m_last_camera = m_obj->liveview_current_camera;
+
+    wxString tip_text;
+    if (m_obj->liveview_current_camera == static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) {
+        tip_text = _L("Switch to the auxiliary live camera view");
+    } else if (m_obj->liveview_current_camera == static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) {
+        tip_text = _L("Switch to the main live camera view");
+    } else {
+        tip_text = _L("Switch live camera view");
+    }
+
+    m_button_camera_switch->SetToolTip(tip_text);
+}
+
 void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
 {
+    m_obj = obj;
+
     std::string machine = obj ? obj->get_dev_id() : "";
+
+    // Update camera switch button visibility based on support_liveview_cams
+    bool should_show = obj && is_support_switch_cam(obj->support_liveview_cams);
+    bool is_shown = m_button_camera_switch->IsShown();
+
+    if (should_show != is_shown) {
+        if (should_show) {
+            m_button_camera_switch->Show();
+        } else {
+            m_button_camera_switch->Hide();
+        }
+        Layout();
+    }
+    update_camera_switch_tooltip();
+
+    // Check camera validity only for machines with camera switching support
+    // For old machines (liveview_current_camera == -1) or single-camera machines, skip to avoid clearing existing status
+    if (obj && is_support_switch_cam(obj->support_liveview_cams)) {
+        if (!is_valid_camera(obj->liveview_current_camera)) {
+            SetStatus(_L("Current camera is abnormal"), false);
+            BOOST_LOG_TRIVIAL(warning) << "SetMachineObject: invalid camera " << obj->liveview_current_camera;
+        } else if (m_last_state == MEDIASTATE_IDLE) {
+            SetStatus(_L(""), false);
+        }
+    }
+
     if (obj) {
         m_obj            = obj;
         m_camera_exists  = obj->has_ipcam;
@@ -813,6 +924,7 @@ void MediaPlayCtrl::ToggleStream()
 
 void MediaPlayCtrl::msw_rescale() {
     m_button_play->Rescale();
+    m_button_camera_switch->Rescale();
 }
 
 void MediaPlayCtrl::jump_to_play()

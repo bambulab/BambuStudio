@@ -489,6 +489,8 @@ public:
     time_t  camera_recording_ctl_start = 0;
     int  camera_timelapse_hold_count = 0;
     int  camera_resolution_hold_count = 0;
+    int liveview_current_camera = -1;
+    std::vector<int> support_liveview_cams;
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
     std::string local_rtsp_url;
@@ -516,7 +518,6 @@ public:
         FR_Agora,
         FR_TutkAgora
     } file_remote{ FR_None };
-
 
     enum DoorOpenCheckState : int
     {
@@ -663,6 +664,7 @@ public:
     std::string request_access_code(AccessCodeRefreshCallback callback);
     void cancel_access_code_request(const std::string& sequence_id);
     int command_ack_proceed(json& proceed);
+    int command_switch_camera(int camera_id);
 
     /* control apis */
 

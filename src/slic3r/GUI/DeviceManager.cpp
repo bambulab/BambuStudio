@@ -2213,6 +2213,17 @@ int MachineObject::command_ack_proceed(json& proceed) {
     return this->publish_json(j);
 }
 
+int MachineObject::command_switch_camera(int camera_id)
+{
+    json j;
+    j["camera"]["command"] = "change_liveview_cam_idx";
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["camera_id"] = camera_id;
+    j["camera"]["peer_name"] = "studio";
+    j["camera"]["version"] = 1;
+    return this->publish_json(j);
+}
+
 
 void MachineObject::set_bind_status(std::string status)
 {
@@ -3464,6 +3475,23 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 }
                                 if (ipcam.contains("tutk_server")) {
                                     tutk_state = ipcam["tutk_server"].get<std::string>();
+                                }
+                                if (ipcam.contains("current_liveview")) {
+                                    if (ipcam["current_liveview"].is_number()) {
+                                        liveview_current_camera = ipcam["current_liveview"].get<int>();
+                                    }
+                                } else {
+                                    liveview_current_camera = -1;
+                                }
+                                if (ipcam.contains("support_liveview_cams")) {
+                                    if (ipcam["support_liveview_cams"].is_array()) {
+                                        support_liveview_cams.clear();
+                                        for (auto cam : ipcam["support_liveview_cams"]) {
+                                            if (cam.is_number()) {
+                                                support_liveview_cams.push_back(cam.get<int>());
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
