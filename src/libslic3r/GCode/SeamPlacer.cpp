@@ -425,6 +425,7 @@ void process_perimeter_polygon(
     if (orig_polygon.size() == 0) { return; }
     Polygon polygon       = orig_polygon;
     bool    was_clockwise = polygon.make_counter_clockwise();
+    was_clockwise         = polygon.is_clockwise();
     float   angle_arm_len = region != nullptr ? region->flow(FlowRole::frExternalPerimeter).nozzle_diameter() : 0.5f;
 
     std::vector<float> lengths{};
