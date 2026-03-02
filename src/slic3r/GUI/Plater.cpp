@@ -861,7 +861,9 @@ bool Sidebar::priv::is_fila_switch_ready()
     if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
         return false;
     }
-    auto obj = wxGetApp().getDeviceManager()->get_selected_machine();
+    auto device_manager = wxGetApp().getDeviceManager();
+    if (device_manager == nullptr) return false;    
+    auto obj = device_manager->get_selected_machine();
     if (obj == nullptr || !obj->is_online()) return false;
     auto fila_switch = obj->GetFilaSwitch();
     if (fila_switch == nullptr) return false;
@@ -1835,6 +1837,16 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     };
     for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
         for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+            if (is_fila_switch_ready()) {
+                auto switcher_pos = ams.second->GetSwitcherPos();
+                if (!switcher_pos) {
+                    continue;
+                }
+                auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                if (extruder_id != switcher_id) {
+                    continue;
+                }
+            }
             std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
             ams_cnt_map[key]++;
         }
@@ -1987,6 +1999,31 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             update_extruder_separator_icon(false, false);
             fila_switch_warning_shown = false;
         }
+
+        std::map<std::pair<int, int>, int> ams_cnt_map{
+            {{MAIN_EXTRUDER_ID, 1}, 0},
+            {{DEPUTY_EXTRUDER_ID, 1}, 0},
+            {{MAIN_EXTRUDER_ID, 4}, 0},
+            {{DEPUTY_EXTRUDER_ID, 4}, 0},
+        };
+        for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
+            for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+                if (is_fila_switch_ready()) {
+                    auto switcher_pos = ams.second->GetSwitcherPos();
+                    if (!switcher_pos) { continue; }
+                    auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                    if (extruder_id != switcher_id) { continue; }
+                }
+                std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+                ams_cnt_map[key]++;
+            }
+        }
+        int main_index   = obj->is_main_extruder_on_left() ? 0 : 1;
+        int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
+        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
+        AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     }
 
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
@@ -3836,6 +3873,9 @@ bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObj
 void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
+    if (is_fila_switch_ready())  {
+        update_all_preset_comboboxes();
+    }
 }
 
 int Sidebar::get_sidebar_pos_right_x()
