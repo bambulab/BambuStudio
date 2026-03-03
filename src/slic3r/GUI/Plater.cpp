@@ -1347,7 +1347,7 @@ public:
         wxGetApp().UpdateDarkUIWin(this);
     }
 
-    static void SetAMSCount(int index, int ams4, int ams1)
+    static void SetAMSCount(int index, int ams4, int ams1, bool update = true)
     {
         PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
         preset_bundle.extruder_ams_counts.resize(2);
@@ -1358,7 +1358,9 @@ public:
         std::vector<std::string> extruder_ams_count     = save_extruder_ams_count_to_string(preset_bundle.extruder_ams_counts);
         std::string              extruder_ams_count_str = boost::algorithm::join(extruder_ams_count, ",");
         wxGetApp().app_config->set("presets", "extruder_ams_count", extruder_ams_count_str);
-        wxGetApp().plater()->update(); // update slice status
+        if (update) {
+            wxGetApp().plater()->update(); // update slice status
+        }
     }
 
     static void GetAMSCount(int index, int & ams4, int & ams1)
@@ -2020,8 +2022,8 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
         int main_index   = obj->is_main_extruder_on_left() ? 0 : 1;
         int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
-        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
-        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}], false);
+        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}], false);
         AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     }
@@ -3874,7 +3876,11 @@ void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
     if (is_fila_switch_ready())  {
-        update_all_preset_comboboxes();
+        const auto print_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+        if (print_tech == ptFFF) {
+            for (PlaterPresetComboBox *cb : p->combos_filament)
+                cb->update();
+        }
     }
 }
 
@@ -13668,6 +13674,12 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
         };
         for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
             for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+                if (sidebar->is_fila_switch_ready()) {
+                    auto switcher_pos = ams.second->GetSwitcherPos();
+                    if (!switcher_pos) { continue; }
+                    auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                    if (extruder_id != switcher_id) { continue; }
+                }
                 std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
                 ams_cnt_map[key]++;
             }
