@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -5624,6 +5624,9 @@ msgstr "Bilgi"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr ""
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Oynatılıyor..."
 
@@ -6811,14 +6814,14 @@ msgstr "Tahmini süresi"
 msgid "Filament changes"
 msgstr "Filament değişiklikleri"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "Daha fazla bilgi edin"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Nozul üzerine takılı AMS sayısını ayarlayın."
@@ -10612,9 +10615,6 @@ msgstr ""
 
 msgid "Expert"
 msgstr ""
-
-msgid "Learn more"
-msgstr "Daha fazla bilgi edin"
 
 msgid "Helio Flowchart"
 msgstr ""

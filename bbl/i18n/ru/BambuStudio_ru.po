@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -5721,6 +5721,9 @@ msgstr "Информация"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr ""
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Воспроизведение..."
 
@@ -6932,14 +6935,14 @@ msgstr "Расчётное время печати"
 msgid "Filament changes"
 msgstr "Смена прутка"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "Узнать больше"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Задайте количество АСПП на сопло."
@@ -10828,9 +10831,6 @@ msgstr ""
 
 msgid "Expert"
 msgstr ""
-
-msgid "Learn more"
-msgstr "Узнать больше"
 
 msgid "Helio Flowchart"
 msgstr ""

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5635,6 +5635,9 @@ msgstr "Informações"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "O recurso de transmissão ao vivo depende do Bambu Studio para funcionar, e a transmissão será encerrada algum tempo após o fechamento do aplicativo."
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Reproduzindo"
 
@@ -6824,14 +6827,14 @@ msgstr "Tempo estimado"
 msgid "Filament changes"
 msgstr "Mudanças de filamento"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "Saber mais"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Defina o número de AMS instalado no bico."
@@ -10669,9 +10672,6 @@ msgstr "Soluções rápidas (para iniciantes):"
 
 msgid "Expert"
 msgstr "Especialista"
-
-msgid "Learn more"
-msgstr "Saber mais"
 
 msgid "Helio Flowchart"
 msgstr "Fluxograma do Hélio"

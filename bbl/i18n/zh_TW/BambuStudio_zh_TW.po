@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5597,6 +5597,9 @@ msgstr "資訊"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "直播功能依賴 Bambu Studio 執行，關閉軟體後直播將在一段時間後結束。"
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "正在播放中……"
 
@@ -6773,14 +6776,14 @@ msgstr "預估列印時間"
 msgid "Filament changes"
 msgstr "材料切換"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "更多資訊檢視Wiki"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "設定該噴嘴上安裝的AMS數量。"
@@ -10598,9 +10601,6 @@ msgstr "快速修復（新手）："
 
 msgid "Expert"
 msgstr "專家"
-
-msgid "Learn more"
-msgstr "更多資訊檢視Wiki"
 
 msgid "Helio Flowchart"
 msgstr "Helio 流程圖"
