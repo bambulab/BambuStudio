@@ -1253,51 +1253,58 @@ void AMSMaterialsSetting::update_pa_profile_items()
                                        << ", extruder_id=" << cali_item.extruder_id;
         }
     }
+    std::set<int> extruder_ids;
+    if (ams_id == VIRTUAL_TRAY_MAIN_ID) {
+        extruder_ids.insert(MAIN_EXTRUDER_ID);
+    } else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        extruder_ids.insert(DEPUTY_EXTRUDER_ID);
+    } else if (DevAms* curr_ams = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
+        auto extruder_id_set = curr_ams->GetBindedExtruderSet();
+        extruder_ids.insert(extruder_id_set.begin(), extruder_id_set.end());
+    }
 
-    if (DevAms* curr_ams = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
-        for (int extruder_id : curr_ams->GetBindedExtruderSet()) {
-            NozzleFlowType   nozzle_flow_type   = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
-            float            nozzle_diameter    = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
+    for (int extruder_id : extruder_ids) {
+        NozzleFlowType   nozzle_flow_type   = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
+        float            nozzle_diameter    = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
 
-            if (rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID) {
-                if (int sel = m_comboBox_nozzle_type->GetSelection(); sel != wxNOT_FOUND) {
-                    auto sel_pair = (std::pair<NozzleDiameterType, NozzleFlowType>*)m_comboBox_nozzle_type->GetClientData(sel);
-                    auto nozzle_diameter_type = sel_pair->first;
-                    if (nozzle_diameter_type != NozzleDiameterType::NONE_DIAMETER_TYPE) {
-                        nozzle_diameter = DevNozzle::ToNozzleDiameterFloat(nozzle_diameter_type);
-                    }
-                    nozzle_flow_type = sel_pair->second;
+        if (rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID) {
+            if (int sel = m_comboBox_nozzle_type->GetSelection(); sel != wxNOT_FOUND) {
+                auto sel_pair = (std::pair<NozzleDiameterType, NozzleFlowType>*)m_comboBox_nozzle_type->GetClientData(sel);
+                auto nozzle_diameter_type = sel_pair->first;
+                if (nozzle_diameter_type != NozzleDiameterType::NONE_DIAMETER_TYPE) {
+                    nozzle_diameter = DevNozzle::ToNozzleDiameterFloat(nozzle_diameter_type);
                 }
+                nozzle_flow_type = sel_pair->second;
             }
+        }
 
-            for (auto cali_item : cali_history) {
-                // filter avaliable cali_item (PA)
-                if (cali_item.filament_id == ams_filament_id
-                && cali_item.nozzle_volume_type == DevNozzle::ToNozzleVolumeType(nozzle_flow_type)
-                && is_approx(cali_item.nozzle_diameter, nozzle_diameter)
-                ) {
-                    if (obj->is_multi_extruders() && extruder_id != cali_item.extruder_id) {
-                        continue;
-                    }
-
-                    if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID)
-                    {
-                        if(cali_item.nozzle_pos_id == 0) {
-                            items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
-                        } else if(cali_item.nozzle_pos_id == 1) {
-                            items.push_back(wxString::Format("L | %s", from_u8(cali_item.name)));
-                        } else if(cali_item.nozzle_pos_id >= 0x10){
-                            items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
-                        } else {
-                            items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
-                            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
-                        }
-                    } else {
-                        items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
-                    }
-
-                    m_pa_profile_items.push_back(cali_item);
+        for (auto cali_item : cali_history) {
+            // filter avaliable cali_item (PA)
+            if (cali_item.filament_id == ams_filament_id
+            && cali_item.nozzle_volume_type == DevNozzle::ToNozzleVolumeType(nozzle_flow_type)
+            && is_approx(cali_item.nozzle_diameter, nozzle_diameter)
+            ) {
+                if (obj->is_multi_extruders() && extruder_id != cali_item.extruder_id) {
+                    continue;
                 }
+
+                if(rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID)
+                {
+                    if(cali_item.nozzle_pos_id == 0) {
+                        items.push_back(wxString::Format("R | %s", from_u8(cali_item.name)));
+                    } else if(cali_item.nozzle_pos_id == 1) {
+                        items.push_back(wxString::Format("L | %s", from_u8(cali_item.name)));
+                    } else if(cali_item.nozzle_pos_id >= 0x10){
+                        items.push_back(wxString::Format("%d | %s", (cali_item.nozzle_pos_id & 0x0f) + 1, from_u8(cali_item.name)));
+                    } else {
+                        items.push_back(wxString::Format("N/A | %s", from_u8(cali_item.name)));
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "Nozzle position id is -1 or invalid.";
+                    }
+                } else {
+                    items.push_back(wxString::Format("%s", from_u8(cali_item.name)));
+                }
+
+                m_pa_profile_items.push_back(cali_item);
             }
         }
     }
@@ -1312,62 +1319,67 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
     auto rack = obj->GetNozzleSystem()->GetNozzleRack();
     auto switcher = obj->GetFilaSwitch();
 
-    if (DevAms* curr_ams = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
-        std::set<int> extruder_ids = curr_ams->GetBindedExtruderSet();
+    std::set<int> extruder_ids;
+    if (ams_id == VIRTUAL_TRAY_MAIN_ID) {
+        extruder_ids.insert(MAIN_EXTRUDER_ID);
+    } else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID && !switcher->IsInstalled()) {
+        extruder_ids.insert(DEPUTY_EXTRUDER_ID);
+    } else if (DevAms* curr_ams = obj->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
+        auto extruder_id_set = curr_ams->GetBindedExtruderSet();
+        extruder_ids.insert(extruder_id_set.begin(), extruder_id_set.end());
+    }
 
-        std::set<int> allow_extruder_ids;
-        if (switcher->IsInstalled()) {
-            allow_extruder_ids = extruder_ids;
-        } else {
-            allow_extruder_ids.insert(MAIN_EXTRUDER_ID);
+    std::set<int> allow_extruder_ids{MAIN_EXTRUDER_ID};
+    if (switcher->IsInstalled()) {
+        allow_extruder_ids.insert(extruder_ids.begin(), extruder_ids.end());
+    }
+
+    if(rack->IsSupported() && extruder_ids == allow_extruder_ids) {
+        int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+        auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
+        auto nozzle_map = rack->GetRackNozzles();
+
+        std::set<std::pair<NozzleDiameterType, NozzleFlowType>> nozzle_type_set;
+        if(r_nozzle.IsNormal()){ // Add the nozzle of the right toolhead
+            nozzle_type_set.insert(std::make_pair(r_nozzle.GetNozzleDiameterType(), r_nozzle.GetNozzleFlowType()));
         }
-        if(rack->IsSupported() && extruder_ids == allow_extruder_ids) {
-            int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-            auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
-            auto nozzle_map = rack->GetRackNozzles();
-
-            std::set<std::pair<NozzleDiameterType, NozzleFlowType>> nozzle_type_set;
-            if(r_nozzle.IsNormal()){ // Add the nozzle of the right toolhead
-                nozzle_type_set.insert(std::make_pair(r_nozzle.GetNozzleDiameterType(), r_nozzle.GetNozzleFlowType()));
-            }
-            if (switcher->IsInstalled()) { // Add the nozzle of the left toolhead
-                int l_nozzle_id = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID)->GetNozzleId();;
-                auto l_nozzle   = obj->GetNozzleSystem()->GetExtNozzle(l_nozzle_id);
-                if (l_nozzle.IsNormal())
-                    nozzle_type_set.insert(std::make_pair(l_nozzle.GetNozzleDiameterType(), l_nozzle.GetNozzleFlowType()));
-            }
-            for (auto &nozzle : nozzle_map) { // Add the nozzle of the rack
-                if (nozzle.second.IsNormal()) {
-                    nozzle_type_set.insert(std::make_pair(nozzle.second.GetNozzleDiameterType(), nozzle.second.GetNozzleFlowType()));
-                }
-            }
-
-            std::vector<std::pair<NozzleDiameterType, NozzleFlowType>> nozzle_type_vec(nozzle_type_set.begin(), nozzle_type_set.end());
-            std::sort(nozzle_type_vec.begin(), nozzle_type_vec.end(), [](const std::pair<NozzleDiameterType, NozzleFlowType> & left, const std::pair<NozzleDiameterType, NozzleFlowType>& right) -> bool {
-                if(left.first == right.first) {
-                    return left.second < right.second;
-                } else {
-                    return left.first < right.first;
-                }
-            });
-
-            /* make nozzle type combobox item */
-            m_comboBox_nozzle_type->Clear();
-            for(auto pair : nozzle_type_vec){
-                wxString item = DevNozzle::ToNozzleDiameterStr(pair.first);
-                item += " ";
-                item += DevNozzle::GetNozzleFlowTypeStr(pair.second);
-                m_comboBox_nozzle_type->Append(item, wxNullBitmap, new std::pair<NozzleDiameterType, NozzleFlowType>(pair));
-            }
-            m_title_nozzle_type->Show();
-            m_comboBox_nozzle_type->Show();
-
-            /* set nozzle pos tooltip */
-            auto font = m_title_pa_profile->GetFont();
-            font.SetUnderlined(true);
-            m_title_pa_profile->SetFont(font);
-            m_title_pa_profile->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+        if (switcher->IsInstalled() && ams_id != VIRTUAL_TRAY_MAIN_ID) { // Add the nozzle of the left toolhead
+            int l_nozzle_id = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID)->GetNozzleId();;
+            auto l_nozzle   = obj->GetNozzleSystem()->GetExtNozzle(l_nozzle_id);
+            if (l_nozzle.IsNormal())
+                nozzle_type_set.insert(std::make_pair(l_nozzle.GetNozzleDiameterType(), l_nozzle.GetNozzleFlowType()));
         }
+        for (auto &nozzle : nozzle_map) { // Add the nozzle of the rack
+            if (nozzle.second.IsNormal()) {
+                nozzle_type_set.insert(std::make_pair(nozzle.second.GetNozzleDiameterType(), nozzle.second.GetNozzleFlowType()));
+            }
+        }
+
+        std::vector<std::pair<NozzleDiameterType, NozzleFlowType>> nozzle_type_vec(nozzle_type_set.begin(), nozzle_type_set.end());
+        std::sort(nozzle_type_vec.begin(), nozzle_type_vec.end(), [](const std::pair<NozzleDiameterType, NozzleFlowType> & left, const std::pair<NozzleDiameterType, NozzleFlowType>& right) -> bool {
+            if(left.first == right.first) {
+                return left.second < right.second;
+            } else {
+                return left.first < right.first;
+            }
+        });
+
+        /* make nozzle type combobox item */
+        m_comboBox_nozzle_type->Clear();
+        for(auto pair : nozzle_type_vec){
+            wxString item = DevNozzle::ToNozzleDiameterStr(pair.first);
+            item += " ";
+            item += DevNozzle::GetNozzleFlowTypeStr(pair.second);
+            m_comboBox_nozzle_type->Append(item, wxNullBitmap, new std::pair<NozzleDiameterType, NozzleFlowType>(pair));
+        }
+        m_title_nozzle_type->Show();
+        m_comboBox_nozzle_type->Show();
+
+        /* set nozzle pos tooltip */
+        auto font = m_title_pa_profile->GetFont();
+        font.SetUnderlined(true);
+        m_title_pa_profile->SetFont(font);
+        m_title_pa_profile->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
     } else{
         m_title_nozzle_type->Hide();
         m_comboBox_nozzle_type->Hide();
