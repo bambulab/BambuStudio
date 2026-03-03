@@ -121,7 +121,7 @@ std::optional<int> DevAmsTray::get_filament_remain_weight() const
         weight_int = std::nullopt;
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid filament weight " << weight;
     }
-    
+
     if (weight_int.has_value() && weight_int.value() > 0) {
         return weight_int;
     } else {
@@ -340,13 +340,21 @@ void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
 std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
 {
     std::map<int, DevAmsSlotId> tray_id_map;
+    tray_id_map[VIRTUAL_TRAY_MAIN_ID]   = DevAmsSlotId{VIRTUAL_TRAY_MAIN_ID, 0};
+    tray_id_map[VIRTUAL_TRAY_DEPUTY_ID] = DevAmsSlotId{VIRTUAL_TRAY_DEPUTY_ID, 0};
+
     for (auto& [ams_id, ams_item] : GetAmsList()) {
         for (auto &[slot_id, slot_item] : ams_item->GetTrays()) {
             if (ams_item && slot_item) {
                 try {
-                    int ams_id_int = stoi(ams_id);
+                    int ams_id_int  = stoi(ams_id);
                     int slot_id_int = stoi(slot_id);
-                    int tray_index= ams_item->GetAmsType() == DevAmsType::N3S ? ams_id_int : (ams_id_int * 4 + slot_id_int);
+                    int tray_index  = -1;
+                    if (ams_item->GetAmsType() == DevAmsType::N3S) {
+                        tray_index = ams_id_int;
+                    } else {
+                        tray_index = (ams_id_int * 4 + slot_id_int);
+                    }
                     tray_id_map[tray_index] = {ams_id_int, slot_id_int};
                 } catch(...) {
                     BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "invalid ams id: " << ams_id << " or slot id: " << slot_id;
@@ -356,6 +364,20 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
     }
 
     return  tray_id_map;
+}
+
+int DevFilaSystem::GetTrayIdByAmsSlotId(int ams_id, int slot_id)
+{
+    auto tray_ams_slot_map = GetTrayIndexMap();
+    auto tray_it = std::find_if(tray_ams_slot_map.begin(), tray_ams_slot_map.end(),
+    [ams_id, slot_id](auto& item) {
+        return ams_id == item.second.first && slot_id == item.second.second;
+    });
+
+    if (tray_it != tray_ams_slot_map.end())
+        return tray_it->first;
+    else
+        return -1;
 }
 
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const

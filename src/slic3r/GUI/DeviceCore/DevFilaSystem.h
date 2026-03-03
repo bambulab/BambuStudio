@@ -281,6 +281,7 @@ public:
     void        CollectAmsColors(std::vector<wxColour>& ams_colors) const;
 
     std::map<int, DevAmsSlotId> GetTrayIndexMap();
+    int GetTrayIdByAmsSlotId(int ams_id, int slot_id);
 
     // extruder
     int  GetExtruderIdByAmsId(const std::string& ams_id) const;

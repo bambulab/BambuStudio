@@ -861,16 +861,22 @@ void PressureAdvanceWizard::on_cali_start()
                 continue;
             }
 
-            int       selected_tray_id = 0;
+            auto tray_ams_slot_map = curr_obj->GetFilaSystem()->GetTrayIndexMap();
+            if (tray_ams_slot_map.find(item.tray_id) == tray_ams_slot_map.end()) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " can't find tray_id:" << item.tray_id;
+                continue;
+            }
+
             CalibInfo calib_info;
             calib_info.dev_id = curr_obj->get_dev_id();
-            get_tray_ams_and_slot_id(curr_obj, item.tray_id, calib_info.ams_id, calib_info.slot_id, selected_tray_id);
-            calib_info.index              = preset_page->get_index_by_tray_id(item.tray_id); // TODO tray_id can't map to index
+            calib_info.ams_id = tray_ams_slot_map[item.tray_id].first;
+            calib_info.slot_id = tray_ams_slot_map[item.tray_id].second;
+            calib_info.index              = preset_page->get_index_by_extruder_tray_id(item.extruder_id, item.tray_id); // preset_page->get_index_by_tray_id(item.first); TODO tray_id can't map to index
             calib_info.extruder_id        = item.extruder_id;
             calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(calib_info.extruder_id);
             calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
             calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(item.nozzle_pos_id);
-            calib_info.select_ams         = std::to_string(selected_tray_id);
+            calib_info.select_ams         = std::to_string(item.tray_id);
             calib_info.nozzle_pos_id      = item.nozzle_pos_id;
             calib_info.nozzle_sn          = item.nozzle_sn;
             Preset *preset                = item.filament_preset;
