@@ -153,6 +153,7 @@ private:
     bool use_advanced_settings{false};
     bool only_advanced_settings{false};
     bool is_no_chamber{false};
+    bool show_temp_input{false};
 
     // Mode card panels (replacing toggle buttons)
     wxPanel* simulation_card_panel{nullptr};
