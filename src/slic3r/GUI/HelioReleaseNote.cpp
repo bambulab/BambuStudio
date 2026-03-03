@@ -391,19 +391,6 @@ void HelioStatementDialog::create_legal_page()
     // Note: URLs are hardcoded and validated (not user input), so they are safe from XSS.
     // Translated strings from _L() are trusted content (legal terms are carefully controlled).
     // wxHtmlWindow provides basic HTML sanitization for rendered content.
-    // wxString terms_html = _L("Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on <a href=\"") + 
-    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s cloud service in this software will be developed, operated, provided, and maintained by <a href=\"") +
-    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>. Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit <a href=\"") +
-    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a> and refer to the <a href=\"") +
-    //     helio_privacy_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive Privacy Agreement</a> and <a href=\"") +
-    //     helio_tou_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive User Agreement</a> for detailed information.<br><br>") +
-    //     _L("Meanwhile, you understand that this product is provided to you \"as is\" based on <a href=\"") +
-    //     helio_home_url + _L("\" style=\"color:#00AE42; text-decoration:underline;\">Helio Additive</a>'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:<br><br>") +
-    //     _L("1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;<br>") +
-    //     _L("2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;<br>") +
-    //     _L("3. Using this software and services for any improper or illegal activities.<br><br>") +
-    //     _L("When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements.");
-
     const wxString STYLE_LINK = "color:#00AE42; text-decoration:underline;";
     const wxString STYLE_END = "\">";
 
@@ -438,15 +425,15 @@ void HelioStatementDialog::create_legal_page()
 
     #define LINK(url, text) TAG_A_START + url + TAG_A_MID + STYLE_LINK + STYLE_END + text + TAG_A_END
 
-    wxString terms_html = 
-    TXT_P1_S1 + LINK(URL_HELIO, TXT_HELIO) + 
-    TXT_P1_S2 + LINK(URL_HELIO, TXT_HELIO) + 
-    TXT_P1_S3 + LINK(URL_HELIO, TXT_HELIO) + 
-    TXT_P1_S4 + LINK(URL_PRIVACY, TXT_PRIVACY) + 
-    TXT_P1_S5 + LINK(URL_TOU, TXT_TOU) + 
+    wxString terms_html =
+    TXT_P1_S1 + LINK(URL_HELIO, TXT_HELIO) +
+    TXT_P1_S2 + LINK(URL_HELIO, TXT_HELIO) +
+    TXT_P1_S3 + LINK(URL_HELIO, TXT_HELIO) +
+    TXT_P1_S4 + LINK(URL_PRIVACY, TXT_PRIVACY) +
+    TXT_P1_S5 + LINK(URL_TOU, TXT_TOU) +
     TXT_P1_S6 + TAG_BR + TAG_BR +
 
-    TXT_P2_S1 + LINK(URL_HELIO, TXT_HELIO) + 
+    TXT_P2_S1 + LINK(URL_HELIO, TXT_HELIO) +
     TXT_P2_S2 + TAG_BR + TAG_BR +
 
     TXT_ITEM_1 + TAG_BR +
@@ -455,7 +442,7 @@ void HelioStatementDialog::create_legal_page()
 
     TXT_FINAL;
 
-    #undef LINK    
+    #undef LINK
 
 
     // Use wxHtmlWindow for proper text rendering with embedded links
@@ -851,7 +838,50 @@ void HelioStatementDialog::create_pat_page()
     button_row->Add(history_button, 0, wxALIGN_CENTER_VERTICAL, 0);
 
     content_sizer->Add(button_row, 0, wxALIGN_CENTER, 0);
-    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(40));
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
+
+    // Multi-material feature toggle
+    {
+        wxBoxSizer* mm_row = new wxBoxSizer(wxHORIZONTAL);
+        auto* mm_checkbox = new ::CheckBox(page_pat_panel);
+
+        // Read current setting (default: disabled)
+        bool mm_enabled = (wxGetApp().app_config->get("helio_multimaterial_enabled") == "true");
+        mm_checkbox->SetValue(mm_enabled);
+
+        auto* mm_label = new Label(page_pat_panel, Label::Body_13,
+            _L("Experimental: Enable multi-material support"));
+        mm_label->SetForegroundColour(HELIO_MUTED);
+        mm_label->SetToolTip(_L("When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+                                "When disabled, the original V2 single-material API is used."));
+
+        mm_checkbox->Bind(wxEVT_TOGGLEBUTTON, [mm_checkbox](wxCommandEvent& e) {
+            bool enabled = mm_checkbox->GetValue();
+            wxGetApp().app_config->set("helio_multimaterial_enabled", enabled ? "true" : "false");
+            wxGetApp().app_config->save();
+            BOOST_LOG_TRIVIAL(info) << "helio_multimaterial_enabled set to " << (enabled ? "true" : "false");
+            mm_checkbox->Refresh(false);
+            mm_checkbox->Update();
+            e.Skip();
+        });
+
+        // Make label clickable too
+        mm_label->Bind(wxEVT_LEFT_DOWN, [mm_checkbox](wxMouseEvent& e) {
+            bool new_value = !mm_checkbox->GetValue();
+            mm_checkbox->SetValue(new_value);
+            wxGetApp().app_config->set("helio_multimaterial_enabled", new_value ? "true" : "false");
+            wxGetApp().app_config->save();
+            BOOST_LOG_TRIVIAL(info) << "helio_multimaterial_enabled set to " << (new_value ? "true" : "false");
+            mm_checkbox->Refresh(false);
+            mm_checkbox->Update();
+        });
+
+        mm_row->Add(mm_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
+        mm_row->Add(mm_label, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
+        content_sizer->Add(mm_row, 0, wxALIGN_CENTER, 0);
+    }
+
+    content_sizer->Add(0, 0, 0, wxTOP, FromDIP(24));
     content_sizer->Add(helio_links_sizer, 0, wxALIGN_CENTER, 0);
     content_sizer->Add(0, 0, 0, wxTOP, FromDIP(20));
     
@@ -2760,44 +2790,42 @@ void HelioInputDialog::fetch_print_priority_options()
         return;
     }
 
-    // Create a shared_ptr to this dialog to keep it alive during async callback
-    auto self_ptr = shared_ptr; // Keep the dialog alive
+    // Use weak_ptr to detect dialog destruction before accessing 'this' in async callback
+    std::weak_ptr<int> weak_ptr = shared_ptr;
 
     HelioQuery::request_print_priority_options(
         helio_api_url,
         helio_api_key,
         m_material_id,
-        [this, self_ptr](HelioQuery::GetPrintPriorityOptionsResult result) {
-            // Use CallAfter to update UI from main thread
-            // Keep self_ptr capture to ensure dialog stays alive during callback
-            CallAfter([this, self_ptr, result]() {
-                // Validate self_ptr to ensure dialog is still alive
-                // self_ptr is a shared_ptr<int> member - if it's valid, the dialog is valid
-                if (!self_ptr || self_ptr.use_count() == 0) return;
+        [this, weak_ptr](HelioQuery::GetPrintPriorityOptionsResult result) {
+            // Check if dialog is still alive before calling CallAfter on 'this'
+            if (auto temp_ptr = weak_ptr.lock()) {
+                CallAfter([this, weak_ptr, result]() {
+                    // Check again on main thread — dialog may have been destroyed between post and dispatch
+                    if (auto temp_ptr2 = weak_ptr.lock()) {
+                        m_print_priority_loading = false;
 
-                m_print_priority_loading = false;
+                        if (result.success && !result.options.empty()) {
+                            m_print_priority_options = result.options;
+                        } else {
+                            BOOST_LOG_TRIVIAL(error) << "fetch_print_priority_options failed: " << result.error
+                                                    << ", trace-id: " << result.trace_id;
 
-                if (result.success && !result.options.empty()) {
-                    m_print_priority_options = result.options;
-                } else {
-                    // Log error and use fallback
-                    BOOST_LOG_TRIVIAL(error) << "fetch_print_priority_options failed: " << result.error
-                                            << ", trace-id: " << result.trace_id;
+                            auto notification_manager = wxGetApp().plater()->get_notification_manager();
+                            if (notification_manager) {
+                                notification_manager->push_notification(
+                                    NotificationType::CustomNotification,
+                                    NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                    _u8L("Failed to load print priority options from Helio API.\n"
+                                         "Using standard optimization method instead (same as before print priority feature).")
+                                );
+                            }
+                        }
 
-                    // Show notification to user about using standard optimization method
-                    auto notification_manager = wxGetApp().plater()->get_notification_manager();
-                    if (notification_manager) {
-                        notification_manager->push_notification(
-                            NotificationType::CustomNotification,
-                            NotificationManager::NotificationLevel::WarningNotificationLevel,
-                            _u8L("Failed to load print priority options from Helio API.\n"
-                                 "Using standard optimization method instead (same as before print priority feature).")
-                        );
+                        update_print_priority_dropdown();
                     }
-                }
-
-                update_print_priority_dropdown();
-            });
+                });
+            }
         }
     );
 }
@@ -2815,12 +2843,16 @@ static bool s_get_double_regex(const wxString& str, double& value)
 {
     value = -1;
 
-    std::string s = str.ToStdString();
+    // Normalize comma decimal separator to dot for locale-independent parsing
+    wxString normalized = str;
+    normalized.Replace(",", ".");
+
+    std::string s = normalized.ToStdString();
     std::regex  pattern("^[-+]?[0-9]*\\.?[0-9]+$");
 
     if (std::regex_match(s, pattern))
     {
-        return str.ToDouble(&value);
+        return normalized.ToCDouble(&value);
     }
 
     return false;
@@ -3835,6 +3867,9 @@ wxString HelioSimulationResultsDialog::get_fix_suggestions_preview(const HelioQu
     const std::string& direction = print_info.temperatureDirection;
     
     if (direction == "NONE" && print_info.caveats.empty()) {
+        if (!m_simulation.suggestedFixes.empty()) {
+            return _L("Ready to print — see suggestions");
+        }
         return _L("Ready to print");
     }
     
@@ -3956,20 +3991,25 @@ void HelioSimulationResultsDialog::create_fix_suggestions_section(wxBoxSizer* pa
         return expander_sizer;
     };
     
-    // Helper lambda to add wrapped text label
-    auto add_wrapped_label = [&theme, this](wxPanel* parent, wxBoxSizer* sizer, const wxString& text) {
+    // Wrap widths for content inside the scrolled window, reduced to avoid text going under the scrollbar
+    int scroll_wrap_toplevel = FromDIP(475);  // top-level labels: 500 minus ~25px scrollbar buffer
+    int scroll_wrap_nested   = FromDIP(455);  // nested expander labels: also minus 16px indent + margin
+
+    // Helper lambda to add wrapped text label (used inside nested expanders)
+    auto add_wrapped_label = [&theme, this, scroll_wrap_nested](wxPanel* parent, wxBoxSizer* sizer, const wxString& text) {
         auto label = new Label(parent, Label::Body_13, text);
         label->SetForegroundColour(theme.text);
-        label->SetSize(wxSize(FromDIP(500), -1));
-        label->SetMinSize(wxSize(FromDIP(500), -1));
-        label->SetMaxSize(wxSize(FromDIP(500), -1));
-        label->Wrap(FromDIP(500));
+        label->SetSize(wxSize(scroll_wrap_nested, -1));
+        label->SetMinSize(wxSize(scroll_wrap_nested, -1));
+        label->SetMaxSize(wxSize(scroll_wrap_nested, -1));
+        label->Wrap(scroll_wrap_nested);
         sizer->Add(label, 0, wxTOP, FromDIP(4));
     };
-    
-    if (direction == "NONE" && m_simulation.printInfo->caveats.empty()) {
-        // Ready to print - simple message
-        auto ready_label = new Label(m_fix_suggestions_content, Label::Body_13, 
+
+
+    if (direction == "NONE" && m_simulation.printInfo->caveats.empty() && m_simulation.suggestedFixes.empty()) {
+        // Ready to print - simple message (no fixes to show)
+        auto ready_label = new Label(m_fix_suggestions_content, Label::Body_13,
             _L("Your part is ready to print! Thermal conditions are within safe limits."));
         ready_label->SetForegroundColour(theme.text);
         content_sizer->Add(ready_label, 0, wxTOP, FromDIP(8));
@@ -4001,10 +4041,10 @@ void HelioSimulationResultsDialog::create_fix_suggestions_section(wxBoxSizer* pa
         if (!body_text.IsEmpty()) {
             auto body_label = new Label(m_fix_suggestions_content, Label::Body_13, body_text);
             body_label->SetForegroundColour(theme.text);
-            body_label->SetSize(wxSize(FromDIP(500), -1));
-            body_label->SetMinSize(wxSize(FromDIP(500), -1));
-            body_label->SetMaxSize(wxSize(FromDIP(500), -1));
-            body_label->Wrap(FromDIP(500));
+            body_label->SetSize(wxSize(scroll_wrap_toplevel, -1));
+            body_label->SetMinSize(wxSize(scroll_wrap_toplevel, -1));
+            body_label->SetMaxSize(wxSize(scroll_wrap_toplevel, -1));
+            body_label->Wrap(scroll_wrap_toplevel);
             content_sizer->Add(body_label, 0, wxTOP, FromDIP(4));
         }
         
@@ -4050,6 +4090,10 @@ void HelioSimulationResultsDialog::create_fix_suggestions_section(wxBoxSizer* pa
             
             auto quick_fixes_label = new Label(m_fix_suggestions_content, Label::Body_13, quick_fixes_text);
             quick_fixes_label->SetForegroundColour(theme.text);
+            quick_fixes_label->SetSize(wxSize(scroll_wrap_toplevel, -1));
+            quick_fixes_label->SetMinSize(wxSize(scroll_wrap_toplevel, -1));
+            quick_fixes_label->SetMaxSize(wxSize(scroll_wrap_toplevel, -1));
+            quick_fixes_label->Wrap(scroll_wrap_toplevel);
             content_sizer->Add(quick_fixes_label, 0, wxTOP | wxLEFT, FromDIP(4));
         }
         

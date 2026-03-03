@@ -1695,7 +1695,99 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 void NotificationManager::push_helio_error_notification(const std::string &text)
 {
     set_all_slicing_errors_gray(false);
-    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text, ""}, 0);
+
+    // Extract URLs from the error text to make them clickable,
+    // strip URLs, and deduplicate bare code lines vs description lines.
+    std::string hypertext;
+    std::function<bool(wxEvtHandler*)> callback;
+    std::vector<std::string> urls;
+
+    // Split text into lines
+    std::vector<std::string> lines;
+    size_t start = 0;
+    while (start < text.size()) {
+        size_t nl = text.find('\n', start);
+        if (nl == std::string::npos) {
+            lines.push_back(text.substr(start));
+            break;
+        }
+        lines.push_back(text.substr(start, nl - start));
+        start = nl + 1;
+    }
+
+    // Extract URLs and clean up each line
+    std::vector<std::string> cleaned_lines;
+    for (auto& line : lines) {
+        // Extract first URL found
+        for (const std::string& protocol : {"https://", "http://"}) {
+            size_t url_pos = line.find(protocol);
+            if (url_pos != std::string::npos) {
+                auto url_end = line.find_first_of(" \n\t", url_pos);
+                std::string url = (url_end != std::string::npos) ? line.substr(url_pos, url_end - url_pos) : line.substr(url_pos);
+                if (std::find(urls.begin(), urls.end(), url) == urls.end())
+                    urls.push_back(url);
+
+                // Strip "See: <URL>" or just "<URL>" from line
+                size_t strip_start = url_pos;
+                if (strip_start >= 5 && line.substr(strip_start - 5, 5) == "See: ")
+                    strip_start -= 5;
+                size_t strip_end = (url_end != std::string::npos) ? url_end : line.length();
+                line.erase(strip_start, strip_end - strip_start);
+                // Trim trailing whitespace/period
+                while (!line.empty() && (line.back() == ' ' || line.back() == '.'))
+                    line.pop_back();
+                break;
+            }
+        }
+
+        // Strip "N. " prefix to inspect content
+        std::string content = line;
+        size_t dot_pos = content.find(". ");
+        if (dot_pos != std::string::npos && dot_pos <= 3) {
+            bool is_num = true;
+            for (size_t j = 0; j < dot_pos; ++j)
+                if (!std::isdigit(content[j])) { is_num = false; break; }
+            if (is_num)
+                content = content.substr(dot_pos + 2);
+        }
+
+        // Check if content is a bare enum code (all uppercase + underscores)
+        bool is_bare_code = !content.empty();
+        for (char c : content) {
+            if (!std::isupper(c) && c != '_' && !std::isdigit(c)) {
+                is_bare_code = false;
+                break;
+            }
+        }
+        if (is_bare_code)
+            continue; // Skip bare code lines like "SIZE_TOO_LARGE"
+
+        cleaned_lines.push_back(content);
+    }
+
+    // Reassemble display text with renumbering
+    std::string display_text;
+    for (size_t i = 0; i < cleaned_lines.size(); ++i) {
+        if (i > 0)
+            display_text += "\n";
+        if (i == 0)
+            display_text += cleaned_lines[i]; // Header line (e.g., "Helio: Failed to create GCode")
+        else if (cleaned_lines.size() > 2)
+            display_text += std::to_string(i) + ". " + cleaned_lines[i];
+        else
+            display_text += cleaned_lines[i];
+    }
+
+    if (!urls.empty()) {
+        hypertext = _u8L("Open link for more info");
+        callback = [urls](wxEvtHandler*) {
+            for (const auto& url : urls)
+                wxLaunchDefaultBrowser(url);
+            return false;
+        };
+    }
+
+    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + display_text, hypertext, callback}, 0);
     set_slicing_progress_hidden();
 }
 

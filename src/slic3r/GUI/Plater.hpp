@@ -39,6 +39,7 @@ class Button;
 namespace Slic3r {
 class BackgroundSlicingProcess;
 class HelioBackgroundProcess;
+struct HelioMaterialInput;
 class BuildVolume;
 class Model;
 class ModelObject;
@@ -354,7 +355,9 @@ public:
     void calib_VFA(const Calib_Params &params);
 
     // for helio slice
-    void update_helio_background_process(std::string& printer_id, std::string& material_id);
+    void update_helio_background_process(std::string& printer_id,
+                                         std::vector<HelioMaterialInput>& materials,
+                                         bool& is_multi_color, bool& is_multi_material);
     std::vector<std::string> get_current_filaments_preset_names();
 
     //BBS: add only gcode mode
