@@ -214,7 +214,7 @@ public:
 
     void select_default_compatible_filament();
 
-    int get_index_by_tray_id(int tray_id);
+    int get_index_by_extruder_tray_id(int extruder_id, int tray_id);
 
     std::vector<FilamentComboBox*> get_selected_filament_combobox();
 

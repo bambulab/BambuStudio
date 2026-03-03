@@ -572,8 +572,8 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             right_grid_sizer->Add(nozzle_title, 1, wxALIGN_CENTER);
         }
     }
-
-    std::vector<std::pair<int, std::string>> preset_names;
+    // key: extruder_id tray_id
+    std::vector<std::pair<std::pair<int, int>, std::string>> preset_names;
     int i = 1;
     std::unordered_set<std::string> set;
     for (auto &info : m_obj->GetCalib()->GetSelectedCalibPreset()) {
@@ -615,7 +615,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
         }
 
-        preset_names.push_back({info.tray_id, default_name});
+        preset_names.push_back({{info.extruder_id, info.tray_id}, default_name});
     }
 
     bool left_first_add_item = true;
@@ -623,16 +623,16 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     std::vector<PACalibResult> sorted_cali_result   = cali_result;
     if (m_obj && m_obj->GetCalib()->IsSupportNewAutoCali()) {
         for (auto &res : sorted_cali_result) {
-            if (res.ams_id == VIRTUAL_TRAY_MAIN_ID || res.ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                res.tray_id = res.ams_id;
-            } else {
-                res.tray_id = res.ams_id * 4 + res.slot_id;
-            }
+            res.tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(res.ams_id, res.slot_id);
         }
     }
 
     std::sort(sorted_cali_result.begin(), sorted_cali_result.end(), [](const PACalibResult &left, const PACalibResult &right) {
-        return left.tray_id < right.tray_id;
+        if (left.extruder_id == right.extruder_id) {
+            return left.tray_id < right.tray_id;
+        } else {
+            return left.extruder_id > right.extruder_id;
+        }
     });
     for (auto &item : sorted_cali_result) {
         bool result_failed = false;
@@ -736,7 +736,11 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
 
             for (auto &name : preset_names) {
-                if (item.tray_id == name.first) { comboBox_tray_name->SetValue(from_u8(name.second)); }
+                int extruder_id = name.first.first;
+                int tray_id     = name.first.second;
+                if (item.tray_id == tray_id && item.extruder_id == extruder_id) {
+                    comboBox_tray_name->SetValue(from_u8(name.second));
+                }
             }
 
             comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, comboBox_tray_name, k_value, n_value](auto &e) {

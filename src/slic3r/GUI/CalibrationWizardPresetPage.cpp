@@ -2735,11 +2735,12 @@ void CalibrationPresetPage::select_default_compatible_filament()
     check_filament_compatible();
 }
 
-int CalibrationPresetPage::get_index_by_tray_id(int tray_id)
+int CalibrationPresetPage::get_index_by_extruder_tray_id(int extruder_id, int tray_id)
 {
     std::vector<FilamentComboBox*> fcb_list = get_selected_filament_combobox();
     for (auto fcb : fcb_list) {
-        if (fcb->get_tray_id() == tray_id) {
+        int fcb_ext_id = fcb->GetExtuderRole() != ExtruderRole::DEPUTY_EXTRUDER ? MAIN_EXTRUDER_ID : DEPUTY_EXTRUDER_ID;
+        if (fcb_ext_id == extruder_id && fcb->get_tray_id() == tray_id) {
             return fcb->get_index();
         }
     }
