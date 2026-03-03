@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -260,7 +260,7 @@ msgid "Used Time"
 msgstr "Använd tid"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "Dynamiska nozzles är tilldelade på den aktuella plattan. Val av hotend stöds inte."
 
 msgid "Hotend Rack"
 msgstr "Hotend Ställning"
@@ -272,7 +272,7 @@ msgid "Nozzle information needs to be read"
 msgstr "Nozzle information måste läsas"
 
 msgid "Note:"
-msgstr ""
+msgstr "Notering:"
 
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
@@ -2048,7 +2048,7 @@ msgid "Support Enforcer"
 msgstr "Support Förstärkare"
 
 msgid "Change part type"
-msgstr ""
+msgstr "Ändra typ av del"
 
 msgid "Set as an individual object"
 msgstr "Välj som ett enskilt objekt"
@@ -2711,6 +2711,8 @@ msgid ""
 "The consumables changer has not been calibrated. \n"
 "Please calibrate it on the printer before using."
 msgstr ""
+"Förbruknings bytaren har inte kalibrerats. \n"
+"Kalibrera den på printern innan användning."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
@@ -2843,22 +2845,22 @@ msgid "Purge old filament"
 msgstr "Rensa gammalt filament"
 
 msgid "Switch"
-msgstr ""
+msgstr "Byt"
 
 msgid "hotend"
 msgstr ""
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "Vänta på att AMS kyls ner"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "Byt aktuellt filament vid Filament spårbytare"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "Dra tillbaka aktuellt filament vid Filament spårbytaren"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "Växla spår vid filament spårväxel"
 
 msgid "Confirm extruded"
 msgstr "Bekräfta extruderad"
@@ -3485,16 +3487,16 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "Välj det filament som är installerat på höger nozzle."
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "Välj filament."
 
 msgid "Nozzle"
 msgstr "Nozzel"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "För att lära dig om reglerna för filament matchning."
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "Externa spolar stöds inte eftersom Filament spårbytare har installerats. Om du vill använda extern spole, avinstallera den."
 
 msgid "Select Filament && Hotends"
 msgstr "Välj Filament && Hotends"
@@ -4191,7 +4193,7 @@ msgid "No Reminder Next Time"
 msgstr "Ingen påminnelse nästa gång"
 
 msgid "Recheck"
-msgstr ""
+msgstr "Kontrollera igen"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Ignorera. Påminn inte nästa gång"
@@ -4902,7 +4904,7 @@ msgid "Jump to: Prime tower"
 msgstr "Hoppa till: Prime Tower"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "Aktivera klump detektering"
 
 msgid "Click here to regroup"
 msgstr "Klicka här för att omgruppera"
@@ -5629,6 +5631,9 @@ msgstr "information"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Livestreaming funktionen är beroende av Bambu Studio för att köras, och streamen avslutas en stund efter att appen stängts."
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Spelar..."
 
@@ -5770,7 +5775,7 @@ msgid "Downloading %d%%..."
 msgstr "Laddar ner %d%%..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "Luft hantering"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Återansluter printern, operationen kan inte slutföras omedelbart, försök igen senare."
@@ -6053,10 +6058,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "Aktuell extruder är upptagen med att byta filament"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "\"Ladda\" eller \"Mata ut\" stöds inte för extern spole vid användning av Filament spårbytare."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "Filament spårbytaren har inte konfigurerats. Konfigurera på printern."
 
 msgid "Current slot has alread been loaded"
 msgstr "Aktuellt fack har redan laddats"
@@ -6117,13 +6122,13 @@ msgid "If the chamber temperature exceeds 40℃, the system will automatically s
 msgstr "Om kammar temperaturen överstiger 40 °C växlar systemet automatiskt till värmeläge. Bekräfta om du vill byta."
 
 msgid "Load filament to"
-msgstr ""
+msgstr "Ladda filament till"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Välj ett AMS-fack innan kalibrering"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "Kan inte läsa filament info: filamentet är laddat i verktygshuvudet, mata ut filamentet och försök igen."
 
 msgid "This only takes effect during printing"
 msgstr "Detta gäller endast under utskrift."
@@ -6785,7 +6790,7 @@ msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "Risk för klumpbildning i nozzle upptäckt med det aktuella högtemperatur filamentet (%s). Vi rekommenderar att du aktiverar klumpbildnings detektering (via probning). Den här funktionen använder en snabb probningssekvens för att kontrollera om det finns nozzle avlagringar under utskriften och använder prime tornet för att absorbera läckage innan utskriften återupptas."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6818,14 +6823,14 @@ msgstr "Uppskattad tid"
 msgid "Filament changes"
 msgstr "Filament byten"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "Läs mer"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Ställ in antalet AMS som är installerade på nozzlen."
@@ -6863,7 +6868,7 @@ msgid "Sync printer information"
 msgstr "Synkronisera printer information"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "Vill du synkronisera den förinställda printern med den anslutna printern, "
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
@@ -6886,6 +6891,8 @@ msgid ""
 "Tips:\n"
 "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
+"Tips:\n"
+"Din printer stöder båg anpassning, så utskärarens båg anpassningsfunktion har inaktiverats för att undvika konflikt."
 
 msgid "Click to edit preset"
 msgstr "Tryck för att redigera inställningar"
@@ -7200,14 +7207,14 @@ msgid " (unsupported)"
 msgstr " (stöds inte)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "Flerfärgs simulering stöder för närvarande endast ett enda filament material."
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "Du har valt flera material: %s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "Obs: Material som inte stöds kommer att använda det valda referens materialet för simulering."
 
 msgid "True multi-material support will be added in a future update."
 msgstr "Verkligt stöd för flera material kommer att läggas till i en framtida uppdatering."
@@ -7246,7 +7253,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ Material som inte stöds har upptäckts"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "Vissa av dina valda material stöds inte direkt av Helio:"
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "Alternativ 1: Fortsätt med ett referens material"
@@ -7794,10 +7801,10 @@ msgid "Units"
 msgstr "Enheter"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "Använd 12-timmars tidsformat"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Visa tid i 12-timmars format med AM/PM istället för 24-timmars format"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Behåll endast en Bambu Studio instans"
@@ -8470,7 +8477,7 @@ msgstr "Felkod"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "Rekommenderat filament arrangemang sparar %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8602,10 +8609,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med berednings filen (%.1fmm). Vänligen kontrollera att nozzle stämmer överens med inställningarna i printern och ställ sedan in motsvarande printer inställningar när du bereder."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "Denna utskrift kräver en filament spårbytare. Vänligen installera den först."
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "Filament spårbytaren har inte konfigurerats. Vänligen konfigurera den först."
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8703,7 +8710,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "TPU 90A/TPU 85A är för mjuka. Det rekommenderas att utföra manuell flödes kalibrering på sidan 'Kalibrering'. Om 'Dynamisk flödes kalibrering' är inställd på auto/på, kommer systemet att använda det tidigare kalibreringsvärdet och hoppa över flödes kalibreringsprocessen."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera anpassad dynamisk flödes värde."
@@ -10307,7 +10314,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "Nu när Helio är aktiverad, tar din första optimeringskörning för snabbare och mer tillförlitliga utskrifter bara några minuter! (Nu kallas \"Förbättra\" eller \"Förbättring\")"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "Lägg till ett objekt till byggplattan, välj ett material och printer som Helio stöder, sedan bered."
 
 msgid "Supported printers and materials"
 msgstr "Printers och material som stöds"
@@ -10663,9 +10670,6 @@ msgstr "Snabba lösningar (nybörjare):"
 
 msgid "Expert"
 msgstr ""
-
-msgid "Learn more"
-msgstr "Läs mer"
 
 msgid "Helio Flowchart"
 msgstr "Helio flödesschema"
@@ -11718,10 +11722,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "Densiteten av topp ytans utfyllnad, 100% innebär en helt solid fyllt topp skikt. Lägre värden skapar en strukturerad yta, vid 0 %, bara väggarna skapas på det översta lagret. Avsedd för estetiska eller funktionella ändamål, inte för att åtgärda problem som över extrudering."
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "Monoton linjeförlängning"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "Aktivera detta alternativ för att förlänga färdavståndet mellan linjer, förbättra vidhäftningen mellan monotont linjeutfyllnad och väggarna.(procent av linjebredd)"
 
 msgid "Bottom surface pattern"
 msgstr "Botten ytans mönster"
@@ -15843,7 +15847,7 @@ msgid "Filament grouping"
 msgstr "Filament gruppering"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "Filament besparing"
 
 msgid "Don't remind me again"
 msgstr "Påminn mig inte igen"
@@ -15910,7 +15914,7 @@ msgid "The filament grouping method for current plate is determined by the dropd
 msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
 
 msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
+msgstr "Filament grupperingen optimeras automatiskt baserat på filament besparande principer"
 
 msgid "Skip Objects"
 msgstr "Hoppa över objekt"

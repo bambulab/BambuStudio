@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -263,7 +263,7 @@ msgid "Used Time"
 msgstr "Tiempo de uso"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "Las boquillas dinámicas están asignadas a la placa actual. Seleccionar hotend no está soportado."
 
 msgid "Hotend Rack"
 msgstr "Rack del hotend"
@@ -275,7 +275,7 @@ msgid "Nozzle information needs to be read"
 msgstr "Es necesario leer la información de la boquilla"
 
 msgid "Note:"
-msgstr ""
+msgstr "Nota:"
 
 msgid "Supports Painting"
 msgstr "Pintando Soportes"
@@ -2051,7 +2051,7 @@ msgid "Support Enforcer"
 msgstr "Refuerzo de Soportes"
 
 msgid "Change part type"
-msgstr ""
+msgstr "Cambiar el tipo de pieza"
 
 msgid "Set as an individual object"
 msgstr "Establecer como un objeto individual"
@@ -2714,6 +2714,8 @@ msgid ""
 "The consumables changer has not been calibrated. \n"
 "Please calibrate it on the printer before using."
 msgstr ""
+"El cambiador de consumibles no ha sido calibrado.\n"
+"Por favor, calibre en la impresora antes de usarlo."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
@@ -2846,22 +2848,22 @@ msgid "Purge old filament"
 msgstr "Purgar el filamento viejo"
 
 msgid "Switch"
-msgstr ""
+msgstr "Cambiar"
 
 msgid "hotend"
 msgstr ""
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "Espere a que el AMS se enfríe"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "Cambiar el filamento actual en el interruptor de seguimiento de filamento"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "Retraer el filamento actual en el interruptor de seguimiento de filamento"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "Cambiar vía en el interruptor de vía de filamento"
 
 msgid "Confirm extruded"
 msgstr "Confirme que el filamento se ha extruido"
@@ -3488,16 +3490,16 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "Seleccione el filamento instalado en la boquilla derecha."
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "Por favor, seleccione el filamento."
 
 msgid "Nozzle"
 msgstr "Boquilla"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "Para conocer las reglas de compatibilidad de los filamentos."
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "No se admiten bobinas externas cuando el Interruptor de Seguimiento de Filamento está instalado. Si desea utilizar una bobina externa, por favor desinstálelo."
 
 msgid "Select Filament && Hotends"
 msgstr "Seleccionar Filamento && Hotends"
@@ -4194,7 +4196,7 @@ msgid "No Reminder Next Time"
 msgstr "La próxima vez no habrá recordatorio"
 
 msgid "Recheck"
-msgstr ""
+msgstr "Revisar"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Ignorar. No recordar la próxima vez"
@@ -4413,7 +4415,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Tasa del flujo volumétrico (mm³/seg)"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "Boquillas"
 
 msgid "Travel"
 msgstr "Recorrido"
@@ -4905,7 +4907,7 @@ msgid "Jump to: Prime tower"
 msgstr "Saltar a: Torre principal"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "Activar detección de aglomeración"
 
 msgid "Click here to regroup"
 msgstr "Haga clic aquí para reagruparse"
@@ -5632,6 +5634,9 @@ msgstr "Información"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "La función de transmisión en vivo depende de Bambu Studio para funcionar, y la transmisión finalizará algún tiempo después de cerrar la aplicación."
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Reproduciendo..."
 
@@ -5773,7 +5778,7 @@ msgid "Downloading %d%%..."
 msgstr "Descargando %d%%..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "Gestión del aire"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Al volver a conectar la impresora, la operación no se puede completar de inmediato. Vuelva a intentarlo más tarde."
@@ -6056,10 +6061,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "El extrusor actual está ocupado cambiando el filamento"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "\"Cargar\" o \"Descargar\" no es compatible con bobinas externas al usar el Interruptor de Seguimiento del Filamento."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "El interruptor de seguimiento de filamento no ha sido configurado. Por favor, configúrelo en la impresora."
 
 msgid "Current slot has alread been loaded"
 msgstr "La ranura actual ya se ha cargado"
@@ -6120,13 +6125,13 @@ msgid "If the chamber temperature exceeds 40℃, the system will automatically s
 msgstr "Si la temperatura de la cámara supera los 40 ℃, el sistema cambiará automáticamente al modo de calefacción. Confirme si desea cambiar."
 
 msgid "Load filament to"
-msgstr ""
+msgstr "Cargar filamento hasta"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Seleccione una ranura AMS antes de la calibración"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "No se puede leer la información del filamento: el filamento está cargado en el cabezal de herramienta, por favor, descarga el filamento e inténtalo de nuevo."
 
 msgid "This only takes effect during printing"
 msgstr "Esto solo tiene efecto durante la impresión"
@@ -6788,7 +6793,7 @@ msgstr "Cambie el tipo de boquilla o reasigne los filamentos y vuelva a intentar
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "Se ha detectado riesgo de acumulación en la boquilla con el filamento de alta temperatura actual (%s). Recomendamos activar la detección de acumulación (mediante sondeo). Esta función utiliza una secuencia rápida de sondeo para verificar la acumulación en la boquilla durante la impresión y utiliza la torre de cebado para absorber el rezumado antes de reanudar."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6821,14 +6826,14 @@ msgstr "Tiempo estimado"
 msgid "Filament changes"
 msgstr "Cambios de filamento"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "Conocer más"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Establezca el número de AMS instalados en la boquilla."
@@ -6866,7 +6871,7 @@ msgid "Sync printer information"
 msgstr "Sincronizar información de la impresora"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "Quiere sincronizar la impresora preestablecida con la impresora conectada "
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
@@ -6889,6 +6894,8 @@ msgid ""
 "Tips:\n"
 "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
+"Consejos:\n"
+"Su impresora admite ajuste de arco, por lo que la función de ajuste de arco del slicer se ha desactivado para evitar conflictos."
 
 msgid "Click to edit preset"
 msgstr "Clic para cambiar el ajuste inicial"
@@ -7205,14 +7212,14 @@ msgid " (unsupported)"
 msgstr " (no compatible)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "La simulación multicolor actualmente solo admite un único material de filamento."
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "Ha seleccionado múltiples materiales: %s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "Nota: Los materiales no compatibles utilizarán el material de referencia seleccionado para la simulación."
 
 msgid "True multi-material support will be added in a future update."
 msgstr "Se agregará soporte multi-material real en una futura actualización."
@@ -7251,7 +7258,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ Materiales no compatibles detectados"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "Algunos de los materiales seleccionados no son compatibles directamente con Helio:"
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "Opción 1: Proceder con un material de referencia"
@@ -7801,10 +7808,10 @@ msgid "Units"
 msgstr "Unidades"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "Utilice el formato de hora de 12 horas"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Muestra la hora en formato de 12 horas con AM/PM en lugar de formato de 24 horas"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Mantenga solo una instancia de Bambu Studio"
@@ -8477,7 +8484,7 @@ msgstr "Código de error:"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "La disposición recomendada de filamentos ahorra %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8609,10 +8616,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "El diámetro actual de la boquilla (%.1fmm) no coincide con el de la lima de corte (%.1fmm). Asegúrese de que la boquilla instalada coincida con los ajustes de la impresora y, a continuación, configure el ajuste preestablecido de la impresora correspondiente al cortar."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "Esta impresión requiere un Interruptor de Seguimiento de Filamento. Por favor, instálelo primero."
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "El interruptor de seguimiento de filamento no ha sido configurado. Por favor, configúrelo primero."
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8710,7 +8717,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Ha seleccionado filamentos externos y AMS para una extrusora. Tendrá que cambiar manualmente el filamento externo durante la impresión."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "El TPU 90A/TPU 85A es demasiado blando. Se recomienda realizar una calibración de flujo manual en la página de 'Calibración'. Si la 'Calibración Dinámica de Flujo' está configurada en automático/encendido, el sistema utilizará el valor de calibración previo y omitirá el proceso de calibración de flujo."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Establezca la calibración de flujo dinámico en «DESACTIVADA» para habilitar un valor de flujo dinámico personalizado."
@@ -10314,7 +10321,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "¡Ya casi lo tiene! Ahora que Helio está activado, su primera optimización para una impresión más rápida y fiable solo le llevará unos minutos. (Ahora se denomina \"Mejorar\")"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "Añada un objeto a la placa de construcción, seleccione un material y una impresora que Helio soporte, y luego rebane."
 
 msgid "Supported printers and materials"
 msgstr "Impresoras y materiales compatibles"
@@ -10670,9 +10677,6 @@ msgstr "Soluciones rápidas (principiante):"
 
 msgid "Expert"
 msgstr "Experto"
-
-msgid "Learn more"
-msgstr "Conocer más"
 
 msgid "Helio Flowchart"
 msgstr "Diagrama de flujo de Helio"
@@ -11725,10 +11729,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "Densidad del relleno de la superficie superior, 100% significa una capa superior completamente llena de sólidos. Los valores más bajos crean una superficie superior texturizada, al 0%, solo se crean las paredes en la capa superior. Destinado a fines estéticos o funcionales, no para solucionar problemas como la sobreextrusión."
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "Extensión de recorrido lineal monótono"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "Active esta opción para extender la distancia de desplazamiento entre las líneas, mejorando la adhesión entre el relleno de línea monotónica y las paredes. (porcentaje respecto al ancho de línea)"
 
 msgid "Bottom surface pattern"
 msgstr "Patrón de la superficie inferior"
@@ -15849,7 +15853,7 @@ msgid "Filament grouping"
 msgstr "Agrupación de filamentos"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "Ahorrar filamento"
 
 msgid "Don't remind me again"
 msgstr "No me lo vuelvas a recordar"
@@ -15916,7 +15920,7 @@ msgid "The filament grouping method for current plate is determined by the dropd
 msgstr "El método de agrupamiento de filamentos para la placa actual se determina mediante la opción desplegable del botón de la placa de corte."
 
 msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
+msgstr "La agrupación de filamentos se optimiza automáticamente según principios de ahorro de filamento"
 
 msgid "Skip Objects"
 msgstr "Omitir objetos"

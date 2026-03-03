@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -263,7 +263,7 @@ msgid "Used Time"
 msgstr "所要時間"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "現在のプレートではダイナミックノズルが割り当てられています。ホットエンドの手動選択はできません。"
 
 msgid "Hotend Rack"
 msgstr "ホットエンドラック"
@@ -275,7 +275,7 @@ msgid "Nozzle information needs to be read"
 msgstr "ノズル情報を読み取る必要があります"
 
 msgid "Note:"
-msgstr ""
+msgstr "注意:"
 
 msgid "Supports Painting"
 msgstr "サポート編集"
@@ -2049,7 +2049,7 @@ msgid "Support Enforcer"
 msgstr "サポート増強器"
 
 msgid "Change part type"
-msgstr ""
+msgstr "部品タイプを変更"
 
 msgid "Set as an individual object"
 msgstr "個別オブジェクトとして設定"
@@ -2706,7 +2706,7 @@ msgstr "アンロード"
 msgid ""
 "The consumables changer has not been calibrated. \n"
 "Please calibrate it on the printer before using."
-msgstr ""
+msgstr "消耗品チェンジャーがキャリブレーションされていません。使用前にプリンター本体でキャリブレーションを行ってください。"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "AMSスロットを選択し、「ロード」または「アンロード」ボタンを押すと、フィラメントを自動で装填または取り外します。"
@@ -2839,22 +2839,22 @@ msgid "Purge old filament"
 msgstr "古いフィラメントを排出"
 
 msgid "Switch"
-msgstr ""
+msgstr "切り替え"
 
 msgid "hotend"
-msgstr ""
+msgstr "ホットエンド"
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "AMS の冷却をお待ちください"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "フィラメント経路切替器で現在のフィラメントを切り替える"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "フィラメント経路切替器で現在のフィラメントを引き戻す"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "フィラメント経路切替器で経路を切り替える"
 
 msgid "Confirm extruded"
 msgstr "押出確認"
@@ -3473,16 +3473,16 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "右ノズルに装着されているフィラメントを選択してください。"
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "フィラメントを選択してください。"
 
 msgid "Nozzle"
 msgstr "ノズル"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "フィラメントの適合ルールについてはこちらをご確認ください。"
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "フィラメント経路切替器が取り付けられているため、外部スプールは使用できません。外部スプールを使用する場合は、切替器を取り外してください。"
 
 msgid "Select Filament && Hotends"
 msgstr "フィラメントとホットエンドを選択"
@@ -4177,7 +4177,7 @@ msgid "No Reminder Next Time"
 msgstr "次回は通知しない"
 
 msgid "Recheck"
-msgstr ""
+msgstr "再確認"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "無視する。次回は通知しない。"
@@ -4395,7 +4395,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "体積流量（mm³/s）"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "ノズル"
 
 msgid "Travel"
 msgstr "移動"
@@ -4887,7 +4887,7 @@ msgid "Jump to: Prime tower"
 msgstr "移動：プライムタワー"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "ノズル詰まり検知を有効化"
 
 msgid "Click here to regroup"
 msgstr "再グループ化するにはここをクリック"
@@ -5603,6 +5603,9 @@ msgstr "情報"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "ライブストリーミング機能は、Bambu Studioを使用して実行され、アプリが閉じられた後にストリームが終了します。"
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "再生中..."
 
@@ -5743,7 +5746,7 @@ msgid "Downloading %d%%..."
 msgstr "ダウンロード中 %d%%"
 
 msgid "Air Management"
-msgstr ""
+msgstr "空気管理"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "プリンタを再接続すると、操作をすぐに完了できません。後でもう一度試してください。"
@@ -6022,10 +6025,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "押出機がフィラメントを交換中です。"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "フィラメント経路切替器使用中は、外部スプールでの「ロード」および「アンロード」は利用できません。"
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "フィラメント経路切替器がセットアップされていません。プリンター本体でセットアップを行ってください。"
 
 msgid "Current slot has alread been loaded"
 msgstr "現在のスロットにはすでにフィラメントがロードされています。"
@@ -6086,13 +6089,13 @@ msgid "If the chamber temperature exceeds 40℃, the system will automatically s
 msgstr "チャンバー温度が40℃を超えると、システムは自動的に加熱モードに切り替わります。切り替えの確認をお願いします。"
 
 msgid "Load filament to"
-msgstr ""
+msgstr "フィラメントをロード先："
 
 msgid "Please select an AMS slot before calibration"
 msgstr "キャリブレーションの前に、AMSスロットを選択してください。"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "フィラメント情報を読み取れません。フィラメントがツールヘッドにロードされています。アンロードしてから再度お試しください。"
 
 msgid "This only takes effect during printing"
 msgstr "造形時の設定"
@@ -6748,7 +6751,7 @@ msgstr "ノズルタイプを変更するか、フィラメントの割り当て
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "現在使用中の高温フィラメント（%s）でノズルの付着リスクが検出されました。ノズル詰まり検知（プロービング）を有効にすることを推奨します。本機能は造形中に簡易プロービングを行い、ノズルへの付着物を確認します。再開前にはプライムタワーを使用して糸引きを吸収します。"
 
 #, boost-format
 msgid " plate %1%: "
@@ -6781,14 +6784,14 @@ msgstr "予測時間"
 msgid "Filament changes"
 msgstr "フィラメント交換"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "詳しく見る"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "ノズルに取り付けられているAMSの数を設定します。"
@@ -6826,7 +6829,7 @@ msgid "Sync printer information"
 msgstr "プリンタ同期"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "プリセット設定を接続中のプリンターに同期しますか。"
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
@@ -6849,6 +6852,8 @@ msgid ""
 "Tips:\n"
 "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
+"ヒント：\n"
+"お使いのプリンターはアークフィッティングに対応しているため、競合を防ぐためスライサー側のアークフィッティング機能は無効になっています。"
 
 msgid "Click to edit preset"
 msgstr "プリセットを編集"
@@ -7159,14 +7164,14 @@ msgid " (unsupported)"
 msgstr ""
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "多色シミュレーションは現在、単一のフィラメントのみサポートしています。"
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "複数の材料が選択されています：%s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "注：未対応材料は、選択した参照材料を使用してシミュレーションされます。"
 
 msgid "True multi-material support will be added in a future update."
 msgstr "マルチマテリアルの完全対応は、今後のアップデートで追加予定です。"
@@ -7205,7 +7210,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ 未対応の材料が検出されました"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "選択した材料の一部は、Helio で直接対応されていません："
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "オプション 1：参照材料で続行"
@@ -7753,10 +7758,10 @@ msgid "Units"
 msgstr "単位"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "12時間表示を使用"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "24時間表示の代わりに、AM/PM 付きの12時間表示で時刻を表示します。"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Bambu Studioのインスタンスを1つのみ維持"
@@ -8429,7 +8434,7 @@ msgstr "エラーコード:"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "推奨フィラメント配置により、%s を削減できます->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8559,10 +8564,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "現在のノズル径（%.1fmm）とスライスファイル（%.1fmm）が一致していません。取り付けられているノズルがプリンタの設定と一致していることを確認し、スライス時に対応するプリンタのプリセットを設定してください。"
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "この造形にはフィラメント経路切替器が必要です。先に取り付けてください。"
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "フィラメント経路切替器がセットアップされていません。先にセットアップを行ってください。"
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8660,7 +8665,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "押出機の外部フィラメントと AMS フィラメントの両方を選択しました。造形中は、外部フィラメントを手動で切り替える必要があります。"
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "TPU 90A／TPU 85A は柔らかいため、「キャリブレーション」ページで手動流量キャリブレーションを行うことを推奨します。「動的流量キャリブレーション」が自動／オンに設定されている場合、前回のキャリブレーション値が使用され、流量キャリブレーションはスキップされます。"
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "カスタム値を使用するには、動的流量キャリブレーションを「OFF」に設定してください。"
@@ -10261,7 +10266,7 @@ msgstr ""
 "より高速で安定した造形のための最初の最適化は、わずか数分で完了します！（現在は「強化」または「強化機能」とも呼ばれます）"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "ビルドプレートにオブジェクトを追加し、Helio が対応している材料とプリンターを選択してから、スライスしてください。"
 
 msgid "Supported printers and materials"
 msgstr "対応プリンターと材料"
@@ -10615,9 +10620,6 @@ msgstr "すぐできる対策（初心者向け）："
 
 msgid "Expert"
 msgstr "上級者向け"
-
-msgid "Learn more"
-msgstr "詳しく見る"
 
 msgid "Helio Flowchart"
 msgstr "Helio フローチャート"
@@ -11670,10 +11672,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "トップ表面のインフィル密度です。100% ではトップ層が完全にソリッドになり、値を下げるとテクスチャ状の表面になります。0% の場合、トップ層には外周のみが作成されます。この設定は見た目や機能上の目的で使用され、押出過多などの問題を解決するためのものではありません。"
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "モノトニックラインの移動距離拡張"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "このオプションを有効にすると、ライン間の移動距離を延長し、モノトニックラインインフィルと壁との接着性を向上させます。"
 
 msgid "Bottom surface pattern"
 msgstr "底面パターン"
@@ -15861,7 +15863,7 @@ msgid "The filament grouping method for current plate is determined by the dropd
 msgstr "現在のプレートのフィラメントグループ化方法は、スライスプレートボタンのドロップダウンオプションによって決まります。"
 
 msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
+msgstr "フィラメント節約の原則に基づき、フィラメントのグルーピングを自動で最適化します。"
 
 msgid "Skip Objects"
 msgstr "オブジェクトをスキップ"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -263,7 +263,7 @@ msgid "Used Time"
 msgstr "Felhasznált idő"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "A dinamikus fúvókák a jelenlegi tálcához vannak kiosztva. A hotend kiválasztása nem támogatott."
 
 msgid "Hotend Rack"
 msgstr "Hotendtartó"
@@ -275,7 +275,7 @@ msgid "Nozzle information needs to be read"
 msgstr "A fúvókainformációkat be kell olvasni"
 
 msgid "Note:"
-msgstr ""
+msgstr "Megjegyzés:"
 
 msgid "Supports Painting"
 msgstr "Támaszok festése"
@@ -2051,7 +2051,7 @@ msgid "Support Enforcer"
 msgstr "Támasz kényszerítő"
 
 msgid "Change part type"
-msgstr ""
+msgstr "Alkatrésztípus módosítása"
 
 msgid "Set as an individual object"
 msgstr "Beállítás különálló objektumként"
@@ -2714,6 +2714,8 @@ msgid ""
 "The consumables changer has not been calibrated. \n"
 "Please calibrate it on the printer before using."
 msgstr ""
+"A fogyóeszközök cserélője nem lett kalibrálva.\n"
+"Kérjük, használat előtt kalibráld a nyomtatón."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
@@ -2846,22 +2848,22 @@ msgid "Purge old filament"
 msgstr "Régi filament kiöblítése"
 
 msgid "Switch"
-msgstr ""
+msgstr "Váltás"
 
 msgid "hotend"
 msgstr ""
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "Várakozás az AMS lehűlésére"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "Filament váltása a filamentváltóban"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "Filament visszahúzása a filamentváltóból"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "Útvonal váltása a filamentváltónál"
 
 msgid "Confirm extruded"
 msgstr "Extrudálás megerősítése"
@@ -3488,16 +3490,16 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "Kérjük, válaszd ki a jobb oldali fúvókába töltött filamentet."
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "Kérjük, válaszd ki a filamentet."
 
 msgid "Nozzle"
 msgstr "Fúvóka"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "Ismerd meg a filamentek társítási szabályait."
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "Külső tekercs használata nem támogatott, mivel filamentváltó van telepítve. Ha külső tekercset szeretnél használni, kérjük, távolítsd el a filamentváltót."
 
 msgid "Select Filament && Hotends"
 msgstr "Válassz filamentet és hotendet"
@@ -4194,7 +4196,7 @@ msgid "No Reminder Next Time"
 msgstr "Legközelebb ne emlékeztessen"
 
 msgid "Recheck"
-msgstr ""
+msgstr "Ellenőrizze újra"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Figyelmen kívül hagyás. Legközelebb ne emlékeztessen"
@@ -4413,7 +4415,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Térfogatáramlás (mm³/mp)"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "Fúvókák"
 
 msgid "Travel"
 msgstr "Mozgás"
@@ -4905,7 +4907,7 @@ msgid "Jump to: Prime tower"
 msgstr "Ugrás: törlőtorony"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "Filament fúvókára való feltapadás észlelése"
 
 msgid "Click here to regroup"
 msgstr "Kattints ide az átcsoportosításhoz"
@@ -5632,6 +5634,9 @@ msgstr "Információ"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Az élő közvetítési funkció a Bambu Studio alkalmazásban fut, és a stream az alkalmazás bezárását követően meg fog szakadni."
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Lejátszás..."
 
@@ -5773,7 +5778,7 @@ msgid "Downloading %d%%..."
 msgstr "Letöltés %d%%..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "Légkondicionálás"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "A nyomtató újracsatlakoztatása, a művelet nem fejezhető be azonnal, kérjük, próbáld meg később újra."
@@ -6056,10 +6061,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "A jelenlegi extruder a filament cseréjével van elfoglalva"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "A „Betöltés“ és „Kitöltés“ nem támogatott külső tekercs esetében filamentváltó használatakor."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "A filamentváltó nincs beállítva. Kérjük, állítsd be a nyomtatón."
 
 msgid "Current slot has alread been loaded"
 msgstr "A jelenlegi slot már töltve van"
@@ -6120,13 +6125,13 @@ msgid "If the chamber temperature exceeds 40℃, the system will automatically s
 msgstr "Ha a kamra hőmérséklete meghaladja a 40 ℃-ot, a rendszer automatikusan fűtési üzemmódba kapcsol. Kérjük, erősítsd meg, hogy át kell-e kapcsolni."
 
 msgid "Load filament to"
-msgstr ""
+msgstr "Filament betöltése ide:"
 
 msgid "Please select an AMS slot before calibration"
 msgstr "Válassz egy AMS-helyet a kalibrálás előtt"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "Nem olvasható a filamentinformáció: filament van betöltve a szerszámfejbe, kérjük távolítsd el a filamentet és próbáld újra."
 
 msgid "This only takes effect during printing"
 msgstr "Ez csak a nyomtatás során érvényesül"
@@ -6788,7 +6793,7 @@ msgstr "Kérjük, módosítsd a fúvóka típusát, vagy változtasd meg a filam
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "A rendszer magas kockázatot észlelt a filament fúvókára való feltapadására a jelenlegi magas hőmérsékletű filamentnél (%s). Javasoljuk a filament fúvókára való feltapadás-észlelés engedélyezését. Ez a funkció ellenőrzi a fúvókát a nyomtatás során, és a törlőtorony segítségével eltünteti az esetleges szivárgást a nyomtatás folytatása előtt."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6821,14 +6826,14 @@ msgstr "Becsült idő"
 msgid "Filament changes"
 msgstr "Filamentcserék"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "Tudj meg többet"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Állítsd be a fúvókához csatlakozó AMS-ek számát."
@@ -6866,7 +6871,7 @@ msgid "Sync printer information"
 msgstr "Nyomtatóadatok szinkronizálása"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "Szeretnéd szinkronizálni a beállított nyomtatót a csatlakoztatott nyomtatóval? "
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
@@ -6889,6 +6894,8 @@ msgid ""
 "Tips:\n"
 "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
+"Tippek:\n"
+"A nyomtatód támogatja az ívillesztést, ezért a szeletelő ívillesztési funkcióját letiltottuk a problémák elkerülése érdekében."
 
 msgid "Click to edit preset"
 msgstr "Kattints a beállítás szerkesztéséhez"
@@ -7202,14 +7209,14 @@ msgid " (unsupported)"
 msgstr " (nem támogatott)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "A többszínű szimuláció jelenleg csak egyetlen filament típust támogat."
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "Több anyagot is kiválasztottál: %s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "Megjegyzés: A nem támogatott anyagok esetén a kiválasztott referencia anyagot használjuk a szimulációhoz."
 
 msgid "True multi-material support will be added in a future update."
 msgstr "Valódi többanyagú támogatás egy későbbi frissítés során kerül bevezetésre."
@@ -7248,7 +7255,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ Nem támogatott anyag észlelve"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "Néhány, általad kiválasztott anyag nem támogatott közvetlenül a Helio által:"
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "1. lehetőség: Folytatás referenciaanyaggal"
@@ -7796,10 +7803,10 @@ msgid "Units"
 msgstr "Mértékegység"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "12 órás időformátum használata"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Az idő megjelenítése 12 órás formátumban AM/PM jelöléssel a 24 órás formátum helyett"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Csak egy Bambu Studio-példány megtartása"
@@ -8472,7 +8479,7 @@ msgstr "Hibakód"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "Az ajánlott filamentelrendezéssel elérhető megtakarítás %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8604,10 +8611,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban megadott értékkel (%.1f mm). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeleteléskor használd a megfelelő nyomtatóbeállítást."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "Ez a nyomtatás filamentváltót igényel. Kérjük, először telepítsd."
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "A filamentváltó még nem lett beállítva. Kérjük, először állítsd be."
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8705,7 +8712,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Egy extruderhez külső és AMS-ben lévő filamentet is kiválasztottál. A nyomtatás során kézzel kell majd váltanod a külső filamentre."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "A TPU 90A/TPU 85A túl puha. Ajánlott manuális anyagáramlás-kalibrációt végezni a „Kalibráció“ oldalon. Ha a „Dinamikus anyagáramlás kalibráció“ automatikus/be állapotban van, a rendszer a korábbi kalibrációs értéket használja, és kihagyja az anyagáramlás kalibrációs folyamatot."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Az egyéni dinamikus áramlási értékek engedélyezéséhez állítsd a dinamikus áramlás kalibrálását \"KI\" értékre."
@@ -10305,7 +10312,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "Már majdnem kész! Most, hogy a Helio aktiválva van, az első optimalizálás a gyorsabb és megbízhatóbb nyomtatás érdekében mindössze perceket vesz igénybe! (Mostantól „Feljavítás” néven ismert)"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "Adj hozzá egy objektumot a nyomtatótálcához, válassz egy, a Helio által támogatott anyagot és nyomtatót, majd szeletelj."
 
 msgid "Supported printers and materials"
 msgstr "Támogatott nyomtatók és anyagok"
@@ -10661,9 +10668,6 @@ msgstr "Gyors megoldások (kezdőknek):"
 
 msgid "Expert"
 msgstr "Szakértő"
-
-msgid "Learn more"
-msgstr "Tudj meg többet"
 
 msgid "Helio Flowchart"
 msgstr "Helio folyamatábra"
@@ -11716,10 +11720,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "A felső felület kitöltési sűrűsége. A 100% teljesen szilárd, kitöltött felső réteget jelent. Alacsonyabb értékek texturált felső felületet hoznak létre, 0% esetén csak a falak készülnek el a felső rétegen. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására."
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "Monoton vonalú mozgás meghosszabbítása"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "Engedélyezd ezt a beállítást a vonalak közötti mozgási távolság növeléséhez, ezáltal javítva a monoton vonalkitöltést és a falak közötti tapadást.(százalékos arány a vonalszélességhez viszonyítva)"
 
 msgid "Bottom surface pattern"
 msgstr "Alsó felület mintázata"
@@ -15836,7 +15840,7 @@ msgid "Filament grouping"
 msgstr "Filamentcsoportosítás"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "Filamentmegtakarítás"
 
 msgid "Don't remind me again"
 msgstr "Ne emlékeztessen újra"
@@ -15903,7 +15907,7 @@ msgid "The filament grouping method for current plate is determined by the dropd
 msgstr "A tálcához tartozó filamentcsoportosítási módszert a tálca szeletelése gombnál található legördülő opció határozza meg."
 
 msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
+msgstr "A filament csoportosítása automatikusan optimalizált a filamentmegtakarítás figyelembevételével"
 
 msgid "Skip Objects"
 msgstr "Objektumok kihagyása"

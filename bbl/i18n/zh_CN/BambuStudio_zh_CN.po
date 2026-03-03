@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 14:42+0800\n"
+"POT-Creation-Date: 2026-03-03 12:07+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5596,6 +5596,9 @@ msgstr "信息"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "直播功能依赖 Bambu Studio 运行，关闭软件后直播将在一段时间后结束。"
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "正在播放中……"
 
@@ -5736,7 +5739,7 @@ msgid "Downloading %d%%..."
 msgstr "下载中 %d%%..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "空调系统"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "重新连接打印机，该操作无法立即完成，请稍后再试。"
@@ -6772,14 +6775,14 @@ msgstr "预估打印时间"
 msgid "Filament changes"
 msgstr "材料切换"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing."
+msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
 msgstr ""
 
-msgid "Filament Switcher Detected"
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr ""
 
-msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use."
-msgstr ""
+msgid "Learn more"
+msgstr "更多信息查看Wiki"
 
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "设置该喷嘴上安装的AMS数量。"
@@ -10600,9 +10603,6 @@ msgstr "快速修复（新手）："
 msgid "Expert"
 msgstr "专家"
 
-msgid "Learn more"
-msgstr "更多信息查看Wiki"
-
 msgid "Helio Flowchart"
 msgstr "Helio 流程图"
 
@@ -11654,10 +11654,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "顶面的填充密度，100%表示顶层完全实心填充。较低值会产生有纹理的顶层表面，0%时只有顶层墙体被创建。此设置用于美观或功能性目的，不用于解决诸如过量挤出等问题。"
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "单调线空驶延伸"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "启用此选项可延伸线条之间的连线长度，从而改善单调线条填充与墙之间的结合。（占线宽的百分比）"
 
 msgid "Bottom surface pattern"
 msgstr "底面图案"
