@@ -1334,6 +1334,7 @@ namespace Slic3r
                 const Size cnv_size = wxGetApp().plater()->get_current_canvas3D()->get_canvas_size();
                 auto group_result = DevUtilBackend::GetNozzleGroupResult(wxGetApp().plater());
                 bool is_support_dynamic_nozzle_map = group_result && group_result->is_support_dynamic_nozzle_map();
+                bool is_show_left_right_result = is_support_dynamic_nozzle_map && wxGetApp().sidebar().is_fila_switch_ready();
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
                 //BBS: GUI refactor: move to the right
                 imgui.set_next_window_pos(float(canvas_width - right_margin * m_scale), 0.0f, ImGuiCond_Always, 1.0f, 0.0f);
@@ -1900,7 +1901,7 @@ namespace Slic3r
                     if ((displayed_columns & ~ColumnData::Model) > 0) {
                         title_columns.push_back({ _u8L("Total"), total_filaments });
                     }
-                    if (is_support_dynamic_nozzle_map) {
+                    if (is_show_left_right_result) {
                         title_columns.push_back({ _u8L("Nozzles"), {""} });
                     }
                     auto offsets_ = calculate_offsets(title_columns, icon_size);
@@ -2093,7 +2094,7 @@ namespace Slic3r
                                 ::sprintf(buf, imperial_units ? "%.2f in\n%.2f oz" : "%.2f m\n%.2f g", column_sum_m, column_sum_g / unit_conver);
                                 columns_offsets.push_back({ buf, color_print_offsets[_u8L("Total")] });
                             }
-                            if (is_support_dynamic_nozzle_map) {
+                            if (is_show_left_right_result) {
                                 std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(i));
                                 ::sprintf(buf, "%s", nozzle_str.c_str());
                                 columns_offsets.push_back({buf, color_print_offsets[_u8L("Nozzles")]});
@@ -2631,7 +2632,7 @@ namespace Slic3r
                 }
                 ImGui::Dummy({ window_padding, window_padding });
                 if (m_nozzle_nums > 1)
-                    render_legend_color_arr_recommen(window_padding, is_support_dynamic_nozzle_map);
+                    render_legend_color_arr_recommen(window_padding, is_show_left_right_result);
                 legend_height = ImGui::GetCurrentWindow()->Size.y;
                 imgui.end();
                 ImGui::PopStyleColor(7);
@@ -2654,7 +2655,7 @@ namespace Slic3r
                 }
             }
 
-            void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_support_dynamic_nozzle_map)
+            void BaseRenderer::render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result)
             {
                 ImGuiWrapper& imgui = *wxGetApp().imgui();
                 auto link_text = [&](const std::string& label) {
@@ -2779,16 +2780,16 @@ namespace Slic3r
                 }
                 else
                     tips_count = 5;
-                float AMS_container_height = is_support_dynamic_nozzle_map ? line_height * (tips_count - 3) + line_height / 2 :
+                float AMS_container_height = is_show_left_right_result ? line_height * (tips_count - 3) + line_height / 2 :
                                                                     ams_item_height + line_height * tips_count + line_height / 2;
-                is_support_dynamic_nozzle_map ? ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.3f, 0.3f, 0.1f)) :
+                is_show_left_right_result ? ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.3f, 0.3f, 0.3f, 0.1f)) :
                                        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1.f, 1.f, 1.f, 1.0f));
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(.15f, .18f, .19f, 1.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(window_padding * 3, 0));
                 // ImGui::Dummy({window_padding, window_padding});
                 ImGui::BeginChild("#AMS", ImVec2(0, AMS_container_height), true, ImGuiWindowFlags_AlwaysUseWindowPadding);
                 {
-                    if (!is_support_dynamic_nozzle_map) {
+                    if (!is_show_left_right_result) {
                         float available_width = ImGui::GetContentRegionAvail().x;
                         float half_width      = available_width * 0.49f;
                         float spacing         = 18.0f * m_scale;
@@ -2880,7 +2881,7 @@ namespace Slic3r
                         ImGui::PopStyleColor(1);
                     }
                     else if (any_less_to_single_ext) {
-                        ImVec4 color = is_support_dynamic_nozzle_map ? ImVec4(0.95f, 0.95f, 0.95f, 1.0f) : ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
+                        ImVec4 color = is_show_left_right_result ? ImVec4(0.95f, 0.95f, 0.95f, 1.0f) : ImVec4(0.42f, 0.42f, 0.42f, 1.0f);
                         ImGui::PushStyleColor(ImGuiCol_Text, color);
                         wxString tip;
                         if (delta_weight_to_single_ext >= 0 && delta_change_to_single_ext >= 0)

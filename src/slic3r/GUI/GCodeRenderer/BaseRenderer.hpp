@@ -198,7 +198,7 @@ namespace Slic3r {
                 // end helio
             private:
                 void delete_wipe_tower();
-                void render_legend_color_arr_recommen(float window_padding, bool is_support_dynamic_nozzle_map);
+                void render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result);
 
             protected:
                 bool m_legend_enabled{ true };
