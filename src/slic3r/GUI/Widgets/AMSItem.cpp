@@ -240,9 +240,9 @@ AMSPanelPos AMSinfo::GetDefaultPanelPos(int total_extruder_count) const
         }
     } else if (total_extruder_count == 2) {
         if (binded_switcher_pos.has_value()) {
-            if (binded_switcher_pos.value() == DevFilaSwitch::POS_IN_B) {
+            if (binded_switcher_pos.value() == DevFilaSwitch::POS_IN_A) {
                 return AMSPanelPos::LEFT_PANEL;
-            } else if (binded_switcher_pos.value() == DevFilaSwitch::POS_IN_A) {
+            } else if (binded_switcher_pos.value() == DevFilaSwitch::POS_IN_B) {
                 return AMSPanelPos::RIGHT_PANEL;
             }
         }
