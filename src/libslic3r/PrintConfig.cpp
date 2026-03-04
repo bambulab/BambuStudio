@@ -1145,6 +1145,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloatsNullable{1});
 
+    def = this->add("bottom_solid_infill_flow_ratio", coFloats);
+    def->label = L("Bottom surface flow ratio");
+    def->gui_type = ConfigOptionDef::GUIType::multi_variant;
+    def->tooltip = L("This factor affects the amount of material for bottom solid infill.");
+    def->min = 0;
+    def->max = 2;
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloatsNullable{1});
+
     def = this->add("initial_layer_flow_ratio", coFloat);
     def->label = L("Initial layer flow ratio");
     def->tooltip = L("This factor affects the amount of material for the initial layer");
@@ -6483,8 +6492,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         opt_key = "enable_prime_tower";
     } else if (opt_key == "wipe_tower_width") {
         opt_key = "prime_tower_width";
-    } else if (opt_key == "bottom_solid_infill_flow_ratio") {
-        opt_key = "initial_layer_flow_ratio";
     } else if (opt_key == "wiping_volume") {
         opt_key = "filament_prime_volume";
     }
@@ -6697,7 +6704,8 @@ std::set<std::string> print_options_with_variant = {
     "top_surface_acceleration",
     "print_extruder_id", //coInts
     "print_extruder_variant", //coStrings
-    "top_solid_infill_flow_ratio"
+    "top_solid_infill_flow_ratio",
+    "bottom_solid_infill_flow_ratio"
 };
 
 std::set<std::string> filament_options_with_variant = {
@@ -6805,7 +6813,8 @@ std::set<std::string> printer_options_with_variant_2 = {
 };
 
 std::set<std::string> multi_variant_text_ctrl_options = {
-    "top_solid_infill_flow_ratio"
+    "top_solid_infill_flow_ratio",
+    "bottom_solid_infill_flow_ratio"
 };
 
 std::set<std::string> empty_options;

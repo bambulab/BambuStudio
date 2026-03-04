@@ -2692,6 +2692,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("thick_bridges","parameter/bridge");
         optgroup->append_single_option_line("print_flow_ratio");
         optgroup->append_single_option_line("top_solid_infill_flow_ratio","parameter/quality-advance-settings");
+        optgroup->append_single_option_line("bottom_solid_infill_flow_ratio","parameter/quality-advance-settings");
         optgroup->append_single_option_line("initial_layer_flow_ratio","parameter/quality-advance-settings");
         optgroup->append_single_option_line("top_one_wall_type","parameter/quality-advance-settings");
         optgroup->append_single_option_line("top_area_threshold","parameter/quality-advance-settings");
