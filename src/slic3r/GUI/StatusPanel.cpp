@@ -4204,9 +4204,30 @@ void StatusPanel::update_load_with_temp()
     }
 }
 
+wxString StatusPanel::getTrayName(const std::string amsID, const std::string slotID)
+{
+    if (!amsID.empty() && !slotID.empty())
+    {
+        std::shared_ptr<DevFilaSystem> filaSys = obj->GetFilaSystem();
+        if (filaSys != nullptr)
+        {
+            DevAms* ams = filaSys->GetAmsById(amsID);
+            if (ams != nullptr)
+            {
+               int tray_id = ams->GetTrayId(atoi(slotID.c_str()));
+               return wxGetApp().transition_tridid(tray_id);
+            }
+        }
+    }
+    return wxString();
+}
+
 void StatusPanel::on_ams_load_curr()
 {
     if (obj) {
+        std::string curr_ams_id = m_ams_control->GetCurentAms();
+        std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+
         std::optional<int> extruder_id = std::nullopt;
         if (obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled()) {
             if (!obj->GetFilaSwitch()->IsReady()) {
@@ -4215,16 +4236,32 @@ void StatusPanel::on_ams_load_curr()
                 return;
             }
 
-            FeedDirectionDialog dialog = FeedDirectionDialog(nullptr, 2, _L("Load filament to"));
+            std::vector<wxString> extruder_filamentid_mapping = {"", ""};
+            if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value())
+            {
+                if (ext->HasFilamentInExt())
+                {
+                    extruder_filamentid_mapping[MAIN_EXTRUDER_ID] = getTrayName(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
+                }
+            }
+            if (auto ext = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID); ext.has_value())
+            {
+                if (ext->HasFilamentInExt())
+                {
+                    extruder_filamentid_mapping[DEPUTY_EXTRUDER_ID] = getTrayName(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
+                }
+            }
+
+            auto filamentID = getTrayName(curr_ams_id, curr_can_id);
+            FeedDirectionDialog dialog(nullptr, 2);
+            dialog.SetExtruderMapping(extruder_filamentid_mapping, filamentID);
             auto rtn = dialog.ShowModal();
-            if (rtn != wxID_OK) {
+            if (rtn != wxID_OK) 
+            {
                 return;
             }
             extruder_id = dialog.GetExtruderID();
         }
-
-        std::string curr_ams_id = m_ams_control->GetCurentAms();
-        std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
 
         update_load_with_temp();
         // virtual tray
