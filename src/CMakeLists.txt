@@ -41,6 +41,8 @@ if (SLIC3R_GUI)
     endif()
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        pkg_check_modules(LIBX11 REQUIRED x11>=1.8)
+
         set (wxWidgets_CONFIG_OPTIONS "--toolkit=gtk${SLIC3R_GTK}")
         if (SLIC3R_WX_STABLE)
             find_package(wxWidgets 3.0 REQUIRED COMPONENTS base core adv html gl aui net media webview)
