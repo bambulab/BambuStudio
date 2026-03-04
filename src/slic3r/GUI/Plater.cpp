@@ -1099,63 +1099,107 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
 
 // Sidebar / public
 
-static std::string serialize_nozzle_config(const std::vector<DevNozzle>& nozzles)
+static std::string serialize_nozzle_config(const std::map<int, std::vector<DevNozzle>>& nozzle_cfg_map)
 {
     std::ostringstream oss;
-    for (size_t i = 0; i < nozzles.size(); ++i) {
+    std::vector<DevNozzle> deputy_nozzles = nozzle_cfg_map.at(1);
+    std::vector<DevNozzle> main_nozzles = nozzle_cfg_map.at(0);
+
+    for (size_t i = 0; i < deputy_nozzles.size(); ++i) {
         if (i > 0) oss << ";";
-        oss << std::fixed << std::setprecision(1) << nozzles[i].GetNozzleDiameter() << ","
-            << static_cast<int>(nozzles[i].GetNozzleFlowType());
+        oss << std::fixed << std::setprecision(1) << deputy_nozzles[i].GetNozzleDiameter() << ","
+            << static_cast<int>(deputy_nozzles[i].GetNozzleFlowType());
     }
+    
+    oss << "|";
+
+    for (size_t i = 0; i < main_nozzles.size(); ++i) {
+        if (i > 0) oss << ";";
+        oss << std::fixed << std::setprecision(1) << main_nozzles[i].GetNozzleDiameter() << ","
+            << static_cast<int>(main_nozzles[i].GetNozzleFlowType());
+    }
+
     return oss.str();
 }
 
-static std::vector<DevNozzle> deserialize_nozzle_config(const std::string &config_str)
+static std::map<int, std::vector<DevNozzle>> deserialize_nozzle_config(const std::string &config_str)
 {
-    std::vector<DevNozzle> nozzles;
-    if (config_str.empty()) return nozzles;
+    std::map<int, std::vector<DevNozzle>> nozzle_cfg_map;
+    if (config_str.empty()) return nozzle_cfg_map;
 
-    std::vector<std::string> parts;
-    boost::split(parts, config_str, boost::is_any_of(";"));
+    std::vector<std::string> extruder_parts;
+    boost::split(extruder_parts, config_str, boost::is_any_of("|"));
 
-    for (const auto &part : parts) {
-        std::vector<std::string> values;
-        boost::split(values, part, boost::is_any_of(","));
-        if (values.size() == 2) {
-            DevNozzle nozzle;
-            nozzle.m_diameter = (std::stof(values[0]));
-            nozzle.m_nozzle_flow = (static_cast<NozzleFlowType>(std::stoi(values[1])));
-            nozzles.push_back(nozzle);
+    auto get_nozzles_from_string = [](const std::string& part_str) -> std::vector<DevNozzle> {
+        std::vector<DevNozzle> nozzles;
+        std::vector<std::string> parts;
+        boost::split(parts, part_str, boost::is_any_of(";"));
+        for (const auto &part : parts) {
+            std::vector<std::string> values;
+            boost::split(values, part, boost::is_any_of(","));
+            if (values.size() == 2) {
+                DevNozzle nozzle;
+                nozzle.m_diameter = std::stof(values[0]);
+                nozzle.m_nozzle_flow = static_cast<NozzleFlowType>(std::stoi(values[1]));
+                nozzles.push_back(nozzle);
+            }
         }
-    }
-    return nozzles;
-}
-
-static bool is_same_nozzle_config(const std::vector<DevNozzle>& config1,
-                                   const std::vector<DevNozzle>& config2) {
-    if (config1.size() != config2.size()) return false;
-
-    auto sorted_config1 = config1;
-    auto sorted_config2 = config2;
-
-    auto compare_nozzle = [](const DevNozzle& a, const DevNozzle& b) {
-        float dia_a = a.GetNozzleDiameter();
-        float dia_b = b.GetNozzleDiameter();
-        if (std::abs(dia_a - dia_b) > EPSILON) {
-            return dia_a < dia_b;
-        }
-        return static_cast<int>(a.GetNozzleFlowType()) < static_cast<int>(b.GetNozzleFlowType());
+        return nozzles;
     };
 
-    std::sort(sorted_config1.begin(), sorted_config1.end(), compare_nozzle);
-    std::sort(sorted_config2.begin(), sorted_config2.end(), compare_nozzle);
+    if (extruder_parts.size() != 2) {
+        auto nozzles = get_nozzles_from_string(config_str);
+        nozzle_cfg_map[MAIN_EXTRUDER_ID] = nozzles;
+        nozzle_cfg_map[DEPUTY_EXTRUDER_ID] = { DevNozzle() };
+        return nozzle_cfg_map;
+    }
 
-    for (size_t i = 0; i < sorted_config1.size(); ++i) {
-        if (std::abs(sorted_config1[i].GetNozzleDiameter() - sorted_config2[i].GetNozzleDiameter()) > EPSILON ||
-            sorted_config1[i].GetNozzleFlowType() != sorted_config2[i].GetNozzleFlowType()) {
-            return false;
+    if (!extruder_parts[0].empty()) {
+        auto nozzles = get_nozzles_from_string(extruder_parts[0]);
+        nozzle_cfg_map[DEPUTY_EXTRUDER_ID] = nozzles;
+    }
+    if (!extruder_parts[1].empty()) {
+        auto nozzles = get_nozzles_from_string(extruder_parts[1]);
+        nozzle_cfg_map[MAIN_EXTRUDER_ID] = nozzles;
+    }
+    
+    return nozzle_cfg_map;
+}
+
+static bool is_same_nozzle_config(const std::map<int, std::vector<DevNozzle>> &config1, const std::map<int, std::vector<DevNozzle>> &config2)
+{
+    if (config1.size() != config2.size()) return false;
+
+    for (const auto& [eid, nozzles1] : config1) {
+        auto it = config2.find(eid);
+        if (it == config2.end()) return false;  
+
+        const auto &nozzles2 = it->second;
+        if (nozzles1.size() != nozzles2.size()) return false;
+
+        auto sorted_nozzles1 = nozzles1;
+        auto sorted_nozzles2 = nozzles2;
+
+        auto compare_nozzle = [](const DevNozzle &a, const DevNozzle &b) {
+            float dia_a = a.GetNozzleDiameter();
+            float dia_b = b.GetNozzleDiameter();
+            if (std::abs(dia_a - dia_b) > EPSILON) {
+                return dia_a < dia_b;
+            }
+            return static_cast<int>(a.GetNozzleFlowType()) < static_cast<int>(b.GetNozzleFlowType());
+        };
+
+        std::sort(sorted_nozzles1.begin(), sorted_nozzles1.end(), compare_nozzle);
+        std::sort(sorted_nozzles2.begin(), sorted_nozzles2.end(), compare_nozzle);
+
+        for (size_t i = 0; i < sorted_nozzles1.size(); ++i) {
+            if (std::abs(sorted_nozzles1[i].GetNozzleDiameter() - sorted_nozzles2[i].GetNozzleDiameter()) > EPSILON ||
+                sorted_nozzles1[i].GetNozzleFlowType() != sorted_nozzles2[i].GetNozzleFlowType()) {
+                return false;
+            }
         }
     }
+
     return true;
 }
 
@@ -2149,16 +2193,17 @@ std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj
     if (!preset_bundle) return std::nullopt;
 
     std::string curr_dev_id = obj->get_dev_id();
-    std::vector<DevNozzle> curr_nozzle_cfg;
+    std::map<int, std::vector<DevNozzle>> curr_nozzle_cfg;
 
     for (const auto& ext_nozzle : nozzle_system->GetExtNozzles()) {
-        if (ext_nozzle.first == MAIN_EXTRUDER_ID) {
-            curr_nozzle_cfg.emplace_back(ext_nozzle.second);
-        }
+        int extruder_id = ext_nozzle.first;
+        curr_nozzle_cfg[extruder_id].emplace_back(ext_nozzle.second);
     }
+
     for (const auto& rack_nozzle : nozzle_system->GetRackNozzles()) {
-        curr_nozzle_cfg.emplace_back(rack_nozzle.second);
+        curr_nozzle_cfg[MAIN_EXTRUDER_ID].emplace_back(rack_nozzle.second);
     }
+
     AppConfig *app_config = wxGetApp().app_config;
     std::string saved_dev_id = app_config->get("sync_extruder", "dev_id");
     std::string saved_nozzle_config_str = app_config->get("sync_extruder", "nozzle_config");
@@ -2170,7 +2215,7 @@ std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj
     } else {
         bool can_reuse_saved_option = false;
         if (!saved_dev_id.empty() && !saved_nozzle_config_str.empty() && !saved_nozzle_option_str.empty() && saved_dev_id == curr_dev_id) {
-            std::vector<DevNozzle> saved_nozzle_config = deserialize_nozzle_config(saved_nozzle_config_str);
+            auto saved_nozzle_config = deserialize_nozzle_config(saved_nozzle_config_str);
             if (is_same_nozzle_config(saved_nozzle_config, curr_nozzle_cfg)) {
                 nozzle_option = deserialize_nozzle_option(saved_nozzle_option_str);
                 can_reuse_saved_option = nozzle_option.has_value();
