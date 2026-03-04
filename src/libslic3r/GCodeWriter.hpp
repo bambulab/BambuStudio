@@ -205,6 +205,13 @@ public:
 //    static constexpr const int XYZF_EXPORT_DIGITS = 6;
 //    static constexpr const int E_EXPORT_DIGITS    = 9;
 #endif
+    static constexpr const std::array<double, 10> pow_10 { 1., 10., 100., 1000., 10000., 100000., 1000000., 10000000., 100000000., 1000000000. };
+    static constexpr const std::array<double, 10> pow_10_inv { 1. / 1., 1. / 10., 1. / 100., 1. / 1000., 1. / 10000., 1. / 100000., 1. / 1000000., 1. / 10000000., 1. / 100000000., 1. / 1000000000. };
+
+    // Quantize doubles to a resolution of the G-code.
+    static double quantize(double v, size_t ndigits) { return std::round(v * pow_10[ndigits]) * pow_10_inv[ndigits]; }
+    static double quantize_xyzf(double v) { return quantize(v, XYZF_EXPORT_DIGITS); }
+    static double quantize_e(double v) { return quantize(v, E_EXPORT_DIGITS); }
 
     void emit_axis(const char axis, const double v, size_t digits);
 

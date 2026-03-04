@@ -20,8 +20,8 @@
 # therefore, unfortunately, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
+cmake_minimum_required(VERSION 3.5)
 project(BambuStudio-deps)
-cmake_minimum_required(VERSION 3.2)
 
 include(ExternalProject)
 include(ProcessorCount)
