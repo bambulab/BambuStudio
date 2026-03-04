@@ -12103,7 +12103,7 @@ msgid "Acceleration of inner walls. 0 means using normal printing acceleration"
 msgstr "Accélération des parois intérieures. 0 signifie une accélération normale de l'impression"
 
 msgid "Acceleration of sparse infill. If the value is expressed as a percentage (e.g. 100%), it will be calculated based on the default acceleration."
-msgstr "Accélération d'un remplissage internet. Si la valeur est exprimée en pourcentage (par exemple 100 %), elle sera calculée en fonction de l'accélération par défaut."
+msgstr "Accélération d'un remplissage interne. Si la valeur est exprimée en pourcentage (par exemple 100 %), elle sera calculée en fonction de l'accélération par défaut."
 
 msgid "mm/s² or %"
 msgstr "mm/s² or %"
