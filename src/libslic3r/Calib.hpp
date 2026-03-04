@@ -1,14 +1,18 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include "GCodeWriter.hpp"
 #include "PrintConfig.hpp"
 #include "BoundingBox.hpp"
+#include "CustomGCode.hpp"
+#include "Flow.hpp"
 
 namespace Slic3r {
 
 class GCode;
 class Model;
+class ModelObject;
 
 enum class CalibMode : int {
     Calib_None = 0,
@@ -40,6 +44,8 @@ struct Calib_Params
     double start, end, step;
     bool print_numbers = false;
     CalibMode mode;
+    std::vector<double> accelerations;
+    std::vector<double> speeds;
 };
 
 enum FlowRatioCalibrationType {
@@ -208,7 +214,7 @@ protected:
     double      e_per_mm(double line_width, double layer_height, float nozzle_diameter, float filament_diameter, float print_flow_ratio) const;
     double      speed_adjust(int speed) const { return speed * 60; };
 
-    std::string convert_number_to_string(double num) const;
+    std::string convert_number_to_string(double num, unsigned precision = 0) const;
     double      number_spacing() const { return m_digit_segment_len + m_digit_gap_len; };
     std::string draw_digit(double startx, double starty, char c, CalibPressureAdvance::DrawDigitMode mode, double line_width, double e_per_mm, GCodeWriter &writer);
     std::string draw_number(
@@ -228,6 +234,7 @@ protected:
     const double                 m_digit_segment_len{2};
     const double                 m_digit_gap_len{1};
     const std::string::size_type m_max_number_len{5};
+    std::string::size_type       m_number_len{m_max_number_len}; /* Current length of number labels */
 };
 
 class CalibPressureAdvanceLine : public CalibPressureAdvance
@@ -287,7 +294,7 @@ class CalibPressureAdvancePattern : public CalibPressureAdvance
     friend struct DrawBoxOptArgs;
 
 public:
-    CalibPressureAdvancePattern(const Calib_Params &params, const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
+    CalibPressureAdvancePattern(const Calib_Params &params, const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
 
     double handle_xy_size() const { return m_handle_xy_size; };
     double handle_spacing() const { return m_handle_spacing; };
@@ -295,22 +302,29 @@ public:
     double print_size_y() const { return object_size_y(); };
     double max_layer_z() const { return height_first_layer() + ((m_num_layers - 1) * height_layer()); };
 
-    void generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, Model &model, const Vec3d &origin);
+    CustomGCode::Info generate_custom_gcodes(const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
 
     void set_start_offset(const Vec3d &offset);
     Vec3d get_start_offset();
+    Vec3d handle_pos_offset() const;
 
 protected:
     double speed_first_layer() const { return m_config.option<ConfigOptionFloatsNullable>("initial_layer_speed")->get_at(m_params.extruder_id); };
     double speed_perimeter() const { return m_config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(m_params.extruder_id); };
+    double accel_perimeter() const { return m_config.option<ConfigOptionFloatsNullable>("outer_wall_acceleration")->get_at(m_params.extruder_id); };
     double line_width_first_layer() const { return m_config.get_abs_value("initial_layer_line_width"); };
-    double line_width() const { return m_config.get_abs_value("line_width"); };
+    double line_width() const {
+        double w = m_config.get_abs_value("line_width");
+        if (w <= 0)
+            w = Flow::auto_extrusion_width(frPerimeter, m_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(m_params.extruder_id));
+        return w;
+    };
     int    wall_count() const { return m_config.option<ConfigOptionInt>("wall_loops")->value; };
 
 private:
-    void refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const Model &model, const Vec3d &origin);
-    void _refresh_starting_point(const Model &model);
-    void _refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin);
+    void refresh_setup(const DynamicPrintConfig &config, bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
+    void _refresh_starting_point(const ModelObject &object);
+    void _refresh_writer(bool is_bbl_machine, const ModelObject &object, const Vec3d &origin);
 
     double    height_first_layer() const { return m_config.option<ConfigOptionFloat>("initial_layer_print_height")->value; };
     double    height_layer() const { return m_config.option<ConfigOptionFloat>("layer_height")->value; };
@@ -333,6 +347,7 @@ private:
     double glyph_start_x(int pattern_i = 0) const;
     double glyph_length_x() const;
     double glyph_tab_max_x() const;
+    size_t max_numbering_length() const;
     double max_numbering_height() const;
 
     double pattern_shift() const;
@@ -344,7 +359,7 @@ private:
     bool        m_is_start_point_fixed = false;
 
     const double m_handle_xy_size{5};
-    const double m_handle_spacing{2};
+    const double m_handle_spacing{1.2};
     const int    m_num_layers{4};
 
     const double m_wall_side_length{30.0};

@@ -3,12 +3,29 @@
 #include "MsgDialog.hpp"
 #include "I18N.hpp"
 #include <wx/dcgraph.h>
+#include <wx/tokenzr.h>
 #include "MainFrame.hpp"
 #include <string>
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PrintConfig.hpp"
 
 namespace Slic3r { namespace GUI {
+
+namespace {
+// Parse a comma-separated string of numeric values into a vector of doubles
+std::vector<double> ParseStringValues(const wxString &input)
+{
+    std::vector<double> result;
+    wxStringTokenizer tokenizer(input, ",");
+    while (tokenizer.HasMoreTokens()) {
+        wxString token = tokenizer.GetNextToken().Trim().Trim(false);
+        double val = 0;
+        if (token.ToDouble(&val) && val > 0)
+            result.push_back(val);
+    }
+    return result;
+}
+} // anonymous namespace
 
 wxBoxSizer* create_item_checkbox(wxString title, wxWindow* parent, bool* value, CheckBox*& checkbox)
 {
@@ -100,6 +117,34 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     PA_step_sizer->Add(m_tiPAStep, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     settings_sizer->Add(PA_step_sizer);
 
+    // Batch mode fields (only for PA Pattern)
+    wxString accel_str = _L("Accelerations: ");
+    wxString speed_str = _L("Speeds: ");
+    text_size.IncTo(wxWindow::GetTextExtent(accel_str));
+    text_size.IncTo(wxWindow::GetTextExtent(speed_str));
+    st_size = FromDIP(wxSize(text_size.x, -1));
+    auto bm_ti_size = FromDIP(wxSize(160, -1));
+
+    auto accel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto accel_text = new wxStaticText(this, wxID_ANY, accel_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiBMAccels = new TextInput(this, "", "mm/s\u00B2", "", wxDefaultPosition, bm_ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiBMAccels->SetToolTip(_L("Comma-separated accelerations, e.g. 500,1000,2000. Leave empty for default."));
+    accel_sizer->Add(accel_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    accel_sizer->Add(m_tiBMAccels, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(accel_sizer);
+
+    auto speed_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto speed_text = new wxStaticText(this, wxID_ANY, speed_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
+    m_tiBMSpeeds = new TextInput(this, "", "mm/s", "", wxDefaultPosition, bm_ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_tiBMSpeeds->SetToolTip(_L("Comma-separated speeds, e.g. 100,150,200. Leave empty for default."));
+    speed_sizer->Add(speed_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    speed_sizer->Add(m_tiBMSpeeds, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+    settings_sizer->Add(speed_sizer);
+
+    // Initially disabled (only enabled for PA Pattern)
+    m_tiBMAccels->Enable(false);
+    m_tiBMSpeeds->Enable(false);
+
 	settings_sizer->Add(create_item_checkbox(_L("Print numbers"), this, &m_params.print_numbers, m_cbPrintNum));
     m_cbPrintNum->SetValue(false);
 
@@ -166,6 +211,10 @@ void PA_Calibration_Dlg::reset_params() {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
             m_cbPrintNum->SetValue(true);
             m_cbPrintNum->Enable(true);
+            m_tiBMAccels->Enable(false);
+            m_tiBMSpeeds->Enable(false);
+            m_tiBMAccels->GetTextCtrl()->SetValue("");
+            m_tiBMSpeeds->GetTextCtrl()->SetValue("");
             break;
         case 2:
             m_params.mode = CalibMode::Calib_PA_Pattern;
@@ -173,6 +222,10 @@ void PA_Calibration_Dlg::reset_params() {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.005));
             m_cbPrintNum->SetValue(true);
             m_cbPrintNum->Enable(false);
+            m_tiBMAccels->Enable(true);
+            m_tiBMSpeeds->Enable(true);
+            m_tiBMAccels->GetTextCtrl()->SetValue("2000,5000");
+            m_tiBMSpeeds->GetTextCtrl()->SetValue("60,200");
             break;
         default:
             m_params.mode = CalibMode::Calib_PA_Tower;
@@ -180,6 +233,10 @@ void PA_Calibration_Dlg::reset_params() {
             m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
             m_cbPrintNum->SetValue(false);
             m_cbPrintNum->Enable(false);
+            m_tiBMAccels->Enable(false);
+            m_tiBMSpeeds->Enable(false);
+            m_tiBMAccels->GetTextCtrl()->SetValue("");
+            m_tiBMSpeeds->GetTextCtrl()->SetValue("");
             break;
     }
 
@@ -200,9 +257,6 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     read_double = read_double && m_tiEndPA->GetTextCtrl()->GetValue().ToDouble(&m_params.end);
     read_double = read_double && m_tiPAStep->GetTextCtrl()->GetValue().ToDouble(&m_params.step);
 
-    if (!is_pa_params_valid(m_params))
-        return;
-
     switch (m_rbMethod->GetSelection()) {
         case 1:
             m_params.mode = CalibMode::Calib_PA_Line;
@@ -215,6 +269,15 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     }
 
     m_params.print_numbers = m_cbPrintNum->GetValue();
+
+    // Parse batch mode values for PA Pattern
+    if (m_params.mode == CalibMode::Calib_PA_Pattern) {
+        m_params.accelerations = ParseStringValues(m_tiBMAccels->GetTextCtrl()->GetValue());
+        m_params.speeds        = ParseStringValues(m_tiBMSpeeds->GetTextCtrl()->GetValue());
+    }
+
+    if (!is_pa_params_valid(m_params))
+        return;
 
     m_plater->calib_pa(m_params);
     EndModal(wxID_OK);

@@ -89,6 +89,7 @@
 #include "Tab.hpp"
 #include "Jobs/OrientJob.hpp"
 #include "Jobs/ArrangeJob.hpp"
+#include "libslic3r/ModelArrange.hpp"
 #include "Jobs/FillBedJob.hpp"
 #include "Jobs/RotoptimizeJob.hpp"
 #include "Jobs/SLAImportJob.hpp"
@@ -1480,7 +1481,8 @@ bool Sidebar::priv::switch_diameter(bool single)
         return false;
     }
     preset->is_visible = true; // force visible
-    return wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+    auto result = wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+    return result;
 }
 
 static bool is_skip_high_flow_printer(const std::string& printer)
@@ -14939,6 +14941,10 @@ void Plater::calib_pa(const Calib_Params &params)
     if (new_project(false, false, calib_pa_name) == wxID_CANCEL)
         return;
     wxGetApp().mainframe->select_tab(size_t(MainFrame::tp3DEditor));
+
+    // Set calib params early so _calib_pa_pattern_gen_gcode can access them
+    p->background_process.fff_print()->set_calib_params(params);
+
     switch (params.mode) {
         case CalibMode::Calib_PA_Line:
             add_model(false, Slic3r::resources_dir() + "/calib/pressure_advance/pressure_advance_test.stl");
@@ -14968,20 +14974,13 @@ void Plater::calib_pa(const Calib_Params &params)
         if (agent)
             agent->track_event("third_cali", js.dump());
     } catch (...) {}
-
-    p->background_process.fff_print()->set_calib_params(params);
 }
 
 void Plater::_calib_pa_pattern(const Calib_Params &params)
 {
-    // add "handle" cube
-    sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
-    orient();
-    changed_objects({0});
-    _calib_pa_select_added_objects();
-
-    const DynamicPrintConfig &printer_config  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    DynamicPrintConfig &      printer_config  = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     DynamicPrintConfig &      print_config    = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    auto                      filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     float                    nozzle_diameter = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
@@ -14991,7 +14990,16 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
         set_config_values<double, ConfigOptionFloatsNullable>(&print_config, opt.first, opt.second[0]);
     }
 
-    update_speed_parameter("outer_wall_speed");
+    // Set outer_wall_speed: use user's speed directly if provided,
+    // otherwise compute optimal speed capped by max volumetric.
+    if (params.speeds.empty()) {
+        // No user speeds: cap by max volumetric (original behavior)
+        update_speed_parameter("outer_wall_speed");
+    } else {
+        // User provided speeds: set global to first speed for all extruders.
+        // Per-object overrides handle multiple speeds below.
+        set_config_values<double, ConfigOptionFloatsNullable>(&print_config, "outer_wall_speed", params.speeds.front());
+    }
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
@@ -15005,40 +15013,217 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
         new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second));
 
     print_config.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
+    print_config.set_key_value("print_sequence", new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
+
+    // Disable settings that interfere with PA test accuracy.
+    // Only override filament-level settings (which override the printer-level defaults).
+    // Do NOT modify printer_config — dirtying the printer preset causes a crash
+    // in UnsavedChangesDialog when "Sync now" triggers a printer preset switch.
+    set_config_values<bool, ConfigOptionBoolsNullable>(filament_config, "filament_retract_when_changing_layer", false);
+    set_config_values<bool, ConfigOptionBoolsNullable>(filament_config, "filament_wipe", false);
 
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
+    wxGetApp().get_tab(Preset::TYPE_FILAMENT)->reload_config();
 
-    const DynamicPrintConfig    full_config    = wxGetApp().preset_bundle->full_config();
-    PresetBundle *              preset_bundle  = wxGetApp().preset_bundle;
-    const bool                  is_bbl_machine = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
-    const Vec3d                 plate_origin   = get_partplate_list().get_current_plate_origin();
-    CalibPressureAdvancePattern pa_pattern(params, full_config, is_bbl_machine, model(), plate_origin);
+    // Determine batch combinations
+    std::vector<double> accelerations = params.accelerations;
+    std::vector<double> speeds        = params.speeds;
 
-    // scale cube to suit test
-    GizmoObjectManipulation &giz_obj_manip = p->view3D->get_canvas3d()->get_gizmos_manager().get_object_manipulation();
-    giz_obj_manip.UpdateAndShow(true);
-    giz_obj_manip.set_uniform_scaling(true);
-    giz_obj_manip.on_change("size", 0, pa_pattern.handle_xy_size());
-    giz_obj_manip.set_uniform_scaling(false);
-    giz_obj_manip.on_change("size", 2, pa_pattern.max_layer_z());
-    // start with pattern centered on plate
-    center_selection();
-    const Vec3d plate_center = get_partplate_list().get_curr_plate()->get_center_origin();
+    const DynamicPrintConfig full_config   = wxGetApp().preset_bundle->full_config();
+    PresetBundle *           preset_bundle = wxGetApp().preset_bundle;
+    const bool               is_bbl_machine = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
 
-    if ((plate_center.x() - (pa_pattern.print_size_x() / 2) < plate_origin.x()) ||
-        (plate_center.y() - (pa_pattern.print_size_y() / 2) - pa_pattern.handle_spacing() < plate_origin.y())) {
-        MessageDialog dlg(this, _L("The current settings produce a model that is too large. Please narrow the range or increase the step size. (Model size is proportional to (End - Start) / Step size.)"), _L("Warning"), wxOK | wxICON_WARNING);
-        dlg.ShowModal();
-        return;
+    // If no batch values specified, use defaults (single pattern, original behavior)
+    // Cascade: outer_wall_acceleration -> inner_wall_acceleration -> default_acceleration
+    if (accelerations.empty()) {
+        double default_accel = full_config.option<ConfigOptionFloatsNullable>("outer_wall_acceleration")->get_at(params.extruder_id);
+        if (default_accel == 0) {
+            auto iwa = full_config.option<ConfigOptionFloatsNullable>("inner_wall_acceleration");
+            default_accel = iwa ? iwa->get_at(params.extruder_id) : 0;
+        }
+        if (default_accel == 0) {
+            auto da = full_config.option<ConfigOptionFloatsNullable>("default_acceleration");
+            default_accel = da ? da->get_at(params.extruder_id) : 0;
+        }
+        accelerations.push_back(default_accel);
+    }
+    if (speeds.empty()) {
+        double default_speed = full_config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->get_at(params.extruder_id);
+        speeds.push_back(default_speed);
     }
 
-    giz_obj_manip.on_change("position", 0, plate_center.x() - (pa_pattern.print_size_x() / 2));
-    giz_obj_manip.on_change("position", 1, plate_center.y() - (pa_pattern.print_size_y() / 2) - pa_pattern.handle_spacing());
+    const size_t num_combinations = accelerations.size() * speeds.size();
 
-    pa_pattern.generate_custom_gcodes(full_config, is_bbl_machine, model(), plate_origin);
-    model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(pa_pattern);
-    changed_objects({0});
+    // Create first "handle" cube
+    sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
+    ModelObject *cube = model().objects[0];
+
+    const Vec3d plate_origin = get_partplate_list().get_current_plate_origin();
+    Calib_Params temp_params = params;
+    CalibPressureAdvancePattern pa_pattern(temp_params, full_config, is_bbl_machine, *cube, plate_origin);
+
+    const double handle_xy = pa_pattern.handle_xy_size();
+    const double handle_z  = pa_pattern.max_layer_z();
+
+    // Scale cube to full pattern footprint size for arrangement (not handle size).
+    // This lets the arranger bin-pack using the real pattern bounding box.
+    const double pattern_margin = 4.0;
+    BoundingBoxf3 cube_bb = cube->raw_bounding_box();
+    cube->scale(Vec3d(
+        (pa_pattern.print_size_x() + pattern_margin) / cube_bb.size().x(),
+        (pa_pattern.print_size_y() + pattern_margin) / cube_bb.size().y(),
+        pa_pattern.max_layer_z() / cube_bb.size().z()
+    ));
+
+    // Build ArrangePolygons and call arrange() for intelligent bin-packing
+    arrangement::ArrangePolygons arranged_items;
+    arrangement::ArrangeParams ap;
+    Points bedpts = arrangement::get_shrink_bedpts(full_config, ap);
+
+    for (size_t i = 0; i < num_combinations; i++) {
+        arrangement::ArrangePolygon p;
+        cube->instances[0]->get_arrange_polygon(&p);
+        p.bed_idx = 0;
+        p.name = "pa_pattern_" + std::to_string(i);
+        arranged_items.emplace_back(p);
+    }
+
+    arrangement::arrange(arranged_items, bedpts, ap);
+
+    // Scale cube back down to handle size for actual printing
+    cube_bb = cube->raw_bounding_box();
+    cube->scale(Vec3d(
+        handle_xy / cube_bb.size().x(),
+        handle_xy / cube_bb.size().y(),
+        handle_z  / cube_bb.size().z()
+    ));
+
+    // Clone cubes and position using arrangement output, with multi-plate support
+    Vec3d handle_offset = pa_pattern.handle_pos_offset();
+    size_t spd_size = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed")->values.size();
+    size_t acc_size = print_config.option<ConfigOptionFloatsNullable>("outer_wall_acceleration")->values.size();
+
+    PartPlateList &plate_list = get_partplate_list();
+    std::vector<size_t> object_idxs;
+    size_t combo_idx = 0;
+    for (size_t ai = 0; ai < accelerations.size(); ++ai) {
+        for (size_t si = 0; si < speeds.size(); ++si) {
+            if (combo_idx >= num_combinations)
+                break;
+
+            const auto &ai_item = arranged_items[combo_idx];
+
+            // Clone cube for all but the first (reuse existing)
+            if (combo_idx > 0)
+                model().add_object(*cube);
+
+            size_t obj_idx = combo_idx;
+            ModelObject *obj = model().objects[obj_idx];
+
+            // Name the object with speed/accel for easy identification
+            obj->name = std::string("pa_pattern_") + std::to_string((int)speeds[si]) + "_" + std::to_string((int)accelerations[ai]);
+
+            // Set per-object speed/accel overrides
+            obj->config.set_key_value("outer_wall_speed",
+                new ConfigOptionFloatsNullable(std::vector<double>(spd_size, speeds[si])));
+            obj->config.set_key_value("outer_wall_acceleration",
+                new ConfigOptionFloatsNullable(std::vector<double>(acc_size, accelerations[ai])));
+
+            // Determine which plate this pattern belongs to
+            int plate_idx = ai_item.bed_idx;
+            if (plate_idx < 0) plate_idx = 0; // fallback for unarranged items
+
+            // Create plates as needed for overflow
+            while (plate_idx >= (int)plate_list.get_plate_count())
+                plate_list.create_plate();
+
+            // Assign object to its plate
+            plate_list.add_to_plate(obj_idx, 0, plate_idx);
+
+            // Position: plate origin + arranged translation + handle offset
+            Vec3d plate_org = plate_list.get_plate(plate_idx)->get_origin();
+            double pos_x = plate_org.x() + unscale<double>(ai_item.translation.x()) + handle_offset.x();
+            double pos_y = plate_org.y() + unscale<double>(ai_item.translation.y()) + handle_offset.y();
+            obj->instances[0]->set_offset(Vec3d(pos_x, pos_y, 0));
+            obj->ensure_on_bed();
+
+            object_idxs.push_back(obj_idx);
+
+            // Register in ObjectList
+            if (combo_idx == 0)
+                sidebar().obj_list()->update_name_for_items();
+            else
+                sidebar().obj_list()->add_object_to_list(obj_idx);
+
+            combo_idx++;
+        }
+    }
+
+    changed_objects(object_idxs);
+
+    // Update canvas printable state for all objects
+    wxGetApp().plater()->canvas3D()->update_instance_printable_state_for_objects(object_idxs);
+
+    // Ensure all plates have calib_params set (each plate has its own FFFPrint)
+    for (int pi = 0; pi < (int)plate_list.get_plate_count(); ++pi) {
+        plate_list.get_plate(pi)->fff_print()->set_calib_params(params);
+    }
+
+    // Generate custom G-code for objects on each plate
+    int num_plates = (int)plate_list.get_plate_count();
+    for (int pi = 0; pi < num_plates; ++pi) {
+        plate_list.select_plate(pi);
+        _calib_pa_pattern_gen_gcode();
+    }
+    // Return to the first plate
+    plate_list.select_plate(0);
+
+    // Store a reference pattern for reslice regeneration
+    model().calib_pa_pattern = std::make_unique<CalibPressureAdvancePattern>(
+        CalibPressureAdvancePattern(params, full_config, is_bbl_machine, *model().objects[0],
+                                   plate_list.get_plate(0)->get_origin()));
+}
+
+void Plater::_calib_pa_pattern_gen_gcode()
+{
+    const DynamicPrintConfig full_config   = wxGetApp().preset_bundle->full_config();
+    PresetBundle *           preset_bundle = wxGetApp().preset_bundle;
+    const bool               is_bbl_machine = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
+    const Vec3d              plate_origin   = get_partplate_list().get_current_plate_origin();
+
+    // Get the base calib params from the background process
+    const Calib_Params base_params = p->background_process.fff_print()->calib_params();
+
+    // Build a merged CustomGCode::Info by generating per-object G-code
+    // and merging layer-by-layer. Per-object speed/accel overrides live in
+    // obj->config and are picked up by refresh_setup() inside the pattern ctor.
+    std::map<double, std::string> layer_gcodes; // print_z -> merged gcode
+
+    // Only iterate objects on the current plate (critical for multi-plate correctness)
+    ModelObjectPtrs plate_objects = get_partplate_list().get_curr_plate()->get_objects_on_this_plate();
+    for (ModelObject *obj : plate_objects) {
+        CalibPressureAdvancePattern obj_pattern(base_params, full_config, is_bbl_machine, *obj, plate_origin);
+        CustomGCode::Info obj_info = obj_pattern.generate_custom_gcodes(full_config, is_bbl_machine, *obj, plate_origin);
+
+        for (const auto &item : obj_info.gcodes) {
+            layer_gcodes[item.print_z] += item.extra;
+        }
+    }
+
+    // Build final merged CustomGCode::Info
+    CustomGCode::Info merged_info;
+    merged_info.mode = CustomGCode::Mode::SingleExtruder;
+    for (const auto &[print_z, gcode_str] : layer_gcodes) {
+        CustomGCode::Item item;
+        item.print_z = print_z;
+        item.type    = CustomGCode::Type::Custom;
+        item.extra   = gcode_str;
+        merged_info.gcodes.push_back(item);
+    }
+
+    model().plates_custom_gcodes[model().curr_plate_index] = merged_info;
 }
 
 void Plater::_calib_pa_tower(const Calib_Params &params)
@@ -17985,14 +18170,7 @@ void Plater::reslice()
 
     // softfever: regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
-        PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-
-        model().calib_pa_pattern->generate_custom_gcodes(
-            wxGetApp().preset_bundle->full_config(),
-            preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
-            model(),
-            get_partplate_list().get_current_plate_origin()
-        );
+        _calib_pa_pattern_gen_gcode();
     }
 
 
