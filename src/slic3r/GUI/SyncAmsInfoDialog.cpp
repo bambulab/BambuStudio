@@ -1473,7 +1473,7 @@ void SyncAmsInfoDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots)
     for (int i = 0; i < m_ams_mapping_result.size(); i++) {
         auto it = m_ams_mapping_result[i];
         if (it.ams_id == "") {
-            DevAmsTray slot("");
+            DevAmsTray slot("", "");
             if (m_filaments_map[it.id] == 1 && slots.size() > 1)
                 slot = slots[1];
             else if (m_filaments_map[it.id] == 2)

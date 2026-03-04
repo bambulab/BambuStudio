@@ -1,4 +1,6 @@
 #include "DevNozzleRack.h"
+
+#include "DevFilaSystem.h"
 #include "DevUtil.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -18,6 +20,7 @@ void DevNozzleRack::Reset()
 {
     m_position = RACK_POS_UNKNOWN;
     m_status = RACK_STATUS_UNKNOWN;
+    m_rack_type = RackType::None;
     m_rack_nozzles.clear();
 }
 
@@ -85,6 +88,16 @@ int DevNozzleRack::GetKnownNozzleCount() const
     return count;
 }
 
+int DevNozzleRack::GetTotalRackNozzleCount() const
+{
+    if (m_rack_type == RackType_AB) {
+    } else if (m_rack_type == RackType_A || m_rack_type == RackType_B) {
+        return m_nozzle_system->GetOwner()->GetFilaSystem()->GetVirtualTrays().size();
+    }
+
+    return 0;
+}
+
 void DevNozzleRack::ParseRackInfo(const nlohmann::json& rack_info)
 {
     ParseRackInfoV1_0(rack_info);
@@ -107,6 +120,13 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
     }
 
     DevJsonValParser::ParseVal(rack_info, "info", m_cali_status);
+
+    m_rack_type = RackType_AB; // default to RackType_AB
+    if (rack_info.contains("info2")) {
+        const auto& info2 = rack_info["info2"].get<int>();
+        m_cali_status = (RackCaliStatus)DevUtil::get_flag_bits(info2, 0, 1);
+        m_rack_type = (RackType)DevUtil::get_flag_bits(info2, 1, 4);
+    }
 }
 
 };

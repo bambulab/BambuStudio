@@ -174,4 +174,31 @@ std::string DevJsonValParser::get_longlong_val(const nlohmann::json& j)
     return std::string();
 }
 
+void DevJsonValParser::ParseLongLongVal(const nlohmann::json& j, long long& val, int base)
+{
+    try {
+        if (j.is_number()) {
+            val = j.get<long long>();
+        } else if (j.is_string()) {
+            auto str_val = j.get<std::string>();
+            val = std::stoll(str_val, nullptr, base);
+        }
+    } catch (const nlohmann::json::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+    }
+
+    try {
+        if (j.is_string()) {
+            auto str_val = j.get<std::string>();
+            val = std::stol(str_val, nullptr, base);
+        }
+    } catch (const nlohmann::json::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
+    }
+}
+
 };// namespace Slic3r

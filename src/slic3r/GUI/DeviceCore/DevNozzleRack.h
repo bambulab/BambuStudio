@@ -16,10 +16,10 @@ wxDECLARE_EVENT(DEV_RACK_EVENT_READING_FINISHED, wxCommandEvent);
 
 namespace Slic3r
 {
-    // Previous definitions
+// Previous definitions
 class DevNozzleSystem;
 
-class DevNozzleRack: public wxEvtHandler
+class DevNozzleRack : public wxEvtHandler
 {
 public:
     enum RackStatus : int
@@ -36,6 +36,14 @@ public:
         RACK_STATUS_PICK_HOTEND = 8,
         RACK_STATUS_LOCK_HOTEND = 9,
         RACK_STATUS_END,
+    };
+
+    enum RackType
+    {
+        None = -1,
+        RackType_AB = 0,
+        RackType_A = 1, // DevAmsType::ZMULTI_A
+        RackType_B = 2, // DevAmsType::ZMULTI_B
     };
 
     enum RackPos : int
@@ -68,10 +76,13 @@ public:
 
     RackPos     GetPosition() const { return m_position; }
     RackStatus  GetStatus() const { return m_status; }
-    RackCaliStatus GetCaliStatus() const { return m_cali_status;}
+    RackCaliStatus GetCaliStatus() const { return m_cali_status; }
 
     DevNozzle GetNozzle(int idx) const;
     const std::map<int, DevNozzle>& GetRackNozzles() const { return m_rack_nozzles; }
+
+    RackType    GetRackType() const { return m_rack_type; }
+    int         GetTotalRackNozzleCount() const;
 
     // status
     bool HasUnreliableNozzles() const;
@@ -130,5 +141,7 @@ private:
 
     std::map<int, DevNozzle> m_rack_nozzles; // Map of nozzle ID to DevNozzle objects
     std::map<int, DevFirmwareVersionInfo> m_rack_nozzles_firmware;
+
+    RackType m_rack_type = RackType::None;
 };
 };

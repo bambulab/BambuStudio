@@ -1599,7 +1599,7 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
     for (int i = 0; i < m_ams_mapping_result.size(); i++) {
         auto it = m_ams_mapping_result[i];
         if (it.ams_id == "") {
-            DevAmsTray slot("");
+            DevAmsTray slot("", "");
             if (m_filaments_map[it.id] == 1 && slots.size() > 1) slot = slots[1];
             else if (m_filaments_map[it.id] == 2) slot = slots[0];
             if (slot.id.empty()) continue;
@@ -5959,10 +5959,19 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
         };
     } else {
         if (m_print_type == FROM_NORMAL) {
-            if (obj_->GetNozzleRack()->IsSupported()) {
+            if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
                 const auto& nozzle_pos_vec = obj_->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(fila_id);
                 for (const auto& nozzle_pos : nozzle_pos_vec) {
                     nozzle_map[nozzle_pos] = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
+                }
+            } else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+                auto mapped_info = get_mapped_filament_info(fila_id);
+                if (mapped_info.has_value()) {
+                    auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
+                    if (tray_opt.has_value() && tray_opt->get_nozzle_pos_id(obj_).has_value()) {
+                        int nozzle_pos_id = tray_opt->get_nozzle_pos_id(obj_).value();
+                        nozzle_map[nozzle_pos_id] = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos_id);
+                    }
                 }
             } else {
                 auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);
@@ -6020,7 +6029,8 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         return "?";// the nozzle mapping is not supported if fila switch is not installed
     }
 
-    if (obj_->GetFilaSwitch()->IsInstalled() || obj_->GetNozzleRack()->IsSupported()) {
+    int total_extruder_count = obj_->GetExtderSystem()->GetTotalExtderCount();
+    if (total_extruder_count == 2 && (obj_->GetFilaSwitch()->IsInstalled() || obj_->GetNozzleRack()->IsSupported())) {
         if (obj_->GetNozzleRack()->IsSupported()) {
             return obj_->get_nozzle_mapping_result()->GetMappedNozzlePosStrByFilaId(fila_id);
         } else {
@@ -6031,6 +6041,17 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
                 return "R";
             } else if (nozzle_map.count(DEPUTY_EXTRUDER_ID) != 0) {
                 return "L";
+            }
+        }
+
+        return "?";
+    } else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+        auto mapped_info = get_mapped_filament_info(fila_id);
+        if (mapped_info.has_value()) {
+            auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
+            if (tray_opt.has_value()&& tray_opt->get_nozzle_pos_id(obj_).has_value()) {
+                int nozzle_pos_id = tray_opt->get_nozzle_pos_id(obj_).value();
+                return wxString::Format("%d", nozzle_pos_id - 16);
             }
         }
 

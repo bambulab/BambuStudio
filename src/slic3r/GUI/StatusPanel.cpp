@@ -4154,9 +4154,10 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     std::vector<AMSinfo> ext_info;
     ext_info.clear();
-    for (auto slot : obj->vt_slot) {
+    const auto& vt_slots = obj->GetFilaSystem()->GetVirtualTrays();
+    for (auto it = vt_slots.crbegin(); it != vt_slots.crend(); ++it) {
         AMSinfo info;
-        info.parse_ext_info(obj, slot);
+        info.parse_ext_info(obj, it->second);
         if (ams_mode == DevAmsType::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
         ext_info.push_back(info);
     }
@@ -4214,7 +4215,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         try {
             for (auto tray_it = ams_it->second->GetTrays().begin(); tray_it != ams_it->second->GetTrays().end(); tray_it++) {
                 auto slot_id = tray_it->first;
-                int tray_id = ams_it->second->GetTrayId(atoi(tray_it->first.c_str()));
+                long long tray_id = ams_it->second->GetTrayId(atoi(tray_it->first.c_str()));
                 if ((obj->tray_reading_bits & (1 << tray_id)) == 0) {
                     m_ams_control->StopRridLoading(ams_id, slot_id);
                 } else {
@@ -6369,7 +6370,7 @@ void StatusPanel::msw_rescale()
 
 void StatusPanel::update_rack(MachineObject *obj)
 {
-    if (obj && obj->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
+    if (obj && obj->GetNozzleSystem()->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
         m_ams_rack_switch->Show();
         m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
     } else {

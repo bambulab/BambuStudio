@@ -84,6 +84,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
         if (it != ams->GetTrays().end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
+                info.can_pannel_name = it->second->get_slot_name(obj);
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
                 info.cali_idx      = it->second->cali_idx;
@@ -157,6 +158,11 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
 
     if (tray.is_tray_info_ready()) {
         info.ctype = tray.ctype;
+        info.can_pannel_name = tray.get_slot_name(obj);
+        if (info.can_pannel_name == "Ext-L" || info.can_pannel_name == "Ext-R") {
+            info.can_pannel_name = "Ext";// here, use Ext is ok.
+        }
+
         info.material_name = tray.get_display_filament_type();
         info.cali_idx    = tray.cali_idx;
         info.filament_id = tray.setting_id;
@@ -283,8 +289,10 @@ AMSPanelPos AMSinfo::GetDefaultPanelPos(int total_extruder_count) const
 Description:AMSExtText
 **************************************************/
 
-AMSExtText::AMSExtText(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+AMSExtText::AMSExtText(wxWindow* parent, const Caninfo& can_info, wxWindowID id, const wxPoint& pos, const wxSize& size)
 {
+    m_can_info = can_info;
+
     wxWindow::Create(parent, id, pos, AMS_REFRESH_SIZE);
     SetBackgroundColour(StateColor::darkModeColorFor(AMS_CONTROL_DEF_LIB_BK_COLOUR));
 
@@ -336,11 +344,12 @@ void AMSExtText::doRender(wxDC& dc)
     dc.SetPen(wxPen(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800), 2, wxPENSTYLE_SOLID));
     dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800));
     dc.SetFont(Label::Body_10);
-    WxFontUtils::get_suitable_font_size(0.7 * size.GetHeight(), dc);
 
-    auto    tsize = dc.GetMultiLineTextExtent("Ext");
-    wxPoint pot(FromDIP((size.x - tsize.x) / 2), FromDIP((size.y - tsize.y) / 2));
-    dc.DrawText("Ext", pot);
+    WxFontUtils::get_suitable_font_size(size.GetHeight() - FromDIP(2), size.x - FromDIP(2), m_can_info.can_pannel_name, dc);
+
+    auto    tsize = dc.GetMultiLineTextExtent(m_can_info.can_pannel_name);
+    wxPoint pot((size.x - tsize.x) / 2, (size.y - tsize.y) / 2);
+    dc.DrawText(m_can_info.can_pannel_name, pot);
 }
 
 
@@ -3521,7 +3530,7 @@ void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* size
         m_can_refresh_list[caninfo.can_id] = m_panel_refresh;
     }
     else if (m_ams_model == DevAmsType::EXT_SPOOL){
-        m_ext_text = new AMSExtText(amscan, wxID_ANY);
+        m_ext_text = new AMSExtText(amscan, caninfo, wxID_ANY);
     }
 
     AMSLib* m_panel_lib = nullptr;

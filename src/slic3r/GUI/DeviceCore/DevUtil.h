@@ -82,6 +82,8 @@ public:
         }
     }
 
+    static void ParseLongLongVal(const nlohmann::json& j, long long& val, int base);
+
     template<typename T>
     static void ParseVal(const nlohmann::json& j, const std::string& key, T& val, T default_val)
     {

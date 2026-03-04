@@ -633,7 +633,7 @@ MachineObject::MachineObject(DeviceManager* manager, NetworkAgent* agent, std::s
     has_ipcam = true; // default true
 
 
-    auto vslot = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
+    auto vslot = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID), std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_slot.push_back(vslot);
 
     {
@@ -3745,7 +3745,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
             parse_state_changed_event();
         }
     }
-    catch (const nlohmann::json::exception& e) {
+    catch (const std::exception& e) {
         // Handle JSON parsing exceptions if necessary
         BOOST_LOG_TRIVIAL(trace) << "parse_json failed! dev_id=" << BBLCrossTalk::Crosstalk_DevId(this->get_dev_id()) <<", ewhat = " << e.what();
     } catch (...) {
@@ -4147,7 +4147,7 @@ DevAmsTray* MachineObject::get_vt_tray(const std::string &ams_id)
 
 DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
 {
-    auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID));
+    auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID), std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
     vt_tray.is_exists = true;
 
@@ -4338,7 +4338,7 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
 std::optional<DevAmsTray> MachineObject::get_tray(const std::string& ams_id, const std::string& tray_id) const
 {
     if (ams_id.empty() && tray_id.empty()) {
-        return DevAmsTray(tray_id);
+        return DevAmsTray(tray_id, tray_id);
     }
 
     auto ams_tray = m_fila_system->GetAmsTray(ams_id, tray_id);

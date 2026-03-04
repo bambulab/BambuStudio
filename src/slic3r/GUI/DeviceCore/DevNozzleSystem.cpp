@@ -621,7 +621,8 @@ bool DevNozzleSystem::IsRackMaximumInstalled() const
     }
 
     const auto& rack_nozzles = m_nozzle_rack->GetRackNozzles();
-    if (rack_nozzles.size() < 6) {
+    const auto& rack_type = m_nozzle_rack->GetRackType();
+    if (rack_type == DevNozzleRack::RackType_AB && rack_nozzles.size() < 6) {
         return false;
     }
 

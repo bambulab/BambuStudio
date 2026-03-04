@@ -529,7 +529,7 @@ void AmsMapingPopup::update_rack_select(MachineObject* obj, bool use_dynamic_swi
 
     bool show_rack_select_area = false;
     if (!m_mapping_from_multi_machines && !m_use_in_sync_dialog &&
-        obj && obj->GetNozzleRack()->IsSupported() &&
+        obj && obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB &&
         print_from_type.has_value() && print_from_type.value() == PrintFromType::FROM_NORMAL) {
         const auto& nozzle_pos_vec = obj->get_nozzle_mapping_result()->GetMappedNozzlePosVecByFilaId(m_current_filament_id);
         m_rack_nozzle_select->UpdatSelectedNozzles(obj->GetNozzleRack(), nozzle_pos_vec, use_dynamic_switch, print_from_type);

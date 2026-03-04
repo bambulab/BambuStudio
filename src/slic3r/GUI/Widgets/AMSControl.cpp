@@ -845,6 +845,10 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
 
     //add ams data
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++) {
+        if (ams_info->ams_type == DevAmsType::ZMULTI_A || ams_info->ams_type == DevAmsType::ZMULTI_B) {
+            continue;
+        }
+
         auto panel_pos = ams_info->GetDefaultPanelPos(s_extruder_count_single);
         if (m_ams_mixed && ams_info->ams_type == DevAmsType::AMS_LITE) {
             panel_pos = AMSPanelPos::RIGHT_PANEL;
@@ -1407,6 +1411,7 @@ void AMSControl::AddAms(AMSinfo info, AMSPanelPos pos)
     m_simplebook_ams_arrow_left->Refresh();
     m_simplebook_ams_arrow_right->Refresh();
 
+    m_item_ids[(int)pos].push_back(info.ams_id);
 }
 
 //void AMSControl::AddExtraAms(AMSinfo info)
@@ -1458,7 +1463,6 @@ void AMSControl::AddAms(std::vector<AMSinfo> single_info,
     m_simplebook_ams_right->Refresh();
 
     for (const auto& info : single_info) {
-        m_item_ids[(int)pos].push_back(info.ams_id);
         m_item_ids[(int)pos].push_back(info.ams_id);
     }
 }

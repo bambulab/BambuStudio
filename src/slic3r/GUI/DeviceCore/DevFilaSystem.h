@@ -44,13 +44,6 @@ public:
     };
 
     DevAmsTray() = default;
-    DevAmsTray(std::string tray_id)
-    {
-        is_bbl = false;
-        id = tray_id;
-        ams_id = tray_id; // ext spool: the unit and the slot share the same id
-    }
-
     DevAmsTray(const std::string& ams_id, const std::string& slot_id)
     {
         is_bbl = false;
@@ -121,12 +114,14 @@ public:
     wxColour    get_color()  const { return decode_color(color); };
 
     std::string get_filament_id() const { return setting_id; }
+    std::string get_slot_name(MachineObject* obj) const;
     std::string get_display_filament_type() const;
     std::string get_filament_type();
 
     std::optional<int> get_filament_remain_weight() const;
 
-    std::optional<int> get_extruder_id(MachineObject* obj) const;
+    // extruder nozzle
+    std::optional<int> get_nozzle_pos_id(MachineObject* obj) const;
 
     // static
     static wxColour decode_color(const std::string& color);
