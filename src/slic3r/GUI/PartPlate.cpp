@@ -1773,16 +1773,29 @@ bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig
     error_msg.clear();
     std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow};
 
-    std::vector<int> used_filaments = get_extruders(true);  // 1 base
+    std::vector<int> used_filaments;
+    if (m_slice_result_valid && m_gcode_result)
+        used_filaments = get_used_filaments(); // 1 base
+    else
+        used_filaments = get_extruders(true);  // 1 base
 
     std::unordered_map<NozzleVolumeType, int> nozzle_fils;
     if (!used_filaments.empty()) {
+        const auto* nozzle_volume_type_opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+        if (nozzle_volume_type_opt == nullptr)
+            return false;
+
         for (auto filament_idx : used_filaments) {
             int              filament_id  = filament_idx - 1;
             std::vector<int> filament_map = get_real_filament_maps(config);
-            int              extruder_idx = filament_map[filament_id] - 1;
+            if (filament_id < 0 || filament_id >= (int)filament_map.size())
+                continue;
 
-            NozzleVolumeType volume_type = (NozzleVolumeType) config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values.at(extruder_idx);
+            int extruder_idx = filament_map[filament_id] - 1;
+            if (extruder_idx < 0 || extruder_idx >= (int)nozzle_volume_type_opt->values.size())
+                continue;
+
+            NozzleVolumeType volume_type = (NozzleVolumeType) nozzle_volume_type_opt->values[extruder_idx];
             nozzle_fils[volume_type]++;
         }
 
