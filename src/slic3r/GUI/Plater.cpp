@@ -874,6 +874,17 @@ bool Sidebar::priv::is_fila_switch_ready()
 void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
 {
     if (!extruder_separator_icon) return;
+    static bool last_show = false;
+    static bool last_ready = false;
+    static bool first_call = true;
+
+    if (!first_call && last_show == show && last_ready == ready) {
+        return;
+    }
+    first_call = false;
+    last_show = show;
+    last_ready = ready;
+
     if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
         extruder_separator_icon->Hide();
         m_panel_printer_content->Refresh();
@@ -1844,7 +1855,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
                 if (!switcher_pos) {
                     continue;
                 }
-                auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
                 if (extruder_id != switcher_id) {
                     continue;
                 }
@@ -2013,7 +2024,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
                 if (is_fila_switch_ready()) {
                     auto switcher_pos = ams.second->GetSwitcherPos();
                     if (!switcher_pos) { continue; }
-                    auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                    auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
                     if (extruder_id != switcher_id) { continue; }
                 }
                 std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
@@ -2056,7 +2067,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             if (!switcher_pos) {
                 continue;
             }
-            extruder_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : 1 - static_cast<int>(switcher_pos.value());
+            extruder_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
         } else {
             const auto &uniq_extruder_id = item.second->GetUniqueBindedExtruderId();
             if(!uniq_extruder_id) {
