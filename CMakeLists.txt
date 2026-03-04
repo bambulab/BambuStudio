@@ -39,8 +39,13 @@ option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
+option(SLIC3R_HEADLESS          "Enable EGL headless rendering support for CLI mode (Linux only)" OFF)
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
+
+if(SLIC3R_HEADLESS)
+    add_definitions(-DENABLE_HEADLESS_RENDERING_MODE)
+endif()
 
 set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
 
@@ -514,6 +519,17 @@ find_package(PNG REQUIRED)
 
 set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL REQUIRED)
+
+# On Linux, link OSMesa for headless rendering if enabled
+if(SLIC3R_HEADLESS AND UNIX AND NOT APPLE)
+    find_library(OSMESA_LIBRARY OSMesa)
+    if(OSMESA_LIBRARY)
+        message(STATUS "Found OSMesa: ${OSMESA_LIBRARY}")
+        list(APPEND OpenGL_LIBRARIES ${OSMESA_LIBRARY})
+    else()
+        message(WARNING "OSMesa library not found - headless rendering may not work")
+    endif()
+endif()
 
 # Find glew or use bundled version
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_GLEW)

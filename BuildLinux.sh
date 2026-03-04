@@ -171,10 +171,13 @@ then
     then
         rm -fr build
     fi
-    BUILD_ARGS=""
+    # Preserve BUILD_ARGS from environment if set
+    if [[ -z "${BUILD_ARGS}" ]]; then
+        BUILD_ARGS=""
+    fi
     if [[ -n "${FOUND_GTK3_DEV}" ]]
     then
-        BUILD_ARGS="-DSLIC3R_GTK=3"
+        BUILD_ARGS="${BUILD_ARGS} -DSLIC3R_GTK=3"
     fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then
