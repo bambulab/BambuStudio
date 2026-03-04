@@ -2408,16 +2408,6 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionInts{3});
 
-    // defined in bits
-    // 0 means cannot support, 1 means support
-    // 0 bit: can support in left extruder
-    // 1 bit: can support in right extruder
-    def          = this->add("filament_support_printable", coInts);
-    def->label   = L("Filament support printable");
-    def->tooltip = L("The filament is printable in extruder when used as support.");
-    def->mode    = comDevelop;
-    def->set_default_value(new ConfigOptionInts{3});
-
     // BBS
     def = this->add("filament_prime_volume", coFloats);
     def->label = L("Filament change");

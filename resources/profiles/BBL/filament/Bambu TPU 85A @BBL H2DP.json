@@ -122,9 +122,6 @@
         "Direct Drive High Flow",
         "Direct Drive TPU High Flow"
     ],
-    "filament_support_printable": [
-        "2"
-    ],
     "filament_pre_cooling_temperature": [
         "195",
         "195",

@@ -338,7 +338,6 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
         } else if (opt_key == "filament_soluble"
                 || opt_key == "filament_is_support"
                 || opt_key == "filament_printable"
-                || opt_key == "filament_support_printable"
                 || opt_key == "impact_strength_z"
                 || opt_key == "filament_scarf_seam_type"
                 || opt_key == "filament_scarf_height"
