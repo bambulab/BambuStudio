@@ -191,8 +191,8 @@ bool Point::is_in_lines(const Points &pts) const
         if ((check_point.x() == pt.x() && check_point.y() == pt.y()) || (check_point.x() == prev_pt.x() && check_point.y() == prev_pt.y()))
             return true;
 
-        bool in_x_range = !(check_point.x() > pt.x() == check_point.x() > prev_pt.x());
-        bool in_y_range = !(check_point.y() > pt.y() == check_point.y() > prev_pt.y());
+        bool in_x_range = !((check_point.x() > pt.x()) == (check_point.x() > prev_pt.x()));
+        bool in_y_range = !((check_point.y() > pt.y()) == (check_point.y() > prev_pt.y()));
 
         //on vert line
         if (pt.x() == prev_pt.x()) {

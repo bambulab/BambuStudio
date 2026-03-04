@@ -1094,18 +1094,18 @@ bool WebViewPanel::SaveBase64ToLocal(std::string Base64Buf, std::string FileName
 
     std::ofstream outFile(download_file.ToStdString(), std::ios::binary);
     if (!outFile) {
-        delete DstBuf;
+        delete[] DstBuf;
         std::cerr << "Error opening file for writing." << std::endl;
         return false;
     }
     outFile.write(DstBuf, nWrite);
     if (!outFile) {
-        delete DstBuf;
+        delete[] DstBuf;
         std::cerr << "Error writing to file." << std::endl;
         return false;
     }
 
-    delete DstBuf;
+    delete[] DstBuf;
     outFile.close();
     std::cout << "Data written to file successfully." << std::endl;
     wxLogMessage("Makerlab Binary Write to %s", download_file.ToStdString());

@@ -326,7 +326,7 @@ void stl_repair(
   	if (nearby_flag || fixall_flag) {
     	if (! tolerance_flag)
       		tolerance = stl->stats.shortest_edge;
- 	   	if (! increment_flag)
+    	if (! increment_flag)
       		increment = stl->stats.bounding_diameter / 10000.0;
     }
 

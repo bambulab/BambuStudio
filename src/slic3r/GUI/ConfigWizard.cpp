@@ -2707,7 +2707,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent)
     if (p->only_sla_mode)
         p->any_fff_selected = p->check_fff_selected();
 
-	p->add_page(p->page_custom = new PageCustom(this));
+    p->add_page(p->page_custom = new PageCustom(this));
     p->custom_printer_selected = p->page_custom->custom_wanted();
 
     p->add_page(p->page_firmware = new PageFirmware(this));

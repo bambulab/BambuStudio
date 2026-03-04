@@ -958,8 +958,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
 
     auto handle_filament_change = [&filament_blocks,&machine_start_gcode_end_line_id,&machine_end_gcode_start_line_id](int filament_id,int line_id){
         // skip the filaments change in machine start/end gcode
-        if (machine_start_gcode_end_line_id == (unsigned int)(-1) && (unsigned int)(line_id)<machine_start_gcode_end_line_id ||
-            machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id)>machine_end_gcode_start_line_id)
+        if ((machine_start_gcode_end_line_id != (unsigned int)(-1) && (unsigned int)(line_id) < machine_start_gcode_end_line_id) ||
+            (machine_end_gcode_start_line_id != (unsigned int)(-1) && (unsigned int)(line_id) > machine_end_gcode_start_line_id))
             return;
 
         if (!filament_blocks.empty())
@@ -1700,7 +1700,7 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
     std::map<int, std::map<int, GCodePosInfo>> gcode_path_pos; // object_id, filament_id, pos
     for (const GCodeProcessorResult::MoveVertex &move : m_result.moves) {
         // sometimes, the start line extrude was outside the edge of plate a little, this is allowed, so do not include into the gcode_path_pos
-        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/)
+        if (move.type == EMoveType::Extrude && move.extrusion_role != ExtrusionRole::erFlush /* || move.type == EMoveType::Travel*/) {
             if (move.extrusion_role == ExtrusionRole::erCustom) {
                 if (move.is_arc_move_with_interpolation_points()) {
                     for (int i = 0; i < move.interpolation_points.size(); i++) {
@@ -1722,6 +1722,7 @@ bool GCodeProcessor::check_multi_extruder_gcode_valid(const int                 
                 gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z = std::max(gcode_path_pos[move.object_label_id][int(move.extruder_id)].max_print_z,
                                                                                                    move.print_z);
             }
+        }
     }
 
     bool valid = true;

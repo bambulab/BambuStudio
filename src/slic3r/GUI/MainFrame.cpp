@@ -2341,9 +2341,10 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     }
 
 
-    if (!old_slice_status && enable_slice)
+    if (!old_slice_status && enable_slice) {
         m_plater->stop_helio_process();
         m_plater->reset_check_status();
+    }
 }
 
 

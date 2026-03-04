@@ -789,13 +789,13 @@ void NotificationManager::PopNotification::render_close_button(ImGuiWrapper& img
 	}
 	ImVec2 button_pic_size = ImGui::CalcTextSize(into_u8(button_text).c_str());
 	ImVec2 button_size(button_pic_size.x * 1.25f, button_pic_size.y * 1.25f);
-	ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
-	//ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
+    ImGui::SetCursorPosX(win_size.x - m_line_height * 2.75f);
+    //ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
     if (m_minimize_b_visible)
-		ImGui::SetCursorPosY(0);
+        ImGui::SetCursorPosY(0);
     else
         ImGui::SetCursorPosY(win_size.y / 2 - button_size.y);
-	if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
+    if (imgui.button(button_text.c_str(), button_size.x, button_size.y))
 	{
 		close();
 	}
