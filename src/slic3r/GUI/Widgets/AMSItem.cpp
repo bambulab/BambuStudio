@@ -4010,28 +4010,27 @@ void DevExtruderImage::doRender(wxDC &dc)
 
 
 FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
-                                        const int extruderNum,
-                                        const wxString& title,
-                                        const wxFont& customFont,
-                                        const wxColour& bgColor,
-                                        const wxSize& dialogSize)
-    : wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize),
-    m_extruder_num(extruderNum), m_title(title), m_customFont(customFont)
+                                        const int extruderNum)
+    : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize),
+    m_extruder_num(extruderNum)
 {
-    SetBackgroundColour(bgColor);
+    SetBackgroundColour(wxColour("#FFFFFF"));
+    SetMaxSize(wxSize(FromDIP(360), FromDIP(207)));
+    SetMinSize(wxSize(FromDIP(360), FromDIP(207)));
+    SetSize(wxSize(FromDIP(360), FromDIP(207)));
 
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
     wxGridSizer* topSizer = new wxGridSizer (1, 3, FromDIP(5), 0);
 
     m_radioHelper = new wxRadioButton(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    m_leftRadio = new wxRadioButton(this, wxID_ANY, _L("Left Extruder"));
-    m_rightRadio = new wxRadioButton(this, wxID_ANY, _L("Right Extruder"));
+    m_leftRadio = new wxRadioButton(this, wxID_ANY, _L("Left"));
+    m_rightRadio = new wxRadioButton(this, wxID_ANY, _L("Right"));
     m_radioHelper->Show(false);
     m_radioHelper->SetCanFocus(false);
 
-    m_leftRadio->SetFont(customFont);
-    m_rightRadio->SetFont(customFont);
+    m_leftRadio->SetFont(::Label::Body_14);
+    m_rightRadio->SetFont(::Label::Body_14);
 
     topSizer->Add(m_leftRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(20));
     m_extruderImage = new DevExtruderImage(this, wxID_ANY, m_extruder_num);
@@ -4044,8 +4043,9 @@ FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
 
     wxBoxSizer* bottomSizer = new wxBoxSizer(wxHORIZONTAL);
     m_confirmBtn = new Button(this, _L("Confirm"));
+    m_confirmBtn->SetSize(wxSize(FromDIP(80), FromDIP(32)));
     m_confirmBtn->Enable(false);
-    m_confirmBtn->SetFont(customFont);
+    m_confirmBtn->SetFont(::Label::Body_14);
     bottomSizer->Add(m_confirmBtn, 0, wxALIGN_RIGHT);
 
     mainSizer->Add(bottomSizer, 0, wxALIGN_RIGHT | wxBOTTOM | wxRIGHT, FromDIP(10));
@@ -4060,10 +4060,15 @@ FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
     m_rightRadio->Bind(wxEVT_RADIOBUTTON, &FeedDirectionDialog::OnRadioClicked, this);
 }
 
+void FeedDirectionDialog::OnConfirm(wxCommandEvent& event)
+{
+    EndModal(wxID_OK);
+}
+
 void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
 {
     auto clicked = static_cast<wxRadioButton*>(evt.GetEventObject());
-    extruder_id = std::nullopt;
+    m_load_extruder_id = std::nullopt;
     if (clicked == m_lastChecked)
     {
         m_radioHelper->SetValue(true);
@@ -4078,27 +4083,69 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
         clicked->SetValue(true);
         m_lastChecked = clicked;
         m_confirmBtn->Enable(true);
-        if (m_extruder_num >= 2)
+
+        if (clicked == m_leftRadio)
         {
-            if (clicked == m_leftRadio)
-            {
-                m_extruderImage->update(DevExtruderState::FILLED_LOAD, DevExtruderState::EMPTY_LOAD);
-                m_extruderImage->setExtruderUsed("left");
-                extruder_id = 1;
-                SetDialogTitle(_L(m_title) + _L(" to left extruder"));
-            }
-            else if (clicked == m_rightRadio)
-            {
-                m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::FILLED_LOAD);
-                m_extruderImage->setExtruderUsed("right");
-                extruder_id = 0;
-                SetDialogTitle(_L(m_title) + _L(" to right extruder"));
-            }
+            m_extruderImage->update(DevExtruderState::FILLED_LOAD, DevExtruderState::EMPTY_LOAD);
+            m_extruderImage->setExtruderUsed("left");
+            m_load_extruder_id = 1;
+            SetTitle(wxString::Format(_L("Load %s to ") + _L("left extruder"), m_filament_id));
         }
-        // m_extImage->Refresh();
+        else if (clicked == m_rightRadio)
+        {
+            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::FILLED_LOAD);
+            m_extruderImage->setExtruderUsed("right");
+            m_load_extruder_id = 0;
+            SetTitle(wxString::Format(_L("Load %s to ") + _L("right extruder"), m_filament_id));
+        }
     }
     m_leftRadio->Refresh();
     m_rightRadio->Refresh();
+    Fit();
     Update();
 }
+
+std::optional<int> FeedDirectionDialog::GetExtruderID()
+{
+    if (m_extruderImage)
+    {
+        return m_load_extruder_id;
+    }
+    return std::nullopt;
+}
+
+void FeedDirectionDialog::SetExtruderMapping(const std::vector<wxString>& extruderMapping, const wxString& filamentID)
+{
+    if (!filamentID.empty())
+    {
+        m_filament_id = filamentID;
+        SetTitle(wxString::Format(_L("Load %s to "), filamentID));
+
+        if (extruderMapping[1] == filamentID) //left extruder
+        {
+            m_leftRadio->Enable(false);
+            // m_lastChecked = m_leftRadio;
+            m_confirmBtn->Enable(false);
+            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+            m_extruderImage->setExtruderUsed("right");
+        }
+        else if (extruderMapping[0] == filamentID) //right extruder
+        {
+            m_rightRadio->Enable(false);
+            // m_lastChecked = m_rightRadio;
+            m_confirmBtn->Enable(false);
+            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+            m_extruderImage->setExtruderUsed("left");
+        }
+        else
+        {
+            m_radioHelper->SetValue(true);
+            m_lastChecked = m_radioHelper;
+            m_confirmBtn->Enable(false);
+            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+            m_extruderImage->setExtruderUsed("");
+        }
+    }
+}
+
 }} // namespace Slic3r::GUI

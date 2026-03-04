@@ -237,6 +237,28 @@ int DevAms::GetSlotCount() const
     return 1;
 }
 
+int DevAms::GetTrayId(int slot_id) const
+{
+    int ams_id = 0;
+    try {
+        ams_id = std::stoi(m_ams_id);
+    } catch (const std::exception& e) {
+        // BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": invalid ams_id " << m_ams_id << ", error: " << e.what();
+        return -1;
+    }
+
+    if (m_ams_type == DevAmsType::AMS || m_ams_type == DevAmsType::AMS_LITE || m_ams_type == DevAmsType::N3F) {
+        return ams_id * 4 + slot_id;
+    } else if (m_ams_type == DevAmsType::N3S) {
+        return ams_id + slot_id;
+    } else {
+        assert(0);
+        // BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << m_ams_type;
+    }
+
+    return -1;
+}
+
 DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
 {
     auto it = m_trays.find(tray_id);

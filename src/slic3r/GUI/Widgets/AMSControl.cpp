@@ -387,6 +387,11 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
         m_current_ams = ams_id_selected;
     }
     if (m_current_show_ams_left != ams_id_selected && m_current_show_ams_left != "") {
+        auto it =  m_ams_item_list.find(m_current_show_ams_left);
+        if (it == m_ams_item_list.end())
+        {
+            return;
+        }
         auto item = m_ams_item_list[m_current_show_ams_left];
         if (!item) return;
         try{
@@ -400,6 +405,11 @@ void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
         }
     }
     else if (m_current_show_ams_right != ams_id_selected && m_current_show_ams_right != "") {
+        auto it =  m_ams_item_list.find(m_current_show_ams_right);
+        if (it == m_ams_item_list.end())
+        {
+            return;
+        }
         auto item = m_ams_item_list[m_current_show_ams_right];
         if (!item) return;
         try {

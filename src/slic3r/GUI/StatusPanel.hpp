@@ -809,6 +809,9 @@ protected:
     // printer parts options
     void update_printer_parts_options(MachineObject* obj);
 
+    //get tray name
+    wxString getTrayName(const std::string amsID, const std::string slotID);
+
 public:
     void update_error_message();
 
