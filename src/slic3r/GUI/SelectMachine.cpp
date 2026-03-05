@@ -5984,15 +5984,15 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
         return;
     }
 
-    if (obj_->GetExtderSystem()->GetTotalExtderCount() < 2) {
-        return;
-    }
+    const bool is_single_head = obj_->GetExtderSystem()->GetTotalExtderCount() < 2;
+    const bool has_switcher = obj_->GetFilaSwitch()->IsInstalled();
+    const bool use_single_panel = is_single_head || has_switcher;
 
     bool to_change_pos = false;
     for (const auto& iter : m_materialList) {
         const auto& material_id = iter.second->id;
         const auto& material_item = iter.second->item;
-        if (obj_->GetFilaSwitch()->IsInstalled()) {
+        if (use_single_panel) {
             if (!m_sizer_ams_mapping->IsShown(material_item)) {
                 to_change_pos = true;
             }
@@ -6021,7 +6021,7 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
     for (const auto& iter : m_materialList) {
         const auto& material_id = iter.second->id;
         const auto& material_item = iter.second->item;
-        if (obj_->GetFilaSwitch()->IsInstalled()) {
+        if (use_single_panel) {
             if (!m_sizer_ams_mapping->IsShown(material_item)) {
                 material_item->Reparent(m_filament_panel);
                 m_sizer_ams_mapping->Add(material_item, 0, wxALL, FromDIP(5));
