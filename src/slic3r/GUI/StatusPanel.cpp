@@ -4906,6 +4906,12 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
             return;
         }
 
+        if (!obj->GetInfo()->IsFdmMode()) {
+            MessageDialog dlg(nullptr, _L("Cannot switch extruder when the printer is not at FDM mode"), _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            return;
+        }
+
         auto nozzle_id = event.GetInt();
         if (obj->GetCtrl()->command_select_extruder(nozzle_id) == 0) { return; }
     }
