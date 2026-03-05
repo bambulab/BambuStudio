@@ -924,8 +924,8 @@ void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
 
 void Sidebar::priv::show_fila_switch_msg(bool ready)
 {
-    wxString msg = ready ? _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
-                              "will be automatically allocated to the optimal extruder during slicing. ") :
+    wxString msg = ready ? _L("Filament switcher detected. All AMS filaments are now available for both extruders. "
+                              "The slicer will auto-assign for optimal printing. ") :
                            _L("A filament switcher is detected but not calibrated and thus currently unavailable. "
                               "Please calibrate it on the printer and synchronize before use. ");
 
@@ -13733,7 +13733,7 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
                 if (sidebar->is_fila_switch_ready()) {
                     auto switcher_pos = ams.second->GetSwitcherPos();
                     if (!switcher_pos) { continue; }
-                    auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                    auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
                     if (extruder_id != switcher_id) { continue; }
                 }
                 std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
