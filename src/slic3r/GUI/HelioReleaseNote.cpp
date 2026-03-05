@@ -35,6 +35,7 @@ namespace GUI {
 #include <algorithm>
 #include <climits>
 #include <cstdlib>
+#include <boost/algorithm/string.hpp>
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 
@@ -1690,7 +1691,31 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     auto source_model = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
-    is_no_chamber = !DevPrinterConfigUtil::get_value_from_config<bool>(source_model, "print", "support_chamber");
+    std::string printer_name = preset_bundle->printers.get_edited_preset().get_printer_name(preset_bundle);
+
+    // Determine heated_chamber from Helio API (default: false)
+    bool has_heated_chamber = false;
+    if (!printer_name.empty()) {
+        std::string target_lower = boost::to_lower_copy(printer_name);
+        for (const auto& p : HelioQuery::global_supported_printers) {
+            if (p.native_name.empty()) continue;
+            std::string native_lower = boost::to_lower_copy(p.native_name);
+            if (target_lower == native_lower || target_lower.find(native_lower) != std::string::npos) {
+                has_heated_chamber = p.heated_chamber;
+                break;
+            }
+        }
+    }
+
+    // Determine if printer has any chamber (passive or heated) from local config
+    bool has_chamber = DevPrinterConfigUtil::get_value_from_config<bool>(source_model, "print", "support_chamber");
+
+    // Three states:
+    // - has_heated_chamber=true → hide temp input (backend controls)
+    // - has_chamber=true, has_heated_chamber=false → show as "Chamber Temperature"
+    // - has_chamber=false → show as "Environment Temperature"
+    is_no_chamber = !has_chamber;
+    show_temp_input = !has_heated_chamber;
 
     /*Simulation panel - wrapped in a card*/
     panel_simulation = new wxPanel(this);
@@ -1895,7 +1920,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     wxBoxSizer* chamber_temp_item_for_optimization = nullptr;
     Label* sub_optimization = nullptr;
-    if (is_no_chamber) {
+    if (show_temp_input) {
         chamber_temp_item_for_optimization = create_input_item(card_environment, "chamber_temp_for_optimization", is_no_chamber?_L("Environment Temperature"):_L("Chamber Temperature"), wxT("\u00B0C"), {chamber_temp_checker});
         m_input_items["chamber_temp_for_optimization"]->GetTextCtrl()->SetHint(wxT("5-70"));
         wxString temp_tooltip = _L("Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios.");
@@ -1916,7 +1941,7 @@ void HelioInputDialog::update_mode_card_styling(int selected_action)
     
     // Layout environment card
     card_env_sizer->Add(env_header, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(10));
-    if (is_no_chamber && chamber_temp_item_for_optimization) {
+    if (show_temp_input && chamber_temp_item_for_optimization) {
         card_env_sizer->Add(chamber_temp_item_for_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(8));
     }
     card_env_sizer->Add(sub_optimization, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, FromDIP(10));

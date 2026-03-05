@@ -205,7 +205,7 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 void HelioQuery::request_support_machine(const std::string helio_api_url, const std::string helio_api_key, int page, int retries_left)
 {
     std::string query_body = R"( {
-            "query": "query GetPrinters($page: Int) { printers(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Printer  { id name alternativeNames { bambustudio } } } } }",
+            "query": "query GetPrinters($page: Int) { printers(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Printer  { id name heatedChamber alternativeNames { bambustudio } } } } }",
             "variables": {"page": %1%}
 		} )";
 
@@ -238,6 +238,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
                             HelioQuery::SupportedData sp;
                             if (pobj.contains("id") && !pobj["id"].is_null()) { sp.id = pobj["id"].get<std::string>(); }
                             if (pobj.contains("name") && !pobj["id"].is_null()) { sp.name = pobj["name"].get<std::string>(); }
+                            if (pobj.contains("heatedChamber") && pobj["heatedChamber"].is_boolean()) { sp.heated_chamber = pobj["heatedChamber"].get<bool>(); }
 
                             if (pobj.contains("alternativeNames") && pobj["alternativeNames"].is_object()) {
                                 auto alternativeNames = pobj["alternativeNames"];
@@ -1997,7 +1998,24 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
         const std::string gcode_id = create_gcode_res.id;
-        HelioQuery::CreateSimulationResult create_simulation_res = HelioQuery::create_simulation(helio_api_url, helio_api_key, gcode_id, simulation_input_data);
+        HelioQuery::CreateSimulationResult create_simulation_res;
+
+        const int max_create_retries = 3;
+        for (int retry = 0; retry < max_create_retries && !was_canceled(); ++retry) {
+            if (retry > 0) {
+                BOOST_LOG_TRIVIAL(warning) << "Helio: retrying create_simulation (attempt " << (retry + 1) << "/" << max_create_retries << ")";
+                boost::this_thread::sleep_for(boost::chrono::seconds(2 * retry)); // 2s, 4s backoff
+
+                Slic3r::PrintBase::SlicingStatus retry_status = Slic3r::PrintBase::SlicingStatus(15,
+                    (boost::format(_u8L("Helio: Retrying... (attempt %1%/%2%)")) % (retry + 1) % max_create_retries).str());
+                retry_status.is_helio = true;
+                Slic3r::SlicingStatusEvent* retry_evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, retry_status);
+                wxQueueEvent(GUI::wxGetApp().plater(), retry_evt);
+            }
+            create_simulation_res = HelioQuery::create_simulation(helio_api_url, helio_api_key, gcode_id, simulation_input_data);
+            if (create_simulation_res.success) break;
+        }
+
         current_simulation_result = create_simulation_res;
         current_optimization_result.reset();
         // Clear previous stored result since we're starting a new simulation
@@ -2139,7 +2157,24 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
         const std::string gcode_id = create_gcode_res.id;
-        HelioQuery::CreateOptimizationResult create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
+        HelioQuery::CreateOptimizationResult create_optimization_res;
+
+        const int max_create_retries = 3;
+        for (int retry = 0; retry < max_create_retries && !was_canceled(); ++retry) {
+            if (retry > 0) {
+                BOOST_LOG_TRIVIAL(warning) << "Helio: retrying create_optimization (attempt " << (retry + 1) << "/" << max_create_retries << ")";
+                boost::this_thread::sleep_for(boost::chrono::seconds(2 * retry)); // 2s, 4s backoff
+
+                Slic3r::PrintBase::SlicingStatus retry_status = Slic3r::PrintBase::SlicingStatus(15,
+                    (boost::format(_u8L("Helio: Retrying... (attempt %1%/%2%)")) % (retry + 1) % max_create_retries).str());
+                retry_status.is_helio = true;
+                Slic3r::SlicingStatusEvent* retry_evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, retry_status);
+                wxQueueEvent(GUI::wxGetApp().plater(), retry_evt);
+            }
+            create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
+            if (create_optimization_res.success) break;
+        }
+
         current_optimization_result = create_optimization_res;
         current_simulation_result.reset();
         // Clear previous stored result since we're starting a new optimization
