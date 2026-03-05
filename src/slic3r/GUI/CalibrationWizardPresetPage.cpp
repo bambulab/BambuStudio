@@ -2886,6 +2886,7 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
     }
 
     for (int slot_id = 0; slot_id < MAX_SLOT_NUM; slot_id++) {
+        fila_combox_list[slot_id]->SetValue(false);
         if (slot_id < slot_size) {
             fila_combox_list[slot_id]->ShowPanel();
         } else {
