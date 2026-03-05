@@ -205,7 +205,7 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 void HelioQuery::request_support_machine(const std::string helio_api_url, const std::string helio_api_key, int page, int retries_left)
 {
     std::string query_body = R"( {
-            "query": "query GetPrinters($page: Int) { printers(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Printer  { id name alternativeNames { bambustudio } } } } }",
+            "query": "query GetPrinters($page: Int) { printers(page: $page, pageSize: 20) { pages pageInfo { hasNextPage } objects { ... on Printer  { id name heatedChamber alternativeNames { bambustudio } } } } }",
             "variables": {"page": %1%}
 		} )";
 
@@ -238,6 +238,7 @@ void HelioQuery::request_support_machine(const std::string helio_api_url, const 
                             HelioQuery::SupportedData sp;
                             if (pobj.contains("id") && !pobj["id"].is_null()) { sp.id = pobj["id"].get<std::string>(); }
                             if (pobj.contains("name") && !pobj["id"].is_null()) { sp.name = pobj["name"].get<std::string>(); }
+                            if (pobj.contains("heatedChamber") && pobj["heatedChamber"].is_boolean()) { sp.heated_chamber = pobj["heatedChamber"].get<bool>(); }
 
                             if (pobj.contains("alternativeNames") && pobj["alternativeNames"].is_object()) {
                                 auto alternativeNames = pobj["alternativeNames"];
