@@ -90,6 +90,7 @@ public:
         std::string name;
         std::string native_name;
         std::string feedstock;
+        bool heated_chamber{false};
     };
 
     struct PrintPriorityOption {
