@@ -1181,6 +1181,8 @@ namespace Slic3r {
         GCodeProcessorResult m_result;
         static unsigned int s_result_id;
 
+        void ensure_nozzle_group_result(int min_filament_count);
+
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         DataChecker m_mm3_per_mm_compare{ "mm3_per_mm", 0.01f };
         DataChecker m_height_compare{ "height", 0.01f };
@@ -1464,5 +1466,4 @@ namespace Slic3r {
 } /* namespace Slic3r */
 
 #endif /* slic3r_GCodeProcessor_hpp_ */
-
 
