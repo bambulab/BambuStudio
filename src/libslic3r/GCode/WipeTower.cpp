@@ -3520,78 +3520,95 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     // BBS: speed up perimeter speed to 90mm/s for non-first layer
     float feedrate = first_layer ? std::min(m_first_layer_speed * 60.f, m_max_speed) : std::min(60.0f * m_filpar[m_current_tool].max_e_speed / m_extrusion_flow, m_max_speed);
 
-    float fill_box_depth = m_wipe_tower_depth - 2 * m_perimeter_width;
-    if (m_wipe_tower_blocks.size() == 1) {
-        fill_box_depth = m_layer_info->depth - 2 * m_perimeter_width;
-    }
-    box_coordinates fill_box(Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width - 2 * m_perimeter_width, fill_box_depth);
-
-    writer.set_initial_position((m_left_to_right ? fill_box.ru : fill_box.lu), m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
-
     bool toolchanges_on_layer = m_layer_info->toolchanges_depth() > WT_EPSILON;
 
     std::vector<Vec2f> finish_rect_wipe_path;
-    if (extrude_fill_wall) {
-        // inner perimeter of the sparse section, if there is space for it:
-        if (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON) {
-            writer.rectangle_fill_box(this, fill_box, finish_rect_wipe_path, feedrate);
+    const bool         multi_block_fill = (m_wipe_tower_blocks.size() > 1) && (extrude_fill_wall || extrude_fill);
+
+    // Build list of fill boxes: one per block when multi_block_fill, else one for whole tower.
+    std::vector<box_coordinates> fill_boxes;
+    if (multi_block_fill) {
+        for (const WipeTowerBlock &block : m_wipe_tower_blocks) {
+            float block_fill_height = block.depth - 2 * m_perimeter_width;
+            if (m_cur_layer_id >= 0 && size_t(m_cur_layer_id) < block.layer_depths.size())
+                block_fill_height = block.layer_depths[m_cur_layer_id] - 2 * m_perimeter_width;
+            if (block_fill_height <= WT_EPSILON)
+                continue;
+            fill_boxes.emplace_back(
+                Vec2f(m_perimeter_width, block.start_depth + m_perimeter_width),
+                m_wipe_tower_width - 2 * m_perimeter_width,
+                block_fill_height);
         }
     }
+    if (fill_boxes.empty()) {
+        float fill_box_depth = m_wipe_tower_depth - 2 * m_perimeter_width;
+        if (m_wipe_tower_blocks.size() == 1)
+            fill_box_depth = m_layer_info->depth - 2 * m_perimeter_width;
+        fill_boxes.emplace_back(Vec2f(m_perimeter_width, m_perimeter_width), m_wipe_tower_width - 2 * m_perimeter_width, fill_box_depth);
+    }
 
-    // Extrude infill to support the material to be printed above.
-    const float        dy    = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
-    float              left  = fill_box.lu.x() + 2 * m_perimeter_width;
-    float              right = fill_box.ru.x() - 2 * m_perimeter_width;
-    if (extrude_fill && dy > m_perimeter_width) {
-        writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
-            .append(";--------------------\n"
-                    "; CP EMPTY GRID START\n")
-            .comment_with_value(" layer #", m_num_layer_changes + 1);
+    writer.set_initial_position((m_left_to_right ? fill_boxes.front().ru : fill_boxes.front().lu), m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
-        // Is there a soluble filament wiped/rammed at the next layer?
-        // If so, the infill should not be sparse.
-        bool solid_infill = m_layer_info + 1 == m_plan.end() ?
-                                false :
-                                std::any_of((m_layer_info + 1)->tool_changes.begin(), (m_layer_info + 1)->tool_changes.end(),
-                                            [this](const WipeTowerInfo::ToolChange &tch) { return m_filpar[tch.new_tool].is_soluble || m_filpar[tch.old_tool].is_soluble; });
-        solid_infill |= first_layer && m_adhesion;
+    bool solid_infill = (m_layer_info + 1 == m_plan.end()) ? false :
+                        std::any_of((m_layer_info + 1)->tool_changes.begin(), (m_layer_info + 1)->tool_changes.end(),
+                                    [this](const WipeTowerInfo::ToolChange &tch) { return m_filpar[tch.new_tool].is_soluble || m_filpar[tch.old_tool].is_soluble; });
+    solid_infill |= first_layer && m_adhesion;
 
-        if (solid_infill) {
-            float sparse_factor = 1.5f; // 1=solid, 2=every other line, etc.
-            if (first_layer) {          // the infill should touch perimeters
-                left -= m_perimeter_width;
-                right += m_perimeter_width;
-                sparse_factor = 1.f;
+    for (size_t i = 0; i < fill_boxes.size(); ++i) {
+        const box_coordinates &fill_box = fill_boxes[i];
+        if (i > 0)
+            writer.travel(m_left_to_right ? fill_box.ru : fill_box.lu);
+
+        if (extrude_fill_wall && (fill_box.ru.y() - fill_box.rd.y() > WT_EPSILON))
+            writer.rectangle_fill_box(this, fill_box, finish_rect_wipe_path, feedrate);
+        // Extrude infill to support the material to be printed above.
+        const float         dy    = (fill_box.lu.y() - fill_box.ld.y() - m_perimeter_width);
+        float               left  = fill_box.lu.x() + 2 * m_perimeter_width;
+        float               right = fill_box.ru.x() - 2 * m_perimeter_width;
+
+        if (extrude_fill && dy > m_perimeter_width) {
+            writer.travel(fill_box.ld + Vec2f(m_perimeter_width * 2, 0.f))
+                .append(";--------------------\n"
+                        "; CP EMPTY GRID START\n")
+                .comment_with_value(" layer #", m_num_layer_changes + 1);
+
+            if (solid_infill) {
+                float sparse_factor = 1.5f; // 1=solid, 2=every other line, etc.
+                if (first_layer) {          // the infill should touch perimeters
+                    left -= m_perimeter_width;
+                    right += m_perimeter_width;
+                    sparse_factor = 1.f;
+                }
+                float y       = fill_box.ld.y() + m_perimeter_width;
+                int   n       = dy / (m_perimeter_width * sparse_factor);
+                float spacing = (dy - m_perimeter_width) / (n - 1);
+                int   i       = 0;
+                for (i = 0; i < n; ++i) {
+                    writer.extrude(writer.x(), y, feedrate).extrude(i % 2 ? left : right, y);
+                    y = y + spacing;
+                }
+                writer.extrude(writer.x(), fill_box.lu.y());
+            } else {
+                // Extrude an inverse U at the left of the region and the sparse infill.
+                writer.extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), feedrate);
+
+                const int   n  = 1 + int((right - left) / m_bridging);
+                const float dx = (right - left) / n;
+                for (int i = 1; i <= n; ++i) {
+                    float x = left + dx * i;
+                    writer.travel(x, writer.y());
+                    writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
+                }
+
+                finish_rect_wipe_path.clear();
+                // BBS: add wipe_path for this case: only with finish rectangle
+                finish_rect_wipe_path.emplace_back(writer.pos());
+                finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
             }
-            float y       = fill_box.ld.y() + m_perimeter_width;
-            int   n       = dy / (m_perimeter_width * sparse_factor);
-            float spacing = (dy - m_perimeter_width) / (n - 1);
-            int   i       = 0;
-            for (i = 0; i < n; ++i) {
-                writer.extrude(writer.x(), y, feedrate).extrude(i % 2 ? left : right, y);
-                y = y + spacing;
-            }
-            writer.extrude(writer.x(), fill_box.lu.y());
-        } else {
-            // Extrude an inverse U at the left of the region and the sparse infill.
-            writer.extrude(fill_box.lu + Vec2f(m_perimeter_width * 2, 0.f), feedrate);
 
-            const int   n  = 1 + int((right - left) / m_bridging);
-            const float dx = (right - left) / n;
-            for (int i = 1; i <= n; ++i) {
-                float x = left + dx * i;
-                writer.travel(x, writer.y());
-                writer.extrude(x, i % 2 ? fill_box.rd.y() : fill_box.ru.y());
-            }
-
-            finish_rect_wipe_path.clear();
-            // BBS: add wipe_path for this case: only with finish rectangle
-            finish_rect_wipe_path.emplace_back(writer.pos());
-            finish_rect_wipe_path.emplace_back(Vec2f(left + dx * n, n % 2 ? fill_box.ru.y() : fill_box.rd.y()));
+            writer.append("; CP EMPTY GRID END\n"
+                          ";------------------\n\n\n\n\n\n\n");
         }
-
-        writer.append("; CP EMPTY GRID END\n"
-                      ";------------------\n\n\n\n\n\n\n");
     }
 
     // outer perimeter (always):
