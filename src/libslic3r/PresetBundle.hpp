@@ -63,6 +63,7 @@ struct FilamentBaseInfo
     bool is_support{ false };
     bool is_system{ true };
     int  filament_printable = 3;
+    int  filament_extruder_compatibility = 0;  // 0=printable, 1=error, 2=critical warning, 3=warning
     std::string setting_id = "";
 };
 

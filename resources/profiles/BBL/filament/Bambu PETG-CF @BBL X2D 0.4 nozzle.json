@@ -20,6 +20,9 @@
         "0",
         "0"
     ],
+    "filament_extruder_compatibility": [
+        "2"
+    ],
     "filament_cooling_before_tower": [
         "10"
     ],

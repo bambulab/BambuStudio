@@ -66,6 +66,9 @@
     "filament_adaptive_volumetric_speed": [
         "0"
     ],
+    "filament_extruder_compatibility": [
+        "0"
+    ],
     "filament_change_length": [
         "10"
     ],
