@@ -11,6 +11,10 @@
     "fan_max_speed": [
         "40"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.94",
         "0.94"
@@ -31,6 +35,9 @@
         "1",
         "1"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
@@ -38,6 +45,9 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_change_length": [
+        "4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -60,6 +70,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.4 nozzle",

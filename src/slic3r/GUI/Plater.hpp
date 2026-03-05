@@ -206,6 +206,7 @@ public:
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
+    void reset_fila_switch();
     void set_extruder_title_with_type(const int extruder_id, const int extruder_type);
     std::unordered_map<std::string, wxString> get_extruder_suffix();
     void enable_nozzle_count_edit(bool enable);
@@ -240,6 +241,7 @@ public:
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);
+    bool                    is_fila_switch_ready();
     void                    update_searcher();
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
@@ -337,6 +339,7 @@ public:
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
+    bool check_include_gcode();
 
     bool open_3mf_file(const fs::path &file_path);
     int  get_3mf_file_count(std::vector<fs::path> paths);
@@ -377,7 +380,8 @@ public:
     bool is_new_project_and_check_state() { return m_new_project_and_check_state; }
     wxString get_project_name();
     void update_all_plate_thumbnails(bool force_update = false);
-    void update_obj_preview_thumbnail(ModelObject *, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
+    void update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
+    void update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type);
     void invalid_all_plate_thumbnails();
     void force_update_all_plate_thumbnails();
 
@@ -743,6 +747,10 @@ public:
     //BBS Helio slice
     int  get_helio_process_status() const;
     void clear_helio_process_status() const;
+    // Check if simulation/optimization result is available for "View Summary"
+    bool has_helio_simulation_result() const;
+    // Show the Helio simulation/optimization summary dialog (returns true if shown, false if no result available)
+    bool show_helio_simulation_summary() const;
 
     //BBS
     bool show_publish_dialog(bool show = true);

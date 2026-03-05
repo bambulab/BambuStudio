@@ -8,6 +8,10 @@
     "fan_max_speed": [
         "60"
     ],
+    "filament_deretraction_speed": [
+        "nil",
+        "40"
+    ],
     "filament_long_retractions_when_cut": [
         "1",
         "nil"
@@ -20,14 +24,6 @@
         "18",
         "nil"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
-    "filament_deretraction_speed": [
-        "nil",
-        "40"
-    ],
     "filament_retraction_length": [
         "0.4",
         "0.4"
@@ -39,6 +35,10 @@
     "filament_z_hop": [
         "nil",
         "0.6"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -61,6 +61,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P1S 0.6 nozzle"

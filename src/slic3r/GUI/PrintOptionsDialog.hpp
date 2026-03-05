@@ -95,9 +95,12 @@ protected:
     CheckBox* m_cb_nozzle_blob;
     CheckBox* m_cb_open_door;
     CheckBox* m_cb_purify_air_at_print_end;
+    CheckBox *m_cb_non_visual_airprinting_detection;
+    CheckBox* m_cb_fod_check;
     Label* text_first_layer;
     Label* text_ai_detections;
     Label* text_ai_detections_caption;
+    Label* text_non_visual_airprinting_detection;
     wxPanel          *ai_refine_panel;
     wxSizerItem *ai_detections_bottom_space;
     wxSizerItem *ai_monitoring_bottom_space;
@@ -138,6 +141,9 @@ protected:
     Label* text_nozzle_blob;
     Label* text_nozzle_blob_caption;
     Label* text_open_door;
+    Label* text_open_door_caption;
+    Label* text_fod_check;
+    Label* text_fod_check_caption;
     Label* text_purify_air;
     Label* text_purify_air_context;
     StaticLine* line1;
@@ -160,6 +166,10 @@ protected:
     CheckBox* m_cb_plate_align{nullptr};
     Label* text_plate_align{nullptr};
     Label* text_plate_align_caption{nullptr};
+
+    wxBoxSizer* m_snapshot_sizer {nullptr};
+    CheckBox* m_cb_snapshot_enable{nullptr};
+
 
     bool print_halt = false;
 
@@ -209,6 +219,7 @@ public:
 private:
     void UpdateOptionSavePrintFileToStorage(MachineObject *obj);
     void UpdateOptionOpenDoorCheck(MachineObject *obj);
+    void UpdateOptionSnapshot(MachineObject *obj);
 };
 
 }} // namespace Slic3r::GUI

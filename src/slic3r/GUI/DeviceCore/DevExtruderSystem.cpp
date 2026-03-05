@@ -8,6 +8,7 @@
 #include "slic3r/GUI/Plater.hpp"
 
 #include "DevUtil.h"
+#include "DevFilaSystem.h"
 
 using namespace nlohmann;
 
@@ -67,6 +68,27 @@ namespace Slic3r
         return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_current_nozzle_id).GetNozzleDiameterType();
     }
 
+    std::unordered_map<int, bool> DevExtder::GetBackupStatus(unsigned int fila_back_group)
+    {
+        std::unordered_map<int, bool> trayid_group;
+        for (int i = 0; i < 16; i++)
+        {
+            if (fila_back_group & (1 << i))
+            {
+                trayid_group[i] = true;
+            }
+        }
+
+        for (int j = 16; j <= 23; j++)/* single ams is from 128*/
+        {
+            if (fila_back_group & (1 << j)) {
+                trayid_group[128 + j - 16] = true;
+            }
+        }
+
+        return trayid_group;
+    }
+
     bool  DevExtder::IsBowdenExtuder() const
     {
         Preset * preset = GUI::get_printer_preset(system->Owner());
@@ -82,7 +104,6 @@ namespace Slic3r
 
         return extruder_type == ExtruderType::etBowden;
     }
-
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
         : m_owner(obj)
@@ -109,9 +130,8 @@ namespace Slic3r
 
     std::optional<DevExtder> DevExtderSystem::GetLoadingExtder() const
     {
-        if (m_current_loading_extder_id != INVALID_EXTRUDER_ID)
-        {
-            return GetExtderById(m_current_loading_extder_id);
+        if (m_current_loading_extder_id.has_value()) {
+            return GetExtderById(m_current_loading_extder_id.value());
         }
 
         return std::nullopt;
@@ -124,7 +144,7 @@ namespace Slic3r
             return std::nullopt;
         }
 
-        if (extder_id >= m_extders.size()) {
+        if (extder_id < 0 || extder_id >= m_extders.size()) {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "No extruder found for " << extder_id;
             return std::nullopt;
         }
@@ -167,6 +187,24 @@ namespace Slic3r
         }
 
         return false;
+    }
+
+    std::vector<DevAmsSlotId> DevExtderSystem::GetBackupAmsSlotInGroup(const DevAmsSlotId& ams_slot_id)
+    {
+        std::map<int, DevAmsSlotId> tray_map = Owner()->GetFilaSystem()->GetTrayIndexMap();
+
+        std::vector<DevAmsSlotId> backup_group;
+        for (const auto& extruder : m_extders) {
+            for (int fila_backup : extruder.GetFilamBackup()) {
+                for (auto [tray_id,  is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
+                    if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] != ams_slot_id) {
+                        backup_group.emplace_back(tray_map[tray_id]);
+                    }
+                }
+            }
+        }
+
+        return backup_group;
     }
 
     void ExtderSystemParser::ParseV1_0(const nlohmann::json& print_json, DevExtderSystem* system)
@@ -250,11 +288,9 @@ namespace Slic3r
 
         system->m_current_busy_for_loading = false;
         system->m_current_loading_extder_id = INVALID_EXTRUDER_ID;
-        if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty())
-        {
-            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow == system->m_extders[MAIN_EXTRUDER_ID].m_star);
-            if (system->m_current_busy_for_loading)
-            {
+        if (!system->m_extders[MAIN_EXTRUDER_ID].m_star.ams_id.empty()) {
+            system->m_current_busy_for_loading = (system->m_extders[MAIN_EXTRUDER_ID].m_snow != system->m_extders[MAIN_EXTRUDER_ID].m_star);
+            if (system->m_current_busy_for_loading) {
                 system->m_current_loading_extder_id = MAIN_EXTRUDER_ID;
             }
         }
@@ -312,6 +348,11 @@ namespace Slic3r
 
             extder_obj.m_ams_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 16);
             extder_obj.m_rfid_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 16, 16);
+
+            extder_obj.m_current_filament_change_step = static_cast<DevFilamentStep> (DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 8));
+            if (extder_obj.m_current_filament_change_step >= DevFilamentStep::STEP_COUNT) {
+                extder_obj.m_current_filament_change_step.reset();
+            }
 
             //current nozzle info
             extder_obj.m_current_nozzle_id = njon["hnow"].get<int>();

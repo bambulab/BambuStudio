@@ -12,6 +12,7 @@
         "8000",
         "8000"
     ],
+    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "250",
         "150",
@@ -36,8 +37,7 @@
         "300",
         "600"
     ],
-    "ironing_flow": "25%",
-    "ironing_speed": "20",
+    "ironing_flow": "15%",
     "outer_wall_speed": [
         "200",
         "500",

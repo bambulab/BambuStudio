@@ -8,6 +8,10 @@
     "chamber_temperatures": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -30,6 +34,10 @@
     "nozzle_temperature_initial_layer": [
         "290",
         "290"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

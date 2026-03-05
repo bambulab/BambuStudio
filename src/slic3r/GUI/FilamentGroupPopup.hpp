@@ -56,6 +56,7 @@ private:
 
     bool m_sync_plate{ false };
     bool m_slice_all{ false };
+    bool m_fila_switch_ready{ false };
     FilamentMapMode m_mode;
     wxTimer        *m_timer;
 

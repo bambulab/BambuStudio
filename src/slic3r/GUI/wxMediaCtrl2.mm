@@ -140,7 +140,11 @@ void wxMediaCtrl2::Stop()
     NotifyStopped();
 }
 
-void wxMediaCtrl2::SetIdleImage(wxString const &image)
+void wxMediaCtrl2::SetIdleImage(wxString const &image, wxString const &watermark_text)
+{
+}
+
+void wxMediaCtrl2::SetIdleImage(const wxImage &image, wxString const &watermark_text)
 {
 }
 

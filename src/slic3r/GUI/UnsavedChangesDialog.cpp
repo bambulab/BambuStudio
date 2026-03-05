@@ -1131,7 +1131,7 @@ void UnsavedChangesDialog::close(Action action)
         check_option_valid();
     }
     m_exit_action = action;
-    this->EndModal(wxID_CLOSE);
+    wxDialog::EndModal(wxID_CLOSE);
 }
 
 bool UnsavedChangesDialog::save(PresetCollection* dependent_presets, bool show_save_preset_dialog/* = true*/)

@@ -11,6 +11,10 @@
     "fan_max_speed": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "20",
         "35"
@@ -35,6 +39,12 @@
         "0",
         "0"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -48,6 +58,10 @@
     ],
     "slow_down_layer_time": [
         "12"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle"

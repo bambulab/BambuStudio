@@ -1308,11 +1308,18 @@ void letter2shapes(ExPolygons &       result,
 
     // move glyph to cursor position
     ExPolygons expolygons = glyph_ptr->shape; // copy
-    for (ExPolygon &expolygon : expolygons) expolygon.translate(cursor);
     if (real_scale > 0) {
-        auto new_advance_width = glyph_ptr->advance_width * real_scale / cur_scale;
+        auto ratio = real_scale / cur_scale;
+        for (ExPolygon &expolygon : expolygons) {
+            expolygon.scale(ratio);
+            expolygon.translate(cursor);
+        }
+        auto new_advance_width = glyph_ptr->advance_width * ratio;
         cursor.x() += new_advance_width;
     } else {
+        for (ExPolygon &expolygon : expolygons) {
+            expolygon.translate(cursor);
+        }
         cursor.x() += glyph_ptr->advance_width;
     }
     result = expolygons;
@@ -1392,8 +1399,15 @@ namespace {
 /// <param name="text">To detect end of lines - to be able horizontal center the line</param>
 /// <param name="prop">Containe Horizontal and vertical alignment</param>
 /// <param name="font">Needed for scale and font size</param>
-void align_shape(ExPolygonsWithIds &shapes, const std::wstring &text, const FontProp &prop, const FontFile &font);
-void align_shape(ExPolygonsWithIds &shapes, std::vector<FontFileWithCache> real_fonts, const std::wstring &text, const FontProp &prop, const FontFile &font);
+void align_shape(ExPolygonsWithIds &shapes, std::vector<Point> &offset_xy, const std::wstring &text, const FontProp &prop, const FontFile &font);
+void align_shape(ExPolygonsWithIds & shapes,
+                 std::vector<Point> &offset_xy,
+                 std::vector<float>& text_scales,
+                 float                          standard_scale,
+                 std::vector<FontFileWithCache> real_fonts,
+                 const std::wstring &           text,
+                 const FontProp &               prop,
+                 const FontFile &               font);
 }
 
 HealedExPolygons Slic3r::Emboss::text2shapes(EmbossShape &                emboss_shape,
@@ -1408,35 +1422,6 @@ HealedExPolygons Slic3r::Emboss::text2shapes(EmbossShape &                emboss
     text2vshapes(emboss_shape, font_with_cache, text_w, font_prop, standard_scale, was_canceled, bfc_fn); // ExPolygonsWithIds vshapes =
     auto &vshapes = emboss_shape.shapes_with_ids;
     float delta   = static_cast<float>(1. / SHAPE_SCALE);
-    if (bfc_fn && standard_scale > 0) {
-        int32_t char_space = 0, char_width = 0, offset = 0;
-        for (int i = 0; i < vshapes.size(); i++) {
-            if (!vshapes[i].expoly.empty()) {
-                auto box = get_extents(vshapes[i].expoly);
-                if (box.size()[0] > 0) {
-                    char_width = box.size()[0];
-                    break;
-                }
-            }
-        }
-        for (int i = 0; i < vshapes.size(); i++) {
-            if (emboss_shape.text_scales[i] > 0) {
-                double temp_scale = emboss_shape.text_scales[i] / standard_scale;
-                for (int j = 0; j < vshapes[i].expoly.size(); j++) { vshapes[i].expoly[j].scale(temp_scale); }
-            }
-            BoundingBox temp_box;
-            if (!vshapes[i].expoly.empty()) {
-                temp_box = get_extents(vshapes[i].expoly);
-                if (char_space == 0) { char_space = temp_box.size().x() / 5; }
-                for (int j = 0; j < vshapes[i].expoly.size(); j++) { // son
-                    vshapes[i].expoly[j].translate(-temp_box.min + Point(offset, 0));
-                }
-                offset += (get_extents(vshapes[i].expoly).size()[0] + char_space);
-            } else {
-                offset += (char_width);
-            }
-        }
-    }
     return ::union_with_delta(vshapes, delta, MAX_HEAL_ITERATION_OF_TEXT);
 }
 
@@ -1457,6 +1442,7 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
     unsigned counter = 0;
     Point    cursor(0, 0);
     std::vector<float> text_cursors;
+    std::vector<float> text_absolute_cursors;
     float              last_x = 0.f,cur_x =0.f;
     fontinfo_opt      font_info_cache;
     ExPolygonsWithIds result;
@@ -1490,21 +1476,38 @@ void Slic3r::Emboss::text2vshapes(EmbossShape &                emboss_shape,
         }
         cur_x = cursor.x() * standard_scale;
         text_cursors.emplace_back(cur_x - last_x);
+        text_absolute_cursors.emplace_back(cur_x);
         last_x = cur_x;
     }
+    std::vector<Point> offset_xy;
     if (bfc_fn) {// support_backup_fonts
-        align_shape(result, text_map_font, text, font_prop, font);
+        align_shape(result, offset_xy, text_scales, standard_scale, text_map_font, text, font_prop, font);
     } else {
-        align_shape(result, text, font_prop, font);
+        align_shape(result, offset_xy, text, font_prop, font);
     }
-    emboss_shape.text_scales = text_scales;
+    std::vector<Vec2f> text_align_offsets;
+    text_align_offsets.resize(text_scales.size());
+    for (int i = 0; i < text_scales.size(); i++) {
+        float x                  = (float) offset_xy[i][0] * standard_scale;
+        float y                  = (float) offset_xy[i][1] * standard_scale;
+        text_align_offsets[i][0] = x;
+        text_align_offsets[i][1] = y;
+    }
+    emboss_shape.text_align_offsets    = text_align_offsets;
+    std::vector<float> no_use_text_scales;
+    for (wchar_t letter : text) {
+        no_use_text_scales.emplace_back(-1);
+    }
+    emboss_shape.text_scales           = no_use_text_scales;
     emboss_shape.text_cursors    = text_cursors;
+    emboss_shape.text_absolute_cursors = text_absolute_cursors;
     for (int i = 0; i < result.size(); i++) {
         if (text[i] == wchar_t(' ')) {
             result[i].expoly.clear();
         }
     }
     emboss_shape.shapes_with_ids = result;
+    emboss_shape.align_type      = std::pair<int, int>((int) font_prop.align.first, (int) font_prop.align.second);
 }
 
 #include <boost/range/adaptor/reversed.hpp>
@@ -2180,7 +2183,7 @@ int32_t get_align_x_offset(FontProp::HorizontalAlign align, const BoundingBox &s
     return 0;
 }
 
-void align_shape(ExPolygonsWithIds &shapes, const std::wstring &text, const FontProp &prop, const FontFile &font)
+void align_shape(ExPolygonsWithIds &shapes, std::vector<Point> &offset_xy, const std::wstring &text, const FontProp &prop, const FontFile &font)
 {
     // Shapes have to match letters in text
     assert(shapes.size() == text.length());
@@ -2191,6 +2194,7 @@ void align_shape(ExPolygonsWithIds &shapes, const std::wstring &text, const Font
     // Speed up for left aligned text
     if (prop.align.first == FontProp::HorizontalAlign::left){
         // already horizontaly aligned
+        offset_xy.emplace_back(Point(0, y_offset));
         for (ExPolygonsWithId& shape : shapes)
             for (ExPolygon &s : shape.expoly)
                 s.translate(Point(0, y_offset));
@@ -2219,12 +2223,19 @@ void align_shape(ExPolygonsWithIds &shapes, const std::wstring &text, const Font
             continue;
         }
         ExPolygons &shape = shapes[i].expoly;
+        offset_xy.emplace_back(offset);
         for (ExPolygon &s : shape)
             s.translate(offset);
     }
 }
 
-void align_shape(ExPolygonsWithIds &shapes, std::vector<FontFileWithCache> real_fonts, const std::wstring &text, const FontProp &prop, const FontFile &font) {// Shapes have to match letters in text
+void align_shape(ExPolygonsWithIds &            shapes,
+                 std::vector<Point> &           offset_xy,
+                 std::vector<float> &           text_scales,
+                 float                          standard_scale,
+                 std::vector<FontFileWithCache> real_fonts,
+                 const std::wstring &text, const FontProp &prop, const FontFile &font)
+{ // Shapes have to match letters in text
     assert(shapes.size() == text.length());
 
     unsigned count_lines = get_count_lines(text);
@@ -2240,6 +2251,7 @@ void align_shape(ExPolygonsWithIds &shapes, std::vector<FontFileWithCache> real_
                 const FontFile &temp_font = *real_fonts[index].font_file;
                 temp_y_offset             = get_align_y_offset(prop.align.second, count_lines, temp_font, prop);
             }
+            offset_xy.emplace_back(Point(0, temp_y_offset));
             for (ExPolygon &s : shape.expoly) {
                 s.translate(Point(0, temp_y_offset));
             }
@@ -2271,9 +2283,11 @@ void align_shape(ExPolygonsWithIds &shapes, std::vector<FontFileWithCache> real_
         if (real_fonts[i].has_value()) {
             const FontFile &temp_font = *real_fonts[i].font_file;
             int temp_y_offset         = get_align_y_offset(prop.align.second, count_lines, temp_font, prop);
-            Point new_offset(get_align_x_offset(prop.align.first, shape_bb, get_line_bb(0)), temp_y_offset);
+            int ratio = int(text_scales[i] / standard_scale);
+            Point           new_offset(main_offset.x(), temp_y_offset * ratio);
             temp_offset = new_offset;
         }
+        offset_xy.emplace_back(temp_offset);
         for (ExPolygon &s : shape) {
             s.translate(temp_offset);
         }

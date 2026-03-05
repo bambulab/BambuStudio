@@ -12,13 +12,13 @@
         "15",
         "15"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "filament_retraction_length": [
         "0.4",
         "nil"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "hot_plate_temp": [
         "100"
@@ -47,6 +47,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "textured_plate_temp": [
         "100"

@@ -3851,7 +3851,7 @@
                 "es": "Negro transparente"
             },
             "fila_color": [
-                "#00000080"
+                "#68686580"
             ]
         },
         {
@@ -3897,7 +3897,7 @@
                 "es": "Negro"
             },
             "fila_color": [
-                "#686865FF"
+                "#000000FF"
             ]
         },
         {
@@ -6438,6 +6438,75 @@
             ]
         },
         {
+            "fila_color_code": "16700",
+            "fila_id": "GFA18",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Lite",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Matte Beige",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "浅肤色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#ECC3B2FF"
+            ]
+        },
+        {
+            "fila_color_code": "16800",
+            "fila_id": "GFA18",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Lite",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Cocoa Brown",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "棕色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#745335FF"
+            ]
+        },
+        {
+            "fila_color_code": "16102",
+            "fila_id": "GFA18",
+            "fila_color_type": "单色",
+            "fila_type": "PLA Lite",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Dark Gray",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "深灰",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#8c8b8cFF"
+            ]
+        },
+        {
             "fila_color_code": "51601",
             "fila_id": "GFU03",
             "fila_color_type": "单色",
@@ -6458,6 +6527,29 @@
             },
             "fila_color": [
                 "#7eb4e180"
+            ]
+        },
+        {
+            "fila_color_code": "51106",
+            "fila_id": "GFU03",
+            "fila_color_type": "单色",
+            "fila_type": "TPU 90A",
+            "fila_color_name": {
+                "de": "",
+                "sv": "",
+                "pt": "",
+                "ko": "",
+                "ja": "",
+                "en": "Quicksilver",
+                "it": "",
+                "fr": "",
+                "hu": "",
+                "zh": "水银色",
+                "nl": "",
+                "es": ""
+            },
+            "fila_color": [
+                "#9ea2a2FF"
             ]
         },
         {
@@ -6527,29 +6619,6 @@
             },
             "fila_color": [
                 "#000000FF"
-            ]
-        },
-        {
-            "fila_color_code": "51301",
-            "fila_id": "GFU03",
-            "fila_color_type": "单色",
-            "fila_type": "TPU 90A",
-            "fila_color_name": {
-                "de": "",
-                "sv": "",
-                "pt": "",
-                "ko": "",
-                "ja": "",
-                "en": "Matte Yellow",
-                "it": "",
-                "fr": "",
-                "hu": "",
-                "zh": "鸡蛋黄",
-                "nl": "",
-                "es": ""
-            },
-            "fila_color": [
-                "#FBDC64FF"
             ]
         },
         {
@@ -6760,5 +6829,5 @@
             ]
         }
     ],
-    "total": 293
+    "total": 296
 }

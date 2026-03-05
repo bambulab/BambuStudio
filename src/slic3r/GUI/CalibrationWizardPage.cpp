@@ -352,7 +352,7 @@ void FilamentComboBox::set_select_mode(CalibrationFilamentMode mode)
     Layout();
 }
 
-void FilamentComboBox::load_tray_from_ams(int id, DynamicPrintConfig& tray)
+void FilamentComboBox::load_tray_from_ams(int id, const DynamicPrintConfig& tray)
 {
     m_comboBox->load_tray(tray);
 

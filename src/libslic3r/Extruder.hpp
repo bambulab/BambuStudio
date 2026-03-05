@@ -3,6 +3,8 @@
 
 #include "libslic3r.h"
 #include "Point.hpp"
+#include "PrintConfig.hpp"
+
 
 namespace Slic3r {
 
@@ -29,7 +31,11 @@ public:
 
     unsigned int id() const { return m_id; }
 
+    NozzleVolumeType volume_type() const;
+    ExtruderType  extruder_type() const;
+
     unsigned int extruder_id() const;
+    unsigned int nozzle_id() const;
     double extrude(double dE);
     double retract(double length, double restart_extra);
     double unretract();

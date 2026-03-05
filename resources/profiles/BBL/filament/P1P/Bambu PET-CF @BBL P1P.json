@@ -5,13 +5,13 @@
     "from": "system",
     "setting_id": "GFST01_10",
     "instantiation": "true",
-    "filament_max_volumetric_speed": [
-        "8",
-        "8"
-    ],
     "filament_flow_ratio": [
         "1",
         "1"
+    ],
+    "filament_max_volumetric_speed": [
+        "8",
+        "8"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -40,6 +40,7 @@
         "0"
     ],
     "slow_down_min_speed": [
+        "20",
         "20"
     ],
     "compatible_printers": [

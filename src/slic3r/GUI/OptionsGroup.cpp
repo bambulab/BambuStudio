@@ -54,6 +54,13 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     case ConfigOptionDef::GUIType::one_string:
         m_fields.emplace(id, TextCtrl::Create<TextCtrl>(this->ctrl_parent(), opt, id));
         break;
+    case ConfigOptionDef::GUIType::multi_variant: {
+        m_fields.emplace(id, MultiVariantTextCtrl::Create<MultiVariantTextCtrl>(this->ctrl_parent(), opt, id));
+        if (custom_ctrl) {
+            custom_ctrl->update_line_height_for_field(id);
+        }
+        break;
+    }
     default:
         switch (opt.type) {
             case coFloatOrPercent:
@@ -320,6 +327,24 @@ void OptionsGroup::activate_line(Line& line)
 		m_extra_column_item_ptrs.push_back(extra_column(this->ctrl_parent(), line));
 		grid_sizer->Add(m_extra_column_item_ptrs.back(), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 3);
 	}
+
+    if (option_set.size() == 1) {
+        const auto &option = option_set.front();
+
+        if (option.opt.gui_type == ConfigOptionDef::GUIType::multi_variant) {
+            const auto &field = build_field(option);
+
+            if (custom_ctrl) {
+                return;
+            } else {
+                const auto h_sizer = new wxBoxSizer(wxHORIZONTAL);
+                sizer->Add(h_sizer, 1, wxEXPAND | wxALL, wxOSX ? 0 : 5);
+
+                if (is_sizer_field(field)) { h_sizer->Add(field->getSizer(), 1, wxEXPAND | wxLEFT, titleWidth * wxGetApp().em_unit()); }
+                return;
+            }
+        }
+    }
 
 	// Build a label if we have it
 	wxStaticText* label=nullptr;
@@ -627,10 +652,16 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 	if (!m_opt_map.empty())
 	{
 		auto it = m_opt_map.find(opt_id);
+        bool has_multi_variant = false;
 		if (it == m_opt_map.end())
 		{
-			OptionsGroup::on_change_OG(opt_id, value);
-			return;
+            auto it2 = m_opt_map.find(opt_id.substr(0, opt_id.find('#')));
+            if (it2 == m_opt_map.end()) {
+                OptionsGroup::on_change_OG(opt_id, value);
+                return;
+            }
+            has_multi_variant = true;
+            it = it2;
 		}
 
 #if 0
@@ -646,6 +677,9 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 		auto 				itOption  = it->second;
 		const std::string  &opt_key   = itOption.first;
         int                 opt_index = itOption.second;
+        if (has_multi_variant) {
+            opt_index = opt_id.substr(opt_id.find('#') + 1).empty() ? -1 : std::stoi(opt_id.substr(opt_id.find('#') + 1));
+        }
 		this->change_opt_value(opt_key, value, opt_index == -1 ? 0 : opt_index);
 	}
 
@@ -671,6 +705,15 @@ void ConfigOptionsGroup::back_to_sys_value(const std::string& opt_key)
 void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key)
 {
 	boost::any value;
+    if (m_opt_map.find(opt_key) == m_opt_map.end() && opt_key.find("#") != std::string::npos) {
+        auto opt_key2 = opt_key.substr(0, opt_key.find("#"));
+        int  opt_index = std::stoi(opt_key.substr(opt_key.find("#") + 1));
+        value = get_config_value(config, opt_key2, opt_index);
+
+        set_value_variant(opt_key, value);
+        on_change_OG(opt_key, get_value_variant(opt_key));
+        return;
+    }
 	if (opt_key == "extruders_count") {
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
@@ -762,7 +805,23 @@ void ConfigOptionsGroup::reload_config()
         if ((opt_id == "bed_temperature" || opt_id == "bed_temperature_initial_layer") && bed_type_field != nullptr)
             opt_index = default_bed_type;
 #endif
-		this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
+        if (option.gui_type == ConfigOptionDef::GUIType::multi_variant) {
+            Field* field = get_field(opt_id);
+            if (field) {
+                auto *multi_variant = dynamic_cast<MultiVariantTextCtrl*>(field);
+                if (multi_variant) {
+                    for (auto& variant_ctrl : multi_variant->m_text_ctrls) {
+                        int actual_opt_index = variant_ctrl.opt_index;
+                        Field *text_field = variant_ctrl.text_ctrl.get();
+                        if (text_field) {
+                            text_field->set_value(config_value(opt_key, actual_opt_index, option.gui_flags == "serialized"), false);
+                        }
+                    }
+                }
+            }
+        } else {
+            this->set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags == "serialized"));
+        }
 	}
 }
 
@@ -958,6 +1017,12 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
     boost::any ret;
     wxString text_value = wxString("");
     const ConfigOptionDef* opt = config.def()->get(opt_key);
+    auto opt_key2 = opt_key;
+    if (!opt) {
+        opt_key2 = opt_key.substr(0, opt_key.find('#'));
+        idx      = std::stoi(opt_key.substr(opt_key.find('#') + 1));
+        opt     = config.def()->get(opt_key2);
+    }
 
     if (opt->nullable)
     {
@@ -965,31 +1030,31 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         {
         case coPercents:
         case coFloats: {
-            const ConfigOptionVectorBase *option = dynamic_cast<const ConfigOptionVectorBase *>(config.option(opt_key));
+            const ConfigOptionVectorBase *option = dynamic_cast<const ConfigOptionVectorBase *>(config.option(opt_key2));
             if (!option) {
                 ret = _(L("N/A"));
                 break;
             }
-            if (opt_index < 0 || opt_index >= option->size() ? config.option(opt_key)->is_nil() : option->is_nil(opt_index))
+            if (opt_index < 0 || opt_index >= option->size() ? config.option(opt_key2)->is_nil() : option->is_nil(opt_index))
                 ret = _(L("N/A"));
             else {
                 double val = opt->type == coFloats ?
-                    config.option<ConfigOptionFloatsNullable>(opt_key)->get_at(idx) :
-                    config.option<ConfigOptionPercentsNullable>(opt_key)->get_at(idx);
+                    config.option<ConfigOptionFloatsNullable>(opt_key2)->get_at(idx) :
+                    config.option<ConfigOptionPercentsNullable>(opt_key2)->get_at(idx);
                 ret = double_to_string(val);
             }
             break;
         }
         case coFloatsOrPercents: {
-            const ConfigOptionVectorBase *option = dynamic_cast<const ConfigOptionVectorBase *>(config.option(opt_key));
+            const ConfigOptionVectorBase *option = dynamic_cast<const ConfigOptionVectorBase *>(config.option(opt_key2));
             if (!option) {
                 ret = _(L("N/A"));
                 break;
             }
-            if (opt_index < 0 || opt_index >= option->size() ? config.option(opt_key)->is_nil() : option->is_nil(opt_index))
+            if (opt_index < 0 || opt_index >= option->size() ? config.option(opt_key2)->is_nil() : option->is_nil(opt_index))
                 ret = _(L("N/A"));
             else {
-                const auto& value = config.option<ConfigOptionFloatsOrPercentsNullable>(opt_key)->get_at(idx);
+                const auto &value = config.option<ConfigOptionFloatsOrPercentsNullable>(opt_key2)->get_at(idx);
                 text_value = double_to_string(value.value);
                 if (value.percent)
                     text_value += "%";
@@ -999,13 +1064,13 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
             break;
         }
         case coBools:
-            ret = config.option<ConfigOptionBoolsNullable>(opt_key)->values[idx];
+            ret = config.option<ConfigOptionBoolsNullable>(opt_key2)->values[idx];
             break;
         case coInts:
-            ret = config.option<ConfigOptionIntsNullable>(opt_key)->get_at(idx);
+            ret = config.option<ConfigOptionIntsNullable>(opt_key2)->get_at(idx);
             break;
         case coEnums:
-            ret = config.option<ConfigOptionEnumsGenericNullable>(opt_key)->get_at(idx);
+            ret = config.option<ConfigOptionEnumsGenericNullable>(opt_key2)->get_at(idx);
             break;
         default:
             break;
@@ -1015,7 +1080,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 
     switch (opt->type) {
     case coFloatOrPercent: {
-        const auto& value = *config.option<ConfigOptionFloatOrPercent>(opt_key);
+        const auto &value = *config.option<ConfigOptionFloatOrPercent>(opt_key2);
 
         text_value = double_to_string(value.value);
         if (value.percent)
@@ -1025,7 +1090,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         break;
     }
     case coFloatsOrPercents: {
-        const auto &value = config.option<ConfigOptionFloatsOrPercents>(opt_key)->get_at(idx);
+        const auto &value = config.option<ConfigOptionFloatsOrPercents>(opt_key2)->get_at(idx);
 
         text_value = double_to_string(value.value);
         if (value.percent) text_value += "%";
@@ -1034,7 +1099,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         break;
     }
     case coPercent: {
-        double val = config.option<ConfigOptionPercent>(opt_key)->value;
+        double val = config.option<ConfigOptionPercent>(opt_key2)->value;
         text_value = wxString::Format(_T("%i"), int(val));
         ret = text_value;// += "%";
     }
@@ -1042,8 +1107,8 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
     case coPercents:
     case coFloats:
     case coFloat: {
-        if (opt_key == "extruder_printable_height") {
-            auto opt_values = dynamic_cast<const ConfigOptionFloatsNullable *>(config.option(opt_key))->values;
+        if (opt_key2 == "extruder_printable_height") {
+            auto opt_values = dynamic_cast<const ConfigOptionFloatsNullable *>(config.option(opt_key2))->values;
             if (!opt_values.empty()) {
                 double val = opt_values[idx];
                 ret  = double_to_string(val);
@@ -1051,91 +1116,91 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         }
         else {
             double val = opt->type == coFloats ?
-                config.opt_float(opt_key, idx) :
-                opt->type == coFloat ? config.opt_float(opt_key) :
-                config.option<ConfigOptionPercents>(opt_key)->get_at(idx);
+                config.opt_float(opt_key2, idx) :
+                opt->type == coFloat ? config.opt_float(opt_key2) :
+                config.option<ConfigOptionPercents>(opt_key2)->get_at(idx);
             ret = double_to_string(val);
         }
         break;
     }
     case coString:
-        ret = from_u8(config.opt_string(opt_key));
+        ret = from_u8(config.opt_string(opt_key2));
         break;
     case coStrings:
-        if (opt_key == "compatible_printers" || opt_key == "compatible_prints") {
-            ret = config.option<ConfigOptionStrings>(opt_key)->values;
+        if (opt_key2 == "compatible_printers" || opt_key2 == "compatible_prints") {
+            ret = config.option<ConfigOptionStrings>(opt_key2)->values;
             break;
         }
-        if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
+        if (config.option<ConfigOptionStrings>(opt_key2)->values.empty())
             ret = text_value;
         else if (opt->gui_flags == "serialized") {
-            std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key)->values;
+            std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key2)->values;
             if (!values.empty() && !values[0].empty())
                 for (auto el : values)
                     text_value += el + ";";
             ret = text_value;
         }
         else
-            ret = from_u8(config.opt_string(opt_key, static_cast<unsigned int>(idx)));
+            ret = from_u8(config.opt_string(opt_key2, static_cast<unsigned int>(idx)));
         break;
     case coBool:
-        ret = config.opt_bool(opt_key);
+        ret = config.opt_bool(opt_key2);
         break;
     case coBools:
-        ret = config.opt_bool(opt_key, idx);
+        ret = config.opt_bool(opt_key2, idx);
         break;
     case coInt:
-        ret = config.opt_int(opt_key);
+        ret = config.opt_int(opt_key2);
         break;
     case coInts:
-        ret = config.opt_int(opt_key, idx);
+        ret = config.opt_int(opt_key2, idx);
         break;
     case coEnum:
-        if (!config.has("first_layer_sequence_choice") && opt_key == "first_layer_sequence_choice") {
+        if (!config.has("first_layer_sequence_choice") && opt_key2 == "first_layer_sequence_choice") {
             // reset to Auto value
             ret = 0;
             break;
         }
-        if (!config.has("other_layers_sequence_choice") && opt_key == "other_layers_sequence_choice") {
+        if (!config.has("other_layers_sequence_choice") && opt_key2 == "other_layers_sequence_choice") {
             // reset to Auto value
             ret = 0;
             break;
         }
-        if (!config.has("curr_bed_type") && opt_key == "curr_bed_type") {
+        if (!config.has("curr_bed_type") && opt_key2 == "curr_bed_type") {
             // reset to global value
             DynamicConfig& global_cfg = wxGetApp().preset_bundle->project_config;
             ret = global_cfg.option("curr_bed_type")->getInt();
             break;
         }
-        ret = config.option(opt_key)->getInt();
+        ret = config.option(opt_key2)->getInt();
         break;
         // BBS
     case coEnums:
-        ret = config.opt_int(opt_key, idx);
+        ret = config.opt_int(opt_key2, idx);
         break;
     case coPoint:
-        ret = config.option<ConfigOptionPoint>(opt_key)->value;
+        ret = config.option<ConfigOptionPoint>(opt_key2)->value;
         break;
     case coPoints:
-        if (opt_key == "printable_area")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        else if (opt_key == "bed_exclude_area")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        else if (opt_key == "thumbnail_size")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
-        else if (opt_key == "wrapping_exclude_area")
-            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key)->values);
+        if (opt_key2 == "printable_area")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key2)->values);
+        else if (opt_key2 == "bed_exclude_area")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key2)->values);
+        else if (opt_key2 == "thumbnail_size")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key2)->values);
+        else if (opt_key2 == "wrapping_exclude_area")
+            ret = get_thumbnails_string(config.option<ConfigOptionPoints>(opt_key2)->values);
         else
-            ret = config.option<ConfigOptionPoints>(opt_key)->get_at(idx);
+            ret = config.option<ConfigOptionPoints>(opt_key2)->get_at(idx);
         break;
     case coPointsGroups:
-        if (opt_key == "extruder_printable_area") {
-            auto values = config.option<ConfigOptionPointsGroups>(opt_key)->values;
+        if (opt_key2 == "extruder_printable_area") {
+            auto values = config.option<ConfigOptionPointsGroups>(opt_key2)->values;
             if (!values.empty())
-                ret = get_thumbnails_string(config.option<ConfigOptionPointsGroups>(opt_key)->get_at(idx));
+                ret = get_thumbnails_string(config.option<ConfigOptionPointsGroups>(opt_key2)->get_at(idx));
         }
         else
-            ret = config.option<ConfigOptionPointsGroups>(opt_key)->get_at(idx);
+            ret = config.option<ConfigOptionPointsGroups>(opt_key2)->get_at(idx);
         break;
     case coNone:
     default:

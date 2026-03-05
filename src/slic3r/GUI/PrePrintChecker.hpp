@@ -28,6 +28,7 @@ enum class prePrintInfoStyle : int
     BtnNozzleRefresh = 0x002,
     BtnConfirmNotShowAgain = 0x004,
     BtnInstallFanF000 = 0x008,
+    BtnJumpToUpgrade = 0x010,
 };
 
 inline constexpr prePrintInfoStyle operator|(prePrintInfoStyle a, prePrintInfoStyle b) noexcept
@@ -89,6 +90,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusConnecting,
     PrintStatusReconnecting,
     PrintStatusInUpgrading,
+    PrintStatusFirmwareNotSupportTpuAtLeft,
     PrintStatusModeNotFDM,
     PrintStatusInSystemPrinting,
     PrintStatusInPrinting,
@@ -111,6 +113,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusRackNozzleMappingWaiting,
     PrintStatusRackNozzleMappingError,
     PrintStatusInvalidMapping,
+    PrintStatusFilaSwitcherError,
     PrintStatusPrinterErrorEnd,
 
     // Errors for filament, Block Print
@@ -149,6 +152,8 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusFilamentWarningHighChamberTempCloseDoor,
     PrintStatusFilamentWarningHighChamberTempSoft,
     PrintStatusFilamentWarningUnknownHighChamberTempSoft,
+    PrintStatusFilamentWarningRemainNotEnough,
+    PrintStatusTPUUnsupportCaliOn,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-
@@ -210,6 +215,7 @@ private:
     // events
     void OnNotShowAgain(const prePrintInfo& info);
     void OnRefreshNozzleBtnClicked(wxMouseEvent& event);
+    void OnUpgradeBtnClicked(wxMouseEvent& event);
 
  private:
     SelectMachineDialog* m_select_dialog = nullptr;

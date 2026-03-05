@@ -316,6 +316,7 @@ public:
     ScalableButton *m_extruder_sync   = nullptr;
 	wxPanel *       m_extruder_sync_box  = nullptr;
     std::vector<NozzleVolumeType> m_actual_nozzle_volumes;
+    std::unordered_map<std::string, int> m_multi_variant_status;
 
 public:
 	// BBS
@@ -372,6 +373,8 @@ public:
     void        update_extruder_switch_colors();
     void        update_all_extruder_options_status();
     void        check_extruder_options_status(int index, bool &sys_extruder, bool &modified_extruder, const std::vector<PageShp>& pages_to_check);
+    bool        disable_arc_fitting();
+    bool        set_dynamic_filament_mapping(bool mapping);
 
 	void		on_roll_back_value(const bool to_sys = false);
 
@@ -405,6 +408,7 @@ public:
 	bool			current_preset_is_dirty() const;
 	bool			saved_preset_is_dirty() const;
 	void            update_saved_preset_from_current_preset();
+    void            update_pages_with_multi_variant();
 
 	DynamicPrintConfig*	get_config() { return m_config; }
     PresetCollection *  get_presets() { return m_presets; }

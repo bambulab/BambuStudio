@@ -170,6 +170,7 @@ public:
         m_object_layer_over_raft(false),
         //m_volumetric_speed(0),
         m_last_scarf_seam_flag(false),
+        m_scarf_seam_start(false),
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
         m_last_width(0.0f),
@@ -200,6 +201,7 @@ public:
     void            set_origin(const coordf_t x, const coordf_t y) { this->set_origin(Vec2d(x, y)); }
     const Point&    last_pos() const { return m_last_pos; }
     const bool&     last_scarf_seam_flag() const { return m_last_scarf_seam_flag; }
+    const bool&     scarf_seam_start_flag() const { return m_scarf_seam_start; }
     Vec2d           point_to_gcode(const Point &point) const;
     Point           gcode_to_point(const Vec2d &point) const;
     const FullPrintConfig &config() const { return m_config; }
@@ -389,9 +391,12 @@ private:
     size_t cur_config_index() const;
     size_t get_extruder_id(unsigned int filament_id) const;
     void set_extrude_acceleration(bool is_first_layer);
+    size_t get_filament_config_index(int filament_id) const;
+    size_t get_nozzle_config_index(int filament_id) const;
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }
+    void            set_scarf_seam_start_flag(bool flag) { m_scarf_seam_start = flag; }
     bool            last_pos_defined() const { return m_last_pos_defined; }
     void            set_extruders(const std::vector<unsigned int> &extruder_ids);
     std::string     preamble();
@@ -543,6 +548,7 @@ private:
     Point                               m_last_pos;
     bool                                m_last_pos_defined;
     bool                                m_last_scarf_seam_flag;
+    bool                                m_scarf_seam_start;
     std::unique_ptr<GCodeEditor>        m_gcode_editer;
     std::unique_ptr<SpiralVase>         m_spiral_vase;
 #ifdef HAS_PRESSURE_EQUALIZER
@@ -587,16 +593,22 @@ private:
     int m_start_gcode_filament = -1;
     std::string m_filament_instances_code;
 
+    size_t m_cur_layer_idx{0};
+    const PrintObject *m_cur_print_object{nullptr}; // If print by layer is nullptr, if print by object is current print object
+
     std::set<unsigned int>                  m_initial_layer_extruders;
     std::vector<std::vector<unsigned int>>  m_sorted_layer_filaments;
     // BBS
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
     int get_highest_bed_temperature(const bool is_first_layer,const Print &print) const;
 
-    double      calc_max_volumetric_speed(const double layer_height, const double line_width, const std::string co_str);
+    void update_layer_related_config(int layer_id);
+
+    double calc_max_volumetric_speed(const double layer_height, const double line_width, const std::string co_str);
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
     ExtrusionPaths set_speed_transition(std::vector<ExtrusionPaths> &paths);
     void split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left = true);
+    bool is_enable_overhang_speed();
     double get_path_speed(const ExtrusionPath &path);
     double get_overhang_degree_corr_speed(float speed, double path_degree);
     double mapping_speed(double dist);

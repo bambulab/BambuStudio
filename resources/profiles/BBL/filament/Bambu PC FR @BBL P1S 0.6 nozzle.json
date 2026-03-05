@@ -54,6 +54,10 @@
     "slow_down_layer_time": [
         "12"
     ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
     "textured_plate_temp": [
         "100"
     ],

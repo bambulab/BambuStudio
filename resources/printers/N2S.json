@@ -54,14 +54,15 @@
 		"printer_thumbnail_image": "printer_thumbnail_n2s",
 		"printer_connect_help_image": "input_access_code_n1",
 		"printer_use_ams_image": "extra_icon",
-		"printer_ext_image": ["ext_image_n2s"],
+		"printer_ext_image": [ "ext_image_n2s" ],
 		"use_ams_type": "f1",
 		"printer_arch": "i3",
 		"printer_series": "series_n",
 		"has_cali_line": false,
 		"printer_is_enclosed": false,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": false
+		"support_safety_options": false,
+		"air_print_detection_position": "ams_setting"
 	},
 	"01.01.50.01": {
 		"print": {

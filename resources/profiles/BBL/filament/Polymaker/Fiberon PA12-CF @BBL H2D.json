@@ -6,6 +6,10 @@
     "setting_id": "GFL52_10",
     "instantiation": "true",
     "description": "When printing this filament, there's a risk of warping and low layer adhesion strength. To get better results, please refer to this wiki: Printing Tips for High Temp / Engineering materials.",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_long_retractions_when_cut": [
         "1",
         "1"
@@ -44,6 +48,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 
 #include "MainFrame.hpp"
+#include "UxProgramTermsDialog.hpp"
 #include <boost/dll.hpp>
 #include <slic3r/GUI/Widgets/WebView.hpp>
 #include <slic3r/Utils/Http.hpp>
@@ -516,6 +517,13 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
 
             wxLaunchDefaultBrowser(strUrl);
         }
+        else if (strCmd == "show_ux_program_terms")
+        {
+            wxGetApp().CallAfter([this] {
+                UxProgramTermsDialog dlg(this);
+                dlg.ShowModal();
+            });
+        }
     } catch (std::exception &e) {
         // wxMessageBox(e.what(), "json Exception", MB_OK);
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Error:" << e.what();
@@ -646,6 +654,7 @@ int GuideFrame::SaveProfile()
         m_MainPtr->app_config->set(std::string(m_SectionName.mb_str()), "privacyuse", false);
 
     m_MainPtr->app_config->set("region", m_Region);
+    wxGetApp().update_log_sink_region();
 
     //finish
     if (m_GuideFinish)

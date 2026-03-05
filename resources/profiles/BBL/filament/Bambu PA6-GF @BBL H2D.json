@@ -8,6 +8,10 @@
     "chamber_temperatures": [
         "60"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.96",
         "0.96"
@@ -19,6 +23,12 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -34,6 +44,10 @@
     "retraction_distances_when_ec": [
         "4",
         "4"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

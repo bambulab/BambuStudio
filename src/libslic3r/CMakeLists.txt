@@ -40,10 +40,14 @@ set(lisbslic3r_sources
     Algorithm/LineSegmentation/LineSegmentation.hpp
     AnyPtr.hpp
     AStar.hpp
+    LogSink.hpp
+    LogSink.cpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
     BridgeDetector.hpp
+    ByObjectPrintData.hpp
+    ByObjectPrintData.cpp
     FaceDetector.cpp
     FaceDetector.hpp
     Brim.cpp

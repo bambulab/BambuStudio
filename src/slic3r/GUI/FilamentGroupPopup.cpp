@@ -247,7 +247,13 @@ void FilamentGroupPopup::Init()
 
     const wxString AutoForMatchDesp = "";// _L("(Pre-slicing arrangement)");
     const wxString MachineSyncTip   = _L("(Sync with printer)");
+    m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
 
+    radio_btns[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
+    button_labels[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
+    button_desps[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
+    detail_infos[ButtonType::btForMatch]->Show(!m_fila_switch_ready);
+    
     if (m_connected) {
         button_labels[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
         button_desps[ButtonType::btForMatch]->SetForegroundColour(LabelEnableColor);
@@ -264,7 +270,7 @@ void FilamentGroupPopup::Init()
     }
 
     m_mode = GetFilamentMapMode();
-    if (m_mode == fmmAutoForMatch && !m_connected) {
+    if (m_mode == fmmAutoForMatch && (!m_connected || m_fila_switch_ready)) {
         SetFilamentMapMode(fmmAutoForFlush);
         m_mode = fmmAutoForFlush;
     }
@@ -274,6 +280,8 @@ void FilamentGroupPopup::Init()
     }
 
     UpdateButtonStatus();
+    GetSizer()->Layout();
+    GetSizer()->SetSizeHints(this);
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
@@ -344,7 +352,7 @@ void FilamentGroupPopup::ResetTimer()
 
 void FilamentGroupPopup::OnRadioBtn(int idx)
 {
-    if (mode_list.at(idx) == FilamentMapMode::fmmAutoForMatch && !m_connected)
+    if (mode_list.at(idx) == FilamentMapMode::fmmAutoForMatch && (!m_connected || m_fila_switch_ready))
         return;
     if (m_mode != mode_list.at(idx)) {
         m_mode = mode_list.at(idx);
@@ -380,6 +388,9 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
         else
             global_mode_tags[i]->Hide();
 #endif
+        if (ButtonType::btForMatch == i && m_fila_switch_ready) {
+            continue;
+        }
         if (ButtonType::btForMatch == i && !m_connected) {
             button_labels[i]->SetFont(Label::Body_14);
             continue;

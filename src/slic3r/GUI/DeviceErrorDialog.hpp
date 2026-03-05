@@ -35,6 +35,7 @@ public:
         JUMP_TO_LIVEVIEW,
 
         NO_REMINDER_NEXT_TIME = 23,
+        REFRESH_NOZZLE = 24,
         IGNORE_NO_REMINDER_NEXT_TIME = 25,
         //LOAD_FILAMENT = 26*/
         IGNORE_RESUME = 27,
@@ -48,6 +49,7 @@ public:
         PROCEED = 41,
         OK_JUMP_RACK = 49,
         ABORT = 51,
+        DISABLE_PURIFICATION = 54,
 
         // old error code to pseudo action
         DBL_CHECK_CANCEL = 10000,
@@ -83,18 +85,25 @@ protected:
     void update_contents(const wxString& title, const wxString& text, const wxString& error_code,const wxString& image_url, const std::vector<int>& btns);
 
     void on_button_click(ActionButton btn_id);
+    void on_request_timeout(wxTimerEvent& event);
     void on_webrequest_state(wxWebRequestEvent& evt);
     void on_dpi_changed(const wxRect& suggested_rect);
+    wxBitmap get_default_loading_image();
+    wxBitmap get_default_error_image();
+    void clear_request_timer();
     bool get_fail_snapshot_from_cloud();
     bool get_fail_snapshot_from_local(const wxString& image_url);
 
 private:
     MachineObject* m_obj;
 
-    int m_error_code;
+    int m_error_code = 0;
     std::unordered_set<Button*> m_used_button;
 
     wxWebRequest web_request;
+    wxTimer* m_request_timer { nullptr };
+    std::atomic<bool> m_request_cancelled{false};
+
     wxString m_local_img_url;
 
     wxStaticBitmap* m_error_picture;

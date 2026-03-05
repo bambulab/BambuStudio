@@ -30,7 +30,8 @@ public:
 
     void Stop();
 
-    void SetIdleImage(wxString const & image);
+    void SetIdleImage(wxString const & image, wxString const & watermark_text = {});
+    void SetIdleImage(const wxImage &image, wxString const & watermark_text = {});
 
     wxMediaState GetState() const;
 
@@ -68,7 +69,8 @@ public:
 
     void Stop();
 
-    void SetIdleImage(wxString const & image);
+    void SetIdleImage(wxString const & image, wxString const & watermark_text = {});
+    void SetIdleImage(const wxImage &image, wxString const & watermark_text = {});
 
     int GetLastError() const;
 

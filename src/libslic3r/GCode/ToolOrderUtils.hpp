@@ -7,6 +7,7 @@
 #include <limits>
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
 #include "../MultiNozzleUtils.hpp"
 
 #define DEBUG_MULTI_NOZZLE_MCMF 0
@@ -14,18 +15,20 @@ namespace Slic3r {
 
 using FlushMatrix = std::vector<std::vector<float>>;
 
+
 namespace MaxFlowGraph {
     const int INF = std::numeric_limits<int>::max();
     const int INVALID_ID = -1;
 }
 
+struct Edge
+{
+    int from, to, capacity, cost, flow;
+    Edge(int u, int v, int cap, int cst = 0) : from(u), to(v), capacity(cap), cost(cst), flow(0) {}
+};
+
 class MaxFlowSolver
 {
-private:
-    struct Edge {
-        int from, to, capacity, flow;
-        Edge(int u, int v, int cap) :from(u), to(v), capacity(cap), flow(0) {}
-    };
 public:
     MaxFlowSolver(const std::vector<int>& u_nodes, const std::vector<int>& v_nodes,
         const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
@@ -50,6 +53,7 @@ private:
 
 
 struct MinCostMaxFlow;
+struct MaxFlowWithLowerBounds;
 
 class GeneralMinCostSolver
 {
@@ -64,6 +68,84 @@ private:
     std::unique_ptr<MinCostMaxFlow> m_solver;
 };
 
+class GeneralMinCostLowerBoundsSolver
+{
+public:
+    GeneralMinCostLowerBoundsSolver(
+        const std::vector<FlushMatrix> &matrix_,
+        const std::vector<int>& u_nodes,
+        const std::vector<int>& v_nodes,
+        const std::vector<int>& v_nodes_group,
+        const std::unordered_map<int, std::vector<int>>& uv_link_limits = {},
+        const std::unordered_map<int, std::vector<int>>& uv_unlink_limits = {});
+
+    std::vector<int> solve();
+    ~GeneralMinCostLowerBoundsSolver();
+
+private:
+    void build_feasible_graph(const std::unordered_set<int>& no_lower_groups);
+
+    void build_graph_with_feasible_result();
+
+    void add_edge_with_lower_bound(int from, int to, int lower, int upper, int cost);
+
+    int get_distance(const int idx_in_left,const int idx_in_right);
+
+private:
+    std::unique_ptr<MaxFlowWithLowerBounds> m_solver_lower_bounds;
+    std::unique_ptr<MinCostMaxFlow> m_solver_min_cost;
+
+    std::vector<FlushMatrix> flush_matrix;
+    std::vector<int> l_nodes;
+    std::vector<int> r_nodes;
+    std::vector<int> r_nodes_group;
+    std::unordered_map<int, std::vector<int>> m_uv_link_limits;
+    std::unordered_map<int, std::vector<int>> m_uv_unlink_limits;
+    int num_groups = 0;
+
+    // support lower bounds
+    struct LowerBoundEdge{
+        int edge_id;
+        int lower;
+    };
+
+    std::vector<int> demand;
+    std::vector<LowerBoundEdge> lower_bound_edges;
+
+    int super_source = -1;
+    int super_sink = -1;
+    int source_id = -1;
+    int sink_id = -1;
+    int max_flow_edges = 0;
+};
+
+class GroupMinCostFlowSolver
+{
+public:
+    GroupMinCostFlowSolver(
+        const std::vector<FlushMatrix> &matrix_,
+        const std::vector<int> &u_nodes,
+        const std::vector<int> &v_nodes,
+        const std::vector<int> &v_nodes_group,
+        const std::unordered_map<int, std::vector<int>> &uv_link_limits = {},
+        const std::unordered_map<int, std::vector<int>> &uv_unlink_limits = {});
+
+    std::vector<int> solve();
+    ~GroupMinCostFlowSolver();
+
+private:
+    void build_graph();
+    int get_flush_cost(int l_idx, int r_idx);
+
+    std::unique_ptr<MinCostMaxFlow> m_solver;
+    std::vector<FlushMatrix> flush_matrix;
+    std::vector<int> l_nodes;
+    std::vector<int> r_nodes;
+    std::vector<int> r_nodes_group;
+    std::unordered_map<int, std::vector<int>> m_uv_link_limits;
+    std::unordered_map<int, std::vector<int>> m_uv_unlink_limits;
+    int num_groups = 0;
+};
 
 class MinFlushFlowSolver
 {
@@ -105,7 +187,8 @@ int reorder_filaments_for_minimum_flush_volume(const std::vector<unsigned int> &
                                                const std::vector<std::vector<unsigned int>> &layer_filaments,
                                                const std::vector<FlushMatrix> &flush_matrix,
                                                std::optional<std::function<bool(int, std::vector<int> &)>> get_custom_seq,
-                                               std::vector<std::vector<unsigned int>> *filament_sequences);
+                                               std::vector<std::vector<unsigned int>> *filament_sequences,
+                                               const std::unordered_map<int, int>& nozzle_status = {});
 
 #if DEBUG_MULTI_NOZZLE_MCMF
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
@@ -128,12 +211,15 @@ std::vector<unsigned int> get_extruders_order(const std::vector<std::vector<floa
 #endif
 
 
+
+
 int reorder_filaments_for_multi_nozzle_extruder(const std::vector<unsigned int>& filament_lists,
-                                                const MultiNozzleUtils::MultiNozzleGroupResult& nozzle_group_result,
+                                                const MultiNozzleUtils::LayeredNozzleGroupResult& nozzle_group_result,
                                                 const std::vector<std::vector<unsigned int>>& layer_filaments,
                                                 const std::vector<FlushMatrix>& flush_matrix,
                                                 const std::function<bool(int,std::vector<int>&)> get_custom_seq,
-                                                std::vector<std::vector<unsigned int>> * filament_sequences);
+                                                std::vector<std::vector<unsigned int>> * filament_sequences,
+                                                const MultiNozzleUtils::NozzleStatusRecorder& initial_status = {});
 
 }
 #endif // !TOOL_ORDER_UTILS_HPP

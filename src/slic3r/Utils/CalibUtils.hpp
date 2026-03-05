@@ -74,6 +74,15 @@ public:
     //help function
     static bool is_support_auto_pa_cali(std::string filament_id);
 
+    // Get all supported nozzle diameters for a given printer model
+    static std::vector<std::string> get_supported_nozzle_diameters_by_model(const std::string &printer_model);
+
+    // Get all supported NozzleVolumeTypes for a given printer model and nozzle diameter
+    static std::vector<NozzleVolumeType> get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &printer_model, const std::string &nozzle_diameter);
+
+    // key:supported volume type; value: volume type supported diameter
+    static std::map<NozzleVolumeType, std::set<NozzleDiameterType>> get_supported_nozzle_volume_and_diameters(const MachineObject *obj);
+
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
     static bool get_pa_k_n_value_by_cali_idx(const MachineObject* obj, int cali_idx, float& out_k, float& out_n);
 
@@ -84,6 +93,8 @@ public:
     static bool check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message);
     static bool check_printable_status_before_cali(const MachineObject *obj, const CalibInfo &cali_info, wxString &error_message);
     static bool check_printable_status_before_cali(const MachineObject *obj, const std::vector<CalibInfo> &cali_infos, wxString &error_message);
+
+    static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message);
 
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
@@ -100,9 +111,5 @@ extern bool     is_pa_params_valid(const Calib_Params &params);
 extern void update_speed_parameter(const std::string &key);
 extern std::vector<double> generate_max_speed_parameter_value(const std::string &key);
 
-float to_nozzle_diameter_float(const NozzleDiameterType &type);
-NozzleFlowType to_nozzle_flow_type(const std::string &type);
-extern NozzleFlowType to_nozzle_flow_type(const NozzleVolumeType &type);
-extern NozzleVolumeType to_nozzle_volume_type(const NozzleFlowType &type);
 }
 }

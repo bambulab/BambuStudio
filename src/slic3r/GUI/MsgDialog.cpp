@@ -406,9 +406,21 @@ MessageDialog::MessageDialog(wxWindow* parent,
     const wxString &forward_str /* = wxEmptyString*/,
     const wxString &link_text   /* = wxEmptyString*/,
     std::function<void(const wxString &)> link_callback /* = nullptr*/)
+    : MessageDialog(parent, message, caption, style, forward_str, link_text, link_callback, false)
+{
+}
+
+MessageDialog::MessageDialog(wxWindow* parent,
+    const wxString& message,
+    const wxString& caption,
+    long style,
+    const wxString &forward_str,
+    const wxString &link_text,
+    std::function<void(const wxString &)> link_callback,
+    bool is_marked_msg)
     : MsgDialog(parent, caption.IsEmpty() ? wxString::Format(_L("%s info"), SLIC3R_APP_FULL_NAME) : caption, wxEmptyString, style, wxBitmap(),forward_str)
 {
-    add_msg_content(this, content_sizer, message, false, false, link_text, link_callback);
+    add_msg_content(this, content_sizer, message, false, is_marked_msg, link_text, link_callback);
     SetMaxSize(MSG_DLG_MAX_SIZE);
     finalize();
 }

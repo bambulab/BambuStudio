@@ -227,6 +227,7 @@ public:
 
 struct TryLoadLastMachine
 {
+    ~TryLoadLastMachine();
     bool is_mqtt_ok = false;
     bool is_list_ok = false;
 
@@ -242,6 +243,8 @@ struct TryLoadLastMachine
         is_list_ok |= true;
         InnerLoad(agent, dev);
     }
+
+    boost::thread local_bind_thread;
 };
 
 class GUI_App : public wxApp
@@ -461,7 +464,7 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
-    wxString        transition_tridid(int trid_id) const;
+    wxString        transition_tridid(int trid_id, std::optional<int> total_extruder_count = std::nullopt) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
@@ -719,6 +722,8 @@ public:
 
     void set_picking_color(const ColorRGB& color);
     const ColorRGB& get_picking_color() const;
+
+    void update_log_sink_region();
 
 private:
     int             updating_bambu_networking();

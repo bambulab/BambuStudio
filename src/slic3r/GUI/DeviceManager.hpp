@@ -22,6 +22,7 @@
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFirmware.h"
 #include "DeviceCore/DevUtil.h"
+#include "DeviceCore/DevCalib.h"
 
 #include "DeviceErrorDialog.hpp"
 
@@ -62,9 +63,11 @@ class Plater;
 }
 
 class NetworkAgent;
-enum ManualPaCaliMethod {
-    PA_LINE = 0,
-    PA_PATTERN,
+
+enum class CalibSendStatus {
+    IDLE = 0,
+    SENDING,
+    FAILED,
 };
 
 // Previous definitions
@@ -79,13 +82,16 @@ class DevExtensionTool;
 class DevExtderSystem;
 class DevFan;
 class DevFilaSystem;
+class DevFilaSwitch;
 class DevPrintOptions;
 class DevHMS;
 class DevInfo;
 class DevLamp;
+class DevNozzleMappingCtrl;
 class DevNozzleSystem;
 class DevNozzleRack;
 class DeviceManager;
+class DevStatus;
 class DevStorage;
 class DevUpgrade;
 struct DevPrintTaskRatingInfo;
@@ -110,7 +116,7 @@ private:
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
 
     // the latest nozzle mapping
-    DevNozzleMappingResult m_auto_nozzle_mapping;
+    std::shared_ptr<DevNozzleMappingCtrl> m_nozzle_mapping_ptr;;
 
     /*parts*/
     std::shared_ptr<DevAxis>    m_axis;
@@ -119,10 +125,12 @@ private:
     std::shared_ptr<DevExtensionTool> m_extension_tool;
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
-    DevFilaSystem*    m_fila_system;
+    std::shared_ptr<DevFilaSystem> m_fila_system;
+    std::shared_ptr<DevFilaSwitch> m_fila_switch;
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
+    DevCalib*         m_calib;
 
     /*Ctrl*/
     DevCtrl* m_ctrl;
@@ -132,6 +140,9 @@ private:
 
     /*Upgrade*/
     std::shared_ptr<DevUpgrade> m_upgrade;
+
+    /*Status*/
+    DevStatus* m_status;
 
     /*HMS*/
     DevHMS* m_hms_system;
@@ -197,6 +208,9 @@ public:
     void set_user_access_code(std::string code, bool only_refresh = true);
     void erase_user_access_code();
     std::string get_user_access_code() const;
+
+    void record_user_access_dev_ip();
+    void erase_user_access_dev_ip();
 
     //PRINTER_TYPE printer_type = PRINTER_3DPrinter_UKNOWN;
     std::string printer_type;       /* model_id */
@@ -292,17 +306,14 @@ public:
     /*extruder*/
     bool is_main_extruder_on_left() const { return false;  } // only means the extruder is on the left hand when extruder id is 0
     bool is_multi_extruders() const;
-    int  get_extruder_id_by_ams_id(const std::string& ams_id);
 
     /* nozzle */
     DevNozzle get_nozzle_by_id_code(int id_code) const;
     DevNozzle get_nozzle_by_sn(const std::string& sn) const;
 
     // auto nozzle mapping
-    DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
-    void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id) { m_auto_nozzle_mapping.SetManualNozzleMapping(this, fila_id, nozzle_pos_id); };// nozzle_pos_id is O\0x10\0x20\0x30...
-    void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
-    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    std::shared_ptr<DevNozzleMappingCtrl> get_nozzle_mapping_result() const { return m_nozzle_mapping_ptr;; }
+    void clear_auto_nozzle_mapping();
 
     /* ams settings*/
     std::optional<bool> IsDetectOnInsertEnabled() const;
@@ -339,15 +350,18 @@ public:
     DevNozzleSystem*               GetNozzleSystem() const { return m_nozzle_system;}
     std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
-    DevFilaSystem*   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSystem>   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSwitch>   GetFilaSwitch() const { return m_fila_switch;}
     bool             HasAms() const;
 
     std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
     std::shared_ptr<DevChamber> GetChamber() const { return m_chamber; }
-    DevLamp*         GetLamp() const { return m_lamp; }
-    DevFan*          GetFan() const { return m_fan; }
-    DevBed *         GetBed() const { return m_bed; };
-    DevStorage      *GetStorage() const { return m_storage; }
+    DevLamp*        GetLamp()   const { return m_lamp; }
+    DevFan*         GetFan()    const { return m_fan; }
+    DevBed *        GetBed()    const { return m_bed; };
+    DevStorage*     GetStorage()const { return m_storage; }
+    DevCalib*       GetCalib()  const { return m_calib; }
+    DevStatus*      GetStatus() const { return m_status; }; /* status*/
 
     DevCtrl*   GetCtrl() const { return m_ctrl; }       /* ctrl*/
     DevHMS*    GetHMS() const { return m_hms_system; }   /* hms*/
@@ -367,6 +381,7 @@ public:
     DevFirmwareVersionInfo laser_version_info;
     DevFirmwareVersionInfo cutting_module_version_info;
     DevFirmwareVersionInfo extinguish_version_info;
+    DevFirmwareVersionInfo rotary_version_info;
     DevFirmwareVersionInfo exhaustfan_version_info;
     DevFirmwareVersionInfo amshub_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
@@ -410,46 +425,8 @@ public:
     int     curr_layer = 0;
     int     total_layers = 0;
     bool    is_support_layer_num { false };
-    bool    nozzle_blob_detection_enabled{ false };
-    time_t  nozzle_blob_detection_hold_start = 0;
 
-    bool    is_support_new_auto_cali_method{false};
-    int last_cali_version = -1;
-    int cali_version = -1;
-    float                      cali_selected_nozzle_dia { 0.0 };
-    // 1: record when start calibration in preset page
-    // 2: reset when start calibration in start page
-    // 3: save tray_id, filament_id, setting_id, and name, nozzle_dia
-    std::vector<CaliPresetInfo> selected_cali_preset;
-    float                      cache_flow_ratio { 0.0 };
-    bool                       cali_finished = true;
-    FlowRatioCalibrationType   flow_ratio_calibration_type = FlowRatioCalibrationType::COMPLETE_CALIBRATION;
-
-    ManualPaCaliMethod         manual_pa_cali_method = ManualPaCaliMethod::PA_LINE;
-    bool                       has_get_pa_calib_tab{ false };
-    bool                       request_tab_from_bbs { false };
-    std::vector<PACalibResult> pa_calib_tab;
-    bool                       get_pa_calib_result { false };
-    std::vector<PACalibResult> pa_calib_results;
-    bool                       get_flow_calib_result { false };
-    std::vector<FlowRatioCalibResult> flow_ratio_results;
-    void reset_pa_cali_history_result()
-    {
-        has_get_pa_calib_tab = false;
-        pa_calib_tab.clear();
-    }
-
-    void reset_pa_cali_result() {
-        get_pa_calib_result = false;
-        pa_calib_results.clear();
-    }
-
-    void reset_flow_rate_cali_result() {
-        get_flow_calib_result = false;
-        flow_ratio_results.clear();
-    }
-
-    bool check_pa_result_validation(PACalibResult& result);
+    CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
 
     std::vector<int> stage_list_info;
     int stage_curr = 0;
@@ -525,7 +502,7 @@ public:
 
     bool        file_model_download{false};
     bool        virtual_camera{false};
-
+    bool        m_has_timelapse_kit{false};
     // part skip
     std::vector<int> m_partskip_ids;
 
@@ -543,6 +520,7 @@ public:
     bool is_support_filament_backup{false};
     bool is_support_timelapse{false};
     bool is_support_update_remain{false};
+    bool is_support_update_remain_hide_display{ false};
     int  is_support_bed_leveling = 0;/*0: false; 1; on/off 2: auto/on/off*/
     bool is_support_ams_humidity {false};
     bool is_support_1080dpi {false};
@@ -553,7 +531,6 @@ public:
     bool is_support_motor_noise_cali{false};
     bool is_support_wait_sending_finish{false};
     bool is_support_user_preset{false};
-    bool is_support_nozzle_blob_detection{false};
     bool is_support_air_print_detection{false};
     bool is_support_agora{false};
     bool is_support_upgrade_kit{false};
@@ -564,11 +541,15 @@ public:
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
     bool is_support_fila_change_abort{false};
+    bool is_support_ext_change_assist_old{false}; //for a and p
+
 
 
     // fun2
     bool is_support_print_with_emmc{false};
     bool is_support_pa_mode{false};
+    bool is_support_remote_dry = false;
+    bool is_support_active_arc_fitting{false};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -652,6 +633,7 @@ public:
     int command_hms_resume(const std::string& error_str, const std::string& job_id);
     int command_hms_ignore(const std::string& error_str, const std::string& job_id);
     int command_hms_stop(const std::string &error_str, const std::string &job_id);
+    int command_purification_disable();
     /* buzzer*/
     int command_stop_buzzer();
 
@@ -665,7 +647,7 @@ public:
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
     int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
@@ -685,8 +667,6 @@ public:
 
     // set print option
     int command_set_printing_option(bool auto_recovery);
-
-    int command_nozzle_blob_detect(bool nozzle_blob_detect);
 
     int command_extruder_control(int nozzle_id, double val);
     // calibration printer
@@ -761,6 +741,7 @@ public:
 
     bool m_firmware_valid { false };
     bool m_firmware_thread_started { false };
+    std::optional<bool> m_firmware_support_print_tpu_left;
     void get_firmware_info();
     bool is_firmware_info_valid();
 

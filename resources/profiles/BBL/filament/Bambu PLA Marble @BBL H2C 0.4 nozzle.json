@@ -14,6 +14,10 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.99",
         "0.99"
@@ -44,9 +48,6 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "first_x_layer_fan_speed": [
-        "0"
-    ],
     "filament_pre_cooling_temperature_nc": [
         "180",
         "180"
@@ -66,6 +67,9 @@
     "filament_change_length": [
         "4"
     ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
     "filament_change_length_nc": [
         "4"
     ],
@@ -82,6 +86,16 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "supertack_plate_temp": [
+        "40"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "40"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2C 0.4 nozzle"

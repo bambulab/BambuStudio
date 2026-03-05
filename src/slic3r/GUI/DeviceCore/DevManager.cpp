@@ -272,6 +272,11 @@ namespace Slic3r
                     << ", ip = " << BBLCrossTalk::Crosstalk_DevIP(dev_ip) <<", printer_name = " << BBLCrossTalk::Crosstalk_DevName(dev_name)
                     << ", con_type= " << connect_type <<", signal= " << printer_signal << ", bind_state= " << bind_state;
             }
+
+            if (obj && obj->is_cloud_mode_printer()) {
+                obj->erase_user_access_code();
+                obj->erase_user_access_dev_ip();
+            }
         }
         catch (...) {
             ;
@@ -493,7 +498,6 @@ namespace Slic3r
                 {
                     if (it->second->connection_type() != "lan" || it->second->connection_type().empty())
                     {
-                        // diff dev_id, cloud => set_user_selected_machine(new)
                         BOOST_LOG_TRIVIAL(info) << "set_selected_machine: select new cloud machine, dev_id =" << BBLCrossTalk::Crosstalk_DevId(dev_id);
                         m_agent->set_user_selected_machine(dev_id);
                         it->second->reset();
@@ -521,6 +525,7 @@ namespace Slic3r
         }
 
         selected_machine = dev_id;
+        record_user_last_machine(selected_machine);
         return true;
     }
 
@@ -780,30 +785,38 @@ namespace Slic3r
         }
     }
 
+    void DeviceManager::record_user_last_machine(const std::string& dev_id)
+    {
+        if (GUI::wxGetApp().app_config) {
+            GUI::wxGetApp().app_config->set("user_last_selected_machine", dev_id);
+        }
+    }
+
+    std::string DeviceManager::get_user_last_machine() const
+    {
+        if (GUI::wxGetApp().app_config) {
+            const auto& user_last_machine = GUI::wxGetApp().app_config->get("user_last_selected_machine");
+            if (!user_last_machine.empty()) {
+                return  user_last_machine;
+            } else {
+                return m_agent->get_user_selected_machine();
+            }
+        }
+
+        return "";
+    }
+
     void DeviceManager::load_last_machine()
     {
         if (userMachineList.empty()) return;
-
-        else if (userMachineList.size() == 1)
-        {
+        else if (userMachineList.size() == 1) {
             this->set_selected_machine(userMachineList.begin()->second->get_dev_id());
-        }
-        else
-        {
-            if (m_agent)
-            {
-                std::string last_monitor_machine = m_agent->get_user_selected_machine();
-                bool found = false;
-                for (auto it = userMachineList.begin(); it != userMachineList.end(); it++)
-                {
-                    if (last_monitor_machine == it->first)
-                    {
-                        this->set_selected_machine(last_monitor_machine);
-                        found = true;
-                    }
-                }
-                if (!found)
-                    this->set_selected_machine(userMachineList.begin()->second->get_dev_id());
+        } else {
+            const auto& last_monitor_machine = get_user_last_machine();
+            if (userMachineList.find(last_monitor_machine) != userMachineList.end()) {
+                set_selected_machine(last_monitor_machine);
+            } else {
+                this->set_selected_machine(userMachineList.begin()->second->get_dev_id());
             }
         }
     }
@@ -827,6 +840,7 @@ namespace Slic3r
                                                  const std::string& /*new_dev_id*/)
     {
         if (MachineObject* obj_ = get_selected_machine()) {
+            GUI::wxGetApp().sidebar().reset_fila_switch();
             GUI::wxGetApp().sidebar().update_sync_status(obj_);
             GUI::wxGetApp().sidebar().load_ams_list(obj_);
         };
@@ -836,7 +850,6 @@ namespace Slic3r
     {
         for (auto obj : this->userMachineList) { obj.second->reload_printer_settings(); };
     }
-
 
     DeviceManagerRefresher::DeviceManagerRefresher(DeviceManager* manger) : wxObject()
     {
@@ -868,7 +881,6 @@ namespace Slic3r
         if (obj && m_manager->get_my_machine(obj->get_dev_id()) == nullptr)
         {
             m_manager->set_selected_machine("");
-            agent->set_user_selected_machine("");
             return;
         }
 

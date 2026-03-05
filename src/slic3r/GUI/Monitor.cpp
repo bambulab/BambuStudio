@@ -303,9 +303,9 @@ void MonitorPanel::on_select_printer(wxCommandEvent& event)
 
     MachineObject *obj_ = dev->get_selected_machine();
     if (obj_) {
-        obj_->last_cali_version = -1;
-        obj_->reset_pa_cali_history_result();
-        obj_->reset_pa_cali_result();
+        obj_->GetCalib()->ResetCalibVersion();
+        obj_->GetCalib()->ResetPAHistory();
+        obj_->GetCalib()->ResetFlowRateResult();
         Sidebar &sidebar = GUI::wxGetApp().sidebar();
         sidebar.update_sync_status(obj_);
         sidebar.set_need_auto_sync_after_connect_printer(sidebar.need_auto_sync_extruder_list_after_connect_priner(obj_));
@@ -356,6 +356,7 @@ void MonitorPanel::update_all()
         show_status((int)MONITOR_NO_PRINTER);
         m_hms_panel->clear_hms_tag();
         m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
+        m_status_info_panel->m_media_play_ctrl->SetMachineObject(obj);
         m_status_info_panel->update(obj);
         return;
     }
@@ -403,21 +404,46 @@ void MonitorPanel::update_all()
 
 void MonitorPanel::update_hms_tag()
 {
-    for (auto hmsitem : m_hms_panel->temp_hms_list) {
+    if (is_hms_list_equal(m_hms_panel->temp_hms_list, m_last_hms_list)) {
+        return;
+    }
 
-        if (!obj) { break;}
-
-        const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->get_dev_id(), hmsitem.second.get_long_error_code());
-        if (msg.empty()){ continue;} /*STUDIO-10363 it's hidden message*/
+    for (auto& hmsitem : m_hms_panel->temp_hms_list) {
+        if (!obj) { break; }
 
         if (!hmsitem.second.has_read()) {
-            //show HMS new tag
-            m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
-            return;
+            const wxString &msg = wxGetApp().get_hms_query()->query_hms_msg(obj->get_dev_id(), hmsitem.second.get_long_error_code());
+            if (!msg.empty()) {
+                m_tabpanel->GetBtnsListCtrl()->showNewTag(3, true);
+                m_last_hms_list = m_hms_panel->temp_hms_list;
+                return;
+            }
         }
     }
 
     m_tabpanel->GetBtnsListCtrl()->showNewTag(3, false);
+    m_last_hms_list = m_hms_panel->temp_hms_list;
+}
+
+bool MonitorPanel::is_hms_list_equal(const std::map<std::string, DevHMSItem> &map1, const std::map<std::string, DevHMSItem> &map2) {
+    if (map1.size() != map2.size()) {
+        return false;
+    }
+    auto it1 = map1.begin();
+    auto it2 = map2.begin();
+    while (it1 != map1.end()) {
+        if (it1->first != it2->first) {
+            return false;
+        }
+
+        if (it1->second.has_read() != it2->second.has_read()) {
+            return false;
+        }
+
+        ++it1;
+        ++it2;
+    }
+    return true;
 }
 
 bool MonitorPanel::Show(bool show)

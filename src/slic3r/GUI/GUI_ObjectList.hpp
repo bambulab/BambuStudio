@@ -406,6 +406,7 @@ public:
     void select_item(const ObjectVolumeID& ov_id);
     void select_items(const std::vector<ObjectVolumeID>& ov_ids);
     void select_all();
+    void expand_collapse_plate(int plate_idx, bool expand);
     void select_item_all_children();
     void update_selection_mode();
     bool check_last_selection(wxString& msg_str);
@@ -417,6 +418,8 @@ public:
 
     ModelVolume* get_selected_model_volume();
     void change_part_type();
+    void set_volume_type(ModelVolumeType new_type);
+    ModelVolumeType get_selected_volume_type();
 
     void last_volume_is_deleted(const int obj_idx);
     void update_and_show_object_settings_item();

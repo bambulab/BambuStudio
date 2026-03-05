@@ -36,12 +36,13 @@ function usage() {
     echo "   -r: skip ram and disk checks (low ram compiling)"
     echo "   -s: build bambu-studio (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
+    echo "   -t: set internal testing level (default=0, 1=debug, 2=beta)"
     echo "For a first use, you want to 'sudo ./BuildLinux.sh -u'"
     echo "   and then './BuildLinux.sh -dsi'"
 }
 
 unset name
-while getopts ":1fbcdghirsu" opt; do
+while getopts ":1fbcdhirsut:" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -73,8 +74,18 @@ while getopts ":1fbcdghirsu" opt; do
     u )
         UPDATE_LIB="1"
         ;;
+    t )
+        INTERNAL_TESTING="$OPTARG"
+        ;;
   esac
 done
+
+if [ "${BUILD_DEBUG}" = "1" ]; then
+    if [ -z "${INTERNAL_TESTING}" ]; then
+        INTERNAL_TESTING=1
+    fi
+fi
+INTERNAL_TESTING=${INTERNAL_TESTING:-0}
 
 if [ ${OPTIND} -eq 1 ]
 then
@@ -178,9 +189,9 @@ then
     fi
     if [[ -n "${BUILD_DEBUG}" ]]
     then
-        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=1"
+        BUILD_ARGS="${BUILD_ARGS} -DCMAKE_BUILD_TYPE=Debug -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
     else
-        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0"
+        BUILD_ARGS="${BUILD_ARGS} -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=${INTERNAL_TESTING}"
     fi
     echo -e "cmake -S . -B build -G Ninja -DCMAKE_PREFIX_PATH="${PWD}/deps/build/destdir/usr/local" -DSLIC3R_STATIC=1 ${BUILD_ARGS}"
     cmake -S . -B build -G Ninja \

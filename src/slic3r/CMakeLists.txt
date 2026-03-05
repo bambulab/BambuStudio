@@ -196,6 +196,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Preferences.hpp
     GUI/AMSSetting.cpp
     GUI/AMSSetting.hpp
+    GUI/AMSDryControl.cpp
+    GUI/AMSDryControl.hpp
     GUI/AMSMaterialsSetting.cpp
     GUI/AMSMaterialsSetting.hpp
     GUI/ExtrusionCalibration.cpp
@@ -298,6 +300,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/WebDownPluginDlg.cpp
     GUI/WebGuideDialog.hpp
     GUI/WebGuideDialog.cpp
+    GUI/UxProgramTermsDialog.hpp
+    GUI/UxProgramTermsDialog.cpp
     GUI/WebUserLoginDialog.cpp
     GUI/WebUserLoginDialog.hpp
     GUI/ConfigManipulation.cpp
@@ -497,10 +501,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
+    GUI/AmsMappingPopupUpdate.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
     GUI/HelioReleaseNote.hpp
     GUI/HelioReleaseNote.cpp
+    GUI/HelioHistoryDialog.hpp
+    GUI/HelioHistoryDialog.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
     GUI/CaliHistoryDialog.hpp
@@ -624,8 +631,11 @@ set(SLIC3R_GUI_SOURCES
     Utils/HelioDragon.hpp
     Utils/FileTransferUtils.cpp
     Utils/FileTransferUtils.hpp
+    Utils/FileTransferObject.cpp
+    Utils/FileTransferObject.hpp
     Utils/CertificateVerify.hpp
     Utils/CertificateVerify.cpp
+    Utils/FrameBuffer.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)

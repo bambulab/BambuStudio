@@ -113,7 +113,7 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     	[](const PrintInstance& lhs, const PrintInstance& rhs) { return lhs.model_instance == rhs.model_instance && lhs.shift == rhs.shift; });
     if (! equal) {
         status = PrintBase::APPLY_STATUS_CHANGED;
-        if (m_print->invalidate_steps({ psSkirtBrim, psGCodeExport }) ||
+        if (m_print->invalidate_steps({psWipeTower,psSkirtBrim, psGCodeExport}) ||
             (! equal_length && m_print->invalidate_step(psWipeTower)))
             status = PrintBase::APPLY_STATUS_INVALIDATED;
         m_instances = std::move(instances);
@@ -344,13 +344,20 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
         return max_volumetric_speed / mm3_per_mm;
     };
 
-    auto get_speed_from_role = [](ExtrusionRole role, const PrintRegionConfig &region_config, const PrintConfig &print_config, int extruder_id) -> double {
+    auto get_speed_from_role_with_filament = [](ExtrusionRole role, int filament_id, const PrintRegionConfig &region_config, const PrintConfig &print_config, int extruder_id) -> double {
         switch (role) {
         case erPerimeter: return region_config.inner_wall_speed.values[extruder_id];
         case erExternalPerimeter: return region_config.outer_wall_speed.values[extruder_id];
         case erOverhangPerimeter:
         case erBridgeInfill:
-        case erSupportTransition: return region_config.bridge_speed.values[extruder_id];
+        case erSupportTransition: {
+            bool use_filament_bridge_speed = print_config.filament_enable_overhang_speed.get_at(filament_id);
+
+            if (use_filament_bridge_speed)
+                return print_config.filament_bridge_speed.values[filament_id];
+            else
+                return region_config.bridge_speed.values[extruder_id];
+        }
         case erInternalInfill: return region_config.sparse_infill_speed.values[extruder_id];
         case erFloatingVerticalShell:
         case erSolidInfill: return region_config.internal_solid_infill_speed.values[extruder_id];
@@ -420,7 +427,6 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
                 for (auto &entities : entity_list) {
                     for (auto &entity : entities) {
                         auto   role              = entity->role();
-                        double speed_from_config = get_speed_from_role(role, region.config(), this->print()->config(), eidx);
                         int    filament          = 0;
                         if (is_perimeter(role))
                             filament = region.config().wall_filament - 1;
@@ -431,6 +437,7 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
                         else
                             continue;
 
+                        double speed_from_config = get_speed_from_role_with_filament(role, filament, region.config(), this->print()->config(), eidx);
                         process_entity(filament, eidx, entity, speed_from_config);
                     }
                 }
@@ -1246,6 +1253,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "top_surface_density"
+            || opt_key == "monotonic_travel_into_wall"
             || opt_key == "bottom_surface_pattern"
             || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
@@ -1259,6 +1267,8 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (opt_key == "sparse_infill_pattern"
                    || opt_key == "symmetric_infill_y_axis"
                    || opt_key == "infill_shift_step"
+                   || opt_key == "sparse_infill_lattice_angle_1"
+                   || opt_key == "sparse_infill_lattice_angle_2"
                    || opt_key == "infill_rotate_step"
                    || opt_key == "skeleton_infill_density"
                    || opt_key == "skin_infill_density"
@@ -2132,10 +2142,11 @@ void PrintObject::discover_shell_for_perimeters()
                     ExPolygons old_internal = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternal));
                     ExPolygons old_internal_void = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalVoid));
                     ExPolygons old_internal_solid = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalSolid));
+                    ExPolygons bottom_area        = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stBottom));
 
                     lower_layerm->fill_surfaces.remove_types({ stInternal,stInternalVoid,stInternalSolid });
 
-                    ExPolygons new_internal_solid = union_ex(old_internal_solid, new_perimeter_solid);
+                    ExPolygons new_internal_solid = diff_ex(union_ex(old_internal_solid, new_perimeter_solid), bottom_area);
                     ExPolygons new_internal = diff_ex(old_internal, new_perimeter_solid);
                     ExPolygons new_internal_void = diff_ex(old_internal_void, new_perimeter_solid);
                     lower_layerm->fill_surfaces.append(new_internal, stInternal);
@@ -3641,6 +3652,7 @@ void PrintObject::combine_infill()
                 ((region.config().sparse_infill_pattern == ipRectilinear   ||
                   region.config().sparse_infill_pattern == ipMonotonic     ||
                   region.config().sparse_infill_pattern == ipGrid          ||
+                  region.config().sparse_infill_pattern == ip2DLattice     ||
                   region.config().sparse_infill_pattern == ipLine          ||
                   region.config().sparse_infill_pattern == ipHoneycomb) ? 1.5f : 0.5f) *
                     layerms.back()->flow(frSolidInfill).scaled_width();

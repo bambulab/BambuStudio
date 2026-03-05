@@ -23,9 +23,14 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     opts->m_filament_tangle_detection.current_detect_value = ((flag >> 20) & 0x1) != 0;
                 }
 
-                 opts->m_allow_prompt_sound_detection.is_support_detect = ((flag >> 18) & 0x1) != 0;
+                opts->m_allow_prompt_sound_detection.is_support_detect = ((flag >> 18) & 0x1) != 0;
                 opts->m_filament_tangle_detection.is_support_detect    = ((flag >> 19) & 0x1) != 0;
+                opts->m_nozzle_blob_detection.is_support_detect =  ((flag >> 25) & 0x1) != 0;
 
+                if (time(nullptr) - opts->m_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
+                {
+                    opts->m_nozzle_blob_detection.current_detect_value = ((flag >> 24) & 0x1) != 0;
+                }
             }
         }
 
@@ -68,6 +73,8 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     case 2: opts->m_airprinting_detection.current_detect_sensitivity_value = "high"; break;
                     default: break;
                     }
+
+                    opts->m_fod_check_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 21);
 
                     opts->m_buildplate_type_detection.is_support_detect     = true;
                     if (time(nullptr) - opts->m_buildplate_align_detection.detect_hold_start > HOLD_TIME_3SEC)
@@ -206,6 +213,16 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
 
          if (time(nullptr) - opts->m_purify_air_at_print_end.detect_hold_start > HOLD_TIME_3SEC)
             opts->m_purify_air_at_print_end.current_detect_value = DevUtil::get_flag_bits(cfg, 36, 2);
+
+        if (time(nullptr) - opts->m_snapshot_detection.detect_hold_start > HOLD_TIME_3SEC) {
+            opts->m_snapshot_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 38, 2);
+            opts->m_snapshot_detection.is_support_detect =
+                opts->m_snapshot_detection.current_detect_value != 0 && opts->m_snapshot_detection.current_detect_value != 3;
+        }
+         if (time(nullptr) - opts->m_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
+             opts->m_nozzle_blob_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 24);
+
+
     }
 
     // fun1 part
@@ -259,6 +276,7 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
 
         opts->m_buildplate_align_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
         opts->m_purify_air_at_print_end.is_support_detect    = DevUtil::get_flag_bits_no_border(fun2, 4);
+        opts->m_fod_check_detection.is_support_detect        = DevUtil::get_flag_bits_no_border(fun2, 13);
     }
 }
 
@@ -279,9 +297,7 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Nozzle_Blob_Detection, &m_nozzle_blob_detection},
                         {PrintOptionEnum::Open_Door_Detection, &m_open_door_detection},
                         {PrintOptionEnum::Idle_Heating_Protect_Detection, &m_idel_heating_protect_detection},
-                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection},
-                        {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
-    };
+                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection}};
 }
 
 void DevPrintOptions::SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level)
@@ -400,6 +416,17 @@ int DevPrintOptions::command_xcam_control_filament_tangle_detect(bool on_off)
     return command_set_filament_tangle_detect(on_off, m_obj);
 }
 
+int DevPrintOptions::command_nozzle_blob_detect(bool nozzle_blob_detect)
+{
+    json j;
+    j["print"]["command"]            = "print_option";
+    j["print"]["sequence_id"]        = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_blob_detect"] = nozzle_blob_detect;
+    m_nozzle_blob_detection.current_detect_value = nozzle_blob_detect;
+    m_nozzle_blob_detection.detect_hold_start = time(nullptr);
+    return m_obj->publish_json(j);
+}
+
 PrintOptionData *DevPrintOptions::GetDetectionOption(PrintOptionEnum print_option)
 {
     auto it = m_detection_list.find(print_option);
@@ -446,6 +473,7 @@ int DevPrintOptions::command_set_printing_option(bool auto_recovery, MachineObje
 
 int DevPrintOptions::command_set_prompt_sound(bool prompt_sound, MachineObject *obj)
 {
+
     json j;
     j["print"]["command"]      = "print_option";
     j["print"]["sequence_id"]  = std::to_string(MachineObject::m_sequence_id++);
@@ -484,6 +512,29 @@ int DevPrintOptions::command_set_purify_air_at_print_end(PurifyAirAtPrintEndStat
         default: assert(0);
     }
     return obj->publish_json(j);
+}
+
+int DevPrintOptions::command_snapshot_control(int on_off)
+{
+    m_snapshot_detection.current_detect_value = on_off;
+    m_snapshot_detection.detect_hold_start    = time(nullptr);
+    return command_set_snapshot_control(on_off, m_obj);
+}
+
+int DevPrintOptions::command_set_snapshot_control(int on_off, MachineObject *obj)
+{
+    json j;
+    j["camera"]["command"]                = "ipcam_cap_pic_set";
+    j["camera"]["sequence_id"]            = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["control"]                = on_off? "enable": "disable";
+    return obj->publish_json(j);
+}
+
+int DevPrintOptions::command_xcam_control_fod_check(bool on_off)
+{
+    m_fod_check_detection.current_detect_value = on_off;
+    m_fod_check_detection.detect_hold_start    = time(nullptr);
+    return command_xcam_control("fod_check", on_off, m_obj);
 }
 
 } // namespace Slic3r

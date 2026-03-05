@@ -215,7 +215,14 @@ void wgtDeviceNozzleRackHotendUpdate::CreateGui()
     version_h_sizer->Add(m_version_new_label, 0, wxALIGN_CENTER_VERTICAL);
     info_sizer->Add(m_sn_label, 0, wxALIGN_LEFT);
     info_sizer->Add(version_h_sizer, 0, wxALIGN_LEFT);
+
+    //Used Time
+    m_used_time = new Label(this);
+    m_used_time->SetFont(Label::Body_12);
+    m_used_time->SetBackgroundColour(WGT_DEVICE_NOZZLE_RACK_HOTEND_UPDATE_DEFAULT_BG);
+
     content_sizer->Add(info_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT);
+    content_sizer->Add(m_used_time, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(30));
     content_sizer->AddSpacer(FromDIP(25));
 
     auto* main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -372,6 +379,15 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
             m_version_new_label->Show(false);
         }
     }
+
+    // Update used time
+    int usedSeconds = nozzle.GetNozzlePrintTime();
+    double hours = 0.0f;
+    if (!nozzle.IsEmpty())
+    {
+        hours = static_cast<double>(usedSeconds) / 3600;
+    }
+    m_used_time->SetLabel(wxString::Format("%s: %.2f h", _L("Used Time"), hours));
 }
 
 void wgtDeviceNozzleRackHotendUpdate::Rescale()

@@ -6,13 +6,13 @@
     "setting_id": "GFSP97_00",
     "instantiation": "true",
     "description": "This is neither a commonly used filament, nor one of Bambu filaments, and it varies a lot from brand to brand. So, it's highly recommended to ask its vendor for suitable profile before printing and adjust some parameters according to its performances.",
-    "filament_max_volumetric_speed": [
-        "12",
-        "12"
-    ],
     "filament_flow_ratio": [
         "1",
         "1"
+    ],
+    "filament_max_volumetric_speed": [
+        "12",
+        "12"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -36,6 +36,10 @@
     "retraction_distances_when_ec": [
         "0",
         "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P1P 0.4 nozzle",

@@ -8,7 +8,10 @@ namespace Slic3r {
 using RGB = std::array<float, 3>;
 using RGBA = std::array<float, 4>;
 const RGBA UNDEFINE_COLOR = {0,0,0,0};
-bool  color_is_equal(const RGBA a, const RGBA &b);
+bool color_is_equal(const RGBA a, const RGBA &b);
+// Convert color strings (e.g., "#FF0000FF") to RGBA
+RGBA convert_color_string_to_rgba(const std::string& color_str);
+
 class ColorRGB
 {
 	std::array<float, 3> m_data{1.0f, 1.0f, 1.0f};

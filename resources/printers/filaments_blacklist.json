@@ -58,14 +58,68 @@
       "description": "The current filament doesn't support the E3D high-flow nozzle and can't be used."
     },
     {
+      "white_fila_ids": ["GFU04", "GFU03", "GFU01", "GFU00", "GFU99"],
+      "nozzle_flows": ["TPU High Flow"],
+      "model_id": ["O1D", "O1E"],
+      "action": "prohibition",
+      "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
+    },
+    {
+      "name_suffix": "Bambu TPU 85A",
+      "nozzle_flows": ["Standard", "High Flow"],
+      "nozzle_diameters": [0.4],
+      "model_id": ["O1D", "O1E"],
+      "action": "prohibition",
+      "description": "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["N7"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=blx2TDu3uoRdfyIx"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1D"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1E"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1C2"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
+    },
+    {
+      "types": ["TPU", "TPU-AMS"],
+      "action": "warning",
+      "model_id":["O1S"],
+      "description": "How to feed TPU filament.",
+      "wiki": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
+    },
+    {
       "type": "TPU",
+      "action": "prohibition",
+      "calib_mode": "auto_pa",
+      "model_id": ["O1D", "O1E"],
+      "description": "Auto dynamic flow calibration is not supported for TPU filament."
       "action": "warning",
       "model_id":["N6"],
       "description": "How to feed TPU filament on X2D.",
       "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
     },
     {
-      "type": "TPU-AMS",
+      "types": ["TPU", "TPU-AMS"],
       "action": "warning",
       "model_id":["N6"],
       "description": "How to feed TPU filament on X2D.",
@@ -115,18 +169,6 @@
       "action": "warning",
       "description": "PPA-CF is brittle and could break in bended PTFE tube above Toolhead.",
       "wiki": "https://e.bambulab.com/t?c=UC64kdlpHxN3Mb15"
-    },
-    {
-      "type_suffix": "CF",
-      "action": "warning",
-      "slot": "ams",
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
-    },
-    {
-      "type_suffix": "GF",
-      "action": "warning",
-      "slot": "ams",
-      "description": "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
     },
     {
       "vendor": "Bambu Lab",

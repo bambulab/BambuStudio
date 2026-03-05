@@ -1,6 +1,6 @@
 # Building Bambu Studio on Windows
 
-## Enviroment setup
+## Environment setup
 Install Following tools:
 - Visual Studio Community 2019 from [visualstudio.microsoft.com/vs/](https://visualstudio.microsoft.com/vs/) (Older versions are not supported as Bambu Studio requires support for C++17, and newer versions should also be ok);
 - Cmake from [cmake.org](https://cmake.org/download/)

@@ -1260,8 +1260,32 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             print_variant_index.resize(1, 0);
 
         m_ori_full_print_config = new_full_config;
-        if ((extruder_count > 1) || different_extruder)
-            new_full_config.update_values_to_printer_extruders_for_multiple_filaments(new_full_config, extruder_count, extruder_volume_type_count, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
+
+        auto group_result = this->get_nozzle_group_result();
+        std::set<std::string> filament_keys = filament_options_with_variant;
+        filament_keys.insert("filament_self_index");
+        if (group_result && group_result->is_support_dynamic_nozzle_map()) {
+            std::unordered_map<int, std::vector<ExtruderNozleInfo>> filament_extruder_map;
+            auto filament_count = m_config.option<ConfigOptionStrings>("filament_type")->size();
+            auto extruder_type  = m_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+
+            for (int fidx = 0; fidx < filament_count; ++fidx) {
+                auto                        used_nozzles = group_result->get_nozzles_for_filament(fidx);
+                std::set<ExtruderNozleInfo> extruder_nozzle_set;
+                for (auto nozzle : used_nozzles) {
+                    ExtruderNozleInfo tmp;
+                    tmp.extruder_type      = ExtruderType(extruder_type[nozzle.extruder_id]);
+                    tmp.nozzle_volume_type = nozzle.volume_type;
+                    extruder_nozzle_set.insert(tmp);
+                }
+                filament_extruder_map[fidx] = std::vector<ExtruderNozleInfo>(extruder_nozzle_set.begin(), extruder_nozzle_set.end());
+            }
+            new_full_config.update_filament_config_values_for_multiple_extruders(m_ori_full_print_config, filament_extruder_map, extruder_count, extruder_volume_type_count,
+                                                                                 filament_keys, "filament_self_index", "filament_extruder_variant");
+        } else if ((extruder_count > 1) || different_extruder) {
+            new_full_config.update_values_to_printer_extruders_for_multiple_filaments(m_ori_full_print_config, extruder_count, extruder_volume_type_count, filament_keys,
+                                                                                      "filament_self_index", "filament_extruder_variant");
+        }
     }
     else {
         //should not come here, we can not get the result of print_variant, for the values have been updated
@@ -1407,6 +1431,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	    m_default_region_config.apply_only(new_full_config, region_diff, true);
         //m_full_print_config = std::move(new_full_config);
         m_full_print_config = new_full_config;
+        update_filament_self_index_cache();
         if (num_extruders  != m_config.filament_diameter.size()) {
             num_extruders  = m_config.filament_diameter.size();
             num_extruders_changed  = true;
@@ -1776,6 +1801,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Handle changes to regions config defaults
         m_default_region_config.apply_only(new_full_config, new_changed_keys, true);
         m_full_print_config = std::move(new_full_config);
+        update_filament_self_index_cache();
     }
 
     // All regions now have distinct settings.

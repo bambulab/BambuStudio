@@ -40,7 +40,7 @@ option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
-CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow perfoming desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
+CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
 
 set(OPENVDB_FIND_MODULE_PATH "" CACHE PATH "Path to OpenVDB installation's find modules.")
 
@@ -67,6 +67,13 @@ if (APPLE)
     message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CMAKE_INSTALL_RPATH "$ORIGIN")
+elseif (MSVC)
+        message(STATUS "CMAKE_GENERATOR_PLATFORM is ${CMAKE_GENERATOR_PLATFORM} ")
+        message(STATUS "CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR} ")
+        if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(AMD64|x86_64)$") AND (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+            message(STATUS " is cross compile set to true.............")
+            set(IS_CROSS_COMPILE TRUE)
+        endif ()
 endif ()
 
 # Proposal for C++ unit tests and sandboxes
@@ -269,7 +276,7 @@ if (NOT MSVC AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMP
     endif()
 
     # Clang reports legacy OpenGL calls as deprecated. Turn off the warning for now
-    # to reduce the clutter, we know about this one. It should be reenabled after
+    # to reduce the clutter, we know about this one. It should be re-enabled after
     # we finally get rid of the deprecated code.
     if("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         add_compile_options(-Wno-deprecated-declarations)
@@ -541,7 +548,7 @@ add_custom_target(gettext_make_pot
 )
 add_custom_target(gettext_merge_po_with_pot
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Merge localization po with new generted pot file"
+    COMMENT "Merge localization po with new generated pot file"
 )
 file(GLOB BBL_L10N_PO_FILES "${BBL_L18N_DIR}/*/BambuStudio*.po")
 foreach(po_file ${BBL_L10N_PO_FILES})
@@ -605,6 +612,20 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         set(_bits 32)
     endif ()
 
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        set(_gmpdll win_arm64/gmp-10.dll)
+        set(_mpfrdll win_arm64/mpfr-6.dll)
+        set(output_gmpdll gmp-10.dll)
+        set(output_mpfrdll mpfr-6.dll)
+        set(_webviewloaderdll win_arm64/WebView2Loader.dll)
+    else ()
+        set(_gmpdll win${_bits}/libgmp-10.dll)
+        set(_mpfrdll win${_bits}/libmpfr-4.dll)
+        set(output_gmpdll libgmp-10.dll)
+        set(output_mpfrdll libmpfr-4.dll)
+        set(_webviewloaderdll win${_bits}/WebView2Loader.dll)
+    endif ()
+
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     get_target_property(_alt_out_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
 
@@ -619,9 +640,9 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/win${_bits}/libgmp-10.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/win${_bits}/libmpfr-4.dll
-            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/win${_bits}/WebView2Loader.dll
+    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/${_gmpdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/${_mpfrdll}
+            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/${_webviewloaderdll}
         DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
@@ -658,8 +679,8 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
          DESTINATION ${_out_dir})
 
     set(${output_dlls}
-        ${_out_dir}/libgmp-10.dll
-        ${_out_dir}/libmpfr-4.dll
+        ${_out_dir}/${output_gmpdll}
+        ${_out_dir}/${output_mpfrdll}
         ${_out_dir}/WebView2Loader.dll
 
         ${_out_dir}/TKBO.dll
@@ -704,19 +725,31 @@ function(bambustudio_copy_sos target config postfix output_sos)
     set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
 
-    file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
-            ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
-            ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
-            ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
-            ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
-         DESTINATION ${_out_dir})
+    if (EXISTS "/usr/lib/aarch64-linux-gnu/libavcodec.so")
+        file(COPY /usr/lib/aarch64-linux-gnu/libavcodec.so
+                  /usr/lib/aarch64-linux-gnu/libavcodec.so.61
+                  /usr/lib/aarch64-linux-gnu/libavutil.so
+                  /usr/lib/aarch64-linux-gnu/libavutil.so.59
+                  /usr/lib/aarch64-linux-gnu/libswscale.so
+                  /usr/lib/aarch64-linux-gnu/libswscale.so.8
+                  /usr/lib/aarch64-linux-gnu/libswresample.so
+                  /usr/lib/aarch64-linux-gnu/libswresample.so.5
+             DESTINATION ${_out_dir})
+    else()
+        file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
+                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
+                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
+                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
+                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
+             DESTINATION ${_out_dir})
+    endif()
 
     set(${output_dlls}
         ${_out_dir}/libavcodec.so

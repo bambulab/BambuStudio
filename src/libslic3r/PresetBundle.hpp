@@ -63,6 +63,7 @@ struct FilamentBaseInfo
     bool is_support{ false };
     bool is_system{ true };
     int  filament_printable = 3;
+    std::string setting_id = "";
 };
 
 // Recommended parameters for support filament combination
@@ -114,6 +115,7 @@ public:
     ExtruderNozzleStat(const std::vector<std::map<NozzleVolumeType, int>>& nozzle_counts, const NozzleDataFlag flag = ndfNone) : extruder_nozzle_counts(nozzle_counts), data_flag(flag) {}
     void on_volume_type_switch(int extruder_id, NozzleVolumeType type);
     void on_printer_model_change(PresetBundle* preset_bundle);
+    void on_printer_model_change_cli(const std::vector<int> &nozzle_volume_type, const std::vector<int> &max_nozzle_count);
     void set_extruder_nozzle_count(int extruder_id, NozzleVolumeType type, int count, bool clear);
     int get_extruder_nozzle_count(int extruder_id, std::optional<NozzleVolumeType> volume_type = std::nullopt) const;
 
@@ -198,7 +200,7 @@ public:
     //BBS: get vendor's current version
     Semver get_vendor_profile_version(std::string vendor_name);
 
-    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string()) const;
+    std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
 
     // Load support recommended params from JSON file
     void load_support_recommended_params();
@@ -224,8 +226,13 @@ public:
     void            set_num_filaments(unsigned int n, std::string new_col = "");
     void         update_num_filaments(unsigned int to_del_flament_id);
 
-    void get_ams_cobox_infos(AMSComboInfo &combox_info);
-    unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo& merge_info);
+    void         get_ams_cobox_infos(AMSComboInfo &combox_info,bool skip_ext = false);
+    unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
+                               bool                                                       use_map,
+                               std::map<int, AMSMapInfo> &                                maps,
+                               bool                                                       enable_append,
+                               MergeFilamentInfo &                                        merge_info,
+                               bool                                                       skip_ext = false);
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
@@ -235,6 +242,8 @@ public:
     void set_calibrate_printer(std::string name);
 
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
+
+    std::vector<NozzleVolumeType> get_printer_nozzle_volume_list();
 
     std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str, bool system_only = true);
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,

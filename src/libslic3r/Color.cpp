@@ -9,12 +9,44 @@ namespace Slic3r {
 bool color_is_equal(const RGBA a, const RGBA& b)
 {
     for (size_t i = 0; i < 4; i++) {
-        if (abs(a[i] - b[i]) > 0.01) {
+        float value = abs(a[i] - b[i]) * 255.f;
+        if (value >= 0.9f) {//Floating-point precision
             return false;
         }
     }
     return true;
 }
+
+// Convert 3MF color strings to RGBA
+// Supported formats: "#RRGGBB", "#RRGGBBAA", "RRGGBB", "RRGGBBAA"
+RGBA convert_color_string_to_rgba(const std::string& color_str)
+{
+    if (color_str.empty()) {
+        return UNDEFINE_COLOR;
+    }
+    std::string hex_str = color_str;
+    // Remove the leading '#'
+    if (hex_str[0] == '#') {
+        hex_str = hex_str.substr(1);
+    }
+    // Deciphering hexadecimal
+    if (hex_str.length() == 6) {
+        // RRGGBB format
+        unsigned int r, g, b;
+        if (sscanf(hex_str.c_str(), "%02x%02x%02x", &r, &g, &b) == 3) {
+            return RGBA{ r / 255.0f, g / 255.0f, b / 255.0f, 1.0f };
+        }
+    }
+    else if (hex_str.length() == 8) {
+        // RRGGBBAA format
+        unsigned int r, g, b, a;
+        if (sscanf(hex_str.c_str(), "%02x%02x%02x%02x", &r, &g, &b, &a) == 4) {
+            return RGBA{ r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
+        }
+    }
+    return UNDEFINE_COLOR;
+}
+
 // Conversion from RGB to HSV color space
 // The input RGB values are in the range [0, 1]
 // The output HSV values are in the ranges h = [0, 360], and s, v = [0, 1]

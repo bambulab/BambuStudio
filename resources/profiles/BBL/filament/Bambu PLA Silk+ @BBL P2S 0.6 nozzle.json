@@ -11,6 +11,10 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -22,6 +26,10 @@
     "filament_max_volumetric_speed": [
         "12",
         "12"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -42,10 +50,6 @@
     "first_x_layer_fan_speed": [
         "40"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
@@ -65,14 +69,18 @@
         "0",
         "0"
     ],
+    "slow_down_layer_time": [
+        "10"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
     "supertack_plate_temp": [
         "35"
     ],
     "supertack_plate_temp_initial_layer": [
         "35"
-    ],
-    "slow_down_layer_time": [
-        "10"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.6 nozzle"

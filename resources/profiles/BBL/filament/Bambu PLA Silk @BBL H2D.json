@@ -26,6 +26,10 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98"
@@ -76,6 +80,10 @@
     ],
     "slow_down_layer_time": [
         "6"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab H2D 0.4 nozzle",

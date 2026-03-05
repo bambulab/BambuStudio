@@ -133,7 +133,7 @@ use Slic3r::Test;
     });
     my $convex_hull = convex_hull(\@extrusion_points);
     my $hull_perimeter = unscale($convex_hull->split_at_first_point->length);
-    ok $skirt_length > $hull_perimeter, 'skirt lenght is large enough to contain object with support';
+    ok $skirt_length > $hull_perimeter, 'skirt length is large enough to contain object with support';
 }
 
 {

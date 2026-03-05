@@ -5,8 +5,18 @@
     "from": "system",
     "setting_id": "GFSG00_32",
     "instantiation": "true",
+    "fan_max_speed": [
+        "60"
+    ],
     "fan_min_speed": [
         "20"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_max_volumetric_speed": [
         "21",
@@ -24,6 +34,9 @@
         "2",
         "2"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
     "filament_z_hop": [
         "0.2",
         "0.2"
@@ -36,8 +49,8 @@
         "0",
         "0"
     ],
-    "fan_max_speed": [
-        "60"
+    "filament_change_length": [
+        "4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -52,6 +65,12 @@
     ],
     "pre_start_fan_time": [
         "2"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2S 0.6 nozzle",

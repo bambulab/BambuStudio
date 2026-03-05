@@ -1,12 +1,17 @@
 #include "PrePrintChecker.hpp"
-#include "SelectMachine.hpp"
+
+#include "MainFrame.hpp"
+#include "GUI_App.hpp"
 #include "GUI_Utils.hpp"
 #include "I18N.hpp"
-#include <set>
+#include "SelectMachine.hpp"
 
+#include "DeviceManager.hpp"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/DeviceCore/DevUpgrade.h"
 
+#include <set>
 
 namespace Slic3r { namespace GUI {
 
@@ -67,6 +72,7 @@ std::string PrePrintChecker::get_print_status_info(PrintDialogStatus status)
     case PrintStatusFilamentWarningHighChamberTempCloseDoor: return "PrintStatusFilamentWarningHighChamberTempCloseDoor";
     case PrintStatusFilamentWarningHighChamberTempSoft: return "PrintStatusFilamentWarningHighChamberTempSoft";
     case PrintStatusFilamentWarningUnknownHighChamberTempSoft: return "PrintStatusFilamentWarningUnknownHighChamberTempSoft";
+    case PrintStatusFilamentWarningRemainNotEnough: return "PrintStatusFilamentWarningRemainNotEnough";
     case PrintStatusReadingFinished: return "PrintStatusReadingFinished";
     case PrintStatusSendingCanceled: return "PrintStatusSendingCanceled";
     case PrintStatusAmsMappingSuccess: return "PrintStatusAmsMappingSuccess";
@@ -102,7 +108,12 @@ wxString PrePrintChecker::get_pre_state_msg(PrintDialogStatus status)
     case PrintStatusBlankPlate: return _L("Cannot send the print job for empty plate");
     case PrintStatusTimelapseNoSdcard: return _L("Storage needs to be inserted to record timelapse.");
     case PrintStatusMixAmsAndVtSlotWarning: return _L("You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing.");
-    case PrintStatusTPUUnsupportAutoCali: return _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
+    case PrintStatusTPUUnsupportAutoCali: 
+        return _L("TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. "
+                  "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");
+    case PrintStatusTPUUnsupportCaliOn:
+        return _L("TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. "
+                  "If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process.");
     case PrintStatusWarningKvalueNotUsed: return _L("Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value.");
     case PrintStatusNotSupportedPrintAll: return _L("This printer does not support printing all plates");
     case PrintStatusColorQuantityExceed: return _L("The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support.");
@@ -311,9 +322,9 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
 {
     // special styles
     if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh) ||
-        info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain) || 
-        info.testStyle(prePrintInfoStyle::BtnInstallFanF000)) {
-
+        info.testStyle(prePrintInfoStyle::BtnConfirmNotShowAgain) ||
+        info.testStyle(prePrintInfoStyle::BtnInstallFanF000) ||
+        info.testStyle(prePrintInfoStyle::BtnJumpToUpgrade)) {
         wxBoxSizer* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
         if (info.testStyle(prePrintInfoStyle::BtnNozzleRefresh)){
             auto btn = s_create_btn_label(this, _L("Refresh"));
@@ -336,6 +347,12 @@ void PrinterMsgPanel::AppendStyles(const prePrintInfo& info)
                 wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=l3T7caKGeNt3omA9");
             });
 
+            btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
+        }
+
+        if (info.testStyle(prePrintInfoStyle::BtnJumpToUpgrade)) {
+            auto btn = s_create_btn_label(this, _L("Upgrade"));
+            btn->Bind(wxEVT_LEFT_DOWN, &PrinterMsgPanel::OnUpgradeBtnClicked, this);
             btn_sizer->Add(btn, 0, wxLEFT, FromDIP(16));
         }
 
@@ -368,7 +385,19 @@ void PrinterMsgPanel::OnNotShowAgain(const prePrintInfo& info)
     UpdateInfos(cp_infos);
 }
 
+void PrinterMsgPanel::OnUpgradeBtnClicked(wxMouseEvent& event)
+{
+    auto obj_ = m_select_dialog ? m_select_dialog->get_current_machine() : nullptr;
+    if (!obj_) {
+        return;
+    }
+
+    m_select_dialog->Hide();
+    if (Slic3r::GUI::wxGetApp().mainframe && Slic3r::GUI::wxGetApp().mainframe->m_monitor) {
+        Slic3r::GUI::wxGetApp().mainframe->jump_to_monitor();
+        Slic3r::GUI::wxGetApp().mainframe->m_monitor->jump_to_Upgrade();
+    }
+}
+
 }
 };
-
-

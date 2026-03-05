@@ -25,12 +25,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           lfs: 'true'
 
       - name: load cached deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-13' || inputs.os == 'macos-15'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
           path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip
@@ -153,7 +153,7 @@ jobs:
 
       - name: Upload artifacts Win zip
         if: inputs.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/BambuStudio_Windows_${{ env.ver }}_portable.zip
@@ -188,14 +188,14 @@ jobs:
 
       - name: Upload artifacts Ubuntu
         if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}
           path: './build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage'
 
       # - name: Deploy Ubuntu release
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   uses: WebFreak001/deploy-nightly@v3.2.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
       #     release_id: 137995723
@@ -206,7 +206,7 @@ jobs:
 
       # - name: Deploy orca_custom_preset_tests
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.1.0
+      #   uses: WebFreak001/deploy-nightly@v3.2.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
       #     release_id: 137995723

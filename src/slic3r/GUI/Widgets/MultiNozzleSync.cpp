@@ -377,8 +377,7 @@ std::vector<int> HotEndTable::FilterHotEnds(const NozzleOption& option)
     for (auto& info : nozzles_to_search) {
 
         float diameter = atof(info.diameter.c_str());
-        NozzleFlowType flow = info.volume_type == nvtStandard ? NozzleFlowType::S_FLOW :
-            info.volume_type == nvtHighFlow ? NozzleFlowType::H_FLOW : NozzleFlowType::NONE_FLOWTYPE;
+        NozzleFlowType flow = DevNozzle::ToNozzleFlowType(info.volume_type);
         int extruder_id = 1 - info.extruder_id; //physical
 
         auto nozzles = rack->GetNozzleSystem()->CollectNozzles(extruder_id, flow, diameter);
@@ -686,11 +685,8 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
             int extruder_id = nozzle.AtLeftExtruder() ? 0 : 1;
             if (nozzle.AtRightExtruder())
                 has_right = true;
-            NozzleVolumeType volume_type;
-            if (nozzle.m_nozzle_flow == NozzleFlowType::H_FLOW)
-                volume_type = nvtHighFlow;
-            else
-                volume_type = nvtStandard;
+
+            NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.m_nozzle_flow);
 
             m_badge->SetExtruderInfo(extruder_id, format_diameter_to_str(nozzle.GetNozzleDiameter()), volume_type);
         }
@@ -699,7 +695,7 @@ void MultiNozzleStatusTable::UpdateRackInfo(std::weak_ptr<DevNozzleRack> rack)
 }
 
 
-Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::weak_ptr<DevNozzleRack> rack) : DPIDialog(parent, wxID_ANY, "Sync Nozzle status",wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE)
+Slic3r::GUI::MultiNozzleSyncDialog::MultiNozzleSyncDialog(wxWindow* parent,std::weak_ptr<DevNozzleRack> rack) : DPIDialog(parent, wxID_ANY, _L("Sync Nozzle status"),wxDefaultPosition, wxDefaultSize,wxDEFAULT_DIALOG_STYLE)
 {
     m_nozzle_rack = rack;
     wxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -810,7 +806,7 @@ void MultiNozzleSyncDialog::OnRefreshTimer(wxTimerEvent& evt){
     int reading_count = nozzle_rack->GetReadingCount();
     int reading_idx = nozzle_rack->GetReadingIdx();
 
-    wxString tip = wxString::Format("Refresh %d/%d...", reading_idx, reading_count);
+    wxString tip = wxString::Format(_L("Refresh %d/%d..."), reading_idx, reading_count);
     m_confirm_btn->SetLabel(tip);
     m_confirm_btn->Fit();
     if (m_confirm_btn->GetParent())

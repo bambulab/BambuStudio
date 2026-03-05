@@ -22,6 +22,7 @@
 #include "libslic3r/Tesselate.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Print.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 
 #include "I18N.hpp"
@@ -37,6 +38,7 @@
 #include "GUI_ObjectList.hpp"
 #include "Tab.hpp"
 #include "format.hpp"
+#include "../Utils/HelioDragon.hpp"
 #include <imgui/imgui_internal.h>
 #include <wx/dcgraph.h>
 using boost::optional;
@@ -767,11 +769,13 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
             render_icon_texture(m_partplate_list->m_arrange_icon, m_partplate_list->m_arrange_texture);
 
         if (hover_id == 4) {
-            if (this->is_locked())
+            if (this->is_locked()) {
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_hovered_texture);
-            else
+                show_tooltip(_u8L("Unlock current plate"));
+            } else {
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_lockopen_hovered_texture);
-            show_tooltip(_u8L("Unlock current plate"));
+                show_tooltip(_u8L("Lock current plate"));
+            }
         } else {
             if (this->is_locked())
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_locked_texture);
@@ -1511,24 +1515,24 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
     // only check printablity if we have explicit map result
     if (mode != fmmManual) return true;
 
-    std::vector<int>                     used_filaments = get_extruders(true); // 1 base
+    std::vector<int> used_filaments = get_extruders(true);  // 1 base
     std::unordered_map<std::string, int> nozzle_fils;
-    auto                                 fil_preset_names = wxGetApp().preset_bundle->filament_presets;
+    auto fil_preset_names = wxGetApp().preset_bundle->filament_presets;
 
     if (!used_filaments.empty()) {
         for (auto filament_idx : used_filaments) {
-            int              filament_id               = filament_idx - 1;
-            std::string      filament_type             = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
-            int              filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
-            std::vector<int> filament_map              = get_real_filament_maps(config);
-            int              extruder_idx              = filament_map[filament_id] - 1;
+            int filament_id = filament_idx - 1;
+            std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            int filament_printable_status = config.option<ConfigOptionInts>("filament_printable")->values.at(filament_id);
+            std::vector<int> filament_map  = get_real_filament_maps(config);
+            int extruder_idx = filament_map[filament_id] - 1;
 
-            auto        fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
-            std::string fil_name   = fil_preset->alias;
+            auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(fil_preset_names[filament_id]);
+            std::string fil_name = fil_preset->alias;
 
             if (!(filament_printable_status >> extruder_idx & 1)) {
                 wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name);
+                error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name); // todo：显示耗材名字更好，因为部分TPU可以左头打印
                 return false;
             }
 
@@ -1539,10 +1543,12 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
                 filament_variants = {"Direct Drive Standard"};
 
             std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
-            std::string                     extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
+            std::string extruder_variant = config.option<ConfigOptionStrings>("printer_extruder_variant")->values.at(extruder_idx);
             if (filament_variants_set.count(extruder_variant) == 0) {
-                wxString variant_name = extruder_variant;
-                error_message         = wxString::Format(_L("The %s nozzle can not print %s."), variant_name, fil_name);
+                NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+                auto             volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+                std::string      volume       = volume_names.at(variant_name);
+                error_message                 = wxString::Format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
                 return false;
             }
         }
@@ -1554,6 +1560,23 @@ bool PartPlate::check_tpu_printable_status(const DynamicPrintConfig & config, co
 {
 	// do not limit the num of tpu filament in slicing
 	return true;
+}
+
+bool PartPlate::check_multi_filament_without_prime_tower(const DynamicPrintConfig &config)
+{
+    int  filament_used_count = get_used_filaments().size();
+    if (filament_used_count == 0) { filament_used_count = get_extruders(true).size(); }
+    auto prime_tower_enabled = config.option<ConfigOptionBool>("enable_prime_tower");
+    auto by_object_plate        = m_config.option<ConfigOptionEnum<PrintSequence>>("print_sequence");
+    bool is_by_object        = false;
+    if (by_object_plate)
+        is_by_object = by_object_plate->value == PrintSequence::ByObject;
+    else
+        is_by_object = config.option<ConfigOptionEnum<PrintSequence>>("print_sequence")->value == PrintSequence::ByObject;
+    int object_count = get_obj_and_inst_set().size();
+    is_by_object     = is_by_object && (object_count > 1);
+    if ((!is_by_object) && (filament_used_count > 1) && prime_tower_enabled && (!(prime_tower_enabled->value))) { return false; }
+    return true;
 }
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
@@ -1712,6 +1735,122 @@ bool PartPlate::check_compatible_of_nozzle_and_filament(const DynamicPrintConfig
     return false;
 }
 
+bool PartPlate::check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig &config, const std::vector<std::string> &filament_presets, std::string &error_msg)
+{
+    // TODO(shancang): Generic filament of XP printers
+    auto diameters = config.option<ConfigOptionFloats>("nozzle_diameter")->values;
+    if (diameters.size() < 2)
+        return true;
+
+    std::vector<int> used_filaments = get_extruders(true);
+    auto extruder_variants = config.option<ConfigOptionStrings>("printer_extruder_variant")->values;
+    if (extruder_variants.size() != 1 || used_filaments.empty()) return true;
+
+    std::string extruder_variant = extruder_variants[0];
+    for (auto fil_idx : used_filaments){
+        int fil_id = fil_idx - 1;
+
+        auto fil_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[fil_id]);
+        std::string fil_name = fil_preset->alias;
+
+        std::vector<std::string> filament_variants;
+        if (fil_preset->config.has("filament_extruder_variant"))
+            filament_variants = fil_preset->config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
+        else
+            filament_variants = {"Direct Drive Standard"};
+
+        std::unordered_set<std::string> filament_variants_set(filament_variants.begin(), filament_variants.end());
+        if (filament_variants_set.find(extruder_variant) == filament_variants_set.end()){
+            NozzleVolumeType variant_name = convert_to_nvt_type(extruder_variant);
+            auto volume_names = ConfigOptionEnum<NozzleVolumeType>::get_enum_names();
+            std::string volume = volume_names.at(variant_name);
+            error_msg = GUI::format(_L("The %s nozzle can not print %s."), _L(volume), fil_name);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool PartPlate::check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg)
+{
+    error_msg.clear();
+    std::vector<NozzleVolumeType> tpu_nozzle_volume_type = {nvtTPUHighFlow};
+
+    std::vector<int> used_filaments = get_extruders(true);  // 1 base
+
+    std::unordered_map<NozzleVolumeType, int> nozzle_fils;
+    if (!used_filaments.empty()) {
+        for (auto filament_idx : used_filaments) {
+            int              filament_id  = filament_idx - 1;
+            std::vector<int> filament_map = get_real_filament_maps(config);
+            int              extruder_idx = filament_map[filament_id] - 1;
+
+            NozzleVolumeType volume_type = (NozzleVolumeType) config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values.at(extruder_idx);
+            nozzle_fils[volume_type]++;
+        }
+
+        for (auto tpu_volume : tpu_nozzle_volume_type) {
+            if (nozzle_fils[tpu_volume] > 1) {
+                std::string volume_name = ConfigOptionEnum<NozzleVolumeType>::get_enum_names()[tpu_volume];
+                error_msg = GUI::format(_L("The %s nozzle does not support automatic filament switching.\n"), volume_name) +
+                            GUI::format(_L("Please change the nozzle type or reassign the filaments and try again."));
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool PartPlate::check_high_temp_need_wrapping_detection(const DynamicPrintConfig &config, std::string &warning_text) const
+{
+    warning_text.clear();
+
+    // 1、判断当前机型是否支持触碰裹头检测
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    if (!DevPrinterConfigUtil::support_wrapping_detection(printer_type))
+        return false;
+
+    // 2. 检查是否开启了触碰裹头检测
+    bool enable_wrapping_detection = false;
+    if (config.has("enable_wrapping_detection"))
+        enable_wrapping_detection = config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+
+    if (enable_wrapping_detection)
+        return false;
+
+    // 3. 检查当前盘是否使用了高温料，并收集高温料名称
+    std::vector<int> used_filaments = get_extruders(true); // 1 base
+    if (used_filaments.empty())
+        return false;
+
+    std::set<std::string> high_temp_types;
+    for (auto filament_idx : used_filaments) {
+        int filament_id = filament_idx - 1;
+        if (filament_id < config.option<ConfigOptionStrings>("filament_type")->values.size()) {
+            std::string filament_type = config.option<ConfigOptionStrings>("filament_type")->values.at(filament_id);
+            FilamentTempType temp_type = Print::get_filament_temp_type(filament_type);
+            if (temp_type == FilamentTempType::HighTemp) {
+                high_temp_types.insert(filament_type);
+            }
+        }
+    }
+
+    if (!high_temp_types.empty()) {
+        std::string filament_names;
+        for (auto it = high_temp_types.begin(); it != high_temp_types.end(); ++it) {
+            if (it != high_temp_types.begin()) {
+                filament_names += ", ";
+            }
+            filament_names += *it;
+        }
+        warning_text = GUI::format(_L("Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."), filament_names);
+        return true;
+    }
+
+    return false;
+}
+
 /*Vec3d PartPlate::calculate_wipe_tower_size(const DynamicPrintConfig &config, const double w, const double wipe_volume, int plate_extruder_size, bool use_global_objects) const
 {
     Vec3d  wipe_tower_size;
@@ -1774,9 +1913,11 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
         if (!use_global_objects && !contain_instance_totally(obj_idx, 0))
             continue;
-
-        BoundingBoxf3 bbox = m_model->objects[obj_idx]->bounding_box();
-        max_height = std::max(bbox.size().z(), max_height);
+        auto mo = m_model->objects[obj_idx];
+        for (size_t i = 0; i < mo->instances.size(); ++i) {
+            BoundingBoxf3 bbox = mo->instance_bounding_box(i);
+            max_height         = std::max(bbox.max.z(), max_height);
+        }
     }
     wipe_tower_size(2) = max_height;
     //const DynamicPrintConfig &dconfig = wxGetApp().preset_bundle->prints.get_edited_preset().config;
@@ -2988,7 +3129,35 @@ void PartPlate::update_slice_result_valid_state(bool valid)
         m_slice_percent = 100.0f;
     else {
         m_slice_percent = -1.0f;
+        // helio results cleared in restart_background_process() when slicing actually starts,
+        // not here, to preserve results on plates that are not being resliced.
     }
+}
+
+// Helio result per-plate storage
+const HelioPlateResult* PartPlate::get_helio_result() const
+{
+    return m_helio_result.get();
+}
+
+void PartPlate::set_helio_result(const HelioPlateResult& result)
+{
+    if (!m_helio_result) {
+        m_helio_result = std::make_unique<HelioPlateResult>();
+    }
+    *m_helio_result = result;
+}
+
+void PartPlate::clear_helio_result()
+{
+    if (m_helio_result) {
+        m_helio_result->clear();
+    }
+}
+
+bool PartPlate::has_helio_result() const
+{
+    return m_helio_result && m_helio_result->has_result();
 }
 
 //update current slice context into backgroud slicing process
@@ -6361,8 +6530,10 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 					plate_data_item->is_label_object_enabled = m_plate_list[i]->m_gcode_result->label_object_enabled;
                     plate_data_item->limit_filament_maps = m_plate_list[i]->m_gcode_result->limit_filament_maps;
                     plate_data_item->layer_filaments  = m_plate_list[i]->m_gcode_result->layer_filaments;
-                    plate_data_item->first_layer_time = std::to_string(m_plate_list[i]->cali_bboxes_data.first_layer_time);
  					plate_data_item->filament_change_sequence = m_plate_list[i]->m_gcode_result->filament_change_sequence;
+                    plate_data_item->nozzle_change_sequence = m_plate_list[i]->m_gcode_result->nozzle_change_sequence;
+                    plate_data_item->optimal_assignment = m_plate_list[i]->m_gcode_result->optimal_assignment;
+                    plate_data_item->first_layer_time = std::to_string(m_plate_list[i]->cali_bboxes_data.first_layer_time);
 					Print *print                      = nullptr;
 					m_plate_list[i]->get_print((PrintBase **) &print, nullptr, nullptr);
 					if (print) {
@@ -6393,6 +6564,26 @@ int PartPlateList::store_to_3mf_structure(PlateDataPtrs& plate_data_list, bool w
 
 int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int filament_count)
 {
+	auto parse_values = [](const std::string& value, const char* seps, auto to_value) {
+		using T = decltype(to_value(std::string()));
+		std::vector<T> result;
+		if (value.empty()) {
+			return result;
+		}
+		std::vector<std::string> tokens;
+		boost::split(tokens, value, boost::is_any_of(seps), boost::token_compress_on);
+		for (const auto& token : tokens) {
+			if (token.empty()) {
+				continue;
+			}
+			try {
+				result.emplace_back(to_value(token));
+			} catch (...) {
+			}
+		}
+		return result;
+	};
+
 	int ret = 0;
 
 	if (plate_data_list.size() <= 0)
@@ -6427,7 +6618,6 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->get_print(&fff_print, &gcode_result, nullptr);
 		PrintStatistics& ps = (dynamic_cast<Print*>(fff_print))->print_statistics();
 		gcode_result->print_statistics.modes[static_cast<size_t>(PrintEstimatedStatistics::ETimeMode::Normal)].time = atoi(plate_data_list[i]->gcode_prediction.c_str());
-		gcode_result->nozzle_group_result = MultiNozzleUtils::MultiNozzleGroupResult::init_from_slice_filament(plate_data_list[i]->filament_maps, plate_data_list[i]->slice_filaments_info);
 		ps.total_weight = atof(plate_data_list[i]->gcode_weight.c_str());
 		ps.total_used_filament = 0.f;
 		for (auto filament_item: plate_data_list[i]->slice_filaments_info)
@@ -6443,6 +6633,57 @@ int PartPlateList::load_from_3mf_structure(PlateDataPtrs& plate_data_list, int f
 		m_plate_list[index]->slice_filaments_info = plate_data_list[i]->slice_filaments_info;
 		gcode_result->warnings = plate_data_list[i]->warnings;
         gcode_result->filament_maps = plate_data_list[i]->filament_maps;
+
+		std::vector<int> nozzle_volume_type_values = parse_values(
+			plate_data_list[i]->nozzle_volume_types,
+			" ",
+			[](const std::string& token) { return std::stoi(token); }
+		);
+
+		std::vector<double> nozzle_diameter_values = parse_values(
+			plate_data_list[i]->nozzle_diameters,
+			" ,",
+			[](const std::string& token) { return std::stod(token); }
+		);
+
+		std::vector<NozzleVolumeType> extruder_volume_types(nozzle_volume_type_values.size(), NozzleVolumeType::nvtStandard);
+		std::vector<double> nozzle_diameters(nozzle_diameter_values.size(), 0.0);
+
+		if (!nozzle_volume_type_values.empty()) {
+			for (size_t idx = 0; idx < nozzle_volume_type_values.size(); ++idx) {
+				if (nozzle_volume_type_values[idx] >= 0) {
+					extruder_volume_types[idx] = static_cast<NozzleVolumeType>(nozzle_volume_type_values[idx]);
+				}
+			}
+		}
+		if (!nozzle_diameter_values.empty()) {
+			for (size_t idx = 0; idx < nozzle_diameter_values.size(); ++idx) {
+				if (nozzle_diameter_values[idx] > 0) {
+					nozzle_diameters[idx] = nozzle_diameter_values[idx];
+				}
+			}
+		}
+
+		auto nozzle_infos = MultiNozzleUtils::load_nozzle_infos_with_compatibility(
+			plate_data_list[i]->nozzles_info,
+			plate_data_list[i]->slice_filaments_info,
+			plate_data_list[i]->filament_maps,
+			extruder_volume_types,
+			nozzle_diameter_values
+		);
+
+		std::vector<int> fil_seq(plate_data_list[i]->filament_change_sequence.begin(), plate_data_list[i]->filament_change_sequence.end());
+		std::vector<int> noz_seq(plate_data_list[i]->nozzle_change_sequence.begin(), plate_data_list[i]->nozzle_change_sequence.end());
+		bool enable_filament_dynamic_map =false;
+        if (plate_data_list[i]->config.has("enable_filament_dynamic_map"))
+            enable_filament_dynamic_map = plate_data_list[i]->config.option<ConfigOptionBool>("enable_filament_dynamic_map")->value;
+		auto group_result = MultiNozzleUtils::StaticNozzleGroupResult::create(plate_data_list[i]->slice_filaments_info, nozzle_infos, fil_seq, noz_seq,enable_filament_dynamic_map);
+        if (group_result)
+            gcode_result->nozzle_group_result = std::make_shared<MultiNozzleUtils::StaticNozzleGroupResult>(group_result.value());
+        else
+            gcode_result->nozzle_group_result = nullptr;
+
+
 		if (m_plater && !plate_data_list[i]->thumbnail_file.empty()) {
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1%, load thumbnail from %2%.") % (i + 1) % PathSanitizer::sanitize(plate_data_list[i]->thumbnail_file);
 			if (boost::filesystem::exists(plate_data_list[i]->thumbnail_file)) {

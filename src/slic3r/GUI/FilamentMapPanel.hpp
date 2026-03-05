@@ -27,6 +27,7 @@ public:
 
     std::vector<int> GetRightHighFlowFilaments() const { return m_right_panel->GetHighFlowFilaments(); }
     std::vector<int> GetRightStandardFilaments() const { return m_right_panel->GetStandardFilaments(); }
+    std::vector<int> GetRightTPUHighFlowFilaments() const { return m_right_panel->GetTPUHighFlowFilaments(); }
     void UpdateNozzleVolumeType();
     void UpdateNozzleCountDisplay();
 
@@ -116,6 +117,13 @@ public:
 private:
     Label *m_label;
 };
+
+class FilamentMapSavingPanel : public wxPanel
+{
+public:
+    FilamentMapSavingPanel(wxWindow *parent);
+};
+
 }} // namespace Slic3r::GUI
 
 #endif

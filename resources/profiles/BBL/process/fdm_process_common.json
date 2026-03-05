@@ -38,6 +38,7 @@
     "infill_combination": "0",
     "infill_direction": "45",
     "infill_wall_overlap": "15%",
+    "monotonic_travel_into_wall": "0.0",
     "initial_layer_line_width": "0.5",
     "initial_layer_print_height": "0.2",
     "initial_layer_speed": [
@@ -156,6 +157,8 @@
     "seam_slope_gap": "0",
     "seam_slope_min_length": "10",
     "symmetric_infill_y_axis": "0",
+    "sparse_infill_lattice_angle_1": "-45",
+    "sparse_infill_lattice_angle_2": "45",
     "top_shell_layers": "3",
     "top_color_penetration_layers": "3",
     "top_shell_thickness": "0.8",
@@ -165,8 +168,14 @@
     "top_surface_speed": [
         "30"
     ],
+    "top_solid_infill_flow_ratio": [
+        "1"
+    ],
     "travel_acceleration": [
         "10000"
+    ],
+    "travel_short_distance_acceleration": [
+        "250"
     ],
     "travel_speed": [
         "400"

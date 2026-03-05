@@ -305,18 +305,18 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     if (has_ironing_support)
         if (!can_ironing_support && config->opt_bool("enable_support_ironing")) {
             const wxString     msg_text = _(L("Support ironing will not work with sparse support interface.\n"
-                                                  "Do you want to disable the support ironing?\n"
-                                                  "Yes: disable the support ironing.\n"
-                                                  "No: make the support interface solid."));
+                                                  "Do you want to adjust the support interface config to use ironing?\n"
+                                                  "Yes: make the support interface solid.\n"
+                                                  "No: disable the support ironing."));
             MessageDialog      dialog(nullptr, msg_text, "", wxICON_WARNING | wxYES_NO);
             DynamicPrintConfig new_conf = *config;
             is_msg_dlg_already_exist    = true;
             if (dialog.ShowModal() == wxID_YES) {
-                new_conf.set_key_value("enable_support_ironing", new ConfigOptionBool(false));
-            } else {
                 new_conf.set_key_value("support_interface_spacing", new ConfigOptionFloat(0.0f));
-                if ( config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipGrid )
+                if (config->opt_enum<SupportMaterialInterfacePattern>("support_interface_pattern") == SupportMaterialInterfacePattern::smipGrid)
                     new_conf.set_key_value("support_interface_pattern", new ConfigOptionEnum<SupportMaterialInterfacePattern>(SupportMaterialInterfacePattern::smipAuto));
+            } else {
+                new_conf.set_key_value("enable_support_ironing", new ConfigOptionBool(false));
             }
 
             apply(config, &new_conf);
@@ -423,7 +423,6 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                                      config->opt_int("top_shell_layers") != 0 || sparse_infill_density != 0 ||
                                      config->opt_bool("enable_support") ||
                                      config->opt_int("enforce_support_layers") != 0 ||
-                                     config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") != EnsureVerticalThicknessLevel::evtEnabled ||
                                      config->opt_bool("detect_thin_wall"));
 
         if (!is_global_config && !adjust_spiral_mode_params) {
@@ -733,7 +732,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_infill = config->option<ConfigOptionPercent>("sparse_infill_density")->value > 0;
     // sparse_infill_filament uses the same logic as in Print::extruders()
-    for (auto el : { "sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step", "infill_rotate_step", "symmetric_infill_y_axis"})
+    for (auto el : {"sparse_infill_pattern", "sparse_infill_anchor_max", "infill_combination", "minimum_sparse_infill_area", "sparse_infill_filament", "infill_shift_step",
+                    "infill_rotate_step", "symmetric_infill_y_axis", "sparse_infill_lattice_angle_1", "sparse_infill_lattice_angle_2"})
         toggle_line(el, have_infill);
 
     // Determine if the selected infill pattern supports multiline infill.
@@ -744,27 +744,25 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
                                     pattern == ipAdaptiveCubic || pattern == ipSupportCubic;
 
     toggle_line("fill_multiline", have_infill && support_multiline_infill);
-    if (support_multiline_infill == false) {
-        DynamicPrintConfig new_conf = *config;
-        new_conf.set_key_value("fill_multiline", new ConfigOptionInt(1));
-        apply(config, &new_conf);
-    }
     // Only allow configuration of open anchors if the anchoring is enabled.
     bool has_infill_anchors = have_infill && config->option<ConfigOptionFloatOrPercent>("sparse_infill_anchor_max")->value > 0;
     toggle_line("sparse_infill_anchor", has_infill_anchors);
 
     //cross zag
-    bool is_cross_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
-    bool is_locked_zig = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
+    bool is_cross_zag  = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipCrossZag;
+    bool is_locked_zig = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipLockedZag;
 
-    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
     for (auto el : {"infill_instead_top_bottom_surfaces","skeleton_infill_density", "skin_infill_density", "infill_lock_depth", "skin_infill_depth", "skin_infill_line_width", "skeleton_infill_line_width", "locked_skin_infill_pattern", "locked_skeleton_infill_pattern"})
         toggle_line(el, is_locked_zig);
 
-    bool is_zig_zag = config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
+    bool is_zig_zag = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ipZigZag;
 
     toggle_line("infill_rotate_step", is_zig_zag);
+    toggle_line("infill_shift_step", is_cross_zag || is_locked_zig);
     toggle_line("symmetric_infill_y_axis", is_zig_zag || is_cross_zag || is_locked_zig);
+
+    bool lattice_options = have_infill && config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern")->value == InfillPattern::ip2DLattice;
+    for (auto el : {"sparse_infill_lattice_angle_1", "sparse_infill_lattice_angle_2"}) toggle_line(el, lattice_options);
 
     bool has_spiral_vase         = config->opt_bool("spiral_mode");
     toggle_line("spiral_mode_smooth", has_spiral_vase);
@@ -892,7 +890,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_prime_tower = config->opt_bool("enable_prime_tower");
     for (auto el :
-         {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_rib_wall", "prime_tower_infill_gap", "prime_tower_enable_framework", "prime_tower_max_speed"})
+         {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_rib_wall", "prime_tower_infill_gap", "prime_tower_enable_framework", "prime_tower_max_speed", "enable_tower_interface_features"})
         toggle_line(el, have_prime_tower);
 
     bool have_rib_wall = config->opt_bool("prime_tower_rib_wall")&&have_prime_tower;

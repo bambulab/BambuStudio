@@ -41,6 +41,7 @@ namespace GUI {
                 P3,     // position 3 floats
                 P3T2,   // position 3 floats + texture coords 2 floats
                 P3N3,   // position 3 floats + normal 3 floats
+                P3N3C4,// position 3 floats + normal 3 floats + color 3 floats
                 P3N3T2, // position 3 floats + normal 3 floats + texture coords 2 floats
                 P4,     // position 4 floats
             };
@@ -120,11 +121,17 @@ namespace GUI {
             static size_t tex_coord_offset_floats(const Format &format);
             static size_t tex_coord_offset_bytes(const Format &format) { return tex_coord_offset_floats(format) * sizeof(float); }
 
+            static size_t vertice_color_stride_floats(const Format &format);
+            static size_t vertice_color_stride_bytes(const Format &format) { return vertice_color_stride_floats(format) * sizeof(float); }
+            static size_t vertice_color_offset_floats(const Format &format);
+            static size_t vertice_color_offset_bytes(const Format &format) { return vertice_color_offset_floats(format) * sizeof(float); }
+
             static size_t index_stride_bytes(const Geometry &data);
 
             static bool has_position(const Format &format);
             static bool has_normal(const Format &format);
             static bool has_tex_coord(const Format &format);
+            static bool has_vertice_color(const Format &format);
         };
 
         struct RenderData
@@ -179,6 +186,7 @@ namespace GUI {
         void init_from(const InitializationData& data);
         void init_from(const indexed_triangle_set& its, const BoundingBoxf3& bbox);
         void init_from(const indexed_triangle_set& its);
+        void init_from_its_and_color(const indexed_triangle_set &its,const std::vector<RGBA>& colors);
         bool init_from_file(const std::string& filename);
         void init_model_from_polygon(const Polygons &polygons, float z);
         bool init_model_from_poly(const std::vector<Vec2f> &triangles, float z, bool generate_mesh = false);
@@ -192,6 +200,8 @@ namespace GUI {
         void reset();
         void render_geometry() const;
         void render_geometry(int i,const std::pair<size_t, size_t> &range) const;
+        void render_geometry_with_vertice_color() const;
+        void render_geometry_with_vertice_color(int i, const std::pair<size_t, size_t> &range) const;
         static void create_or_update_mats_vbo(unsigned int &vbo, const std::vector<Slic3r::Geometry::Transformation> &mats);
         void bind_mats_vbo(unsigned int instance_mats_vbo, unsigned int instances_count, const std::vector<int>& locations);
         void render_geometry_instance(unsigned int instance_mats_vbo, unsigned int instances_count);

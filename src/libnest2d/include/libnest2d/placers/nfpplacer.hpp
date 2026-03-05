@@ -1,4 +1,4 @@
-#ifndef NOFITPOLY_HPP
+﻿#ifndef NOFITPOLY_HPP
 #define NOFITPOLY_HPP
 
 #include <cassert>
@@ -573,10 +573,6 @@ public:
         if (r) {
             r.item_ptr_->translation(r.move_);
             r.item_ptr_->rotation(r.rot_);
-
-            if (r.item_ptr_->inflation() < MIN_SEPARATION) {
-                r.item_ptr_->inflation(MIN_SEPARATION);
-            }
             items_.emplace_back(*(r.item_ptr_));
             merged_pile_ = nfp::merge(merged_pile_, r.item_ptr_->transformedShape());
             score_ += r.score();
@@ -643,6 +639,14 @@ private:
         });
 
         RawShape innerNfp = nfpInnerRectBed(bed, trsh.transformedShape()).first;
+        if (innerNfp.empty()) {
+            return {};
+        }
+
+        if (innerNfp.area() == 0) {
+            return {innerNfp};
+        }
+
         Shapes finalNFP = nfp::subtract({ innerNfp }, nfps);
         return finalNFP;
     }
@@ -661,6 +665,14 @@ private:
         });
 
         RawShape innerNfp = nfpInnerRectBed(bed, sliding).first;
+        if (innerNfp.empty()) {
+            return {};
+        }
+
+        if (innerNfp.area() == 0) {
+            return { innerNfp };
+        }
+
         return nfp::subtract({innerNfp}, nfps);
     }
 
@@ -723,6 +735,7 @@ private:
 
         auto initial_tr = item.translation();
         auto initial_rot = item.rotation();
+        auto initial_infl = item.inflation();
         Vertex final_tr = {0, 0};
         Radians final_rot = initial_rot;
         Coord   final_infl  = item.inflation();
@@ -793,6 +806,10 @@ private:
                 // it is disjunct from the current merged pile
                 placeOutsideOfBin(item);
                 nfps = calcnfp(item, binbb, Lvl<MaxNfpLevel::value>());
+
+                if (nfps.empty()) {
+                    continue;
+                }
 
                 auto iv = item.referenceVertex();
 
@@ -931,23 +948,25 @@ private:
                     final_infl   = infl;
                     can_pack = true;
                     global_score = best_score;
-                    break;
                 }
             }
-
-            item.inflation(final_infl);
-            item.translation(final_tr);
-            item.rotation(final_rot);
         }
 
         if (config_.save_svg) saveSVG(binbb, nfps, item, global_score, can_pack);
 
         if(can_pack) {
+            if (initial_infl != item.inflation()) {
+                item.inflation(initial_infl);
+            }
+            item.translation(final_tr);
+            item.rotation(final_rot);
             ret = PackResult(item);
             ret.score_ = global_score;
-            //merged_pile_ = nfp::merge(merged_pile_, item.transformedShape());
         } else {
-            ret = PackResult(best_overfit);
+            item.inflation(initial_infl);
+            item.translation(initial_tr);
+            item.rotation(initial_rot);
+            ret = PackResult(std::numeric_limits<double>::max());
         }
 
         return ret;

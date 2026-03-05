@@ -12,6 +12,7 @@
         "4000",
         "4000"
     ],
+    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "50",
         "50",
@@ -30,6 +31,8 @@
         "180",
         "180"
     ],
+    "ironing_speed": "20",
+    "ironing_flow": "25%",
     "outer_wall_acceleration": [
         "2000",
         "2000",

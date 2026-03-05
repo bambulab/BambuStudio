@@ -783,7 +783,7 @@ void FanControlPopupNew::UpdatePartSubMode()
             m_cooling_filter_switch_panel = new FanControlNewSwitchPanel(m_sub_mode_panel, _L("Filter"), _L("Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."));
             m_cooling_filter_switch_panel->Bind(EVT_FANCTRL_SWITCH, [this] (wxCommandEvent& evt)
                 {
-                  if (m_obj && m_obj->is_in_printing()) {
+                  if (m_obj && m_obj->is_in_printing() && m_cooling_filter_switch_panel->IsSwitchOn()) {
                       MessageDialog msg_wingow(nullptr, _L("Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"), "", wxICON_WARNING | wxCANCEL | wxOK);
                       msg_wingow.SetButtonLabel(wxID_OK, _L("Change Anyway"));
                       if (msg_wingow.ShowModal() != wxID_OK) { return; }
@@ -1075,6 +1075,7 @@ wxString FanControlPopupNew::get_fan_func_name(int mode, int submode, AIR_FUN fu
             L_CONTEXT("Right(Aux)", "air_duct");
             L_CONTEXT("Right(Filter)", "air_duct");
             L_CONTEXT("Left(Aux)", "air_duct");
+            L_CONTEXT("Chamber", "air_duct");
             return _CTX(func_text, "air_duct");
         }
     }

@@ -4,6 +4,7 @@
 #include <numeric>
 #include <vector>
 #include <string>
+#include <set>
 #include <regex>
 #include <future>
 #include <boost/algorithm/string.hpp>
@@ -114,6 +115,7 @@
 #include "NotificationManager.hpp"
 #include "PresetComboBoxes.hpp"
 #include "MsgDialog.hpp"
+#include "SingleChoiceDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
@@ -128,6 +130,8 @@
 #include "Widgets/RadioBox.hpp"
 #include "Widgets/CheckBox.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/StaticBox.hpp"
+#include "Widgets/ComboBox.hpp"
 #include "Widgets/StaticGroup.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 
@@ -158,6 +162,7 @@
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevDefs.h"
 #include "ImageMessageDialog.hpp"
 
 #include "HelioReleaseNote.hpp"
@@ -173,6 +178,13 @@ static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 512, 5
 
 namespace Slic3r {
 namespace GUI {
+
+// Flag to pre-select optimization mode when opening HelioInputDialog from simulation results
+static bool g_helio_pre_select_optimization = false;
+
+bool& get_helio_pre_select_optimization_flag() {
+    return g_helio_pre_select_optimization;
+}
 
 wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
 wxDEFINE_EVENT(EVT_SLICING_UPDATE,                  SlicingStatusEvent);
@@ -602,17 +614,21 @@ struct Sidebar::priv
     void layout_printer(bool isBBL, bool isDual);
 
     void flush_printer_sync(bool restart = false);
+    void show_filament_switcher_dialog(bool is_ready, bool is_manual);
 
     PlaterPresetComboBox *combo_print = nullptr;
     std::vector<PlaterPresetComboBox*> combos_filament;
     int editing_filament = -1;
     wxBoxSizer *sizer_filaments = nullptr;
+    bool fila_switch_warning_shown = false;
 
     //BBS Sidebar widgets
     wxPanel* m_panel_print_title;
     wxStaticText* m_staticText_print_title;
     wxPanel* m_panel_print_content;
     wxBoxSizer *sizer_params;
+
+    wxStaticBitmap *extruder_separator_icon = nullptr;
 
     //wxComboBox *                m_comboBox_print_preset;
     wxStaticLine *              m_staticline1;
@@ -662,11 +678,15 @@ struct Sidebar::priv
     void jump_to_object(ObjectDataViewModelNode* item);
     void can_search();
 
-    bool sync_extruder_list(bool &only_external_material);
+    bool sync_extruder_list(bool &only_external_material, bool is_manual = false);
+    std::optional<NozzleOption> get_nozzle_options(MachineObject *obj, int extruder_count, bool support_multi_nozzle, bool is_manual);
     bool switch_diameter(bool single);
     void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
+    bool is_fila_switch_ready();
+    void update_extruder_separator_icon(bool show, bool ready);
+    void show_fila_switch_msg(bool ready);
 
 #ifdef _WIN32
     wxString btn_reslice_tip;
@@ -786,6 +806,17 @@ void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
         hsizer_extruder->AddSpacer(FromDIP(4));
         hsizer_extruder->Add(right_extruder->sizer, 1, wxEXPAND, 0);
 
+        if (!extruder_separator_icon) {
+            auto bitmap = ScalableBitmap(m_panel_printer_content, "fila_switch", 10);
+            extruder_separator_icon = new wxStaticBitmap(m_panel_printer_content, wxID_ANY, bitmap.bmp(), wxDefaultPosition, bitmap.GetBmpSize());
+            extruder_separator_icon->Hide();
+            extruder_separator_icon->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+                bool ready = is_fila_switch_ready();
+                show_fila_switch_msg(ready);
+                evt.Skip();
+            });
+        }
+
         // single
         vsizer_printer->Add(hsizer_extruder, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
         vsizer_printer->Add(single_extruder->sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(4));
@@ -810,6 +841,26 @@ void Sidebar::priv::flush_printer_sync(bool restart)
     btn_sync_printer->SetBackgroundColorNormal((*counter_sync_printer & 1) ? "#F8F8F8" :"#00AE42");
     if (--*counter_sync_printer <= 0)
         timer_sync_printer->Stop();
+}
+
+void Sidebar::priv::show_filament_switcher_dialog(bool is_ready, bool is_manual)
+{
+    if (is_ready) {
+        if (wxGetApp().app_config->get("show_fila_switch_tips") == "true") {
+            wxGetApp().app_config->set("show_fila_switch_tips", "false");
+            show_fila_switch_msg(true);
+        }
+    } else {
+        if (is_manual) {
+            fila_switch_warning_shown = true;
+            show_fila_switch_msg(false);
+        } else {
+            if (!fila_switch_warning_shown) {
+                fila_switch_warning_shown = true;
+                show_fila_switch_msg(false);
+            }
+        }
+    }
 }
 
 void Sidebar::priv::adjust_filament_title_layout()
@@ -870,6 +921,86 @@ void Sidebar::priv::adjust_filament_title_layout()
     }
 
     m_panel_filament_title->Layout();
+}
+bool Sidebar::priv::is_fila_switch_ready()
+{
+    if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
+        return false;
+    }
+    auto device_manager = wxGetApp().getDeviceManager();
+    if (device_manager == nullptr) return false;    
+    auto obj = device_manager->get_selected_machine();
+    if (obj == nullptr || !obj->is_online()) return false;
+    auto fila_switch = obj->GetFilaSwitch();
+    if (fila_switch == nullptr) return false;
+
+    return fila_switch->IsInstalled() && fila_switch->IsReady();
+}
+
+void Sidebar::priv::update_extruder_separator_icon(bool show, bool ready)
+{
+    if (!extruder_separator_icon) return;
+    static bool last_show = false;
+    static bool last_ready = false;
+    static bool first_call = true;
+
+    if (!first_call && last_show == show && last_ready == ready) {
+        return;
+    }
+    first_call = false;
+    last_show = show;
+    last_ready = ready;
+
+    if (!wxGetApp().plater()->is_same_printer_for_connected_and_selected(false)) {
+        extruder_separator_icon->Hide();
+        m_panel_printer_content->Refresh();
+        return;
+    }
+    if (show) {
+        wxPoint left_box_pos = left_extruder->GetPosition();
+        wxSize  left_box_size = left_extruder->GetSize();
+        wxPoint ams_local_pos = left_extruder->hsizer_ams->GetPosition();
+        wxSize  left_size = left_extruder->sizer->GetSize();
+        wxSize  ams_size = left_extruder->hsizer_ams->GetSize();
+        wxSize  icon_size = extruder_separator_icon->GetSize();
+        int ams_abs_y = left_box_pos.y + ams_local_pos.y + FromDIP(4);
+        int     center_x  = left_size.GetWidth() + FromDIP(6);
+        int     center_y  = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
+        center_x -= icon_size.GetWidth() / 2;
+        center_y -= icon_size.GetHeight() / 2;
+        extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
+
+        auto normal_bitmap = ScalableBitmap(m_panel_printer_content, "fila_switch", 10);
+        auto error_bitmap  = ScalableBitmap(m_panel_printer_content, "fila_switch_error", 10);
+
+        if (ready) {
+            extruder_separator_icon->SetBitmap(normal_bitmap.bmp());
+        } else {
+            extruder_separator_icon->SetBitmap(error_bitmap.bmp());
+        }
+
+        extruder_separator_icon->Show();
+        extruder_separator_icon->Raise();
+    } else {
+        extruder_separator_icon->Hide();
+    }
+
+    m_panel_printer_content->Refresh();
+}
+
+void Sidebar::priv::show_fila_switch_msg(bool ready)
+{
+    wxString msg = ready ? _L("A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and "
+                              "will be automatically allocated to the optimal extruder during slicing. ") :
+                           _L("A filament switcher is detected but not calibrated and thus currently unavailable. "
+                              "Please calibrate it on the printer and synchronize before use. ");
+
+    long style = ready ? (wxICON_INFORMATION | wxOK) : (wxICON_WARNING | wxOK);
+    MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), msg, _L("Tips"), style, "", _L("Learn more"),
+                      [](const wxString &url) { wxLaunchDefaultBrowser("https://wiki.bambulab.com"); });
+    dlg.SetSize(wxSize(FromDIP(520), FromDIP(180)));
+    dlg.CenterOnParent();
+    dlg.ShowModal();
 }
 
 Sidebar::priv::~priv()
@@ -1034,6 +1165,128 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
 
 // Sidebar / public
 
+static std::string serialize_nozzle_config(const std::vector<DevNozzle>& nozzles)
+{
+    std::ostringstream oss;
+    for (size_t i = 0; i < nozzles.size(); ++i) {
+        if (i > 0) oss << ";";
+        oss << std::fixed << std::setprecision(1) << nozzles[i].GetNozzleDiameter() << ","
+            << static_cast<int>(nozzles[i].GetNozzleFlowType());
+    }
+    return oss.str();
+}
+
+static std::vector<DevNozzle> deserialize_nozzle_config(const std::string &config_str)
+{
+    std::vector<DevNozzle> nozzles;
+    if (config_str.empty()) return nozzles;
+
+    std::vector<std::string> parts;
+    boost::split(parts, config_str, boost::is_any_of(";"));
+
+    for (const auto &part : parts) {
+        std::vector<std::string> values;
+        boost::split(values, part, boost::is_any_of(","));
+        if (values.size() == 2) {
+            DevNozzle nozzle;
+            nozzle.m_diameter = (std::stof(values[0]));
+            nozzle.m_nozzle_flow = (static_cast<NozzleFlowType>(std::stoi(values[1])));
+            nozzles.push_back(nozzle);
+        }
+    }
+    return nozzles;
+}
+
+static bool is_same_nozzle_config(const std::vector<DevNozzle>& config1,
+                                   const std::vector<DevNozzle>& config2) {
+    if (config1.size() != config2.size()) return false;
+
+    auto sorted_config1 = config1;
+    auto sorted_config2 = config2;
+
+    auto compare_nozzle = [](const DevNozzle& a, const DevNozzle& b) {
+        float dia_a = a.GetNozzleDiameter();
+        float dia_b = b.GetNozzleDiameter();
+        if (std::abs(dia_a - dia_b) > EPSILON) {
+            return dia_a < dia_b;
+        }
+        return static_cast<int>(a.GetNozzleFlowType()) < static_cast<int>(b.GetNozzleFlowType());
+    };
+
+    std::sort(sorted_config1.begin(), sorted_config1.end(), compare_nozzle);
+    std::sort(sorted_config2.begin(), sorted_config2.end(), compare_nozzle);
+
+    for (size_t i = 0; i < sorted_config1.size(); ++i) {
+        if (std::abs(sorted_config1[i].GetNozzleDiameter() - sorted_config2[i].GetNozzleDiameter()) > EPSILON ||
+            sorted_config1[i].GetNozzleFlowType() != sorted_config2[i].GetNozzleFlowType()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static std::string serialize_nozzle_option(const NozzleOption& option) {
+    std::ostringstream oss;
+    oss << option.diameter << "|";
+
+    bool first = true;
+    for (const auto& pair : option.extruder_nozzle_stats) {
+        if (!first) oss << ";";
+        first = false;
+        oss << pair.first << ":";
+
+        bool first_stat = true;
+        for (const auto& stat_pair : pair.second) {
+            if (!first_stat) oss << ",";
+            first_stat = false;
+            oss << static_cast<int>(stat_pair.first) << "#" << stat_pair.second;
+        }
+    }
+    return oss.str();
+}
+
+static std::optional<NozzleOption> deserialize_nozzle_option(const std::string& option_str) {
+    if (option_str.empty()) return std::nullopt;
+
+    std::vector<std::string> parts;
+    boost::split(parts, option_str, boost::is_any_of("|"));
+    if (parts.size() != 2) return std::nullopt;
+
+    NozzleOption option;
+    option.diameter = parts[0];
+
+    std::vector<std::string> extruder_parts;
+    boost::split(extruder_parts, parts[1], boost::is_any_of(";"));
+
+    for (const auto& extruder_part : extruder_parts) {
+        if (extruder_part.empty()) continue;
+
+        std::vector<std::string> extruder_data;
+        boost::split(extruder_data, extruder_part, boost::is_any_of(":"));
+        if (extruder_data.size() != 2) continue;
+
+        int extruder_id = std::stoi(extruder_data[0]);
+        std::unordered_map<NozzleVolumeType, int> stats;
+
+        std::vector<std::string> stat_parts;
+        boost::split(stat_parts, extruder_data[1], boost::is_any_of(","));
+
+        for (const auto& stat_part : stat_parts) {
+            std::vector<std::string> kv;
+            boost::split(kv, stat_part, boost::is_any_of("#"));
+            if (kv.size() == 2) {
+                NozzleVolumeType type = static_cast<NozzleVolumeType>(std::stoi(kv[0]));
+                int count = std::stoi(kv[1]);
+                stats[type] = count;
+            }
+        }
+
+        option.extruder_nozzle_stats[extruder_id] = stats;
+    }
+
+    return option;
+}
+
 static struct DynamicFilamentList : DynamicList
 {
     std::vector<std::pair<wxString, wxBitmap *>> items;
@@ -1171,7 +1424,7 @@ public:
         wxGetApp().UpdateDarkUIWin(this);
     }
 
-    static void SetAMSCount(int index, int ams4, int ams1)
+    static void SetAMSCount(int index, int ams4, int ams1, bool update = true)
     {
         PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
         preset_bundle.extruder_ams_counts.resize(2);
@@ -1182,7 +1435,9 @@ public:
         std::vector<std::string> extruder_ams_count     = save_extruder_ams_count_to_string(preset_bundle.extruder_ams_counts);
         std::string              extruder_ams_count_str = boost::algorithm::join(extruder_ams_count, ",");
         wxGetApp().app_config->set("presets", "extruder_ams_count", extruder_ams_count_str);
-        wxGetApp().plater()->update(); // update slice status
+        if (update) {
+            wxGetApp().plater()->update(); // update slice status
+        }
     }
 
     static void GetAMSCount(int index, int & ams4, int & ams1)
@@ -1292,7 +1547,9 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
 
     // AMS group
     for (size_t i = 0; i < 4; ++i) {
-        ams[i] = new AMSPreview(this, wxID_ANY, AMSinfo(), AMSModel::GENERIC_AMS);
+        AMSinfo info;
+        info.ams_type = DevAmsType::AMS;
+        ams[i] = new AMSPreview(this, wxID_ANY, info);
         ams[i]->Close();
     }
 
@@ -1390,7 +1647,7 @@ void ExtruderGroup::update_ams()
     static AMSinfo info1;
     if (info4.cans.empty()) {
         for (size_t i = 0; i < 4; ++i) info4.cans.push_back({});
-        info1.ams_type = AMSModel::N3S_AMS;
+        info1.ams_type = DevAmsType::N3S;
         info1.cans.push_back({});
     }
 
@@ -1553,7 +1810,7 @@ static bool is_skip_high_flow_printer(const std::string& printer)
     return invalidate_list.count(printer);
 };
 
-bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
+bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_manual)
 {
     MachineObject *obj = wxGetApp().getDeviceManager()->get_selected_machine();
     auto           printer_name = plater->get_selected_printer_name_in_combox();
@@ -1573,16 +1830,27 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     }
 
     std::string machine_print_name = obj->get_show_printer_type();
+    wxString machine_display_name = obj->get_printer_type_display_str();
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
+    const Preset &selected_preset = preset_bundle->printers.get_selected_preset();
+    const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(selected_preset);
+    wxString target_display_name = pm ? wxString::FromUTF8(pm->name) : wxString::FromUTF8(target_model_id);
     Preset* machine_preset = get_printer_preset(obj);
     if (!machine_preset) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: machine_preset empty";
         return false;
     }
     if (machine_print_name != target_model_id) {
-        MessageDialog dlg(this->plater, _L("The currently selected machine preset is inconsistent with the connected printer type.\n"
-                                            "Are you sure to continue syncing?"), _L("Sync printer information"), wxICON_WARNING | wxYES | wxNO);
+        wxString msg = _L("Do you want to sync the preset printer with the connected printer, ") + machine_display_name + "\n" +
+               wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                wxString::Format(_L("Current connected printer (Device page): %s (%s)"), machine_display_name,
+                                                 wxString::FromUTF8(obj->get_dev_name()))) + "\n" +
+               wxString::Format("<span style=\"color:gray !important\">%s</span>",
+                                wxString::Format(_L("Current printer preset (Prepare page): %s"), target_display_name));
+        MessageDialog dlg(this->plater, msg, _L("Sync printer information"), wxYES | wxNO, wxEmptyString, wxEmptyString, nullptr, true);
+        dlg.SetButtonLabel(wxID_YES, _L("Sync now"));
+        dlg.SetButtonLabel(wxID_NO, _L("Cancel"));
         if (dlg.ShowModal() == wxID_NO) {
             return false;
         }
@@ -1608,8 +1876,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     }
     assert(obj->GetExtderSystem()->GetTotalExtderCount() == extruder_nums);
     auto extruder_max_nozzle_count = cur_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count")->values;
-    auto nozzle_option = tryPopUpMultiNozzleDialog(obj);
     bool support_multi_nozzle = std::any_of(extruder_max_nozzle_count.begin(),extruder_max_nozzle_count.end(),[](int val){return val>1;});
+    auto nozzle_option = get_nozzle_options(obj, extruder_nums, support_multi_nozzle, is_manual);
     if (!nozzle_option && support_multi_nozzle)
         return false;
 
@@ -1638,27 +1906,34 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             }
             // hack code, only use standard flow for 0.2
             if (std::fabs(nozzle_diameters[extruder_id] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
-                target_type = NozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id) - 1);
+                target_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(extruder_id));
         }
         if (select_type)
             target_type = *select_type;
 
         target_types[index] = target_type;
     }
-
-    int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-    for (auto ams : obj->GetFilaSystem()->GetAmsList()) {
-        // Main (first) extruder at right
-        if (ams.second->GetExtruderId() == 0) {
-            if (ams.second->GetAmsType() == DevAms::N3S) // N3S
-                ++main_1;
-            else
-                ++main_4;
-        } else if (ams.second->GetExtruderId() == 1) {
-            if (ams.second->GetAmsType() == DevAms::N3S) // N3S
-                ++deputy_1;
-            else
-                ++deputy_4;
+    // key:(extruder_id, slot_num) val: count
+    std::map<std::pair<int, int>, int> ams_cnt_map{
+        {{MAIN_EXTRUDER_ID, 1}, 0},
+        {{DEPUTY_EXTRUDER_ID, 1}, 0},
+        {{MAIN_EXTRUDER_ID, 4}, 0},
+        {{DEPUTY_EXTRUDER_ID, 4}, 0},
+    };
+    for (const auto& ams : obj->GetFilaSystem()->GetAmsList()) {
+        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+            if (is_fila_switch_ready()) {
+                auto switcher_pos = ams.second->GetSwitcherPos();
+                if (!switcher_pos) {
+                    continue;
+                }
+                auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
+                if (extruder_id != switcher_id) {
+                    continue;
+                }
+            }
+            std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+            ams_cnt_map[key]++;
         }
     }
     only_external_material = !obj->GetFilaSystem()->HasAms();
@@ -1684,8 +1959,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         is_switching_diameter = true;
         switch_diameter(false);
         is_switching_diameter = false;
-        AMSCountPopupWindow::SetAMSCount(deputy_index, deputy_4, deputy_1);
-        AMSCountPopupWindow::SetAMSCount(main_index, main_4, main_1);
+        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
         AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
         AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     } else {
@@ -1701,6 +1976,28 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
     for (size_t idx = 0; idx < target_types.size(); ++idx) {
         printer_tab->set_extruder_volume_type(idx, target_types[idx]);
+    }
+
+    if (extruder_nums > 1) {
+        auto fila_switch = obj->GetFilaSwitch();
+        if (fila_switch->IsInstalled()) {
+            show_filament_switcher_dialog(fila_switch->IsReady(), is_manual);
+        } else {
+            fila_switch_warning_shown = false;
+        }
+    }
+
+    if (obj->is_support_active_arc_fitting) {
+        auto tab = wxGetApp().get_tab(Preset::TYPE_PRINT);
+        if (tab->disable_arc_fitting()) {
+            wxGetApp().sidebar().jump_to_option("enable_arc_fitting", Preset::TYPE_PRINT, L"");
+            auto notification_manager = plater->get_notification_manager();
+            auto msg                  = into_u8(_L("Tips:\nYour printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."));
+            notification_manager->push_notification(NotificationType::BBLPlateInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+        }
+    }
+    if (is_fila_switch_ready()) {
+        wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(true);
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
@@ -1773,6 +2070,47 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     if (extruder_nums != obj->GetExtderSystem()->GetTotalExtderCount())
         return;
 
+    auto fila_switch_flag = is_fila_switch_ready();
+    if (extruder_nums > 1) {
+        auto fila_switch = obj->GetFilaSwitch();
+        if (fila_switch->IsInstalled()) {
+            show_filament_switcher_dialog(fila_switch->IsReady(), false);
+            if (fila_switch->IsReady()) {
+                update_extruder_separator_icon(true, true);
+            } else {
+                update_extruder_separator_icon(true, false);
+            }
+        } else {
+            update_extruder_separator_icon(false, false);
+            fila_switch_warning_shown = false;
+        }
+
+        std::map<std::pair<int, int>, int> ams_cnt_map{
+            {{MAIN_EXTRUDER_ID, 1}, 0},
+            {{DEPUTY_EXTRUDER_ID, 1}, 0},
+            {{MAIN_EXTRUDER_ID, 4}, 0},
+            {{DEPUTY_EXTRUDER_ID, 4}, 0},
+        };
+        for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
+            for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+                if (is_fila_switch_ready()) {
+                    auto switcher_pos = ams.second->GetSwitcherPos();
+                    if (!switcher_pos) { continue; }
+                    auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
+                    if (extruder_id != switcher_id) { continue; }
+                }
+                std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+                ams_cnt_map[key]++;
+            }
+        }
+        int main_index   = obj->is_main_extruder_on_left() ? 0 : 1;
+        int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
+        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}], false);
+        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}], false);
+        AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
+        AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+    }
+
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
 
     if (extruder_nums == 1) {
@@ -1794,17 +2132,32 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         machine_extruder_infos[extruder.GetExtId()].nozzle_volue_type = int(extruder.GetNozzleFlowType()) - 1;
         machine_extruder_infos[extruder.GetExtId()].diameter          = extruder.GetNozzleDiameter();
     }
-    for (auto &item : obj->GetFilaSystem()->GetAmsList()) {
-        if (item.second->GetExtruderId() >= machine_extruder_infos.size())
+    for (const auto &item : obj->GetFilaSystem()->GetAmsList()) {
+        int extruder_id;
+        if (fila_switch_flag) {
+            auto switcher_pos = item.second->GetSwitcherPos();
+            if (!switcher_pos) {
+                continue;
+            }
+            extruder_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
+        } else {
+            const auto &uniq_extruder_id = item.second->GetUniqueBindedExtruderId();
+            if(!uniq_extruder_id) {
+                continue;
+            }
+            extruder_id = uniq_extruder_id.value();
+        }
+
+        if (extruder_id >= machine_extruder_infos.size())
             continue;
 
-        if (item.second->GetAmsType() == DevAms::N3S)
+        if (item.second->GetAmsType() == DevAmsType::N3S)
         { // N3S
-            machine_extruder_infos[item.second->GetExtruderId()].ams_1++;
-            machine_extruder_infos[item.second->GetExtruderId()].ams_v1.push_back(item.second);
+            machine_extruder_infos[extruder_id].ams_1++;
+            machine_extruder_infos[extruder_id].ams_v1.push_back(item.second);
         } else {
-            machine_extruder_infos[item.second->GetExtruderId()].ams_4++;
-            machine_extruder_infos[item.second->GetExtruderId()].ams_v4.push_back(item.second);
+            machine_extruder_infos[extruder_id].ams_4++;
+            machine_extruder_infos[extruder_id].ams_v4.push_back(item.second);
         }
     }
 
@@ -1854,7 +2207,100 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         btn_sync_printer->SetBorderColor(not_synced_colour);
         btn_sync_printer->SetIcon("printer_sync");
     }
- }
+}
+
+std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj, int extruder_count, bool support_multi_nozzle, bool is_manual)
+{
+    if (extruder_count < 2 || !support_multi_nozzle) {
+        return std::nullopt;
+    }
+    if (!obj || !obj->GetNozzleSystem()) return std::nullopt;
+    auto nozzle_system = obj->GetNozzleSystem();
+
+    PresetBundle *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return std::nullopt;
+
+    std::string curr_dev_id = obj->get_dev_id();
+    std::vector<DevNozzle> curr_nozzle_cfg;
+
+    for (const auto& ext_nozzle : nozzle_system->GetExtNozzles()) {
+        if (ext_nozzle.first == MAIN_EXTRUDER_ID) {
+            curr_nozzle_cfg.emplace_back(ext_nozzle.second);
+        }
+    }
+    for (const auto& rack_nozzle : nozzle_system->GetRackNozzles()) {
+        curr_nozzle_cfg.emplace_back(rack_nozzle.second);
+    }
+    AppConfig *app_config = wxGetApp().app_config;
+    std::string saved_dev_id = app_config->get("sync_extruder", "dev_id");
+    std::string saved_nozzle_config_str = app_config->get("sync_extruder", "nozzle_config");
+    std::string saved_nozzle_option_str = app_config->get("sync_extruder", "nozzle_option");
+    std::optional<NozzleOption> nozzle_option;
+
+    if (is_manual) {
+        nozzle_option = tryPopUpMultiNozzleDialog(obj);
+    } else {
+        bool can_reuse_saved_option = false;
+        if (!saved_dev_id.empty() && !saved_nozzle_config_str.empty() && !saved_nozzle_option_str.empty() && saved_dev_id == curr_dev_id) {
+            std::vector<DevNozzle> saved_nozzle_config = deserialize_nozzle_config(saved_nozzle_config_str);
+            if (is_same_nozzle_config(saved_nozzle_config, curr_nozzle_cfg)) {
+                nozzle_option = deserialize_nozzle_option(saved_nozzle_option_str);
+                can_reuse_saved_option = nozzle_option.has_value();
+            }
+            if (can_reuse_saved_option) {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Reusing saved nozzle option for dev_id: " << curr_dev_id;
+
+                auto                     &project_config         = preset_bundle->project_config;
+                ConfigOptionEnumsGeneric *nozzle_volume_type_opt = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+
+                // Write to preset bundle config
+                for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
+                    NozzleVolumeType volume_type;
+                    int              nozzle_count;
+                    bool             clear_all = true;
+
+                    if (!nozzle_option->extruder_nozzle_stats.count(extruder_id)) {
+                        nozzle_count = 0;
+                        for (size_t idx = 0; idx < nvtHybrid; ++idx) {
+                            volume_type = static_cast<NozzleVolumeType>(idx);
+                            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
+                            clear_all = false;
+                        }
+                    } else {
+                        for (auto &stat : nozzle_option->extruder_nozzle_stats[extruder_id]) {
+                            volume_type  = stat.first;
+                            nozzle_count = stat.second;
+                            setExtruderNozzleCount(preset_bundle, extruder_id, volume_type, nozzle_count, clear_all);
+                            clear_all = false;
+                        }
+                    }
+                }
+                preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfMachine);
+            }
+        }
+
+        if (!can_reuse_saved_option) {
+            nozzle_option = tryPopUpMultiNozzleDialog(obj);
+        }
+    }
+    if (nozzle_option) {
+        std::string current_nozzle_config = serialize_nozzle_config(curr_nozzle_cfg);
+        std::string current_nozzle_option = serialize_nozzle_option(*nozzle_option);
+        if (app_config->has_section("sync_extruder")) {
+            app_config->set("sync_extruder", "dev_id", curr_dev_id);
+            app_config->set("sync_extruder", "nozzle_config", current_nozzle_config);
+            app_config->set("sync_extruder", "nozzle_option", current_nozzle_option);
+        } else {
+            std::map<std::string, std::string> data;
+            data["dev_id"]        = curr_dev_id;
+            data["nozzle_config"] = current_nozzle_config;
+            data["nozzle_option"] = current_nozzle_option;
+            app_config->set_section("sync_extruder", data);
+        }
+    }
+
+    return nozzle_option;
+}
 
 void Sidebar::update_sync_ams_btn_enable(wxUpdateUIEvent &e)
  {
@@ -2151,6 +2597,23 @@ Sidebar::Sidebar(Plater *parent)
             wxGetApp().plater()->update();
             });
         p->single_extruder->SetEditEnabled(false);
+        p->left_extruder->Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {
+            if (!p->extruder_separator_icon->IsShown()) return;
+            wxPoint left_box_pos  = p->left_extruder->GetPosition();
+            wxSize  left_box_size = p->left_extruder->GetSize();
+            wxPoint ams_local_pos = p->left_extruder->hsizer_ams->GetPosition();
+            wxSize  left_size     = p->left_extruder->sizer->GetSize();
+            wxSize  ams_size      = p->left_extruder->hsizer_ams->GetSize();
+            wxSize  icon_size     = p->extruder_separator_icon->GetSize();
+            int     ams_abs_y     = left_box_pos.y + ams_local_pos.y + FromDIP(4);
+            int     center_x      = left_size.GetWidth() + FromDIP(6);
+            int     center_y      = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
+            center_x -= icon_size.GetWidth() / 2;
+            center_y -= icon_size.GetHeight() / 2;
+            p->extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
+            p->m_panel_printer_content->Refresh();
+            evt.Skip();
+        });
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
@@ -2783,6 +3246,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
         // Update dual extrudes
         auto extruder_variants = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
+        std::string printer_model = printer_preset.config.option<ConfigOptionString>("printer_model")->value;
 
         bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
         bool is_dual_extruder = extruder_variants->size() == 2;
@@ -2794,14 +3258,16 @@ void Sidebar::update_presets(Preset::Type preset_type)
         auto diameters = wxGetApp().preset_bundle->printers.diameters_of_selected_printer();
         auto diameter = printer_preset.config.opt_string("printer_variant");
         auto extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-        auto update_extruder_variant = [extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
+        bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
+        auto update_extruder_variant = [printer_model, extruders_def, extruders, nozzle_volumes_def, nozzle_volumes, extruder_variants,diameter,extruder_max_nozzle_count](ExtruderGroup & extruder, int index) {
             extruder.combo_flow->Clear();
             auto type = extruders_def->enum_labels[extruders->values[index]];
             int select = -1;
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i]) ||
                     extruder_max_nozzle_count->values[index] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == nvtHybrid) {
-                    if (diameter == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow)
+                    if (nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow &&(diameter == "0.2" ||
+                        is_skip_high_flow_printer(printer_model)))
                         continue;
                     if (nozzle_volumes->values[index] == i)
                         select = extruder.combo_flow->GetCount();
@@ -3457,13 +3923,20 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     };
 
     auto list = obj->GetFilaSystem()->GetAmsList();
-    for (auto ams : list) {
-        int ams_id   = std::stoi(ams.first);
-        int extruder = ams.second->GetExtruderId() ? 0 : 0x10000; // Main (first) extruder at right
-        for (auto tray : ams.second->GetTrays()) {
-            int  slot_id = std::stoi(tray.first);
-            filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id),
-                                      build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+    for (const auto& ams : list) {
+        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+            int extruder = extruder_id ? 0 : 0x10000; // Main (first) extruder at right
+            for (auto tray : ams.second->GetTrays()) {
+                int ams_id = -1;
+                int slot_id = -1;
+                try {
+                    ams_id  = std::stoi(ams.first);
+                    slot_id = std::stoi(tray.first);
+                    filament_ams_list.emplace(extruder + (ams_id * 4 + slot_id), build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+                } catch(...) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
+                }
+            }
         }
     }
     return filament_ams_list;
@@ -3496,6 +3969,13 @@ bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObj
 void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
+    if (is_fila_switch_ready())  {
+        const auto print_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+        if (print_tech == ptFFF) {
+            for (PlaterPresetComboBox *cb : p->combos_filament)
+                cb->update();
+        }
+    }
 }
 
 int Sidebar::get_sidebar_pos_right_x()
@@ -3556,6 +4036,11 @@ std::unordered_map<std::string, wxString> Sidebar::get_extruder_suffix()
     if (p->single_extruder) res["single_extruder"] = p->single_extruder->GetSuffixStr();
 
     return res;
+}
+
+void Sidebar::reset_fila_switch()
+{
+    p->update_extruder_separator_icon(false, false);
 }
 
 void Sidebar::enable_nozzle_count_edit(bool enable){
@@ -3672,13 +4157,34 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "check error: sync_result.is_same_printer value is false";
         return;
     }
-    list2.resize(list.size());
+    auto skip_ext = m_sync_dlg->has_selector(nullptr);
+    if (skip_ext) {
+        list2.clear();
+    } else {
+        list2.resize(list.size());
+    }
     auto iter = list.begin();
+    std::set<std::pair<std::string, std::string>> added_filaments;
     for (int i = 0; i < list.size(); ++i, ++iter) {
         auto & ams = iter->second;
         auto filament_id = ams.opt_string("filament_id", 0u);
-        ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
-        list2[i] = filament_id;
+        auto tray_name = ams.opt_string("tray_name", 0u);
+        if (tray_name == "Ext" && skip_ext) {
+            continue;
+        }
+        if (skip_ext) {
+            auto filament_pair = std::make_pair(tray_name, filament_id);
+            if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                continue;
+            }
+            added_filaments.insert(filament_pair);
+
+             ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
+            list2.emplace_back(filament_id);
+        } else {
+            ams.set_key_value("filament_changed", new ConfigOptionBool{dlg_res == wxID_YES || list2[i] != filament_id});
+            list2[i] = filament_id;
+        }
     }
 
     // BBS:Record consumables information before synchronization
@@ -3693,7 +4199,7 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     MergeFilamentInfo merge_info;
     std::vector<std::pair<DynamicPrintConfig *,std::string>> unknowns;
     auto enable_append = wxGetApp().app_config->get_bool("enable_append_color_by_sync_ams");
-    auto n             = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info);
+    auto     n = wxGetApp().preset_bundle->sync_ams_list(unknowns, !sync_result.direct_sync, sync_result.sync_maps, enable_append, merge_info, skip_ext);
     wxString detail;
     for (auto & uk : unknowns) {
         auto tray_name     = uk.first->opt_string("tray_name", 0u);
@@ -3914,7 +4420,7 @@ bool Sidebar::is_multifilament()
 void Sidebar::deal_btn_sync() {
     m_begin_sync_printer_status = true;
     bool only_external_material;
-    auto ok = p->sync_extruder_list(only_external_material);
+    auto ok = p->sync_extruder_list(only_external_material, true);
     if (ok) {
         pop_sync_nozzle_and_ams_dialog();
     } else {
@@ -4046,6 +4552,11 @@ bool Sidebar::is_collapsed() {
 
 void Sidebar::collapse(bool collapse){
     p->plater->collapse_sidebar(collapse);
+}
+
+bool Sidebar::is_fila_switch_ready()
+{
+    return p->is_fila_switch_ready();
 }
 
 #ifdef _MSW_DARK_MODE
@@ -4429,6 +4940,7 @@ public:
 
     BackgroundSlicingProcess    background_process;
     HelioBackgroundProcess      helio_background_process;
+    bool helio_using_reference_material { false }; // True when user selected a reference material for unsupported filament
     bool suppressed_backround_processing_update { false };
     // UIThreadWorker can be used as a replacement for BoostThreadWorker if
     // no additional worker threads are desired (useful for debugging or profiling)
@@ -5607,6 +6119,28 @@ void Plater::priv::select_view(const std::string& direction)
     }
 }
 
+bool Plater::check_include_gcode()
+{
+    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
+    const DynamicPrintConfig& config = preset_bundle.prints.get_edited_preset().config;
+
+    if (config.has("post_process")) {
+        auto* opt = config.opt<ConfigOptionStrings>("post_process");
+        if (opt && !opt->values.empty()) {
+            std::string first_script = opt->values.front();
+            std::string all_scripts = boost::algorithm::join(opt->values, "; ");
+            if (!first_script.empty()) {
+                MessageDialog msg(wxGetApp().mainframe, _L("There is a G-code script present in the current 3mf file, please verify the content of the script."), _L("Warning"), wxOK | wxICON_WARNING);
+                if (msg.ShowModal() == wxID_OK) {
+                    wxGetApp().sidebar().jump_to_option("post_process", Preset::TYPE_PRINT, L"");
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 const VendorProfile::PrinterModel *Plater::get_curr_printer_model()
 {
     auto bundle = wxGetApp().preset_bundle;
@@ -6116,6 +6650,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     std::vector<Preset *>     project_presets;
                     // BBS: backup & restore
                     q->skip_thumbnail_invalid = true;
+                    // Used to store color group mapping information in standard 3MF files
+                    std::map<int, std::vector<std::string>> color_group_map;
+                    VolumeColorInfoMap volume_color_data;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
                                                              [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i,
@@ -6129,7 +6666,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                                                  cancel        = !cont;
                                                                  if (cancel)
                                                                      is_user_cancel = cancel;
-                                                             });
+                                                             }, nullptr, &color_group_map, &volume_color_data);
                     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
                                             << boost::format(", plate_data.size %1%, project_preset.size %2%, is_bbs_3mf %3%, file_version %4% \n") % plate_data.size() %
                                                    project_presets.size() % (en_3mf_file_type == En3mfType::From_BBS) % file_version.to_string();
@@ -6242,11 +6779,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     else if (load_config && config_loaded.empty()) {
                         load_config = false;
                         if (wxGetApp().app_config->get_bool("skip_non_bambu_3mf_warning") != true) {
-                            TipsDialog dlg(q, _L("Load 3mf"),
-                                           file_version.maj() == 0 && file_version.min() == 0 && file_version.patch() == 0
-                                               ? _L("The 3mf is not from Bambu Lab, load geometry data only.")
-                                               : _L("The 3mf is generated by old Bambu Studio, load geometry data only."),
-                                           "skip_non_bambu_3mf_warning", wxOK);
+                            TipsDialog dlg(q,
+                                _L("Load 3mf"),
+                                file_version.maj() == 0 && file_version.min() == 0 && file_version.patch() == 0
+                                    ? _L("The 3mf is not from Bambu Lab, load geometry data and color data only.")
+                                    : _L("The 3mf is generated by old Bambu Studio, load geometry data only."),
+                                "skip_non_bambu_3mf_warning",
+                                wxOK);
                             dlg.ShowModal();
                         }
                     }
@@ -6362,6 +6901,22 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         this->model.plates_custom_gcodes = model.plates_custom_gcodes;
                         this->model.design_info = model.design_info;
                         this->model.model_info = model.model_info;
+                    }
+
+                    // Process color information in standard 3MF files(similar to color processing in OBJ files).
+                    if (load_model && !color_group_map.empty() && !volume_color_data.empty() && en_3mf_file_type != En3mfType::From_BBS) {
+                        // Only process external standard 3MF files; the BBS's own 3MF files already have complete color processing logic
+                        ObjDialogInOut color_dialog_in_out;
+                        if (extract_colors_to_obj_dialog(&model, color_group_map, volume_color_data, color_dialog_in_out)) {
+                            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                            color_dialog_in_out.model = &model;
+                            color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
+                            color_dialog_in_out.volume_colors = volume_color_data;
+                            ObjColorDialog color_dlg(nullptr, color_dialog_in_out, extruder_colours);
+                            if (color_dlg.ShowModal() == wxID_OK) {
+                                color_dialog_in_out.filament_ids.clear();
+                            }
+                        }
                     }
                 }
 
@@ -8175,6 +8730,9 @@ bool Plater::priv::restart_background_process(unsigned int state)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: print is valid, try to start it now")%__LINE__;
         // The print is valid and it can be started.
         if (this->background_process.start()) {
+            if (auto* plate = this->background_process.get_current_plate()) {
+                plate->clear_helio_result();
+            }
             if (!show_warning_dialog)
                 on_slicing_began();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
@@ -8185,6 +8743,9 @@ bool Plater::priv::restart_background_process(unsigned int state)
         PartPlate* cur_plate = background_process.get_current_plate();
         if (cur_plate->is_slice_result_valid() && ((state & UPDATE_BACKGROUND_PROCESS_FORCE_RESTART) != 0)) {
             if (this->background_process.start()) {
+                if (auto* plate = this->background_process.get_current_plate()) {
+                    plate->clear_helio_result();
+                }
                 if (!show_warning_dialog)
                     on_slicing_began();
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: start successfully")%__LINE__;
@@ -9777,6 +10338,18 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         if (exporting_status == ExportingStatus::EXPORTING_TO_LOCAL && !has_error)
             notification_manager->push_exporting_finished_notification(last_output_path, last_output_dir_path, false);
 
+        // Show tutorial popup after successful slicing (if tutorial is active)
+        if (!has_error && !evt.cancelled() && evt.success() && is_finished) {
+            if (wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
+                wxString tutorial_msg = _L("Great! Now click the Helio button to start optimization.");
+                notification_manager->push_notification(
+                    NotificationType::CustomNotification,
+                    NotificationManager::NotificationLevel::HintNotificationLevel,
+                    into_u8(tutorial_msg)
+                );
+            }
+        }
+
         // BBS, Generate calibration thumbnail for current plate
         if (!has_error && preview) {
             // generate calibration data
@@ -9905,11 +10478,896 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
         Model::setExtruderParams(config, filament_count);
         Model::setPrintSpeedTable(config, print_config);
         m_slice_all = false;
+
+        auto agent      = wxGetApp().getAgent();
+        auto curr_plate = q->get_partplate_list().get_curr_plate();
+        if (agent && curr_plate){
+            auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
+            auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+            json j;
+            j["mode"] = mode_name;
+            j["is_connected"] = q->get_machine_sync_status();
+            j["slice_type"]   = "single_plate";
+            agent->track_event("slice_group_mode", j.dump());
+        }
+
         q->reslice();
         q->select_view_3D("Preview");
     }
 }
 
+
+// Helper function to extract material type keywords from material name
+static std::vector<std::string> extract_material_keywords(const std::string& material_name)
+{
+    std::vector<std::string> keywords;
+    std::string lower_name = material_name;
+    boost::algorithm::to_lower(lower_name);
+    
+    // Common material type keywords
+    std::vector<std::string> material_types = {
+        "abs", "pla", "tpu", "petg", "pc", "pa", "paht", "asa", "hips", "pp", "pe", "pva",
+        "pom", "pmma", "ps", "pbt", "peek", "pei", "pes", "pvdf", "tpe", "tpee", "tpc"
+    };
+    
+    for (const std::string& type : material_types) {
+        if (lower_name.find(type) != std::string::npos) {
+            keywords.push_back(type);
+        }
+    }
+    
+    return keywords;
+}
+
+// Helper function to find similar materials based on keywords
+static std::vector<HelioQuery::SupportedData> find_similar_materials(
+    const std::string& target_name,
+    const std::vector<std::string>& keywords)
+{
+    std::vector<HelioQuery::SupportedData> similar_materials;
+    
+    if (keywords.empty()) {
+        return similar_materials;
+    }
+    
+    std::string lower_target = target_name;
+    boost::algorithm::to_lower(lower_target);
+    
+    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+        if (pdata.native_name.empty()) {
+            continue;
+        }
+        
+        std::string lower_native = pdata.native_name;
+        boost::algorithm::to_lower(lower_native);
+        
+        // Check if any keyword appears in the native material name
+        bool has_keyword = false;
+        for (const std::string& keyword : keywords) {
+            if (lower_native.find(keyword) != std::string::npos) {
+                has_keyword = true;
+                break;
+            }
+        }
+        
+        if (has_keyword) {
+            similar_materials.push_back(pdata);
+        }
+    }
+    
+    return similar_materials;
+}
+
+// Helper function to extract printer model keywords from printer name
+// This helps find similar printers when exact match fails
+static std::vector<std::string> extract_printer_keywords(const std::string& printer_name)
+{
+    std::vector<std::string> keywords;
+    std::string lower_name = printer_name;
+    boost::algorithm::to_lower(lower_name);
+    
+    // Common Bambu Lab printer series keywords
+    std::vector<std::string> printer_models = {
+        "x1c", "x1e", "x1", "p1s", "p1p", "p1", "a1", "a1 mini",
+        "h2d", "h2d pro", "h2" , "a", "p", "x", "h"
+    };
+    
+    for (const std::string& model : printer_models) {
+        if (lower_name.find(model) != std::string::npos) {
+            keywords.push_back(model);
+        }
+    }
+    
+    return keywords;
+}
+
+// Helper function to find similar printers based on keywords
+static std::vector<HelioQuery::SupportedData> find_similar_printers(
+    const std::string& target_name,
+    const std::vector<std::string>& keywords)
+{
+    std::vector<HelioQuery::SupportedData> similar_printers;
+    
+    // If no keywords found, return all printers as options
+    if (keywords.empty()) {
+        for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_printers) {
+            if (!pdata.native_name.empty()) {
+                similar_printers.push_back(pdata);
+            }
+        }
+        return similar_printers;
+    }
+    
+    std::string lower_target = target_name;
+    boost::algorithm::to_lower(lower_target);
+    
+    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_printers) {
+        if (pdata.native_name.empty()) {
+            continue;
+        }
+        
+        std::string lower_native = pdata.native_name;
+        boost::algorithm::to_lower(lower_native);
+        
+        // Check if any keyword appears in the native printer name
+        bool has_keyword = false;
+        for (const std::string& keyword : keywords) {
+            if (lower_native.find(keyword) != std::string::npos) {
+                has_keyword = true;
+                break;
+            }
+        }
+        
+        if (has_keyword) {
+            similar_printers.push_back(pdata);
+        }
+    }
+    
+    return similar_printers;
+}
+
+// Helper function to match printer name with word-boundary awareness
+// Returns the matched printer ID and match length if found, empty string otherwise
+// Handles cases like "myBambu Lab H2Dsmells" matching to "Bambu Lab H2D"
+static std::pair<std::string, size_t> match_printer_with_boundaries(
+    const std::string& target_name,
+    const std::vector<HelioQuery::SupportedData>& supported_printers)
+{
+    std::string best_match_id;
+    size_t best_match_length = 0;
+    
+    std::string target_lower = target_name;
+    boost::algorithm::to_lower(target_lower);
+    
+    for (const HelioQuery::SupportedData& pdata : supported_printers) {
+        if (pdata.native_name.empty()) continue;
+        
+        std::string native_name = pdata.native_name;
+        boost::algorithm::to_lower(native_name);
+        
+        bool is_match = false;
+        
+        // Case 1: Exact match (highest priority)
+        if (target_lower == native_name) {
+            is_match = true;
+        }
+        // Case 2: Target is longer than native name - user may have added prefix/suffix
+        // e.g., "myBambu Lab H2Dsmells" contains "Bambu Lab H2D"
+        // We check if target CONTAINS native_name (not the other way around!)
+        else if (target_lower.length() > native_name.length()) {
+            size_t pos = target_lower.find(native_name);
+            if (pos != std::string::npos) {
+                // For word boundary matching with modified names like "myBambu Lab H2Dsmells"
+                // We check if native_name appears in target and prefer longer matches
+                is_match = true;
+            }
+        }
+        // Case 3: Native name is longer than target - DO NOT automatically match
+        // e.g., "Bambu Lab H2D" should NOT match "Bambu Lab H2D Pro"
+        // This is intentionally left out to prevent the exact issue reported:
+        // "Bambu Lab H2D" was incorrectly matching "Bambu Lab H2D Pro" because
+        // the old logic checked if native contains target with word boundaries.
+        // If user needs a more specific printer, they should select it explicitly.
+        
+        // Keep track of longest native_name match to prefer more specific printers
+        // when user has modified preset names with prefix/suffix
+        // e.g., if user has "myBambu Lab H2D Pro test", we want "H2D Pro" not "H2D"
+        if (is_match && native_name.length() > best_match_length) {
+            best_match_length = native_name.length();
+            best_match_id = pdata.id;
+        }
+    }
+    
+    return std::make_pair(best_match_id, best_match_length);
+}
+
+// Token-based matching for printers with modified preset names
+// Handles cases like "myBambu Lab H2Dsmells" or "yourH2Dfast"
+static std::pair<std::string, std::string> match_printer_tokens(
+    const std::string& target_name,
+    const std::vector<HelioQuery::SupportedData>& supported_printers)
+{
+    std::string target_lower = target_name;
+    boost::algorithm::to_lower(target_lower);
+    
+    // Tokenize target name by spaces
+    std::vector<std::string> target_tokens;
+    boost::split(target_tokens, target_lower, boost::is_any_of(" "), boost::token_compress_on);
+    
+    size_t best_token_match_length = 0;
+    std::string best_printer_id;
+    std::string best_native_name;
+    
+    for (const HelioQuery::SupportedData& pdata : supported_printers) {
+        if (pdata.native_name.empty()) continue;
+        
+        std::string native_name = pdata.native_name;
+        std::string native_lower = native_name;
+        boost::algorithm::to_lower(native_lower);
+        
+        // Tokenize native name
+        std::vector<std::string> native_tokens;
+        boost::split(native_tokens, native_lower, boost::is_any_of(" "), boost::token_compress_on);
+        
+        // Check if all native tokens appear in target tokens in order
+        // Also check if native tokens are embedded within target tokens
+        // (e.g., "h2d" in "myh2dsmells")
+        bool all_tokens_match = true;
+        size_t target_idx = 0;
+        
+        for (const std::string& native_token : native_tokens) {
+            bool found = false;
+            for (size_t i = target_idx; i < target_tokens.size(); ++i) {
+                // Check for exact match
+                if (target_tokens[i] == native_token) {
+                    found = true;
+                    target_idx = i + 1;
+                    break;
+                }
+                // Check if native token is embedded in target token
+                // (e.g., "h2d" in "myh2dsmells")
+                else if (target_tokens[i].find(native_token) != std::string::npos) {
+                    found = true;
+                    target_idx = i + 1;
+                    break;
+                }
+            }
+            if (!found) {
+                all_tokens_match = false;
+                break;
+            }
+        }
+        
+        // Keep track of longest token match
+        if (all_tokens_match && native_lower.length() > best_token_match_length) {
+            best_token_match_length = native_lower.length();
+            best_printer_id = pdata.id;
+            best_native_name = pdata.native_name; // Keep original case for display
+        }
+    }
+    
+    return std::make_pair(best_printer_id, best_native_name);
+}
+
+// Structure to hold filament support information for multi-filament checking
+struct FilamentSupportInfo {
+    std::string preset_name;        // Original preset name
+    std::string filament_type;      // Extracted filament type (e.g., "PLA", "PC")
+    std::string material_id;        // Helio material ID if supported
+    bool is_supported;              // Whether Helio supports this filament
+    int extruder_index;             // Which extruder (0-based)
+};
+
+// Helper function to check if a single filament is supported by Helio and get its material ID
+static FilamentSupportInfo check_filament_helio_support(const std::string& filament_preset_name, int extruder_index)
+{
+    FilamentSupportInfo info;
+    info.preset_name = filament_preset_name;
+    info.extruder_index = extruder_index;
+    info.is_supported = false;
+    info.material_id = "";
+    info.filament_type = "";
+    
+    // Extract filament type from preset
+    Slic3r::Preset* preset = wxGetApp().preset_bundle->filaments.find_preset(filament_preset_name);
+    if (preset) {
+        std::string display_type;
+        info.filament_type = preset->config.get_filament_type(display_type);
+    }
+    
+    // Clean up the filament name for matching
+    size_t atPos = filament_preset_name.find('@');
+    std::string target_name = (atPos != std::string::npos) ? filament_preset_name.substr(0, atPos) : filament_preset_name;
+    boost::trim(target_name);
+    
+    // Find best (longest) match to prefer specific materials over generic ones
+    size_t best_match_length = 0;
+    
+    for (const HelioQuery::SupportedData& pdata : HelioQuery::global_supported_materials) {
+        if (pdata.native_name.empty()) continue;
+        
+        std::string native_name = pdata.native_name;
+        std::string target_lower = target_name;
+        
+        boost::algorithm::to_lower(native_name);
+        boost::algorithm::to_lower(target_lower);
+        
+        bool is_match = false;
+        if (target_lower == native_name) {
+            is_match = true;
+        } else if (target_lower.length() > native_name.length()) {
+            // Check if target_name starts with native_name followed by space
+            if (target_lower.substr(0, native_name.length()) == native_name &&
+                target_lower[native_name.length()] == ' ') {
+                is_match = true;
+            } else {
+                // Check for word boundary match
+                size_t pos = target_lower.find(native_name);
+                if (pos != std::string::npos) {
+                    bool valid_start = (pos == 0 || target_lower[pos - 1] == ' ');
+                    size_t after_pos = pos + native_name.length();
+                    bool valid_end = (after_pos >= target_lower.length() || target_lower[after_pos] == ' ');
+                    if (valid_start && valid_end) {
+                        is_match = true;
+                    }
+                }
+            }
+        }
+        
+        if (is_match && native_name.length() > best_match_length) {
+            best_match_length = native_name.length();
+            info.material_id = pdata.id;
+            info.is_supported = true;
+        }
+    }
+    
+    return info;
+}
+
+// Dialog for handling mixed filament types in multicolour simulation
+class HelioMixedFilamentDialog : public DPIDialog {
+public:
+    HelioMixedFilamentDialog(wxWindow* parent, 
+                             const std::vector<FilamentSupportInfo>& filaments,
+                             const std::set<std::string>& unique_types)
+        : DPIDialog(parent, wxID_ANY, _L("Multiple Filament Materials Detected"), 
+                   wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+        , m_filaments(filaments)
+        , m_selected_material_id("")
+        , m_user_choice(0) // 0 = cancelled, 1 = proceed with selection, 2 = go back
+    {
+        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+        wxWindow* mainframe = static_cast<wxWindow*>(wxGetApp().mainframe);
+        
+        wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+        main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+        
+        bool is_dark_mode = wxGetApp().dark_mode();
+        wxColour text_color = wxGetApp().get_label_clr_default();
+        
+        // Warning header with purple styling (Helio brand)
+        wxColour warning_color = wxColour("#AF7CFF");
+        wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
+        StaticBox* warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+        warning_box->SetBackgroundColour(warning_bg);
+        warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+        warning_box->SetBorderWidth(2);
+        warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+
+        wxBoxSizer* warning_sizer = new wxBoxSizer(wxVERTICAL);
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+
+        Label* warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Multiple Filament Materials Detected"));
+        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
+        warning_title->SetForegroundColour(warning_title_color);
+        warning_sizer->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Build the filament names string - show ALL filaments (mark unsupported ones)
+        wxString filaments_str;
+        std::set<std::string> shown_names; // Avoid duplicates
+        bool has_unsupported = false;
+        for (const auto& info : filaments) {
+            if (shown_names.find(info.preset_name) == shown_names.end()) {
+                if (!filaments_str.IsEmpty()) filaments_str += ", ";
+                filaments_str += wxString::FromUTF8(info.preset_name);
+                if (!info.is_supported) {
+                    filaments_str += _L(" (unsupported)");
+                    has_unsupported = true;
+                }
+                shown_names.insert(info.preset_name);
+            }
+        }
+        
+        wxString warning_msg = _L("Multicolour simulation currently supports only a single filament material.");
+        warning_msg += "\n";
+        warning_msg += wxString::Format(_L("You have selected multiple materials: %s"), filaments_str);
+        if (has_unsupported) {
+            warning_msg += "\n\n";
+            warning_msg += _L("Note: Unsupported materials will use the selected reference material for simulation.");
+        }
+        
+        Label* warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+        wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+        warning_text->SetForegroundColour(warning_text_color);
+        warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+        warning_sizer->Add(warning_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+        
+        warning_box->SetSizer(warning_sizer);
+        main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+        
+        // Future support message
+        Label* future_msg = new Label(this, Label::Body_13, 
+            _L("True multi-material support will be added in a future update."), LB_AUTO_WRAP);
+        future_msg->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#6B6B6B")));
+        future_msg->Wrap(wxWindowBase::FromDIP(470, this));
+        main_sizer->Add(future_msg, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        // Option 1: Proceed with single filament
+        StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option1_box->SetBackgroundColor(StateColor(std::make_pair(wxColour("#F8F8F8"), (int)StateColor::Normal)));
+        option1_box->SetBorderColor(StateColor(std::make_pair(wxColour("#E8E8E8"), (int)StateColor::Normal)));
+        option1_box->SetBorderWidth(1);
+        option1_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* option1_sizer = new wxBoxSizer(wxVERTICAL);
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        Label* option1_title = new Label(option1_box, Label::Head_14, _L("Option 1: Proceed using a single filament type"));
+        option1_title->SetForegroundColour(text_color);
+        option1_sizer->Add(option1_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* option1_desc = new Label(option1_box, Label::Body_13, 
+            _L("Select which filament to use for simulation:"), LB_AUTO_WRAP);
+        option1_desc->SetForegroundColour(text_color);
+        option1_sizer->Add(option1_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Dropdown for filament selection
+        wxArrayString filament_choices;
+        for (const auto& info : filaments) {
+            if (info.is_supported) {
+                wxString choice = wxString::Format("%s (%s)", 
+                    wxString::FromUTF8(info.preset_name), 
+                    wxString::FromUTF8(info.filament_type));
+                filament_choices.Add(choice);
+            }
+        }
+        
+        m_filament_combo = new ComboBox(option1_box, wxID_ANY, filament_choices[0],
+                                        wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1),
+                                        0, NULL, wxCB_READONLY);
+        for (const wxString& choice : filament_choices) {
+            m_filament_combo->Append(choice);
+        }
+        m_filament_combo->SetSelection(0);
+        option1_sizer->Add(m_filament_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Critical warning for Option 1
+        wxColour critical_color = wxColour("#D32F2F");
+        wxColour critical_bg = is_dark_mode ? wxColour(60, 35, 35) : wxColour(255, 235, 235);
+        
+        StaticBox* critical_box = new StaticBox(option1_box, wxID_ANY, wxDefaultPosition,
+                                                wxSize(wxWindowBase::FromDIP(420, this), -1));
+        critical_box->SetBackgroundColor(StateColor(std::make_pair(critical_bg, (int)StateColor::Normal)));
+        critical_box->SetBackgroundColour(critical_bg);
+        critical_box->SetBorderColor(StateColor(std::make_pair(critical_color, (int)StateColor::Normal)));
+        critical_box->SetBorderWidth(1);
+        critical_box->SetCornerRadius(wxWindowBase::FromDIP(4, this));
+        
+        wxBoxSizer* critical_sizer = new wxBoxSizer(wxVERTICAL);
+        critical_sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        Label* critical_text = new Label(critical_box, Label::Body_12, 
+            _L("⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."), 
+            LB_AUTO_WRAP);
+        wxColour critical_text_color = is_dark_mode ? wxColour(255, 200, 200) : wxColour(139, 0, 0);
+        critical_text->SetForegroundColour(critical_text_color);
+        critical_text->Wrap(wxWindowBase::FromDIP(400, this));
+        critical_sizer->Add(critical_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(10, this));
+        critical_sizer->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        critical_box->SetSizer(critical_sizer);
+        option1_sizer->Add(critical_box, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Proceed button for Option 1 - right aligned
+        wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+        option1_button_sizer->AddStretchSpacer();
+        
+        StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                 std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                 std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
+        Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
+        proceed_button->SetBackgroundColor(btn_bg_purple);
+        proceed_button->SetBorderColor(*wxWHITE);
+        proceed_button->SetTextColor(wxColour("#FFFFFE"));
+        proceed_button->SetFont(Label::Body_12);
+        proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 1;
+            // Get the selected filament's material ID
+            int selection = m_filament_combo->GetSelection();
+            int supported_index = 0;
+            for (const auto& info : m_filaments) {
+                if (info.is_supported) {
+                    if (supported_index == selection) {
+                        m_selected_material_id = info.material_id;
+                        break;
+                    }
+                    supported_index++;
+                }
+            }
+            EndModal(wxID_OK);
+        });
+        option1_button_sizer->Add(proceed_button, 0);
+        
+        option1_sizer->Add(option1_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        option1_box->SetSizer(option1_sizer);
+        main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        // Option 2: Go back (recommended)
+        // Use colors that work in both light and dark mode
+        wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
+        wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
+        wxColour recommended_color = is_dark_mode ? wxColour(129, 199, 132) : wxColour("#2E7D32");
+        
+        StaticBox* option2_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option2_box->SetBackgroundColor(StateColor(std::make_pair(option2_bg, (int)StateColor::Normal)));
+        option2_box->SetBackgroundColour(option2_bg);
+        option2_box->SetBorderColor(StateColor(std::make_pair(option2_border, (int)StateColor::Normal)));
+        option2_box->SetBorderWidth(2);
+        option2_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* option2_sizer = new wxBoxSizer(wxVERTICAL);
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        wxBoxSizer* option2_header = new wxBoxSizer(wxHORIZONTAL);
+        Label* option2_title = new Label(option2_box, Label::Head_14, _L("Option 2: Go back and change filament selection"));
+        wxColour option2_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+        option2_title->SetForegroundColour(option2_text_color);
+        option2_header->Add(option2_title, 0, wxALIGN_CENTER_VERTICAL);
+        option2_header->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        Label* recommended_badge = new Label(option2_box, Label::Body_12, _L("✓ Recommended"));
+        recommended_badge->SetForegroundColour(recommended_color);
+        option2_header->Add(recommended_badge, 0, wxALIGN_CENTER_VERTICAL);
+        
+        option2_sizer->Add(option2_header, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* option2_desc = new Label(option2_box, Label::Body_13, 
+            _L("Change your filament selection to use the same type for all colours, then try again."), LB_AUTO_WRAP);
+        option2_desc->SetForegroundColour(option2_text_color);
+        option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
+        option2_sizer->Add(option2_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        
+        wxHyperlinkCtrl* supported_materials_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+            _L("See supported materials"), "https://wiki.helioadditive.com/en/supportedprinters", 
+            wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        option2_sizer->Add(supported_materials_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Go back button (recommended) - right aligned
+        wxBoxSizer* option2_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+        option2_button_sizer->AddStretchSpacer();
+        
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                               std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        
+        Button* goback_button = new Button(option2_box, _L("Go Back"));
+        goback_button->SetBackgroundColor(btn_bg_green);
+        goback_button->SetBorderColor(*wxWHITE);
+        goback_button->SetTextColor(wxColour("#FFFFFE"));
+        goback_button->SetFont(Label::Body_12);
+        goback_button->SetSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+        goback_button->SetMinSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+        goback_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        goback_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 2;
+            EndModal(wxID_CANCEL);
+        });
+        option2_button_sizer->Add(goback_button, 0);
+        
+        option2_sizer->Add(option2_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        option2_box->SetSizer(option2_sizer);
+        main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        SetSizerAndFit(main_sizer);
+        {
+            wxWindow* parent = GetParent();
+            if (parent) {
+                wxPoint parentPos = parent->GetScreenPosition();
+                wxSize parentSize = parent->GetSize();
+                wxSize dlgSize = GetSize();
+                int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+                int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+                SetPosition(wxPoint(x, y));
+            }
+        }
+        wxGetApp().UpdateDlgDarkUI(this);
+    }
+
+    void on_dpi_changed(const wxRect& suggested_rect) override {}
+
+    int get_user_choice() const { return m_user_choice; }
+    std::string get_selected_material_id() const { return m_selected_material_id; }
+
+private:
+    std::vector<FilamentSupportInfo> m_filaments;
+    ComboBox* m_filament_combo;
+    std::string m_selected_material_id;
+    int m_user_choice;
+};
+
+// Dialog for handling unsupported filaments in multicolour simulation with similar type selection
+class HelioUnsupportedFilamentsDialog : public DPIDialog {
+public:
+    HelioUnsupportedFilamentsDialog(wxWindow* parent, 
+                                    const std::vector<FilamentSupportInfo>& unsupported_filaments,
+                                    const std::vector<HelioQuery::SupportedData>& similar_materials,
+                                    const std::string& default_material_id)
+        : DPIDialog(parent, wxID_ANY, _L("Unsupported Materials Detected"), 
+                   wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+        , m_similar_materials(similar_materials)
+        , m_selected_material_id(default_material_id)
+        , m_user_choice(0) // 0 = cancelled, 1 = proceed with selection, 2 = go back
+    {
+        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+        wxWindow* mainframe = static_cast<wxWindow*>(wxGetApp().mainframe);
+        
+        wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
+        main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+        
+        bool is_dark_mode = wxGetApp().dark_mode();
+        wxColour text_color = wxGetApp().get_label_clr_default();
+        
+        // Warning header with purple styling (Helio brand)
+        wxColour warning_color = wxColour("#AF7CFF");
+        wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
+        StaticBox* warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+        warning_box->SetBackgroundColour(warning_bg);
+        warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+        warning_box->SetBorderWidth(2);
+        warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+
+        wxBoxSizer* warning_sizer = new wxBoxSizer(wxVERTICAL);
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+
+        Label* warning_title = new Label(warning_box, Label::Head_16, _L("⚠ Unsupported Materials Detected"));
+        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
+        warning_title->SetForegroundColour(warning_title_color);
+        warning_sizer->Add(warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Build the unsupported filament names string
+        wxString unsupported_str;
+        for (const auto& info : unsupported_filaments) {
+            if (!unsupported_str.IsEmpty()) unsupported_str += ", ";
+            unsupported_str += wxString::FromUTF8(info.preset_name);
+        }
+        
+        wxString warning_msg = _L("Some of your selected materials are not directly supported by Helio:");
+        warning_msg += "\n";
+        warning_msg += unsupported_str;
+        
+        Label* warning_text = new Label(warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+        wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+        warning_text->SetForegroundColour(warning_text_color);
+        warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+        warning_sizer->Add(warning_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+
+        warning_box->SetSizer(warning_sizer);
+        main_sizer->Add(warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+
+        // Option 1: Proceed with reference material
+        wxColour section_bg = is_dark_mode ? wxColour(50, 50, 55) : wxColour("#F8F8F8");
+        wxColour section_border = is_dark_mode ? wxColour(70, 70, 75) : wxColour("#E8E8E8");
+        
+        StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option1_box->SetBackgroundColor(StateColor(std::make_pair(section_bg, (int)StateColor::Normal)));
+        option1_box->SetBackgroundColour(section_bg);
+        option1_box->SetBorderColor(StateColor(std::make_pair(section_border, (int)StateColor::Normal)));
+        option1_box->SetBorderWidth(1);
+        option1_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* option1_sizer = new wxBoxSizer(wxVERTICAL);
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        Label* option1_title = new Label(option1_box, Label::Head_14, _L("Option 1: Proceed with a reference material"));
+        option1_title->SetForegroundColour(text_color);
+        option1_sizer->Add(option1_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* option1_desc = new Label(option1_box, Label::Body_13, 
+            _L("Select a similar material type to use for simulation:"), LB_AUTO_WRAP);
+        option1_desc->SetForegroundColour(text_color);
+        option1_desc->Wrap(wxWindowBase::FromDIP(420, this));
+        option1_sizer->Add(option1_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        // Dropdown for similar material selection
+        wxArrayString material_choices;
+        int default_selection = 0;
+        for (size_t i = 0; i < similar_materials.size(); ++i) {
+            material_choices.Add(wxString::FromUTF8(similar_materials[i].native_name));
+            if (similar_materials[i].id == default_material_id) {
+                default_selection = (int)i;
+            }
+        }
+        
+        m_material_combo = new ComboBox(option1_box, wxID_ANY, 
+                                        material_choices.IsEmpty() ? "" : material_choices[0],
+                                        wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1),
+                                        0, NULL, wxCB_READONLY);
+        for (const wxString& choice : material_choices) {
+            m_material_combo->Append(choice);
+        }
+        if (!material_choices.IsEmpty()) {
+            m_material_combo->SetSelection(default_selection);
+            m_selected_material_id = similar_materials[default_selection].id;
+        }
+        option1_sizer->Add(m_material_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Note about approximation
+        wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
+        Label* note_text = new Label(option1_box, Label::Body_12, 
+            _L("Note: Using a reference material may result in approximate or erroneous results."), LB_AUTO_WRAP);
+        note_text->SetForegroundColour(note_color);
+        note_text->Wrap(wxWindowBase::FromDIP(420, this));
+        option1_sizer->Add(note_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Proceed button for Option 1 - right aligned
+        wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+        option1_button_sizer->AddStretchSpacer();
+        
+        StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                 std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                 std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
+        Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
+        proceed_button->SetBackgroundColor(btn_bg_purple);
+        proceed_button->SetBorderColor(*wxWHITE);
+        proceed_button->SetTextColor(wxColour("#FFFFFE"));
+        proceed_button->SetFont(Label::Body_12);
+        proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+        proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 1;
+            int selection = m_material_combo->GetSelection();
+            if (selection >= 0 && selection < (int)m_similar_materials.size()) {
+                m_selected_material_id = m_similar_materials[selection].id;
+            }
+            EndModal(wxID_OK);
+        });
+        option1_button_sizer->Add(proceed_button, 0);
+
+        option1_sizer->Add(option1_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+
+        option1_box->SetSizer(option1_sizer);
+        main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+
+        // Option 2: Go back (recommended)
+        wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
+        wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
+        wxColour recommended_color = is_dark_mode ? wxColour(129, 199, 132) : wxColour("#2E7D32");
+        
+        StaticBox* option2_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+        option2_box->SetBackgroundColor(StateColor(std::make_pair(option2_bg, (int)StateColor::Normal)));
+        option2_box->SetBackgroundColour(option2_bg);
+        option2_box->SetBorderColor(StateColor(std::make_pair(option2_border, (int)StateColor::Normal)));
+        option2_box->SetBorderWidth(2);
+        option2_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+        
+        wxBoxSizer* option2_sizer = new wxBoxSizer(wxVERTICAL);
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        wxBoxSizer* option2_header = new wxBoxSizer(wxHORIZONTAL);
+        Label* option2_title = new Label(option2_box, Label::Head_14, _L("Option 2: Go back and change filament selection"));
+        wxColour option2_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+        option2_title->SetForegroundColour(option2_text_color);
+        option2_header->Add(option2_title, 0, wxALIGN_CENTER_VERTICAL);
+        option2_header->AddSpacer(wxWindowBase::FromDIP(10, this));
+        
+        Label* recommended_badge = new Label(option2_box, Label::Body_12, _L("✓ Recommended"));
+        recommended_badge->SetForegroundColour(recommended_color);
+        option2_header->Add(recommended_badge, 0, wxALIGN_CENTER_VERTICAL);
+        
+        option2_sizer->Add(option2_header, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+        
+        Label* option2_desc = new Label(option2_box, Label::Body_13, 
+            _L("Change your filament selection to use a supported material, then try again."), LB_AUTO_WRAP);
+        option2_desc->SetForegroundColour(option2_text_color);
+        option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
+        option2_sizer->Add(option2_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        
+        wxHyperlinkCtrl* supported_materials_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+            _L("See supported materials"), "https://wiki.helioadditive.com/en/supportedprinters", 
+            wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+        option2_sizer->Add(supported_materials_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        // Go back button - right aligned
+        wxBoxSizer* option2_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+        option2_button_sizer->AddStretchSpacer();
+        
+        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                               std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+        
+        Button* goback_button = new Button(option2_box, _L("Go Back"));
+        goback_button->SetBackgroundColor(btn_bg_green);
+        goback_button->SetBorderColor(*wxWHITE);
+        goback_button->SetTextColor(wxColour("#FFFFFE"));
+        goback_button->SetFont(Label::Body_12);
+        goback_button->SetSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+        goback_button->SetMinSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+        goback_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+        goback_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& e) {
+            m_user_choice = 2;
+            EndModal(wxID_CANCEL);
+        });
+        option2_button_sizer->Add(goback_button, 0);
+        
+        option2_sizer->Add(option2_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+        
+        option2_box->SetSizer(option2_sizer);
+        main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+        
+        SetSizerAndFit(main_sizer);
+        {
+            wxWindow* parent = GetParent();
+            if (parent) {
+                wxPoint parentPos = parent->GetScreenPosition();
+                wxSize parentSize = parent->GetSize();
+                wxSize dlgSize = GetSize();
+                int x = parentPos.x + (parentSize.GetWidth() - dlgSize.GetWidth()) / 2;
+                int y = parentPos.y + (parentSize.GetHeight() - dlgSize.GetHeight()) / 3;
+                SetPosition(wxPoint(x, y));
+            }
+        }
+        wxGetApp().UpdateDlgDarkUI(this);
+    }
+
+    void on_dpi_changed(const wxRect& suggested_rect) override {}
+
+    int get_user_choice() const { return m_user_choice; }
+    std::string get_selected_material_id() const { return m_selected_material_id; }
+
+private:
+    std::vector<HelioQuery::SupportedData> m_similar_materials;
+    ComboBox* m_material_combo;
+    std::string m_selected_material_id;
+    int m_user_choice;
+};
 
 int Plater::priv::update_helio_background_process(std::string& printer_id, std::string& material_id)
 {
@@ -9927,31 +11385,313 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
      }
 
     /*invalid printer preset*/
-     if (preset_pure_name.empty()) {
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": preset_name = '" << preset_name << "', preset_pure_name = '" << preset_pure_name << "'";
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": global_supported_printers.size() = " << HelioQuery::global_supported_printers.size();
+    
+    // For printer matching, use the full preset_name to handle modified names like "myBambu Lab H2Dsmells"
+    std::string printer_target_name = preset_name;
+    boost::trim(printer_target_name);
+    
+    if (printer_target_name.empty()) {
         GUI::MessageDialog msgdialog(nullptr, _L("Invalid printer preset. Unable to slice with Helio."), "", wxICON_WARNING | wxOK);
         msgdialog.ShowModal();
         return -1;
     }
 
-     bool helio_support = false;
-     for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_printers) {
-         if (!pdata.native_name.empty()) {
-             std::string native_name = pdata.native_name;
-             boost::algorithm::to_lower(native_name);
-             boost::algorithm::to_lower(preset_pure_name);
-             if (native_name.find(preset_pure_name) != std::string::npos) {
-                 helio_support = true;
-                 printer_id = pdata.id;
-                 break;
-             }
-         }
+    bool helio_support = false;
+    bool helio_using_reference_printer = false;
+    
+    // Step 1: Try word-boundary matching (similar to material matching logic)
+    // This finds the best (longest) match to prefer specific printers over generic ones
+    // e.g., "H2D Pro" should match before "H2D" when both could match
+    auto [best_match_id, best_match_length] = match_printer_with_boundaries(
+        printer_target_name, HelioQuery::global_supported_printers);
+    
+    if (!best_match_id.empty()) {
+        helio_support = true;
+        printer_id = best_match_id;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Found word-boundary match! printer_id = " << printer_id;
     }
+    
+    // Step 2: If no match, try token-based matching for modified preset names
+    // This handles cases like "myBambu Lab H2Dsmells" or "yourH2Dfast"
+    if (!helio_support) {
+        auto [token_printer_id, token_native_name] = match_printer_tokens(
+            printer_target_name, HelioQuery::global_supported_printers);
+        
+        if (!token_printer_id.empty()) {
+            // Show confirmation dialog for token-based match
+            wxString message = wxString::Format(
+                _L("Helio found a potential printer match using token-based matching:\n\nYour printer: %s\nMatched printer: %s\n\nDo you want to use this match, or would you prefer to rename your printer profile?"),
+                printer_target_name, token_native_name);
+            
+            GUI::MessageDialog msgdialog(nullptr, message, _L("Helio Printer Match Confirmation"), 
+                                        wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+            int result = msgdialog.ShowModal();
+            
+            if (result == wxID_YES) {
+                printer_id = token_printer_id;
+                helio_support = true;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": User accepted token-based match: %1% -> %2%") 
+                                        % printer_target_name % token_native_name;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": User rejected token-based match for %1%") % printer_target_name;
+            }
+        }
+    }
+    
+    // Step 3: If still no match, show dialog to select a reference printer
+    if (!helio_support) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": No matching printer found for '" << printer_target_name << "'";
+        
+        // Extract keywords and find similar printers
+        std::vector<std::string> keywords = extract_printer_keywords(printer_target_name);
+        std::vector<HelioQuery::SupportedData> similar_printers = find_similar_printers(printer_target_name, keywords);
+        
+        if (!similar_printers.empty()) {
+            // Create list of printer names for selection dialog
+            wxArrayString printer_choices;
+            std::vector<std::string> printer_ids;
+            for (const auto& printer : similar_printers) {
+                printer_choices.Add(wxString::FromUTF8(printer.native_name));
+                printer_ids.push_back(printer.id);
+            }
+            
+            // Create custom dialog class for printer selection
+            class PrinterSelectionDialog : public DPIDialog {
+            public:
+                PrinterSelectionDialog(wxWindow* parent, const wxArrayString& choices, 
+                                      const wxString& used_printer, ComboBox*& combo_out)
+                    : DPIDialog(parent, wxID_ANY, _L("Unsupported Printer Detected"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+                    , m_combo_out(combo_out)
+                    , m_used_printer(used_printer)
+                {
+                    SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+                    wxWindow* mainframe = static_cast<wxWindow *>(wxGetApp().mainframe);
+                    
+                    wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+                    main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+                    
+                    bool is_dark_mode = wxGetApp().dark_mode();
+                    wxColour text_color = wxGetApp().get_label_clr_default();
+                    
+                    // Warning header with purple styling (Helio brand)
+                    wxColour warning_color = wxColour("#AF7CFF");
+                    wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
 
-    /*unsupported helio printers*/
-     if (!helio_support) {
-        GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
+                    m_warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                   wxSize(wxWindowBase::FromDIP(470, this), -1));
+                    m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+                    m_warning_box->SetBackgroundColour(warning_bg);
+                    m_warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+                    m_warning_box->SetBorderWidth(2);
+                    m_warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+
+                    wxBoxSizer *warning_sizer = new wxBoxSizer(wxVERTICAL);
+                    warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+
+                    m_warning_title = new Label(m_warning_box, Label::Head_16, _L("⚠ Unsupported Printer Detected"));
+                    wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
+                    m_warning_title->SetForegroundColour(warning_title_color);
+                    warning_sizer->Add(m_warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    wxString warning_msg = wxString::Format(_L("You're using %s which is not officially supported by Helio."), m_used_printer);
+                    m_warning_text = new Label(m_warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+                    wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+                    m_warning_text->SetForegroundColour(warning_text_color);
+                    m_warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+                    warning_sizer->Add(m_warning_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+                    
+                    m_warning_box->SetSizer(warning_sizer);
+                    main_sizer->Add(m_warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+                    
+                    // Option 1: Proceed with reference printer
+                    wxColour section_bg = is_dark_mode ? wxColour(50, 50, 55) : wxColour("#F8F8F8");
+                    wxColour section_border = is_dark_mode ? wxColour(70, 70, 75) : wxColour("#E8E8E8");
+                    
+                    StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                           wxSize(wxWindowBase::FromDIP(470, this), -1));
+                    option1_box->SetBackgroundColor(StateColor(std::make_pair(section_bg, (int)StateColor::Normal)));
+                    option1_box->SetBackgroundColour(section_bg);
+                    option1_box->SetBorderColor(StateColor(std::make_pair(section_border, (int)StateColor::Normal)));
+                    option1_box->SetBorderWidth(1);
+                    option1_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                    
+                    wxBoxSizer* option1_sizer = new wxBoxSizer(wxVERTICAL);
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    Label* option1_title = new Label(option1_box, Label::Head_14, _L("Option 1: Proceed with a reference printer"));
+                    option1_title->SetForegroundColour(text_color);
+                    option1_sizer->Add(option1_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    Label* option1_desc = new Label(option1_box, Label::Body_13, 
+                        _L("Select a similar printer to use for simulation:"), LB_AUTO_WRAP);
+                    option1_desc->SetForegroundColour(text_color);
+                    option1_desc->Wrap(wxWindowBase::FromDIP(420, this));
+                    option1_sizer->Add(option1_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    // Dropdown for printer selection
+                    ComboBox *printer_combo = new ComboBox(option1_box, wxID_ANY, choices[0], 
+                                                           wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1), 
+                                                           0, NULL, wxCB_READONLY);
+                    for (const wxString &type_name : choices) { 
+                        printer_combo->Append(type_name); 
+                    }
+                    printer_combo->SetSelection(0);
+                    m_combo_out = printer_combo;
+                    option1_sizer->Add(printer_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    // Note about approximation
+                    wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
+                    Label* note_text = new Label(option1_box, Label::Body_12, 
+                        _L("Note: Using a reference printer may result in approximate or erroneous results."), LB_AUTO_WRAP);
+                    note_text->SetForegroundColour(note_color);
+                    note_text->Wrap(wxWindowBase::FromDIP(420, this));
+                    option1_sizer->Add(note_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    // Proceed button - right aligned
+                    wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                    option1_button_sizer->AddStretchSpacer();
+                    
+                    StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                             std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                             std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
+                    Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
+                    proceed_button->SetBackgroundColor(btn_bg_purple);
+                    proceed_button->SetBorderColor(*wxWHITE);
+                    proceed_button->SetTextColor(wxColour("#FFFFFE"));
+                    proceed_button->SetFont(Label::Body_12);
+                    proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+                    proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+                    proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                    proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+                    option1_button_sizer->Add(proceed_button, 0);
+                    
+                    option1_sizer->Add(option1_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    option1_box->SetSizer(option1_sizer);
+                    main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                    
+                    // Option 2: Go back (recommended)
+                    wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
+                    wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
+                    wxColour recommended_color = is_dark_mode ? wxColour(129, 199, 132) : wxColour("#2E7D32");
+                    
+                    StaticBox* option2_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                           wxSize(wxWindowBase::FromDIP(470, this), -1));
+                    option2_box->SetBackgroundColor(StateColor(std::make_pair(option2_bg, (int)StateColor::Normal)));
+                    option2_box->SetBackgroundColour(option2_bg);
+                    option2_box->SetBorderColor(StateColor(std::make_pair(option2_border, (int)StateColor::Normal)));
+                    option2_box->SetBorderWidth(2);
+                    option2_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                    
+                    wxBoxSizer* option2_sizer = new wxBoxSizer(wxVERTICAL);
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    wxBoxSizer* option2_header = new wxBoxSizer(wxHORIZONTAL);
+                    Label* option2_title = new Label(option2_box, Label::Head_14, _L("Option 2: Go back and change printer selection"));
+                    wxColour option2_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+                    option2_title->SetForegroundColour(option2_text_color);
+                    option2_header->Add(option2_title, 0, wxALIGN_CENTER_VERTICAL);
+                    option2_header->AddSpacer(wxWindowBase::FromDIP(10, this));
+                    
+                    Label* recommended_badge = new Label(option2_box, Label::Body_12, _L("✓ Recommended"));
+                    recommended_badge->SetForegroundColour(recommended_color);
+                    option2_header->Add(recommended_badge, 0, wxALIGN_CENTER_VERTICAL);
+                    
+                    option2_sizer->Add(option2_header, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                    
+                    Label* option2_desc = new Label(option2_box, Label::Body_13, 
+                        _L("Change your printer selection to use a supported printer, then try again."), LB_AUTO_WRAP);
+                    option2_desc->SetForegroundColour(option2_text_color);
+                    option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
+                    option2_sizer->Add(option2_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    
+                    wxHyperlinkCtrl* supported_printers_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+                        _L("See supported printers"), "https://wiki.helioadditive.com/en/supportedprinters", 
+                        wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+                    option2_sizer->Add(supported_printers_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    // Go back button - right aligned
+                    wxBoxSizer* option2_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                    option2_button_sizer->AddStretchSpacer();
+                    
+                    StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                                           std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                           std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+                    
+                    Button* goback_button = new Button(option2_box, _L("Go Back"));
+                    goback_button->SetBackgroundColor(btn_bg_green);
+                    goback_button->SetBorderColor(*wxWHITE);
+                    goback_button->SetTextColor(wxColour("#FFFFFE"));
+                    goback_button->SetFont(Label::Body_12);
+                    goback_button->SetSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+                    goback_button->SetMinSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+                    goback_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                    goback_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+                    option2_button_sizer->Add(goback_button, 0);
+                    
+                    option2_sizer->Add(option2_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                    option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                    
+                    option2_box->SetSizer(option2_sizer);
+                    main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                    
+                    SetSizer(main_sizer);
+                    // On Windows, UpdateDlgDarkUI may change non-client metrics (titlebar/theme).
+                    // Apply it before fitting the dialog to avoid bottom content being clipped.
+                    wxGetApp().UpdateDlgDarkUI(this);
+                    Layout();
+                    main_sizer->Fit(this);
+                    main_sizer->SetSizeHints(this);
+                }
+                
+                void on_dpi_changed(const wxRect &suggested_rect) override {}
+                
+            private:
+                ComboBox*& m_combo_out;
+                wxString m_used_printer;
+                Label* m_warning_title = nullptr;
+                Label* m_warning_text = nullptr;
+                StaticBox* m_warning_box = nullptr;
+            };
+            
+            ComboBox* printer_combo = nullptr;
+            PrinterSelectionDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), 
+                                          printer_choices, 
+                                          wxString::FromUTF8(printer_target_name),
+                                          printer_combo);
+            
+            int result = dialog.ShowModal();
+            int selection = (result == wxID_OK && printer_combo) ? printer_combo->GetSelection() : -1;
+            
+            if (selection >= 0 && selection < (int)printer_ids.size()) {
+                printer_id = printer_ids[selection];
+                helio_support = true;
+                helio_using_reference_printer = true;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": User selected reference printer: %1% -> %2% (id: %3%)") 
+                                            % printer_target_name % similar_printers[selection].native_name % printer_id;
+            } else {
+                // User cancelled
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": User cancelled printer selection for %1%") % printer_target_name;
+                return -1;
+            }
+        } else {
+            // No similar printers found (should not happen since find_similar_printers returns all printers when no keywords found)
+            GUI::MessageDialog msgdialog(nullptr, _L("The current printer preset cannot be sliced using Helio."), "", wxICON_WARNING | wxOK);
+            msgdialog.ShowModal();
+            return -1;
+        }
     }
 
     /*check total number of materials*/
@@ -9966,16 +11706,153 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
         return -1;
     }
 
-
-    if (extruders.size() > 1) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": The number of consumables used is > 1";
-        GUI::MessageDialog msgdialog(nullptr, _L("Helio does not support using a number of materials greater than 1."), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
+    // ===========================================================================
+    // MULTI-FILAMENT COMPATIBILITY DETECTION
+    // ===========================================================================
+    // Collect information about all filaments used in the current plate
+    std::vector<FilamentSupportInfo> all_filament_infos;
+    std::set<std::string> unique_supported_material_ids;  // Track unique Helio material IDs, not generic types
+    int supported_count = 0;
+    
+    for (size_t i = 0; i < extruders.size(); ++i) {
+        int extruder_idx = extruders[i] - 1; // Extruders are 1-indexed
+        if (extruder_idx >= 0 && extruder_idx < (int)preset_filaments.size()) {
+            FilamentSupportInfo info = check_filament_helio_support(preset_filaments[extruder_idx], extruder_idx);
+            all_filament_infos.push_back(info);
+            
+            if (info.is_supported) {
+                supported_count++;
+                // Track unique Helio material IDs - different formulations (e.g., PLA Basic vs PLA Matte) 
+                // have different material IDs even if they share the same generic type
+                if (!info.material_id.empty()) {
+                    unique_supported_material_ids.insert(info.material_id);
+                }
+            }
+            
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Filament " << i << " (extruder " << extruder_idx 
+                                   << "): " << info.preset_name 
+                                   << ", type=" << info.filament_type
+                                   << ", material_id=" << info.material_id
+                                   << ", supported=" << info.is_supported;
+        }
     }
+    
+    // Flag to skip single-filament matching when user has already selected a material
+    bool material_already_selected = false;
+    
+    // Multi-material check: Only show dialog when we have MULTIPLE DIFFERENT supported materials
+    // If no materials are supported, fall through to original logic which handles fallbacks
+    if (extruders.size() > 1 && unique_supported_material_ids.size() > 1) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Multiple different Helio materials detected: " << unique_supported_material_ids.size() << " materials";
+        
+        // Collect the filament types for display in the dialog
+        std::set<std::string> unique_display_types;
+        for (const auto& info : all_filament_infos) {
+            if (info.is_supported && !info.filament_type.empty()) {
+                unique_display_types.insert(info.filament_type);
+            }
+        }
+        
+        // Show the mixed filament dialog
+        HelioMixedFilamentDialog mixed_dialog(static_cast<wxWindow*>(wxGetApp().mainframe), 
+                                              all_filament_infos, unique_display_types);
+        mixed_dialog.ShowModal();
+        
+        int choice = mixed_dialog.get_user_choice();
+        if (choice == 1) {
+            // User chose to proceed with a single selected filament
+            material_id = mixed_dialog.get_selected_material_id();
+            helio_using_reference_material = true; // Mark as using reference since not all filaments match
+            material_already_selected = true;
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": User chose to proceed with mixed filaments using material_id=" << material_id;
+        } else {
+            // User chose to go back and change filament selection
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": User chose to go back and change filament selection";
+            return -1;
+        }
+    }
+    
+    // Case 2b: Some filaments are supported (all same type), some are unsupported
+    // Show warning with similar type selection like in single-colour mode
+    int unsupported_count = (int)all_filament_infos.size() - supported_count;
+    if (!material_already_selected && extruders.size() > 1 && 
+        supported_count > 0 && unsupported_count > 0 && unique_supported_material_ids.size() <= 1) {
+        
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Mixed supported/unsupported materials detected: "
+                               << supported_count << " supported, " << unsupported_count << " unsupported";
+        
+        // Collect unsupported filaments
+        std::vector<FilamentSupportInfo> unsupported_filaments;
+        for (const auto& info : all_filament_infos) {
+            if (!info.is_supported) {
+                unsupported_filaments.push_back(info);
+            }
+        }
+        
+        // Get the first unsupported filament to find similar materials
+        std::string first_unsupported_name = unsupported_filaments[0].preset_name;
+        size_t atPos = first_unsupported_name.find('@');
+        std::string target_name = (atPos != std::string::npos) ? first_unsupported_name.substr(0, atPos) : first_unsupported_name;
+        boost::trim(target_name);
+        
+        // Extract keywords and find similar materials (same logic as single-colour mode)
+        std::vector<std::string> keywords = extract_material_keywords(target_name);
+        std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name, keywords);
+        
+        // Get the default material ID from the first supported filament
+        std::string default_material_id;
+        for (const auto& info : all_filament_infos) {
+            if (info.is_supported && !info.material_id.empty()) {
+                default_material_id = info.material_id;
+                break;
+            }
+        }
+        
+        if (!similar_materials.empty()) {
+            // Show the unsupported filaments dialog with similar type options
+            HelioUnsupportedFilamentsDialog unsupported_dialog(
+                static_cast<wxWindow*>(wxGetApp().mainframe),
+                unsupported_filaments, similar_materials, default_material_id);
+            unsupported_dialog.ShowModal();
+            
+            int choice = unsupported_dialog.get_user_choice();
+            if (choice == 1) {
+                // User chose to proceed with a selected reference material
+                material_id = unsupported_dialog.get_selected_material_id();
+                helio_using_reference_material = true;
+                material_already_selected = true;
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": User chose to proceed with unsupported materials using reference material_id=" << material_id;
+            } else {
+                // User cancelled
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": User cancelled unsupported materials dialog";
+                return -1;
+            }
+        } else {
+            // No similar materials found - use the first supported material as default
+            // The user will still see an implicit choice through the single-filament flow
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": No similar materials found for unsupported filaments, using first supported material";
+            if (!default_material_id.empty()) {
+                material_id = default_material_id;
+                helio_using_reference_material = true;
+                material_already_selected = true;
+            }
+            // If no supported material at all, fall through to original logic
+        }
+    }
+    
+    // Case 3: All supported filaments are the same type OR only one filament is used
+    // Continue with normal single-filament logic using the first extruder's material
+    // Note: When multiple materials of the same type are used, we use the first extruder's material for Helio simulation
+    
+    // Only perform single-filament matching if user hasn't already selected a material via the mixed filament dialog
+    if (!material_already_selected) {
+        std::string used_filament = preset_filaments[extruders.front() - 1];
+        bool is_supported_by_helio = false;
 
-    std::string used_filament = preset_filaments[extruders.front() - 1];
-    bool is_supported_by_helio = false;
+        // Find best (longest) match to prefer specific materials over generic ones
+    // e.g., "Bambu PC FR" should match "Bambu PC FR" not "Bambu PC"
+    size_t best_match_length = 0;
+    std::string best_material_id;
 
     for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
         if (!pdata.native_name.empty()) {
@@ -9989,20 +11866,397 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
             boost::algorithm::to_lower(native_name);
             boost::algorithm::to_lower(target_name);
 
+            // Fuzzy match: check if target_name contains native_name
+            // This allows modified preset names like:
+            // - "Bambu TPU 95A HF brown" to match "Bambu TPU 95A HF" (suffix with space)
+            // - "blueBambu PLA basicblue" to match "Bambu PLA Basic" (prefix/suffix no space)
+            // - "Bambu TPU 95A HF" to match "Bambu TPU 95A HF" (exact)
+            // The longest matching native_name wins to prefer specific materials
+            bool is_match = false;
             if (target_name == native_name) {
+                is_match = true;
+            } else if (target_name.length() > native_name.length()) {
+                // Check if target_name contains native_name as a substring
+                // No word-boundary requirement - handles cases like "blueBambu PLA basicblue"
+                size_t pos = target_name.find(native_name);
+                if (pos != std::string::npos) {
+                    is_match = true;
+                }
+            }
+            // Note: Do NOT match when native is longer than target
+            // e.g., "Bambu PLA" should not match "Bambu PLA Basic"
+
+            // Keep track of longest match to prefer more specific materials
+            if (is_match && native_name.length() > best_match_length) {
+                best_match_length = native_name.length();
+                best_material_id = pdata.id;
                 is_supported_by_helio = true;
-                material_id = pdata.id;
-                break;
             }
         }
     }
 
+    // If no match found, try token-based matching as last resort
     if (!is_supported_by_helio) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1%") % used_filament;
-        GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
+        size_t atPos = used_filament.find('@');
+        std::string target_name = (atPos != std::string::npos) ? used_filament.substr(0, atPos) : used_filament;
+        boost::trim(target_name);
+        
+        std::vector<std::string> target_tokens;
+        boost::split(target_tokens, target_name, boost::is_any_of(" "), boost::token_compress_on);
+        // Convert to lowercase
+        for (auto& token : target_tokens) {
+            boost::algorithm::to_lower(token);
+        }
+        
+        size_t best_token_match_length = 0;
+        std::string best_token_material_id;
+        std::string best_token_native_name;
+        
+        for (HelioQuery::SupportedData pdata : HelioQuery::global_supported_materials) {
+            if (!pdata.native_name.empty()) {
+                std::string native_name = pdata.native_name;
+                boost::algorithm::to_lower(native_name);
+                
+                std::vector<std::string> native_tokens;
+                boost::split(native_tokens, native_name, boost::is_any_of(" "), boost::token_compress_on);
+                
+                // Check if all native tokens appear in target tokens in order
+                // Also check if native tokens are embedded within target tokens
+                // (e.g., "bambu" in "bluebambu")
+                bool all_tokens_match = true;
+                size_t target_idx = 0;
+                for (const std::string& native_token : native_tokens) {
+                    bool found = false;
+                    for (size_t i = target_idx; i < target_tokens.size(); ++i) {
+                        // Check for exact match
+                        if (target_tokens[i] == native_token) {
+                            found = true;
+                            target_idx = i + 1;
+                            break;
+                        }
+                        // Check if native token is embedded in target token
+                        // (e.g., "bambu" in "bluebambu")
+                        else if (target_tokens[i].find(native_token) != std::string::npos) {
+                            found = true;
+                            target_idx = i + 1;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        all_tokens_match = false;
+                        break;
+                    }
+                }
+                
+                // Keep track of longest token match
+                if (all_tokens_match && native_name.length() > best_token_match_length) {
+                    best_token_match_length = native_name.length();
+                    best_token_material_id = pdata.id;
+                    best_token_native_name = pdata.native_name; // Keep original case for display
+                }
+            }
+        }
+        
+        // If token-based match found, prompt user for confirmation
+        if (best_token_match_length > 0) {
+            wxString message = wxString::Format(
+                _L("Helio found a potential material match using token-based matching:\n\nYour material: %s\nMatched material: %s\n\nDo you want to use this match, or would you prefer to rename your material profile?"),
+                used_filament, best_token_native_name);
+            
+            GUI::MessageDialog msgdialog(nullptr, message, _L("Helio Material Match Confirmation"), 
+                                        wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
+            int result = msgdialog.ShowModal();
+            
+            if (result == wxID_YES) {
+                material_id = best_token_material_id;
+                is_supported_by_helio = true;
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User accepted token-based match: %1% -> %2%") 
+                                        % used_filament % best_token_native_name;
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User rejected token-based match for %1%") % used_filament;
+                // GUI::MessageDialog errordialog(nullptr, 
+                //     wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
+                //     "", wxICON_WARNING | wxOK,
+                //     wxString(), 
+                //     _L("View supported materials"),
+                //     [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
+                // errordialog.ShowModal();
+                return -1;
+            }
+        } else {
+            // No match found at all - try to find similar materials based on material type keywords
+            size_t atPos = used_filament.find('@');
+            std::string target_name = (atPos != std::string::npos) ? used_filament.substr(0, atPos) : used_filament;
+            boost::trim(target_name);
+            
+            std::vector<std::string> keywords = extract_material_keywords(target_name);
+            std::vector<HelioQuery::SupportedData> similar_materials = find_similar_materials(target_name, keywords);
+            
+            if (!similar_materials.empty()) {
+                // Create list of material names for selection dialog
+                wxArrayString material_choices;
+                std::vector<std::string> material_ids;
+                for (const auto& mat : similar_materials) {
+                    material_choices.Add(wxString::FromUTF8(mat.native_name));
+                    material_ids.push_back(mat.id);
+                }
+                
+                // Create custom dialog class with two-option layout matching other dialogs
+                class MaterialSelectionDialog : public DPIDialog {
+                public:
+                    MaterialSelectionDialog(wxWindow* parent, const wxString& title, const wxArrayString& choices, 
+                                          const wxString& used_filament, ComboBox*& combo_out)
+                        : DPIDialog(parent, wxID_ANY, _L("Unsupported Material Detected"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+                        , m_combo_out(combo_out)
+                        , m_used_filament(used_filament)
+                    {
+                        SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+                        wxWindow* mainframe = static_cast<wxWindow *>(wxGetApp().mainframe);
+                        
+                        wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
+                        main_sizer->SetMinSize(wxSize(wxWindowBase::FromDIP(500, mainframe), -1));
+                        
+                        bool is_dark_mode = wxGetApp().dark_mode();
+                        wxColour text_color = wxGetApp().get_label_clr_default();
+                        
+                        // Warning header with purple styling (Helio brand)
+                        wxColour warning_color = wxColour("#AF7CFF");
+                        wxColour warning_bg = is_dark_mode ? wxColour(45, 35, 60) : wxColour(245, 240, 255);
+
+                        m_warning_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                       wxSize(wxWindowBase::FromDIP(470, this), -1));
+                        m_warning_box->SetBackgroundColor(StateColor(std::make_pair(warning_bg, (int)StateColor::Normal)));
+                        m_warning_box->SetBackgroundColour(warning_bg);
+                        m_warning_box->SetBorderColor(StateColor(std::make_pair(warning_color, (int)StateColor::Normal)));
+                        m_warning_box->SetBorderWidth(2);
+                        m_warning_box->SetCornerRadius(wxWindowBase::FromDIP(8, this));
+
+                        wxBoxSizer *warning_sizer = new wxBoxSizer(wxVERTICAL);
+                        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+
+                        m_warning_title = new Label(m_warning_box, Label::Head_16, _L("⚠ Unsupported Material Detected"));
+                        wxColour warning_title_color = is_dark_mode ? StateColor::darkModeColorFor(warning_color) : wxColour(110, 60, 180);
+                        m_warning_title->SetForegroundColour(warning_title_color);
+                        warning_sizer->Add(m_warning_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        warning_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                        
+                        wxString warning_msg = wxString::Format(_L("You're using %s which is not officially supported by Helio."), m_used_filament);
+                        m_warning_text = new Label(m_warning_box, Label::Body_14, warning_msg, LB_AUTO_WRAP);
+                        wxColour warning_text_color = is_dark_mode ? wxColour(240, 240, 240) : wxColour(60, 50, 40);
+                        m_warning_text->SetForegroundColour(warning_text_color);
+                        m_warning_text->Wrap(wxWindowBase::FromDIP(440, this));
+                        warning_sizer->Add(m_warning_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        warning_sizer->AddSpacer(wxWindowBase::FromDIP(14, this));
+                        
+                        m_warning_box->SetSizer(warning_sizer);
+                        main_sizer->Add(m_warning_box, 0, wxALL, wxWindowBase::FromDIP(15, this));
+                        
+                        // Option 1: Proceed with reference material
+                        wxColour section_bg = is_dark_mode ? wxColour(50, 50, 55) : wxColour("#F8F8F8");
+                        wxColour section_border = is_dark_mode ? wxColour(70, 70, 75) : wxColour("#E8E8E8");
+                        
+                        StaticBox* option1_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+                        option1_box->SetBackgroundColor(StateColor(std::make_pair(section_bg, (int)StateColor::Normal)));
+                        option1_box->SetBackgroundColour(section_bg);
+                        option1_box->SetBorderColor(StateColor(std::make_pair(section_border, (int)StateColor::Normal)));
+                        option1_box->SetBorderWidth(1);
+                        option1_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                        
+                        wxBoxSizer* option1_sizer = new wxBoxSizer(wxVERTICAL);
+                        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        Label* option1_title = new Label(option1_box, Label::Head_14, _L("Option 1: Proceed with a reference material"));
+                        option1_title->SetForegroundColour(text_color);
+                        option1_sizer->Add(option1_title, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                        
+                        Label* option1_desc = new Label(option1_box, Label::Body_13, 
+                            _L("Select a similar material type to use for simulation:"), LB_AUTO_WRAP);
+                        option1_desc->SetForegroundColour(text_color);
+                        option1_desc->Wrap(wxWindowBase::FromDIP(420, this));
+                        option1_sizer->Add(option1_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option1_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                        
+                        // Dropdown for material selection
+                        ComboBox *material_combo = new ComboBox(option1_box, wxID_ANY, choices[0], 
+                                                               wxDefaultPosition, wxSize(wxWindowBase::FromDIP(420, this), -1), 
+                                                               0, NULL, wxCB_READONLY);
+                        for (const wxString &type_name : choices) { 
+                            material_combo->Append(type_name); 
+                        }
+                        material_combo->SetSelection(0);
+                        m_combo_out = material_combo;
+                        option1_sizer->Add(material_combo, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        // Note about approximation
+                        wxColour note_color = is_dark_mode ? wxColour(180, 180, 180) : wxColour("#6B6B6B");
+                        Label* note_text = new Label(option1_box, Label::Body_12, 
+                            _L("Note: Using a reference material may result in approximate or erroneous results."), LB_AUTO_WRAP);
+                        note_text->SetForegroundColour(note_color);
+                        note_text->Wrap(wxWindowBase::FromDIP(420, this));
+                        option1_sizer->Add(note_text, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        // Proceed button - right aligned
+                        wxBoxSizer* option1_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                        option1_button_sizer->AddStretchSpacer();
+                        
+                        StateColor btn_bg_purple(std::pair<wxColour, int>(wxColour(120, 80, 180), StateColor::Pressed),
+                                                 std::pair<wxColour, int>(wxColour(190, 140, 255), StateColor::Hovered),
+                                                 std::pair<wxColour, int>(wxColour(175, 124, 255), StateColor::Normal));
+
+                        Button* proceed_button = new Button(option1_box, _L("Proceed Anyway"));
+                        proceed_button->SetBackgroundColor(btn_bg_purple);
+                        proceed_button->SetBorderColor(*wxWHITE);
+                        proceed_button->SetTextColor(wxColour("#FFFFFE"));
+                        proceed_button->SetFont(Label::Body_12);
+                        proceed_button->SetSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+                        proceed_button->SetMinSize(wxSize(wxWindowBase::FromDIP(130, this), wxWindowBase::FromDIP(28, this)));
+                        proceed_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                        proceed_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_OK); });
+                        option1_button_sizer->Add(proceed_button, 0);
+                        
+                        option1_sizer->Add(option1_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option1_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        option1_box->SetSizer(option1_sizer);
+                        main_sizer->Add(option1_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                        
+                        // Option 2: Go back (recommended)
+                        wxColour option2_bg = is_dark_mode ? wxColour(30, 60, 40) : wxColour("#E8F5E9");
+                        wxColour option2_border = is_dark_mode ? wxColour(76, 175, 80) : wxColour("#4CAF50");
+                        wxColour recommended_color = is_dark_mode ? wxColour(129, 199, 132) : wxColour("#2E7D32");
+                        
+                        StaticBox* option2_box = new StaticBox(this, wxID_ANY, wxDefaultPosition,
+                                                               wxSize(wxWindowBase::FromDIP(470, this), -1));
+                        option2_box->SetBackgroundColor(StateColor(std::make_pair(option2_bg, (int)StateColor::Normal)));
+                        option2_box->SetBackgroundColour(option2_bg);
+                        option2_box->SetBorderColor(StateColor(std::make_pair(option2_border, (int)StateColor::Normal)));
+                        option2_box->SetBorderWidth(2);
+                        option2_box->SetCornerRadius(wxWindowBase::FromDIP(6, this));
+                        
+                        wxBoxSizer* option2_sizer = new wxBoxSizer(wxVERTICAL);
+                        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        wxBoxSizer* option2_header = new wxBoxSizer(wxHORIZONTAL);
+                        Label* option2_title = new Label(option2_box, Label::Head_14, _L("Option 2: Go back and change filament selection"));
+                        wxColour option2_text_color = is_dark_mode ? wxColour(240, 240, 240) : text_color;
+                        option2_title->SetForegroundColour(option2_text_color);
+                        option2_header->Add(option2_title, 0, wxALIGN_CENTER_VERTICAL);
+                        option2_header->AddSpacer(wxWindowBase::FromDIP(10, this));
+                        
+                        Label* recommended_badge = new Label(option2_box, Label::Body_12, _L("✓ Recommended"));
+                        recommended_badge->SetForegroundColour(recommended_color);
+                        option2_header->Add(recommended_badge, 0, wxALIGN_CENTER_VERTICAL);
+                        
+                        option2_sizer->Add(option2_header, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option2_sizer->AddSpacer(wxWindowBase::FromDIP(8, this));
+                        
+                        Label* option2_desc = new Label(option2_box, Label::Body_13, 
+                            _L("Change your filament selection to use a supported material, then try again."), LB_AUTO_WRAP);
+                        option2_desc->SetForegroundColour(option2_text_color);
+                        option2_desc->Wrap(wxWindowBase::FromDIP(440, this));
+                        option2_sizer->Add(option2_desc, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        
+                        wxHyperlinkCtrl* supported_materials_link = new wxHyperlinkCtrl(option2_box, wxID_ANY, 
+                            _L("See supported materials"), "https://wiki.helioadditive.com/en/supportedprinters", 
+                            wxDefaultPosition, wxDefaultSize, wxHL_DEFAULT_STYLE);
+                        option2_sizer->Add(supported_materials_link, 0, wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        // Go back button - right aligned
+                        wxBoxSizer* option2_button_sizer = new wxBoxSizer(wxHORIZONTAL);
+                        option2_button_sizer->AddStretchSpacer();
+                        
+                        StateColor btn_bg_green(std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+                                               std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+                                               std::pair<wxColour, int>(AMS_CONTROL_BRAND_COLOUR, StateColor::Normal));
+                        
+                        Button* goback_button = new Button(option2_box, _L("Go Back"));
+                        goback_button->SetBackgroundColor(btn_bg_green);
+                        goback_button->SetBorderColor(*wxWHITE);
+                        goback_button->SetTextColor(wxColour("#FFFFFE"));
+                        goback_button->SetFont(Label::Body_12);
+                        goback_button->SetSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+                        goback_button->SetMinSize(wxSize(wxWindowBase::FromDIP(100, this), wxWindowBase::FromDIP(28, this)));
+                        goback_button->SetCornerRadius(wxWindowBase::FromDIP(12, this));
+                        goback_button->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) { EndModal(wxID_CANCEL); });
+                        option2_button_sizer->Add(goback_button, 0);
+                        
+                        option2_sizer->Add(option2_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, wxWindowBase::FromDIP(16, this));
+                        option2_sizer->AddSpacer(wxWindowBase::FromDIP(12, this));
+                        
+                        option2_box->SetSizer(option2_sizer);
+                        main_sizer->Add(option2_box, 0, wxLEFT | wxRIGHT | wxBOTTOM, wxWindowBase::FromDIP(15, this));
+                        
+                        SetSizerAndFit(main_sizer);
+                        {
+                            wxWindow* p = GetParent();
+                            if (p) {
+                                wxPoint pp = p->GetScreenPosition();
+                                wxSize ps = p->GetSize();
+                                wxSize ds = GetSize();
+                                int x = pp.x + (ps.GetWidth() - ds.GetWidth()) / 2;
+                                int y = pp.y + (ps.GetHeight() - ds.GetHeight()) / 3;
+                                SetPosition(wxPoint(x, y));
+                            }
+                        }
+                        wxGetApp().UpdateDlgDarkUI(this);
+                    }
+
+                    void on_dpi_changed(const wxRect &suggested_rect) override {}
+                    
+                private:
+                    ComboBox*& m_combo_out;
+                    wxString m_used_filament;
+                    Label* m_warning_title = nullptr;
+                    Label* m_warning_text = nullptr;
+                    StaticBox* m_warning_box = nullptr;
+                };
+                
+                ComboBox* material_combo = nullptr;
+                MaterialSelectionDialog dialog(static_cast<wxWindow *>(wxGetApp().mainframe), 
+                                              _L("Choose a Reference Material"), 
+                                              material_choices, 
+                                              wxString::FromUTF8(used_filament),
+                                              material_combo);
+                
+                int result = dialog.ShowModal();
+                int selection = (result == wxID_OK && material_combo) ? material_combo->GetSelection() : -1;
+                
+                if (selection >= 0 && selection < (int)material_ids.size()) {
+                    material_id = material_ids[selection];
+                    is_supported_by_helio = true;
+                    helio_using_reference_material = true; // User selected a reference material for unsupported filament
+                    BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format("User selected similar material: %1% -> %2% (original: %3%)") 
+                                                % used_filament % similar_materials[selection].native_name % material_id;
+                } else {
+                    // User cancelled
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("User cancelled similar material selection for %1%") % used_filament;
+                    // GUI::MessageDialog errordialog(nullptr, 
+                    //     wxString::Format(_L("Helio does not support materials %s.\n\nPlease choose an officially supported material. "), used_filament), 
+                    //     "", wxICON_WARNING | wxOK,
+                    //     wxString(), 
+                    //     _L("View supported materials"),
+                    //     [](const wxString &) { wxLaunchDefaultBrowser("https://wiki.helioadditive.com/en/supportedprinters"); });
+                    // errordialog.ShowModal();
+                    return -1;
+                }
+            } else {
+                // No similar materials found
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format("Helio does not support materials %1% and no similar materials found") % used_filament;
+                GUI::MessageDialog msgdialog(nullptr, wxString::Format(_L("Helio does not support materials %s"),  used_filament), "", wxICON_WARNING | wxOK);
+                msgdialog.ShowModal();
+                return -1;
+            }
+        }
+    } else {
+        material_id = best_material_id;
+        helio_using_reference_material = false; // Material is directly supported
     }
+    } // End of if (!material_already_selected)
 
     /*has warning*/
     //PartPlate* plate = q->get_partplate_list().get_curr_plate();
@@ -10013,14 +12267,34 @@ int Plater::priv::update_helio_background_process(std::string& printer_id, std::
     //    return -1;
     //}
 
-    /*print sequence = by object*/
-    if (!wxGetApp().is_helio_enable()) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "print sequence = by object";
-        GUI::MessageDialog msgdialog(nullptr, _L("Helio functions do not support the print sequence of \"ByObject\"."), "", wxICON_WARNING | wxOK);
-        msgdialog.ShowModal();
-        return -1;
+    /*infill combination warning*/
+    auto cfg = q->get_partplate_list().get_curr_plate()->config();
+    bool infill_combination_enabled = false;
+    if (cfg->has("infill_combination")) {
+        infill_combination_enabled = cfg->option<ConfigOptionBool>("infill_combination")->value;
+    } else {
+        // Fallback to print preset config if not in plate config
+        const DynamicPrintConfig& print_config = preset_bundle->prints.get_edited_preset().config;
+        if (print_config.has("infill_combination")) {
+            infill_combination_enabled = print_config.option<ConfigOptionBool>("infill_combination")->value;
+        }
     }
 
+    if (infill_combination_enabled) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " infill_combination is enabled - showing warning";
+        GUI::MessageDialog msgdialog(nullptr,
+            _L("Warning: Infill combination is currently unsupported by Helio.\n\n"
+               "Proceeding with this setting enabled may return erroneous results.\n\n"
+               "Do you want to continue anyway?"),
+            _L("Helio Warning"),
+            wxICON_WARNING | wxYES_NO);
+
+        if (msgdialog.ShowModal() != wxID_YES) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " user cancelled due to infill_combination warning";
+            return -1;
+        }
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " user proceeded despite infill_combination warning";
+    }
 
     //partplate_list.get_curr_plate()->update_helio_apply_result_invalid(false);
     notification_manager->close_notification_of_type(NotificationType::HelioSlicingError);
@@ -10087,6 +12361,18 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
                 }
             }
 
+            // Store optimization result to current plate for "View Summary" feature
+            if (plate) {
+                HelioPlateResult helio_result;
+                helio_result.action = 1;  // Optimization
+                helio_result.original_print_time_seconds = time_origin_value;
+                helio_result.optimized_print_time_seconds = time_optimized_value;
+                helio_result.quality_mean_improvement = a.quality_mean_improvement;
+                helio_result.quality_std_improvement = a.quality_std_improvement;
+                helio_result.is_valid = true;
+                plate->set_helio_result(helio_result);
+            }
+
             HelioRatingDialog dlg(nullptr, time_origin_value, time_optimized_value, a.quality_mean_improvement, a.quality_std_improvement);
             dlg.ShowModal();
         }
@@ -10113,7 +12399,29 @@ void Plater::priv::on_helio_process()
     std::string material_id;
 
     if (update_helio_background_process(printer_id, material_id) > -1) {
-        HelioInputDialog dlg;
+        HelioInputDialog dlg(nullptr, material_id);
+        
+        // Check if we should pre-select optimization mode (set from simulation results dialog)
+        if (g_helio_pre_select_optimization) {
+            dlg.set_initial_action(1); // Set to optimization mode
+            g_helio_pre_select_optimization = false; // Reset flag
+        }
+        
+        // Show tutorial popup when HelioInputDialog is shown (if tutorial is active)
+        if (wxGetApp().app_config->get("helio_first_time_tutorial") == "active") {
+            wxString tutorial_msg = _L("Click the Optimize/Enhance button to start your first optimization.");
+            notification_manager->push_notification(
+                NotificationType::CustomNotification,
+                NotificationManager::NotificationLevel::HintNotificationLevel,
+                into_u8(tutorial_msg)
+            );
+        }
+        
+        // If user selected a reference material for unsupported filament, force "Slicer default" limits
+        if (helio_using_reference_material) {
+            dlg.set_force_slicer_default(true);
+        }
+        
         while (dlg.ShowModal() == wxID_OK)
         {
             if (partplate_list.get_curr_plate()->empty()) return;
@@ -10212,7 +12520,6 @@ void Plater::priv::on_helio_input_dlg(SimpleEvent &a)
 void Plater::priv::on_action_slice_all(SimpleEvent&)
 {
     if (q != nullptr) {
-        helio_background_process.reset();
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice project event\n" ;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
@@ -10232,6 +12539,17 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
             q->select_view_3D("Preview");
         //BBS: wish to select all plates stats item
         preview->get_canvas3d()->_update_select_plate_toolbar_stats_item(true);
+
+        auto agent      = wxGetApp().getAgent();
+        auto curr_plate = q->get_partplate_list().get_curr_plate();
+        if (!agent || !curr_plate) return;
+        auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
+        auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+        json j;
+        j["mode"] = mode_name;
+        j["is_connected"] = q->get_machine_sync_status();
+        j["slice_type"]   = "all_plate";
+        agent->track_event("slice_group_mode", j.dump());
     }
 }
 
@@ -11217,17 +13535,18 @@ GLCanvas3D* Plater::priv::get_current_canvas3D(bool exclude_preview)
 }
 
 bool Plater::priv::get_preview_min_max_value_of_option(int index, float &_min, float &_max) {
-    if (current_panel == preview){
+    // Access preview canvas directly - GCode data persists after slicing
+    if (preview && preview->get_canvas3d()) {
         auto& gcode_viewer = preview->get_canvas3d()->get_gcode_viewer();
-        return gcode_viewer.get_min_max_value_of_option(index,_min, _max);
+        return gcode_viewer.get_min_max_value_of_option(index, _min, _max);
     }
     return false;
- }
+}
 
 int Plater::priv::get_gcode_layers_count()
 {
-    if (current_panel == preview)
-    {
+    // Access preview canvas directly - GCode data persists after slicing
+    if (preview && preview->get_canvas3d()) {
         return preview->get_canvas3d()->get_gcode_layers_count();
     }
     return 0;
@@ -11278,31 +13597,35 @@ bool Plater::priv::check_ams_status_impl(bool is_slice_all)
 
         std::vector<std::map<int, int>> ams_count_info;
         ams_count_info.resize(2);
-        int deputy_4 = 0, main_4 = 0, deputy_1 = 0, main_1 = 0;
-        for (auto ams : obj->GetFilaSystem()->GetAmsList()) {
-            // Main (first) extruder at right
-            if (ams.second->GetExtruderId() == 0) {
-                if (ams.second->GetAmsType() == DevAms::N3S) // N3S
-                    ++main_1;
-                else
-                    ++main_4;
-            } else if (ams.second->GetExtruderId() == 1) {
-                if (ams.second->GetAmsType() == DevAms::N3S) // N3S
-                    ++deputy_1;
-                else
-                    ++deputy_4;
+        
+        std::map<std::pair<int, int>, int> ams_cnt_map{
+            {{MAIN_EXTRUDER_ID, 1}, 0},
+            {{DEPUTY_EXTRUDER_ID, 1}, 0},
+            {{MAIN_EXTRUDER_ID, 4}, 0},
+            {{DEPUTY_EXTRUDER_ID, 4}, 0},
+        };
+        for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
+            for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
+                if (sidebar->is_fila_switch_ready()) {
+                    auto switcher_pos = ams.second->GetSwitcherPos();
+                    if (!switcher_pos) { continue; }
+                    auto switcher_id = obj->is_main_extruder_on_left() ? static_cast<int>(switcher_pos.value()) : (1 - static_cast<int>(switcher_pos.value()));
+                    if (extruder_id != switcher_id) { continue; }
+                }
+                std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
+                ams_cnt_map[key]++;
             }
         }
 
-        int left_4  = main_4;
-        int left_1  = main_1;
-        int right_4 = deputy_4;
-        int right_1 = deputy_1;
+        int left_4  = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
+        int left_1  = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
+        int right_4 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
+        int right_1 = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
         if (!obj->is_main_extruder_on_left()) {
-            left_4  = deputy_4;
-            left_1  = deputy_1;
-            right_4 = main_4;
-            right_1 = main_1;
+            left_4  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}];
+            left_1  = ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}];
+            right_4 = ams_cnt_map[{MAIN_EXTRUDER_ID, 4}];
+            right_1 = ams_cnt_map[{MAIN_EXTRUDER_ID, 1}];
         }
 
         if (!preset_bundle->extruder_ams_counts.empty() && !preset_bundle->extruder_ams_counts.front().empty()) {
@@ -12777,6 +15100,8 @@ int Plater::load_project(wxString const &filename2,
 
     std::vector<size_t> res = load_files(input_paths, strategy);
 
+    check_include_gcode();
+
     reset_project_dirty_initial_presets();
     update_project_dirty_from_presets();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -13477,11 +15802,14 @@ void Plater::calib_flowrate(int pass)
         _obj->config.set_key_value("top_surface_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         _obj->config.set_key_value("internal_solid_infill_line_width", new ConfigOptionFloat(nozzle_diameter * 1.2f));
         _obj->config.set_key_value("top_surface_pattern", new ConfigOptionEnum<InfillPattern>(ipMonotonic));
-        _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloat(1.0f));
         _obj->config.set_key_value("infill_direction", new ConfigOptionFloat(45));
         _obj->config.set_key_value("ironing_type", new ConfigOptionEnum<IroningType>(IroningType::NoIroning));
         _obj->config.set_key_value("internal_solid_infill_speed", new ConfigOptionFloatsNullable(internal_solid_speeds));
         _obj->config.set_key_value("top_surface_speed", new ConfigOptionFloatsNullable(top_surface_speeds));
+
+        auto config_opt = dynamic_cast<const ConfigOptionFloatsNullable *>(_obj->config.option("top_solid_infill_flow_ratio"));
+        if (config_opt)
+            _obj->config.set_key_value("top_solid_infill_flow_ratio", new ConfigOptionFloatsNullable(config_opt->size(), 1.0f));
 
         // extract flowrate from name, filename format: flowrate_xxx
         std::string obj_name = _obj->name;
@@ -13839,6 +16167,12 @@ void Plater::load_gcode(const wxString& filename)
 
     m_only_gcode = true;
 
+    // Clear Helio simulation/optimization results when loading a new GCode file
+    // This prevents showing stale "View Summary" data from previous runs
+    if (auto* plate = p->partplate_list.get_curr_plate()) {
+        plate->clear_helio_result();
+    }
+
     // cleanup view before to start loading/processing
     //BBS: update gcode to current partplate's
     GCodeProcessorResult* current_result = p->partplate_list.get_current_slice_result();
@@ -13960,14 +16294,32 @@ void Plater::update_all_plate_thumbnails(bool force_update)
     }
 }
 
-void Plater::update_obj_preview_thumbnail(ModelObject *mo, int obj_idx, int vol_idx, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+void Plater::update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
+{
+    PartPlate *        plate            = get_partplate_list().get_plate(0);
+    ThumbnailsParams   thumbnail_params = {{}, false, true, true, true, 0, false};
+    GLVolumeCollection cur_volumes;
+    for (int i = 0; i < model_objects.size(); i++) {
+        auto &mo = model_objects[i];
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            cur_volumes.load_object_volume(mo, i, j, 0, "volume", true, false, false, false);
+        }
+    }
+    get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_origin_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
+                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false, GLCanvas3D::ThumbnailRenderRype::CustomMeshOrVertexColors);
+}
+
+void Plater::update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
 {
     PartPlate *      plate            = get_partplate_list().get_plate(0);
     ThumbnailsParams thumbnail_params = {{}, false, true, true, true, 0, false};
     GLVolumeCollection cur_volumes;
-    cur_volumes.load_object_volume(mo, obj_idx, vol_idx, 0, "volume", true, false, false, false);
-    ModelObjectPtrs model_objects;
-    model_objects.emplace_back(mo);
+    for (int i = 0; i < model_objects.size(); i++) {
+        auto& mo = model_objects[i];
+        for (int j = 0; j < mo->volumes.size(); j++) {
+            cur_volumes.load_object_volume(mo, i, j, 0, "volume", true, false, false, false);
+        }
+    }
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
                                             model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false);
 }
@@ -16327,7 +18679,7 @@ void Plater::reslice()
         p->preview->get_canvas3d()->on_back_slice_begin();
         this->SetDropTarget(nullptr);
 
-        // clear helio cache
+        // clear helio cache (per-plate results are cleared in restart_background_process when slicing starts)
         p->helio_background_process.clear_helio_file_cache();
     }
 
@@ -16375,6 +18727,10 @@ void Plater::stop_helio_process()
 {
     if (p->helio_background_process.is_running()) {
         p->helio_background_process.clear_helio_file_cache();
+        // Clear helio result for current plate when canceling
+        if (auto* plate = p->partplate_list.get_curr_plate()) {
+            plate->clear_helio_result();
+        }
         p->helio_background_process.reset();
         p->helio_background_process.stop_current_helio_action();
         p->helio_background_process.stop();
@@ -17668,6 +20024,7 @@ wxString Plater::get_selected_printer_name_in_combox() {
 void Plater::pop_warning_and_go_to_device_page(wxString printer_name, PrinterWarningType type, const wxString &title)
 {
     printer_name.Replace("Bambu Lab", "", false);
+    printer_name.Trim(true).Trim(false);
     wxString content;
     if (type == PrinterWarningType::NOT_CONNECTED) {
         content = wxString::Format(_L("Printer not connected. Please go to the device page to connect %s before syncing."), printer_name);
@@ -18347,12 +20704,13 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
 
         if (need_invalidate) {
             if (need_slice) {
+                update(false, true);
                 wxPostEvent(this, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
             }
             else {
                 curr_plate->update_slice_result_valid_state(false);
                 set_plater_dirty(true);
-                update();
+                update(false, true);
             }
         }
     }
@@ -18647,6 +21005,44 @@ int Plater::get_helio_process_status() const
 
 void Plater::clear_helio_process_status() const {
     p->helio_background_process.stop();
+}
+
+bool Plater::has_helio_simulation_result() const {
+    auto* plate = p->partplate_list.get_curr_plate();
+    return plate && plate->has_helio_result();
+}
+
+bool Plater::show_helio_simulation_summary() const {
+    auto* plate = p->partplate_list.get_curr_plate();
+    if (!plate || !plate->has_helio_result()) return false;
+
+    const auto* result = plate->get_helio_result();
+    if (!result) return false;
+
+    if (result->action == 0) {
+        // Simulation result
+        if (result->simulation_result.printInfo) {
+            // Get roles_times from current plate's gcode result
+            auto* gcode_result = plate->get_gcode_result();
+            if (gcode_result) {
+                auto roles_times = gcode_result->print_statistics.modes[0].roles_times;
+                HelioSimulationResultsDialog results_dlg(nullptr, result->simulation_result,
+                    result->original_print_time_seconds, roles_times);
+                results_dlg.ShowModal();
+                return true;
+            }
+        }
+    } else if (result->action == 1) {
+        // Optimization result
+        HelioRatingDialog dlg(nullptr,
+            result->original_print_time_seconds,
+            result->optimized_print_time_seconds,
+            result->quality_mean_improvement,
+            result->quality_std_improvement);
+        dlg.ShowModal();
+        return true;
+    }
+    return false;
 }
 
 void Plater::update_helio_background_process(std::string& printer_id, std::string& material_id)

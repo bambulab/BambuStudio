@@ -11,12 +11,15 @@
         "8000",
         "8000"
     ],
+    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "40",
         "40",
         "40",
         "40"
     ],
+    "ironing_speed": "20",
+    "ironing_flow": "20%",
     "outer_wall_speed": [
         "100",
         "100",

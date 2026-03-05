@@ -60,6 +60,7 @@ src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.cpp
+src/slic3r/GUI/DeviceTab/wgtMsgPanel.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp
@@ -122,6 +123,7 @@ src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/AMSMaterialsSetting.cpp
 src/slic3r/GUI/ExtrusionCalibration.cpp
 src/slic3r/GUI/AMSMappingPopup.cpp
+src/slic3r/GUI/AMSMappingPopupUpdate.cpp
 src/slic3r/GUI/AMSSetting.cpp
 src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp
@@ -274,3 +276,9 @@ src/slic3r/GUI/Widgets/MultiNozzleSync.cpp
 src/slic3r/GUI/Widgets/MultiNozzleSync.hpp
 src/slic3r/GUI/PurgeModeDialog.cpp
 src/slic3r/GUI/PurgeModeDialog.hpp
+src/slic3r/GUI/AMSDryControl.cpp
+src/slic3r/GUI/AMSDryControl.hpp
+src/slic3r/GUI/UxProgramTermsDialog.cpp
+src/slic3r/GUI/UxProgramTermsDialog.hpp
+src/slic3r/GUI/HelioHistoryDialog.hpp
+src/slic3r/GUI/HelioHistoryDialog.cpp

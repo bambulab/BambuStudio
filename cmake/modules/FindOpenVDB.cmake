@@ -224,7 +224,10 @@ list(APPEND _OPENVDB_LIBRARYDIR_SEARCH_DIRS
 
 # Build suffix directories
 
+include(GNUInstallDirs)
 set(OPENVDB_PATH_SUFFIXES
+  ${CMAKE_INSTALL_LIBDIR}
+  lib/${CMAKE_LIBRARY_ARCHITECTURE}
   lib64
   lib
 )
@@ -348,24 +351,37 @@ macro(just_fail msg)
   return()
 endmacro()
 
-find_package(IlmBase QUIET)
-if(NOT IlmBase_FOUND)
-  pkg_check_modules(IlmBase QUIET IlmBase)
-endif()
-if (IlmBase_FOUND AND NOT TARGET IlmBase::Half)
-  message(STATUS "Falling back to IlmBase found by pkg-config...")
-
-  find_library(IlmHalf_LIBRARY NAMES Half)
-  if(IlmHalf_LIBRARY-NOTFOUND OR NOT IlmBase_INCLUDE_DIRS)
-    just_fail("IlmBase::Half can not be found!")
+# Try Imath first (OpenEXR v3), then fall back to IlmBase (OpenEXR v2)
+find_package(Imath QUIET CONFIG)
+if(Imath_FOUND OR TARGET Imath::Imath)
+  message(STATUS "Found Imath (OpenEXR v3)")
+  set(OpenVDB_USES_IMATH TRUE)
+  # Create an alias for compatibility
+  if(NOT TARGET IlmBase::Half)
+    add_library(IlmBase::Half ALIAS Imath::Imath)
   endif()
-  
-  add_library(IlmBase::Half UNKNOWN IMPORTED)
-  set_target_properties(IlmBase::Half PROPERTIES
-    IMPORTED_LOCATION "${IlmHalf_LIBRARY}"
-    INTERFACE_INCLUDE_DIRECTORIES "${IlmBase_INCLUDE_DIRS}")
-elseif(NOT IlmBase_FOUND)
-  just_fail("IlmBase::Half can not be found!")
+else()
+  # Fall back to IlmBase (OpenEXR v2)
+  find_package(IlmBase QUIET)
+  if(NOT IlmBase_FOUND)
+    pkg_check_modules(IlmBase QUIET IlmBase)
+  endif()
+  if (IlmBase_FOUND AND NOT TARGET IlmBase::Half)
+    message(STATUS "Falling back to IlmBase found by pkg-config...")
+
+    find_library(IlmHalf_LIBRARY NAMES Half)
+    if(IlmHalf_LIBRARY-NOTFOUND OR NOT IlmBase_INCLUDE_DIRS)
+      just_fail("IlmBase::Half can not be found!")
+    endif()
+    
+    add_library(IlmBase::Half UNKNOWN IMPORTED)
+    set_target_properties(IlmBase::Half PROPERTIES
+      IMPORTED_LOCATION "${IlmHalf_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${IlmBase_INCLUDE_DIRS}")
+  elseif(NOT IlmBase_FOUND)
+    just_fail("Neither Imath (OpenEXR v3) nor IlmBase (OpenEXR v2) can be found!")
+  endif()
+  set(OpenVDB_USES_IMATH FALSE)
 endif()
 find_package(TBB ${_quiet} ${_required} COMPONENTS tbb)
 find_package(ZLIB ${_quiet} ${_required})
@@ -437,10 +453,12 @@ if(OpenVDB_USES_BLOSC)
     find_library(Blosc_LIBRARY NAMES blosc)
     if (Blosc_INCLUDE_DIR AND Blosc_LIBRARY)
       set(Blosc_FOUND TRUE)
-      add_library(Blosc::blosc UNKNOWN IMPORTED)
-      set_target_properties(Blosc::blosc PROPERTIES 
-        IMPORTED_LOCATION "${Blosc_LIBRARY}"
-        INTERFACE_INCLUDE_DIRECTORIES ${Blosc_INCLUDE_DIR})
+      if(NOT TARGET Blosc::blosc)
+        add_library(Blosc::blosc UNKNOWN IMPORTED)
+        set_target_properties(Blosc::blosc PROPERTIES 
+          IMPORTED_LOCATION "${Blosc_LIBRARY}"
+          INTERFACE_INCLUDE_DIRECTORIES ${Blosc_INCLUDE_DIR})
+      endif()
     elseif()
       just_fail("Blosc library can not be found!")
     endif()
@@ -452,11 +470,15 @@ if(OpenVDB_USES_LOG4CPLUS)
 endif()
 
 if(OpenVDB_USES_ILM)
-  find_package(IlmBase ${_quiet} ${_required})
+  if(OpenVDB_USES_IMATH)
+    find_package(Imath ${_quiet} ${_required} CONFIG)
+  else()
+    find_package(IlmBase ${_quiet} ${_required})
+  endif()
 endif()
 
 if(OpenVDB_USES_EXR)
-  find_package(OpenEXR ${_quiet} ${_required})
+  find_package(OpenEXR ${_quiet} ${_required} CONFIG)
 endif()
 
 if(UNIX)
@@ -481,12 +503,21 @@ if(OpenVDB_ABI)
 endif()
 
 if(OpenVDB_USES_EXR)
-  list(APPEND _OPENVDB_VISIBLE_DEPENDENCIES
-    IlmBase::IlmThread
-    IlmBase::Iex
-    IlmBase::Imath
-    OpenEXR::IlmImf
-  )
+  if(OpenVDB_USES_IMATH)
+    # OpenEXR v3 uses Imath
+    list(APPEND _OPENVDB_VISIBLE_DEPENDENCIES
+      Imath::Imath
+      OpenEXR::OpenEXR
+    )
+  else()
+    # OpenEXR v2 uses IlmBase
+    list(APPEND _OPENVDB_VISIBLE_DEPENDENCIES
+      IlmBase::IlmThread
+      IlmBase::Iex
+      IlmBase::Imath
+      OpenEXR::IlmImf
+    )
+  endif()
   list(APPEND _OPENVDB_DEFINITIONS "-DOPENVDB_TOOLS_RAYTRACER_USE_EXR")
 endif()
 

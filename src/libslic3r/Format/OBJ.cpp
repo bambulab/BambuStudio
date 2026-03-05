@@ -109,6 +109,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
     if (exist_mtl) {
         obj_info.is_single_mtl = data.usemtls.size() == 1 && mtl_data.new_mtl_unmap.size() == 1;
         obj_info.face_colors.reserve(num_faces + num_quads);
+        obj_info.usemtls = data.usemtls;
     }
     bool has_color = data.has_vertex_color;
     for (size_t i = 0; i < num_vertices; ++ i) {
@@ -206,13 +207,17 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                     }
                 };
                 if (exist_mtl) {
-                    if (mtl_data.first_time_using_makerlab && obj_info.mtl_colors.empty()) {
-                        obj_info.first_time_using_makerlab = true;
+                    if (obj_info.mtl_colors.empty()) {
+                        if (mtl_data.first_time_using_makerlab) {
+                            obj_info.first_time_using_makerlab = true;
+                        }
                         obj_info.mtl_colors.reserve(mtl_data.mtl_orders.size());
+                        obj_info.mtl_color_names.reserve(mtl_data.mtl_orders.size());
                         for (int i = 0; i < mtl_data.mtl_orders.size(); i++) {
                             RGBA face_color;
                             if (get_face_color(mtl_data.mtl_orders[i],face_color)) {
                                 obj_info.mtl_colors.emplace_back(face_color);
+                                obj_info.mtl_color_names.emplace_back(mtl_data.mtl_orders[i]);
                             }
                         }
                     }

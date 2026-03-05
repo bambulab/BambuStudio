@@ -1525,9 +1525,9 @@ void TreeSupport::generate_toolpaths()
         return;
 
     auto generate_support_ironing_entity = [this](const ExPolygons &unioned_expolygons, const BoundingBox &bbox_object, const SupportLayer *ts_layer,
-                                                  ExtrusionEntityCollection *temp_entity_collection, bool use_support_material = false) {
+                                           ExtrusionEntityCollection *temp_entity_collection) {
         // support interface ironing related generation, tree support logic
-        if (!unioned_expolygons.empty()) {
+        if (m_support_params.enable_support_ironing && !unioned_expolygons.empty()) {
             auto ironing_fill = std::unique_ptr<Fill>(Fill::new_from_type(m_support_params.ironing_pattern));
             ironing_fill->set_bounding_box(bbox_object);
             ironing_fill->layer_id        = ts_layer->id();
@@ -1538,6 +1538,8 @@ void TreeSupport::generate_toolpaths()
             ironing_fill->link_max_length = (coord_t) scale_(3. * ironing_fill->spacing);
 
             ExPolygons polys_to_iron = unioned_expolygons;
+            if (m_support_params.ironing_inset > EPSILON)
+                polys_to_iron = union_ex(offset(polys_to_iron, -scale_(m_support_params.ironing_inset)));
 
             Flow       support_ironing_flow(m_support_params.support_material_interface_flow.width(),
                                             m_support_params.support_material_interface_flow.height() * m_support_params.ironing_flow_percent * 0.01,
@@ -1553,7 +1555,7 @@ void TreeSupport::generate_toolpaths()
                 // Filler and its parameters
                 ironing_fill.get(), ironing_fill_params,
                 // Extrusion parameters
-                use_support_material ? ExtrusionRole::erSupportMaterialInterface : ExtrusionRole::erSupportIroning, support_ironing_flow);
+                ExtrusionRole::erSupportIroning, support_ironing_flow);
         }
     };
 
@@ -1637,6 +1639,12 @@ void TreeSupport::generate_toolpaths()
 
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_interface_areas,
             filler_interface, fill_params, erSupportMaterialInterface, support_flow);
+
+        if (m_support_params.enable_support_ironing && !raft_interface_areas.empty()
+            && layer_nr == m_slicing_params.base_raft_layers + m_slicing_params.interface_raft_layers-1) {
+            BoundingBox                bbox_object(Point(-scale_(1.), -scale_(1.0)), Point(scale_(1.), scale_(1.)));
+            generate_support_ironing_entity(raft_interface_areas, bbox_object, ts_layer, &(ts_layer->support_fills) );
+        }
 
         fill_params.density = object_config.raft_first_layer_density * 0.01;
         fill_expolygons_generate_paths(ts_layer->support_fills.entities, raft_base_areas,
@@ -1792,6 +1800,22 @@ void TreeSupport::generate_toolpaths()
                         else
                             delete temp_support_fills;
 
+                        if (m_support_params.enable_support_ironing) {
+                            SupportLayer const        *ts_upper_layer        = m_object->get_support_layer(layer_id+1);
+                            ExtrusionEntityCollection *temp_support_ironings = new ExtrusionEntityCollection();
+                            ExPolygons                 unioned_expolygons    = union_ex(polys), upper_expolygons;
+                            if (ts_upper_layer) {
+                                for (auto &area_t : ts_upper_layer->area_groups) upper_expolygons.push_back(*(area_t.area));
+                                unioned_expolygons = diff_ex(unioned_expolygons, upper_expolygons);
+                                unioned_expolygons = union_ex(unioned_expolygons);
+                            }
+                            if (!unioned_expolygons.empty()) { generate_support_ironing_entity(unioned_expolygons, bbox_object, ts_layer, temp_support_ironings); }
+                            temp_support_ironings->no_sort = true; // make sure loops are first
+                            if (!temp_support_ironings->entities.empty())
+                                ts_layer->support_fills.entities.push_back(temp_support_ironings);
+                            else
+                                delete temp_support_ironings;
+                        }
                     }
                     else {
                         // base_areas
@@ -2456,7 +2480,9 @@ void TreeSupport::draw_circles()
                         append(roof_areas, area);
                         max_layers_above_roof = top_z_distance == 0 ? node.height : std::max(max_layers_above_roof, node.dist_mm_to_top);
                         interface_id          = node.obj_layer_nr % top_interface_layers;
-                    } else {
+                    }
+                    else
+                    {
                         append(base_areas, area);
                         max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
@@ -2467,6 +2493,7 @@ void TreeSupport::draw_circles()
                 // join roof segments
                 roof_areas     = diff_clipped(offset2_ex(roof_areas, line_width_scaled, -line_width_scaled), get_collision(z_overrides));
                 roof_areas     = intersection_ex(roof_areas, m_machine_border);
+                roof_areas     = union_ex(roof_areas);
                 roof_1st_layer = diff_clipped(offset2_ex(roof_1st_layer, line_width_scaled, -line_width_scaled),
                                               z_overrides ? offset_ex(get_collision(z_overrides), line_width_scaled / 2) : get_collision(false));
 
@@ -2530,13 +2557,15 @@ void TreeSupport::draw_circles()
                 ExPolygons new_roofs;
                 for (auto &expoly : ts_layer->roof_areas) {
                     if (area(expoly) < SQ(scale_(1))) {
-                        if (max_layers_above_roof > EPSILON) { ts_layer->roof_1st_layer.push_back(expoly); }
+                        if (max_layers_above_roof > EPSILON) { 
+                            ts_layer->roof_1st_layer.push_back(expoly); 
+                        }
                         continue;
                     }
                     new_roofs.push_back(expoly);
                 }
                 roof_areas = std::move(new_roofs);
-                for (auto &expoly : ts_layer->roof_areas) {
+                for (auto& expoly : ts_layer->roof_areas) {
                     area_groups.emplace_back(&expoly, SupportLayer::RoofType, max_layers_above_roof);
                     area_groups.back().interface_id = interface_id;
                 }
@@ -3129,7 +3158,7 @@ void TreeSupport::drop_nodes()
                     SupportNode* neighbour = nodes_this_part[neighbours[0]];
                     SupportNode* node_parent;
                     if (p_node->parent && neighbour->parent)
-                        node_parent = (node.dist_mm_to_top >= neighbour->dist_mm_to_top) ? p_node : neighbour;
+                        node_parent = (node.radius >= neighbour->radius) ? p_node : neighbour;
                     else
                         node_parent = p_node->parent ? p_node : neighbour;
                     // Make sure the next pass doesn't drop down either of these (since that already happened).
@@ -3140,7 +3169,6 @@ void TreeSupport::drop_nodes()
                     auto dist_xy_to_node     = (next_position - node.position).cast<double>().norm();
                     auto dist_xy_to_neighbor = (next_position - neighbour->position).cast<double>().norm();
                     next_node->orig_pos      = dist_xy_to_neighbor < dist_xy_to_node ? node.orig_pos : neighbour->orig_pos;
-                    next_node->radius = std::max(next_radius, std::max(p_node->radius, neighbour->radius));
                     get_max_move_dist(next_node);
                     m_ts_data->m_mutex.lock();
                     contact_nodes[layer_nr_next].push_back(next_node);
@@ -3158,7 +3186,7 @@ void TreeSupport::drop_nodes()
                             SupportNode* neighbour_node = nodes_this_part[neighbour];
                             if (neighbour_node->type == ePolygon) continue;
                             // only allow bigger node to merge smaller nodes. See STUDIO-6326
-                            if(node.dist_mm_to_top < neighbour_node->dist_mm_to_top) continue;
+                            if(node.radius < neighbour_node->radius) continue;
 
                             m_ts_data->m_mutex.lock();
                             if (p_node->valid)
@@ -3206,8 +3234,7 @@ void TreeSupport::drop_nodes()
                     ExPolygons overhangs_next{node.overhang};
                     auto       poly_radius   = node.overhang.contour.bounding_box().radius();
                     bool       offseted    = false;
-                    if ((node.print_z < DO_NOT_MOVER_UNDER_MM && node.overhang.area() < SQ(scale_(10.))) || poly_radius < scale_(node.target_radius) ||
-                        node.overhang.area() < 3. * SQ(scale_(node.target_radius))) {
+                    if ((node.print_z < DO_NOT_MOVER_UNDER_MM) || poly_radius < scale_(node.target_radius) || node.overhang.area() < 3. * SQ(scale_(node.target_radius))) {
                         overhangs_next = offset_ex({node.overhang}, scale_(max_move_distance / 2.));
                         offseted       = true;
                     }

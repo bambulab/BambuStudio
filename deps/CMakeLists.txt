@@ -17,7 +17,7 @@
 # To build dependencies for either 64 or 32 bit OS, use the respective compiler command line.
 #
 # WARNING: On UNIX platforms wxWidgets hardcode the destdir path into its `wx-conffig` utility,
-# therefore, unfortunatelly, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
+# therefore, unfortunately, the installation cannot be copied/moved elsewhere without re-installing wxWidgets.
 #
 
 project(BambuStudio-deps)
@@ -78,8 +78,11 @@ endif ()
 # option(DEP_BUILD_IGL_STATIC "Build IGL as a static library. Might cause link errors and increase binary size." OFF)
 
 message(STATUS "BambuStudio deps DESTDIR: ${DESTDIR}")
-message(STATUS "BambuStudio dowload dir for source packages: ${DEP_DOWNLOAD_DIR}")
+message(STATUS "BambuStudio download dir for source packages: ${DEP_DOWNLOAD_DIR}")
 message(STATUS "BambuStudio deps debug build: ${DEP_DEBUG}")
+
+message(STATUS "in deps, CMAKE_GENERATOR_PLATFORM is ${CMAKE_GENERATOR_PLATFORM} ")
+message(STATUS "in deps, CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR} ")
 
 find_package(Git REQUIRED)
 
@@ -118,6 +121,13 @@ function(bambustudio_add_cmake_project projectname)
         set(_gen CMAKE_GENERATOR "${DEP_MSVC_GEN}" CMAKE_GENERATOR_PLATFORM "${DEP_PLATFORM}")
         set(_build_j "/m")
     endif ()
+
+    message(STATUS "bambustudio_add_cmake_project ${projectname},  _gen is ${_gen} ")
+    message(STATUS "DEP_CMAKE_OPTS is ${DEP_CMAKE_OPTS} ")
+    message(STATUS "P_ARGS_CMAKE_ARGS is ${P_ARGS_CMAKE_ARGS} ")
+    message(STATUS "P_ARGS_UNPARSED_ARGUMENTS is ${P_ARGS_UNPARSED_ARGUMENTS} ")
+    message(STATUS "CMAKE_GENERATOR_PLATFORM is ${CMAKE_GENERATOR_PLATFORM} ")
+    message(STATUS "CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR} ")
 
     ExternalProject_Add(
         dep_${projectname}

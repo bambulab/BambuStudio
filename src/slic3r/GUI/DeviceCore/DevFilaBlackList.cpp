@@ -85,15 +85,16 @@ static std::string _get_filament_name_from_ams(const std::string& dev_id, int am
 }
 
 // moved from tao.wang and zhimin.zeng
-void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
-                     DevFilaBlacklist::CheckResult& result)
+void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevFilaBlacklist::CheckResult &result)
 {
     std::string  tag_type = check_info.fila_type;
     std::string  tag_name = check_info.fila_name;
     std::string  tag_vendor = check_info.fila_vendor;
+    std::string  tag_calib_mode = check_info.calib_mode;
     std::transform(tag_vendor.begin(), tag_vendor.end(), tag_vendor.begin(), ::tolower);
     std::transform(tag_type.begin(), tag_type.end(), tag_type.begin(), ::tolower);
     std::transform(tag_name.begin(), tag_name.end(), tag_name.begin(), ::tolower);
+    std::transform(tag_calib_mode.begin(), tag_calib_mode.end(), tag_calib_mode.begin(), ::tolower);
 
     DevFilaBlacklist::load_filaments_blacklist_config();
     if (DevFilaBlacklist::filaments_blacklist.contains("blacklist"))
@@ -102,20 +103,15 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
         {
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
             std::string description = filament_item.contains("description") ? filament_item["description"].get<std::string>() : "";
-
-            // white items
-            std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
-            if (!white_names.empty() && !tag_name.empty()) {
-                for (auto white_name : white_names) {
-                    if (tag_name.find(white_name) != std::string::npos) {
-                        continue;// the filament name is in white names, skip this blacklist item
-                    }
-                }
+            if (action.empty() || description.empty()) {
+                assert(false);
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": ERROR: filaments_blacklist item missing action or description";
             }
 
             // blacklist items
             std::string vendor = filament_item.contains("vendor") ? filament_item["vendor"].get<std::string>() : "";
             std::string type = filament_item.contains("type") ? filament_item["type"].get<std::string>() : "";
+            std::vector<std::string> types = filament_item.contains("types") ? filament_item["types"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::string type_suffix = filament_item.contains("type_suffix") ? filament_item["type_suffix"].get<std::string>() : "";
             std::string name_suffix = filament_item.contains("name_suffix") ? filament_item["name_suffix"].get<std::string>() : "";
             std::string name = filament_item.contains("name") ? filament_item["name"].get<std::string>() : "";
@@ -125,6 +121,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
             std::vector<std::string> model_ids = filament_item.contains("model_id") ? filament_item["model_id"].get<std::vector<std::string>>() : std::vector<std::string>();
             std::vector<int> extruder_ids = filament_item.contains("extruder_id") ? filament_item["extruder_id"].get<std::vector<int>>() : std::vector<int>();
             std::vector<std::string> nozzle_flows = filament_item.contains("nozzle_flows") ? filament_item["nozzle_flows"].get<std::vector<std::string>>() : std::vector<std::string>();
+            std::string calib_mode = filament_item.contains("calib_mode") ? filament_item["calib_mode"].get<std::string>() : "";
 
             // check model id
             if (!model_ids.empty() && std::find(model_ids.begin(), model_ids.end(), check_info.model_id) == model_ids.end()) { continue; }
@@ -150,9 +147,26 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
                 }
             }
 
+            // check calib mode
+            std::transform(calib_mode.begin(), calib_mode.end(), calib_mode.begin(), ::tolower);
+            if (!calib_mode.empty() && calib_mode != tag_calib_mode) { continue;}
+
             // check type
             std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-            if (!type.empty() && (type != tag_type)) { continue; }
+            if (!type.empty() && (type != tag_type)) {
+                continue;
+            }
+
+            if (!types.empty()) {
+                auto it = std::find_if(types.begin(), types.end(), [&tag_type](auto ttype) {
+                    std::transform(ttype.begin(), ttype.end(), ttype.begin(), ::tolower);
+                    return ttype == tag_type;
+                });
+
+                if (it == types.end()) {
+                    continue;// the type is not in types
+                }
+            }
 
             // check type suffix
             std::transform(type_suffix.begin(), type_suffix.end(), type_suffix.begin(), ::tolower);
@@ -200,6 +214,36 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
                 continue;
             }
 
+            // white items
+            {
+                // contains match
+                std::set<std::string> white_names = filament_item.contains("white_names") ? filament_item["white_names"].get<std::set<std::string>>() : std::set<std::string>();
+                if (!white_names.empty() && !tag_name.empty()) {
+                    auto it = std::find_if(white_names.begin(), white_names.end(), [&tag_name](auto white_name) {
+                        std::transform(white_name.begin(), white_name.end(), white_name.begin(), ::tolower);
+                        return tag_name.find(white_name) != std::string::npos;
+                    });
+                    // the filament name is contains in the white names, skip this blacklist item
+                    if (it != white_names.end()) {
+                        continue;
+                    }
+                }
+            }
+
+            {
+                // equal match
+                std::set<std::string> white_fila_ids = filament_item.contains("white_fila_ids") ? filament_item["white_fila_ids"].get<std::set<std::string>>() : std::set<std::string>();
+                if (!white_fila_ids.empty() && !check_info.fila_id.empty()) {
+                    auto it = std::find_if(white_fila_ids.begin(), white_fila_ids.end(), [&tag_name, check_info](auto white_fila_id) {
+                        return white_fila_id == check_info.fila_id;
+                    });
+
+                    if (it != white_fila_ids.end()) {
+                        continue;
+                    }
+                }
+            }
+
             // the item is matched
             DevFilaBlacklist::CheckResultItem result_item;
             result_item.action = action;
@@ -213,7 +257,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
                     result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
                 }
             } else if (description == "%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
-                result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else if (description == "%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
             } else if (description == "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.") {
@@ -229,16 +273,21 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
             L("TPU is not supported by AMS.");
             L("AMS does not support 'Bambu Lab PET-CF'.");
             L("The current filament doesn't support the E3D high-flow nozzle and can't be used.");
+            L("When using %s on the right extruder, it can only be used as support material.")
+            L("The current filament doesn't support the TPU high-flow nozzle and can't be used.");
+            L("Auto dynamic flow calibration is not supported for TPU filament.");
+            L("Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles.");
             L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
 
             // Warning in description
+            L("How to feed TPU filament.");
+            L("Using non-bambu filament may have printing quality issues.");
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
             L("Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use.");
             L("Damp PVA is flexible and may get stuck in extruder. Dry it before use.");
-            L("PLA Glow may wear the AMS first stage feeder. Use an external spool instead.");
-            L("CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution.");
             L("PPS-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
+            L("PLA Glow may wear the AMS first stage feeder. Use an external spool instead.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
             L("Using non-bambu filament may have printing quality issues.");
             L("When using %s on the right extruder, it can only be used as support material.");
@@ -249,52 +298,47 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info,
     }
 }
 
-void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo& check_info,
-                               DevFilaBlacklist::CheckResult& result)
+
+void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_info, DevFilaBlacklist::CheckResult &result)
 {
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) {
-        return;
-    }
+    if (!dev) { return; }
 
     MachineObject *obj = dev->get_my_machine(check_info.dev_id);
-    if (obj == nullptr || !obj->is_multi_extruders()) {
-        return;
-    }
+    if (obj == nullptr || !obj->is_multi_extruders()) { return; }
 
     Preset *printer_preset = GUI::get_printer_preset(obj);
-    if (!printer_preset) {
-        return;
-    }
+    if (!printer_preset) { return; }
 
     ConfigOptionInts *physical_extruder_map_op = dynamic_cast<ConfigOptionInts *>(printer_preset->config.option("physical_extruder_map"));
-    if (!physical_extruder_map_op) {
-        return;
-    }
+    if (!physical_extruder_map_op) { return; }
 
+    if (!check_info.extruder_id.has_value()) { return; }
+
+    int              extruder_idx           = -1;
     std::vector<int> physical_extruder_maps = physical_extruder_map_op->values;
-    int              obj_extruder_id        = obj->get_extruder_id_by_ams_id(std::to_string(check_info.ams_id));
-    int              extruder_idx           = obj_extruder_id;
     for (int index = 0; index < physical_extruder_maps.size(); ++index) {
-        if (physical_extruder_maps[index] == obj_extruder_id) {
+        if (physical_extruder_maps[index] == check_info.extruder_id.value()) {
             extruder_idx = index;
             break;
         }
     }
 
+    if (extruder_idx == -1) { return; }
+
     PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(check_info.fila_id, printer_preset->name);
     if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
         DevFilaBlacklist::CheckResultItem item;
-        wxString    extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-        std::string fila_name     = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
-        item.action               = "prohibition";
-        item.info_msg             = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
+        wxString                          extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        std::string                       fila_name     = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
+        item.action                                     = "prohibition";
+        item.info_msg                                   = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
         result.action_items[item.action].push_back(item);
     }
 };
 
-DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(const CheckFilamentInfo& info)
+DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(const CheckFilamentInfo &info)
 {
     CheckResult result;
     if (info.ams_id < 0 || info.slot_id < 0) {
@@ -310,11 +354,9 @@ DevFilaBlacklist::CheckResult DevFilaBlacklist::check_filaments_in_blacklist(con
 
     // if skip_ams_blacklist_check is true, change prohibition to warning
     if (GUI::wxGetApp().app_config->get("skip_ams_blacklist_check") == "true") {
-        const auto& prohibit_items = result.get_items_by_action("prohibition");
+        const auto &prohibit_items = result.get_items_by_action("prohibition");
         if (!prohibit_items.empty()) {
-            for (const auto& prohibit_item : prohibit_items) {
-                result.action_items["warning"].push_back(prohibit_item);
-            }
+            for (const auto &prohibit_item : prohibit_items) { result.action_items["warning"].push_back(prohibit_item); }
 
             result.action_items.erase("prohibition");
         }

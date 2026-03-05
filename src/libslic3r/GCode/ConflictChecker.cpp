@@ -1,4 +1,4 @@
-#include "ConflictChecker.hpp"
+﻿#include "ConflictChecker.hpp"
 
 #include <tbb/parallel_for.h>
 #include <tbb/concurrent_vector.h>
@@ -286,27 +286,39 @@ ConflictResultOpt ConflictChecker::find_inter_of_lines_in_diff_objs(PrintObjectP
         return {};
 }
 
+// Helper function to check if a role is support-related
+static bool is_support_role(ExtrusionRole role) {
+    return role == ExtrusionRole::erSupportMaterial ||
+           role == ExtrusionRole::erSupportMaterialInterface ||
+           role == ExtrusionRole::erSupportTransition;
+}
+
 ConflictComputeOpt ConflictChecker::line_intersect(const LineWithID &l1, const LineWithID &l2)
 {
     constexpr double SUPPORT_THRESHOLD = 100;  // this large almost disables conflict check of supports
     constexpr double OTHER_THRESHOLD   = 0.01;
     if (l1._id == l2._id) { return {}; } // return true if lines are from same object
+
+    // Check if either line is support material - use relaxed threshold for any support-related conflicts
+    bool any_support = is_support_role(l1._role) || is_support_role(l2._role);
+    double threshold = any_support ? SUPPORT_THRESHOLD : OTHER_THRESHOLD;
+
+    // Check for overlap - use same threshold logic as intersection
     double overlap_length = 0.;
     bool   overlap  = l1._line.overlap(l2._line, overlap_length);
-    if (overlap && overlap_length > scaled(OTHER_THRESHOLD)) return std::make_optional<ConflictComputeResult>(l1._id, l2._id);
+    if (overlap && overlap_length > scaled(threshold)) {
+        return std::make_optional<ConflictComputeResult>(l1._id, l2._id);
+    }
+
+    // Check for intersection
     Point inter;
     bool  intersect = l1._line.intersection(l2._line, &inter);
-
     if (intersect) {
         double dist1 = std::min(unscale(Point(l1._line.a - inter)).norm(), unscale(Point(l1._line.b - inter)).norm());
         double dist2 = std::min(unscale(Point(l2._line.a - inter)).norm(), unscale(Point(l2._line.b - inter)).norm());
         double dist  = std::min(dist1, dist2);
-        ExtrusionRole r1        = l1._role;
-        ExtrusionRole r2        = l2._role;
-        bool          both_support = r1 == ExtrusionRole::erSupportMaterial || r1 == ExtrusionRole::erSupportMaterialInterface || r1 == ExtrusionRole::erSupportTransition;
-        both_support = both_support && ( r2 == ExtrusionRole::erSupportMaterial || r2 == ExtrusionRole::erSupportMaterialInterface || r2 == ExtrusionRole::erSupportTransition);
-        if (dist > (both_support ? SUPPORT_THRESHOLD:OTHER_THRESHOLD)) {
-            // the two lines intersects if dist>0.01mm for regular lines, and if dist>1mm for both supports
+        if (dist > threshold) {
+            // the two lines intersects if dist>0.01mm for regular lines, and if dist>100mm for both supports
             return std::make_optional<ConflictComputeResult>(l1._id, l2._id);
         }
     }
