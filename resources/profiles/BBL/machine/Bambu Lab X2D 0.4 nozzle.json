@@ -11,6 +11,13 @@
     ],
     "printer_model": "Bambu Lab X2D",
     "printer_variant": "0.4",
+    "include": [
+        "Bambu Lab X2D 0.4 nozzle template change_filament_gcode",
+        "Bambu Lab X2D 0.4 nozzle template layer_change_gcode",
+        "Bambu Lab X2D 0.4 nozzle template machine_end_gcode",
+        "Bambu Lab X2D 0.4 nozzle template machine_start_gcode",
+        "Bambu Lab X2D 0.4 nozzle template time_lapse_gcode"
+    ],
     "default_filament_profile": [
         "Bambu PLA Basic @BBL X2D 0.4 nozzle"
     ],
