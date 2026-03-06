@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6122,9 +6122,6 @@ msgstr "De kamertemperatuur kan tijdens het printen niet worden aangepast in de 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Als de kamertemperatuur boven de 40℃ komt, schakelt het systeem automatisch over op de verwarmingsmodus. Bevestig of u wilt overschakelen."
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "Selecteer een AMS-sleuf voor kalibratie"
 
@@ -6154,6 +6151,9 @@ msgstr "Zet het nog steeds uit"
 
 msgid "Can't start this without storage."
 msgstr "Kan dit niet starten zonder opslag."
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Beoordeel het printprofiel"
@@ -6824,7 +6824,7 @@ msgstr "Geschatte tijd"
 msgid "Filament changes"
 msgstr "Filament wisselingen"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12136,6 +12136,12 @@ msgstr "Printtemperatuur voor de interface-laag van de prime tower (waar verschi
 
 msgid "°C"
 msgstr "℃"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "Verzachtingstemperatuur"

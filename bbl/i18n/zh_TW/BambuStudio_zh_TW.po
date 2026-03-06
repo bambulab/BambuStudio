@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -6082,9 +6082,6 @@ msgstr "列印過程中，冷卻模式下無法調節腔溫。"
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "如果腔室溫度超過40℃, 系統將自動切換到腔溫保持模式。請確認是否切換。"
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "請先選擇一個AMS槽位後進行校準"
 
@@ -6114,6 +6111,9 @@ msgstr "仍然關閉"
 
 msgid "Can't start this without storage."
 msgstr "沒有外部儲存就無法啟動"
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "評價列印配置檔案"
@@ -6776,7 +6776,7 @@ msgstr "預估列印時間"
 msgid "Filament changes"
 msgstr "材料切換"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12071,6 +12071,12 @@ msgstr "料塔接觸層（不同材料交界處）的列印溫度。如果設定
 
 msgid "°C"
 msgstr "°C"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "軟化溫度"

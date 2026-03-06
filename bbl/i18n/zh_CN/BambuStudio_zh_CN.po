@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -267,7 +267,7 @@ msgid "Used Time"
 msgstr ""
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "当前盘存在动态分配喷嘴，不支持修改。"
 
 msgid "Hotend Rack"
 msgstr "热端挂架"
@@ -2703,6 +2703,8 @@ msgid ""
 "The consumables changer has not been calibrated. \n"
 "Please calibrate it on the printer before using."
 msgstr ""
+"耗材更换器尚未校准。 \n"
+"请在使用前在打印机上进行校准。"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
@@ -2841,13 +2843,13 @@ msgid "hotend"
 msgstr ""
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "等待 AMS 冷却"
 
 msgid "Switch current filament at Filament Track Switch"
 msgstr "切换选料器的当前耗材"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "退选料器处当前使用料"
 
 msgid "Switch track at Filament Track Switch"
 msgstr "选料器开关切换"
@@ -3482,7 +3484,7 @@ msgid "To learn about the filaments matching rules."
 msgstr "了解丝材匹配规则。"
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "安装有选料器，不支持使用外挂，如果使用，请拔掉选料器。"
 
 msgid "Select Filament && Hotends"
 msgstr "选择材料预设和喷头"
@@ -4164,7 +4166,7 @@ msgid "No Reminder Next Time"
 msgstr "下次不再提醒"
 
 msgid "Recheck"
-msgstr ""
+msgstr "重新检测"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "忽略，下次不再提醒"
@@ -4194,7 +4196,7 @@ msgid "Abort"
 msgstr "退出"
 
 msgid "Disable Purification for This Print"
-msgstr ""
+msgstr "关闭本次空气净化"
 
 msgid "Done"
 msgstr "完成"
@@ -5597,7 +5599,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "直播功能依赖 Bambu Studio 运行，关闭软件后直播将在一段时间后结束。"
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "打印机预览"
 
 msgid "Playing..."
 msgstr "正在播放中……"
@@ -6081,9 +6083,6 @@ msgstr "打印过程中，冷却模式下无法调节腔温。"
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "如果腔室温度超过40℃, 系统将自动切换到腔温保持模式。请确认是否切换。"
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "请先选择一个AMS槽位后进行校准"
 
@@ -6113,6 +6112,9 @@ msgstr "仍然关闭"
 
 msgid "Can't start this without storage."
 msgstr "没有外部存储就无法启动"
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "评价打印配置文件"
@@ -6775,11 +6777,11 @@ msgstr "预估打印时间"
 msgid "Filament changes"
 msgstr "材料切换"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "检测到你安装的耗材变轨器未标定，暂时无法使用，请先去打印机标定后再同步使用。 "
 
 msgid "Learn more"
 msgstr "更多信息查看Wiki"
@@ -7750,10 +7752,10 @@ msgid "Units"
 msgstr "单位"
 
 msgid "Use 12-hour time format"
-msgstr "使用12小时制时间格式"
+msgstr "使用 12 小时制时间格式"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr "以12小时制(AM/PM)显示时间，而不是24小时制"
+msgstr "以 12 小时制（上午/下午）而非 24 小时制显示时间"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "只保留一个Bambu Studio实例"
@@ -8426,7 +8428,7 @@ msgstr "错误代码"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "如果按照推荐摆料可省 %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -12072,6 +12074,12 @@ msgstr "料塔接触层（不同材料交界处）的打印温度。如果设置
 
 msgid "°C"
 msgstr "°C"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "软化温度"
@@ -15760,7 +15768,7 @@ msgid "Filament grouping"
 msgstr "耗材分组"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "省料"
 
 msgid "Don't remind me again"
 msgstr "不再提醒"
@@ -15827,7 +15835,7 @@ msgid "The filament grouping method for current plate is determined by the dropd
 msgstr "当前盘的耗材分组方式由切片按钮处的下拉选项决定。"
 
 msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
+msgstr "耗材分组根据节省耗材原则自动优化"
 
 msgid "Skip Objects"
 msgstr "零件跳过"

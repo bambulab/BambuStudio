@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6088,9 +6088,6 @@ msgstr "冷却モード中は、造形中にチャンバー温度を調整でき
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "チャンバー温度が40℃を超えると、システムは自動的に加熱モードに切り替わります。切り替えの確認をお願いします。"
 
-msgid "Load filament to"
-msgstr "フィラメントをロード先："
-
 msgid "Please select an AMS slot before calibration"
 msgstr "キャリブレーションの前に、AMSスロットを選択してください。"
 
@@ -6120,6 +6117,9 @@ msgstr "それでもオフにする"
 
 msgid "Can't start this without storage."
 msgstr "ストレージなしでは開始できません。"
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "プリントプロファイルを評価する"
@@ -6784,7 +6784,7 @@ msgstr "予測時間"
 msgid "Filament changes"
 msgstr "フィラメント交換"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12090,6 +12090,12 @@ msgstr "異なる材料が接するプライムタワーのインターフェー
 msgid "°C"
 msgstr "°C"
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "軟化温度"
 
@@ -15796,7 +15802,7 @@ msgid "Filament grouping"
 msgstr "フィラメントのグループ化"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "フィラメント節約"
 
 msgid "Don't remind me again"
 msgstr "今後通知しない"
@@ -16528,6 +16534,9 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Load filament to"
+#~ msgstr "フィラメントをロード先："
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "TPU 85A フィラメントでは動的流量キャリブレーションはサポートされていません。"

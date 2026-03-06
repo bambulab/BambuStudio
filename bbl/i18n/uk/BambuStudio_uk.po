@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -6099,9 +6099,6 @@ msgstr ""
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr ""
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "Будь ласка, виберіть слот AMS перед калібруванням"
 
@@ -6130,6 +6127,9 @@ msgid "Still turn it Off"
 msgstr ""
 
 msgid "Can't start this without storage."
+msgstr ""
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr ""
 
 msgid "Rate the Print Profile"
@@ -6803,7 +6803,7 @@ msgstr "Розрахунковий час"
 msgid "Filament changes"
 msgstr "Зміни нитки"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12029,6 +12029,12 @@ msgstr ""
 
 msgid "°C"
 msgstr "°C"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "Температура м’якості"
