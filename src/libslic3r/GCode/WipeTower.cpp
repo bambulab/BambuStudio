@@ -3172,8 +3172,9 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer, int layer_id)
                 Vec2f res;
                 int   index = layer_id % 4;
 
-                float gird_depth = ((int) (block.layer_depths[layer_id] - m_perimeter_width + 0.25 * m_perimeter_width) / m_perimeter_width + 1) *
-                                   m_perimeter_width; // Note: updated in sync with finish_block_solid
+                float dy_skip = block.layer_depths[layer_id] - m_perimeter_width;
+                int   n_skip  = (int) ((dy_skip + 0.25f * m_perimeter_width) / m_perimeter_width + 1);
+                float gird_depth = m_perimeter_width * (n_skip - 1); // in sync with finish_block_solid
                 switch (index % 4) {
                 case 0: res = Vec2f(0, block_depth); break;
                 case 1: res = Vec2f(m_wipe_tower_width, block_depth + gird_depth); break;
