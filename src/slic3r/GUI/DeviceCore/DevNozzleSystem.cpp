@@ -613,6 +613,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
     return result;
 }
 
+// for DevNozzleRack::RackType_AB
 bool DevNozzleSystem::IsRackMaximumInstalled() const
 {
     auto ext_nozzle = GetExtNozzle(MAIN_EXTRUDER_ID);
@@ -620,9 +621,13 @@ bool DevNozzleSystem::IsRackMaximumInstalled() const
         return false;
     }
 
-    const auto& rack_nozzles = m_nozzle_rack->GetRackNozzles();
     const auto& rack_type = m_nozzle_rack->GetRackType();
-    if (rack_type == DevNozzleRack::RackType_AB && rack_nozzles.size() < 6) {
+    if (rack_type != DevNozzleRack::RackType_AB) {
+        return false;
+    }
+
+    const auto& rack_nozzles = m_nozzle_rack->GetRackNozzles();
+    if (rack_nozzles.size() < 6) {
         return false;
     }
 

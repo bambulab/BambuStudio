@@ -80,11 +80,11 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     for (int i = 0; i < ams->GetTrays().size(); i++) {
         auto    it = ams->GetTrays().find(std::to_string(i));
         Caninfo info;
+        info.can_pannel_name = it->second->get_slot_name(obj);
         // tray is exists
         if (it != ams->GetTrays().end() && it->second->is_exists) {
             if (it->second->is_tray_info_ready()) {
                 info.can_id        = it->second->id;
-                info.can_pannel_name = it->second->get_slot_name(obj);
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
                 info.cali_idx      = it->second->cali_idx;
@@ -154,15 +154,14 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
     this->binded_switcher_pos = tray.binded_switcher_pos;
     Caninfo info;
     info.can_id = std::to_string(0);
+    info.can_pannel_name = tray.get_slot_name(obj);
+    if (info.can_pannel_name == "Ext-L" || info.can_pannel_name == "Ext-R") {
+        info.can_pannel_name = "Ext";// here, use Ext is ok.
+    }
     this->cans.clear();
 
     if (tray.is_tray_info_ready()) {
         info.ctype = tray.ctype;
-        info.can_pannel_name = tray.get_slot_name(obj);
-        if (info.can_pannel_name == "Ext-L" || info.can_pannel_name == "Ext-R") {
-            info.can_pannel_name = "Ext";// here, use Ext is ok.
-        }
-
         info.material_name = tray.get_display_filament_type();
         info.cali_idx    = tray.cali_idx;
         info.filament_id = tray.setting_id;

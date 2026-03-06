@@ -5769,7 +5769,7 @@ bool SelectMachineDialog::CheckErrorExtruderNozzleWithSlicing(MachineObject* obj
                     return false;
                 }
 
-                if (nozzle_sys->IsRackMaximumInstalled())  {
+                if (nozzle_sys->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB && nozzle_sys->IsRackMaximumInstalled())  {
                     show_status(PrintDialogStatus::PrintStatusNozzleRackMaximumInstalled,
                                 { _L("The toolhead and hotend rack are full. Please remove at least one hotend before printing.") },
                                 wxEmptyString, prePrintInfoStyle::NozzleState);
