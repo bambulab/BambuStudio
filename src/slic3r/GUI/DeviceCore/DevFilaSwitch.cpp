@@ -25,11 +25,12 @@ bool DevFilaSwitch::IsReady() const
 {
     if (!m_is_installed) { return false; }
 
-    const auto &ams_list = m_owner->GetFilaSystem()->GetAmsList();
-    if (ams_list.size() < m_owner->GetExtderSystem()->GetTotalExtderCount()) { return false; }
-
-    for (const auto &ams_item : ams_list) {
+    const auto& ams_list = m_owner->GetFilaSystem()->GetAmsList();
+    for (const auto& ams_item : ams_list) {
         if (ams_item.second->GetBindedExtruderSet().size() == 0) { return false; }
+        if (!ams_item.second->GetSwitcherPos().has_value()) {
+            return false;
+        }
     }
 
     return true;
