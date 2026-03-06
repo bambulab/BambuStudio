@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 09:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -64,6 +64,9 @@ msgstr "La calibración automática del flujo dinámico no es compatible con el 
 
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr "Bambu TPU 85A no es compatible con la impresión con boquillas estándar o de alto flujo de 0,4 mm."
+
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "Cuando se utiliza ABS/ASA/PETG HF en el extrusor derecho, solo se puede utilizar como material de soporte."
 
 msgid "How to feed TPU filament."
 msgstr "Cómo alimentar el filamento de TPU."
@@ -2789,6 +2792,12 @@ msgstr "El modo de enfriamiento es adecuado para imprimir materiales %s."
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "El modo de calefacción es adecuado para imprimir materiales %s y circula filtros de aire de la cámara."
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "Ventilador"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Der (Aux)"
@@ -2822,9 +2831,6 @@ msgstr "Tablero MC"
 
 msgid "Heat"
 msgstr "Calor"
-
-msgid "Fan"
-msgstr "Ventilador"
 
 msgid "Idling..."
 msgstr "Esperando..."
@@ -8476,6 +8482,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "Las boquillas y los filamentos del mismo tipo comparten el mismo perfil PA"
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "envío completo"
 
@@ -8535,6 +8544,18 @@ msgstr "Esto comprueba la planitud de la cama térmica. La nivelación hace que 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Este proceso determina los valores de flujo dinámico para mejorar la calidad general de impresión."
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
 
@@ -8546,6 +8567,9 @@ msgstr "Como el trabajo de impresión se ha enviado correctamente, la cancelaci�
 
 msgid "The name length exceeds the limit."
 msgstr "La longitud del nombre supera el límite."
+
+msgid "Right Nozzle(Aux)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8797,6 +8821,15 @@ msgstr "Rebanado correcto."
 msgid "View all Daily tips"
 msgstr "Ver todos los Consejos diarios"
 
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Parameters"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr "No se pudo crear el socket"
 
@@ -8930,6 +8963,24 @@ msgstr "Haga clic para obtener más información"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Haga clic aquí para restablecer todos los ajustes al último ajuste preestablecido guardado."
 
+msgid "A compatible support filament combination is detected. We recommend using this filament for support interface with the recommended parameters."
+msgstr ""
+
+msgid "Recommended combinations:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Se requiere una torre de purga para el cambio de boquilla. Puede haber imperfecciones en el modelo sin la torre de purga. ¿Está seguro de que desea desactivar la torre de purga?"
 
@@ -8984,22 +9035,6 @@ msgstr ""
 "¿Cambiar esta configuración automáticamente? \n"
 "Sí- Cambia esta configuración automáticamente.\n"
 "No- No cambies la configuración por mí."
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"Al utilizar material de soporte para la interfaz de soporte, recomendamos la siguiente configuración:\n"
-"0 distancia z superior, 0 espaciado de interfaz, patrón rectilíneo entrelazado y altura de capa de soporte independiente desactivada"
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Al usar material soluble para la interfaz de soporte, recomendamos la siguiente configuración:\n"
-"0 distancia z superior, 0 espaciado de interfaz, 0 distancia xy soporte/objeto, patrón rectilíneo entrelazado, deshabilitar \n"
-"altura de capa de soporte independiente y usar materiales solubles tanto para la interfaz de soporte como para la base de soporte"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9829,6 +9864,9 @@ msgstr "Se sincronizaron correctamente el color y el tipo de filamento de la imp
 
 msgctxt "FinishSyncAms"
 msgid "OK"
+msgstr ""
+
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
 msgstr ""
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
@@ -12094,6 +12132,12 @@ msgstr "Filamento imprimible"
 msgid "The filament is printable in extruder"
 msgstr "El filamento es imprimible en extrusor"
 
+msgid "Filament support printable"
+msgstr ""
+
+msgid "The filament is printable in extruder when used as support."
+msgstr ""
+
 msgid "Filament change"
 msgstr "Cambio de filamento"
 
@@ -12144,6 +12188,12 @@ msgstr "Temperatura de impresión para la capa de interfaz de la torre principal
 
 msgid "°C"
 msgstr "°C"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "Temperatura de ablandamiento"
@@ -15291,6 +15341,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "La cantidad de extrusores de impresora y la impresora seleccionada para la calibración no coinciden."
 
 #, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "El diámetro de la boquilla del %sextrusor es de 0,2 mm, por lo que no admite la calibración automática de dinámica de flujo."
 
@@ -16585,6 +16639,22 @@ msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
 
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Al utilizar material de soporte para la interfaz de soporte, recomendamos la siguiente configuración:\n"
+#~ "0 distancia z superior, 0 espaciado de interfaz, patrón rectilíneo entrelazado y altura de capa de soporte independiente desactivada"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Al usar material soluble para la interfaz de soporte, recomendamos la siguiente configuración:\n"
+#~ "0 distancia z superior, 0 espaciado de interfaz, 0 distancia xy soporte/objeto, patrón rectilíneo entrelazado, deshabilitar \n"
+#~ "altura de capa de soporte independiente y usar materiales solubles tanto para la interfaz de soporte como para la base de soporte"
+
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "La calibración dinámica del flujo no es compatible con el filamento TPU 85A."
 
@@ -16809,9 +16879,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "Aprenda más sobre el modo de purga"
-
-#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-#~ msgstr "Cuando se utiliza ABS/ASA/PETG HF en el extrusor derecho, solo se puede utilizar como material de soporte."
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "Los filamentos CF/GF son duros y quebradizos, por lo que pueden romperse o atascarse fácilmente en un AMS; utilícelos con precaución."

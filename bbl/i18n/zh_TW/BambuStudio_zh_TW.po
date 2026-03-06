@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 09:21+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -69,6 +69,9 @@ msgstr "TPU線材不支援自動動態流量校準。"
 
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr ""
+
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "ABS/ASA/PETG HF在右擠出機列印時，僅能作為支撐材料使用。"
 
 msgid "How to feed TPU filament."
 msgstr "TPU進料方式。"
@@ -2777,6 +2780,12 @@ msgstr "冷卻模式適合列印%s材質，同時能夠過濾腔內空氣"
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "腔溫保持模式適合列印%s材質，在機箱內部迴圈過濾腔內空氣。"
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "風扇"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "右（輔助）"
@@ -2810,9 +2819,6 @@ msgstr ""
 
 msgid "Heat"
 msgstr "加熱"
-
-msgid "Fan"
-msgstr "風扇"
 
 msgid "Idling..."
 msgstr "空閒中"
@@ -8417,6 +8423,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "同型別噴嘴與耗材共用PA配置檔案"
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "傳送完成"
 
@@ -8474,6 +8483,18 @@ msgstr "檢測熱床的平整度。調平可以使擠出的高度更均勻。"
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "此過程確定動態流量校準的最佳係數，從而提升列印質量。"
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "正在準備列印任務"
 
@@ -8485,6 +8506,9 @@ msgstr "因列印任務已成功傳送，此次取消操作未能中止本次任
 
 msgid "The name length exceeds the limit."
 msgstr "名稱長度超過限制。"
+
+msgid "Right Nozzle(Aux)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8736,6 +8760,15 @@ msgstr "切片完成"
 msgid "View all Daily tips"
 msgstr "檢視所有每日貼士"
 
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Parameters"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr "建立socket失敗"
 
@@ -8867,6 +8900,24 @@ msgstr "點選瞭解更多"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "點選以將所有設定還原到最後一次儲存的版本。"
 
+msgid "A compatible support filament combination is detected. We recommend using this filament for support interface with the recommended parameters."
+msgstr ""
+
+msgid "Recommended combinations:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "切換噴嘴需要擦料塔，否則列印件上可能會有瑕疵。您確定要關閉擦料塔嗎？"
 
@@ -8919,21 +8970,6 @@ msgstr ""
 "自動調整這些設定？\n"
 "是 - 自動調整這些設定\n"
 "否 - 不用為我調整這些設定"
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"當支撐接觸面使用支撐材料時，我們推薦以下設定：\n"
-"0頂部z距離，0接觸面間距，交疊直線圖案，並且禁用支撐獨立層高"
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"當支撐接觸面使用可溶性材料時，我們推薦以下設定：\n"
-"0頂部z距離，0接觸面間距，0支撐/模型XY距離，交疊直線圖案，禁用支撐獨立層高，並將可溶性材料同時用於支撐接觸面和支撐主體"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9757,6 +9793,9 @@ msgstr "成功從印表機同步耗材顏色和型別。"
 msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr "確認"
+
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio 將會在每一次更換耗材或顏色時重新計算您的沖刷體積，您可以在Bambu Studio > 偏好設定 中關閉自動計算"
@@ -12021,6 +12060,12 @@ msgstr "主體耗材可列印性"
 msgid "The filament is printable in extruder"
 msgstr ""
 
+msgid "Filament support printable"
+msgstr ""
+
+msgid "The filament is printable in extruder when used as support."
+msgstr ""
+
 msgid "Filament change"
 msgstr "耗材絲更換"
 
@@ -12071,6 +12116,12 @@ msgstr "料塔接觸層（不同材料交界處）的列印溫度。如果設定
 
 msgid "°C"
 msgstr "°C"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
 
 msgid "Softening temperature"
 msgstr "軟化溫度"
@@ -15204,6 +15255,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr ""
 
 #, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "%s 擠出機的噴嘴直徑為0.2毫米，不支援自動流量校準。"
 
@@ -16493,6 +16548,21 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
 
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "當支撐接觸面使用支撐材料時，我們推薦以下設定：\n"
+#~ "0頂部z距離，0接觸面間距，交疊直線圖案，並且禁用支撐獨立層高"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "當支撐接觸面使用可溶性材料時，我們推薦以下設定：\n"
+#~ "0頂部z距離，0接觸面間距，0支撐/模型XY距離，交疊直線圖案，禁用支撐獨立層高，並將可溶性材料同時用於支撐接觸面和支撐主體"
+
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "TPU 85A耗材不支援動態流量校準。"
 
@@ -16813,9 +16883,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "瞭解更多衝刷模式資訊"
-
-#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-#~ msgstr "ABS/ASA/PETG HF在右擠出機列印時，僅能作為支撐材料使用。"
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF耗材絲又硬又脆，在AMS中很容易斷裂或卡住，請謹慎使用。"
