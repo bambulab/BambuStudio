@@ -102,21 +102,26 @@ private:
 
 };
 
+
+enum DataStatusType {
+    ADJUST,
+    OK,
+    UNMATCHED
+};
+
 class UiAMSSlot : public wxPanel
 {
 public:
     UiAMSSlot(wxWindow* parent,
-            const wxColour& bgColour,
+            const std::vector<wxColour>& bgColours,
             const wxString&  text,
-            wxWindowID id,
-            const wxPoint& pos,
-            const wxSize& size,
-            double colourFactor,
-            double scaleFactor);
+            DataStatusType status,
+            wxWindowID id = wxID_ANY,
+            const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize,
+            double colourFactor = 1.0,
+            double scaleFactor = 1.0);
 
-
-    void SetSlotColour(const wxColour& c) { m_bgColour = c; Refresh(); }
-    void SetSlotText(const wxString& t)   { m_text = t; Refresh(); }
 
 private:
     void OnPaint(wxPaintEvent&);
@@ -129,8 +134,9 @@ private:
         return brightness < 128;  // 0-255 range，128 mid
     }
 private:
-    wxColour m_bgColour;
+    const std::vector<wxColour>& m_bgColours;
     wxString m_text;
+    DataStatusType m_status;
     wxSize m_size;
     ScalableBitmap *m_ams_slot_readonly{nullptr};
     int m_rectangleW = 44;
@@ -146,9 +152,10 @@ struct DataAmsSlotInfo
 {
     wxString amsName;
     wxString name;
-    wxColour colour;
+    std::vector<wxColour> colours;
     double colourFactor;
     double scaleFactor;
+    DataStatusType status;
 };
 
 class UiAMS : public UiStyledAMSPanel
@@ -167,40 +174,11 @@ private:
 };
 
 
-enum DataStatusType {
-    ADJUST,
-    OK,
-    UNMATCHED
-};
-
-
 struct DataStatusParam {
     // int count = 0;
     int width = 0;
     int height = 0;
     std::vector<DataAmsSlotInfo> slots;
-};
-
-
-class UiStatusContainer : public wxPanel
-{
-public:
-
-    UiStatusContainer(wxWindow* parent);
-
-
-    void SetStatusParams(const DataStatusParam& adjustParam, 
-                         const DataStatusParam& okParam, 
-                         const DataStatusParam& unmatchedParam);
-
-    void ClearAll();
-
-private:
-    void AddStatusGroup(DataStatusType type, const DataStatusParam& param);
-
-    wxBoxSizer* m_mainSizer = nullptr;
-    wxBoxSizer* m_currentRow = nullptr;
-    bool m_isFirstStatus = true;
 };
 
 class ReselectMachineDialog : public wxDialog
@@ -214,8 +192,8 @@ public:
                 wxString save_time);
 
 private:
-    int GetSwitchHeight(MachineObject* obj, const std::map<int, int>&  best_pos_map, const std::vector<FilamentInfo>& ams_mapping);
-    wxString getTrayID(const std::string& amsID, const std::string& slotID);
+    int CaculateSwitcherDistribution(MachineObject* obj, const std::map<int, int>&  best_pos_map, const std::vector<FilamentInfo>& ams_mapping);
+    wxString getTrayID(MachineObject* obj, const std::string& amsID, const std::string& slotID);
     wxString FormatFilamentComment(const std::vector<wxString>& toINB, const std::vector<wxString>& toINA);
     void OnRefreshButton(wxCommandEvent& event);
 
@@ -232,13 +210,13 @@ private:
     wxStaticText* filamentTips{nullptr};
     std::vector<std::vector<DataAmsSlotInfo>> inAAMS{};
     std::vector<std::vector<DataAmsSlotInfo>> inBAMS{};
-    std::vector<DataAmsSlotInfo> adjust{};
-    std::vector<DataAmsSlotInfo> ok{};
-    std::vector<DataAmsSlotInfo> unused{};
-    UiStatusContainer* statusBar{nullptr};
+    wxPanel* statusBar{nullptr};
     wxBoxSizer* btnSizer{nullptr};
     Button* m_buttonClose{nullptr };
     Button* m_buttonRefresh{ nullptr };
+    std::vector<wxColour>colourAdjust{wxColour("#675AFF")};
+    std::vector<wxColour>colourOK{wxColour("#FF8181")};
+    std::vector<wxColour>colourUnused{wxColour("#FF8181")};
     // wxStaticBitmap* m_bitmapSelectMachine{nullptr};
 };
 

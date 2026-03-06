@@ -324,7 +324,6 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_basic_weight_time->AddSpacer(FromDIP(30));
     m_sizer_basic_weight_time->Add(weightimg, 0, wxALIGN_CENTER, 0);
     m_sizer_basic_weight_time->Add(m_stext_weight, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
-    m_sizer_basic_weight_time->Add(m_saveTimeText, 0, wxALIGN_CENTER|wxLEFT, FromDIP(6));
 
     /*last & next page*/
     auto last_plate_sizer = new wxBoxSizer(wxVERTICAL);
@@ -363,6 +362,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_basic_right_info->Add(sizer_rename, 0, wxTOP, 0);
     sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(5));
     sizer_basic_right_info->Add(m_sizer_basic_weight_time, 0, wxTOP, 0);
+    sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(4));
+    sizer_basic_right_info->Add(m_saveTimeText, 0, wxTOP, 0);
     sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(10));
     sizer_basic_right_info->Add(m_printer_box, 0, wxTOP, 0);
     sizer_basic_right_info->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -1465,13 +1466,14 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
         }
     }
 }
-void SelectMachineDialog::refresh_save_time()
+void SelectMachineDialog::refresh_save_time(MachineObject *obj)
 {
-    if (m_save_time.has_value() && use_dynamic_switch())
+    auto save_time = get_filament_change_gap_time(obj);
+    if (save_time.has_value() && use_dynamic_switch() && save_time.value() >= 1)
     {
-        wxString text = wxString::Format(_L("Recommended filament arrangement saves %s->"), FormatTime(*m_save_time));
+        wxString text = wxString::Format(_L("Recommended filament arrangement saves %s->"), FormatTime(*save_time));
         m_saveTimeText->SetLabel(text);
-        m_saveTimeText->Wrap(FromDIP(300));
+        m_saveTimeText->Wrap(-1);
         m_saveTimeText->Show();
         m_basic_panel->Layout();
         m_basic_panel->Fit();
@@ -1915,11 +1917,11 @@ void SelectMachineDialog::on_reselect_dialog_btn_clicked(wxMouseEvent&)
     if (!dev) return;
     MachineObject* obj = dev->get_selected_machine();
     if (!obj) return;
-    // auto save_time = get_filament_change_gap_time(obj);
+    auto save_time = get_filament_change_gap_time(obj);
     wxString text{};
-    if (m_save_time.has_value())
+    if (save_time.has_value() && save_time.value() >= 1)
     {
-        text = FormatTime(*m_save_time);
+        text = FormatTime(*save_time);
     }
 
     //key: logicID  value: posID
@@ -3050,8 +3052,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     update_print_status_msg();
     //update_scroll_area_size();/*STUDIO-12867 the page maybe blank in some platform. FIXME*/
 
-    m_save_time = get_filament_change_gap_time(obj_);
-    refresh_save_time();
+    refresh_save_time(obj_);
 }
 
 void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
@@ -3151,11 +3152,11 @@ void SelectMachineDialog::update_best_pos_dialog(wxCommandEvent &evt)
     MachineObject* obj_ = get_current_machine();
     if(!obj_) return;
     update_show_status(obj_);
-    // auto save_time = get_filament_change_gap_time(obj_);
+    auto save_time = get_filament_change_gap_time(obj_);
     wxString text{};
-    if (m_save_time.has_value())
+    if (save_time.has_value() && save_time.value() >= 1)
     {
-        text = FormatTime(*m_save_time);
+        text = FormatTime(*save_time);
     }
 
     //key: logicID  value: posID
@@ -4339,8 +4340,7 @@ void SelectMachineDialog::set_default_normal(const ThumbnailData &data)
 
     m_stext_time->SetLabel(time);
     m_stext_weight->SetLabel(weight);
-    // auto save_time = get_filament_change_gap_time(obj_);
-    refresh_save_time();
+    refresh_save_time(obj_);
 }
 
 wxString SelectMachineDialog::FormatTime(float totalSeconds)
@@ -4569,7 +4569,7 @@ void SelectMachineDialog::set_default_from_sdcard()
         m_stext_time->SetLabel(time);
         m_stext_weight->SetLabel(weight);
         // auto save_time = get_filament_change_gap_time(obj_);
-        refresh_save_time();
+        refresh_save_time(obj_);
     }
     catch (...) {}
 }
