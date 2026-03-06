@@ -5740,20 +5740,24 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
 
         int new_filament_id = id;
         int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(new_nozzle_id_in_extruder);
+        int old_filament_in_extruder = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_id_in_extruder);
 
         bool extruder_change = new_extruder_id != old_extruder_id;
-        bool nozzle_in_extruder_change = old_nozzle_id_in_extruder != -1 && new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
-        bool filament_in_nozzle_change = old_filament_in_nozzle != -1 && new_filament_id != old_filament_in_nozzle;
+        bool nozzle_in_extruder_change = new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
+        bool filament_in_nozzle_change = new_filament_id != old_filament_in_nozzle;
 
         m_result.lock();
-        if (extruder_change) {
+        if (extruder_change && old_extruder_id != -1) {
             extra_time += get_extruder_change_time(new_extruder_id);
         }
-        if (filament_in_nozzle_change) {
-            extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_nozzle));
+        if (nozzle_in_extruder_change || filament_in_nozzle_change){
+            if (old_filament_in_extruder >= 0)
+                extra_time += get_filament_unload_time(static_cast<size_t>(old_filament_in_extruder));
             m_time_processor.extruder_unloaded = false;
             extra_time += get_filament_load_time(static_cast<size_t>(new_filament_id));
-            m_result.print_statistics.total_flush_filament_changes++;
+
+            if (filament_in_nozzle_change && old_filament_in_nozzle != -1)
+                m_result.print_statistics.total_flush_filament_changes++;
         }
         if (prev_filament_id != -1)
             m_result.print_statistics.total_filament_changes++;
@@ -6436,7 +6440,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
             std::vector<std::string> buffer;
             int target_extruder = get_valid_extruder_id(next_filament_idx, target_filament);
             skippable &= (extruder_max_nozzle_count[target_extruder] > 1);
-            if (skippable) { 
+            if (skippable) {
                 if (this->nozzle_group_result.is_support_dynamic_nozzle_map()) {
                     buffer.emplace_back("M632 S " + std::to_string(next_filament_idx) + " H" + std::to_string(next_nozzle_id) + " N R\n");
                 }
