@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6124,9 +6124,6 @@ msgstr "La temperatura de la cámara no se puede cambiar en el modo de enfriamie
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Si la temperatura de la cámara supera los 40 ℃, el sistema cambiará automáticamente al modo de calefacción. Confirme si desea cambiar."
 
-msgid "Load filament to"
-msgstr "Cargar filamento hasta"
-
 msgid "Please select an AMS slot before calibration"
 msgstr "Seleccione una ranura AMS antes de la calibración"
 
@@ -6156,6 +6153,9 @@ msgstr "Aun así, apágalo"
 
 msgid "Can't start this without storage."
 msgstr "No se puede iniciar sin almacenamiento."
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Valora un perfil de impresión"
@@ -6826,7 +6826,7 @@ msgstr "Tiempo estimado"
 msgid "Filament changes"
 msgstr "Cambios de filamento"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12145,6 +12145,12 @@ msgstr "Temperatura de impresión para la capa de interfaz de la torre principal
 msgid "°C"
 msgstr "°C"
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Temperatura de ablandamiento"
 
@@ -16584,6 +16590,9 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Load filament to"
+#~ msgstr "Cargar filamento hasta"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "La calibración dinámica del flujo no es compatible con el filamento TPU 85A."

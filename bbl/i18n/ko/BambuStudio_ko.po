@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -6114,9 +6114,6 @@ msgstr "출력 중 냉각 모드에서는 챔버 온도를 변경할 수 없습�
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "챔버 온도가 40℃를 초과하면 시스템이 자동으로 난방 모드로 전환됩니다. 전환 여부를 확인해 주세요."
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "캘리브레이션 전에 AMS 슬롯을 선택하십시오."
 
@@ -6146,6 +6143,9 @@ msgstr "그래도 끄기"
 
 msgid "Can't start this without storage."
 msgstr "스토리지 없이는 시작할 수 없습니다."
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "출력 프로필 평가하기"
@@ -6812,7 +6812,7 @@ msgstr "예상 시간"
 msgid "Filament changes"
 msgstr "필라멘트 변경"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12118,6 +12118,12 @@ msgid "Print temperature for prime tower interface layer (where different materi
 msgstr "서로 다른 재료가 만나는 프라임 타워 인터페이스 층의 출력 온도입니다. -1로 설정하면 권장 최대 노즐 온도를 사용합니다."
 
 msgid "°C"
+msgstr ""
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
 msgstr ""
 
 msgid "Softening temperature"

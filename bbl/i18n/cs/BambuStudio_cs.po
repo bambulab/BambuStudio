@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -7018,9 +7018,6 @@ msgstr ""
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr ""
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "Před kalibrací vyberte slot AMS"
 
@@ -7049,6 +7046,9 @@ msgid "Still turn it Off"
 msgstr ""
 
 msgid "Can't start this without storage."
+msgstr ""
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr ""
 
 msgid "Rate the Print Profile"
@@ -7714,7 +7714,7 @@ msgstr "Odhadovaný čas"
 msgid "Filament changes"
 msgstr "Výměna filamentu"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12823,8 +12823,41 @@ msgstr "Balíček přednastavení filamentu (.bbsflmt)"
 msgid "Filament presets under this filament"
 msgstr "Přednastavení filamentu pod tímto filamentem"
 
-msgid "Filament presets(.zip)"
-msgstr "Přednastavení filamentu (.zip)"
+msgid "Purge length for prime tower interface layer (where different materials meet)."
+msgstr ""
+
+msgid "Interface layer print temperature"
+msgstr ""
+
+msgid "Print temperature for prime tower interface layer (where different materials meet). If set to -1, use max recommended nozzle temperature."
+msgstr ""
+
+msgid "°C"
+msgstr "°C"
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
+msgid "Softening temperature"
+msgstr ""
+
+msgid "The material softens at this temperature, so when the bed temperature is equal to or greater than it, it's highly recommended to open the front door and/or remove the upper glass to avoid cloggings."
+msgstr ""
+
+msgid "To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after the ramming is complete. The setting define the travel time."
+msgstr ""
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Therefore, the ramming time must be greater than the cooldown time. 0 means disabled."
+msgstr ""
+
+msgid "To prevent oozing, the nozzle temperature will be cooled during ramming. Note: only a cooldown command and fan activation are triggered, reaching the target temperature is not guaranteed. 0 means disabled."
+msgstr ""
+
+msgid "Price"
+msgstr "Cena"
 
 msgid "Filament price. For statistics only"
 msgstr "Cena filamentu. Pouze pro statistické účely."

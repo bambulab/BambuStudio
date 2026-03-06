@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-03 12:07+0800\n"
+"POT-Creation-Date: 2026-03-06 14:21+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -6223,9 +6223,6 @@ msgstr ""
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Если температура в камере превысит 40℃, система автоматически переключится в режим нагрева. Пожалуйста, подтвердите необходимость переключения."
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr "Пожалуйста, выберите слот АСПП перед калибровкой"
 
@@ -6255,6 +6252,9 @@ msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "Невозможно начать без накопителя."
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Оценить профиль печати"
@@ -6935,7 +6935,7 @@ msgstr "Расчётное время печати"
 msgid "Filament changes"
 msgstr "Смена прутка"
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -12307,6 +12307,12 @@ msgid "Print temperature for prime tower interface layer (where different materi
 msgstr ""
 
 msgid "°C"
+msgstr ""
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
 msgstr ""
 
 msgid "Softening temperature"
