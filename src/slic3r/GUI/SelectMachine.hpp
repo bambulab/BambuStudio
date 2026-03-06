@@ -337,8 +337,6 @@ private:
     std::vector<POItem> ops_auto;
     std::vector<POItem> ops_no_auto;
 
-    std::optional<float>                m_save_time{nullopt};
-
 protected:
     PrintFromType                       m_print_type{FROM_NORMAL};
     AmsMapingPopup                      m_mapping_popup{ nullptr };
@@ -611,9 +609,9 @@ private:
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 
-    void refresh_save_time();
-
     bool has_bowden_extuder(MachineObject *obj);
+
+    void refresh_save_time(MachineObject *obj);
 };
 
 class PrinterInfoBox : public StaticBox
