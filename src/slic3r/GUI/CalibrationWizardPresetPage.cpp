@@ -45,7 +45,7 @@ static DynamicPrintConfig get_empty_dynamic_print_config() {
     return empty_config;
 }
 
-std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
+static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
@@ -107,7 +107,7 @@ std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
                 try {
                     ams_id  = std::stoi(ams.first);
                     slot_id = std::stoi(tray.first);
-                    tray_id = ams_id * 4 + slot_id;
+                    tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
 
                     filament_ams_list.emplace(extruder + tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
                 } catch(...) {
@@ -2424,10 +2424,16 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
     m_filament_ams_list.clear();
     for (auto& ams_item : obj->GetFilaSystem()->GetAmsList()) {
         for (auto& tray_item: ams_item.second->GetTrays()) {
-            int tray_id = DevAms::GetTrayIdByAmsSlot(ams_item.second->GetAmsId(), tray_item.second->id);
+            try {
+                int ams_id  = std::stoi(ams_item.second->GetAmsId());
+                int slot_id = std::stoi(tray_item.second->id);
+                int tray_id =  obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
 
-            if (auto it = full_filament_ams_list.find(tray_id); it != full_filament_ams_list.end()) {
-                m_filament_ams_list[tray_id] = it->second;
+                if (auto it = full_filament_ams_list.find(tray_id); it != full_filament_ams_list.end()) {
+                    m_filament_ams_list[tray_id] = it->second;
+                }
+            } catch(...) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams_item.second->GetAmsId() << " or slot_id:" << tray_item.second->id;
             }
         }
     }
@@ -2877,6 +2883,14 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
 {
     if (!curr_obj) return;
 
+    int int_ams_id = -1;
+    try {
+        int_ams_id = std::stoi(ams_id);
+    } catch(...) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams_id;
+        return;
+    }
+
     int slot_size = MAX_SLOT_NUM;
     auto ams_item = curr_obj->GetFilaSystem()->GetAmsById(ams_id);
     if (ams_item) {
@@ -2893,7 +2907,7 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
             fila_combox_list[slot_id]->HidePanel();
         }
 
-        int tray_index = DevAms::GetTrayIdByAmsSlot(ams_id, std::to_string(slot_id));
+        int tray_index = curr_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(int_ams_id, slot_id);
 
         if (!fila_combox_list.empty()) {
             auto it = std::find_if(fila_ams_list.begin(), fila_ams_list.end(), [tray_index](auto &entry) { return entry.first == tray_index; });
