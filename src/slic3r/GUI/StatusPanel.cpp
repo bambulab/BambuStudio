@@ -2195,31 +2195,18 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
 
     if (obj) {
         static int load_img_size = 215;
-        if (obj->is_series_n()) {
-            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_n_series", this, load_img_size));
-        } else if (obj->is_series_x()) {
-            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_x_series", this, load_img_size));
-        } else if (obj->is_series_p()) {
-            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_p_series", this, load_img_size));
-        } else if (obj->is_series_o()) {
-            const auto &ext_system = obj->GetExtderSystem();
-            if (ext_system->GetTotalExtderCount() == 2) {
-                int cur_extder_id = ext_system->GetCurrentExtderId();
-                if (cur_extder_id == MAIN_EXTRUDER_ID) {
-                    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o1c_series_right", this, load_img_size));
-                    else
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_right", this, load_img_size));
-                } else if (cur_extder_id == DEPUTY_EXTRUDER_ID) {
-                    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o1c_series_left", this, load_img_size));
-                    else
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
-                }
-            }
+        const auto &ext_system    = obj->GetExtderSystem();
+        int cur_ext_id = (ext_system && ext_system->GetTotalExtderCount() > 1) ? ext_system->GetCurrentExtderId() : 0;
+        bool has_nozzle_rack = obj->GetNozzleSystem()->GetNozzleRack()->IsSupported();
+        std::string img_name = DevPrinterConfigUtil::get_filament_load_img(obj->printer_type, cur_ext_id, has_nozzle_rack);
 
-            else {
-                m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
+        if (!img_name.empty()) {
+            try {
+                m_filament_load_img->SetBitmap(create_scaled_bitmap(img_name, this, load_img_size));
+            } catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "Failed to load filament image: error";
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "Failed to load filament image: unknown error";
             }
         }
         m_fila_change_abort->Show(obj->is_support_fila_change_abort || DevPrinterConfigUtil::support_ams_fila_change_abort(obj->printer_type));
@@ -2905,7 +2892,7 @@ void StatusPanel::update(MachineObject *obj)
     update_camera_state(obj);
 
     // m_machine_ctrl_panel->Thaw();
-    Layout(); 
+    Layout();
 }
 
 void StatusPanel::show_recenter_dialog()
@@ -4256,7 +4243,8 @@ void StatusPanel::on_ams_load_curr()
             FeedDirectionDialog dialog(nullptr, 2);
             dialog.SetExtruderMapping(extruder_filamentid_mapping, filamentID);
             auto rtn = dialog.ShowModal();
-            if (rtn != wxID_OK) 
+
+            if (rtn != wxID_OK)
             {
                 return;
             }
