@@ -520,9 +520,9 @@ int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_ty
     for (int index = 0; index < int(variant_list.size()); ++index) {
         if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                             << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
-                                    extruder_variant % variant_id_1based;
+    // BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+    //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
+    //                                 extruder_variant % variant_id_1based;
     return 0;
 }
 
