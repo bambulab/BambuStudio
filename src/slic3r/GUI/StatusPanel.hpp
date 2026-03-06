@@ -29,6 +29,7 @@
 #include "Widgets/AxisCtrlButton.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/TempInput.hpp"
+#include "Widgets/wgtCircleItem.hpp"
 #include "Widgets/StaticLine.hpp"
 #include "Widgets/ProgressBar.hpp"
 #include "Widgets/ImageSwitchButton.hpp"
@@ -59,6 +60,7 @@ class wgtDeviceNozzleRack;
 class wgtAmsControlWebPanel;
 #endif
 class CameraFullscreenFrame;
+class wgtDeviceFilamentHotendTab;
 
 enum CameraRecordingStatus {
     RECORDING_NONE,
@@ -515,6 +517,7 @@ protected:
     wxBoxSizer *    m_misc_ctrl_sizer;
     StaticBox*      m_fan_panel;
     StaticLine *    m_line_nozzle;
+    wgtCircleItem*  m_main_extruder_nozzle_idx{ nullptr };
     TempInput*      m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout{ 0 };
     TempInput*      m_tempCtrl_nozzle_deputy;
@@ -553,6 +556,7 @@ protected:
 
     /* switch*/
     SwitchBoard*    m_ams_rack_switch;
+    wgtDeviceFilamentHotendTab* m_filament_hotend_tab{ nullptr };
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;

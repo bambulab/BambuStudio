@@ -4363,6 +4363,15 @@ bool MachineObject::contains_tray(const std::string &ams_id, const std::string &
     return false;
 }
 
+std::optional<DevAmsTray> MachineObject::get_tray(int ams_id, int tray_id) const
+{
+    try {
+        return get_tray(std::to_string(ams_id), std::to_string(tray_id));
+    } catch (const std::exception&) {}
+
+    return std::nullopt;
+}
+
 std::optional<DevAmsTray> MachineObject::get_tray(const std::string& ams_id, const std::string& tray_id) const
 {
     if (ams_id.empty() && tray_id.empty()) {

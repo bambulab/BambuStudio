@@ -66,6 +66,7 @@ public:
     bool             HasFilamentInBuffer() const = delete; //{ return m_buffer_has_filament; }
     bool             HasFilamBackup() const { return !m_filam_bak.empty(); }
     std::vector<int> GetFilamBackup() const { return m_filam_bak; }
+    std::vector<std::vector<DevAmsSlotId>> GetBackupSlots() const;
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const { return m_current_filament_change_step; }
 
     // ams binding on current extruder

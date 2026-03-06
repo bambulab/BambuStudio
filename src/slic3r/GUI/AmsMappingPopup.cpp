@@ -2215,55 +2215,24 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
     m_groups_sizer->Clear(true);
     if (m_obj->is_support_filament_backup && m_obj->GetFilaSystem()->IsAutoRefillEnabled())
     {
-        // traverse the amd list
-        std::unordered_map<int, DevAmsTray*> id2tray;// tray id to tray
-        try
-        {
-            for (const auto& ams_info : m_obj->GetFilaSystem()->GetAmsList())
-            {
-                for (auto& tray : ams_info.second->GetTrays()) {
-                    try {
-                        int ams_id  = std::stoi(ams_info.first);
-                        int slot_id = std::stoi(tray.first);
-
-                        int tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
-                        if (tray_id != -1) {
-                            id2tray[tray_id] = tray.second;
-                        }
-                    } catch(...) {
-                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid ams_id:" << ams_info.first << ", slot_id:" << tray.first;
-                    }
-                }
-            }
-        }
-        catch (...) {}
-
         const auto& extder = m_obj->GetExtderSystem()->GetExtderById(nozzle_id);
         if (extder)
         {
-            for (int filam : extder->GetFilamBackup())
+            const auto& groups = extder->GetBackupSlots();
+            for (const auto& group : groups)
             {
-                std::map<std::string, wxColour> group_info;
                 std::string    group_material;
-                bool   is_in_tray = false;
-
-                //get color & material
-                const auto& trayid_group = DevExtder::GetBackupStatus(filam);
-                for (const auto& elem : trayid_group)
+                std::map<std::string, wxColour> group_info;
+                for (const auto& item : group)
                 {
-                    if (elem.second)
+                    const auto& ams_item = m_obj->GetFilaSystem()->GetAmsById(std::to_string(item.first));
+                    const auto& slot_item = m_obj->GetFilaSystem()->GetAmsTray(std::to_string(item.first), std::to_string(item.second));
+                    if (ams_item && slot_item)
                     {
-                        DevAmsTray* cur_tray = id2tray[elem.first];
-                        if (!cur_tray)
-                            continue;
-                        auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
-                        auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
-                        if (it != m_tray_used.end())
-                        {
-                            is_in_tray = true;
-                        }
-                        group_info[tray_name] = DevAmsTray::decode_color(cur_tray->color);
-                        group_material = cur_tray->get_display_filament_type();
+                        const auto& tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(item.first, item.second);
+                        auto tray_name = wxGetApp().transition_tridid(tray_id, m_obj->GetExtderSystem()->GetTotalExtderCount()).ToStdString();
+                        group_info[tray_name] = DevAmsTray::decode_color(slot_item->color);
+                        group_material = slot_item->get_display_filament_type();
                     }
                 }
 
@@ -2272,11 +2241,8 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
                     continue;
                 }
 
-                if (is_in_tray || m_tray_used.size() <= 0)
-                {
-                    m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
-                    group_index++;
-                }
+                m_groups_sizer->Add(create_backup_group(wxString::Format("%s%d", _L("Group"), group_index + 1), group_info, group_material), 0, wxALL, FromDIP(10));
+                group_index++;
             }
         }
     }

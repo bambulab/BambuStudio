@@ -124,6 +124,48 @@ namespace Slic3r
         return extruder_type == ExtruderType::etBowden;
     }
 
+    std::vector<std::vector<DevAmsSlotId>> DevExtder::GetBackupSlots() const
+    {
+        std::vector<std::vector<Slic3r::DevAmsSlotId>> backup_groups;
+        if (!system || m_filam_bak.empty()) {
+            return backup_groups;
+        }
+
+        std::unordered_map<int, DevAmsSlotId> backup_id2slots;
+        const auto& ams_list = system->Owner()->GetFilaSystem()->GetAmsList();
+        for (const auto& [ams_id, ams_item] : ams_list) {
+            const auto& slots = ams_item->GetTrays();
+            for (const auto& [slot_id, slot] : slots) {
+                auto ams_slot_id = slot->get_ams_slot_id();
+                if (ams_item->GetSlotCount() == 4) {
+                    backup_id2slots[ams_slot_id.first * 4 + ams_slot_id.second] = ams_slot_id;
+                } else if (ams_item->GetAmsType() == DevAmsType::N3S) {
+                    backup_id2slots[ams_slot_id.first] = ams_slot_id;
+                } else if (ams_item->IsAmsLiteMixed()) {
+                    backup_id2slots[24 + ams_slot_id.second] = ams_slot_id;
+                } else if (ams_item->GetAmsType() == DevAmsType::ZMULTI_A ||
+                           ams_item->GetAmsType() == DevAmsType::ZMULTI_B) {
+                    backup_id2slots[28 + ams_slot_id.second] = ams_slot_id;
+                }
+            }
+        };
+
+        for (const auto& backup_group : m_filam_bak) {
+            std::vector<Slic3r::DevAmsSlotId> items;
+            for (const auto& [backup_id, slot] : backup_id2slots) {
+                if (DevUtil::get_flag_bits(backup_group, backup_id)) {
+                    items.push_back(slot);
+                }
+            }
+
+            if (!items.empty()) {
+                backup_groups.push_back(items);
+            }
+        }
+
+        return backup_groups;
+    }
+
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
         : m_owner(obj)
     {

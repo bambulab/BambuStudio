@@ -107,8 +107,10 @@ public:
     // getter
     DevAmsSlotId get_ams_slot_id() const;
 
+    // status
     bool is_tray_info_ready() const;
     bool is_reading(long long tray_reading_bits) const;
+
     bool is_unset_third_filament() const;
 
     wxColour    get_color()  const { return decode_color(color); };
@@ -200,6 +202,7 @@ public:
     ~DevAms();
 
 public:
+    int GetAmdIdInt() const;
     std::string GetAmsId() const { return m_ams_id; }
     wxString    GetDisplayName() const; // display
 

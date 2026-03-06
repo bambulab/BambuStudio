@@ -91,11 +91,25 @@ int DevNozzleRack::GetKnownNozzleCount() const
 int DevNozzleRack::GetTotalRackNozzleCount() const
 {
     if (m_rack_type == RackType_AB) {
+        return 6;
     } else if (m_rack_type == RackType_A || m_rack_type == RackType_B) {
         return m_nozzle_system->GetOwner()->GetFilaSystem()->GetVirtualTrays().size();
     }
 
     return 0;
+}
+
+std::set<int> DevNozzleRack::GetTotalRackNozzlePosSet() const
+{
+    std::set<int> rack_nozzle_pos_set;
+
+    int start_idx = 16;
+    for (int idx = 0; idx < GetTotalRackNozzleCount(); idx++) {
+        rack_nozzle_pos_set.insert(start_idx);
+        start_idx++;
+    }
+
+    return rack_nozzle_pos_set;
 }
 
 void DevNozzleRack::ParseRackInfo(const nlohmann::json& rack_info)

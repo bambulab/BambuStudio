@@ -76,6 +76,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FanControl.hpp
     GUI/Widgets/StepCtrl.cpp
     GUI/Widgets/StepCtrl.hpp
+    GUI/Widgets/wgtCircleItem.cpp
+    GUI/Widgets/wgtCircleItem.hpp
     GUI/Widgets/ProgressBar.cpp
     GUI/Widgets/ProgressBar.hpp
     GUI/Widgets/SideTools.cpp

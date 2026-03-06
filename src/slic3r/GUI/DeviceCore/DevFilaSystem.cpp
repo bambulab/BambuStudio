@@ -310,6 +310,54 @@ std::string DevAmsTray::get_slot_name(MachineObject* obj) const
 
 }
 
+DevAmsSlotId DevAmsTray::get_ams_slot_id() const
+{
+    DevAmsSlotId ams_slot_id;
+    ams_slot_id.first = 0;
+    ams_slot_id.second = 0;
+
+    try {
+        ams_slot_id.first = std::stoi(this->ams_id);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+    }
+
+    if (ams_type == DevAmsType::EXT_SPOOL) {
+        ams_slot_id.second = 0;
+    } else {
+        try {
+            ams_slot_id.second = std::stoi(id);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error] e=" << e.what();
+        }
+    }
+
+    return ams_slot_id;
+}
+
+static long long sGetAmsFlagBit(const DevAmsTray* tray) {
+    auto ams_slot_id = tray->get_ams_slot_id();
+    const auto& ams_type = tray->ams_type;
+    if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F) {
+        return ams_slot_id.first * 4 + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::N3S) {
+        return 16 + (ams_slot_id.first - 128) + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+        return 24 + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::ZMULTI_A) {
+        return 28 + ams_slot_id.second;
+    } else if (ams_type == DevAmsType::ZMULTI_B) {
+        return 37 + ams_slot_id.second;
+    }
+
+    return -1;
+}
+
+bool DevAmsTray::is_reading(long long tray_reading_bits) const
+{
+    return DevUtil::get_flag_bits(tray_reading_bits, sGetAmsFlagBit(this));
+}
+
 DevAms::DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type)
 {
     m_fila_system = owner;
@@ -354,6 +402,15 @@ std::optional<int> DevAms::GetCurrentExtruderId() const
     }
 
     return std::nullopt;
+}
+
+int DevAms::GetAmdIdInt() const
+{
+    try {
+        return std::stoi(m_ams_id);
+    } catch (...) {}
+
+    return 0;
 }
 
 static unordered_map<DevAmsType, wxString> s_ams_display_formats = {
@@ -494,7 +551,7 @@ bool DevAms::IsExist() const
         } else if (m_ams_type == DevAmsType::ZMULTI_A) {
             return DevUtil::get_flag_bits(obj_->ams_exist_bits, 13);
         } else if (m_ams_type == DevAmsType::ZMULTI_B) {
-            return DevUtil::get_flag_bits(obj_->ams_exist_bits, 13);
+            return DevUtil::get_flag_bits(obj_->ams_exist_bits, 14);
         } else {
             return DevUtil::get_flag_bits(obj_->ams_exist_bits, 4 + (ams_id_int - 128));
         }
@@ -606,6 +663,10 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
                         tray_index = ams_id_int;
                     } else if (ams_item->GetAmsType() == DevAmsType::AMS_LITE && ams_item->IsAmsLiteMixed()) {
                         tray_index = 24 + slot_id_int;
+                    } else if (ams_item->GetAmsType() == DevAmsType::ZMULTI_A) {
+                        tray_index = 28 + slot_id_int;
+                    } else if (ams_item->GetAmsType() == DevAmsType::ZMULTI_B) {
+                        tray_index = 37 + slot_id_int;
                     } else {
                         tray_index = (ams_id_int * 4 + slot_id_int);
                     }

@@ -83,6 +83,7 @@ public:
 
     RackType    GetRackType() const { return m_rack_type; }
     int         GetTotalRackNozzleCount() const;
+    std::set<int> GetTotalRackNozzlePosSet() const;
 
     // status
     bool HasUnreliableNozzles() const;
