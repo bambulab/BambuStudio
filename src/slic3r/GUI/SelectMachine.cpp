@@ -5409,7 +5409,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
             }
 
             if (obj_->GetFilaSystem()->GetExtruderIdByAmsId(ams_id_str) == DEPUTY_EXTRUDER_ID &&
-                (tray_opt->get_filament_type() == "TPU" || tray_opt->get_filament_type() == "TPU-AMS")) {
+                (tray_opt->get_filament_type() == "TPU")) {
                 has_tpu_left = true;
                 break;
             }
