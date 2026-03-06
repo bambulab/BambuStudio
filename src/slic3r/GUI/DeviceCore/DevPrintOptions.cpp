@@ -297,8 +297,14 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Nozzle_Blob_Detection, &m_nozzle_blob_detection},
                         {PrintOptionEnum::Open_Door_Detection, &m_open_door_detection},
                         {PrintOptionEnum::Idle_Heating_Protect_Detection, &m_idel_heating_protect_detection},
-                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection}};
-}
+                        {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection},
+                        {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
+                        {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection},
+                        {PrintOptionEnum::FOD_Check_Detection, &m_fod_check_detection}
+    };
+};
+
+
 
 void DevPrintOptions::SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level)
 {
