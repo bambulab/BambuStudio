@@ -2225,6 +2225,9 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             printExtruders = first_layer_filaments;
 
             this->set_slice_used_filaments(first_layer_filaments, used_filaments);
+
+            // BBS: build instance ordering so objPrintVec and make_brim get all objects; otherwise m_brimMap stays empty and m_objsWithBrim is never populated in GCode export.
+            print_object_instances_ordering = chain_print_object_instances(*this);
         }
         else {
             tool_ordering = this->tool_ordering();
@@ -2510,17 +2513,22 @@ void Print::_make_skirt()
     for (Polygon &poly : offset(convex_hull, distance + 0.5f * float(scale_(spacing)), ClipperLib::jtRound, float(scale_(0.1))))
         append(m_skirt_convex_hull, std::move(poly.points));
 
-    // BBS
-    const int n_object_skirts = 1;
-    const double object_skirt_distance = scale_(1.0);
+    // BBS: per-object skirt. Sequential (ByObject + multi-object) uses config skirt_loops/skirt_distance; otherwise one loop at 1mm.
+    const bool by_object = is_sequential_print();
+    const size_t n_object_skirts = by_object ? std::max(size_t(1), size_t(m_config.skirt_loops.value)) : 1;
+    const float object_skirt_initial_offset = by_object
+        ? (float(scale_(m_config.skirt_distance.value)) - spacing / 2.f)
+        : float(scale_(1.0));
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
-        for (int i = 0; i < n_object_skirts; i++) {
-            distance += float(scale_(spacing));
+        float obj_distance = object_skirt_initial_offset;
+        for (size_t i = 0; i < n_object_skirts; i++) {
+            if (by_object || i > 0)
+                obj_distance += float(scale_(spacing));
             Polygon loop;
             {
                 // BBS. skirt_distance is defined as the gap between skirt and outer most brim, so no need to add max_brim_width
-                Polygons loops = offset(obj_cvx_hull.second, object_skirt_distance, ClipperLib::jtRound, float(scale_(0.1)));
+                Polygons loops = offset(obj_cvx_hull.second, obj_distance, ClipperLib::jtRound, float(scale_(0.1)));
                 Geometry::simplify_polygons(loops, scale_(0.05), &loops);
                 if (loops.empty())
                     break;

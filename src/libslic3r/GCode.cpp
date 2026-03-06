@@ -3907,6 +3907,10 @@ namespace Skirt {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
+        // BBS: Only in sequential (ByObject + multi-object) mode skip global skirt; use is_sequential_print() for consistency.
+        if (print.is_sequential_print()) {
+            return skirt_loops_per_extruder_out;
+        }
         //For sequential print, the following test may fail when extruding the 2nd and other objects.
         // assert(skirt_done.empty());
         if (skirt_done.empty() && print.has_skirt() && ! print.skirt().entities.empty() && layer_tools.has_skirt) {
@@ -3925,6 +3929,10 @@ namespace Skirt {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
+        // BBS: Only in sequential (ByObject + multi-object) mode skip global skirt on other layers; use is_sequential_print() for consistency.
+        if (print.is_sequential_print()) {
+            return skirt_loops_per_extruder_out;
+        }
         if (print.has_skirt() && ! print.skirt().entities.empty() && layer_tools.has_skirt &&
             // Not enough skirt layers printed yet.
             //FIXME infinite or high skirt does not make sense for sequential print!
@@ -4588,6 +4596,17 @@ GCode::LayerResult GCode::process_layer(
         }
     };
 
+    // BBS: In sequential (ByObject + multi-object) mode, per-object skirt is drawn by the object's first extruder on this layer.
+    std::map<const PrintObject*, unsigned int> object_first_extruder;
+    if (print.has_skirt() && print.is_sequential_print() && first_layer) {
+        for (unsigned int eid : layer_tools.extruders) {
+            for (const InstanceToPrint& inst : filament_to_print_instances[eid]) {
+                const PrintObject* obj = &inst.print_object;
+                object_first_extruder.emplace(obj, eid);
+            }
+        }
+    }
+
     // Extrude the skirt, brim, support, perimeters, infill ordered by the extruders.
     for (unsigned int extruder_id : layer_tools.extruders)
     {
@@ -4676,20 +4695,26 @@ GCode::LayerResult GCode::process_layer(
 
         std::vector<InstanceToPrint> &instances_to_print = filament_to_print_instances[extruder_id];
 
-        // BBS
-        if (print.has_skirt() && print.config().print_sequence == PrintSequence::ByObject && prime_extruder && first_layer && extruder_id == first_extruder_id) {
+        // BBS: In sequential (ByObject + multi-object) mode, output per-object skirt on first layer. Each object's skirt is drawn by the first extruder assigned to the object(e.g. A by ext1, B by ext2).
+        // Do not require prime_extruder: the first object has prime_extruder==false but still needs skirt.
+        // If object has brim (object brim or support brim), skip skirt and keep brim.
+        if (print.has_skirt() && print.is_sequential_print() && first_layer) {
             for (InstanceToPrint& instance_to_print : instances_to_print) {
-                if (this->m_objSupportsWithBrim.find(instance_to_print.print_object.id()) != this->m_objSupportsWithBrim.end() &&
-                    print.m_supportBrimMap.at(instance_to_print.print_object.id()).entities.size() > 0)
+                const PrintObject* obj = &instance_to_print.print_object;
+                auto it = object_first_extruder.find(obj);
+                if (it == object_first_extruder.end() || it->second != extruder_id)
                     continue;
-
-                if (this->m_objsWithBrim.find(instance_to_print.print_object.id()) != this->m_objsWithBrim.end() &&
-                    print.m_brimMap.at(instance_to_print.print_object.id()).entities.size() > 0)
+                // Skip skirt when object has object brim; brim is still printed below.
+                auto brim_it = print.m_brimMap.find(obj->id());
+                if (brim_it != print.m_brimMap.end() && !brim_it->second.entities.empty())
+                    continue;
+                auto sup_brim_it = print.m_supportBrimMap.find(obj->id());
+                if (sup_brim_it != print.m_supportBrimMap.end() && !sup_brim_it->second.entities.empty())
                     continue;
 
                 const Point& offset = instance_to_print.print_object.instances()[instance_to_print.instance_id].shift;
                 set_origin(unscaled(offset));
-                for (ExtrusionEntity* ee : layer.object()->object_skirt().entities)
+                for (ExtrusionEntity* ee : instance_to_print.print_object.object_skirt().entities)
                     //FIXME using the support_speed of the 1st object printed.
                     gcode += this->extrude_entity(*ee, "skirt", NOZZLE_CONFIG(support_speed));
             }
