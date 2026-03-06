@@ -316,7 +316,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
 
 void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_info, DevFilaBlacklist::CheckResult &result)
 {
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (!dev) { return; }
 
     MachineObject *obj = dev->get_my_machine(check_info.dev_id);
