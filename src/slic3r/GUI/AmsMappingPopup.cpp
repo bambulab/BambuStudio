@@ -655,9 +655,10 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
-     #ifdef __APPLE__
+#ifdef __APPLE__
      Bind(wxEVT_LEFT_DOWN, &AmsMapingPopup::on_left_down, this);
-     #endif
+     Bind(wxEVT_MOTION, &AmsMapingPopup::on_mouse_move, this);
+#endif
 
      SetBackgroundColour(*wxWHITE);
 
@@ -1016,9 +1017,69 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
     }
 }
 
-void AmsMapingPopup::OnDismiss()
+#ifdef  __APPLE__
+void AmsMapingPopup::on_mouse_move(wxMouseEvent &evt)
 {
 
+    auto pos = ClientToScreen(evt.GetPosition());
+    wxString tip_text;
+    wxPoint tip_pos;
+    for (MappingItem *item : m_mapping_item_list) {
+        auto origin = item->ClientToScreen(wxPoint(0, 0));
+        auto size   = item->GetSize();
+        if (pos.x >= origin.x && pos.y >= origin.y && pos.x < origin.x + size.x && pos.y < origin.y + size.y)
+        {
+            auto *tip = item->GetToolTip();
+            if (tip && !tip->GetTip().IsEmpty())
+            {
+                tip_text = tip->GetTip();
+                tip_pos = wxPoint(origin.x, origin.y + size.y);
+            }
+            break;
+        }
+    }
+
+    if (!tip_text.IsEmpty()) {
+        if (!m_tip_popup)
+        {
+            m_tip_popup = new wxPopupWindow(this);
+            m_tip_popup->SetBackgroundColour(wxColour(255, 255, 255));
+            auto *sizer = new wxBoxSizer(wxVERTICAL);
+            m_tip_label = new wxStaticText(m_tip_popup, wxID_ANY, wxEmptyString) ;
+            m_tip_label->SetForegroundColour(*wxBLACK);
+            sizer->Add(m_tip_label, 0, wxALL, 4);
+            m_tip_popup->SetSizer(sizer);
+            m_tip_popup->Bind(wxEVT_IDLE, [this](wxIdleEvent &) {
+                if (!IsShown() && m_tip_popup) {
+                    m_tip_popup->Destroy();
+                    m_tip_popup = nullptr;
+                    m_tip_label = nullptr;
+                }
+            });
+        }
+
+        if (m_tip_label->GetLabel() != tip_text) {
+            m_tip_label->SetLabel(tip_text);
+            m_tip_label->Wrap(FromDIP(400));
+            m_tip_popup->Layout();
+            m_tip_popup->Fit();
+        }
+        m_tip_popup->SetPosition(wxPoint(tip_pos.x, tip_pos.y));
+        if (!m_tip_popup->IsShown())
+            m_tip_popup->Show();
+    } else {
+        if (m_tip_popup && m_tip_popup->IsShown()) m_tip_popup->Hide();
+    }
+}
+#endif
+
+
+void AmsMapingPopup::OnDismiss()
+{
+#ifdef __APPLE__
+    if (m_tip_popup && m_tip_popup->IsShown ())
+        m_tip_popup->Hide();
+#endif
 }
 
 bool AmsMapingPopup::ProcessLeftDown(wxMouseEvent &event)

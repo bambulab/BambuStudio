@@ -341,6 +341,12 @@ public:
     void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
 
+#ifdef __APPLE__
+    void on_mouse_move(wxMouseEvent &evt);
+    wxPopupWindow * m_tip_popup{nullptr};
+    wxStaticText* m_tip_label{nullptr};
+#endif
+
     using ResetCallback = std::function<void(const std::string&)>;
     void reset_ams_info();
     void set_reset_callback(ResetCallback callback);
