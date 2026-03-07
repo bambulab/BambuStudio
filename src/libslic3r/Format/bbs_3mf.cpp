@@ -6162,94 +6162,80 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     return false;
             }
 
-            for (unsigned int index = 0; index < thumbnail_data.size(); index++)
-            {
-                if (thumbnail_data[index]->is_valid())
-                {
+            // Check if only one plate is being exported
+            if (export_plate_idx != -1) {
+                // Only generate and add thumbnail for the specified plate
+                int index = export_plate_idx;
+
+                if (thumbnail_data.size() > index && thumbnail_data[index]->is_valid()) {
                     if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], "Metadata/plate", index, true)) {
                         return false;
                     }
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",add thumbnail %1%'s data into 3mf")%(index+1);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add thumbnail %1%'s data into 3mf") % (index + 1);
                     thumbnail_status[index] = true;
                 }
-            }
 
-            for (unsigned int index = 0; index < no_light_thumbnail_data.size(); index++) {
-                if (no_light_thumbnail_data[index]->is_valid()) {
+                if (no_light_thumbnail_data.size() > index && no_light_thumbnail_data[index]->is_valid()) {
                     if (!_add_thumbnail_file_to_archive(archive, *no_light_thumbnail_data[index], "Metadata/plate_no_light", index)) {
                         return false;
                     }
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(",add no light thumbnail %1%'s data into 3mf") % (index + 1);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add no light thumbnail %1%'s data into 3mf") % (index + 1);
                     no_light_thumbnail_status[index] = true;
                 }
-            }
-            // Adds the file Metadata/top_i.png and Metadata/pick_i.png
-            for (unsigned int index = 0; index < top_thumbnail_data.size(); index++)
-            {
-                if (top_thumbnail_data[index]->is_valid())
-                {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",add top thumbnail %1%'s data into 3mf")%(index+1);
+
+                if (top_thumbnail_data.size() > index && top_thumbnail_data[index]->is_valid()) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add top thumbnail %1%'s data into 3mf") % (index + 1);
                     if (!_add_thumbnail_file_to_archive(archive, *top_thumbnail_data[index], "Metadata/top", index)) {
                         return false;
                     }
                     top_thumbnail_status[index] = true;
                 }
 
-                if (pick_thumbnail_data[index]->is_valid())
-                {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(",add pick thumbnail %1%'s data into 3mf")%(index+1);
+                if (pick_thumbnail_data.size() > index && pick_thumbnail_data[index]->is_valid()) {
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add pick thumbnail %1%'s data into 3mf") % (index + 1);
                     if (!_add_thumbnail_file_to_archive(archive, *pick_thumbnail_data[index], "Metadata/pick", index)) {
                         return false;
                     }
                     pick_thumbnail_status[index] = true;
                 }
-            }
-
-            for (int i = 0; i < plate_data_list.size(); i++) {
-                PlateData *plate_data = plate_data_list[i];
-
-                if (!thumbnail_status[i] && !plate_data->thumbnail_file.empty() && (boost::filesystem::exists(plate_data->thumbnail_file))){
-                    std::string dst_in_3mf = (boost::format("Metadata/plate_%1%.png") % (i + 1)).str();
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add thumbnail %1% from file %2%") % (i+1) %plate_data->thumbnail_file;
-
-                    if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->thumbnail_file)) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->thumbnail_file;
-                        return false;
+            } else {
+                // Generate and add thumbnails for all plates
+                for (unsigned int index = 0; index < thumbnail_data.size(); index++) {
+                    if (thumbnail_data[index]->is_valid()) {
+                        if (!_add_thumbnail_file_to_archive(archive, *thumbnail_data[index], "Metadata/plate", index, true)) {
+                            return false;
+                        }
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add thumbnail %1%'s data into 3mf") % (index + 1);
+                        thumbnail_status[index] = true;
                     }
                 }
 
-                if (!no_light_thumbnail_status[i] && !plate_data->no_light_thumbnail_file.empty() && (boost::filesystem::exists(plate_data->no_light_thumbnail_file))){
-                    std::string dst_in_3mf = (boost::format("Metadata/plate_no_light_%1%.png") % (i + 1)).str();
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add no light thumbnail %1% from file %2%") % (i+1) %plate_data->no_light_thumbnail_file;
-
-                    if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->no_light_thumbnail_file)) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add no light thumbnail %1% from file %2% failed\n") % (i+1) %plate_data->no_light_thumbnail_file;
-                        return false;
+                for (unsigned int index = 0; index < no_light_thumbnail_data.size(); index++) {
+                    if (no_light_thumbnail_data[index]->is_valid()) {
+                        if (!_add_thumbnail_file_to_archive(archive, *no_light_thumbnail_data[index], "Metadata/plate_no_light", index)) {
+                            return false;
+                        }
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add no light thumbnail %1%'s data into 3mf") % (index + 1);
+                        no_light_thumbnail_status[index] = true;
                     }
                 }
 
-                if (!top_thumbnail_status[i] && !plate_data->top_file.empty() && (boost::filesystem::exists(plate_data->top_file))){
-                    std::string dst_in_3mf = (boost::format("Metadata/top_%1%.png") % (i + 1)).str();
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add top thumbnail %1% from file %2%") % (i+1) %plate_data->top_file;
-                    if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->top_file)) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add top thumbnail %1% failed") % (i+1);
-                        return false;
+                for (unsigned int index = 0; index < top_thumbnail_data.size(); index++) {
+                    if (top_thumbnail_data[index]->is_valid()) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add top thumbnail %1%'s data into 3mf") % (index + 1);
+                        if (!_add_thumbnail_file_to_archive(archive, *top_thumbnail_data[index], "Metadata/top", index)) {
+                            return false;
+                        }
+                        top_thumbnail_status[index] = true;
                     }
-                    top_thumbnail_status[i] = true;
-                }
 
-                if (!pick_thumbnail_status[i] && !plate_data->pick_file.empty() && (boost::filesystem::exists(plate_data->pick_file))){
-                    std::string dst_in_3mf = (boost::format("Metadata/pick_%1%.png") % (i + 1)).str();
-
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", add pick thumbnail %1% from file %2%") % (i+1) %plate_data->pick_file;
-                    if (!_add_file_to_archive(archive, dst_in_3mf, plate_data->pick_file)) {
-                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add pick thumbnail %1% failed") % (i+1);
-                        return false;
+                    if (pick_thumbnail_data[index]->is_valid()) {
+                        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", add pick thumbnail %1%'s data into 3mf") % (index + 1);
+                        if (!_add_thumbnail_file_to_archive(archive, *pick_thumbnail_data[index], "Metadata/pick", index)) {
+                            return false;
+                        }
+                        pick_thumbnail_status[index] = true;
                     }
-                    pick_thumbnail_status[i] = true;
                 }
             }
             if (proFn) {
