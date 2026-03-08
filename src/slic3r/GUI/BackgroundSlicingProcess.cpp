@@ -822,6 +822,16 @@ void BackgroundSlicingProcess::finalize_gcode()
 
     run_post_process_scripts(m_temp_output_path, false, "File", m_temp_output_path, m_fff_print->full_print_config());
 
+    // Re-parse the G-code if post-processing scripts modified it,
+    // so the preview reflects the post-processed toolpath
+    const auto *post_process = m_fff_print->full_print_config().opt<ConfigOptionStrings>("post_process");
+    if (post_process && !post_process->values.empty() && m_gcode_result) {
+        m_print->set_status(97, _utf8(L("Updating preview with post-processed G-code")));
+        GCodeProcessor processor;
+        processor.process_file(m_temp_output_path);
+        *m_gcode_result = std::move(processor.extract_result());
+    }
+
     m_print->set_status(100, _utf8(L("Successfully executed post-processing script")));
 }
 
