@@ -365,6 +365,7 @@ private:
 
     boost::thread    m_sync_update_thread;
     std::shared_ptr<int> m_user_sync_token;
+
     bool             m_is_dark_mode{ false };
     bool             m_adding_script_handler { false };
     bool             m_side_popup_status{false};
@@ -382,6 +383,9 @@ private:
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
+
+    // Reload user presets from disk (triggered via menu: File > Reload Presets)
+    void            reload_user_presets_from_disk();
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;
