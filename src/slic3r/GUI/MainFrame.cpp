@@ -2862,6 +2862,11 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
+
+        // Reload user presets from disk
+        append_menu_item(fileMenu, wxID_ANY, _L("Reload Presets") + "\t" + ctrl + "R", _L("Reload user presets from disk"),
+            [](wxCommandEvent&) { wxGetApp().reload_user_presets_from_disk(); }, "", nullptr,
+            []() { return true; }, this);
 #endif
 
 

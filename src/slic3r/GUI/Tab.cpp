@@ -280,6 +280,7 @@ void Tab::create_preset_tab()
     });
 
     //add_scaled_button(panel, &m_btn_compare_preset, "compare");
+    add_scaled_button(m_top_panel, &m_btn_reload_presets, "reload_preset");
     add_scaled_button(m_top_panel, &m_btn_save_preset, "save");
     add_scaled_button(m_top_panel, &m_btn_delete_preset, "cross");
     //if (m_type == Preset::Type::TYPE_PRINTER)
@@ -418,6 +419,7 @@ void Tab::create_preset_tab()
     m_top_sizer->Add( m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
     m_top_sizer->AddSpacer(8);
 #endif
+    m_top_sizer->Add( m_btn_reload_presets, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
     m_top_sizer->Add( m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
     m_top_sizer->Add( m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12) );
     m_top_sizer->Add( m_btn_search, 0, wxALIGN_CENTER_VERTICAL | wxLEFT , FromDIP(12) );
@@ -656,6 +658,8 @@ void Tab::create_preset_tab()
 
     //m_btn_compare_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { compare_preset(); }));
     m_btn_save_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { save_preset(); }));
+    m_btn_reload_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { wxGetApp().reload_user_presets_from_disk(); }));
+    m_btn_reload_presets->SetToolTip(_L("Reload presets from disk"));
     m_btn_delete_preset->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) { delete_preset(); }));
     /*m_btn_hide_incompatible_presets->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e) {
         toggle_show_hide_incompatible();

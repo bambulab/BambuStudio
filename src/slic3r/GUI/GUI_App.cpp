@@ -5886,6 +5886,48 @@ void GUI_App::reload_settings()
     }
 }
 
+// Reload user presets from disk without restart
+void GUI_App::reload_user_presets_from_disk()
+{
+    if (!preset_bundle || !mainframe)
+        return;
+
+    std::string user_id = (m_agent && m_agent->is_user_login())
+        ? m_agent->get_user_id()
+        : DEFAULT_USER_FOLDER_NAME;
+
+    // Snapshot existing preset names before reload
+    std::set<std::string> old_prints, old_filaments;
+    for (const auto& p : preset_bundle->prints)
+        if (p.is_user()) old_prints.insert(p.name);
+    for (const auto& p : preset_bundle->filaments)
+        if (p.is_user()) old_filaments.insert(p.name);
+
+    BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk for user: " << user_id;
+    preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::Enable);
+    mainframe->update_side_preset_ui();
+
+    // Find new presets and select the last one found
+    std::string new_print, new_filament;
+    for (const auto& p : preset_bundle->prints)
+        if (p.is_user() && old_prints.find(p.name) == old_prints.end())
+            new_print = p.name;
+    for (const auto& p : preset_bundle->filaments)
+        if (p.is_user() && old_filaments.find(p.name) == old_filaments.end())
+            new_filament = p.name;
+
+    if (!new_print.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "New process preset found, selecting: " << new_print;
+        auto tab = get_tab(Preset::TYPE_PRINT);
+        if (tab) tab->select_preset(new_print);
+    }
+    if (!new_filament.empty()) {
+        BOOST_LOG_TRIVIAL(info) << "New filament preset found, selecting: " << new_filament;
+        auto tab = get_tab(Preset::TYPE_FILAMENT);
+        if (tab) tab->select_preset(new_filament);
+    }
+}
+
 //BBS reload when logout
 void GUI_App::remove_user_presets()
 {
