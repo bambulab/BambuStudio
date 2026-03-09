@@ -5,6 +5,18 @@
     "from": "system",
     "setting_id": "GFSG02_31",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0058"
+    ],
+    "counter_coef_3": [
+        "0.0107"
+    ],
+    "counter_limit_min": [
+        "0.01"
+    ],
+    "counter_limit_max": [
+        "0.15"
+    ],
     "fan_cooling_layer_time": [
         "20"
     ],
@@ -47,6 +59,18 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "hole_coef_2": [
+        "-0.0042"
+    ],
+    "hole_coef_3": [
+        "0.2006"
+    ],
+    "hole_limit_min": [
+        "0.09"
+    ],
+    "hole_limit_max": [
+        "0.2"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
