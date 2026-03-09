@@ -2043,8 +2043,6 @@ static void apply_json_recommendations(
 
     // 使用 SupportRecommendDialog 显示推荐
     SupportRecommendDialog dialog(wxGetApp().plater(), _L("Notification"));
-    dialog.SetTipText(_L("A compatible support filament combination is detected. We recommend using this filament for support interface with the recommended parameters."));
-    dialog.SetComboTitle(_L("Recommended combinations:"));
 
     // 为每个推荐添加卡片
     for (const auto& rec : filtered_recommendations) {
@@ -2056,7 +2054,7 @@ static void apply_json_recommendations(
                 params.Add(desc);
             }
         }
-        dialog.AddSupportComboCard(wxString::FromUTF8(rec.model_material), wxString::FromUTF8(rec.support_material), params);
+        //dialog.AddSupportComboCard(wxString::FromUTF8(rec.model_material), wxString::FromUTF8(rec.support_material), params);
     }
 
     if (dialog.ShowModal() == wxID_APPLY) {

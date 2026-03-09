@@ -1126,17 +1126,35 @@ void MainFrame::init_tabpanel()
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
-        if (bool test = false) {
-            SupportRecommendDialog* dialog = new SupportRecommendDialog(nullptr, _L("Notice"));;
-            dialog->SetTipText(wxString::FromUTF8("检测到主体耗材与支撑耗材的适配组合。建议在支撑接触面使用该耗材，并使用推荐参数进行打印，以取得更好的打印效果。"));
-            dialog->SetComboTitle(wxString::FromUTF8("推荐组合："));
+        //if (bool test = false) {
+        //    SupportRecommendDialog* dialog = new SupportRecommendDialog(nullptr, _L("Notice"));;
 
-            wxArrayString params;
-            params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
-            params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
-            dialog->AddSupportComboCard("Bambu PLA Basic", "Bambu PETG Basic", params);
-            dialog->ShowModal();
-        }
+        //    wxArrayString params;
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+
+        //    std::vector<wxString> objects;
+        //    for (int i = 0; i < 10; i++) {
+        //        objects.push_back("ABCABCABCABC");
+        //    }
+
+        //    std::vector<std::tuple<int, wxColour, wxString>> mainMat;
+        //    mainMat.push_back(std::make_tuple(2, *wxRED, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(5, *wxBLUE, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(3, *wxGREEN, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"));
+
+        //    dialog->AddSupportComboCard(objects, mainMat, std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"), params);
+        //    dialog->AddSupportComboCard(objects, mainMat, std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"), params);
+        //    dialog->ShowModal();
+        //}
 
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();

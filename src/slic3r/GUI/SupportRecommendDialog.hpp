@@ -3,6 +3,7 @@
 #include <wx/wx.h>
 #include <wx/intl.h>
 #include <wx/html/htmlwin.h>
+#include <tuple>
 
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
@@ -16,14 +17,20 @@ class SupportComboCard : public wxPanel
 {
 public:
     SupportComboCard(wxWindow* parent,
-                     const wxString& mainMat,
-                     const wxString& supportMat,
+                     const std::vector<wxString>& objects,
+                     const std::vector<std::tuple<int, wxColour, wxString>>& mainMat,
+                     const std::tuple<int, wxColour, wxString>& supportMat,
                      const wxArrayString& params);
+    void restore_color();
 
 private:
-    void create_ui(const wxString& mainMat,
-                   const wxString& supportMat,
+    void create_ui(const std::vector<wxString> &objects,
+                   const std::vector<std::tuple<int, wxColour, wxString>> &mainMat,
+                   const std::tuple<int, wxColour, wxString>& supportMat,
                    const wxArrayString& params);
+
+    std::vector<std::pair<wxPanel*, wxColour>> m_color_boxes;
+    std::vector<std::pair<wxStaticText*, wxColour>> m_color_texts;
 };
 
 class SupportRecommendDialog : public DPIDialog
@@ -39,9 +46,10 @@ public:
 public:
     void SetTipText(const wxString& text);;
     void SetComboTitle(const wxString& title);;
-    void AddSupportComboCard(const wxString& mainMat,
-                             const wxString& supportMat,
-                             const wxArrayString& params);
+    void AddSupportComboCard(const std::vector<wxString>                            &objects,
+                             const std::vector<std::tuple<int, wxColour, wxString>> &mainMat,
+                             const std::tuple<int, wxColour, wxString>              &supportMat,
+                             const wxArrayString                                    &params);
 
 protected:
     virtual void on_dpi_changed(const wxRect& suggested_rect) override;

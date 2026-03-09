@@ -12,63 +12,195 @@
 namespace Slic3r {
 namespace GUI {
 
-SupportComboCard::SupportComboCard(wxWindow* parent,
-                                   const wxString& mainMat,
-                                   const wxString& supportMat,
-                                   const wxArrayString& params)
+SupportComboCard::SupportComboCard(wxWindow                                  *parent,
+                                   const std::vector<wxString>               &objects,
+                                   const std::vector<std::tuple<int, wxColour, wxString>> &mainMat,
+                                   const std::tuple<int, wxColour, wxString> &supportMat,
+                                   const wxArrayString                       &params)
     : wxPanel(parent, wxID_ANY)
 {
-    create_ui(mainMat, supportMat, params);
+    create_ui(objects, mainMat, supportMat, params);
+    wxGetApp().UpdateDarkUIWin(this);
+    restore_color();
 }
 
-void SupportComboCard::create_ui(const wxString& mainMat,
-                                 const wxString& supportMat,
-                                 const wxArrayString& params)
+void SupportComboCard::restore_color()
 {
-    SetBackgroundColour(wxColour("#EEE"));
+    for (auto& pair : m_color_boxes) {
+        pair.first->SetBackgroundColour(pair.second);
+    }
+    for (auto& pair : m_color_texts) {
+        pair.first->SetForegroundColour(pair.second);
+    }
+    Refresh();
+}
+
+void SupportComboCard::create_ui(const std::vector<wxString>               &objects,
+                                 const std::vector<std::tuple<int, wxColour, wxString>> &mainMat,
+                                 const std::tuple<int, wxColour, wxString> &supportMat,
+                                 const wxArrayString                       &params)
+{
+    SetBackgroundColour(wxColour("#F7F7F7"));
+    SetMinSize(wxSize(-1, FromDIP(250)));
+    SetMaxSize(wxSize(-1, FromDIP(250)));
 
     wxBoxSizer* mainSizer = new wxBoxSizer(wxHORIZONTAL);
     this->SetSizer(mainSizer);
 
-    wxPanel* mat1Panel = new wxPanel(this, wxID_ANY);
-    mat1Panel->SetBackgroundColour(wxColour("#EEE"));
-    wxBoxSizer* mat1Sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* leftSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *objectsLabel  = new wxStaticText(this, wxID_ANY, _L("Availabale Objects"));
+    leftSizer->Add(objectsLabel, 0, wxALL, 5);
+    objectsLabel->SetForegroundColour(wxColour("#6B6B6B"));
+    wxScrolledWindow *objectsScroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    objectsScroll->SetScrollRate(0, 10);
+    objectsScroll->SetBackgroundColour(wxColour("#F7F7F7"));
+    objectsScroll->SetMinSize(wxSize(FromDIP(150), -1));
 
-    wxStaticText* text1 = new wxStaticText(mat1Panel, wxID_ANY, mainMat);
-    mat1Sizer->Add(text1, 1, wxALL | wxALIGN_CENTER_VERTICAL, 8);
-    mat1Panel->SetSizer(mat1Sizer);
-    mat1Panel->SetMinSize(wxSize(FromDIP(BODY_ITEM_WIDTH), -1));
-    mainSizer->Add(mat1Panel, 0, wxEXPAND | wxALL);
+    wxBoxSizer *objectsSizer = new wxBoxSizer(wxVERTICAL);
+    objectsScroll->SetSizer(objectsSizer);
 
-    wxPanel* mat2Panel = new wxPanel(this, wxID_ANY);
-    mat2Panel->SetBackgroundColour(wxColour("#EEE"));
-    wxBoxSizer* mat2Sizer = new wxBoxSizer(wxHORIZONTAL);
+    for (const auto& obj : objects) {
+        wxStaticText* text = new wxStaticText(objectsScroll, wxID_ANY, obj);
+        objectsSizer->Add(text, 0, wxALL, 5);
+    }
+    leftSizer->Add(objectsScroll, 1, wxEXPAND);
+    
+    mainSizer->Add(leftSizer, 0, wxEXPAND | wxRIGHT, 10);
 
-    wxStaticText* text2 = new wxStaticText(mat2Panel, wxID_ANY, supportMat);
+    wxPanel *separator1 = new wxPanel(this, wxID_ANY);
+    separator1->SetBackgroundColour(wxColour("#CECECE"));
+    separator1->SetSize(wxSize(FromDIP(1), -1));
+    mainSizer->Add(separator1, 0, wxEXPAND | wxALL, 5);
 
-    mat2Sizer->Add(text2, 1, wxALL | wxALIGN_CENTER_VERTICAL, 8);
-    mat2Panel->SetSizer(mat2Sizer);
-    mat2Panel->SetMinSize(wxSize(FromDIP(SUPPORT_ITEM_WIDTH), -1));
-    mainSizer->Add(mat2Panel, 0, wxEXPAND | wxALL);
+    wxBoxSizer *rightSizer = new wxBoxSizer(wxVERTICAL);
+    
+    wxBoxSizer *topSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxPanel* rightPanel = new wxPanel(this, wxID_ANY);
-    wxBoxSizer* rightSizer = new wxBoxSizer(wxVERTICAL);
-    rightPanel->SetSizer(rightSizer);
-    rightPanel->SetBackgroundColour(wxColour("#EEE"));
-    rightPanel->SetMinSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-    rightPanel->SetMaxSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-    rightPanel->SetSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
+    wxBoxSizer *mainMatAreaSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText* mainMatLabel = new wxStaticText(this, wxID_ANY, _L("Main Material"));
+    mainMatLabel->SetForegroundColour(wxColour("#6B6B6B"));
+    mainMatAreaSizer->Add(mainMatLabel, 0, wxALL, 5);    
 
-    for (const auto& param : params) {
-        wxStaticText* paramText = new wxStaticText(rightPanel, wxID_ANY, param);
-        paramText->SetMinSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-        paramText->SetMaxSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-        paramText->SetSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-        paramText->SetBackgroundColour(wxColour("#EEE"));
-        rightSizer->Add(paramText, 0, wxTOP | wxALIGN_LEFT, 5);
+    wxScrolledWindow *mainMatScroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    mainMatScroll->SetScrollRate(0, 10);
+    mainMatScroll->SetBackgroundColour(wxColour("#F7F7F7"));
+    mainMatScroll->SetMinSize(wxSize(FromDIP(BODY_ITEM_WIDTH), FromDIP(100)));
+
+    wxBoxSizer *mainMatSizer = new wxBoxSizer(wxVERTICAL);
+    mainMatScroll->SetSizer(mainMatSizer);
+
+    for (const auto &mat : mainMat) {
+        wxPanel *matItemPanel = new wxPanel(mainMatScroll, wxID_ANY);
+        matItemPanel->SetBackgroundColour(wxColour("#F7F7F7"));
+        wxBoxSizer *matItemSizer = new wxBoxSizer(wxHORIZONTAL);
+
+        wxPanel *colorBox = new wxPanel(matItemPanel, wxID_ANY);
+        wxColour color    = std::get<1>(mat);
+        colorBox->SetBackgroundColour(color);
+        colorBox->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+        colorBox->SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
+
+        m_color_boxes.push_back(std::make_pair(colorBox, color));
+
+        wxBoxSizer   *colorBoxSizer = new wxBoxSizer(wxVERTICAL);
+        wxStaticText *numberText    = new wxStaticText(colorBox, wxID_ANY, wxString::Format("%d", std::get<0>(mat)));
+        wxColour textColor = color.GetLuminance() >= 0.51 ? wxColour("#000001") : wxColour("#FFFFFE");
+        m_color_texts.push_back(std::make_pair(numberText, textColor));
+
+        colorBoxSizer->AddStretchSpacer(1);
+        colorBoxSizer->Add(numberText, 1, wxALIGN_CENTER_HORIZONTAL);
+        colorBoxSizer->AddStretchSpacer(1);
+        colorBox->SetSizer(colorBoxSizer);
+
+        matItemSizer->Add(colorBox, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+
+        wxStaticText *nameText = new wxStaticText(matItemPanel, wxID_ANY, std::get<2>(mat));
+        matItemSizer->Add(nameText, 1, wxALIGN_CENTER_VERTICAL);
+
+        matItemPanel->SetSizer(matItemSizer);
+        mainMatSizer->Add(matItemPanel, 0, wxEXPAND | wxALL, 5);
     }
 
-    mainSizer->Add(rightPanel, 1, wxEXPAND | wxALL, 10);
+    mainMatAreaSizer->Add(mainMatScroll, 1, wxEXPAND);
+    topSizer->Add(mainMatAreaSizer, 1, wxEXPAND | wxRIGHT, 10);
+
+    wxPanel *separator2 = new wxPanel(this, wxID_ANY);
+    separator2->SetBackgroundColour(wxColour("#CECECE"));
+    separator2->SetSize(wxSize(FromDIP(1), -1));
+    topSizer->Add(separator2, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
+
+    wxBoxSizer   *supportMatAreaSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *supportMatLabel     = new wxStaticText(this, wxID_ANY, _L("Support Material"));
+    supportMatLabel->SetForegroundColour(wxColour("#6B6B6B"));
+    supportMatAreaSizer->Add(supportMatLabel, 0, wxALL, 5);
+
+    wxPanel *supportMatPanel = new wxPanel(this, wxID_ANY);
+    supportMatPanel->SetBackgroundColour(wxColour("#F7F7F7"));
+    supportMatPanel->SetMinSize(wxSize(FromDIP(SUPPORT_ITEM_WIDTH), FromDIP(100)));
+
+    wxBoxSizer *supportMatContentSizer = new wxBoxSizer(wxVERTICAL);
+
+    wxPanel *supportItemPanel = new wxPanel(supportMatPanel, wxID_ANY);
+    supportItemPanel->SetBackgroundColour(wxColour("#F7F7F7"));
+    wxBoxSizer *supportItemSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxPanel *supportColorBox = new wxPanel(supportItemPanel, wxID_ANY);
+    wxColour supportColor    = std::get<1>(supportMat);
+    supportColorBox->SetBackgroundColour(supportColor);
+    supportColorBox->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    supportColorBox->SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_color_boxes.push_back(std::make_pair(supportColorBox, supportColor));
+
+    wxBoxSizer   *supportColorBoxSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *supportNumberText    = new wxStaticText(supportColorBox, wxID_ANY, wxString::Format("%d", std::get<0>(supportMat)));
+    wxColour textColor = supportColor.GetLuminance() >= 0.51 ? wxColour("#000001") : wxColour("#FFFFFE");
+    m_color_texts.push_back(std::make_pair(supportNumberText, textColor));
+
+    supportColorBoxSizer->AddStretchSpacer(1);
+    supportColorBoxSizer->Add(supportNumberText, 1, wxALIGN_CENTER_HORIZONTAL);
+    supportColorBoxSizer->AddStretchSpacer(1);
+    supportColorBox->SetSizer(supportColorBoxSizer);
+
+    supportItemSizer->Add(supportColorBox, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 8);
+
+    wxStaticText *supportNameText = new wxStaticText(supportItemPanel, wxID_ANY, std::get<2>(supportMat));
+    supportItemSizer->Add(supportNameText, 1, wxALIGN_CENTER_VERTICAL);
+
+    supportItemPanel->SetSizer(supportItemSizer);
+    supportMatContentSizer->Add(supportItemPanel, 0, wxEXPAND | wxALL, 5);
+
+    supportMatPanel->SetSizer(supportMatContentSizer);
+    supportMatAreaSizer->Add(supportMatPanel, 1, wxEXPAND);
+    topSizer->Add(supportMatAreaSizer, 1, wxEXPAND);
+
+    rightSizer->Add(topSizer, 0, wxEXPAND | wxBOTTOM, 10);
+
+    wxPanel *separator3 = new wxPanel(this, wxID_ANY);
+    separator3->SetBackgroundColour(wxColour("#CECECE"));
+    separator3->SetSize(wxSize(-1, FromDIP(1)));
+    rightSizer->Add(separator3, 0, wxEXPAND | wxALL, 5);
+
+    wxBoxSizer *paramsAreaSizer = new wxBoxSizer(wxVERTICAL);
+    wxStaticText *paramsLabel = new wxStaticText(this, wxID_ANY, _L("Recommended Parameters"));
+    paramsLabel->SetForegroundColour(wxColour("#6B6B6B"));
+    paramsAreaSizer->Add(paramsLabel, 0, wxALL, 5);
+
+    wxScrolledWindow *paramsScroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+    paramsScroll->SetScrollRate(0, 10);
+    paramsScroll->SetBackgroundColour(wxColour("#F7F7F7"));
+    
+    wxGridSizer *paramsSizer = new wxGridSizer(0, 2, 5, 5);
+    paramsScroll->SetSizer(paramsSizer);
+
+    for (const auto& param : params) {
+        wxStaticText *paramText = new wxStaticText(paramsScroll, wxID_ANY, param);
+        paramsSizer->Add(paramText, 0, wxALL, 5);
+    }
+    paramsAreaSizer->Add(paramsScroll, 1, wxEXPAND);
+    rightSizer->Add(paramsAreaSizer, 1, wxEXPAND);
+
+    mainSizer->Add(rightSizer, 1, wxEXPAND);
+
     Layout();
 }
 
@@ -86,51 +218,23 @@ void SupportRecommendDialog::create_ui()
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
+    int scroll_width = FromDIP(BODY_ITEM_WIDTH + SUPPORT_ITEM_WIDTH + PARAM_ITEM_WIDTH);
     m_main_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(m_main_sizer);
 
-    m_tip_text = new Label(this, "");
+    m_tip_text = new Label(this, _L("Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."));
+    m_tip_text->Wrap(scroll_width);
     m_tip_text->SetFont(::Label::Body_14);
     m_tip_text->SetBackgroundColour(*wxWHITE);
     m_main_sizer->Add(m_tip_text, 0, wxALL | wxEXPAND, 30);
 
-    m_combo_title = new Label(this, "");
-    m_combo_title->SetBackgroundColour(*wxWHITE);
-    m_combo_title->SetFont(::Label::Body_12);
-    m_main_sizer->Add(m_combo_title, 0, wxLEFT | wxBOTTOM, 30);
-
     // filament area
-    int scroll_width = FromDIP(BODY_ITEM_WIDTH + SUPPORT_ITEM_WIDTH + PARAM_ITEM_WIDTH);
     m_scroll_panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
-    m_scroll_panel->SetMinSize(wxSize(scroll_width, FromDIP(200)));
+    m_scroll_panel->SetMinSize(wxSize(scroll_width, FromDIP(300)));
     m_scroll_panel->SetScrollRate(0, 20);
     m_scroll_sizer = new wxBoxSizer(wxVERTICAL);
     m_scroll_panel->SetSizer(m_scroll_sizer);
 
-    // Title row
-    wxSizer* title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    Label* main_mat_label = new Label(m_scroll_panel, _L("Main Material"), wxALIGN_CENTER);
-    main_mat_label->SetFont(::Label::Body_12);
-    main_mat_label->SetBackgroundColour(*wxWHITE);
-    main_mat_label->SetMinSize(wxSize(FromDIP(BODY_ITEM_WIDTH), -1));
-    main_mat_label->SetMaxSize(wxSize(FromDIP(BODY_ITEM_WIDTH), -1));
-    title_sizer->Add(main_mat_label, 0, wxALIGN_CENTER_HORIZONTAL);
-
-    Label* support_mat_label = new Label(m_scroll_panel, _L("Support Material"), wxALIGN_CENTER);
-    support_mat_label->SetFont(::Label::Body_12);
-    support_mat_label->SetBackgroundColour(*wxWHITE);
-    support_mat_label->SetMinSize(wxSize(FromDIP(SUPPORT_ITEM_WIDTH), -1));
-    support_mat_label->SetMaxSize(wxSize(FromDIP(SUPPORT_ITEM_WIDTH), -1));
-    title_sizer->Add(support_mat_label, 0, wxALIGN_CENTER_HORIZONTAL);
-
-    Label* param_label = new Label(m_scroll_panel, _L("Parameters"), wxALIGN_CENTER);
-    param_label->SetFont(::Label::Body_12);
-    param_label->SetBackgroundColour(*wxWHITE);
-    param_label->SetMinSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-    param_label->SetMaxSize(wxSize(FromDIP(PARAM_ITEM_WIDTH), -1));
-    title_sizer->Add(param_label, 0, wxALIGN_CENTER_HORIZONTAL);
-
-    m_scroll_sizer->Add(title_sizer, 0, wxBOTTOM, 10);
     m_main_sizer->Add(m_scroll_panel, 1, wxLEFT | wxRIGHT, 30);
 
     // btns
@@ -158,12 +262,13 @@ void SupportRecommendDialog::create_ui()
     CenterOnParent();
 }
 
-void SupportRecommendDialog::AddSupportComboCard(const wxString& mainMat,
-                                                 const wxString& supportMat,
-                                                 const wxArrayString& params)
+void SupportRecommendDialog::AddSupportComboCard(const std::vector<wxString>                            &objects,
+                                                 const std::vector<std::tuple<int, wxColour, wxString>> &mainMat,
+                                                 const std::tuple<int, wxColour, wxString>              &supportMat,
+                                                 const wxArrayString                                    &params)
 {
-    SupportComboCard* card = new SupportComboCard(m_scroll_panel, mainMat, supportMat, params);
-    m_scroll_sizer->Add(card, 0, wxEXPAND | wxBOTTOM, 5);
+    SupportComboCard* card = new SupportComboCard(m_scroll_panel, objects, mainMat, supportMat, params);
+    m_scroll_sizer->Add(card, 0, wxEXPAND | wxBOTTOM, 10);
     Layout();
 }
 
