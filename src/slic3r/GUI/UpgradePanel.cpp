@@ -525,7 +525,7 @@ void MachineInfoPanel::msw_rescale()
     m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
     m_ahb_panel->msw_rescale();
     for (auto &amspanel : m_amspanel_list) {
-        amspanel->msw_rescale();
+        if (amspanel) amspanel->msw_rescale();
     }
     m_ext_panel->msw_rescale();
     Layout();
