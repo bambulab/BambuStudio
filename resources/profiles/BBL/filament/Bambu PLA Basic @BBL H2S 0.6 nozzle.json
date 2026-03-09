@@ -8,6 +8,18 @@
     "additional_cooling_fan_speed": [
         "75"
     ],
+    "counter_coef_2": [
+        "0.0025"
+    ],
+    "counter_coef_3": [
+        "0.014"
+    ],
+    "counter_limit_min": [
+        "0.014"
+    ],
+    "counter_limit_max": [
+        "0.076"
+    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -51,6 +63,18 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "hole_coef_2": [
+        "-0.0028"
+    ],
+    "hole_coef_3": [
+        "0.12"
+    ],
+    "hole_limit_min": [
+        "0.05"
+    ],
+    "hole_limit_max": [
+        "0.12"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

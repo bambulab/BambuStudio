@@ -8,6 +8,18 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "0.0081"
+    ],
+    "counter_coef_3": [
+        "0.0183"
+    ],
+    "counter_limit_min": [
+        "0.0183"
+    ],
+    "counter_limit_max": [
+        "0.2208"
+    ],
     "fan_max_speed": [
         "40"
     ],
@@ -48,6 +60,18 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "hole_coef_2": [
+        "0.0009"
+    ],
+    "hole_coef_3": [
+        "0.0725"
+    ],
+    "hole_limit_min": [
+        "0.0725"
+    ],
+    "hole_limit_max": [
+        "0.095"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
