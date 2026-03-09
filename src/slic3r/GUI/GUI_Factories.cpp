@@ -1211,9 +1211,12 @@ void MenuFactory::create_default_menu()
 
     m_default_menu.AppendSeparator();
 
-    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels"), "",
-        [](wxCommandEvent&) { plater()->show_view3D_labels(!plater()->are_view3D_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
-        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_labels_shown(); }, m_parent);
+    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels by Layer"), "",
+        [](wxCommandEvent&) { plater()->show_view3D_layer_labels(!plater()->are_view3D_layer_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
+        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_layer_labels_shown(); }, m_parent);
+    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels by Object"), "",
+        [](wxCommandEvent&) { plater()->show_view3D_object_labels(!plater()->are_view3D_object_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
+        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_object_labels_shown(); }, m_parent);
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)

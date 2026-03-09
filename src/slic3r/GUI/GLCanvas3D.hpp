@@ -446,14 +446,21 @@ class GLCanvas3D
     class Labels
     {
         bool m_enabled{ false };
-        bool m_shown{ false };
+
+        bool m_show_layer_labels{ false };
+        bool m_show_object_labels{ true };
+
         GLCanvas3D& m_canvas;
 
     public:
         explicit Labels(GLCanvas3D& canvas) : m_canvas(canvas) {}
         void enable(bool enable) { m_enabled = enable; }
-        void show(bool show) { m_shown = m_enabled ? show : false; }
-        bool is_shown() const { return m_shown; }
+
+        void show_layer_labels(bool show) { m_show_layer_labels = m_enabled ? show : false; }
+        void show_object_labels(bool show) { m_show_object_labels = m_enabled ? show : false; }
+        bool are_layer_labels_shown() const { return m_show_layer_labels; }
+        bool are_object_labels_shown() const { return m_show_object_labels; }
+
         void render(const std::vector<const ModelInstance*>& sorted_instances) const;
     };
 
@@ -1136,8 +1143,10 @@ public:
 
     void mouse_up_cleanup();
 
-    bool are_labels_shown() const { return m_labels.is_shown(); }
-    void show_labels(bool show) { m_labels.show(show); }
+    bool are_layer_labels_shown() const { return m_labels.are_layer_labels_shown(); }
+    void show_layer_labels(bool show) { m_labels.show_layer_labels(show); }
+    bool are_object_labels_shown() const { return m_labels.are_object_labels_shown(); }
+    void show_object_labels(bool show) { m_labels.show_object_labels(show); }
 
     bool is_overhang_shown() const { return m_slope.is_GlobalUsed(); }
     void show_overhang(bool show) { m_slope.globalUse(show); }

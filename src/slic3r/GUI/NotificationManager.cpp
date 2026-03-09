@@ -148,6 +148,9 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
+    if (!n.second_hypertext.empty()) {
+        m_second_hypertext = n.second_hypertext;
+    }
     m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
     m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
     m_NormalColor = ImVec4(0.03, 0.6, 0.18, 1);
@@ -704,14 +707,21 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + " ").c_str()).x, starting_y + shift_y, _u8L("More"), true);
 	}
 	else if (!m_hypertext.empty()) {
-		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x, starting_y + (m_endlines.size() - 1) * shift_y, m_hypertext);
-	}
+        float first_hypertext_x = x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x;
+        render_hypertext(imgui, first_hypertext_x, starting_y + (m_endlines.size() - 1) * shift_y, m_hypertext);
+        if (!m_second_hypertext.empty()) {
+            float second_hypertext_x = first_hypertext_x + ImGui::CalcTextSize(m_hypertext.c_str()).x + ImGui::CalcTextSize("   ").x;
+            render_hypertext(imgui, second_hypertext_x, starting_y + (m_endlines.size() - 1) * shift_y,
+                             m_second_hypertext, false, true);
+        }
+    }
 
 	// text2 (text after hypertext) is not rendered for regular notifications
 	// its rendering is in HintNotification::render_text
 }
 
-void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui, const float text_x, const float text_y, const std::string text, bool more)
+void NotificationManager::PopNotification::render_hypertext(
+    ImGuiWrapper &imgui, const float text_x, const float text_y, const std::string text, bool more, bool use_second_callback)
 {
 	//invisible button
 	ImVec2 part_size = ImGui::CalcTextSize(text.c_str());
@@ -720,17 +730,26 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.4f, .4f, .4f, 0.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.5f, .5f, .5f, 0.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.7f, .7f, .7f, 0.0f));
+    ImGui::PushID(use_second_callback ? 1 : 0);
 	if (imgui.button("      ", part_size.x + 6, part_size.y + 10))
 	{
 		if (more)
 		{
 			m_multiline = true;
 			set_next_window_size(imgui);
-		}
-		else if (on_text_click()) {
-			close();
-		}
-	}
+        } else {
+            if (use_second_callback) {
+                if (on_second_text_click()) {
+                    close();
+                }
+            } else {
+                if (on_text_click()) {
+                    close();
+                }
+            }
+        }
+    }
+    ImGui::PopID();
 	ImGui::PopStyleColor(3);
 
 	//hover color
@@ -953,18 +972,33 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 	ImGui::PopStyleColor(5);
 	m_minimize_b_visible = true;
 }
+
 bool NotificationManager::PopNotification::on_text_click()
 {
 	if(m_data.callback != nullptr)
 		return m_data.callback(m_evt_handler);
 	return false;
 }
-void NotificationManager::PopNotification::update(const NotificationData& n)
+
+bool NotificationManager::PopNotification::on_second_text_click()
+{
+    if (m_data.second_callback != nullptr)
+        return m_data.second_callback(m_evt_handler);
+    return false;
+}
+
+void NotificationManager::PopNotification::update(const NotificationData &n, bool change_level)
 {
 	m_text1          = n.text1;
 	m_hypertext      = n.hypertext;
     m_text2          = n.text2;
+    m_second_hypertext                              = n.second_hypertext;
     const_cast<NotificationData&>(m_data).callback	 = n.callback;
+    const_cast<NotificationData &>(m_data).second_callback = n.second_callback;
+    if (change_level) {
+        const_cast<NotificationData &>(m_data).level          = n.level;
+        const_cast<NotificationData &>(m_data).use_warn_color = n.use_warn_color;
+    }
 	init();
 }
 
@@ -2028,6 +2062,15 @@ void NotificationManager::remove_notification_of_type(const NotificationType typ
     }
 }
 
+bool NotificationManager::has_notification_of_type(const NotificationType type) {
+    for (const std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == type) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void NotificationManager::clear_all()
 {
     for (size_t i = 0; i < size_t(NotificationType::NotificationTypeCount); i++) {
@@ -2786,14 +2829,21 @@ void NotificationManager::bbl_close_objectsinfo_notification()
         if (notification->get_type() == NotificationType::BBLObjectInfo) { notification->close(); }
 }
 
-void NotificationManager::bbl_show_seqprintinfo_notification(const std::string &text)
+void NotificationManager::bbl_show_seqprintinfo_notification(const std::string &text, const std::string &link_text, std::function<bool(wxEvtHandler*)> callback, const std::string &second_link_text, std::function<bool(wxEvtHandler*)> second_callback,bool has_error)
 {
-    NotificationData data{NotificationType::BBLSeqPrintInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
-
+    NotificationData data{NotificationType::BBLSeqPrintInfo,
+                          has_error ? NotificationLevel::WarningNotificationLevel : NotificationLevel::PrintInfoNotificationLevel,
+                          BBL_NOTICE_MAX_INTERVAL,
+                          text,
+                          link_text,
+                          callback}; // WarningNotificationLevel
+    data.second_hypertext = second_link_text;
+    data.second_callback  = second_callback;
+    data.use_warn_color = has_error;
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLSeqPrintInfo) {
             notification->reinit();
-            notification->update(data);
+            notification->update(data,true);
             return;
         }
     }

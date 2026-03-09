@@ -251,7 +251,8 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "6", L("Camera view - Right")},
             {ctrl + "7", L("Camera view - Isometric")},
             {ctrl + "W", L("Reset Window Layout")},
-            {ctrl + "E", L("Show Labels")},
+            {ctrl + "E", L("Show Labels by Layer")},
+            {L("Shift+E"), L("Show Labels by Object")},
             {ctrl + "L", L("Show &Overhang")},
 
             {ctrl + "A", L("Select all objects")},

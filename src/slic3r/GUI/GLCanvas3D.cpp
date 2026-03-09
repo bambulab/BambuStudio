@@ -906,8 +906,35 @@ GLCanvas3D::Mouse::Mouse()
 
 void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_instances) const
 {
-    if (!m_enabled || !is_shown() || m_canvas.get_gizmos_manager().is_running())
+    if (!m_enabled || m_canvas.get_gizmos_manager().is_running()) {
         return;
+    }
+    if ((!m_show_layer_labels && !m_show_object_labels) )
+        return;
+
+    // Lambda to check print sequence of current plate
+    auto get_plate_print_sequence = [&]() -> PrintSequence {
+        PartPlate* cur_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+        if (cur_plate) {
+            PrintSequence plate_seq = cur_plate->get_print_seq();
+            if (plate_seq != PrintSequence::ByDefault) {
+                return plate_seq;
+            }
+            // If plate uses default, check global print sequence
+            return wxGetApp().global_print_sequence();
+        }
+        return PrintSequence::ByLayer; // Default fallback
+    };
+    PrintSequence seq = get_plate_print_sequence();
+    // Check if current plate follows global/layer sequence
+    bool is_layer_seq = (seq == PrintSequence::ByLayer || seq == PrintSequence::ByDefault);
+    if (is_layer_seq && !m_show_layer_labels) {
+        return;
+    }
+    bool is_object_seq = (seq == PrintSequence::ByObject || seq == PrintSequence::ByDefault);
+    if (is_object_seq && !m_show_object_labels) {
+        return;
+    }
 
     const Camera &camera = m_canvas.get_active_camera();
     const Model* model = m_canvas.get_model();
@@ -1008,15 +1035,21 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, owner.selected ? 3.0f : 1.5f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleColor(ImGuiCol_Border, owner.selected ? ImVec4(0.757f, 0.404f, 0.216f, 1.0f) : ImVec4(0.75f, 0.75f, 0.75f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Border, owner.selected ? ImVec4(1/255.f, 174/255.f, 66/255.f, 1.0f) : ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.4f));
         imgui.set_next_window_pos(x, y, ImGuiCond_Always, 0.5f, 0.5f);
         imgui.begin(owner.title, ImGuiWindowFlags_NoMouseInputs | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove);
         ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
         ImGui::AlignTextToFramePadding();
+
+        bool show_object_label = m_show_object_labels && !owner.print_order.empty();
+
         imgui.text(owner.label);
 
-        if (!owner.print_order.empty()) {
+        if (show_object_label) {
+            ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(1.0f, 1.0f, 1.0f, 0.3f));
             ImGui::Separator();
+            ImGui::PopStyleColor();
             ImGui::AlignTextToFramePadding();
             imgui.text(owner.print_order);
         }
@@ -1026,7 +1059,7 @@ void GLCanvas3D::Labels::render(const std::vector<const ModelInstance*>& sorted_
             imgui.set_requires_extra_frame();
 
         imgui.end();
-        ImGui::PopStyleColor();
+        ImGui::PopStyleColor(2);
         ImGui::PopStyleVar(2);
     }
 }
@@ -4023,7 +4056,11 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 #else /* __APPLE__ */
         case WXK_CONTROL_E:
 #endif /* __APPLE__ */
-        { m_labels.show(!m_labels.is_shown()); m_dirty = true; break; }
+        {
+            m_labels.show_layer_labels(!m_labels.are_layer_labels_shown());
+            m_dirty = true;
+            break;
+        }
 #ifdef __APPLE__
         case 'W':
         case 'w':
@@ -4066,6 +4103,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
+        // Shift+E to toggle object labels
+        case 'E':
+        case 'e': {
+            if ((evt.GetModifiers() & shiftMask) != 0) {
+                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
+                m_dirty = true;
+                break;
+            }
+            evt.Skip();
+            break;
+        }
         //case WXK_F5: {
         //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
         //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))

@@ -5022,8 +5022,10 @@ public:
     bool is_view3D_shown() const { return current_panel == view3D; }
     bool is_assemble_view_show() const { return current_panel == assemble_view; }
 
-    bool are_view3D_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_labels_shown(); }
-    void show_view3D_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_labels(show); }
+    bool are_view3D_layer_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_layer_labels_shown(); }
+    void show_view3D_layer_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_layer_labels(show); }
+    bool are_view3D_object_labels_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->are_object_labels_shown(); }
+    void show_view3D_object_labels(bool show) { if (current_panel == view3D) view3D->get_canvas3d()->show_object_labels(show); }
 
     bool is_view3D_overhang_shown() const { return (current_panel == view3D) && view3D->get_canvas3d()->is_overhang_shown(); }
     void show_view3D_overhang(bool show)
@@ -17383,8 +17385,10 @@ bool Plater::is_preview_shown() const { return p->is_preview_shown(); }
 bool Plater::is_preview_loaded() const { return p->is_preview_loaded(); }
 bool Plater::is_view3D_shown() const { return p->is_view3D_shown(); }
 
-bool Plater::are_view3D_labels_shown() const { return p->are_view3D_labels_shown(); }
-void Plater::show_view3D_labels(bool show) { p->show_view3D_labels(show); }
+bool Plater::are_view3D_layer_labels_shown() const { return p->are_view3D_layer_labels_shown(); }
+void Plater::show_view3D_layer_labels(bool show) { p->show_view3D_layer_labels(show); }
+bool Plater::are_view3D_object_labels_shown() const { return p->are_view3D_object_labels_shown(); }
+void Plater::show_view3D_object_labels(bool show) { p->show_view3D_object_labels(show); }
 
 bool Plater::is_view3D_overhang_shown() const { return p->is_view3D_overhang_shown(); }
 void Plater::show_view3D_overhang(bool show)  {  p->show_view3D_overhang(show); }
@@ -19458,8 +19462,7 @@ void Plater::config_change_notification(const DynamicPrintConfig &config, const 
         if (seq_print && view3d_canvas && view3d_canvas->is_initialized() && view3d_canvas->is_rendering_enabled()) {
             NotificationManager* notify_manager = get_notification_manager();
             if (seq_print->value == PrintSequence::ByObject) {
-                std::string info_text = _u8L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
-                notify_manager->bbl_show_seqprintinfo_notification(info_text);
+                show_seqprintinfo_notification(false);
             }
             else
                 notify_manager->bbl_close_seqprintinfo_notification();
@@ -20159,7 +20162,39 @@ void Plater::align_selection_x_min() { p->align_selection_x_min(); }
 void Plater::align_selection_x_center() { p->align_selection_x_center(); }
 void Plater::align_selection_z_max() { p->align_selection_z_max(); }
 void Plater::align_selection_z_min() { p->align_selection_z_min(); }
-void Plater::align_selection_z_center() { p->align_selection_z_center(); }
+void Plater::align_selection_z_center()
+{
+    p->align_selection_z_center();
+}
+
+void Plater::show_seqprintinfo_notification(bool has_error)
+{
+    GLCanvas3D* view3d_canvas = get_view3D_canvas3D();
+    if (view3d_canvas && view3d_canvas->is_initialized() && view3d_canvas->is_rendering_enabled()) {
+        NotificationManager* notify_manager = get_notification_manager();
+        std::string info_text = _u8L("Print By Object: \nSuggest to use auto-arrange to avoid collisions when printing.");
+        auto wiki_callback = [](wxEvtHandler*) {
+            bool is_zh = wxGetApp().app_config->get("language") == "zh_CN";
+            if (is_zh) {
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/zh/software/bambu-studio/auto-arranging");
+            } else {
+                wxLaunchDefaultBrowser("https://wiki.bambulab.com/en/software/bambu-studio/auto-arranging");
+            }
+            return false;
+        };
+        auto arrange_callback = [this](wxEvtHandler*) {
+            if (!p->m_ui_jobs.is_any_running()) {
+                p->m_ui_jobs.arrange();
+            }
+            return false;
+        };
+        if (!has_error) {
+            notify_manager->bbl_show_seqprintinfo_notification(info_text, _u8L("Auto arrange"), arrange_callback, _u8L("Detail view wiki->"), wiki_callback, false);
+        } else {
+            notify_manager->bbl_show_seqprintinfo_notification(info_text, _u8L("Auto arrange"), arrange_callback, "", nullptr, true);
+        }
+    }
+}
 void Plater::mirror(Axis axis)      { p->mirror(axis); }
 void Plater::split_object()         { p->split_object(); }
 void Plater::split_volume()         { p->split_volume(); }
@@ -21474,6 +21509,16 @@ void Plater::post_process_string_object_exception(StringObjectException &err)
             }
         } catch (...) {
             ;
+        }
+    } else if (err.type == StringExceptionType::STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT) {
+        NotificationManager *notify_manager = get_notification_manager();
+        notify_manager->bbl_close_seqprintinfo_notification();
+        show_seqprintinfo_notification(true);
+    } else {
+        // Check if BBLSeqPrintInfo notification exists
+        NotificationManager *notify_manager = get_notification_manager();
+        if (notify_manager->has_notification_of_type(NotificationType::BBLSeqPrintInfo)) {
+            show_seqprintinfo_notification(false);
         }
     }
 

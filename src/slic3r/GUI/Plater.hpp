@@ -422,8 +422,10 @@ public:
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
 
-    bool are_view3D_labels_shown() const;
-    void show_view3D_labels(bool show);
+    bool are_view3D_layer_labels_shown() const;
+    void show_view3D_layer_labels(bool show);
+    bool are_view3D_object_labels_shown() const;
+    void show_view3D_object_labels(bool show);
 
     bool is_view3D_overhang_shown() const;
     void show_view3D_overhang(bool show);
@@ -654,6 +656,9 @@ public:
     void align_selection_z_max();
     void align_selection_z_min();
     void align_selection_z_center();
+
+    // Show print sequence info notification
+    void show_seqprintinfo_notification(bool has_error = false);
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();
