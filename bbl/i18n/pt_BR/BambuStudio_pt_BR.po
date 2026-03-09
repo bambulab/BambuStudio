@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 14:21+0800\n"
+"POT-Creation-Date: 2026-03-09 14:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -267,7 +267,7 @@ msgid "Used Time"
 msgstr "Tempo utilizado"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "Os bicos dinâmicos são alocados na placa atual. A seleção do hotend não é suportada."
 
 msgid "Hotend Rack"
 msgstr "Rack para Hotend"
@@ -279,7 +279,7 @@ msgid "Nozzle information needs to be read"
 msgstr "As informações do bico precisam ser lidas"
 
 msgid "Note:"
-msgstr ""
+msgstr "Nota:"
 
 msgid "Supports Painting"
 msgstr "Pintura de suporte"
@@ -2055,7 +2055,7 @@ msgid "Support Enforcer"
 msgstr "Reforço de suporte"
 
 msgid "Change part type"
-msgstr ""
+msgstr "Alterar tipo de peça"
 
 msgid "Set as an individual object"
 msgstr "Definir como um objeto individual"
@@ -2850,22 +2850,22 @@ msgid "Purge old filament"
 msgstr "Purgar filamento antigo"
 
 msgid "Switch"
-msgstr ""
+msgstr "Trocar"
 
 msgid "hotend"
 msgstr ""
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "Aguarde o resfriamento do AMS"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "Trocar o filamento atual no interruptor da trilha de filamento"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "Recuar o filamento atual no interruptor de trilha de filamento"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "Troca de trilhos na chave de trilhos de filamento"
 
 msgid "Confirm extruded"
 msgstr "Confirme a extrusão"
@@ -3492,16 +3492,16 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "Por favor, selecione o filamento instalado no bico da direita."
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "Por favor, selecione o filamento."
 
 msgid "Nozzle"
 msgstr "Bico"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "Para aprender sobre as regras de correspondência de filamentos."
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "Carretel externo não é suportado desde que o Interruptor de Rastreamento de Filamento foi instalado. Se você deseja usar o carretel externo, por favor, desinstale-o."
 
 msgid "Select Filament && Hotends"
 msgstr "Selecionar Slot de Filamento && Bicos de Aquecimento"
@@ -4197,7 +4197,7 @@ msgid "No Reminder Next Time"
 msgstr "Nenhum lembrete na próxima vez"
 
 msgid "Recheck"
-msgstr ""
+msgstr "Verificar novamente"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Ignorar. Não lembre da próxima vez"
@@ -4416,7 +4416,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Taxa de fluxo volumétrico (mm³/s)"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "Bicos"
 
 msgid "Travel"
 msgstr "Viagem"
@@ -4908,7 +4908,7 @@ msgid "Jump to: Prime tower"
 msgstr "Ir para: Torre principal"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "Ativar detecção de aglomeração"
 
 msgid "Click here to regroup"
 msgstr "Clique aqui para reagrupar"
@@ -5779,7 +5779,7 @@ msgid "Downloading %d%%..."
 msgstr "Baixando %d%%..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "Gerenciamento do ar"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Reconectando a impressora, a operação não pode ser concluída imediatamente. Tente novamente mais tarde."
@@ -6062,10 +6062,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "A extrusora atual está ocupada trocando o filamento"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "As funções \"Carregar\" ou \"Descarregar\" não são suportadas para carretéis externos ao usar o Interruptor de Trilha de Filamento."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "O interruptor de rastreamento do filamento não foi configurado. Configure-o na impressora."
 
 msgid "Current slot has alread been loaded"
 msgstr "O slot atual já foi carregado"
@@ -12139,12 +12139,6 @@ msgstr "Temperatura de impressão para a camada de interface da torre primária 
 
 msgid "°C"
 msgstr "°C"
-
-msgid "Enable tower interface features"
-msgstr ""
-
-msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
 
 msgid "Softening temperature"
 msgstr "Temperatura de amolecimento"

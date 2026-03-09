@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 14:21+0800\n"
+"POT-Creation-Date: 2026-03-09 14:27+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -12137,12 +12137,6 @@ msgstr "Utskriftstemperatur för prime tower gränssnitts lager (där olika mate
 
 msgid "°C"
 msgstr "° C"
-
-msgid "Enable tower interface features"
-msgstr ""
-
-msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
 
 msgid "Softening temperature"
 msgstr "Mjuknings temperatur"

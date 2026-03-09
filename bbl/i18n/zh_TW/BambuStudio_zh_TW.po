@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 14:21+0800\n"
+"POT-Creation-Date: 2026-03-09 14:27+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -12071,12 +12071,6 @@ msgstr "料塔接觸層（不同材料交界處）的列印溫度。如果設定
 
 msgid "°C"
 msgstr "°C"
-
-msgid "Enable tower interface features"
-msgstr ""
-
-msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
 
 msgid "Softening temperature"
 msgstr "軟化溫度"
