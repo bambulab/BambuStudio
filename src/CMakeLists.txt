@@ -215,6 +215,11 @@ if (WIN32)
             COMMENT "Symlinking the resources directory into the build tree"
             VERBATIM
         )
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            bambustudio_copy_dlls(BambuStudioDllsCopy "Debug" "d" output_dlls_Debug)
+        else()
+            bambustudio_copy_dlls(BambuStudioDllsCopy "Release" "" output_dlls_Release)
+        endif()
     endif ()
 
 
