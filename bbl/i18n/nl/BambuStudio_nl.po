@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 14:21+0800\n"
+"POT-Creation-Date: 2026-03-09 14:27+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -263,7 +263,7 @@ msgid "Used Time"
 msgstr "Gebruikte tijd"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "Dynamische nozzles zijn toegewezen op de huidige plaat. Het selecteren van een hotend wordt niet ondersteund."
 
 msgid "Hotend Rack"
 msgstr "Hot-end rek"
@@ -275,7 +275,7 @@ msgid "Nozzle information needs to be read"
 msgstr "Nozzle-informatie moet worden uitgelezen"
 
 msgid "Note:"
-msgstr ""
+msgstr "Opmerking:"
 
 msgid "Supports Painting"
 msgstr "Onderteuning (Support) tekenen"
@@ -2051,7 +2051,7 @@ msgid "Support Enforcer"
 msgstr "Support handhaven"
 
 msgid "Change part type"
-msgstr ""
+msgstr "Kies het onderdeel type"
 
 msgid "Set as an individual object"
 msgstr "Instellen als individueel object"
@@ -2714,6 +2714,8 @@ msgid ""
 "The consumables changer has not been calibrated. \n"
 "Please calibrate it on the printer before using."
 msgstr ""
+"De filamentwisselaar is niet gekalibreerd.\n"
+"Kalibreer deze eerst op de printer voordat u hem gebruikt."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Kies een AMS-sleuf en druk op de knop \"Laden\" of \"Lossen\" om automatisch filament te laden of te ontladen."
@@ -2846,22 +2848,22 @@ msgid "Purge old filament"
 msgstr "Oud filament verwijderen"
 
 msgid "Switch"
-msgstr ""
+msgstr "Wisselen"
 
 msgid "hotend"
 msgstr ""
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "Wacht tot AMS is afgekoeld"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "Wissel huidige filament om bij de filamentwisselaar"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "Trek het huidige filament terug bij de filamentwisselaar"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "Wissel spoor bij filamentwisselaar"
 
 msgid "Confirm extruded"
 msgstr "Bevestig geëxtrudeerd"
@@ -3488,16 +3490,16 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "Selecteer het filament dat op de rechter nozzle is geïnstalleerd."
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "Selecteer het filament."
 
 msgid "Nozzle"
 msgstr "Nozzle"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "Om meer te weten te komen over de regels voor het matchen van filamenten."
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "Externe spoelen worden niet ondersteund zolang de filamentwisselaar is geïnstalleerd. Als je een externe spoel wilt gebruiken, verwijder deze dan alstublieft."
 
 msgid "Select Filament && Hotends"
 msgstr "Selecteer Filament && hot-ends"
@@ -4194,7 +4196,7 @@ msgid "No Reminder Next Time"
 msgstr "Geen herinnering volgende keer"
 
 msgid "Recheck"
-msgstr ""
+msgstr "Opnieuw controleren"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Negeren. Herinner de volgende keer niet"
@@ -4905,7 +4907,7 @@ msgid "Jump to: Prime tower"
 msgstr "Ga naar: prime tower"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "Schakel detectie van klontvorming in"
 
 msgid "Click here to regroup"
 msgstr "Klik hier om te hergroeperen"
@@ -5776,7 +5778,7 @@ msgid "Downloading %d%%..."
 msgstr "%d%% downloaden..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "Luchtbeheer"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Als u de printer opnieuw aansluit, kan de bewerking niet onmiddellijk worden voltooid."
@@ -6059,10 +6061,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "Huidige extruder is bezig met het verwisselen van filament"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "\"Laden\" of \"Lossen\" wordt niet ondersteund voor externe spoel tijdens gebruik van filamentwisselaar."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "De filamentwisselaar is niet ingesteld. Stel deze alstublieft in op de printer."
 
 msgid "Current slot has alread been loaded"
 msgstr "Huidige sleuf is al geladen"
@@ -6126,7 +6128,7 @@ msgid "Please select an AMS slot before calibration"
 msgstr "Selecteer een AMS-sleuf voor kalibratie"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "Kan filamentinformatie niet lezen: het filament is geladen in de printkop, los het filament en probeer het opnieuw."
 
 msgid "This only takes effect during printing"
 msgstr "Dit is alleen van kracht tijdens het printen"
@@ -6791,7 +6793,7 @@ msgstr "Wijzig het nozzle-type of wijs de filamenten opnieuw toe en probeer het 
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "Risico op nozzle-klontvorming vastgesteld met het huidige hoogtemperatuur filament (%s). We raden aan om klontvormingsdetectie in te schakelen (via detectie). Deze functie maakt gebruik van een snelle detectiesessie om tijdens het printen te controleren op nozzle-opbouw en gebruikt de prime tower om sijpeling op te vangen voordat het printen wordt hervat."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6869,7 +6871,7 @@ msgid "Sync printer information"
 msgstr "Printergegevens synchroniseren"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "Wilt je de vooraf ingestelde printer synchroniseren met de aangesloten printer, "
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
@@ -6892,6 +6894,8 @@ msgid ""
 "Tips:\n"
 "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
+"Tips:\n"
+"Uw printer ondersteunt boogbenadering, daarom is de Boogbenaderings functie van de slicer uitgeschakeld om conflicten te voorkomen."
 
 msgid "Click to edit preset"
 msgstr "Klik om de instelling te veranderen"
@@ -7208,14 +7212,14 @@ msgid " (unsupported)"
 msgstr " (niet ondersteund)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "Multikleur-simulatie ondersteunt momenteel slechts één filamentmateriaal."
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "Je hebt meerdere materialen geselecteerd: %s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "Opmerking: niet-ondersteunde materialen gebruiken het geselecteerde referentiemateriaal voor simulatie."
 
 msgid "True multi-material support will be added in a future update."
 msgstr "Echte ondersteuning voor meerdere materialen wordt in een toekomstige update toegevoegd."
@@ -7254,7 +7258,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ Niet-ondersteunde materialen gedetecteerd"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "Sommige van je geselecteerde materialen worden niet direct ondersteund door Helio:"
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "Optie 1: Ga verder met een referentiemateriaal"
@@ -7802,10 +7806,10 @@ msgid "Units"
 msgstr "Eenheden"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "Gebruik 12-uurs tijdnotatie"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Toontijd in 12-uursnotatie met AM/PM in plaats van 24-uursnotatie"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Bewaar slechts één Bambu Studio-exemplaar"
@@ -8478,7 +8482,7 @@ msgstr "Foutcode"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "Aanbevolen filamentindeling bespaart %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8610,10 +8614,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestand (%.1fmm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de corresponderende voorinstelling van de printer in tijdens het slicen."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "Deze print vereist een filamentwisselaar. Installeer deze eerst alstublieft."
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "De filamentwisselaar is niet ingesteld. Stel deze alstublieft in op de printer."
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8711,7 +8715,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "U hebt zowel extern als AMS filament geselecteerd voor een extruder. U moet het externe filament handmatig omschakelen tijdens het printen."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "TPU 90A/TPU 85A zijn te zacht. Het wordt aanbevolen om handmatige flowkalibratie uit te voeren op de pagina 'Kalibratie'. Als 'Dynamische flowkalibratie' is ingesteld op automatisch/aan, gebruikt het systeem de vorige kalibratiewaarde en wordt het flowkalibratieproces overgeslagen."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Stel dynamische stroomkalibratie in op 'UIT' om aangepaste dynamische stroomwaarde in te schakelen."
@@ -10311,7 +10315,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "Je bent er bijna! Nu Helio is geactiveerd, duurt je eerste optimalisatieronde voor sneller en betrouwbaarder printen slechts enkele minuten! (Nu aangeduid als 'Verbeteren' of 'Verbetering')"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "Voeg een object toe aan de bouwplaat, selecteer een materiaal en printer die door Helio worden ondersteund en slice vervolgens."
 
 msgid "Supported printers and materials"
 msgstr "Ondersteunde printers en materialen"
@@ -11719,10 +11723,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "Dichtheid van de bovenste oppervlaktevulling, 100% betekent een volledig gevulde bovenste laag. Lagere waarden creëren een gestructureerd bovenoppervlak, bij 0% worden alleen de wanden op de bovenste laag gemaakt. Bedoeld voor esthetische of functionele doeleinden, niet om problemen zoals overextrusie op te lossen."
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "Monotone lijnreis verlengen"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "Schakel deze optie in om de reislengte tussen lijnen te verlengen, wat de hechting tussen de monotone lijnvulling en de wanden verbetert (percentage van lijnbreedte)."
 
 msgid "Bottom surface pattern"
 msgstr "Bodem oppvlakte patroon"
@@ -12136,12 +12140,6 @@ msgstr "Printtemperatuur voor de interface-laag van de prime tower (waar verschi
 
 msgid "°C"
 msgstr "℃"
-
-msgid "Enable tower interface features"
-msgstr ""
-
-msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
 
 msgid "Softening temperature"
 msgstr "Verzachtingstemperatuur"
@@ -15847,7 +15845,7 @@ msgid "Filament grouping"
 msgstr "Draadgroepering"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "Filament besparing"
 
 msgid "Don't remind me again"
 msgstr "Herinner me er niet meer aan"
@@ -15914,7 +15912,7 @@ msgid "The filament grouping method for current plate is determined by the dropd
 msgstr "De filamentgroeperingsmethode voor de huidige plaat wordt bepaald door de vervolgkeuzemogelijkheid bij de knop voor het snijden van de plaat."
 
 msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
+msgstr "Filamentgroepering wordt automatisch geoptimaliseerd op basis van filamentbesparende principes"
 
 msgid "Skip Objects"
 msgstr "Objecten overslaan"

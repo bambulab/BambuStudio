@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 14:21+0800\n"
+"POT-Creation-Date: 2026-03-09 14:27+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2046,7 +2046,7 @@ msgid "Support Enforcer"
 msgstr "支撑添加器"
 
 msgid "Change part type"
-msgstr "更换零件类型"
+msgstr "选择零件类型"
 
 msgid "Set as an individual object"
 msgstr "设置为独立对象"
@@ -2840,7 +2840,7 @@ msgid "Switch"
 msgstr "切换"
 
 msgid "hotend"
-msgstr ""
+msgstr "热端"
 
 msgid "Wait for AMS cooling"
 msgstr "等待 AMS 冷却"
@@ -3475,7 +3475,7 @@ msgid "Please select the filament installed on the right nozzle."
 msgstr "请选择安装在右喷嘴上的耗材丝。"
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "请选择耗材。"
 
 msgid "Nozzle"
 msgstr "喷嘴"
@@ -4385,7 +4385,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "体积流量速度（mm³/s）"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "喷嘴"
 
 msgid "Travel"
 msgstr "空驶"
@@ -6114,7 +6114,7 @@ msgid "Can't start this without storage."
 msgstr "没有外部存储就无法启动"
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "当前打印机不在3D打印模式，无法切换挤出机"
 
 msgid "Rate the Print Profile"
 msgstr "评价打印配置文件"
@@ -6555,10 +6555,10 @@ msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "检测由喷嘴堵塞引起的空打。"
 
 msgid "Foreign Object Detection"
-msgstr ""
+msgstr "异物检测"
 
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
-msgstr ""
+msgstr "打印开始时，检测打印板上是否有异物，避免打印过程中出现碰撞。"
 
 msgid "Ensures the build plate type and placement are correct."
 msgstr "确保盘的类型及放置位置正确。"
@@ -6778,7 +6778,7 @@ msgid "Filament changes"
 msgstr "材料切换"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "检测到你已安装耗材变轨器，所有AMS中材料均能在左右头自由使用，切片过程中直接按照最优结果左右分配。 "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
 msgstr "检测到你安装的耗材变轨器未标定，暂时无法使用，请先去打印机标定后再同步使用。 "
@@ -7161,14 +7161,14 @@ msgid " (unsupported)"
 msgstr " （不支持）"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "多色仿真目前仅支持单一耗材材料。"
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "你已选择多种材料：%s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "注意：不支持的材料将使用所选参考材料进行仿真。"
 
 msgid "True multi-material support will be added in a future update."
 msgstr "真正的多材料支持将在后续更新中加入。"
@@ -7207,7 +7207,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ 检测到不支持的材料"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "你选择的部分材料未被 Helio 直接支持："
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "选项 1：继续使用参考材料"
@@ -8561,7 +8561,7 @@ msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "此打印件需要耗材轨道开关。请先安装它。"
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "选料器尚未初始化，请先进行初始化。"
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -10249,7 +10249,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "就快完成了！现在 Helio 已激活，你的首次优化只需几分钟即可获得更快、更可靠的打印！（现称为“Enhance/增强”或“Enhancement/增强效果”）"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "将对象添加到打印板上，选择 Helio 支持的材料与打印机，然后进行切片。"
 
 msgid "Supported printers and materials"
 msgstr "支持的打印机与材料"
@@ -12074,12 +12074,6 @@ msgstr "料塔接触层（不同材料交界处）的打印温度。如果设置
 
 msgid "°C"
 msgstr "°C"
-
-msgid "Enable tower interface features"
-msgstr ""
-
-msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
 
 msgid "Softening temperature"
 msgstr "软化温度"
