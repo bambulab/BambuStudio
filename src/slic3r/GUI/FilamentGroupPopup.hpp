@@ -66,6 +66,7 @@ private:
     std::vector<Label *>   detail_infos;
     std::vector<wxSizer *> button_sizers;
     std::vector<wxSizer *> label_sizers;
+    std::vector<wxSizerItem *> mode_spacer; // vertical space between each mode
 
     wxBitmap checked_bmp;
     wxBitmap unchecked_bmp;

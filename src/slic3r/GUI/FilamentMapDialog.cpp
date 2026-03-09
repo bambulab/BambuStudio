@@ -6,10 +6,17 @@
 #include "CapsuleButton.hpp"
 #include "MsgDialog.hpp"
 #include "PartPlate.hpp"
+#include "libslic3r/Config.hpp"
 
 #include <algorithm>
 
 namespace Slic3r { namespace GUI {
+
+ConfigOptionBool * enable_filament_dynamic_map()
+{
+    auto &config = wxGetApp().preset_bundle->project_config;
+    return dynamic_cast<ConfigOptionBool *>(config.option("enable_filament_dynamic_map"));
+}
 
 static bool get_pop_up_remind_flag()
 {
@@ -294,8 +301,9 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     bottom_panel->SetSizer(bottom_sizer);
     bottom_sizer->Fit(bottom_panel);
 
-    if(with_checkbox)
-    {
+    if (m_fila_switch_ready) make_smart_filament_section(main_sizer);
+
+    if (with_checkbox) {
         auto* checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_checkbox = new CheckBox(bottom_panel);
         m_checkbox->Bind(wxEVT_TOGGLEBUTTON, &FilamentMapDialog::on_checkbox, this);
@@ -398,6 +406,35 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
+void FilamentMapDialog::make_smart_filament_section(wxBoxSizer *main_sizer)
+{
+    constexpr auto spacing = 20;
+    // space
+    main_sizer->AddSpacer(FromDIP(spacing));
+
+    // separator
+    auto *separator = new wxPanel(this);
+    separator->SetBackgroundColour(wxColour("#EEEEEE"));
+    main_sizer->Add(separator, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+
+    // space
+    main_sizer->AddSpacer(FromDIP(spacing));
+
+    // smart filament section
+    m_smart_filament_checkbox = new CheckBox(this);
+    m_smart_filament_checkbox->SetValue(enable_filament_dynamic_map()->getBool());
+    m_smart_filament_checkbox->Bind(wxEVT_TOGGLEBUTTON, &FilamentMapDialog::on_smart_filament_checkbox, this);
+
+    auto *label = new Label(this, _L("Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"));
+    label->SetFont(Label::Body_12);
+
+    auto *smart_sizer = new wxBoxSizer(wxHORIZONTAL);
+    smart_sizer->Add(m_smart_filament_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+    smart_sizer->Add(label, 0, wxLEFT | wxALIGN_CENTER, FromDIP(3));
+
+    main_sizer->Add(smart_sizer, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(15));
+}
+
 FilamentMapMode FilamentMapDialog::get_mode()
 {
     if (m_page_type == PageType::ptAuto) {
@@ -427,6 +464,12 @@ void FilamentMapDialog::on_checkbox(wxCommandEvent &event)
         this->Close();
     }
 
+    event.Skip();
+}
+
+void FilamentMapDialog::on_smart_filament_checkbox(wxCommandEvent &event)
+{
+    enable_filament_dynamic_map()->value = m_smart_filament_checkbox->GetValue();
     event.Skip();
 }
 
