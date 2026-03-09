@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <map>
+#include <cfloat>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -2384,10 +2385,13 @@ public:
     // Optional width of an input field.
     int                                 width           = -1;
     // <min, max> limit of a numeric input.
-    // If not set, the <min, max> is set to <INT_MIN, INT_MAX>
+    // If not set explicitly, the <min, max> default to <-DBL_MAX, DBL_MAX>, which can be refenced externally
+    // using the static `min_default`/`max_default` members to check if a value was set.
     // By setting min=0, only nonnegative input is allowed.
-    int                                 min = INT_MIN;
-    int                                 max = INT_MAX;
+    static constexpr double             min_default = -DBL_MAX;
+    static constexpr double             max_default = DBL_MAX;
+    double                              min = min_default;
+    double                              max = max_default;
     // To check if it's not a typo and a % is missing
     double                              max_literal = 1;
     ConfigOptionMode                    mode = comSimple;

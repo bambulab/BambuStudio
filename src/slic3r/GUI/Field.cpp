@@ -259,7 +259,7 @@ void Field::get_value_by_opt_type(wxString& str, const bool check_value/* = true
 			wxString label = m_opt.full_label.empty() ? _(m_opt.label) : _(m_opt.full_label);
             show_error(m_parent, from_u8((boost::format(_utf8(L("%s can't be percentage"))) % into_u8(label)).str()));
 			set_value(double_to_string(m_opt.min), true);
-			m_value = double(m_opt.min);
+			m_value = m_opt.min;
 			break;
 		}
         double val;
@@ -1002,17 +1002,17 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-    const int min_val = m_opt.min == INT_MIN
+    const int min_val = m_opt.min == ConfigOptionDef::min_default
 #ifdef __WXOSX__
     // We will forcibly set the input value for SpinControl, since the value
     // inserted from the keyboard is not updated under OSX.
     // So, we can't set min control value bigger then 0.
     // Otherwise, it couldn't be possible to input from keyboard value
     // less then min_val.
-    || m_opt.min > 0
+    || m_opt.min > 0.0
 #endif
-    ? 0 : m_opt.min;
-	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
+    ? 0 : (int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX);
+    const int max_val = (int)std::clamp<double>(m_opt.max, INT_MIN, INT_MAX);
 
     static Builder<SpinInput> builder;
 	auto temp = builder.build(m_parent, "", "", wxDefaultPosition, size,
@@ -1068,7 +1068,7 @@ void SpinCtrl::BUILD() {
         if (!parsed || value < INT_MIN || value > INT_MAX)
             tmp_value = UNDEF_VALUE;
         else {
-            tmp_value = std::min(std::max((int)value, m_opt.min), m_opt.max);
+            tmp_value = (int)std::clamp<double>(std::clamp<double>(value, m_opt.min, m_opt.max), INT_MIN, INT_MAX);
 #ifdef __WXOSX__
 #ifdef UNDEFINED__WXOSX__ // BBS
             // Forcibly set the input value for SpinControl, since the value
@@ -1110,9 +1110,9 @@ void SpinCtrl::propagate_value()
 	} else {
 #ifdef __WXOSX__
         // check input value for minimum
-        if (m_opt.min > 0 && tmp_value < m_opt.min) {
+        if (m_opt.min > 0.0 && tmp_value < m_opt.min) {
             SpinInput* spin = static_cast<SpinInput*>(window);
-            spin->SetValue(m_opt.min);
+            spin->SetValue((int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX));
             // spin->GetText()->SetInsertionPointEnd(); // BBS
         }
 #endif
@@ -1129,7 +1129,7 @@ void SpinCtrl::set_value(const boost::any& value, bool change_event) {
     m_disable_change_event = !change_event;
     m_value = value;
     if (value.empty()) { // BBS: null value
-        dynamic_cast<SpinInput*>(window)->SetValue(m_opt.min);
+        dynamic_cast<SpinInput*>(window)->SetValue((int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX));
         dynamic_cast<SpinInput*>(window)->GetTextCtrl()->SetValue("");
     }
     else {
@@ -2135,9 +2135,9 @@ void SliderCtrl::BUILD()
 
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
 
-	auto def_val = m_opt.get_default_value<ConfigOptionInt>()->value;
-	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
-	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
+	const int def_val = m_opt.get_default_value<ConfigOptionInt>()->value;
+	const int min = m_opt.min == ConfigOptionDef::min_default ? 0 : (int)std::clamp<double>(m_opt.min, INT_MIN, INT_MAX);
+	const int max = m_opt.max == ConfigOptionDef::max_default ? 100 : (int)std::clamp<double>(m_opt.max, INT_MIN, INT_MAX);
 
 	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
 							min * m_scale, max * m_scale,
