@@ -57,7 +57,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->left_dray_time = ams->GetLeftDryTime();
     this->m_ams_drying = ams->AmsIsDrying() || (!ams->GetDryStatus().has_value() && this->left_dray_time > 0);
     this->current_temperature = ams->GetCurrentTemperature();
-    this->ams_type = ams->GetAmsType(); 
+    this->ams_type = ams->GetAmsType();
     this->current_extruder_id = ams->GetCurrentExtruderId();
     this->binded_extruder_set = ams->GetBindedExtruderSet();
     this->binded_switcher_pos = ams->GetSwitcherPos();
@@ -1179,8 +1179,13 @@ void AMSLib::render_generic_text(wxDC &dc)
     else if (m_info.cali_idx == -1 || (m_obj && (CalibUtils::get_selected_calib_idx(m_obj->GetCalib()->GetPAHistory(), m_info.cali_idx) == -1))) {
         if (m_obj && m_obj->GetConfig() && m_obj->GetConfig()->SupportCalibrationPA_FlowAuto())
             show_k_value = false;
-        else
+        else {
             get_default_k_n_value(m_info.filament_id, m_info.k, m_info.n);
+            // k&n is default, disable show_k_value
+            if (is_approx(m_info.k, 0.02f) && is_approx(m_info.n, 1.0f)) {
+                show_k_value = false;
+            }
+        }
     }
     else if (abs(m_info.k) < EPSILON) {
         show_k_value = false;
