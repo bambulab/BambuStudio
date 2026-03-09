@@ -10,8 +10,10 @@
             "priority": 3,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
                 "support_style": "tree_hybrid",
                 "support_threshold_angle": 35,
+                "support_on_build_plate_only": false,
                 "raft_first_layer_expansion": 5.0,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
@@ -31,8 +33,10 @@
             "priority": 1,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
                 "support_style": "tree_hybrid",
                 "support_threshold_angle": 35,
+                "support_on_build_plate_only": false,
                 "raft_first_layer_expansion": 5.0,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
@@ -52,6 +56,8 @@
             "priority": 2,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
+                "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
@@ -68,8 +74,10 @@
             "priority": 3,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
                 "support_style": "tree_hybrid",
                 "support_threshold_angle": 35,
+                "support_on_build_plate_only": false,
                 "raft_first_layer_expansion": 5.0,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
@@ -89,8 +97,10 @@
             "priority": 1,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
                 "support_style": "tree_hybrid",
                 "support_threshold_angle": 35,
+                "support_on_build_plate_only": false,
                 "raft_first_layer_expansion": 5.0,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
@@ -110,6 +120,8 @@
             "priority": 3,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
+                "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
@@ -125,7 +137,9 @@
             "priority": 3,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
                 "support_style": "tree_hybrid",
+                "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
@@ -141,6 +155,8 @@
             "priority": 2,
             "recommended_params": {
                 "enable_support": true,
+                "support_type": "tree(auto)",
+                "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,

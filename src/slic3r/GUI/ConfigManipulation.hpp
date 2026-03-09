@@ -11,6 +11,7 @@
 #include "libslic3r/PrintConfig.hpp"
 #include "Field.hpp"
 #include <wx/string.h>
+#include <set>
 
 namespace Slic3r {
 
@@ -109,6 +110,8 @@ struct SupportFilamentRecommendation
 
     std::string support_material_name;  // 支撑材料名称（用于显示，如 "Bambu PLA Basic"）
     std::string model_material_name;    // 主体材料名称（用于显示，如 "Bambu TPU 95A"）
+
+    std::set<int> used_extruders;       // 对象使用的所有 extruder ID（1-based）
 };
 
 // 为单个对象查找匹配的耗材组合（支持同类材料的多色模型）

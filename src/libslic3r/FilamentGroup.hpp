@@ -295,10 +295,10 @@ namespace Slic3r
     protected:
         MemoryedGroupHeap memoryed_groups;
         std::shared_ptr<FlushDistanceEvaluator>m_evaluator;
-        std::unordered_map<int, std::vector<int>> m_unplaceable_limits; // ²ÄÁÏ²»ÔÊĞí·ÖÅäµ½ÌØ¶¨Åç×ì
-        std::unordered_map<int, std::vector<int>> m_placeable_limits; // ²ÄÁÏ±ØĞë·ÖÅäµ½ÌØ¶¨Åç×ì
-        std::vector<int>m_max_cluster_size; // Ã¿¸öÅç×ìÄÜ¹»·ÖÅäµÄ×î´óºÄ²ÄÊıÁ¿
-        std::vector<int>m_cluster_labels;  // ·ÖÅä½á¹û£¬Ï¸»¯µ½Åç×ìid
+        std::unordered_map<int, std::vector<int>> m_unplaceable_limits; // ææ–™ä¸å…è®¸åˆ†é…åˆ°ç‰¹å®šå–·å˜´
+        std::unordered_map<int, std::vector<int>> m_placeable_limits; // ææ–™å¿…é¡»åˆ†é…åˆ°ç‰¹å®šå–·å˜´
+        std::vector<int>m_max_cluster_size; // æ¯ä¸ªå–·å˜´èƒ½å¤Ÿåˆ†é…çš„æœ€å¤§è€—ææ•°é‡
+        std::vector<int>m_cluster_labels;  // åˆ†é…ç»“æœï¼Œç»†åŒ–åˆ°å–·å˜´id
         std::vector<std::pair<std::set<int>,int>> m_cluster_group_size;
         std::vector<int> m_nozzle_to_extruder;
 

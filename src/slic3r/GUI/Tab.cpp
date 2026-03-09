@@ -1841,22 +1841,24 @@ struct SupportRecommendation {
     DynamicPrintConfig recommended_config;   // 推荐的参数配置
     bool use_same_for_base{false};           // 是否用于支撑基座
     bool from_json{false};                   // 是否来自 JSON 配置
+    std::set<int> model_filament_indices;    // 模型耗材 slot（1-based）
 };
 
-// 过滤后的推荐信息（仅包含需要修改的参数）
-struct FilteredSupportRecommendation {
-    ObjectID object_id;
-    std::string object_name;
+// 分组后的推荐信息（按主体料+支撑料+参数分组，替代 FilteredSupportRecommendation）
+struct GroupedSupportRecommendation {
     std::string model_material;
     std::string support_material;
-    DynamicPrintConfig filtered_config;  // 过滤后只包含需要修改的参数
+    int support_filament_index{-1};                         // 支撑耗材 slot（1-based）
+    std::vector<std::pair<ObjectID, std::string>> objects;  // (id, name)
+    std::set<int> model_filament_indices;                   // 合并后的模型耗材 slot（1-based）
+    DynamicPrintConfig filtered_config;
     bool use_same_for_base{false};
 };
 
-// 根据 ObjectID 查找对象
+// 根据 ObjectID 查找对象（仅在当前盘中查找）
 static ModelObject* find_object_by_id(const ObjectID& id)
 {
-    auto model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
+    auto model_objects = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_objects_on_this_plate();
     for (ModelObject* obj : model_objects) {
         if (obj && obj->id() == id) {
             return obj;
@@ -1894,7 +1896,7 @@ static wxString generate_support_param_description(const std::string& key, const
             break;
         }
         case coInt: {
-            if (key == "support_filament" && use_same_for_base) {
+            if (((key == "support_filament" && use_same_for_base) || key == "support_interface_filament") && !support_material_name.empty()) {
                 value_str = support_material_name;
             } else {
                 value_str = wxString::FromUTF8(opt->serialize());
@@ -1950,6 +1952,7 @@ static void collect_recommendation_for_object(ModelObject* obj, bool support_jso
                 rec.recommended_config = new_conf;
                 rec.use_same_for_base = use_same_for_base;
                 rec.from_json = true;
+                rec.model_filament_indices = combination.used_extruders;
                 json_recommendations.push_back(rec);
                 return;
             }
@@ -2001,13 +2004,27 @@ static void collect_recommendation_for_object(ModelObject* obj, bool support_jso
     }
 }
 
+// 将 DynamicPrintConfig 序列化为确定性字符串，用于分组比较
+static std::string serialize_config_for_grouping(const DynamicPrintConfig& conf)
+{
+    std::string result;
+    auto keys = conf.keys();
+    std::sort(keys.begin(), keys.end());
+    for (const auto& key : keys) {
+        const ConfigOption* opt = conf.option(key);
+        if (opt) result += key + "=" + opt->serialize() + ";";
+    }
+    return result;
+}
+
 // 处理 JSON 推荐
 static void apply_json_recommendations(
     const std::vector<SupportRecommendation>& recommendations,
     DynamicPrintConfig* config,
     ConfigManipulation& config_manipulation)
 {
-    std::vector<FilteredSupportRecommendation> filtered_recommendations;
+    // 过滤 + 分组一步完成
+    std::map<std::string, GroupedSupportRecommendation> group_map;
 
     for (const auto& rec : recommendations) {
         ModelObject* obj = find_object_by_id(rec.object_id);
@@ -2026,90 +2043,106 @@ static void apply_json_recommendations(
             }
         }
 
-        // 只有存在需要修改的参数时才添加到列表
-        if (!filtered_conf.empty()) {
-            FilteredSupportRecommendation filtered_rec;
-            filtered_rec.object_id = rec.object_id;
-            filtered_rec.object_name = rec.object_name;
-            filtered_rec.model_material = rec.model_material;
-            filtered_rec.support_material = rec.support_material;
-            filtered_rec.filtered_config = filtered_conf;
-            filtered_rec.use_same_for_base = rec.use_same_for_base;
-            filtered_recommendations.push_back(filtered_rec);
+        auto group_key = rec.model_material + "|" + rec.support_material + "|" + serialize_config_for_grouping(filtered_conf);
+        if (auto it = group_map.find(group_key); it != group_map.end()) {
+            it->second.objects.emplace_back(rec.object_id, rec.object_name);
+            it->second.model_filament_indices.insert(rec.model_filament_indices.begin(), rec.model_filament_indices.end());
+        } else {
+            group_map.emplace(group_key, GroupedSupportRecommendation{
+                rec.model_material, rec.support_material,
+                rec.recommended_filament_index + 1,
+                {{rec.object_id, rec.object_name}},
+                rec.model_filament_indices, std::move(filtered_conf), rec.use_same_for_base
+            });
         }
     }
 
-    if (filtered_recommendations.empty()) return;
+    if (group_map.empty()) return;
 
-    // 使用 SupportRecommendDialog 显示推荐
+    // 构建对话框
     SupportRecommendDialog dialog(wxGetApp().plater(), _L("Notification"));
 
-    // 为每个推荐添加卡片
-    for (const auto& rec : filtered_recommendations) {
-        wxArrayString params;
-        for (const auto& key : rec.filtered_config.keys()) {
-            const ConfigOption* opt = rec.filtered_config.option(key);
-            wxString desc = generate_support_param_description(key, opt, rec.use_same_for_base, wxString::FromUTF8(rec.support_material));
-            if (!desc.empty()) {
-                params.Add(desc);
-            }
+    auto& project_config  = wxGetApp().preset_bundle->project_config;
+    auto& filament_presets = wxGetApp().preset_bundle->filament_presets;
+    auto& filaments        = wxGetApp().preset_bundle->filaments;
+
+    auto build_filament_info = [&](int slot) -> std::tuple<int, wxColour, wxString> {
+        unsigned int idx0 = static_cast<unsigned int>(slot - 1);
+        std::string color_str;
+        wxString name;
+        if (slot > 0 && idx0 < filament_presets.size()) {
+            color_str = project_config.opt_string("filament_colour", idx0);
+            if (auto* preset = filaments.find_preset(filament_presets[idx0]))
+                name = wxString::FromUTF8(preset->alias);
         }
-        //dialog.AddSupportComboCard(wxString::FromUTF8(rec.model_material), wxString::FromUTF8(rec.support_material), params);
+        return {slot, wxColour(color_str.empty() ? "#FFFFFF" : wxString::FromUTF8(color_str)), name};
+    };
+
+    for (const auto& [_, group] : group_map) {
+        std::vector<wxString> objects;
+        objects.reserve(group.objects.size());
+        for (const auto& [id, name] : group.objects)
+            objects.push_back(wxString::FromUTF8(name));
+
+        std::vector<std::tuple<int, wxColour, wxString>> mainMat;
+        mainMat.reserve(group.model_filament_indices.size());
+        for (int idx : group.model_filament_indices)
+            mainMat.push_back(build_filament_info(idx));
+
+        wxString support_name = wxString::Format("%s(%d)", wxString::FromUTF8(group.support_material), group.support_filament_index);
+        wxArrayString params;
+        for (const auto& key : group.filtered_config.keys())
+            if (const auto* opt = group.filtered_config.option(key))
+                if (auto desc = generate_support_param_description(key, opt, group.use_same_for_base, support_name); !desc.empty())
+                    params.Add(desc);
+
+        dialog.AddSupportComboCard(objects, mainMat, build_filament_info(group.support_filament_index), params);
     }
 
-    if (dialog.ShowModal() == wxID_APPLY) {
-        // 使用 PrintObjectConfig 的 keys 来判断参数是对象级别还是全局级别
-        static const std::unordered_set<std::string> object_config_keys = []() {
-            std::unordered_set<std::string> keys;
-            for (const auto& key : PrintObjectConfig::defaults().keys_ref()) {
-                keys.insert(key);
-            }
-            return keys;
-        }();
+    if (dialog.ShowModal() != wxID_APPLY) {
+        wxGetApp().plater()->update();
+        return;
+    }
 
-        // 收集全局配置的参数（去重，只取第一个推荐的值）
-        DynamicPrintConfig global_config;
-        std::set<ModelObject*> modified_objects;  // 收集被修改的对象
+    static const auto object_config_keys = [] {
+        auto keys_ref = PrintObjectConfig::defaults().keys_ref();
+        return std::unordered_set<std::string>(keys_ref.begin(), keys_ref.end());
+    }();
 
-        // 遍历推荐：处理对象参数，同时收集全局参数
-        for (const auto& rec : filtered_recommendations) {
-            ModelObject* obj = find_object_by_id(rec.object_id);
-            bool obj_modified = false;
-            for (const auto& key : rec.filtered_config.keys()) {
-                if (object_config_keys.count(key) > 0) { // PrintObjectConfig 级别的 key，写入对象配置
-                    if (obj) {
-                        obj->config.set_key_value(key, rec.filtered_config.option(key)->clone());
-                        obj_modified = true;
-                    }
-                } else { // 全局配置的 key，收集到 global_config（去重）
-                    if (!global_config.has(key)) {
-                        global_config.set_key_value(key, rec.filtered_config.option(key)->clone());
-                    }
+    DynamicPrintConfig global_config;
+    std::set<ModelObject*> modified_objects;
+
+    for (const auto& [_, group] : group_map) {
+        for (const auto& key : group.filtered_config.keys())
+            if (!object_config_keys.count(key) && !global_config.has(key))
+                global_config.set_key_value(key, group.filtered_config.option(key)->clone());
+
+        for (const auto& [obj_id, obj_name] : group.objects) {
+            auto* obj = find_object_by_id(obj_id);
+            if (!obj) continue;
+            bool modified = false;
+            for (const auto& key : group.filtered_config.keys()) {
+                if (object_config_keys.count(key)) {
+                    obj->config.set_key_value(key, group.filtered_config.option(key)->clone());
+                    modified = true;
                 }
             }
-            if (obj && obj_modified) {
-                modified_objects.insert(obj);
-            }
-        }
-
-        // 最后应用全局配置到 m_config
-        if (!global_config.empty()) {
-            config_manipulation.apply(config, &global_config);
-        }
-
-        // 更新 ObjectList 中被修改对象的设置图标（显示锁图标）
-        for (ModelObject* obj : modified_objects) {
-            ObjectVolumeID ov_id;
-            ov_id.object = obj;
-            ov_id.volume = nullptr;
-            wxGetApp().obj_list()->object_config_options_changed(ov_id);
-        }
-
-        // 更新"对象"标签的颜色（橙色表示有对象配置）
-        if (!modified_objects.empty()) {
-            wxGetApp().params_panel()->notify_object_config_changed();
+            if (modified) modified_objects.insert(obj);
         }
     }
+
+    // 最后应用全局配置到 m_config
+    if (!global_config.empty()) 
+        config_manipulation.apply(config, &global_config);
+
+    // 更新 ObjectList 中被修改对象的设置图标（显示锁图标）
+    for (auto* obj : modified_objects)
+        wxGetApp().obj_list()->object_config_options_changed(ObjectVolumeID{obj, nullptr});
+
+    // 更新"对象"标签的颜色（橙色表示有对象配置）
+    if (!modified_objects.empty())
+        wxGetApp().params_panel()->notify_object_config_changed();
+
     wxGetApp().plater()->update();
 }
 
@@ -2136,7 +2169,7 @@ static void apply_hardcode_recommendations(
     if (filtered_conf.empty()) return;
 
     wxString msg_header;
-    wxString support_material_name = wxString::FromUTF8(first_rec.support_material);
+    wxString support_material_name = wxString::Format("%s(%d)", wxString::FromUTF8(first_rec.support_material), first_rec.recommended_filament_index + 1);
 
     if (first_rec.support_material == "PLA") {
         msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
@@ -2448,8 +2481,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                     collect_recommendation_for_object(obj, support_json_recommendation, interface_filament_id, filament_id, interface_filament_type, json_recommendations,
                                                   hardcode_recommendations);
             }
-        } else { // 全局参数：遍历所有对象
-            auto model_objects = Slic3r::GUI::wxGetApp().plater()->model().objects;
+        } else { // 全局参数：遍历当前盘的对象
+            auto model_objects = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_objects_on_this_plate();
             for (ModelObject *obj : model_objects) {
                 bool obj_enable_support = enable_support;
                 if (obj->config.get().has("enable_support")) obj_enable_support = obj->config.get().opt_bool("enable_support");
@@ -7463,7 +7496,7 @@ std::vector<wxString> Tab::generate_extruder_options()
             }
             bool found = false;
             for (const auto& nozzle_type : known_nozzle_types) {
-                if (v.size() > nozzle_type.size() && 
+                if (v.size() > nozzle_type.size() &&
                     v.substr(v.size() - nozzle_type.size()) == nozzle_type &&
                     v[v.size() - nozzle_type.size() - 1] == ' ') {
                     drive = v.substr(0, v.size() - nozzle_type.size() - 1);

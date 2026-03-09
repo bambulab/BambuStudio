@@ -1104,6 +1104,8 @@ SupportFilamentRecommendation has_filament_combination_for_object(const ModelObj
 
     if (used_extruders.empty()) return result;
 
+    result.used_extruders = used_extruders;
+
     // 2. 收集所有使用的耗材类型和名称
     std::set<std::string> used_filament_types;
     std::set<std::string> used_filament_names;
