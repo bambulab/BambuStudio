@@ -862,7 +862,7 @@ bool Sidebar::priv::is_fila_switch_ready()
         return false;
     }
     auto device_manager = wxGetApp().getDeviceManager();
-    if (device_manager == nullptr) return false;    
+    if (device_manager == nullptr) return false;
     auto obj = device_manager->get_selected_machine();
     if (obj == nullptr || !obj->is_online()) return false;
     auto fila_switch = obj->GetFilaSwitch();
@@ -1110,7 +1110,7 @@ static std::string serialize_nozzle_config(const std::map<int, std::vector<DevNo
         oss << std::fixed << std::setprecision(1) << deputy_nozzles[i].GetNozzleDiameter() << ","
             << static_cast<int>(deputy_nozzles[i].GetNozzleFlowType());
     }
-    
+
     oss << "|";
 
     for (size_t i = 0; i < main_nozzles.size(); ++i) {
@@ -1162,7 +1162,7 @@ static std::map<int, std::vector<DevNozzle>> deserialize_nozzle_config(const std
         auto nozzles = get_nozzles_from_string(extruder_parts[1]);
         nozzle_cfg_map[MAIN_EXTRUDER_ID] = nozzles;
     }
-    
+
     return nozzle_cfg_map;
 }
 
@@ -1172,7 +1172,7 @@ static bool is_same_nozzle_config(const std::map<int, std::vector<DevNozzle>> &c
 
     for (const auto& [eid, nozzles1] : config1) {
         auto it = config2.find(eid);
-        if (it == config2.end()) return false;  
+        if (it == config2.end()) return false;
 
         const auto &nozzles2 = it->second;
         if (nozzles1.size() != nozzles2.size()) return false;
@@ -3404,18 +3404,13 @@ bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
             m_cur_image_bed_type = pm->image_bed_type;
         }
     }
-    if (m_last_combo_bedtype_count != 0 && pm) {
-        auto cur_count = (int) BedType::btCount - 1 - pm->not_support_bed_types.size();
-        if (cur_count == m_last_combo_bedtype_count) {//no change
-            return false;
-        }
-    }
+    //Different types of printers may have the same number of different printing plates, but the types are different.
     const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
     p->combo_printer_bed->Clear();
     m_cur_combox_bed_types.clear();
     if (pm &&bed_type_def && bed_type_def->enum_keys_map) {
         int index = 0;
-        for (auto item : bed_type_def->enum_labels) {
+        for (auto item : bed_type_def->enum_values) {
             index++;
             bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
             if (find) {
