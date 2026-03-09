@@ -609,9 +609,11 @@ private:
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 
-    bool has_bowden_extuder(MachineObject *obj);
 
+    
     void refresh_save_time(MachineObject *obj);
+
+    bool has_bowden_extuder(MachineObject *obj);
 };
 
 class PrinterInfoBox : public StaticBox

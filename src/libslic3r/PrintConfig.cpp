@@ -520,9 +520,9 @@ int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_ty
     for (int index = 0; index < int(variant_list.size()); ++index) {
         if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
     }
-    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
-                             << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
-                                    extruder_variant % variant_id_1based;
+    // BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+    //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
+    //                                 extruder_variant % variant_id_1based;
     return 0;
 }
 
@@ -865,7 +865,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
     def->category = L("Quality");
-    def->tooltip = L("Detour and avoid traveling across wall which may cause blob on surface");
+    def->tooltip = L("Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -2486,9 +2486,6 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{-1});
 
     def = this->add("enable_tower_interface_features", coBool);
-    def->label = L("Enable tower interface features");
-    def->tooltip = L("When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality.");
-    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS

@@ -914,67 +914,25 @@ private:
 class FeedDirectionDialog : public wxDialog
 {
 public:
-    FeedDirectionDialog(wxWindow* parent,
-                        const int extruderNum,
-                        const wxString& title,
-                        const wxFont& customFont = wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL),
-                        const wxColour& bgColor = wxColour(255, 255, 255),
-                        const wxSize& dialogSize = wxSize(300, 200));
+    FeedDirectionDialog(wxWindow* parent, const int extruderNum);
 
-    wxString GetSelectedDirection() const
-    {
-        return m_leftRadio->GetValue() ? "left side" : "right side";
-    }
+    std::optional<int> GetExtruderID();
 
-    void SetDialogTitle(const wxString& newTitle)
-    {
-        SetTitle(newTitle);
-    }
+    void SetExtruderMapping(const std::vector<wxString>& extruderMapping, const wxString& filamentID);
 
-    void SetDialogBgColor(const wxColour& newColor)
-    {
-        SetBackgroundColour(newColor);
-        Refresh();
-    }
-
-    void SetDialogFont(const wxFont& newFont)
-    {
-        m_customFont = newFont;
-        m_leftRadio->SetFont(newFont);
-        m_rightRadio->SetFont(newFont);
-        m_confirmBtn->SetFont(newFont);
-        Refresh();
-    }
-
-    void SetDialogSize(const wxSize& newSize)
-    {
-        SetSize(newSize);
-        Layout();
-    }
-
-    std::optional<int> GetExtruderID()
-    {
-        if (m_extruderImage)
-        {
-            return extruder_id;
-        }
-        return std::nullopt;
-    }
 private:
+
     int m_extruder_num{};
-    wxString m_title;
+    wxString m_filament_id{};
     wxRadioButton* m_radioHelper{nullptr};
     wxRadioButton* m_leftRadio{nullptr};
     wxRadioButton* m_rightRadio{nullptr};
     wxRadioButton* m_lastChecked{nullptr};
     DevExtruderImage* m_extruderImage{nullptr};
     Button* m_confirmBtn{nullptr};
-    wxFont m_customFont;
-    std::optional<int> extruder_id = std::nullopt;
-    void OnConfirm(wxCommandEvent& event)
-    {
-        EndModal(wxID_OK);
-    }
+    std::optional<int> m_load_extruder_id = std::nullopt;
+    
+    void OnConfirm(wxCommandEvent& event);
     void OnRadioClicked(wxCommandEvent& evt);
 
 };
