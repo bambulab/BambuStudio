@@ -865,7 +865,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
     def->category = L("Quality");
-    def->tooltip = L("Detour and avoid traveling across wall which may cause blob on surface");
+    def->tooltip = L("Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
