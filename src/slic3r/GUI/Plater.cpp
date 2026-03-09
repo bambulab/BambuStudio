@@ -1968,9 +1968,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             notification_manager->push_notification(NotificationType::BBLPlateInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
         }
     }
-    if (is_fila_switch_ready()) {
-        wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(true);
-    }
+
+    // enable dynamic filament if supported
+    auto& project_config   = wxGetApp().preset_bundle->project_config;
+    auto *dynamic_filament = dynamic_cast<ConfigOptionBool *>(project_config.option("enable_filament_dynamic_map"));
+    if (dynamic_filament) { dynamic_filament->value = is_fila_switch_ready(); }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
     return true;
@@ -7036,6 +7038,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             auto new_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // do some post process after loading config
                             {
+                                // disable dynamic filament by default, enable when a supported machine is connected
+                                auto* dynamic_filament = proj_cfg.option<ConfigOptionBool>("enable_filament_dynamic_map");
+                                if(dynamic_filament) dynamic_filament->value = false;
+
                                 // 导入结束后，允许流量切换的逻辑生效
                                 preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);
 

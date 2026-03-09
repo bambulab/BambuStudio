@@ -2,6 +2,7 @@
 //#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetHints.hpp"
+#include "libslic3r/Config.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
@@ -1273,19 +1274,6 @@ bool Tab::disable_arc_fitting()
     if (arc_fitting_opt && arc_fitting_opt->value) {
         DynamicPrintConfig new_conf;
         new_conf.set_key_value("enable_arc_fitting", new ConfigOptionBool(false));
-        m_config_manipulation.apply(&config, &new_conf);
-        return true;
-    }
-    return false;
-}
-
-bool Tab::set_dynamic_filament_mapping(bool mapping)
-{
-    DynamicPrintConfig &config          = m_preset_bundle->printers.get_edited_preset().config;
-    ConfigOptionBool   *mapping_opt = config.option<ConfigOptionBool>("enable_filament_dynamic_map", true);
-    if (mapping_opt && mapping_opt->value != mapping) {
-        DynamicPrintConfig new_conf;
-        new_conf.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(mapping));
         m_config_manipulation.apply(&config, &new_conf);
         return true;
     }
@@ -4559,7 +4547,6 @@ void TabPrinter::build_fff()
         optgroup = page->new_optgroup(L("Advanced"), L"param_advanced");
         optgroup->append_single_option_line("printer_structure");
         optgroup->append_single_option_line("gcode_flavor");
-        optgroup->append_single_option_line("enable_filament_dynamic_map");
 
         option =optgroup->get_option("thumbnail_size");
         option.opt.full_width=true;
@@ -5152,9 +5139,12 @@ void TabPrinter::on_preset_loaded()
 
         // only reset nozzle count when printer model is changed
         if (base_model != m_base_preset_model) {
-            wxGetApp().get_tab(Preset::TYPE_PRINTER)->set_dynamic_filament_mapping(false);
             wxGetApp().plater()->sidebar().reset_fila_switch();
-            m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("enable_filament_dynamic_map",true)->value =false;
+
+            // disable dynamic filament by default, enable when a supported machine is connected
+            auto* dynamic_filament = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("enable_filament_dynamic_map");
+            if(dynamic_filament) dynamic_filament->value = false;
+
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });

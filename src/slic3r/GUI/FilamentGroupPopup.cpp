@@ -128,6 +128,7 @@ void FilamentGroupPopup::RecreateUIElements()
     detail_infos.resize(mode_count);
     button_sizers.resize(mode_count);
     label_sizers.resize(mode_count);
+    mode_spacer.resize(mode_count);
 
     // Create vectors to hold text, descriptions, and details for each mode
     std::vector<wxString> btn_texts;
@@ -210,7 +211,7 @@ void FilamentGroupPopup::RecreateUIElements()
 
         top_sizer->Add(button_sizers[idx], 0, wxLEFT | wxRIGHT, horizontal_margin);
         top_sizer->Add(label_sizers[idx], 0, wxLEFT | wxRIGHT, horizontal_margin);
-        top_sizer->AddSpacer(vertical_padding);
+        mode_spacer[idx] = top_sizer->AddSpacer(vertical_padding);
 
         radio_btns[idx]->Bind(wxEVT_LEFT_DOWN, [this, idx](auto &) { OnRadioBtn(idx);});
 
@@ -312,12 +313,14 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
             label_sizers[i]->ShowItems(true);
             button_sizers[i]->Show(true);
             label_sizers[i]->Show(true);
+            mode_spacer[i]->Show(true);
         } else {
             // Hide the mode
             button_sizers[i]->ShowItems(false);
             label_sizers[i]->ShowItems(false);
             button_sizers[i]->Show(false);
             label_sizers[i]->Show(false);
+            mode_spacer[i]->Show(false);
         }
     }
 
@@ -379,7 +382,7 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         this->plater_ref = plater;
         this->m_sync_plate = true;
         this->m_slice_all = slice_all;
-        
+
         std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
         Print* print_obj = partplate ? partplate->fff_print() : nullptr;
         std::vector<FilamentMapMode> new_available_modes = resolve_available_auto_modes(print_obj, requested_modes, connect_status);
@@ -392,11 +395,11 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         }
 
         new_available_modes.push_back(fmmManual);
-        
+
         // Check if available modes changed
         bool modes_changed = (m_available_modes != new_available_modes);
         m_available_modes = new_available_modes;
-        
+
         if (m_active) {
             if (m_connected != connect_status || modes_changed) { Init(m_available_modes); }
             m_connected = connect_status;

@@ -1,6 +1,7 @@
 #include "FilamentMapPanel.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
+#include <boost/log/trivial.hpp>
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
 #include <map>
@@ -645,17 +646,17 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
         if (it != mode_info.end()) {
             const auto& label = it->second.first;
             const auto& detail = it->second.second;
-            const auto& icon = (available_mode == fmmAutoForMatch) ? "match_mode_panel_icon" : "flush_mode_panel_icon";
-            
+            const auto& icon = GetIconForMode(available_mode);
+
             auto panel = new FilamentMapBtnPanel(this, label, detail, icon);
-            
+
             // Disable match mode if not machine synced
             if (available_mode == fmmAutoForMatch && !m_machine_synced) {
                 panel->Enable(false);
             }
-            
+
             m_mode_panels.push_back(panel);
-            
+
             // Bind click event
             panel->Bind(wxEVT_LEFT_DOWN, [this, available_mode, panel](auto& event) {
                 if (panel->IsEnabled()) {
@@ -743,6 +744,18 @@ void FilamentMapAutoPanel::OnModeSwitch(FilamentMapMode mode)
     UpdateStatus();
 }
 
+std::string FilamentMapAutoPanel::GetIconForMode(FilamentMapMode mode)
+{
+    switch (mode) {
+    case fmmAutoForMatch: return "match_mode_panel_icon";
+    case fmmAutoForFlush: return "flush_mode_panel_icon";
+    case fmmAutoForQuality: return "quality_mode_panel_icon";
+    default:
+        BOOST_LOG_TRIVIAL(warning) << "invalid mode: " << mode;
+        return {};
+    }
+}
+
 FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(parent)
 {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -785,7 +798,7 @@ FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : wxPanel(paren
     saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
     saving_sizer->AddSpacer(FromDIP(16));
 
-    auto desc_label = new Label(this, _L("Filament grouping is automatically optimized based on filament-saving principles"));
+    auto desc_label = new Label(this, _L("Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"));
     desc_label->SetFont(Label::Body_12);
     desc_label->SetForegroundColour(wxColour("#6B6B6B"));
     saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));

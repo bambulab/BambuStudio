@@ -1809,7 +1809,7 @@ wxBoxSizer* MainFrame::create_side_tools()
         auto curr_plate = this->m_plater->get_partplate_list().get_curr_plate();
         m_filament_group_popup->SetPosition(pos);
         m_filament_group_popup->tryPopup(m_plater, curr_plate, m_slice_select == eSliceAll);
-        };
+    };
 
 #ifndef __linux__
 // in linux plateform, the pop up will taker over the mouse event and make the slice button cannot handle click event

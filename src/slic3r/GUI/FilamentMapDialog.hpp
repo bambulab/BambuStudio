@@ -71,10 +71,13 @@ public:
     int ShowModal();
     void set_modal_btn_labels(const wxString& left_label, const wxString& right_label);
 private:
+    void make_smart_filament_section(wxBoxSizer *sizer);
+
     void on_ok(wxCommandEvent &event);
     void on_cancle(wxCommandEvent &event);
     void on_switch_mode(wxCommandEvent &event);
     void on_checkbox(wxCommandEvent &event);
+    void on_smart_filament_checkbox(wxCommandEvent &event);
 
     void update_panel_status(PageType page);
 
@@ -88,9 +91,10 @@ private:
     CapsuleButton* m_manual_btn;
     CapsuleButton* m_default_btn;
 
-    Button* m_ok_btn;
-    Button* m_cancel_btn;
-    CheckBox* m_checkbox;
+    Button   *m_ok_btn{};
+    Button   *m_cancel_btn{};
+    CheckBox *m_checkbox{};
+    CheckBox *m_smart_filament_checkbox{};
 
     PageType m_page_type;
     bool     m_fila_switch_ready{false};
