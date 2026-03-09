@@ -102,6 +102,8 @@ private:
     void OnModeSwitch(FilamentMapMode mode);
     void UpdateStatus();
 
+    static std::string GetIconForMode(FilamentMapMode mode);
+
     std::vector<FilamentMapBtnPanel*> m_mode_panels;
     std::vector<FilamentMapMode> m_available_modes;
     FilamentMapMode      m_mode;
