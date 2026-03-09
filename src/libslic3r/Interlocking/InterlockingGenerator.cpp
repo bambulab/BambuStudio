@@ -70,7 +70,8 @@ void InterlockingGenerator::generate_embedding_wall(PrintObject* print_object){
 void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_object)
 {
     const auto& config = print_object->config();
-    if (!config.interlocking_beam) {
+    // Check if interlocking is enabled, and avoid errors like division by zero due to invalid configuration.
+    if (!config.interlocking_beam || config.interlocking_beam_layer_count < 1 || config.interlocking_depth < 1 || config.interlocking_beam_width < EPSILON ) {
         return;
     }
 
