@@ -2014,28 +2014,6 @@ void AmsReplaceMaterialDialog::on_dpi_changed(const wxRect& suggested_rect)
 
 }
 
-static std::unordered_map<int, bool>
-_GetBackupStatus(unsigned int fila_back_group)
-{
-    std::unordered_map<int, bool> trayid_group;
-    for (int i = 0; i < 16; i++)
-    {
-        if (fila_back_group & (1 << i))
-        {
-            trayid_group[i] = true;
-        }
-    }
-
-    for (int j = 16; j < 32; j++)/* single ams is from 128*/
-    {
-        if (fila_back_group & (1 << j))
-        {
-            trayid_group[128 + j - 16] = true;
-        }
-    }
-
-    return trayid_group;
-}
 
 void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
 {
@@ -2087,11 +2065,9 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
                 std::string    group_material;
                 bool   is_in_tray = false;
 
-            //get color & material
-            const auto& trayid_group = _GetBackupStatus(filam);
-            for (const auto& elem : trayid_group)
-            {
-                if (elem.second)
+                //get color & material
+                const auto& trayid_group = DevExtder::GetBackupStatus(filam);
+                for (const auto& elem : trayid_group)
                 {
                     DevAmsTray* cur_tray = id2tray[elem.first];
                     if (cur_tray)

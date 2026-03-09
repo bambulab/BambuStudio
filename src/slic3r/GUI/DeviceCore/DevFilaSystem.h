@@ -219,8 +219,6 @@ public:
 
     bool AmsIsDrying();
 
-    static int GetTrayIdByAmsSlot(std::string ams_id, std::string slot_id);
-
 private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
 

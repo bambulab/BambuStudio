@@ -102,6 +102,8 @@ private:
     static void send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
 
+extern std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
+
 extern void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
 
 extern void get_default_k_n_value(const std::string &filament_id, float &k, float &n);
