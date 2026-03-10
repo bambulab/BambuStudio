@@ -17,6 +17,7 @@
 #include <wx/clipbrd.h>
 #include <wx/dcgraph.h>
 #include <wx/graphics.h>
+#include <wx/display.h>
 #include <miniz.h>
 #include <algorithm>
 #include <optional>
@@ -832,17 +833,17 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
          if (e.IsShown() && m_parent_item)
          {
-             wxRect screen_size = wxGetDisplaySize();
-
-             // Position below the parent item by default
              auto show_pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
-             auto parent_size = m_parent_item->GetRect();
+             int  display_idx = wxDisplay::GetFromWindow(m_parent_item);
 
-             auto content_size = m_sizer_main_h->GetMinSize();
+             if (display_idx == wxNOT_FOUND)
+                 display_idx = 0;
 
-             int popup_width  = content_size.x + FromDIP(28);
+             wxRect screen_size = wxDisplay(display_idx).GetClientArea();
+             auto   parent_size = m_parent_item->GetRect();
+             auto   content_size = m_sizer_main_h->GetMinSize();
+             int    popup_width  = content_size.x + FromDIP(28);
              int    popup_height = content_size.y;
-
              wxSize popup_size(popup_width, popup_height);
 
               // Horizontal Direction Processing
