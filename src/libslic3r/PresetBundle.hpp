@@ -63,8 +63,24 @@ struct FilamentBaseInfo
     bool is_support{ false };
     bool is_system{ true };
     int  filament_printable = 3;
-    int  filament_extruder_compatibility = 0;  // 0=printable, 1=error, 2=critical warning, 3=warning
     std::string setting_id = "";
+
+    // extruder_id is 0-based (0 = first extruder)
+    int get_extruder_compatibility(int extruder_id) const {
+        constexpr int bits_per_extruder  = 3;
+        constexpr int extruder_mask      = (1 << bits_per_extruder) - 1; // 0x7
+        constexpr int max_extruder_count = 32 / bits_per_extruder;       // 10
+
+        if (extruder_id < 0 || extruder_id >= max_extruder_count)
+            return 0;
+        return (m_filament_extruder_compatibility >> (bits_per_extruder * extruder_id)) & extruder_mask;
+    }
+
+    void set_filament_extruder_compatibility(int value) { m_filament_extruder_compatibility = value; }
+    int  get_filament_extruder_compatibility() const     { return m_filament_extruder_compatibility; }
+
+private:
+    int  m_filament_extruder_compatibility = 0;
 };
 
 // Recommended parameters for support filament combination

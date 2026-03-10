@@ -2408,14 +2408,14 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionInts{3});
 
-    // A single 32-bit int encodes the compatibility level of a filament across all extruders (up to 16).
-    // Every 2 bits represent one extruder: bits [2*i, 2*i+1] -> extruder i
-    // Compatibility levels: 0 = printable, 1 = error, 2 = critical warning, 3 = warning
+    // A single 32-bit int encodes the compatibility level of a filament across all extruders (up to 10).
+    // Every 3 bits represent one extruder: bits [3*i, 3*i+2] -> extruder i
+    // Compatibility levels: 0 = printable, 1 = error, 2 = critical warning, 3 = warning (4-7 reserved)
     def          = this->add("filament_extruder_compatibility", coInts);
     def->label   = L("Filament-extruder compatibility");
-    def->tooltip = L("A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 16). "
-                     "Every 2 bits represent one extruder (bits [2*i, 2*i+1] for extruder i). "
-                     "0: printable, 1: error, 2: critical warning, 3: warning");
+    def->tooltip = L("A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). "
+                     "Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). "
+                     "0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved");
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
 

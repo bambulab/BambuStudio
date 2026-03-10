@@ -215,7 +215,7 @@ void PresetComboBox::update_selection()
         gtk_entry_set_max_width_chars(GTK_ENTRY(widget), 20);  // Adjust this value as needed
         // Create a PangoLayout for the entry and set ellipsization
         PangoLayout* layout = gtk_entry_get_layout(GTK_ENTRY(widget));
-        if (layout) { 
+        if (layout) {
             pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
         } else {
             g_warning("Unable to get PangoLayout from GtkEntry");

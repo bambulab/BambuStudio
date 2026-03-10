@@ -666,7 +666,7 @@ std::optional<FilamentBaseInfo> PresetBundle::get_filament_by_filament_id(const 
                 if (iter != compatible_printers.end() && config.has("filament_printable")) {
                     info.filament_printable = config.option<ConfigOptionInts>("filament_printable")->values[0];
                     if (config.has("filament_extruder_compatibility"))
-                        info.filament_extruder_compatibility = config.option<ConfigOptionInts>("filament_extruder_compatibility")->values[0];
+                        info.set_filament_extruder_compatibility(config.option<ConfigOptionInts>("filament_extruder_compatibility")->values[0]);
                     return info;
                 }
             }
