@@ -371,7 +371,7 @@ void PrintOptionsDialog::update_purify_air_at_print_end(MachineObject *obj_)
     m_cb_purify_air_at_print_end->Enable();
     purify_air_switch_board->Enable();
     text_purify_air_context->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
-    text_purify_air->SetForegroundColour(*wxBLACK);
+    text_purify_air->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#262E30")));
 
     if (obj_->GetFan()->GetAirDuctData().IsExaustFanExit())
     {
