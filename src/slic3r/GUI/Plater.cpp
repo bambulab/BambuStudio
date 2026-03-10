@@ -1807,7 +1807,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
     std::string target_model_id  = preset_bundle->printers.get_selected_preset().get_printer_type(preset_bundle);
     const Preset &selected_preset = preset_bundle->printers.get_selected_preset();
     const VendorProfile::PrinterModel *pm = PresetUtils::system_printer_model(selected_preset);
-    wxString target_display_name = pm ? wxString::FromUTF8(pm->name) : wxString::FromUTF8(target_model_id);
+    wxString target_display_name = pm ? wxString::FromUTF8(pm->name) : wxString(DevPrinterConfigUtil::get_printer_display_name(target_model_id));
     Preset* machine_preset = get_printer_preset(obj);
     if (!machine_preset) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << "check error: machine_preset empty";
