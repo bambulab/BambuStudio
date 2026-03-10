@@ -245,33 +245,34 @@ void UiStyledSwitchPanel::OnPaint(wxPaintEvent& event)
     // dc.SetFont(font12);
     dc.SetFont(::Label::Body_14);
     wxCoord textWidth, textHeight;
-    dc.GetTextExtent(_L("Filament Switch IN-A"), &textWidth, &textHeight);
+    dc.GetTextExtent(_L("Filament Inlet A"), &textWidth, &textHeight);
 
     int aTextPosX = labelX + 4 * offset;
     int aTextPosY = labelY + (labelHeight - textHeight ) / 2;
-    dc.DrawText(_L("Filament Switch IN-A"), aTextPosX, aTextPosY);
+    dc.DrawText(_L("Filament Inlet A"), aTextPosX, aTextPosY);
 
     int bTextPosX = labelX + 4 * offset + width / 2;
     int bTextPosY = aTextPosY;
-    dc.DrawText(_L("Filament Switch IN-B"), bTextPosX, bTextPosY);
+    dc.DrawText(_L("Filament Inlet B"), bTextPosX, bTextPosY);
 
     height += FromDIP(90); //total height
 
     dc.SetBrush(wxBrush(m_bgColor));
     dc.SetPen(wxPen(m_borderColor, m_borderWidth, wxPENSTYLE_SOLID));
-    int selBaseX = width / 2 - FromDIP(35);
-    int selBaseY = height - FromDIP(56);
-    int selWidth = FromDIP(70);
+    wxCoord selTextWidth, selTextHeight;
+    dc.GetTextExtent(_L("Filament Track Switch"), &selTextWidth, &selTextHeight);
+
+    int selWidth = selTextWidth + FromDIP(20);
     int selHeight = FromDIP(44);
+    int selBaseX = (width - selWidth) / 2;
+    int selBaseY = height - FromDIP(56);
     dc.DrawRoundedRectangle(wxRect(selBaseX, selBaseY, selWidth, selHeight), FromDIP(4));
     // wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     dc.SetTextForeground(wxColour("#262E30"));
     // dc.SetFont(font);
-    wxCoord selTextWidth, selTextHeight;
-    dc.GetTextExtent(_L("Selector"), &selTextWidth, &selTextHeight);
     int selTextPosX = selBaseX + (selWidth - selTextWidth) / 2;
     int selTextPosY = selBaseY + (selHeight - selTextHeight) / 2;
-    dc.DrawText(_L("Selector"), selTextPosX, selTextPosY);
+    dc.DrawText(_L("Filament Track Switch"), selTextPosX, selTextPosY);
 
     //draw Horizontal
     int hLBaseX = (width - FromDIP(184)) / 2;
@@ -370,12 +371,12 @@ void UiAMSSlot::DrawRectangle(wxPaintDC& dc, const wxSize& cli)
     dc.SetFont(font12);
     // dc.SetFont(::Label::Body_12);
     wxCoord w1, h1;
-    dc.GetTextExtent(line1, &w1, &h1);
+    dc.GetTextExtent(_L(line1), &w1, &h1);
 
     dc.SetFont(font14);
     // dc.SetFont(::Label::Body_14);
     wxCoord w2, h2;
-    dc.GetTextExtent(line2, &w2, &h2);
+    dc.GetTextExtent(_L(line2), &w2, &h2);
 
     int maxLine2Width = rectangleW - FromDIP(2);
     if (w2 > maxLine2Width && newSizeFont14 > 1)
@@ -386,7 +387,7 @@ void UiAMSSlot::DrawRectangle(wxPaintDC& dc, const wxSize& cli)
             currentFontSize--;
             font14.SetPointSize(currentFontSize);
             dc.SetFont(font14);
-            dc.GetTextExtent(line2, &w2, &h2); // 重新计算宽度
+            dc.GetTextExtent(_L(line2), &w2, &h2);
             if (w2 <= maxLine2Width)
             {
                 break;
@@ -402,10 +403,10 @@ void UiAMSSlot::DrawRectangle(wxPaintDC& dc, const wxSize& cli)
 
     dc.SetFont(font12);
     // dc.SetFont(::Label::Body_12);
-    dc.DrawText(line1, (cli.x - w1) / 2, baseY + topGap);
+    dc.DrawText(_L(line1), (cli.x - w1) / 2, baseY + topGap);
     dc.SetFont(font14);
     // dc.SetFont(::Label::Body_14);
-    dc.DrawText(line2, (cli.x - w2) / 2, baseY + topGap + h1 + textGap);
+    dc.DrawText(_L(line2), (cli.x - w2) / 2, baseY + topGap + h1 + textGap);
 
     //draw svg
     if (line2 != "Empty")
@@ -612,13 +613,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     linkwiki->SetBackgroundColour(wxColour("#FFFFFF"));
     linkwiki->SetFont(Label::Body_14);
     linkwiki->Bind(wxEVT_LEFT_UP, [this](wxMouseEvent&){
-    std::string language = wxGetApp().app_config->get("language");
-        wxString    region   = "en";
-        if (language.find("zh") == 0) {
-            region = "zh";
-        }
-        wxString url = wxString::Format("https://wiki.bambulab.com/%s/software/bambu-studio/calibration_pa", region);
-        wxLaunchDefaultBrowser(url);
+        wxLaunchDefaultBrowser(wxString("https://e.bambulab.com/t?c=yElVKjHwyw9o3pND"));
         // e.Skip();
     });
     textSizer->Add(suggestText, 0, wxALIGN_LEFT | wxTOP, FromDIP(5));
@@ -653,7 +648,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
 
     wxBoxSizer* okGroupSizer = new wxBoxSizer(wxHORIZONTAL);
     UiAMSSlot* amsSlotOK= new UiAMSSlot(statusBar, colourOK, wxString("Ax\nPLA"), DataStatusType::OK, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(58), FromDIP(90)), 1.0, 0.5);
-    wxStaticText* okLabel = new wxStaticText(statusBar, wxID_ANY, _L("OK"));
+    wxStaticText* okLabel = new wxStaticText(statusBar, wxID_ANY, _CTX(L_CONTEXT("OK", "FilamentTrack"), "FilamentTrack"));
     okLabel->SetFont(wxGetApp().normal_font());
     okLabel->SetForegroundColour(wxColour("#6B6B6B")); 
 
@@ -725,7 +720,7 @@ void ReselectMachineDialog::Update(MachineObject* obj, const std::map<int, int>&
 
     if (suggestText)
     {
-        suggestText->SetLabel(wxString::Format(_L("Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."), (save_time.empty() ? "0" : save_time)));
+        suggestText->SetLabel(wxString::Format(_L("Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."), (save_time.empty() ? "0s" : save_time)));
         suggestText->Wrap(FromDIP(600));
         suggestText->SetBackgroundColour(wxColour("#FFFFFF"));
         suggestText->SetFont(Label::Body_14);
@@ -945,8 +940,21 @@ int ReselectMachineDialog::CaculateSwitcherDistribution(MachineObject* obj, cons
             {
                 const auto& can = ams.cans[j];
                 auto id = getTrayID(obj, ams.ams_id, can.can_id);
-                auto material = can.material_name.empty() ? "Empty" : can.material_name;
-
+                auto material = can.material_name;
+                if (can.material_state == AMSCanType::AMS_CAN_TYPE_THIRDBRAND ||
+                    can.material_state == AMSCanType::AMS_CAN_TYPE_BRAND ||
+                    can.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL)
+                {
+                    if (can.material_name.empty()) 
+                    {
+                        material = L("?");
+                    }
+                }
+                if (can.material_state == AMSCanType::AMS_CAN_TYPE_EMPTY)
+                {
+                    material = "Empty";
+                }
+                
                 auto itOK = std::find_if(posOK.begin(), posOK.end(), [&](const trayHelper& tray){
                     auto amsID = std::get<0>(tray);
                     auto slotID = std::get<1>(tray);
@@ -1029,18 +1037,18 @@ wxString ReselectMachineDialog::FormatFilamentComment(const std::vector<wxString
         return result;
     };
     
-    wxString comment = "Summary: ";
+    wxString comment = _L("Summary: ");
     
     if (!toINB.empty() && !toINA.empty()) {
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
         comment += "\n";
         comment += "        ";
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
 
     } else if (!toINB.empty()) {
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
     } else if (!toINA.empty()) {
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Port A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
+        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
     } else {
         return wxString::Format(_L("Summary: This is currently the most suitable position for placement."));
     }
