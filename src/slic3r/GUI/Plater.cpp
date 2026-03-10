@@ -3410,7 +3410,7 @@ bool Sidebar::reset_bed_type_combox_choices(bool is_sidebar_init)
     m_cur_combox_bed_types.clear();
     if (pm &&bed_type_def && bed_type_def->enum_keys_map) {
         int index = 0;
-        for (auto item : bed_type_def->enum_values) {
+        for (auto item : bed_type_def->enum_labels) {
             index++;
             bool find = std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), item) != pm->not_support_bed_types.end();
             if (find) {
