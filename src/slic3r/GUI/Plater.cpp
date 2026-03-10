@@ -2183,6 +2183,19 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         btn_sync_printer->SetBorderColor(not_synced_colour);
         btn_sync_printer->SetIcon("printer_sync");
     }
+
+    if (fila_switch_flag)  {
+        static std::map<int, DynamicPrintConfig> last_filament_ams_list;
+        bool is_same_ams_list = last_filament_ams_list == wxGetApp().preset_bundle->filament_ams_list;
+        if (!is_same_ams_list) {
+            last_filament_ams_list = wxGetApp().preset_bundle->filament_ams_list;
+        }
+        const auto print_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
+        if (print_tech == ptFFF && !is_same_ams_list) {
+            for (PlaterPresetComboBox *cb : combos_filament)
+                cb->update();
+        }
+    }
 }
 
 std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj, int extruder_count, bool support_multi_nozzle, bool is_manual)
@@ -3930,13 +3943,6 @@ bool Sidebar::need_auto_sync_extruder_list_after_connect_priner(const MachineObj
 void Sidebar::update_sync_status(const MachineObject *obj)
 {
     p->update_sync_status(obj);
-    if (is_fila_switch_ready())  {
-        const auto print_tech = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
-        if (print_tech == ptFFF) {
-            for (PlaterPresetComboBox *cb : p->combos_filament)
-                cb->update();
-        }
-    }
 }
 
 int Sidebar::get_sidebar_pos_right_x()
