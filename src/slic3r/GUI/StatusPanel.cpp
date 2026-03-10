@@ -993,6 +993,8 @@ static wxString get_bbl_time_dhms(float time_in_secs)
 
 void PrintingTaskPanel::paint(wxPaintEvent &)
 {
+    if (!m_bitmap_thumbnail)
+        return;
     wxPaintDC dc(m_bitmap_thumbnail);
     if (wxGetApp().dark_mode()) {
         if (m_brightness_value > 0 && m_brightness_value < SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD) {
@@ -1002,7 +1004,8 @@ void PrintingTaskPanel::paint(wxPaintEvent &)
             dc.SetTextForeground(*wxWHITE);
     } else
         dc.SetTextForeground(*wxBLACK);
-    if (m_thumbnail_bmp_display.IsOk()) { dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0)); }
+    wxBitmap bmp = m_thumbnail_bmp_display;
+    if (bmp.IsOk()) { dc.DrawBitmap(bmp, wxPoint(0, 0)); }
     dc.SetFont(Label::Body_12);
 
     if (m_plate_index >= 0) {
@@ -3884,7 +3887,6 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
     if (!m_load_sdcard_thumbnail) {
         update_calib_bitmap();
         if (m_current_print_mode != PrintingTaskType::CALIBRATION) {
-            m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_sdcard.bmp());
             m_project_task_panel->set_thumbnail_img(m_thumbnail_sdcard.bmp(), m_thumbnail_sdcard.name());
         }
         task_thumbnail_state    = ThumbnailState::SDCARD_THUMBNAIL;
