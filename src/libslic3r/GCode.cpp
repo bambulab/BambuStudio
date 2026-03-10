@@ -3022,7 +3022,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
 
     //BBS: the last retraction
     // Write end commands to file.
-    file.write(this->retract(false, true));
+    file.write(this->retract(false, true, LiftType::SpiralLift, true));
 
     // if needed, write the gcode_label_objects_end
     {
