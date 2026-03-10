@@ -4029,13 +4029,13 @@ FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
     wxGridSizer* topSizer = new wxGridSizer (1, 3, FromDIP(5), 0);
 
     m_radioHelper = new wxRadioButton(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    m_leftRadio = new wxRadioButton(this, wxID_ANY, _L("Left"));
-    m_rightRadio = new wxRadioButton(this, wxID_ANY, _L("Right"));
+    m_leftRadio = new wxRadioButton(this, wxID_ANY, _CTX(L_CONTEXT("Left", "FilamentTrack"), "FilamentTrack"));
+    m_rightRadio = new wxRadioButton(this, wxID_ANY, _CTX(L_CONTEXT("Right", "FilamentTrack"), "FilamentTrack"));
     m_radioHelper->Show(false);
     m_radioHelper->SetCanFocus(false);
 
-    m_leftRadio->SetFont(::Label::Body_14);
-    m_rightRadio->SetFont(::Label::Body_14);
+    m_leftRadio->SetForegroundColour(*wxBLACK);
+    m_rightRadio->SetForegroundColour(*wxBLACK);
 
     topSizer->Add(m_leftRadio, 0, wxALIGN_CENTER | wxALL, FromDIP(20));
     m_extruderImage = new DevExtruderImage(this, wxID_ANY, m_extruder_num);
@@ -4101,7 +4101,7 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::FILLED_LOAD);
             m_extruderImage->setExtruderUsed("right");
             m_load_extruder_id = 0;
-            SetTitle(wxString::Format(_L("Load %s to ") + _L("right extruder"), m_filament_id));
+            SetTitle(wxString::Format(_L("Load %s to ") + _CTX(L_CONTEXT("right extruder", "FilamentTrack"), "FilamentTrack"), m_filament_id));
         }
     }
     m_leftRadio->Refresh();

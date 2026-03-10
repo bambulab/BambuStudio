@@ -837,8 +837,7 @@ void AMSControl::show_switcher_status(bool show)
         icon = new wxStaticBitmap(tipPanel, wxID_ANY,
             wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_MESSAGE_BOX, wxSize(FromDIP(16), FromDIP(16))));
         tipSizer->Add(icon, 0, wxALL, FromDIP(8));
-        tipText = new wxStaticText(tipPanel, wxID_ANY,
-            _L("The consumables changer has not been calibrated. \nPlease calibrate it on the printer before using."));
+        tipText = new wxStaticText(tipPanel, wxID_ANY, _L("AMS has not been initialized. Please initialize it before use."));
         tipText->SetForegroundColour(wxColour(255, 255, 255));
         tipText->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD));
         tipText->Wrap(-1);

@@ -52,6 +52,8 @@ src/slic3r/GUI/DeviceCore/DevUtil.h
 src/slic3r/GUI/DeviceCore/DevUtil.cpp
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.cpp
+src/slic3r/GUI/DeviceTab/uiAMSBestPositionPopup.hpp
+src/slic3r/GUI/DeviceTab/uiAMSBestPositionPopup.cpp
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h
@@ -101,6 +103,8 @@ src/slic3r/GUI/HintNotification.cpp
 src/slic3r/GUI/IMSlider.cpp
 src/slic3r/GUI/Widgets/SideTools.cpp
 src/slic3r/GUI/Widgets/AMSControl.cpp
+src/slic3r/GUI/Widgets/AMSItem.hpp
+src/slic3r/GUI/Widgets/AMSItem.cpp
 src/slic3r/GUI/Widgets/FanControl.cpp
 src/slic3r/GUI/Widgets/FilamentLoad.cpp
 src/slic3r/GUI/Widgets/TempInput.cpp
