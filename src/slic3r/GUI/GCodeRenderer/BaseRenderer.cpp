@@ -2095,7 +2095,7 @@ namespace Slic3r
                                 columns_offsets.push_back({ buf, color_print_offsets[_u8L("Total")] });
                             }
                             if (is_show_left_right_result) {
-                                std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(i));
+                                std::string nozzle_str   = get_nozzle_label(group_result, static_cast<int>(extruder_idx));
                                 ::sprintf(buf, "%s", nozzle_str.c_str());
                                 columns_offsets.push_back({buf, color_print_offsets[_u8L("Nozzles")]});
                             }
