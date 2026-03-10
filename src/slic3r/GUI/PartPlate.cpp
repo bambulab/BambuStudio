@@ -2885,24 +2885,26 @@ bool PartPlate::set_shape(const Pointfs& shape, const Pointfs& exclude_areas, co
 
 		calc_bounding_boxes();
 
-		ExPolygon logo_poly;
-		generate_logo_polygon(logo_poly);
-        auto triangles = triangulate_expolygon_2f(logo_poly, NORMALS_UP);
-        m_logo_triangles.reset();
-		if (!m_logo_triangles.init_model_from_poly(triangles, GROUND_Z + 0.01f))
-			BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
-		else {
-			;
-		}
-        BoundingBoxf3 box_in_plate_origin;
-        if (calc_bed_3d_boundingbox(box_in_plate_origin)) {
-            if ((m_cur_bed_boundingbox.center() - box_in_plate_origin.center()).norm() > 1.0f) {
-				set_logo_box_by_bed(box_in_plate_origin);
+		if (m_plater != nullptr) { // render data, skip in CLI mode where m_plater is null
+			ExPolygon logo_poly;
+			generate_logo_polygon(logo_poly);
+			auto triangles = triangulate_expolygon_2f(logo_poly, NORMALS_UP);
+			m_logo_triangles.reset();
+			if (!m_logo_triangles.init_model_from_poly(triangles, GROUND_Z + 0.01f))
+				BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":Unable to create logo triangles\n";
+			else {
+				;
 			}
-        }
+			BoundingBoxf3 box_in_plate_origin;
+			if (calc_bed_3d_boundingbox(box_in_plate_origin)) {
+				if ((m_cur_bed_boundingbox.center() - box_in_plate_origin.center()).norm() > 1.0f) {
+					set_logo_box_by_bed(box_in_plate_origin);
+				}
+			}
 
-	    calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);//if (generate_plate_name_texture())
-		calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
+			calc_vertex_for_plate_name(m_name_texture, m_plate_name_icon);//if (generate_plate_name_texture())
+			calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
+		}
 	}
 	calc_height_limit();
 
@@ -6083,7 +6085,7 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
 	update_logo_texture_filename(texture_filename);
     update_plate_trans(get_plate_count());
 
-    { // prepare render data
+    if (m_plater != nullptr) { // prepare render data, skip in CLI mode where m_plater is null
         ExPolygon poly;
         generate_print_polygon(poly);
         calc_triangles(poly);
