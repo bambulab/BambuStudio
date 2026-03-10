@@ -4793,11 +4793,12 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
     return model;
 }
 
-void PresetBundle::on_extruders_count_changed(int extruders_count)
+void PresetBundle::on_extruders_count_changed(int extruders_count, bool reset_volume_type)
 {
     printers.get_edited_preset().set_num_extruders(extruders_count);
     update_multi_material_filament_presets();
-    reset_default_nozzle_volume_type();
+    if (reset_volume_type)
+        reset_default_nozzle_volume_type();
     extruder_ams_counts.resize(extruders_count);
 }
 

@@ -4766,7 +4766,9 @@ void TabPrinter::extruders_count_changed(size_t extruders_count)
     bool is_count_changed = false;
     if (m_extruders_count != extruders_count) {
         m_extruders_count = extruders_count;
-        m_preset_bundle->on_extruders_count_changed(extruders_count);
+        auto plater = wxGetApp().plater();
+        bool reset_volume_type = !(plater && plater->is_loading_project());
+        m_preset_bundle->on_extruders_count_changed(extruders_count, reset_volume_type);
         is_count_changed = true;
 
         wxGetApp().plater()->get_partplate_list().on_extruder_count_changed((int)m_extruders_count);
@@ -5117,19 +5119,27 @@ void TabPrinter::on_preset_loaded()
     if (base_name != m_base_preset_name) {
         bool use_default_nozzle_volume_type = true;
         m_base_preset_name = base_name;
-        std::string prev_nozzle_volume_type = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
-        if (!prev_nozzle_volume_type.empty()) {
-            ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-            if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
-                for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
-                    NozzleVolumeType volume_type=NozzleVolumeType(nozzle_volume_type_option->values[idx]);
-                    m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, volume_type);
-                    if (wxGetApp().plater()) {
-                        wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
-                    }
-                    updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
-                };
-                use_default_nozzle_volume_type = false;
+        auto plater_for_nvt = wxGetApp().plater();
+        if (plater_for_nvt && plater_for_nvt->is_loading_project()) {
+            // Loading project: nozzle_volume_type has already been applied from the 3mf project_config,
+            // do not overwrite it with app_config history or printer defaults.
+            use_default_nozzle_volume_type = false;
+        }
+        if (use_default_nozzle_volume_type) {
+            std::string prev_nozzle_volume_type = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
+            if (!prev_nozzle_volume_type.empty()) {
+                ConfigOptionEnumsGeneric* nozzle_volume_type_option = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+                if (nozzle_volume_type_option->deserialize(prev_nozzle_volume_type)) {
+                    for (size_t idx = 0; idx < nozzle_volume_type_option->size(); ++idx) {
+                        NozzleVolumeType volume_type=NozzleVolumeType(nozzle_volume_type_option->values[idx]);
+                        m_preset_bundle->extruder_nozzle_stat.on_volume_type_switch(idx, volume_type);
+                        if (wxGetApp().plater()) {
+                            wxGetApp().plater()->update_filament_volume_map(idx, volume_type);
+                        }
+                        updateNozzleCountDisplay(m_preset_bundle, idx, volume_type);
+                    };
+                    use_default_nozzle_volume_type = false;
+                }
             }
         }
         if (use_default_nozzle_volume_type) {

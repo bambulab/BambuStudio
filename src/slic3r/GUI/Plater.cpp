@@ -6962,6 +6962,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         //always load config
                         {
                             // 避免在导入gcode的过程中触发各类流量切换的逻辑
+                           
+                            this->q->m_loading_project = true;
                             preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
                             auto old_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
                             // BBS: save the wipe tower pos in file here, will be used later
@@ -7141,6 +7143,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id)
                                     updateNozzleCountDisplay(preset_bundle, extruder_id, NozzleVolumeType(nozzle_volumes_values[extruder_id]));
                             }
+                            this->q->m_loading_project=false;
                         }
                     }
                     if (!silence) wxGetApp().app_config->update_config_dir(path.parent_path().string());
