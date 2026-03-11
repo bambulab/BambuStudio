@@ -323,6 +323,8 @@ void FillBedJob::finalize()
         m_plater->update();
     }
 
+    m_plater->mark_plate_toolbar_image_dirty();
+
     Job::finalize();
 }
 
