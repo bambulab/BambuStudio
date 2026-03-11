@@ -21,6 +21,9 @@ add_subdirectory(mcut)
 # Adding libnest2d project for bin packing...
 add_subdirectory(libnest2d)
 
+# libnoise for structured fuzzy skin (Perlin, Billow, etc.); use dep via CMAKE_PREFIX_PATH
+find_package(libnoise REQUIRED)
+
 add_subdirectory(libslic3r)
 
 if (SLIC3R_GUI)

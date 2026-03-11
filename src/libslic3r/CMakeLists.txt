@@ -580,6 +580,7 @@ set(OCCT_LIBS
 
 
 target_link_libraries(libslic3r
+    noise::noise
     libnest2d
     admesh
     cereal

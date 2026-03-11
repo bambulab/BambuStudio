@@ -51,6 +51,20 @@ enum class FuzzySkinType {
     Disabled_fuzzy,
 };
 
+enum class NoiseType {
+    Classic,
+    Perlin,
+    Billow,
+    RidgedMulti,
+    Voronoi,
+};
+
+enum class FuzzySkinMode {
+    Displacement,
+    Extrusion,
+    Combined,
+};
+
 enum PrintHostType {
     htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
 };
@@ -451,6 +465,8 @@ extern std::vector<std::string> save_extruder_full_stats_to_string(const std::ve
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrinterTechnology)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(GCodeFlavor)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(NoiseType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FuzzySkinMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(InfillPattern)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(IroningType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(SlicingMode)
@@ -1009,6 +1025,12 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<FuzzySkinType>, fuzzy_skin))
     ((ConfigOptionFloat, fuzzy_skin_thickness))
     ((ConfigOptionFloat, fuzzy_skin_point_distance))
+    ((ConfigOptionBool, fuzzy_skin_first_layer))
+    ((ConfigOptionEnum<NoiseType>, fuzzy_skin_noise_type))
+    ((ConfigOptionFloat, fuzzy_skin_scale))
+    ((ConfigOptionInt, fuzzy_skin_octaves))
+    ((ConfigOptionFloat, fuzzy_skin_persistence))
+    ((ConfigOptionEnum<FuzzySkinMode>, fuzzy_skin_mode))
     ((ConfigOptionFloatsNullable, gap_infill_speed))
     ((ConfigOptionInt, sparse_infill_filament))
     ((ConfigOptionFloat, sparse_infill_line_width))

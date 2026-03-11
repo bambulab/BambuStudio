@@ -194,7 +194,11 @@
     "sparse_infill_filament": "0",
     "wall_filament": "0",
     "solid_infill_filament": "0",
-    "embedding_wall_into_infill": "0",
-    "first_x_layer_fan_speed": "0",
-    "infill_instead_top_bottom_surfaces":"0"
+    "infill_instead_top_bottom_surfaces":"0",
+    "fuzzy_skin": "none",
+    "fuzzy_skin_thickness": "0.2",
+    "fuzzy_skin_point_distance": "0.3",
+    "fuzzy_skin_first_layer": "0",
+    "fuzzy_skin_noise_type": "classic",
+    "fuzzy_skin_mode": "displacement"
 }
