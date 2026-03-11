@@ -163,6 +163,7 @@ enum class NotificationType
     BBLHighTempNeedWrappingDetection,
     AssemblyWarning,
     AssemblyInfo,
+	BBLArcFittingInfo,
     NotificationTypeCount
 
 };
