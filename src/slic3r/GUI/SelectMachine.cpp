@@ -2279,6 +2279,8 @@ void SelectMachineDialog::EnableEditing(bool enable)
     {
         iter.second->enable(enable);
     }
+
+    enable ? m_saveTimeText->Enable() : m_saveTimeText->Disable();
 }
 
 /*content height > FromDIP(650), make the area scrollable*/
