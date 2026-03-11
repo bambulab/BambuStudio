@@ -69,6 +69,7 @@
 #include <dbt.h>
 #include <shlobj.h>
 #include <shellapi.h>
+#include <dwmapi.h>
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
@@ -183,6 +184,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 {
 #ifdef __WXOSX__
     set_miniaturizable(GetHandle());
+#endif
+
+#ifdef _WIN32
+    // Enable DWM hardware-accelerated compositing for this borderless window.
+    // Without this, dragging the window by the title bar causes lag because
+    // DWM can't efficiently composite a frameless window during drag.
+    MARGINS margins = {0, 0, 0, 1};
+    DwmExtendFrameIntoClientArea((HWND)GetHandle(), &margins);
 #endif
 
     if (!wxGetApp().app_config->has("user_mode")) {
@@ -348,14 +357,16 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
 #endif
 #ifdef _WIN32
-        if (!m_is_in_move_or_resize) {
-#endif
-            Refresh();
-            Layout();
-            wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
-#ifdef _WIN32
+        if (m_is_in_move_or_resize) {
+            ULONGLONG now = GetTickCount64();
+            if (now - m_last_resize_layout_ms < 33)
+                return;
+            m_last_resize_layout_ms = now;
         }
 #endif
+        Refresh();
+        Layout();
+        wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
         });
 
     //BBS
@@ -821,7 +832,8 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
             AdjustWorkingAreaForAutoHide(hWnd, mmi);
             return 0;
         }
-      }
+        break;
+    }
     case WM_ENTERSIZEMOVE:
         m_is_in_move_or_resize = true;
         break;
@@ -829,6 +841,7 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
         m_is_in_move_or_resize = false;
         Refresh();
         Layout();
+        wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));
         break;
     }
     return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
