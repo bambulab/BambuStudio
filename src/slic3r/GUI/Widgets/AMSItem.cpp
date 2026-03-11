@@ -57,7 +57,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
     this->left_dray_time = ams->GetLeftDryTime();
     this->m_ams_drying = ams->AmsIsDrying() || (!ams->GetDryStatus().has_value() && this->left_dray_time > 0);
     this->current_temperature = ams->GetCurrentTemperature();
-    this->ams_type = ams->GetAmsType(); 
+    this->ams_type = ams->GetAmsType();
     this->current_extruder_id = ams->GetCurrentExtruderId();
     this->binded_extruder_set = ams->GetBindedExtruderSet();
     this->binded_switcher_pos = ams->GetSwitcherPos();
@@ -319,12 +319,12 @@ void AMSExtText::doRender(wxDC& dc)
 
     dc.SetPen(wxPen(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800), 2, wxPENSTYLE_SOLID));
     dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800));
-    dc.SetFont(Label::Body_13);
+    dc.SetFont(Label::Body_10);
     WxFontUtils::get_suitable_font_size(0.7 * size.GetHeight(), dc);
 
-    auto    tsize = dc.GetMultiLineTextExtent(_L("Ext"));
+    auto    tsize = dc.GetMultiLineTextExtent("Ext");
     wxPoint pot(FromDIP((size.x - tsize.x) / 2), FromDIP((size.y - tsize.y) / 2));
-    dc.DrawText(_L("Ext"), pot);
+    dc.DrawText("Ext", pot);
 }
 
 
