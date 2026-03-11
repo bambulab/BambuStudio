@@ -3,6 +3,8 @@
 #include "Widgets/Label.hpp"
 #include "MsgDialog.hpp"
 #include "DeviceCore/DevNozzleRack.h"
+#include "DeviceCore/DevManager.h"
+#include "DeviceManager.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -55,19 +57,28 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
 static wxString get_tray_name_by_tray_id(int tray_id)
 {
     wxString tray_name;
+
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return tray_name;
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj) return tray_name;
+
+    auto tray_ams_slot_map = obj->GetFilaSystem()->GetTrayIndexMap();
+
     if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
         tray_name = "Ext";
-    }
-    else {
-        int  ams_id = tray_id / 4;
-        int slot_id = tray_id % 4;
-        if (ams_id >= 0 && ams_id < 26) {
+    } else if (tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end()) {
+        int  ams_id = tray_ams_slot_map[tray_id].first;
+        int slot_id = tray_ams_slot_map[tray_id].second;
+
+        if (ams_id >= 128 && ams_id < 153) {
+            char prefix = 'A' + ams_id - 128;
+            tray_name   = std::string(1, prefix);
+        } else {
             char prefix = 'A' + ams_id;
             char suffix = '0' + 1 + slot_id;
             tray_name = std::string(1, prefix) + std::string(1, suffix);
-        } else if (ams_id >= 128 && ams_id < 153) {
-            char prefix = 'A' + ams_id - 128;
-            tray_name   = std::string(1, prefix);
         }
     }
     return tray_name;
@@ -494,7 +505,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 {
     if (!m_obj || !m_obj->GetNozzleSystem()) return;
 
-    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(m_obj);
+    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = build_filament_ams_list(m_obj);
     std::map<int, DynamicPrintConfig> full_filament_ams_list;
     for (auto ams_item : old_full_filament_ams_list) {
         int key = ams_item.first & 0x0FFFF;
@@ -510,10 +521,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     m_calib_results.clear();
     for (auto &item : cali_result) {
         if (item.confidence == 0) {
-            int tray_id = 4 * item.ams_id + item.slot_id;
-            if (item.ams_id == VIRTUAL_TRAY_MAIN_ID || item.ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                tray_id = item.ams_id;
-            }
+            int tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(item.ams_id, item.slot_id);
             m_calib_results[tray_id] = item;
         }
     }
