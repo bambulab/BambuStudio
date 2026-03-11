@@ -1589,7 +1589,8 @@ void GLGizmoAdvancedCut::clear_selection()
 
 void GLGizmoAdvancedCut::init_connector_shapes()
 {
-    for (const CutConnectorType &type : {CutConnectorType::Snap, CutConnectorType::Dowel, CutConnectorType::Plug})
+    // --- ADDED OUR THREAD TO THE CACHE GENERATOR ---
+    for (const CutConnectorType &type : {CutConnectorType::Snap, CutConnectorType::Dowel, CutConnectorType::Plug, CutConnectorType::Thread})
         for (const CutConnectorStyle &style : {CutConnectorStyle::Frustum, CutConnectorStyle::Prizm})
             for (const CutConnectorShape &shape : {CutConnectorShape::Circle, CutConnectorShape::Hexagon, CutConnectorShape::Square, CutConnectorShape::Triangle}) {
                 CutConnectorAttributes     attribs = {type, style, shape};
@@ -2535,6 +2536,7 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     bool type_changed = render_connect_type_radio_button(CutConnectorType::Plug);
     type_changed |= render_connect_type_radio_button(CutConnectorType::Dowel);
     type_changed |= render_connect_type_radio_button(CutConnectorType::Snap);
+    type_changed |= render_connect_type_radio_button(CutConnectorType::Thread);
     if (type_changed)
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.type = CutConnectorType(m_connector_type); });
     ImGui::PopStyleColor(1);
@@ -2542,10 +2544,17 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     std::vector<std::string> connector_styles = {_u8L("Prizm"), _u8L("Frustum")};
     std::vector<std::string> connector_shapes = { _u8L("Triangle"), _u8L("Square"), _u8L("Hexagon"), _u8L("Circle") };
 
-    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Dowel || m_connector_type == CutConnectorType::Snap);
+    // 1. THE LOCKDOWN: Added Thread to the disabled list so the dropdown greys out!
+    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Dowel || m_connector_type == CutConnectorType::Snap || m_connector_type == CutConnectorType::Thread);
+    
     if (type_changed && m_connector_type == CutConnectorType::Dowel) {
         m_connector_style = size_t(CutConnectorStyle::Prizm);
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.style = CutConnectorStyle(m_connector_style); });
+    }
+    else if (type_changed && m_connector_type == CutConnectorType::Thread) {
+        // 2. THE FORCE: Automatically sets the UI value to Circle (index 3)
+        m_connector_shape_id = size_t(CutConnectorShape::Circle); 
+        apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     }
 
     ImGuiWrapper::push_combo_style(m_parent.get_scale());
@@ -2554,8 +2563,11 @@ void GLGizmoAdvancedCut::render_connectors_input_window(float x, float y, float 
     ImGuiWrapper::pop_combo_style();
     m_imgui->disabled_end();
 
-    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Snap);
-    if (type_changed && m_connector_type == CutConnectorType::Snap) {
+    // 1. THE SHAPE LOCKDOWN: Grey out the box for both Snap AND Thread
+    m_imgui->disabled_begin(m_connector_type == CutConnectorType::Snap || m_connector_type == CutConnectorType::Thread);
+    
+    // 2. THE FORCE: If they just clicked Snap OR Thread, force the dropdown to Circle
+    if (type_changed && (m_connector_type == CutConnectorType::Snap || m_connector_type == CutConnectorType::Thread)) {
         m_connector_shape_id = int(CutConnectorShape::Circle);
         apply_selected_connectors([this, &connectors](size_t idx) { connectors[idx].attribs.shape = CutConnectorShape(m_connector_shape_id); });
     }
@@ -2663,7 +2675,7 @@ bool GLGizmoAdvancedCut::render_reset_button(const std::string &label_id, const 
 
 bool GLGizmoAdvancedCut::render_connect_type_radio_button(CutConnectorType type)
 {
-    ImGui::SameLine(type == CutConnectorType::Plug ? m_label_width : (type == CutConnectorType::Dowel ? 2 * m_label_width : 3 * m_label_width));
+    ImGui::SameLine(type == CutConnectorType::Plug ? m_label_width : (type == CutConnectorType::Dowel ? 2 * m_label_width : (type == CutConnectorType::Snap ? 3 * m_label_width : 4 * m_label_width)));
     ImGui::PushItemWidth(m_control_width);
 
     wxString radio_name;
@@ -2676,6 +2688,9 @@ bool GLGizmoAdvancedCut::render_connect_type_radio_button(CutConnectorType type)
         break;
     case CutConnectorType::Snap:
         radio_name = _L("Snap");
+        break;
+        case CutConnectorType::Thread:
+        radio_name = _L("Thread");
         break;
     default:
         break;
