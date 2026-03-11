@@ -20,17 +20,18 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <math.h>
+#include <regex>
+#include "nlohmann/json.hpp"
+
+using namespace nlohmann;
 
 #if defined(__linux__) || defined(__LINUX__)
 #include <condition_variable>
 #include <mutex>
 #include <boost/thread.hpp>
-//add json logic
-#include "nlohmann/json.hpp"
-
-using namespace nlohmann;
 #endif
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -174,6 +175,11 @@ typedef struct  _filament_info{
     float main_used_g {0.f};
 }filament_info_t;
 
+typedef struct _feature_type_time {
+    std::string name;
+    float time {0.f};
+} feature_type_time_t;
+
 typedef struct  _sliced_plate_info{
     int plate_id{0};
     size_t sliced_time {0};
@@ -189,6 +195,7 @@ typedef struct  _sliced_plate_info{
     int filament_change_times {0};
     int layer_filament_change {0};
     int obj_cached_cnt {0};
+    std::vector<feature_type_time_t> feature_type_times;
 
     std::vector<object_info_t> objects;
     std::vector<filament_info_t> filaments;
@@ -209,6 +216,14 @@ typedef struct _sliced_info {
     std::vector<std::string> upward_compatibility_taint;
 }sliced_info_t;
 std::vector<PrintBase::SlicingStatus> g_slicing_warnings;
+
+static void append_feature_type_time(std::vector<feature_type_time_t>& feature_type_times, const std::string& name, float time)
+{
+    if (time <= 0.f)
+        return;
+
+    feature_type_times.push_back(feature_type_time_t{name, time});
+}
 
 #if defined(__linux__) || defined(__LINUX__)
 #define PIPE_BUFFER_SIZE 512
@@ -495,6 +510,13 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             plate_json["layer_filament_change"] = sliced_plate_info.layer_filament_change;
             plate_json["obj_cached_cnt"] = sliced_plate_info.obj_cached_cnt;
 
+            if (!sliced_plate_info.feature_type_times.empty()) {
+                json feature_type_times_json = json::object();
+                for (const feature_type_time_t& feature_type_time : sliced_plate_info.feature_type_times)
+                    feature_type_times_json[feature_type_time.name] = feature_type_time.time;
+                plate_json["feature_type_times"] = std::move(feature_type_times_json);
+            }
+
             //object info
             if (!sliced_plate_info.objects.empty())
             {
@@ -549,7 +571,6 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
             j["sliced_plates"].push_back(std::move(plate_json));
         }
 
- #if defined(__linux__) || defined(__LINUX__)
         for (auto& iter: key_values)
             j[iter.first] = iter.second;
 
@@ -558,7 +579,6 @@ void record_exit_reson(std::string outputdir, int code, int plate_id, std::strin
         c << std::setw(4) << j << std::endl;
         c.close();
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" <<__LINE__ << boost::format(", saved config to %1%\n")%result_file;
- #endif
     }
     catch (...) {}
 }
@@ -6913,6 +6933,16 @@ int CLI::run(int argc, char **argv)
                                 auto it_flush = std::find_if(time_mode.roles_times.begin(), time_mode.roles_times.end(), [](const std::pair<ExtrusionRole, float>& item) { return ExtrusionRole::erFlush == item.first; });
                                 if (it_flush != time_mode.roles_times.end()) {
                                     sliced_plate_info.main_predication -= it_flush->second;
+                                }
+                                sliced_plate_info.feature_type_times.clear();
+                                sliced_plate_info.feature_type_times.reserve(time_mode.roles_times.size() + 1);
+                                for (const std::pair<ExtrusionRole, float>& role_time : time_mode.roles_times)
+                                    append_feature_type_time(sliced_plate_info.feature_type_times, ExtrusionEntity::role_to_string(role_time.first), role_time.second);
+                                for (const std::pair<EMoveType, float>& move_time : time_mode.moves_times) {
+                                    if (move_time.first == EMoveType::Travel) {
+                                        append_feature_type_time(sliced_plate_info.feature_type_times, "Travel", move_time.second);
+                                        break;
+                                    }
                                 }
                                 bool has_tool_change = false;
                                 auto custom_gcodes_iter = model.plates_custom_gcodes.find(index);
