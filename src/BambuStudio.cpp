@@ -3803,6 +3803,10 @@ int CLI::run(int argc, char **argv)
 
     // Apply command line options to a more specific DynamicPrintConfig which provides normalize()
     // (command line options override --load files)
+    // In CLI mode, default enable_filament_dynamic_map to false unless explicitly passed,
+    // so old 3MFs that have it enabled are handled correctly.
+    if (!m_extra_config.has("enable_filament_dynamic_map"))
+        m_extra_config.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(false));
     m_print_config.apply(m_extra_config, true);
     // Normalizing after importing the 3MFs / AMFs
     m_print_config.normalize_fdm();
