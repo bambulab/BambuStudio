@@ -1029,47 +1029,60 @@ float ToolOrdering::cal_max_additional_fan(const PrintConfig &config)
 }
 
 
-//BBS: find first non support filament
+// BBS: find first non support filament
 bool ToolOrdering::cal_non_support_filaments(const PrintConfig &config,
-                                                         unsigned int &     first_non_support_filament,
-                                                         std::vector<int> & initial_non_support_filaments,
-                                                         std::vector<int> & initial_filaments)
+                                             unsigned int      &first_non_support_filament,
+                                             std::vector<int>  &initial_non_support_filaments,
+                                             std::vector<int>  &initial_filaments)
 {
-    int find_count = 0;
-    int find_first_filaments_count = 0;
-    bool has_non_support = has_non_support_filament(config);
+    int  find_count                 = 0;
+    int  find_first_filaments_count = 0;
+    bool has_non_support            = has_non_support_filament(config);
+
+    // When dynamic filament map is enabled, config.filament_map is not updated by the grouping
+    // result (update_to_config_by_nozzle_group_result does not write filament_map). Use
+    // m_nozzle_group_result to resolve the extruder for each filament instead.
+    bool use_dynamic_map = m_nozzle_group_result.is_support_dynamic_nozzle_map() && m_nozzle_group_result.get_layer_count() > 0;
+
+    // Returns the 0-based extruder id for a filament, or -1 when unavailable.
+    auto get_extruder_for_filament = [&](unsigned int filament, int layer_id) -> int {
+        if (use_dynamic_map) return m_nozzle_group_result.get_extruder_id(static_cast<int>(filament), layer_id);
+        if (!config.filament_map.values.empty()) return config.filament_map.values[filament] - 1; // filament_map is 1-based
+        return -1;
+    };
+
+    int layer_idx = 0;
     for (const LayerTools &layer_tool : m_layer_tools) {
         for (const unsigned int &filament : layer_tool.extruders) {
-            //check first filament
-            if (!config.filament_map.values.empty() && initial_filaments[config.filament_map.values[filament] - 1] == -1) {
-                initial_filaments[config.filament_map.values[filament] - 1] = filament;
+            int extruder_id = get_extruder_for_filament(filament, use_dynamic_map ? layer_idx : -1);
+
+            // check first filament
+            if (extruder_id >= 0 && extruder_id < (int) initial_filaments.size() && initial_filaments[extruder_id] == -1) {
+                initial_filaments[extruder_id] = filament;
                 find_first_filaments_count++;
             }
 
             if (has_non_support) {
                 // check first non support filaments
-                if (config.filament_is_support.get_at(filament))
-                    continue;
+                if (config.filament_is_support.get_at(filament)) continue;
 
                 if (first_non_support_filament == (unsigned int) -1) first_non_support_filament = filament;
 
                 // params missing, add protection
                 // filament map missing means single nozzle, no need to set initial_non_support_filaments
-                if (config.filament_map.values.empty())
-                    return true;
+                if (!use_dynamic_map && config.filament_map.values.empty()) return true;
 
-                if (initial_non_support_filaments[config.filament_map.values[filament] - 1] == -1) {
-                    initial_non_support_filaments[config.filament_map.values[filament] - 1] = filament;
+                if (extruder_id >= 0 && extruder_id < (int) initial_non_support_filaments.size() && initial_non_support_filaments[extruder_id] == -1) {
+                    initial_non_support_filaments[extruder_id] = filament;
                     find_count++;
                 }
 
-                if (find_count == initial_non_support_filaments.size())
-                    return true;
-            } else if (find_first_filaments_count == initial_filaments.size() || config.filament_map.values.empty()){
-                    return false;
+                if (find_count == (int) initial_non_support_filaments.size()) return true;
+            } else if (find_first_filaments_count == (int) initial_filaments.size() || (!use_dynamic_map && config.filament_map.values.empty())) {
+                return false;
             }
-
         }
+        ++layer_idx;
     }
 
     return false;
