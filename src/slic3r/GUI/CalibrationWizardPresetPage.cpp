@@ -45,80 +45,6 @@ static DynamicPrintConfig get_empty_dynamic_print_config() {
     return empty_config;
 }
 
-static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
-{
-    std::map<int, DynamicPrintConfig> filament_ams_list;
-    if (!obj) return filament_ams_list;
-
-    auto build_tray_config = [](DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
-                    % name % tray.setting_id % tray.m_fila_type % tray.color;
-        DynamicPrintConfig tray_config;
-        tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
-        tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
-        tray_config.set_key_value("ams_id", new ConfigOptionStrings{ams_id});
-        tray_config.set_key_value("slot_id", new ConfigOptionStrings{slot_id});
-        tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.m_fila_type});
-        tray_config.set_key_value("tray_name", new ConfigOptionStrings{ name });
-        tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
-        tray_config.set_key_value("filament_multi_colour", new ConfigOptionStrings{});
-        tray_config.set_key_value("filament_colour_type", new ConfigOptionStrings{std::to_string(tray.ctype)});
-        tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.is_exists});
-        std::optional<FilamentBaseInfo> info;
-        if (wxGetApp().preset_bundle) {
-            info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray.setting_id);
-        }
-        tray_config.set_key_value("filament_is_support", new ConfigOptionBools{ info.has_value() ? info->is_support : false});
-        for (int i = 0; i < tray.cols.size(); ++i) {
-            tray_config.opt<ConfigOptionStrings>("filament_multi_colour")->values.push_back(into_u8(wxColour("#" + tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
-        }
-        return tray_config;
-    };
-
-    if (obj->ams_support_virtual_tray) {
-        int extruder = 0x10000; // Main (first) extruder at right
-        for (auto & vt_tray : obj->vt_slot) {
-            filament_ams_list.emplace(extruder + stoi(vt_tray.id), build_tray_config(vt_tray, "Ext",vt_tray.id, "0"));//254 or 255
-            extruder = 0;
-        }
-    }
-
-    auto get_ams_name = [](int ams_id, int slot_id)->std::string {
-        if (ams_id >= 0 && ams_id < 26) {
-            char slot_name = slot_id + '1';
-            return std::string(1, 'A' + ams_id) + std::string(1, slot_name);
-        } else if (ams_id >= 128 && ams_id < 153) {
-            return "HT-" + std::string(1, 'A' + (ams_id - 128));
-        } else {
-            assert(false);
-        }
-        return std::string();
-    };
-
-    auto list = obj->GetFilaSystem()->GetAmsList();
-
-    for (const auto& ams : list) {
-        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
-            int extruder = extruder_id ? 0 : 0x10000; // Main (first) extruder at right
-            for (auto tray : ams.second->GetTrays()) {
-                int ams_id = -1;
-                int slot_id = -1;
-                int tray_id = -1;
-                try {
-                    ams_id  = std::stoi(ams.first);
-                    slot_id = std::stoi(tray.first);
-                    tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
-
-                    filament_ams_list.emplace(extruder + tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
-                } catch(...) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
-                }
-            }
-        }
-    }
-    return filament_ams_list;
-}
-
 CaliPresetCaliStagePanel::CaliPresetCaliStagePanel(
     wxWindow* parent,
     wxWindowID id,
@@ -1021,6 +947,8 @@ void CalibrationPresetPage::init_selection_values()
 
 void CalibrationPresetPage::init_filament_list_tips(){
     m_tips_map["base"] = std::make_pair(true, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"));
+    m_tips_map["bowden_right"] = std::make_pair(false, _L("- Right Nozzle (Aux) does not support automatic flow calibration."));
+    m_tips_map["bowden_left"] = std::make_pair(false, _L("- Left Nozzle (Aux) does not support automatic flow calibration."));
     m_tips_map["rack"] = std::make_pair(false, _L("- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"));
 }
 
@@ -2568,6 +2496,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         m_filament_list_tips->SetLabel(get_filament_tips());
     }
 
+    disable_bowden_extuder_auto_dyn_cali(m_main_filament_cali_panel);
 
     Layout();
 }
@@ -2643,6 +2572,24 @@ std::vector<std::pair<wxString, int>> CalibrationPresetPage::make_nozzles_info(c
     return nozzle_list;
 }
 
+void CalibrationPresetPage::disable_bowden_extuder_auto_dyn_cali(wxWindow* cali_panel){
+    // only support one extruder is bowden
+    if ((m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) && get_extruder_type(MAIN_EXTRUDER_ID) == ExtruderType::etBowden) {
+        m_tips_map["bowden_left"].first = false;
+        m_tips_map["bowden_right"].first = true;
+        cali_panel->Disable();
+    } else if ((m_cali_method == CalibrationMethod::CALI_METHOD_AUTO || m_cali_method == CalibrationMethod::CALI_METHOD_NEW_AUTO) && get_extruder_type(DEPUTY_EXTRUDER_ID) == ExtruderType::etBowden) {
+        m_tips_map["bowden_left"].first = true;
+        m_tips_map["bowden_right"].first = false;
+        cali_panel->Disable();
+    } else {
+        m_tips_map["bowden_left"].first = false;
+        m_tips_map["bowden_right"].first = false;
+        cali_panel->Enable();
+    }
+
+    m_filament_list_tips->SetLabel(get_filament_tips());
+}
 
 void CalibrationPresetPage::select_default_compatible_filament()
 {
