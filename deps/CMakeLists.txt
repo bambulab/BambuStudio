@@ -251,6 +251,8 @@ include(CGAL/CGAL.cmake)
 
 include(NLopt/NLopt.cmake)
 
+include(libnoise/libnoise.cmake)
+
 set(OPENSSL_PKG "")
 if (DEP_BUILD_OPENSSL)
     include(OpenSSL/OpenSSL.cmake)
@@ -286,6 +288,7 @@ set(_dep_list
     ${WXWIDGETS_PKG}
     dep_Cereal
     dep_NLopt
+    dep_libnoise
     dep_OpenVDB
     dep_OpenCSG
     dep_OpenCV
