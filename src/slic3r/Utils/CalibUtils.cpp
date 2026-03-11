@@ -450,6 +450,12 @@ static void init_multi_extruder_params_for_cali(DynamicPrintConfig& config, cons
     filament_maps.resize(num_filaments, extruder_id);
     config.option<ConfigOptionInts>("filament_volume_map", true)->values = {static_cast<int>(calib_info.nozzle_volume_type)};
 
+    auto *fev_opt = config.option<ConfigOptionStrings>("filament_extruder_variant");
+    if (fev_opt) {
+        std::vector<int>& filament_self_indice = config.option<ConfigOptionInts>("filament_self_index", true)->values;
+        filament_self_indice.assign(fev_opt->values.size(), 1);
+    }
+
     config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = FilamentMapMode::fmmManual;
 
     DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
