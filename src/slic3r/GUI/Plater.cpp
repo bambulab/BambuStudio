@@ -17,6 +17,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/system/detail/error_code.hpp>
 
 #include <wx/sizer.h>
 #include <wx/stattext.h>
@@ -2505,9 +2506,9 @@ Sidebar::Sidebar(Plater *parent)
         p->combo_printer_bed->Bind(wxEVT_COMBOBOX, [this](auto &e) {
             bool isDual          = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
             bool exist;
-            auto image_path        = get_cur_select_bed_image(exist);
-            if(exist){
-                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+            auto image_path = get_cur_select_bed_image(exist);
+            if (exist) {
+                update_bed_thumbnail(image_path);
                 if (p->big_bed_image_popup) {
                     p->big_bed_image_popup->set_bitmap(create_scaled_bitmap("big_" + image_path, p->big_bed_image_popup, p->big_bed_image_popup->get_image_px()));
                 }
@@ -3292,13 +3293,13 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     update_extruder_diameter(*p->left_extruder);
                     update_extruder_diameter(*p->right_extruder);
                 //}
-                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+                update_bed_thumbnail(image_path);
             } else {
                 AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
                 update_extruder_variant(*p->single_extruder, 0);
                 //if (!p->is_switching_diameter)
                     update_extruder_diameter(*p->single_extruder);
-                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+                 update_bed_thumbnail(image_path);
             }
         }
 
@@ -3501,9 +3502,7 @@ void Sidebar::msw_rescale()
     bool isDual     = static_cast<wxBoxSizer *>(p->panel_printer_preset->GetSizer())->GetOrientation() == wxVERTICAL;
     bool exist;
     auto image_path = get_cur_select_bed_image(exist);
-    if (exist) {
-        p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
-    }
+    if (exist) { update_bed_thumbnail(image_path); }
 
     p->adjust_filament_title_layout();
     p->m_filament_icon->msw_rescale();
@@ -4564,23 +4563,35 @@ void Sidebar::set_is_gcode_file(bool flag)
     }
 }
 
+void Sidebar::update_bed_thumbnail(const std::string &path)
+{
+    // workaround for updating icons too many times, which may casue ui flicking
+    static std::string cur_path;
+    if (cur_path == path) return;
+
+    cur_path = path;
+    p->image_printer_bed->SetBitmap(create_scaled_bitmap(cur_path, this, 48));
+}
+
 void Sidebar::update_printer_thumbnail()
 {
-    auto& preset_bundle = wxGetApp().preset_bundle;
-    Preset & selected_preset = preset_bundle->printers.get_edited_preset();
+    auto       &preset_bundle   = wxGetApp().preset_bundle;
+    Preset     &selected_preset = preset_bundle->printers.get_edited_preset();
     std::string printer_type    = selected_preset.get_current_printer_type(preset_bundle);
-    try {
-        auto   image_name = "printer_preview_" + printer_type;
-        auto full_path  = into_u8(Slic3r::GUI::from_u8(Slic3r::var(image_name + ".png")));
-        if (boost::filesystem::exists(full_path)) {
-            p->image_printer->SetBitmap(create_scaled_bitmap(image_name, this, 48));
-        }else{
-            p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
-        }
+    auto name      = "printer_preview_" + printer_type;
+    auto full_path = into_u8(Slic3r::GUI::from_u8(Slic3r::var(name + ".png")));
+    boost::system::error_code ec;
+    if (!boost::filesystem::exists(full_path, ec)) {
+        name = "printer_placeholder";
+        BOOST_LOG_TRIVIAL(warning) << name << " not exsit: " << ec << ", use placeholder instead";
     }
-    catch (...) {
-        p->image_printer->SetBitmap(create_scaled_bitmap("printer_placeholder", this, 48));
-    }
+
+    // workaround for updating icons too many times, which may casue ui flicking
+    static std::string image_name;
+    if (image_name == name) return;
+
+    image_name = name;
+    p->image_printer->SetBitmap(create_scaled_bitmap(image_name, this, 48));
 }
 
 void Sidebar::auto_calc_flushing_volumes(const int filament_idx, const int extruder_id) {

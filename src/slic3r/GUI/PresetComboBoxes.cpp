@@ -1601,10 +1601,6 @@ wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 // If an incompatible preset is selected, it is shown as well.
 void TabPresetComboBox::update()
 {
-    Freeze();
-    Clear();
-    invalidate_selection();
-
     const std::deque<Preset>& presets = m_collection->get_presets();
 
     std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
@@ -1613,6 +1609,7 @@ void TabPresetComboBox::update()
     //BBS:  move system to the end
     std::map<wxString, std::pair<wxBitmap*, bool>>  system_presets;
     std::map<wxString, wxString>                    preset_descriptions;
+    std::vector<wxString> available_presets;
 
     wxString selected = "";
     //BBS:  move system to the end
@@ -1620,11 +1617,11 @@ void TabPresetComboBox::update()
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));*/
     size_t idx_selected = m_collection->get_selected_idx();
 
+    // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
         std::string sel_preset_name = m_preset_bundle->physical_printers.get_selected_printer_preset_name();
         Preset* preset = m_collection->find_preset(sel_preset_name);
-        if (!preset)
-            m_preset_bundle->physical_printers.unselect_printer();
+        if (!preset) m_preset_bundle->physical_printers.unselect_printer();
     }
 
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
@@ -1640,6 +1637,8 @@ void TabPresetComboBox::update()
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
+        available_presets.push_back(name);
+
         if (preset.is_system)
             preset_descriptions.emplace(name, _L(preset.description));
 
@@ -1675,6 +1674,15 @@ void TabPresetComboBox::update()
 
     if (m_type == Preset::TYPE_FILAMENT)
         add_ams_filaments(into_u8(selected));
+
+    // workaround for updating too many times, which may casue ui flicking
+    if(m_last_presets == available_presets && m_last_select_name == selected) return;
+    m_last_presets = std::move(available_presets);
+    m_last_select_name = selected;
+
+    Freeze();
+    Clear();
+    invalidate_selection();
 
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())

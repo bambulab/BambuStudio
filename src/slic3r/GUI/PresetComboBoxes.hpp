@@ -245,6 +245,10 @@ public:
 
     PresetCollection*   presets()   const { return m_collection; }
     Preset::Type        type()      const { return m_type; }
+
+private:
+    std::vector<wxString> m_last_presets;
+    wxString m_last_select_name;
 };
 
 // ---------------------------------
