@@ -6024,7 +6024,7 @@ msgid "Current extruder is busy changing filament"
 msgstr "当前挤出机正在换料"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "使用线材轨道开关时，不支持对外部线轴执行“加载”或“卸载”操作。"
+msgstr "使用耗材变轨器时，不支持对外挂料盘进行“进料”或“退料”操作。"
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
 msgstr "耗材轨道开关尚未设置。请在打印机上进行设置。"
