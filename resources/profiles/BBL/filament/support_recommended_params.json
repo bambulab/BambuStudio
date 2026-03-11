@@ -18,7 +18,6 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "independent_support_layer_height": false,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
                 "use_same_filament_for_support_base": false,
@@ -41,7 +40,6 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "independent_support_layer_height": false,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
                 "use_same_filament_for_support_base": false,
@@ -62,7 +60,6 @@
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
                 "support_object_xy_distance": 0.0,
-                "independent_support_layer_height": false,
                 "use_same_filament_for_support_base": true
             }
         },
@@ -82,7 +79,6 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "independent_support_layer_height": false,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
                 "use_same_filament_for_support_base": false,
@@ -105,7 +101,6 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "independent_support_layer_height": false,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
                 "use_same_filament_for_support_base": false,
@@ -125,7 +120,6 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "independent_support_layer_height": false,
                 "use_same_filament_for_support_base": false
             }
         },
@@ -143,7 +137,6 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "independent_support_layer_height": false,
                 "use_same_filament_for_support_base": false
             }
         },
@@ -161,7 +154,6 @@
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
                 "support_object_xy_distance": 0.0,
-                "independent_support_layer_height": false,
                 "use_same_filament_for_support_base": true
             }
         }

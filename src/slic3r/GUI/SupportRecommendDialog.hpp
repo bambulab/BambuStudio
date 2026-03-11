@@ -63,7 +63,7 @@ protected:
     void on_cancel_click(wxCommandEvent &event)
     {
         save_dont_show_again();
-        EndModal(wxID_APPLY);
+        EndModal(wxID_CANCEL);
     };
     void on_close(wxCloseEvent& event)
     {

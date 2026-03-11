@@ -1844,13 +1844,16 @@ struct GroupedSupportRecommendation {
     bool use_same_for_base{false};
 };
 
-// 根据 ObjectID 查找对象（仅在当前盘中查找）
+// 根据 ObjectID 查找对象（遍历所有盘中的对象）
 static ModelObject* find_object_by_id(const ObjectID& id)
 {
-    auto model_objects = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_objects_on_this_plate();
-    for (ModelObject* obj : model_objects) {
-        if (obj && obj->id() == id) {
-            return obj;
+    auto &plate_list = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
+    for (int i = 0; i < plate_list.get_plate_count(); ++i) {
+        auto model_objects = plate_list.get_plate(i)->get_objects_on_this_plate();
+        for (ModelObject* obj : model_objects) {
+            if (obj && obj->id() == id) {
+                return obj;
+            }
         }
     }
     return nullptr;
@@ -1863,6 +1866,9 @@ static wxString generate_support_param_description(const std::string& key, const
     if (!def) return wxString();
 
     wxString label = def->label.empty() ? wxString::FromUTF8(key) : _L(def->label);
+    if (key == "support_interface_speed") {
+        label = _L("Support interface speed");
+    }
     wxString value_str;
 
     switch (def->type) {
@@ -2032,9 +2038,14 @@ static void apply_json_recommendations(
             }
         }
 
+        if (filtered_conf.empty()) continue;
+
         auto group_key = rec.model_material + "|" + rec.support_material + "|" + serialize_config_for_grouping(filtered_conf);
         if (auto it = group_map.find(group_key); it != group_map.end()) {
-            it->second.objects.emplace_back(rec.object_id, rec.object_name);
+            if (std::none_of(it->second.objects.begin(), it->second.objects.end(),
+                             [&](const auto& object_info) { return object_info.first == rec.object_id; })) {
+                it->second.objects.emplace_back(rec.object_id, rec.object_name);
+            }
             it->second.model_filament_indices.insert(rec.model_filament_indices.begin(), rec.model_filament_indices.end());
         } else {
             group_map.emplace(group_key, GroupedSupportRecommendation{
@@ -2067,6 +2078,7 @@ static void apply_json_recommendations(
         return {slot, wxColour(color_str.empty() ? "#FFFFFF" : wxString::FromUTF8(color_str)), name};
     };
 
+    size_t card_count = 0;
     for (const auto& [_, group] : group_map) {
         std::vector<wxString> objects;
         objects.reserve(group.objects.size());
@@ -2085,8 +2097,13 @@ static void apply_json_recommendations(
                 if (auto desc = generate_support_param_description(key, opt, group.use_same_for_base, support_name); !desc.empty())
                     params.Add(desc);
 
+        if (params.empty()) continue;
+
         dialog.AddSupportComboCard(objects, mainMat, build_filament_info(group.support_filament_index), params);
+        ++card_count;
     }
+
+    if (card_count == 0) return;
 
     if (dialog.ShowModal() != wxID_APPLY) {
         wxGetApp().plater()->update();
@@ -2438,13 +2455,27 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
     // BBS popup a message to ask the user to set optimum parameters for support interface if support materials are used
     if (opt_key == "support_interface_filament") {
+        if (m_postpone_update_ui) {
+            return;
+        }
+        if (!wxGetApp().app_config->get_bool("show_support_recommend_dialog")) {
+            return;
+        }
+
+        // 判断当前是切片单盘 还是 切片所有盘
+        const int  slice_trigger          = (value.type() == typeid(int)) ? boost::any_cast<int>(value) : 0;
+        const bool triggered_by_slice_all = (slice_trigger == -2);
+
+        // 判断当前tab是否 启动支撑
         int filament_id           = m_config->opt_int("support_filament") - 1;
         int interface_filament_id = m_config->opt_int("support_interface_filament") - 1;
         bool enable_support       = m_config->opt_bool("enable_support");
 
+        // 判断当前是全局参数 还是 对象参数
         TabPrintModel *tab_model        = dynamic_cast<TabPrintModel *>(this);
         bool           is_object_config = (tab_model != nullptr && tab_model->has_model_config());
 
+        // 根据机型判断 是否支持 支撑料推荐
         const Preset &current_printer             = m_preset_bundle->printers.get_edited_preset();
         std::string   printer_model               = current_printer.config.opt_string("printer_model");
         bool          support_json_recommendation = (printer_model == "Bambu Lab X2D");
@@ -2470,15 +2501,26 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                     collect_recommendation_for_object(obj, support_json_recommendation, interface_filament_id, filament_id, interface_filament_type, json_recommendations,
                                                   hardcode_recommendations);
             }
-        } else { // 全局参数：遍历当前盘的对象
-            auto model_objects = Slic3r::GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_objects_on_this_plate();
-            for (ModelObject *obj : model_objects) {
-                bool obj_enable_support = enable_support;
-                if (obj->config.get().has("enable_support")) obj_enable_support = obj->config.get().opt_bool("enable_support");
+        } else {
+            auto &plate_list = Slic3r::GUI::wxGetApp().plater()->get_partplate_list();
+            std::vector<PartPlate*> plates;
+            if (triggered_by_slice_all) {
+                for (int i = 0; i < plate_list.get_plate_count(); ++i)
+                    plates.push_back(plate_list.get_plate(i));
+            } else {
+                plates.push_back(plate_list.get_curr_plate());
+            }
 
-                if (obj_enable_support)
-                    collect_recommendation_for_object(obj, support_json_recommendation, interface_filament_id, filament_id, interface_filament_type, json_recommendations,
-                                                  hardcode_recommendations);
+            for (auto *plate : plates) {
+                auto model_objects = plate->get_objects_on_this_plate();
+                for (ModelObject *obj : model_objects) {
+                    bool obj_enable_support = enable_support;
+                    if (obj->config.get().has("enable_support")) obj_enable_support = obj->config.get().opt_bool("enable_support");
+
+                    if (obj_enable_support)
+                        collect_recommendation_for_object(obj, support_json_recommendation, interface_filament_id, filament_id, interface_filament_type, json_recommendations,
+                                                      hardcode_recommendations);
+                }
             }
         }
 
