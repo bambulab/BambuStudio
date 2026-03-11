@@ -1965,8 +1965,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
             wxGetApp().sidebar().jump_to_option("enable_arc_fitting", Preset::TYPE_PRINT, L"");
             auto notification_manager = plater->get_notification_manager();
             auto msg                  = into_u8(_L("Tips:\nYour printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."));
-            notification_manager->push_notification(NotificationType::BBLPlateInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
+            notification_manager->push_notification(NotificationType::BBLArcFittingInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
         }
+    } else {
+        plater->get_notification_manager()->remove_notification_of_type(NotificationType::BBLArcFittingInfo);
     }
 
     // enable dynamic filament if supported

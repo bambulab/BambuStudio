@@ -162,6 +162,7 @@ enum class NotificationType
 	BBLTpuNozzleHasMultiFilament,
     AssemblyWarning,
     AssemblyInfo,
+	BBLArcFittingInfo,
     NotificationTypeCount
 
 };

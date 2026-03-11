@@ -45,6 +45,7 @@
 #include "MarkdownTip.hpp"
 #include "Search.hpp"
 #include "BedShapeDialog.hpp"
+#include "NotificationManager.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 
 #include "DeviceCore/DevManager.h"
@@ -5162,6 +5163,7 @@ void TabPrinter::on_preset_loaded()
             if(!has_multiple_nozzle)
                 prime_volume_type->value = PrimeVolumeMode::pvmDefault;
             wxGetApp().plater()->sidebar().enable_purge_mode_btn(has_multiple_nozzle);
+            wxGetApp().plater()->get_notification_manager()->remove_notification_of_type(NotificationType::BBLArcFittingInfo);
         }
         m_base_preset_model = base_model;
     }
