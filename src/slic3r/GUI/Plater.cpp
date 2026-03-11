@@ -1102,8 +1102,18 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
 static std::string serialize_nozzle_config(const std::map<int, std::vector<DevNozzle>>& nozzle_cfg_map)
 {
     std::ostringstream oss;
-    std::vector<DevNozzle> deputy_nozzles = nozzle_cfg_map.at(1);
-    std::vector<DevNozzle> main_nozzles = nozzle_cfg_map.at(0);
+    
+    std::vector<DevNozzle> deputy_nozzles;
+    auto deputy_it = nozzle_cfg_map.find(1);
+    if (deputy_it != nozzle_cfg_map.end()) {
+        deputy_nozzles = deputy_it->second;
+    }
+
+    std::vector<DevNozzle> main_nozzles;
+    auto main_it = nozzle_cfg_map.find(0);
+    if (main_it != nozzle_cfg_map.end()) {
+        main_nozzles = main_it->second;
+    }
 
     for (size_t i = 0; i < deputy_nozzles.size(); ++i) {
         if (i > 0) oss << ";";
