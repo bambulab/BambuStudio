@@ -4,6 +4,7 @@
 #include "GUI_App.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/Label.hpp"
+#include "Widgets/CheckBox.hpp"
 
 #define BODY_ITEM_WIDTH 200
 #define SUPPORT_ITEM_WIDTH 200
@@ -210,6 +211,8 @@ SupportRecommendDialog::SupportRecommendDialog(wxWindow* parent, const wxString&
 {
     create_ui();
     Slic3r::GUI::wxGetApp().UpdateDlgDarkUI(this);
+
+    Bind(wxEVT_CLOSE_WINDOW, &SupportRecommendDialog::on_close, this);
 }
 
 void SupportRecommendDialog::create_ui()
@@ -239,6 +242,17 @@ void SupportRecommendDialog::create_ui()
 
     // btns
     wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_dont_show_again = new CheckBox(this);
+    m_dont_show_again->SetValue(false);
+
+    Label *dont_show_label = new Label(this, _L("Don't remind me again"));
+    dont_show_label->SetBackgroundColour(*wxWHITE);
+    dont_show_label->SetForegroundColour(wxColour("#6B6B6B"));
+
+    btnSizer->Add(m_dont_show_again, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+    btnSizer->Add(dont_show_label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+
     m_cancel_btn = new Button(this, _L("Cancel"));
     m_cancel_btn->Bind(wxEVT_BUTTON, &SupportRecommendDialog::on_cancel_click, this);
 
@@ -253,7 +267,7 @@ void SupportRecommendDialog::create_ui()
     btnSizer->AddStretchSpacer();
     btnSizer->Add(m_cancel_btn, 0, wxRIGHT, 10);
     btnSizer->Add(m_apply_btn);
-    m_main_sizer->Add(btnSizer, 0, wxALL | wxALIGN_RIGHT, 15);
+    m_main_sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 15);
 
     SetMinSize(wxSize(FromDIP(720), FromDIP(350)));
     SetBackgroundColour(*wxWHITE);
@@ -277,6 +291,13 @@ void SupportRecommendDialog::on_dpi_changed(const wxRect& suggested_rect)
     m_cancel_btn->Rescale();
     m_apply_btn->Rescale();
     Layout();
+}
+
+void SupportRecommendDialog::save_dont_show_again()
+{
+    if (m_dont_show_again->GetValue()) {
+        wxGetApp().app_config->set("show_support_recommend_dialog", "false");
+    }
 }
 
 void SupportRecommendDialog::SetTipText(const wxString& text)

@@ -481,6 +481,9 @@ void AppConfig::set_defaults()
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
     }
+    if (get("show_support_recommend_dialog").empty()) {
+        set_bool("show_support_recommend_dialog", true);
+    }
     if (get("ignore_module_cert").empty()) {
         set_bool("ignore_module_cert", false);
     }

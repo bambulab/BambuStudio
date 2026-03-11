@@ -10,6 +10,7 @@
 
 class Button;
 class Label;
+class CheckBox;
 namespace Slic3r { 
 namespace GUI {
 
@@ -53,8 +54,22 @@ public:
 
 protected:
     virtual void on_dpi_changed(const wxRect& suggested_rect) override;
-    void on_apply_click(wxCommandEvent& event) { EndModal(wxID_APPLY); };
-    void on_cancel_click(wxCommandEvent& event) { EndModal(wxID_CANCEL); };
+    void save_dont_show_again();
+    void on_apply_click(wxCommandEvent &event)
+    {
+        save_dont_show_again();
+        EndModal(wxID_APPLY);
+    };
+    void on_cancel_click(wxCommandEvent &event)
+    {
+        save_dont_show_again();
+        EndModal(wxID_APPLY);
+    };
+    void on_close(wxCloseEvent& event)
+    {
+        save_dont_show_again();
+        event.Skip();
+    };
 
 private:
     void create_ui();
@@ -68,6 +83,7 @@ private:
 
     Button* m_cancel_btn;
     Button* m_apply_btn;
+    CheckBox *m_dont_show_again;
 };
 
 } // namespace GUI
