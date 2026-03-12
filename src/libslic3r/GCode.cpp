@@ -2143,6 +2143,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     print.throw_if_canceled();
 
     m_enable_cooling_markers = true;
+    m_is_ironing_fan_on      = false;
     this->apply_print_config(print.config());
     m_config.apply(print.default_object_config());
     m_config.apply(print.default_region_config());
@@ -6594,6 +6595,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     std::string comment;
     bool cooling_extrude = false;
     if (m_enable_cooling_markers) {
+        // Ironing fan: end marker when switching away from ironing
+        if (path.role() != erIroning && m_is_ironing_fan_on) {
+            gcode += ";_IRONING_FAN_END\n";
+            m_is_ironing_fan_on = false;
+        }
         if (FILAMENT_CONFIG(enable_overhang_bridge_fan)) {
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
             int overhang_threshold = FILAMENT_CONFIG(overhang_fan_threshold) == Overhang_threshold_none ?
@@ -6601,6 +6607,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
             if ((FILAMENT_CONFIG(overhang_fan_threshold) == Overhang_threshold_none && path.role() == erExternalPerimeter) || (path.get_overhang_degree() > overhang_threshold ||
                 is_bridge(path.role()))) {
                 gcode += ";_OVERHANG_FAN_START\n";
+            }
+        }
+        // Ironing fan speed control: output marker when entering ironing and ironing_fan_speed is enabled
+        if (path.role() == erIroning && EXTRUDER_CONFIG(ironing_fan_speed) >= 0) {
+            if (!m_is_ironing_fan_on) {
+                gcode += ";_IRONING_FAN_START\n";
+                m_is_ironing_fan_on = true;
             }
         }
 
@@ -6709,6 +6722,14 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (cooling_extrude)
             gcode += ";_EXTRUDE_END\n";
 
+<<<<<<< HEAD   (eaf063 ENH: update the suggest dialog text)
+=======
+        // Ironing fan speed control: output end marker when leaving ironing
+        if (path.role() == erIroning && m_is_ironing_fan_on) {
+            gcode += ";_IRONING_FAN_END\n";
+            m_is_ironing_fan_on = false;
+        }
+>>>>>>> CHANGE (bfdbbd ENH: Add ironing fan control)
 
         if (FILAMENT_CONFIG(enable_overhang_bridge_fan)) {
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
