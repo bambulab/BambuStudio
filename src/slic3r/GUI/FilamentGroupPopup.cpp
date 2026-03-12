@@ -223,6 +223,9 @@ void FilamentGroupPopup::RecreateUIElements()
         button_labels[idx]->Bind(wxEVT_LEAVE_WINDOW, [this](auto &) { UpdateButtonStatus(); });
     }
 
+    // Smart filament assign section
+    MakeSmartFilamentSection(top_sizer, horizontal_margin, vertical_padding);
+
     {
         wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -332,7 +335,7 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
     for (size_t i = 0; i < m_all_modes.size(); ++i) {
         FilamentMapMode mode = m_all_modes[i];
         bool is_available = (std::find(m_available_modes.begin(), m_available_modes.end(), mode) != m_available_modes.end());
-        
+
         if (!is_available) {
             continue;
         }
@@ -368,6 +371,7 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
         SetFilamentMapMode(m_mode);
     }
 
+    UpdateSmartFilamentSection();
     UpdateButtonStatus();
     GetSizer()->Layout();
     GetSizer()->SetSizeHints(this);
@@ -532,6 +536,57 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 
     Layout();
     Fit();
+}
+
+void FilamentGroupPopup::MakeSmartFilamentSection(wxSizer *top_sizer, int horizontal_margin, int vertical_padding)
+{
+    m_smart_filament_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+    m_smart_filament_panel->SetCornerRadius(FromDIP(4));
+    m_smart_filament_panel->SetBorderWidth(FromDIP(1));
+    m_smart_filament_panel->SetBorderColor(wxColour("#CECECE"));
+    m_smart_filament_panel->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Normal)));
+
+    auto *label = new Label(m_smart_filament_panel, _L("Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"));
+    label->SetFont(Label::Body_12);
+    label->SetForegroundColour(GreyColor);
+    label->SetBackgroundColour(wxColour("#F8F8F8"));
+    label->Wrap(FromDIP(240));
+
+    m_smart_filament_switch = new SwitchButton(m_smart_filament_panel);
+    m_smart_filament_switch->Bind(wxEVT_TOGGLEBUTTON, &FilamentGroupPopup::OnSmartFilamentToggle, this);
+
+    auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+    panel_sizer->Add(label, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(10));
+    panel_sizer->Add(m_smart_filament_switch, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+    m_smart_filament_panel->SetSizer(panel_sizer);
+
+    top_sizer->Add(m_smart_filament_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, horizontal_margin);
+    m_smart_filament_spacer = top_sizer->AddSpacer(vertical_padding);
+
+    // Hidden by default; shown in Init() when fila_switch_ready
+    m_smart_filament_panel->Show(false);
+    m_smart_filament_spacer->Show(false);
+}
+
+void FilamentGroupPopup::OnSmartFilamentToggle(wxCommandEvent &event)
+{
+    auto &config           = wxGetApp().preset_bundle->project_config;
+    auto *dynamic_filament = dynamic_cast<ConfigOptionBool *>(config.option("enable_filament_dynamic_map"));
+    if (dynamic_filament) { dynamic_filament->value = m_smart_filament_switch->GetValue(); }
+    event.Skip();
+}
+
+void FilamentGroupPopup::UpdateSmartFilamentSection()
+{
+    bool show = wxGetApp().sidebar().is_fila_switch_ready();
+    m_smart_filament_panel->Show(show);
+    m_smart_filament_spacer->Show(show);
+
+    if (show) {
+        auto &config           = wxGetApp().preset_bundle->project_config;
+        auto *dynamic_filament = dynamic_cast<ConfigOptionBool *>(config.option("enable_filament_dynamic_map"));
+        if (dynamic_filament) { m_smart_filament_switch->SetValue(dynamic_filament->value); }
+    }
 }
 
 }} // namespace Slic3r::GUI
