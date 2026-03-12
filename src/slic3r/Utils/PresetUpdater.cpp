@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <ostream>
 #include <utility>
+#include <chrono>
+#include <vector>
 #include <stdexcept>
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -53,6 +55,14 @@ static const char *TMP_EXTENSION = ".data";
 static const char *PRESET_SUBPATH = "presets";
 static const char *PLUGINS_SUBPATH = "plugins";
 
+long long getTimestamp()
+{
+    auto now          = std::chrono::system_clock::now();
+    auto duration     = now.time_since_epoch();
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    return milliseconds;
+}
+
 int copy_file_fix(const fs::path &source, const fs::path &target, std::string& error_message)
 {
     BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", PathSanitizer::sanitize(source), PathSanitizer::sanitize(target));
@@ -72,20 +82,11 @@ int copy_file_fix(const fs::path &source, const fs::path &target, std::string& e
 }
 
 //BBS: add directory copy
-int copy_directory_fix(const fs::path &source, const fs::path &target, std::string& error_message)
+int copy_directory_fix(const fs::path &source, const fs::path &target, std::string& error_message, std::vector<std::pair<fs::path, fs::path>>& files)
 {
     int ret = 0;
     BOOST_LOG_TRIVIAL(debug) << format("PresetUpdater: Copying %1% -> %2%", PathSanitizer::sanitize(source), PathSanitizer::sanitize(target));
 
-    if (fs::exists(target)) {
-        boost::system::error_code ec;
-        fs::remove_all(target, ec);
-        if (ec) {
-            error_message = ec.message();
-            BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to remove existing target directory: " + error_message;
-            return -1;
-        }
-    }
     boost::system::error_code ec;
     fs::create_directories(target, ec);
     if (ec) {
@@ -101,20 +102,46 @@ int copy_directory_fix(const fs::path &source, const fs::path &target, std::stri
         std::string name = dir_entry.path().filename().string();
 
         if (fs::is_directory(dir_entry)) {
-            ret = copy_directory_fix(source_file, target_file, error_message);
+            ret = copy_directory_fix(source_file, target_file, error_message, files);
             if (ret)
                 return ret;
         }
         else {
-            //CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
-            CopyFileResult cfr = copy_file(source_file.string(), target_file.string(), error_message, false);
-            if (cfr != CopyFileResult::SUCCESS) {
-                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
-                return -3;
-            }
+           files.emplace_back(std::pair{source_file, target_file});
         }
     }
     return 0;
+}
+
+int copy_directory_inner(const fs::path &source, const fs::path &target, std::string &error_message)
+{
+    if (fs::exists(target)) {
+        boost::system::error_code ec;
+        fs::remove_all(target, ec);
+        if (ec) {
+            error_message = ec.message();
+            BOOST_LOG_TRIVIAL(error) << "copy_directory_fix: Failed to remove existing target directory: " + error_message;
+            return -1;
+        }
+    }
+    std::vector<std::pair<fs::path, fs::path>> files;
+
+    int ret = copy_directory_fix(source, target, error_message, files);
+    if (ret) { return ret; }
+    std::atomic<int> retVal = 0;
+    tbb::parallel_for(tbb::blocked_range<int>(0, files.size()), [&files, &error_message, &retVal](const tbb::blocked_range<int> &range) {
+        for (auto i = range.begin(); i != range.end(); ++i) {
+            if (retVal.load()) return;
+            auto &pair = files[i];
+            // CopyFileResult cfr = Slic3r::GUI::copy_file_gui(source_file, target_file, error_message, false);
+            CopyFileResult cfr = copy_file(pair.first.string(), pair.second.string(), error_message, false);
+            if (cfr != CopyFileResult::SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << "Copying failed(" << cfr << "): " << error_message;
+                retVal.store(-3);
+            }
+        }
+    });
+    return retVal.load();
 }
 
 struct Update
@@ -153,7 +180,7 @@ struct Update
         std::string error_message;
 
         if (is_directory) {
-            ret = copy_directory_fix(source, target, error_message);
+            ret = copy_directory_inner(source, target, error_message);
         }
         else {
             ret = copy_file_fix(source, target, error_message);
@@ -190,17 +217,27 @@ struct Incompat
 		, is_directory(is_dir)
 	{}
 
-	void remove() {
-		// Remove the bundle file
-		if (is_directory) {
-			if (fs::exists(bundle))
-                fs::remove_all(bundle);
-		}
-		else {
-			if (fs::exists(bundle))
-				fs::remove(bundle);
-		}
-	}
+    void remove() {
+        // Remove the bundle file
+        if (is_directory) {
+            if (fs::exists(bundle)) {
+                fs::path newPath(bundle.string() + std::to_string(getTimestamp()));
+                boost::system::error_code ec;
+                fs::rename(bundle, newPath, ec);
+                if (!ec) {
+                    std::thread thread([newPath]() {
+                        boost::system::error_code ec;
+                        fs::remove_all(newPath, ec);
+                    });
+                    thread.detach();
+                } else {
+                    fs::remove_all(bundle);
+                }
+            }
+        } else {
+            if (fs::exists(bundle)) fs::remove(bundle);
+        }
+    }
 
 	friend std::ostream& operator<<(std::ostream& os , const Incompat &self) {
 		os << "Incompat(" << self.bundle.string() << ')';
@@ -1314,16 +1351,18 @@ bool PresetUpdater::priv::install_bundles_rsrc(std::vector<std::string> bundles,
         }
 
         if (fs::exists(print_folder)) {
-            fs::remove_all(print_folder, ec);
+            auto print_rename_folder = this->vendor_path / (bundle + std::to_string(getTimestamp()));
+            fs::rename(print_folder, print_rename_folder, ec);
             if (ec) {
                 BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to remove directory %1%, error %2% ") % print_folder.string() % ec.message();
                 return false;
             }
-        }
-        fs::create_directories(print_folder, ec);
-        if (ec) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("install_bundles_rsrc: Failed to create directory %1%, error %2% ")% print_folder.string() %ec.message();
-            return false;
+            std::thread thread([print_rename_folder]() {
+                boost::system::error_code ec;
+                fs::remove_all(print_rename_folder, ec);
+            });
+            // remove the fold in background thread
+            thread.detach();
         }
         updates.updates.emplace_back(std::move(print_in_rsrc), std::move(print_in_vendors), Version(), bundle, "", "", false, true);
 
@@ -1361,7 +1400,6 @@ void PresetUpdater::priv::check_installed_vendor_profiles() const
                         Semver vendor_ver = get_version_from_json(path_in_vendor.string());
 
                         bool version_match = ((resource_ver.maj() == vendor_ver.maj()) && (resource_ver.min() == vendor_ver.min()));
-
                         if (!version_match || (vendor_ver < resource_ver)) {
                             BOOST_LOG_TRIVIAL(info) << "[BBL Updater]:found vendor "<<vendor_name<<" different version "<<resource_ver.to_string() <<" from resource, old version "<<vendor_ver.to_string()<<", will copy from resource";
                             bundles.push_back(vendor_name);
