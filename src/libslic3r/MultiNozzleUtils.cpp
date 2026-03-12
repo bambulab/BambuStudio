@@ -2,6 +2,7 @@
 #include "ProjectTask.hpp"
 #include "Utils.hpp"
 #include "Print.hpp"
+#include <chrono>
 
 namespace Slic3r { namespace MultiNozzleUtils {
 // ==================== 工具函数实现 ====================
@@ -698,16 +699,20 @@ std::vector<int> find_optimal_physical_assignment(
     const std::vector<int>&           filament_change_seq,
     const std::vector<int>&           nozzle_change_seq,
     int                               group_count,
-    const FilamentChangeTimeParams&   time_params)
+    const FilamentChangeTimeParams&   time_params,
+    int                               max_ms)
 {
     size_t count = logical_filaments.size();
     if (count == 0 || group_count <= 0) return {};
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(max_ms);
 
     std::vector<int> assignment(count, 0);
     std::vector<int> best_assignment = assignment;
     float best_gap = calc_filament_change_gap_for_assignment(logical_filaments, nozzle_list, filament_change_seq, nozzle_change_seq, assignment, time_params);
 
     bool done = false;
+    bool timed_out = false;
     while (!done) {
         if (assignment[0] == 0) {
             // 对称性剪枝：固定首个耗材在组0
@@ -723,6 +728,19 @@ std::vector<int> find_optimal_physical_assignment(
             assignment[pos] = 0;
             if (pos == count - 1) done = true;
         }
+
+        if (!done && std::chrono::steady_clock::now() > deadline) {
+            timed_out = true;
+            break;
+        }
+    }
+
+    if (timed_out) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+            << ": timed out after " << max_ms << "ms"
+            << ", filament_count=" << count
+            << ", group_count=" << group_count
+            << ", returning best assignment found so far";
     }
 
     return best_assignment;

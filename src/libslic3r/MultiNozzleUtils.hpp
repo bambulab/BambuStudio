@@ -250,7 +250,8 @@ std::vector<int> find_optimal_physical_assignment(
     const std::vector<int>&           filament_change_seq,
     const std::vector<int>&           nozzle_change_seq,
     int                               group_count,
-    const FilamentChangeTimeParams&   time_params);
+    const FilamentChangeTimeParams&   time_params,
+    int                               max_ms = 1000);
 
 // ==================== 工具函数 ====================
 std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> info);
