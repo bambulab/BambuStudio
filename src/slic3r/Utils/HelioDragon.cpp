@@ -2360,7 +2360,19 @@ void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std
 {
     const Vec3d origin = GUI::wxGetApp().plater()->get_partplate_list().get_current_plate_origin();
     m_gcode_processor.set_xy_offset(origin(0), origin(1));
+
+    // Preserve nozzle grouping context from original slicing for multi-nozzle printers (H2C)
+    if (m_gcode_result && m_gcode_result->nozzle_group_result.has_value())
+        m_gcode_processor.initialize_from_context(m_gcode_result->nozzle_group_result.value());
+
     m_gcode_processor.process_file(file_path);
+
+    // Carry over fields that GCodeProcessor cannot reconstruct from gcode parsing
+    if (m_gcode_result) {
+        m_gcode_processor.result().nozzle_group_result = m_gcode_result->nozzle_group_result;
+        m_gcode_processor.result().used_filaments = m_gcode_result->used_filaments;
+    }
+
     auto res       = &m_gcode_processor.result();
     m_gcode_result = res;
 
