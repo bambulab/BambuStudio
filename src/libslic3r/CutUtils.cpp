@@ -106,7 +106,21 @@ static void process_connector_cut(ModelVolume *               volume,
     if (volume->cut_info.connector_type != CutConnectorType::Dowel) {
         if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
             ModelVolume *vol = nullptr;
-            if (volume->cut_info.connector_type == CutConnectorType::Snap) {
+            
+            // --- OUR TRACER BULLET FOR THE THREAD ---
+            if (volume->cut_info.connector_type == CutConnectorType::Thread) {
+                TriangleMesh mesh = TriangleMesh(its_make_thread(1.0, 1.0, 0.2f, PI / 180.0));
+
+                vol = upper->add_volume(std::move(mesh));
+                vol->set_transformation(volume->get_transformation());
+                vol->set_type(ModelVolumeType::NEGATIVE_VOLUME);
+                
+                vol->cut_info = volume->cut_info;
+                vol->name     = volume->name;
+            }
+
+            // --- THE ORIGINAL SNAP LOGIC ---
+            else if (volume->cut_info.connector_type == CutConnectorType::Snap) {
                 TriangleMesh mesh = TriangleMesh(its_make_cylinder(1.0, 1.0, PI / 180.));
 
                 vol = upper->add_volume(std::move(mesh));
@@ -115,8 +129,10 @@ static void process_connector_cut(ModelVolume *               volume,
 
                 vol->cut_info = volume->cut_info;
                 vol->name     = volume->name;
-            } else
+            } 
+            else {
                 vol = upper->add_volume(*volume);
+            }
 
             vol->set_transformation(volume_matrix);
             apply_tolerance(vol);

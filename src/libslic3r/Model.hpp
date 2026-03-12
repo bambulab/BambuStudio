@@ -247,6 +247,7 @@ enum class CutConnectorType : int {
     Plug,
     Dowel,
     Snap,
+    Thread,
     Undef
 };
 
