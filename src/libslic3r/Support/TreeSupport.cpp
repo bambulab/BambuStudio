@@ -1345,12 +1345,14 @@ void TreeSupport::create_tree_support_layers()
 
         // Layers between the raft contacts and bottom of the object.
         double dist_to_go = m_slicing_params.object_print_z_min - raft_print_z;
-        auto nsteps = int(ceil(dist_to_go / m_slicing_params.max_suport_layer_height));
-        double height = dist_to_go / nsteps;
-        for (int i = 0; i < nsteps; ++i) {
-            raft_print_z += height;
-            raft_slice_z = raft_print_z - height / 2;
-            m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+        if (dist_to_go > EPSILON) {
+            auto nsteps = int(ceil(dist_to_go / m_slicing_params.max_suport_layer_height));
+            double height = dist_to_go / nsteps;
+            for (int i = 0; i < nsteps; ++i) {
+                raft_print_z += height;
+                raft_slice_z = raft_print_z - height / 2;
+                m_object->add_tree_support_layer(layer_id++, height, raft_print_z, raft_slice_z);
+            }
         }
         m_raft_layers = layer_id;
     }
@@ -2782,7 +2784,9 @@ void TreeSupport::draw_circles()
 #endif  // SUPPORT_TREE_DEBUG_TO_SVG
 
     SupportLayerPtrs& ts_layers = m_object->support_layers();
-    auto iter = std::remove_if(ts_layers.begin(), ts_layers.end(), [](SupportLayer* ts_layer) { return ts_layer->height < EPSILON; });
+    // Only remove empty non-raft support layers. Raft layers (first m_raft_layers entries)
+    // must be preserved to avoid support_layer_count < m_raft_layers mismatch.
+    auto iter = std::remove_if(ts_layers.begin() + m_raft_layers, ts_layers.end(), [](SupportLayer* ts_layer) { return ts_layer->height < EPSILON; });
     ts_layers.erase(iter, ts_layers.end());
     for (int layer_nr = 0; layer_nr < ts_layers.size(); layer_nr++) {
         ts_layers[layer_nr]->upper_layer = layer_nr != ts_layers.size() - 1 ? ts_layers[layer_nr + 1] : nullptr;
@@ -3774,7 +3778,8 @@ std::vector<LayerHeightData> TreeSupport::plan_layer_heights()
     // add support layers according to layer_heights
     int support_layer_nr = m_raft_layers;
     for (size_t i = 0; i < layer_heights.size(); i++, support_layer_nr++) {
-        SupportLayer *ts_layer = m_object->add_tree_support_layer(support_layer_nr, layer_heights[i].print_z, layer_heights[i].height, layer_heights[i].print_z);
+        SupportLayer *ts_layer = m_object->add_tree_support_layer(support_layer_nr, layer_heights[i].height, layer_heights[i].print_z,
+                                                                  layer_heights[i].print_z - layer_heights[i].height / 2.);
         if (ts_layer->id() > m_raft_layers) {
             SupportLayer *lower_layer = m_object->get_support_layer(ts_layer->id() - 1);
             if (lower_layer) {
