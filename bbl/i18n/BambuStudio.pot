@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-06 09:21+0800\n"
+"POT-Creation-Date: 2026-03-12 10:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,6 +116,22 @@ msgstr ""
 msgid "%s is not supported by %s extruder."
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr ""
 
@@ -197,6 +213,67 @@ msgstr ""
 #, possible-c-format, possible-boost-format
 msgid "%d ℃"
 msgstr ""
+
+msgid "Filament Inlet A"
+msgstr "进料口 A"
+
+msgid "Filament Inlet B"
+msgstr "进料口 B"
+
+msgid "Filament Track Switch"
+msgstr "耗材变轨器"
+
+msgid "Suggested rearrangement"
+msgstr "建议重新摆料"
+
+msgid "How to save time?→"
+msgstr "为何可以节省时间？→"
+
+msgid "Filament Status:"
+msgstr "耗材丝界面状态说明："
+
+msgid "Position adjustment required"
+msgstr "需要调整位置"
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr "摆放OK"
+
+msgid "Unused"
+msgstr "此次打印未匹配使用"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Close"
+msgstr "关闭"
+
+#, possible-c-format, possible-boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr "请按照图示调整AMS中耗材的摆放位置，采用最优排布可节省 %s。"
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr "总结：当前已是最优摆放。"
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr "总结: "
+
+#, possible-c-format, possible-boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
+
+msgid "filaments"
+msgstr "耗材"
+
+msgid "filament"
+msgstr "耗材"
+
+#, possible-c-format, possible-boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
+msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
 
 msgid "Model:"
 msgstr ""
@@ -2691,16 +2768,36 @@ msgstr ""
 msgid "Unload"
 msgstr ""
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
-msgstr ""
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS尚未初始化。请先初始化后再使用。"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr ""
+
+msgid "/"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr "左边"
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr "右边"
+
+msgid "Confirm"
+msgstr "确定"
+
+#, possible-c-format, possible-boost-format
+msgid "Load %s to "
+msgstr "%s  进料至："
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr "右挤出机"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""
@@ -3160,12 +3257,6 @@ msgstr ""
 msgid "AMS Materials Setting"
 msgstr ""
 
-msgid "Confirm"
-msgstr ""
-
-msgid "Close"
-msgstr ""
-
 msgid "Colour"
 msgstr ""
 
@@ -3464,9 +3555,6 @@ msgid "Select Filament && Hotends"
 msgstr ""
 
 msgid "Select Filament"
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -5567,9 +5655,6 @@ msgstr ""
 msgid "Batch manage files."
 msgstr ""
 
-msgid "Refresh"
-msgstr ""
-
 msgid "Reload file list from printer."
 msgstr ""
 
@@ -5987,9 +6072,6 @@ msgstr ""
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr ""
 
-msgid "Load filament to"
-msgstr ""
-
 msgid "Please select an AMS slot before calibration"
 msgstr ""
 
@@ -6018,6 +6100,9 @@ msgid "Still turn it Off"
 msgstr ""
 
 msgid "Can't start this without storage."
+msgstr ""
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr ""
 
 msgid "Rate the Print Profile"
@@ -6677,7 +6762,7 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
-msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
 msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
@@ -7671,6 +7756,12 @@ msgstr ""
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
 msgstr ""
 
+msgid "Clear my choice for disabling recommendation for support material parameters."
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters"
+msgstr ""
+
 msgid "3D Settings"
 msgstr ""
 
@@ -8591,13 +8682,22 @@ msgstr ""
 msgid "View all Daily tips"
 msgstr ""
 
+msgid "Availabale Objects"
+msgstr ""
+
 msgid "Main Material"
 msgstr ""
 
 msgid "Support Material"
 msgstr ""
 
-msgid "Parameters"
+msgid "Recommended Parameters"
+msgstr ""
+
+msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+msgstr ""
+
+msgid "Don't remind me again"
 msgstr ""
 
 msgid "Failed to create socket"
@@ -8726,12 +8826,6 @@ msgid "Click to learn more"
 msgstr ""
 
 msgid "Click to reset all settings to the last saved preset."
-msgstr ""
-
-msgid "A compatible support filament combination is detected. We recommend using this filament for support interface with the recommended parameters."
-msgstr ""
-
-msgid "Recommended combinations:"
 msgstr ""
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
@@ -10976,7 +11070,7 @@ msgstr ""
 msgid "Avoid crossing wall"
 msgstr ""
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
 msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
@@ -11817,10 +11911,10 @@ msgstr ""
 msgid "The filament is printable in extruder"
 msgstr ""
 
-msgid "Filament support printable"
+msgid "Filament-extruder compatibility"
 msgstr ""
 
-msgid "The filament is printable in extruder when used as support."
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
 msgstr ""
 
 msgid "Filament change"
@@ -11872,12 +11966,6 @@ msgid "Print temperature for prime tower interface layer (where different materi
 msgstr ""
 
 msgid "°C"
-msgstr ""
-
-msgid "Enable tower interface features"
-msgstr ""
-
-msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
 msgstr ""
 
 msgid "Softening temperature"
@@ -14016,6 +14104,12 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr ""
 
@@ -15482,7 +15576,7 @@ msgstr ""
 msgid "Fila Saving"
 msgstr ""
 
-msgid "Don't remind me again"
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -15494,6 +15588,9 @@ msgstr ""
 msgid "Convenience Mode"
 msgstr ""
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr ""
 
@@ -15501,6 +15598,9 @@ msgid "Generates filament grouping for the left and right nozzles based on the m
 msgstr ""
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
@@ -15543,10 +15643,10 @@ msgstr ""
 msgid "Right Extruder(%d)"
 msgstr ""
 
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
+msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
 msgid "Skip Objects"
