@@ -3193,18 +3193,11 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
                 std::vector<int> final_assignment(all_filaments_count, 0);
 
                 if (can_compute) {
-                    double space = 1.0;
-                    for (size_t i = 1; i < logical_filaments.size(); ++i) {
-                        space *= static_cast<double>(group_count);
-                        if (space > 3e6) break;
-                    }
-                    if (space <= 3e6) {
-                        auto used_assignment = MultiNozzleUtils::find_optimal_physical_assignment(logical_filaments, nozzle_list, filament_seq, nozzle_seq, group_count, time_params);
-                        for (size_t idx = 0; idx < logical_filaments.size() && idx < used_assignment.size(); ++idx) {
-                            int filament_id = logical_filaments[idx];
-                            if (filament_id >= 0 && static_cast<size_t>(filament_id) < final_assignment.size())
-                                final_assignment[filament_id] = used_assignment[idx];
-                        }
+                    auto used_assignment = MultiNozzleUtils::find_optimal_physical_assignment(logical_filaments, nozzle_list, filament_seq, nozzle_seq, group_count, time_params);
+                    for (size_t idx = 0; idx < logical_filaments.size() && idx < used_assignment.size(); ++idx) {
+                        int filament_id = logical_filaments[idx];
+                        if (filament_id >= 0 && static_cast<size_t>(filament_id) < final_assignment.size())
+                            final_assignment[filament_id] = used_assignment[idx];
                     }
                 }
                 optimal_assignment = std::move(final_assignment);
