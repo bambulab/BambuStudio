@@ -1119,6 +1119,17 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 100 });
 
+    def = this->add("ironing_fan_speed", coInts);
+    def->label = L("Ironing fan speed");
+    def->tooltip = L("This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed "
+                     "reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. "
+                     "Set to -1 to disable it.");
+    def->sidetext = "%";
+    def->min = -1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ -1 });
+
     def          = this->add("pre_start_fan_time", coFloats);
     def->label   = L("Pre start fan time");
     def->tooltip = L("Force fan start early(0-5 second) when encountering overhangs. "
