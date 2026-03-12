@@ -123,6 +123,8 @@ private:
     mutable Grabber m_move_x_grabber;
 
     bool m_connectors_editing{false};
+    bool m_localized_cut_editing = true;
+    Vec3d m_localized_cut_pos = Vec3d::Zero();
     bool m_add_connector_ok{false};
     std::vector<size_t> m_invalid_connectors_idxs;
     bool m_show_shortcuts{false};
@@ -156,6 +158,7 @@ private:
     bool               m_was_cut_plane_dragged{false};
     bool               m_was_contour_selected{false};
     bool               m_is_dragging{false};
+    bool               m_auto_center_connector{false};
     std::shared_ptr<PartSelection>    m_part_selection{nullptr};
     // dragging angel in hovered axes
     double             m_rotate_angle{0.0};
@@ -248,6 +251,7 @@ protected:
     virtual void update_plate_center(Axis axis_type, double projection, bool is_abs_move); // old name:dragging_grabber_move
     virtual void update_plate_normal_boundingbox_clipper(const Transform3d &rotation_tmp); // old name:dragging_grabber_rotation
     virtual void on_update(const UpdateData& data);
+    virtual bool on_mouse(const wxMouseEvent &mouse_event) override;
     virtual void on_render();
     virtual void on_render_for_picking();
     virtual void on_render_input_window(float x, float y, float bottom_limit);
@@ -300,6 +304,7 @@ private:
     void render_cut_plane_and_grabbers();
     void on_render_rotate_gizmos();
     void render_connectors();
+    void render_localized_cut_shadow();
     void render_clipper_cut();
     void render_cut_line();
 

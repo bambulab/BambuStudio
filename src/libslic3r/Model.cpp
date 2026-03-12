@@ -1904,6 +1904,14 @@ indexed_triangle_set ModelObject::get_connector_mesh(CutConnectorAttributes conn
 
     if (connector_attributes.type == CutConnectorType::Snap)
         connector_mesh = its_make_snap(1.0, 1.0, para.snap_space_proportion, para.snap_bulge_proportion);
+    
+// --- OUR THREAD PREVIEW ---
+    else if (connector_attributes.type == CutConnectorType::Thread) {
+        // Generates the standard 1x1x1 unit mesh and lets OpenGL handle the scaling
+        connector_mesh = its_make_thread(1.0, 1.0, 0.2f, (2.0f * PI / sectorCount));
+    }
+
+    // --- ORIGINAL LOGIC BELOW ---
     else if(connector_attributes.style == CutConnectorStyle::Prizm)
         connector_mesh = its_make_cylinder(1.0, 1.0, (2 * PI / sectorCount));
     else if (connector_attributes.type == CutConnectorType::Plug)
