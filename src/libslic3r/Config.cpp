@@ -300,17 +300,14 @@ ConfigOption* ConfigOptionDef::create_default_option() const
             return new ConfigOptionEnumGeneric(this->enum_keys_map, this->default_value->getInt());
 
         if (type == coEnums) {
-            auto dft = this->default_value->clone();
-            if (dft->nullable()) {
+            if (this->default_value->nullable()) {
                 ConfigOptionEnumsGenericNullable *opt = dynamic_cast<ConfigOptionEnumsGenericNullable *>(this->default_value->clone());
                 opt->keys_map = this->enum_keys_map;
                 return opt;
-            } else {
-                ConfigOptionEnumsGeneric *opt = dynamic_cast<ConfigOptionEnumsGeneric *>(this->default_value->clone());
-                opt->keys_map = this->enum_keys_map;
-                return opt;
             }
-            delete dft;
+            ConfigOptionEnumsGeneric *opt = dynamic_cast<ConfigOptionEnumsGeneric *>(this->default_value->clone());
+            opt->keys_map = this->enum_keys_map;
+            return opt;
         }
 
         return this->default_value->clone();
