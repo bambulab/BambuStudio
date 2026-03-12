@@ -390,6 +390,19 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    // Interlocking beam width must be > 0 when beam interlocking is enabled (zero causes divide-by-zero in backend).
+    if (config->opt_bool("interlocking_beam") && config->opt_float("interlocking_beam_width") <= 0.)
+    {
+        const wxString msg_text = _(L("Interlocking beam width can't be zero when beam interlocking is enabled.\nReset to 0.01 mm."));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("interlocking_beam_width", new ConfigOptionFloat(0.01));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     if (config->option<ConfigOptionBool>("enable_wrapping_detection")->value) {
         std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
         if (!DevPrinterConfigUtil::support_wrapping_detection(printer_type)) {
