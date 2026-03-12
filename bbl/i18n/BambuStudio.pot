@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -193,6 +193,67 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "%d ℃"
+msgstr ""
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr ""
+
+msgid "Summary: "
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2162,7 +2223,10 @@ msgstr ""
 msgid "Add Primitive"
 msgstr ""
 
-msgid "Show Labels"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
 msgstr ""
 
 msgid "To objects"
@@ -2298,6 +2362,9 @@ msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
 msgid "Edit Plate Name"
+msgstr ""
+
+msgid "Show Labels"
 msgstr ""
 
 msgid "Name"
@@ -2688,15 +2755,38 @@ msgstr ""
 msgid "Unload"
 msgstr ""
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
 msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
@@ -3154,12 +3244,6 @@ msgstr ""
 msgid "AMS Materials Setting"
 msgstr ""
 
-msgid "Confirm"
-msgstr ""
-
-msgid "Close"
-msgstr ""
-
 msgid "Colour"
 msgstr ""
 
@@ -3458,9 +3542,6 @@ msgid "Select Filament && Hotends"
 msgstr ""
 
 msgid "Select Filament"
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -5217,7 +5298,10 @@ msgstr ""
 msgid "Reset to default window layout"
 msgstr ""
 
-msgid "Show object labels in 3D scene"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
 msgstr ""
 
 msgid "Show &Overhang"
@@ -5559,9 +5643,6 @@ msgid "Select"
 msgstr ""
 
 msgid "Batch manage files."
-msgstr ""
-
-msgid "Refresh"
 msgstr ""
 
 msgid "Reload file list from printer."
@@ -7400,11 +7481,6 @@ msgstr ""
 msgid "Are you sure to use them? \n"
 msgstr ""
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-
 msgid "Send G-code"
 msgstr ""
 
@@ -7415,6 +7491,17 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -9718,6 +9805,9 @@ msgstr ""
 msgid "Camera view - Isometric"
 msgstr ""
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr ""
 
@@ -10933,7 +11023,7 @@ msgstr ""
 msgid "Avoid crossing wall"
 msgstr ""
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
 msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
@@ -15426,6 +15516,9 @@ msgstr ""
 msgid "Don't remind me again"
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
@@ -15435,6 +15528,9 @@ msgstr ""
 msgid "Convenience Mode"
 msgstr ""
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr ""
 
@@ -15442,6 +15538,9 @@ msgid "Generates filament grouping for the left and right nozzles based on the m
 msgstr ""
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
@@ -15484,10 +15583,10 @@ msgstr ""
 msgid "Right Extruder(%d)"
 msgstr ""
 
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
+msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
 msgid "Skip Objects"

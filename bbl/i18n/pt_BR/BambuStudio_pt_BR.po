@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -193,6 +193,67 @@ msgstr "Ocioso"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr "%d°C"
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Atualizar"
+
+msgid "Close"
+msgstr "Fechar"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
+msgstr ""
 
 msgid "Model:"
 msgstr "Modelo"
@@ -2184,8 +2245,11 @@ msgstr "Invalidar informações de corte"
 msgid "Add Primitive"
 msgstr "Adicionar primitivo"
 
-msgid "Show Labels"
-msgstr "Mostrar etiquetas"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Para objetos"
@@ -2321,6 +2385,9 @@ msgstr "Preencha a área restante da cama com cópias do objeto selecionado"
 
 msgid "Edit Plate Name"
 msgstr "Editar nome da placa"
+
+msgid "Show Labels"
+msgstr "Mostrar etiquetas"
 
 msgid "Name"
 msgstr "Nome"
@@ -2714,9 +2781,7 @@ msgstr "Carregando"
 msgid "Unload"
 msgstr "Descarregar"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
@@ -2724,6 +2789,31 @@ msgstr "Escolha um slot AMS e pressione o botão “Carregar” ou “Descarrega
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "O tipo de filamento é desconhecido, o que é necessário para realizar esta ação. Por favor, defina as informações do filamento alvo."
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr "/"
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr "Esquerda"
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr "Direita"
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr "Extrusora DIREITA"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Alterar a velocidade do ventilador durante a impressão pode afetar a qualidade da impressão; escolha com cuidado."
@@ -3188,12 +3278,6 @@ msgstr "Muitas partes do software vêm de contribuições da comunidade, então 
 msgid "AMS Materials Setting"
 msgstr "Configuração de materiais AMS"
 
-msgid "Confirm"
-msgstr "Confirmar"
-
-msgid "Close"
-msgstr "Fechar"
-
 msgid "Colour"
 msgstr "Cor"
 
@@ -3508,9 +3592,6 @@ msgstr "Selecionar Slot de Filamento && Bicos de Aquecimento"
 
 msgid "Select Filament"
 msgstr "Selecione o filamento"
-
-msgid "Ext"
-msgstr ""
 
 msgid "AMS Settings"
 msgstr "Configurações do AMS"
@@ -5341,8 +5422,11 @@ msgstr "Redefinir o layout da janela"
 msgid "Reset to default window layout"
 msgstr "Redefinir para o layout de janela padrão"
 
-msgid "Show object labels in 3D scene"
-msgstr "Mostrar rótulos de objetos na cena 3D"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Mostrar e saliência"
@@ -5694,9 +5778,6 @@ msgstr "Selecionar"
 
 msgid "Batch manage files."
 msgstr "Gerencie arquivos em lote."
-
-msgid "Refresh"
-msgstr "Atualizar"
 
 msgid "Reload file list from printer."
 msgstr "Recarregue a lista de arquivos da impressora."
@@ -6129,7 +6210,7 @@ msgid "Please select an AMS slot before calibration"
 msgstr "Selecione um slot AMS antes da calibração"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "Não é possível ler as informações do filamento: o filamento está carregado no cabeçote, descarregue o filamento e tente novamente."
 
 msgid "This only takes effect during printing"
 msgstr "Isso só tem efeito durante a impressão"
@@ -6794,7 +6875,7 @@ msgstr "Por favor, altere o tipo de bico ou reatribua os filamentos e tente nova
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "Risco de aglomeração do bico detectado com o filamento de alta temperatura atual (%s). Recomendamos ativar a detecção de aglomeração (via sondagem). Este recurso usa uma sequência de sondagem rápida para verificar o acúmulo no bico durante a impressão e utiliza a torre de purga para absorver o excesso de filamento antes de retomar a impressão."
 
 #, boost-format
 msgid " plate %1%: "
@@ -6872,7 +6953,7 @@ msgid "Sync printer information"
 msgstr "Sincronizar informações da impressora"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "Deseja sincronizar a impressora predefinida com a impressora conectada, "
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
@@ -6895,6 +6976,8 @@ msgid ""
 "Tips:\n"
 "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
 msgstr ""
+"Dicas:\n"
+"Sua impressora suporta ajuste de arco, então a função de ajuste de arco do fatiador foi desativada para evitar conflitos."
 
 msgid "Click to edit preset"
 msgstr "Clique para editar a predefinição"
@@ -7211,14 +7294,14 @@ msgid " (unsupported)"
 msgstr " (não suportado)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "A simulação multicolorida atualmente suporta apenas um único material de filamento."
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "Você selecionou vários materiais: %s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "Nota: Materiais não suportados utilizarão o material de referência selecionado para a simulação."
 
 msgid "True multi-material support will be added in a future update."
 msgstr "O suporte completo a múltiplos materiais será adicionado em uma atualização futura."
@@ -7257,7 +7340,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ Materiais Não Suportados Detectados"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "Alguns dos materiais selecionados não são diretamente suportados pelo Helio:"
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "Opção 1: Prosseguir com um material de referência"
@@ -7601,13 +7684,6 @@ msgstr "Não é recomendado usar filamentos de PVA com bicos de 0,2 mm."
 msgid "Are you sure to use them? \n"
 msgstr "Tem certeza de que vai usá-los? \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Imprimir por objeto: \n"
-"Sugerimos usar o arranjo automático para evitar colisões durante a impressão."
-
 msgid "Send G-code"
 msgstr "Enviar g-code"
 
@@ -7619,6 +7695,19 @@ msgstr "Suportes personalizados e pintura colorida foram removidos antes do repa
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Suportes personalizados, seam_facets e pintura colorida foram removidos antes de reparar o nome do modelo:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Imprimir por objeto: \n"
+"Sugerimos usar o arranjo automático para evitar colisões durante a impressão."
+
+msgid "Auto arrange"
+msgstr "Organizar automaticamente"
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7805,10 +7894,10 @@ msgid "Units"
 msgstr "Unidades"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "Use o formato de hora de 12 horas."
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Exibir a hora no formato de 12 horas com AM/PM em vez do formato de 24 horas."
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Mantenha apenas uma instância do Bambu Studio"
@@ -8481,7 +8570,7 @@ msgstr "Código de erro"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "A disposição recomendada dos filamentos economiza %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8611,10 +8700,10 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "O diâmetro atual do bico (%.1fmm) não corresponde ao arquivo de fatiamento (%.1fmm). Certifique-se de que o bico instalado corresponde às configurações na impressora e, em seguida, defina a predefinição da impressora correspondente ao fatiar."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "Esta impressão requer um interruptor de rastreamento de filamento. Instale-o primeiro."
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "O interruptor de trilha de filamento não foi configurado. Por favor, configure-o primeiro."
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -8712,7 +8801,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Você selecionou filamentos externos e AMS para uma extrusora. Você precisará alternar manualmente o filamento externo durante a impressão."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "Os TPU 90A/TPU 85A são muito macios. Recomenda-se realizar a calibração manual do fluxo na página 'Calibração'. Se a 'Calibração Dinâmica do Fluxo' estiver definida como automática/ativada, o sistema usará o valor de calibração anterior e ignorará o processo de calibração do fluxo."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Defina a calibração dinâmica do fluxo como 'OFF' para ativar o valor do fluxo dinâmico personalizado."
@@ -9993,6 +10082,9 @@ msgstr "Visão da câmera - Direita"
 msgid "Camera view - Isometric"
 msgstr "Visão da câmera - Isométrica"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Selecionar todos os objetos"
 
@@ -10316,7 +10408,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "Você está quase lá! Agora que o Helio está ativado, sua primeira otimização para uma impressão mais rápida e confiável leva apenas alguns minutos! (Agora chamada de 'Aprimorar' ou 'Otimização')"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "Adicione um objeto à plataforma de impressão, selecione um material e uma impressora compatíveis com o Helio e, em seguida, fatie."
 
 msgid "Supported printers and materials"
 msgstr "Impressoras e materiais compatíveis"
@@ -11228,8 +11320,8 @@ msgstr "Resumo HTTP"
 msgid "Avoid crossing wall"
 msgstr "Evite cruzar a parede"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Desvie e evite atravessar paredes para evitar a possibilidade de criar bolhas nas superfícies"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Suavização da velocidade da parede ao longo de Z(experimental)"
@@ -11724,10 +11816,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "Densidade do preenchimento da superfície superior: 100% significa uma camada superior totalmente preenchida com material sólido. Valores mais baixos criam uma superfície superior texturizada; com 0%, apenas as paredes são criadas na camada superior. Destina-se a fins estéticos ou funcionais, não para corrigir problemas como sobre-extrusão."
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "Extensão de deslocamento linear monotônico"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "Ative esta opção para aumentar a distância entre as linhas, melhorando a aderência entre o preenchimento uniforme da linha e as paredes (percentual da largura da linha)."
 
 msgid "Bottom surface pattern"
 msgstr "Padrão de superfície inferior"
@@ -15848,10 +15940,13 @@ msgid "Filament grouping"
 msgstr "Agrupamento de filamentos"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "Salvando Arquivos"
 
 msgid "Don't remind me again"
 msgstr "Não me lembre novamente"
+
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Nenhum outro pop-up aparecerá. Você pode reabri-lo em 'Preferências'"
@@ -15862,6 +15957,9 @@ msgstr "Modo de economia de filamento"
 msgid "Convenience Mode"
 msgstr "Modo de conveniência"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "Modo personalizado"
 
@@ -15870,6 +15968,9 @@ msgstr "Gera agrupamento de filamentos para os bicos esquerdo e direito com base
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "Gera agrupamento de filamentos para os bicos esquerdo e direito com base no status real do filamento da impressora, reduzindo a necessidade de ajuste manual do filamento"
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "Atribuir manualmente o filamento ao bico esquerdo ou direito"
@@ -15911,11 +16012,11 @@ msgstr "Extrusora Direita (Padrão: %d, HF: %d)"
 msgid "Right Extruder(%d)"
 msgstr "Extrusora Direita(%d)"
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "O método de agrupamento de filamentos para a placa atual é determinado pela opção suspensa no botão de placa de corte."
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
 
 msgid "Skip Objects"
 msgstr "Ignorar objetos"
@@ -16581,6 +16682,12 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Mostrar rótulos de objetos na cena 3D"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Desvie e evite atravessar paredes para evitar a possibilidade de criar bolhas nas superfícies"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "A calibração dinâmica de fluxo não é suportada para o filamento TPU 85A."
@@ -17815,12 +17922,6 @@ msgstr ""
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "A impressora não suporta o envio para o cartão SD da impressora."
 
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
 #~ msgid "AMS not connected"
 #~ msgstr "AMS não conectado"
 
@@ -18227,9 +18328,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Tipo de cama automática"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Organizar automaticamente"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr ""

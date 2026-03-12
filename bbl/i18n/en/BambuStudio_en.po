@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -185,6 +185,67 @@ msgstr "Idle"
 
 #, c-format, boost-format
 msgid "%d ℃"
+msgstr ""
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Refresh"
+
+msgid "Close"
+msgstr "Close"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2166,8 +2227,11 @@ msgstr "Invalidate cut info"
 msgid "Add Primitive"
 msgstr "Add Primitive"
 
-msgid "Show Labels"
-msgstr "Show Labels"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "To objects"
@@ -2303,6 +2367,9 @@ msgstr "Fill the remaining area of bed with copies of the selected object"
 
 msgid "Edit Plate Name"
 msgstr "Edit Plate Name"
+
+msgid "Show Labels"
+msgstr "Show Labels"
 
 msgid "Name"
 msgstr "Name"
@@ -2696,15 +2763,38 @@ msgstr "Load"
 msgid "Unload"
 msgstr "Unload"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filament."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr "/"
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr ""
+
+msgid "Confirm"
+msgstr "Confirm"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
 msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
@@ -3170,12 +3260,6 @@ msgstr "There are many parts of the software that come from community contributi
 msgid "AMS Materials Setting"
 msgstr "AMS Materials Setting"
 
-msgid "Confirm"
-msgstr "Confirm"
-
-msgid "Close"
-msgstr "Close"
-
 msgid "Colour"
 msgstr "Color"
 
@@ -3476,9 +3560,6 @@ msgid "Select Filament && Hotends"
 msgstr ""
 
 msgid "Select Filament"
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -5295,8 +5376,11 @@ msgstr ""
 msgid "Reset to default window layout"
 msgstr ""
 
-msgid "Show object labels in 3D scene"
-msgstr "Show object labels in 3D scene"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Show &Overhang"
@@ -5648,9 +5732,6 @@ msgstr "Select"
 
 msgid "Batch manage files."
 msgstr "Batch manage files."
-
-msgid "Refresh"
-msgstr "Refresh"
 
 msgid "Reload file list from printer."
 msgstr "Reload file list from printer."
@@ -7520,13 +7601,6 @@ msgstr ""
 msgid "Are you sure to use them? \n"
 msgstr ""
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Print By Object: \n"
-"We suggest using auto-arrange to avoid collisions when printing."
-
 msgid "Send G-code"
 msgstr "Send G-code"
 
@@ -7537,6 +7611,19 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr "Custom supports and color painting were removed before repairing."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Print By Object: \n"
+"We suggest using auto-arrange to avoid collisions when printing."
+
+msgid "Auto arrange"
+msgstr "Auto Arrange"
+
+msgid "Detail view wiki->"
 msgstr ""
 
 #, c-format, boost-format
@@ -9868,6 +9955,9 @@ msgstr ""
 msgid "Camera view - Isometric"
 msgstr ""
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Select all objects"
 
@@ -11087,8 +11177,8 @@ msgstr "HTTP digest"
 msgid "Avoid crossing wall"
 msgstr "Avoid crossing wall"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Detour and avoid traveling across walls to avoid the possibility of creating blobs on surfaces"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr ""
@@ -15646,6 +15736,9 @@ msgstr ""
 msgid "Don't remind me again"
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
@@ -15655,6 +15748,9 @@ msgstr ""
 msgid "Convenience Mode"
 msgstr ""
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr ""
 
@@ -15662,6 +15758,9 @@ msgid "Generates filament grouping for the left and right nozzles based on the m
 msgstr ""
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
@@ -15704,10 +15803,10 @@ msgstr ""
 msgid "Right Extruder(%d)"
 msgstr ""
 
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
+msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
 msgid "Skip Objects"
@@ -16351,6 +16450,12 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Show object labels in 3D scene"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Detour and avoid traveling across walls to avoid the possibility of creating blobs on surfaces"
+
 #~ msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
 #~ msgstr "Cannot read filament info: the filament is loaded to the tool head. Please unload the filament and try again."
 
@@ -16949,12 +17054,6 @@ msgstr ""
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "The printer does not support sending to printer Micro SD card."
 
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
 #~ msgid "AMS not connected"
 #~ msgstr "AMS not connected"
 
@@ -17370,9 +17469,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto Bed Type"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Auto Arrange"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -189,6 +189,67 @@ msgstr "Boşta"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr "%d ℃"
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Yenile"
+
+msgid "Close"
+msgstr "Kapat"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
+msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
@@ -2182,8 +2243,11 @@ msgstr "Kesim bilgisini geçersiz kıl"
 msgid "Add Primitive"
 msgstr "Şekil Ekle"
 
-msgid "Show Labels"
-msgstr "Etiketleri Göster"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Nesnelere"
@@ -2319,6 +2383,9 @@ msgstr "Yatağın kalan alanını seçilen nesnenin kopyalarıyla doldurun"
 
 msgid "Edit Plate Name"
 msgstr "Plaka Adını Düzenle"
+
+msgid "Show Labels"
+msgstr "Etiketleri Göster"
 
 msgid "Name"
 msgstr "İsim"
@@ -2712,9 +2779,7 @@ msgstr "Yükle"
 msgid "Unload"
 msgstr "Çıkar"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
@@ -2722,6 +2787,31 @@ msgstr "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklem
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Bu eylemi gerçekleştirmek için gerekli olan filament tipi bilinmiyor. Lütfen hedef filamentin bilgilerini ayarlayın."
+
+msgid "Ext"
+msgstr "Harici"
+
+msgid "/"
+msgstr "/"
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr ""
+
+msgid "Confirm"
+msgstr "Onayla"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Yazdırma sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçim yapın."
@@ -3186,12 +3276,6 @@ msgstr "Yazılımın pek çok kısmı topluluk katkılarından gelmektedir, bu n
 msgid "AMS Materials Setting"
 msgstr "AMS Malzeme Ayarı"
 
-msgid "Confirm"
-msgstr "Onayla"
-
-msgid "Close"
-msgstr "Kapat"
-
 msgid "Colour"
 msgstr "Renk"
 
@@ -3506,9 +3590,6 @@ msgstr ""
 
 msgid "Select Filament"
 msgstr "Filament Seçin"
-
-msgid "Ext"
-msgstr "Harici"
 
 msgid "AMS Settings"
 msgstr "AMS Ayarları"
@@ -5330,8 +5411,11 @@ msgstr "Pencere Düzenini Sıfırla"
 msgid "Reset to default window layout"
 msgstr "Varsayılan pencere düzenine sıfırla"
 
-msgid "Show object labels in 3D scene"
-msgstr "3B sahnede nesne etiketlerini göster"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Çıkıntıyı Göster"
@@ -5683,9 +5767,6 @@ msgstr "Seç"
 
 msgid "Batch manage files."
 msgstr "Dosyaları toplu olarak yönet."
-
-msgid "Refresh"
-msgstr "Yenile"
 
 msgid "Reload file list from printer."
 msgstr "Dosya listesini yazıcıdan yeniden yükleyin."
@@ -7573,13 +7654,6 @@ msgstr "PVA filamentlerinin 0,2 mm nozullarla kullanılması tavsiye edilmez."
 msgid "Are you sure to use them? \n"
 msgstr "Bunları kullanacağından emin misin? \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nesneye Göre Yazdır:\n"
-"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
-
 msgid "Send G-code"
 msgstr "G-kodu gönder"
 
@@ -7591,6 +7665,19 @@ msgstr "Tamir edilmeden önce özel destekler ve renkli boyalar kaldırıldı."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Özel destekler, dikiş_yüzeyleri ve renk boyamaları onarım öncesinde kaldırıldı, model adı:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nesneye Göre Yazdır:\n"
+"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -9952,6 +10039,9 @@ msgstr "Kamera görüntüsü - Sağ"
 msgid "Camera view - Isometric"
 msgstr "Kamera görünümü - İzometrik"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Tüm nesneleri seç"
 
@@ -11171,8 +11261,8 @@ msgstr "HTTP özeti"
 msgid "Avoid crossing wall"
 msgstr "Duvar geçişinden kaçın"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z boyunca duvar hızını yumuşatma (deneysel)"
@@ -15775,6 +15865,9 @@ msgstr ""
 msgid "Don't remind me again"
 msgstr "Bir daha anımsatma"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Başka bir açılır pencere görünmeyecektir. 'Tercihler'den yeniden açabilirsiniz"
 
@@ -15784,6 +15877,9 @@ msgstr "Filament Tasarruf Modu"
 msgid "Convenience Mode"
 msgstr "Kolaylık Modu"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "Özel Kip"
 
@@ -15792,6 +15888,9 @@ msgstr "Atıkları en aza indirmek için sol ve sağ nozullar için en fazla fil
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "Yazıcının gerçek filament durumuna göre sol ve sağ nozullar için filament gruplaması oluşturarak manuel filament ayarlama ihtiyacını azaltır"
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "Filamenti sol veya sağ nozüle manuel olarak atama"
@@ -15833,11 +15932,11 @@ msgstr ""
 msgid "Right Extruder(%d)"
 msgstr ""
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Mevcut plaka için filament gruplama yöntemi, dilimleme plakası düğmesindeki açılır seçenek tarafından belirlenir."
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
 
 msgid "Skip Objects"
 msgstr "Nesneleri Atla"
@@ -16479,6 +16578,12 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "3B sahnede nesne etiketlerini göster"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"
 
 #~ msgid "Air Condition"
 #~ msgstr "Klima"
@@ -17758,12 +17863,6 @@ msgstr ""
 
 #~ msgid "Set the brim type to \"painted\""
 #~ msgstr "Kenar tipini \"boyalı\" olarak ayarlayın"
-
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS bağlı değil"

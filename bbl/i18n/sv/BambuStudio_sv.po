@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -186,6 +186,67 @@ msgstr "Inaktiv"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr "%d °C"
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Uppdatera"
+
+msgid "Close"
+msgstr "Stäng"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr " ?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
+msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
@@ -2177,8 +2238,11 @@ msgstr "Ogiltig förklara delnings info"
 msgid "Add Primitive"
 msgstr "Lägg till Primitiv"
 
-msgid "Show Labels"
-msgstr "Visa Etiketter"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Till objekten"
@@ -2314,6 +2378,9 @@ msgstr "Fyll det återstående området av byggytan med kopior av det valda obje
 
 msgid "Edit Plate Name"
 msgstr "Redigera plattans namn"
+
+msgid "Show Labels"
+msgstr "Visa Etiketter"
 
 msgid "Name"
 msgstr "Namn"
@@ -2707,18 +2774,39 @@ msgstr "Ladda"
 msgid "Unload"
 msgstr "Mata ut"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
-"Förbruknings bytaren har inte kalibrerats. \n"
-"Kalibrera den på printern innan användning."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Filament typ är okänd vilket krävs för att utföra denna åtgärd. Ställ in filamentets information."
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr "/"
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr "Vänster"
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr "Höger"
+
+msgid "Confirm"
+msgstr "Bekräfta"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr "höger extruder"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
@@ -3183,12 +3271,6 @@ msgstr "Det finns många delar av programvaran som kommer ifrån bidrag av commu
 msgid "AMS Materials Setting"
 msgstr "AMS Material Inställning"
 
-msgid "Confirm"
-msgstr "Bekräfta"
-
-msgid "Close"
-msgstr "Stäng"
-
 msgid "Colour"
 msgstr "Färg"
 
@@ -3503,9 +3585,6 @@ msgstr "Välj Filament && Hotends"
 
 msgid "Select Filament"
 msgstr "Välj filament"
-
-msgid "Ext"
-msgstr ""
 
 msgid "AMS Settings"
 msgstr "AMS Inställningar"
@@ -5337,8 +5416,11 @@ msgstr "Återställ fönster layout"
 msgid "Reset to default window layout"
 msgstr "Återställ till standard fönsterlayout"
 
-msgid "Show object labels in 3D scene"
-msgstr "Visa objekt etiketter i 3D-scenen"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Visa & Överhäng"
@@ -5632,7 +5714,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Livestreaming funktionen är beroende av Bambu Studio för att köras, och streamen avslutas en stund efter att appen stängts."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Förhandsgranskning av printer"
 
 msgid "Playing..."
 msgstr "Spelar..."
@@ -5690,9 +5772,6 @@ msgstr "Välj"
 
 msgid "Batch manage files."
 msgstr "Batch hantera filer."
-
-msgid "Refresh"
-msgstr "Uppdatera"
 
 msgid "Reload file list from printer."
 msgstr "Ladda om fil listan från printer."
@@ -6152,7 +6231,7 @@ msgid "Can't start this without storage."
 msgstr "Kan inte starta detta utan lagring."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "Kan inte byta extruder när printern inte är i FDM läge"
 
 msgid "Rate the Print Profile"
 msgstr "Betygsätt utskriftsprofil"
@@ -6824,10 +6903,10 @@ msgid "Filament changes"
 msgstr "Filament byten"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Filament växlare upptäckt. Alla AMS filament är nu tillgängliga för båda extrudrarna. Beredningen kommer att tilldela automatiskt för optimal utskrift. "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "En filament växlare har upptäckts men är inte kalibrerad och är därför för närvarande otillgänglig. Kalibrera den på printern och synkronisera innan användning. "
 
 msgid "Learn more"
 msgstr "Läs mer"
@@ -7597,13 +7676,6 @@ msgstr "Det är inte rekommenderat att använda PVA-filament med 0.2 mm nozzle."
 msgid "Are you sure to use them? \n"
 msgstr "Är du säker på att du ska använda dem? \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Skriv ut per Objekt:\n"
-"Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
-
 msgid "Send G-code"
 msgstr "Skicka G-kod"
 
@@ -7615,6 +7687,19 @@ msgstr "Custom support och färgläggning raderades innan reparation."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Anpassade support, söm_ytor och färgmålning togs bort innan modellnamnet reparerades:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Skriv ut per Objekt:\n"
+"Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
+
+msgid "Auto arrange"
+msgstr "Auto arrangera"
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -9991,6 +10076,9 @@ msgstr "Kamera vy - Höger"
 msgid "Camera view - Isometric"
 msgstr "Kamera vy - Isometrisk"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Välj alla objekt"
 
@@ -11226,8 +11314,8 @@ msgstr "HTTP sammandrag"
 msgid "Avoid crossing wall"
 msgstr "Undvik att korsa väggar"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Ta en omväg och undvik att färdas över väggar för att undvika risken att skapa klumpar på ytorna."
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr "Undvik förflyttning över väggar vilket kan orsaka fläckar på ytan (när förflyttnings avståndet är större än gränsvärdet för förflyttnings kedja)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Utjämning vägg hastighet längs Z(experimentell)"
@@ -15852,6 +15940,9 @@ msgstr "Filament besparing"
 msgid "Don't remind me again"
 msgstr "Påminn mig inte igen"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Inget ytterligare popup-fönster kommer att visas. Du kan uppdatera detta i \"Inställningar\""
 
@@ -15861,6 +15952,9 @@ msgstr "Filament sparande läge"
 msgid "Convenience Mode"
 msgstr "Bekvämt läge"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "Anpassat läge"
 
@@ -15869,6 +15963,9 @@ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på d
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "Tilldela filament manuellt till vänster eller höger nozzle"
@@ -15910,11 +16007,11 @@ msgstr "Höger Extruder(Std: %d, HF: %d)"
 msgid "Right Extruder(%d)"
 msgstr "Höger Extruder(%d)"
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr "Filament grupperingen optimeras automatiskt baserat på filament besparande principer"
 
 msgid "Skip Objects"
 msgstr "Hoppa över objekt"
@@ -16580,6 +16677,22 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "Förbruknings bytaren har inte kalibrerats. \n"
+#~ "Kalibrera den på printern innan användning."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Visa objekt etiketter i 3D-scenen"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Ta en omväg och undvik att färdas över väggar för att undvika risken att skapa klumpar på ytorna."
+
+#~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
+#~ msgstr "Filament grupperingen optimeras automatiskt baserat på filament besparande principer"
 
 #~ msgid "Load filament to"
 #~ msgstr "Ladda filament till"
@@ -17911,12 +18024,6 @@ msgstr ""
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "Printern har inte stöd för att skicka till printerns SD kort."
 
-#~ msgid "?"
-#~ msgstr " ?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
 #~ msgid "AMS not connected"
 #~ msgstr "AMS ej ansluten"
 
@@ -18332,9 +18439,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto typ av byggplatta"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Auto arrangera"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så placeras endast dem. Alternativt så placeras alla objekt i projektet."

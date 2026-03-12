@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -193,6 +193,67 @@ msgstr "空閒"
 
 #, c-format, boost-format
 msgid "%d ℃"
+msgstr ""
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "重新整理"
+
+msgid "Close"
+msgstr "關閉"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr "絲"
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2176,8 +2237,11 @@ msgstr "解除切割關係"
 msgid "Add Primitive"
 msgstr "新增標準模型"
 
-msgid "Show Labels"
-msgstr "顯示標籤"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "拆分到物件"
@@ -2313,6 +2377,9 @@ msgstr "用選定物件的副本填充床的剩餘區域"
 
 msgid "Edit Plate Name"
 msgstr "編輯盤名"
+
+msgid "Show Labels"
+msgstr "顯示標籤"
 
 msgid "Name"
 msgstr "名稱"
@@ -2700,9 +2767,7 @@ msgstr "進料"
 msgid "Unload"
 msgstr "退料"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
@@ -2710,6 +2775,31 @@ msgstr "選擇1個AMS槽位，然後點選進料/退料按鈕以自動進料/退
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "執行此操作的耗材型別未知。請設定槽位資訊。"
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr ""
+
+msgid "Confirm"
+msgstr "確定"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "在列印過程中改變風扇速度可能會影響列印質量，請謹慎選擇。"
@@ -3172,12 +3262,6 @@ msgstr "軟體中有很多部分來自於社群貢獻，因此我們不便逐一
 msgid "AMS Materials Setting"
 msgstr "材料設定"
 
-msgid "Confirm"
-msgstr "確定"
-
-msgid "Close"
-msgstr "關閉"
-
 msgid "Colour"
 msgstr "顏色"
 
@@ -3489,9 +3573,6 @@ msgid "Select Filament && Hotends"
 msgstr "選擇材料預設和噴頭"
 
 msgid "Select Filament"
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -5308,8 +5389,11 @@ msgstr "重置視窗布局"
 msgid "Reset to default window layout"
 msgstr "重置為預設視窗布局"
 
-msgid "Show object labels in 3D scene"
-msgstr "在3D場景中顯示物件名稱"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "顯示懸空高亮"
@@ -5656,9 +5740,6 @@ msgstr "選擇"
 
 msgid "Batch manage files."
 msgstr "批次管理檔案。"
-
-msgid "Refresh"
-msgstr "重新整理"
 
 msgid "Reload file list from printer."
 msgstr "從印表機重新載入檔案列表。"
@@ -7545,13 +7626,6 @@ msgstr "不建議使用0.2毫米噴嘴來列印PVA材料"
 msgid "Are you sure to use them? \n"
 msgstr "您確定要使用它嗎？ \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"逐件列印：\n"
-"建議使用自動擺盤避免列印時發生碰撞。"
-
 msgid "Send G-code"
 msgstr "傳送 G 程式碼"
 
@@ -7563,6 +7637,19 @@ msgstr "自定義的支撐和塗色在模型修復之前將被清除。"
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "在修復之前，刪除了支援、接縫和塗色資訊,模型名字:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"逐件列印：\n"
+"建議使用自動擺盤避免列印時發生碰撞。"
+
+msgid "Auto arrange"
+msgstr "自動擺盤"
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -9925,6 +10012,9 @@ msgstr ""
 msgid "Camera view - Isometric"
 msgstr "攝像機視角 - 等軸測"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "選擇所有物件"
 
@@ -11157,8 +11247,8 @@ msgstr "HTTP摘要"
 msgid "Avoid crossing wall"
 msgstr "避免跨越外牆"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "空駛時繞過外牆以避免在模型外觀面產生斑點"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外牆速度（實驗）"
@@ -15764,6 +15854,9 @@ msgstr ""
 msgid "Don't remind me again"
 msgstr "不再提醒"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "不再彈窗提醒。您可以在“偏好設定”中重新開啟。"
 
@@ -15773,6 +15866,9 @@ msgstr "省料模式"
 msgid "Convenience Mode"
 msgstr "便捷模式"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "自定義模式"
 
@@ -15781,6 +15877,9 @@ msgstr "根據最節省耗材的原則，生成左右噴嘴的耗材分組方案
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "根據印表機實際耗材狀態，生成左右噴嘴的耗材分組方案，幫助減少對實際耗材的手動調整操作"
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "根據您的個人意願，切片前手動設定耗材的左右分組"
@@ -15822,11 +15921,11 @@ msgstr "右擠出機(標準: %d，高流量: %d)"
 msgid "Right Extruder(%d)"
 msgstr "右擠出機(%d)"
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "當前盤的耗材分組方式由切片按鈕處的下拉選項決定。"
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr ""
 
 msgid "Skip Objects"
 msgstr "零件跳過"
@@ -16492,6 +16591,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "在3D場景中顯示物件名稱"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "空駛時繞過外牆以避免在模型外觀面產生斑點"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "TPU 85A耗材不支援動態流量校準。"
@@ -18647,9 +18752,6 @@ msgstr ""
 
 #~ msgid "Set the brim type to \"painted\""
 #~ msgstr "將Brim型別設定為繪製模式"
-
-#~ msgid "?"
-#~ msgstr "?"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS未連線"
@@ -21088,9 +21190,6 @@ msgstr ""
 #~ msgid "Printer Selection"
 #~ msgstr "印表機選擇"
 
-#~ msgid "Auto arrange"
-#~ msgstr "自動擺盤"
-
 #~ msgid "Spiral mode"
 #~ msgstr "旋轉模式"
 
@@ -22634,9 +22733,6 @@ msgstr ""
 
 #~ msgid "%s Family"
 #~ msgstr "%s 系列"
-
-#~ msgid "filament"
-#~ msgstr "絲"
 
 #~ msgid "SLA material"
 #~ msgstr "SLA 材料"
