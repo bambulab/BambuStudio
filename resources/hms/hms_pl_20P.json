@@ -1,6 +1,6 @@
 {
     "result": 0,
-    "t": 1770272105,
+    "t": 1773300591,
     "ver": 202511162200,
     "data": {
         "device_hms": {
@@ -19,6 +19,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0703220000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
                     "ecode": "0500030000020019",
                     "intro": ""
                 },
@@ -27,36 +35,276 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0701230000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1800860000010004",
+                    "intro": "AMS-HT A nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "1803200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0702210000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0700230000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0701200000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0702210000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0703210000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0701210000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0700230000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0702200000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0702200000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0702230000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0701860000010004",
+                    "intro": "AMS B nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0700220000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0701220000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0703200000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
                     "ecode": "0500030000020051",
                     "intro": ""
+                },
+                {
+                    "ecode": "1802860000010004",
+                    "intro": "AMS-HT C nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0701220000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0701230000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0701210000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1806200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT G jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "1807200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT H jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0703230000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1804860000010004",
+                    "intro": "AMS-HT E nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "1801200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
                 },
                 {
                     "ecode": "050002000003000A",
                     "intro": ""
                 },
                 {
+                    "ecode": "1803200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1805200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT F jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0700210000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0700220000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0700210000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
                     "ecode": "0500020000030009",
                     "intro": ""
+                },
+                {
+                    "ecode": "1802200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "1804200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT E jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "1801200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0703220000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0702230000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1802200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
                 },
                 {
                     "ecode": "0500030000020052",
                     "intro": ""
                 },
                 {
+                    "ecode": "1800200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "1807860000010004",
+                    "intro": "AMS-HT H nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "1805860000010004",
+                    "intro": "AMS-HT F nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0703230000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 4 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "1804200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT E jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0702220000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0700860000020002",
+                    "intro": "Wykryto AMS. Proszę skonfigurować, aby potwierdzić, do której strony wlotu przełącznika ścieżki filamentu jest podłączony AMS."
+                },
+                {
+                    "ecode": "0703210000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 2 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
                     "ecode": "050002000003000B",
                     "intro": ""
+                },
+                {
+                    "ecode": "1806200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT G jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1807200000020026",
+                    "intro": "Silnik pomocniczy modułu AMS-HT H jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0700860000010004",
+                    "intro": "AMS A nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "1806860000010004",
+                    "intro": "AMS-HT G nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
                 },
                 {
                     "ecode": "0500030000020054",
                     "intro": ""
                 },
                 {
+                    "ecode": "0702220000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 3 modułu AMS C jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
                     "ecode": "0500030000020053",
                     "intro": ""
                 },
                 {
+                    "ecode": "1801860000010004",
+                    "intro": "AMS-HT B nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0701200000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS B jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "0700860000020003",
+                    "intro": "Filament jest zablokowany przy wejściu do przełącznika toru filamentu."
+                },
+                {
+                    "ecode": "0703860000010004",
+                    "intro": "AMS D nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0702860000010004",
+                    "intro": "AMS C nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0700200000020026",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy AMS, a przełącznikiem ścieżki filamentu."
+                },
+                {
+                    "ecode": "1805200000020027",
+                    "intro": "Silnik pomocniczy modułu AMS-HT F jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
                     "ecode": "0500030000020050",
                     "intro": ""
+                },
+                {
+                    "ecode": "1803860000010004",
+                    "intro": "AMS-HT D nie jest poprawnie połączony z przełącznikiem ścieżki filamentu. Proszę ponownie uruchomić konfigurację AMS."
+                },
+                {
+                    "ecode": "0700200000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS A jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
+                },
+                {
+                    "ecode": "0703200000020027",
+                    "intro": "Silnik pomocniczy w gnieździe 1 modułu AMS D jest przeciążony. Nadmierny opór filamentu w rurce pomiędzy przełącznikiem ścieżki filamentu a buforem filamentu."
                 },
                 {
                     "ecode": "0500060000020070",
@@ -100,6 +348,482 @@
                 },
                 {
                     "ecode": "03001E0000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18FE810000010006",
+                    "intro": "Płytka TH została rozłączona podczas procesu przełączania ekstrudera. Proszę sprawdzić, czy przewód połączeniowy nie jest poluzowany."
+                },
+                {
+                    "ecode": "07FE810000010006",
+                    "intro": "Płytka TH została rozłączona podczas procesu przełączania ekstrudera. Proszę sprawdzić, czy przewód połączeniowy nie jest poluzowany."
+                },
+                {
+                    "ecode": "07FF810000010006",
+                    "intro": "Płytka TH została rozłączona podczas procesu przełączania ekstrudera. Proszę sprawdzić, czy przewód połączeniowy nie jest poluzowany."
+                },
+                {
+                    "ecode": "18FF810000010006",
+                    "intro": "Płytka TH została rozłączona podczas procesu przełączania ekstrudera. Proszę sprawdzić, czy przewód połączeniowy nie jest poluzowany."
+                },
+                {
+                    "ecode": "07008A0000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020025",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008B0000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008E0000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020045",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700520000030001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020035",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008D0000020008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700890000020004",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008C0000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705210000020023",
+                    "intro": "AMS F gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0703230000020023",
+                    "intro": "AMS D gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0707200000020023",
+                    "intro": "AMS H gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0702220000020023",
+                    "intro": "AMS C gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1807210000020023",
+                    "intro": "AMS-HT H gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0702230000020023",
+                    "intro": "AMS C gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1802200000020023",
+                    "intro": "AMS-HT C gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1800210000020023",
+                    "intro": "AMS-HT A gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0706200000020023",
+                    "intro": "AMS G gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1802210000020023",
+                    "intro": "AMS-HT C gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0706210000020023",
+                    "intro": "AMS G gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0701200000020023",
+                    "intro": "AMS B gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1803200000020023",
+                    "intro": "AMS-HT D gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0707230000020023",
+                    "intro": "AMS H gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0706220000020023",
+                    "intro": "AMS G gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1806200000020023",
+                    "intro": "AMS-HT G gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0704230000020023",
+                    "intro": "AMS E gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0702210000020023",
+                    "intro": "AMS C gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1800230000020023",
+                    "intro": "AMS-HT A gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0701210000020023",
+                    "intro": "AMS B gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0700200000020023",
+                    "intro": "AMS A gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1801220000020023",
+                    "intro": "AMS-HT B gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1805200000020023",
+                    "intro": "AMS-HT F gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0707220000020023",
+                    "intro": "AMS H gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0703220000020023",
+                    "intro": "AMS D gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1804200000020023",
+                    "intro": "AMS-HT E gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0700220000020023",
+                    "intro": "AMS A gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1805230000020023",
+                    "intro": "AMS-HT F gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0706230000020023",
+                    "intro": "AMS G gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1801200000020023",
+                    "intro": "AMS-HT B gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1800220000020023",
+                    "intro": "AMS-HT A gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1802230000020023",
+                    "intro": "AMS-HT C gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1806220000020023",
+                    "intro": "AMS-HT G gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0705200000020023",
+                    "intro": "AMS F gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0705220000020023",
+                    "intro": "AMS F gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0703200000020023",
+                    "intro": "AMS D gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1805210000020023",
+                    "intro": "AMS-HT F gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1806230000020023",
+                    "intro": "AMS-HT G gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0704200000020023",
+                    "intro": "AMS E gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0703210000020023",
+                    "intro": "AMS D gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0704220000020023",
+                    "intro": "AMS E gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1803230000020023",
+                    "intro": "AMS-HT D gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1807200000020023",
+                    "intro": "AMS-HT H gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0701220000020023",
+                    "intro": "AMS B gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0700210000020023",
+                    "intro": "AMS A gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0704210000020023",
+                    "intro": "AMS E gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1802220000020023",
+                    "intro": "AMS-HT C gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0702200000020023",
+                    "intro": "AMS C gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1806210000020023",
+                    "intro": "AMS-HT G gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1807220000020023",
+                    "intro": "AMS-HT H gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1805220000020023",
+                    "intro": "AMS-HT F gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1807230000020023",
+                    "intro": "AMS-HT H gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1804210000020023",
+                    "intro": "AMS-HT E gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1803210000020023",
+                    "intro": "AMS-HT D gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0700230000020023",
+                    "intro": "AMS A gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1804230000020023",
+                    "intro": "AMS-HT E gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1801210000020023",
+                    "intro": "AMS-HT B gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1800200000020023",
+                    "intro": "AMS-HT A gniazdo 1 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0701230000020023",
+                    "intro": "AMS B gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1801230000020023",
+                    "intro": "AMS-HT B gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0707210000020023",
+                    "intro": "AMS H gniazdo 2 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1803220000020023",
+                    "intro": "AMS-HT D gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "0705230000020023",
+                    "intro": "AMS F gniazdo 4 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "1804220000020023",
+                    "intro": "AMS-HT E gniazdo 3 rurka PTFE wewnątrz AMS jest uszkodzona, lub czujnik Halla odpowiedzialny za wykrywanie podawania filamentu nie działa prawidłowo."
+                },
+                {
+                    "ecode": "07008F0000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700880000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1886200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1884200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1880200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1887200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1883200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1881200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1882200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1885200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300910000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300010000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050001000002000F",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050002000003000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020012",
                     "intro": ""
                 },
                 {
@@ -9303,10 +10027,6 @@
                     "intro": "Gniazdo 2 modułu AMS-HT E. Filament może być uszkodzony w głowicy."
                 },
                 {
-                    "ecode": "1801200000020001",
-                    "intro": "Skończył się filament w gnieździe 1 modułu AMS-HT B. Proszę włożyć nowy filament."
-                },
-                {
                     "ecode": "1802230000020014",
                     "intro": "AMS-HT C gniazdo 4 czujnik odometrii filamentu nie wysyła sygnału, co może być spowodowane słabym stykiem w złączu odometru lub jego usterką."
                 },
@@ -11633,6 +12353,10 @@
                 {
                     "ecode": "0300220000010001",
                     "intro": "Błąd czujnika prądu silnika ekstrudera pomocniczego, prawdopodobnie spowodowany awarią sprzętową obwodu pomiarowego."
+                },
+                {
+                    "ecode": "1801200000020001",
+                    "intro": "Skończył się filament w gnieździe 1 modułu AMS-HT B. Proszę włożyć nowy filament."
                 },
                 {
                     "ecode": "0707930000020002",
@@ -17755,6 +18479,10 @@
                     "intro": "Certyfikacja zewnętrznego wentylatora wyciągowego nie powiodła się. Zrestartuj drukarkę lub podłącz ponownie kabel wentylatora."
                 },
                 {
+                    "ecode": "0700860000010001",
+                    "intro": "Przełącznik ścieżki filamentu jest niedostępny. Sprawdź, czy kable nie są odłączone lub czy połączenia nie są poluzowane."
+                },
+                {
                     "ecode": "0705950000010002",
                     "intro": "Czujnik temperatury grzałki 2 w AMS F działa nieprawidłowo, co powoduje nieprawidłowe odczyty temperatury."
                 },
@@ -17885,6 +18613,10 @@
                 {
                     "ecode": "1801950000010002",
                     "intro": "Czujnik temperatury grzałki 2 w AMS-HT B działa nieprawidłowo, co powoduje nieprawidłowe odczyty temperatury."
+                },
+                {
+                    "ecode": "0700870000020001",
+                    "intro": "Mogło dojść do zacięcia filamentu lub uszkodzenia elementu w przełączniku ścieżki filamentu."
                 },
                 {
                     "ecode": "0C0003000002001D",
@@ -18090,6 +18822,14 @@
                 {
                     "ecode": "05004030",
                     "intro": "Urządzenie jest w trakcie aktualizacji. Spróbuj ponownie, gdy będzie w stanie bezczynności."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
                 },
                 {
                     "ecode": "0502C011",
@@ -18540,6 +19280,62 @@
                     "intro": "Nie wykryto materiału. Przed kontynuacją potwierdź poprawne umieszczenie materiału."
                 },
                 {
+                    "ecode": "18058028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "07028028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18048028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18018028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18008028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18078028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "07008028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18028028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18038028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "18068028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "07008027",
+                    "intro": "Przełączanie kanału ścieżki filamentu nie powiodło się. Możliwe przyczyny to zacięcie filamentu lub uszkodzenie komponentu."
+                },
+                {
+                    "ecode": "07018028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
+                    "ecode": "07008026",
+                    "intro": "Konfiguracja AMS nie powiodła się. Szczegóły znajdziesz w asystencie."
+                },
+                {
+                    "ecode": "07038028",
+                    "intro": "Nie udało się podać filamentu do ekstrudera. Możliwe przyczyny to nieprawidłowe połączenie przełącznika ścieżki filamentu z AMS, splątanie filamentu, zablokowana szpula lub odłączona rurka PTFE. Szczegóły można znaleźć w asystencie."
+                },
+                {
                     "ecode": "0500809A",
                     "intro": "Proszę wymienić płytę Vision Encoder na płytę płytą do druku, aby uniknąć uszkodzenia podczas kalibracji."
                 },
@@ -18576,8 +19372,36 @@
                     "intro": "Użycie tego filamentu z ekstruderem pomocniczym może mieć wpływ na jakość wydruku."
                 },
                 {
+                    "ecode": "07028026",
+                    "intro": "Konfiguracja AMS nie powiodła się. Szczegóły znajdziesz w asystencie."
+                },
+                {
+                    "ecode": "07028027",
+                    "intro": "Przełączanie kanału ścieżki filamentu nie powiodło się. Możliwe przyczyny to zacięcie filamentu lub uszkodzenie komponentu."
+                },
+                {
                     "ecode": "0500809B",
                     "intro": "Płyta robocza nie jest prawidłowo ustawiona, może kolidować ze zsypem odpadów. Proszę zmienić położenie płyty roboczej i wyrównać ją ze stołem roboczym."
+                },
+                {
+                    "ecode": "07038027",
+                    "intro": "Przełączanie kanału ścieżki filamentu nie powiodło się. Możliwe przyczyny to zacięcie filamentu lub uszkodzenie komponentu."
+                },
+                {
+                    "ecode": "07008029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "07038026",
+                    "intro": "Konfiguracja AMS nie powiodła się. Szczegóły znajdziesz w asystencie."
+                },
+                {
+                    "ecode": "07018026",
+                    "intro": "Konfiguracja AMS nie powiodła się. Szczegóły znajdziesz w asystencie."
+                },
+                {
+                    "ecode": "07018027",
+                    "intro": "Przełączanie kanału ścieżki filamentu nie powiodło się. Możliwe przyczyny to zacięcie filamentu lub uszkodzenie komponentu."
                 },
                 {
                     "ecode": "050040A8",
@@ -18601,6 +19425,126 @@
                 },
                 {
                     "ecode": "0300806E",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18058029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "18018029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "07018029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "0701802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18078029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "1800802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18068029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "1804802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18028029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "07028029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "1807802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18008029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "0703802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07038029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "18038029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "1802802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18048029",
+                    "intro": "Ten wydruk wymaga przełącznika ścieżki filamentu, ale jest on obecnie niedostępny. Podłącz przełącznik ścieżki filamentu i spróbuj ponownie."
+                },
+                {
+                    "ecode": "0502C031",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C032",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300806F",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03008070",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07FEC030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "07FFC030",
+                    "intro": "Filament określony w slicerze został zużyty. Drukowanie zostało wstrzymane. Proszę podejść do urządzenia, aby wymienić materiał i wznowić drukowanie."
+                },
+                {
+                    "ecode": "0502C033",
                     "intro": ""
                 },
                 {
@@ -20229,7 +21173,7 @@
                 },
                 {
                     "ecode": "05008072",
-                    "intro": "Kamera Live View jest zablokowana"
+                    "intro": ""
                 },
                 {
                     "ecode": "05008073",

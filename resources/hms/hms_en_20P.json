@@ -1,6 +1,6 @@
 {
     "result": 0,
-    "t": 1770272105,
+    "t": 1773300591,
     "ver": 202511162200,
     "data": {
         "device_hms": {
@@ -19,6 +19,14 @@
                     "intro": "Network anomaly detected (failed to obtain IP address). WiFi reconnection has been triggered."
                 },
                 {
+                    "ecode": "1800200000020026",
+                    "intro": "AMS-HT A assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0703220000020026",
+                    "intro": "AMS D slot 3 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
                     "ecode": "0500030000020019",
                     "intro": ""
                 },
@@ -27,36 +35,276 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0701230000020026",
+                    "intro": "AMS B slot 4 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1800860000010004",
+                    "intro": "AMS-HT A is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "1803200000020027",
+                    "intro": "AMS-HT D assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0702210000020026",
+                    "intro": "AMS C slot 2 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0700230000020026",
+                    "intro": "AMS A slot 4 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0701200000020027",
+                    "intro": "AMS B slot 1 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0702210000020027",
+                    "intro": "AMS C slot 2 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0703210000020026",
+                    "intro": "AMS D slot 2 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0701210000020027",
+                    "intro": "AMS B slot 2 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0700230000020027",
+                    "intro": "AMS A slot 4 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0702200000020027",
+                    "intro": "AMS C slot 1 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0702200000020026",
+                    "intro": "AMS C slot 1 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0702230000020027",
+                    "intro": "AMS C slot 4 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0701860000010004",
+                    "intro": "AMS B is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0700220000020027",
+                    "intro": "AMS A slot 3 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0701220000020026",
+                    "intro": "AMS B slot 3 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0703200000020026",
+                    "intro": "AMS D slot 1 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
                     "ecode": "0500030000020051",
                     "intro": ""
+                },
+                {
+                    "ecode": "1802860000010004",
+                    "intro": "AMS-HT C is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0701220000020027",
+                    "intro": "AMS B slot 3 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0701230000020027",
+                    "intro": "AMS B slot 4 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0701210000020026",
+                    "intro": "AMS B slot 2 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1806200000020027",
+                    "intro": "AMS-HT G assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "1807200000020027",
+                    "intro": "AMS-HT H assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0703230000020026",
+                    "intro": "AMS D slot 4 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1804860000010004",
+                    "intro": "AMS-HT E is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "1801200000020027",
+                    "intro": "AMS-HT B assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
                 },
                 {
                     "ecode": "050002000003000A",
                     "intro": ""
                 },
                 {
+                    "ecode": "1803200000020026",
+                    "intro": "AMS-HT D assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1805200000020026",
+                    "intro": "AMS-HT F assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0700210000020027",
+                    "intro": "AMS A slot 2 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0700220000020026",
+                    "intro": "AMS A slot 3 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0700210000020026",
+                    "intro": "AMS A slot 2 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
                     "ecode": "0500020000030009",
                     "intro": ""
+                },
+                {
+                    "ecode": "1802200000020027",
+                    "intro": "AMS-HT C assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "1804200000020027",
+                    "intro": "AMS-HT E assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "1801200000020026",
+                    "intro": "AMS-HT B assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0703220000020027",
+                    "intro": "AMS D slot 3 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0702230000020026",
+                    "intro": "AMS C slot 4 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1802200000020026",
+                    "intro": "AMS-HT C assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
                 },
                 {
                     "ecode": "0500030000020052",
                     "intro": ""
                 },
                 {
+                    "ecode": "1800200000020027",
+                    "intro": "AMS-HT A assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "1807860000010004",
+                    "intro": "AMS-HT H is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "1805860000010004",
+                    "intro": "AMS-HT F is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0703230000020027",
+                    "intro": "AMS D slot 4 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "1804200000020026",
+                    "intro": "AMS-HT E assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0702220000020026",
+                    "intro": "AMS C slot 3 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0700860000020002",
+                    "intro": "The AMS has been detected. Please set it up to confirm which side of the Filament Track Switch inlet the AMS is connected to."
+                },
+                {
+                    "ecode": "0703210000020027",
+                    "intro": "AMS D slot 2 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
                     "ecode": "050002000003000B",
                     "intro": ""
+                },
+                {
+                    "ecode": "1806200000020026",
+                    "intro": "AMS-HT G assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1807200000020026",
+                    "intro": "AMS-HT H assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0700860000010004",
+                    "intro": "AMS A is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "1806860000010004",
+                    "intro": "AMS-HT G is not correctly bound to the filament track switch. Please run AMS setup again."
                 },
                 {
                     "ecode": "0500030000020054",
                     "intro": ""
                 },
                 {
+                    "ecode": "0702220000020027",
+                    "intro": "AMS C slot 3 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
                     "ecode": "0500030000020053",
                     "intro": ""
                 },
                 {
+                    "ecode": "1801860000010004",
+                    "intro": "AMS-HT B is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0701200000020026",
+                    "intro": "AMS B slot 1 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "0700860000020003",
+                    "intro": "Filament is blocked at the inlet of the filament track switch."
+                },
+                {
+                    "ecode": "0703860000010004",
+                    "intro": "AMS D is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0702860000010004",
+                    "intro": "AMS C is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0700200000020026",
+                    "intro": "AMS A slot 1 assist motor overloaded. Excessive resistance in the filament tube between the AMS and the filament track switch."
+                },
+                {
+                    "ecode": "1805200000020027",
+                    "intro": "AMS-HT F assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
                     "ecode": "0500030000020050",
                     "intro": ""
+                },
+                {
+                    "ecode": "1803860000010004",
+                    "intro": "AMS-HT D is not correctly bound to the filament track switch. Please run AMS setup again."
+                },
+                {
+                    "ecode": "0700200000020027",
+                    "intro": "AMS A slot 1 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
+                },
+                {
+                    "ecode": "0703200000020027",
+                    "intro": "AMS D slot 1 assist motor overloaded. Excessive resistance in the filament tube between the filament track switch and the filament buffer."
                 },
                 {
                     "ecode": "0500060000020070",
@@ -101,6 +349,482 @@
                 {
                     "ecode": "03001E0000010005",
                     "intro": "Abnormal temperature control detected on the left extruder nozzle; the heating module may be damaged. Please disconnect the power immediately and stop using the device, and contact customer support for troubleshooting guidance."
+                },
+                {
+                    "ecode": "18FE810000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "07FE810000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "07FF810000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "18FF810000010006",
+                    "intro": "The TH board disconnected during the extruder switching process. Please check if the connecting cable is loose."
+                },
+                {
+                    "ecode": "07008A0000020005",
+                    "intro": "Abnormal switching detection sensor detected on the IN-B side of the Filament Track Switch. The cable on this side may be loose. Please reconnect or replace the sensor and try again."
+                },
+                {
+                    "ecode": "0500060000020025",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008B0000020006",
+                    "intro": "Abnormal feed detection sensor detected on the IN-A side of the Filament Track Switch. The cable on this side may be loose. Please reconnect or replace the sensor and try again."
+                },
+                {
+                    "ecode": "07008E0000020009",
+                    "intro": "Abnormal coil resistance detected on the IN-B side of the Filament Track Switch. Please refer to the Wiki to replace the coil assembly."
+                },
+                {
+                    "ecode": "0500060000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020045",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700520000030001",
+                    "intro": "Abnormal number or type of connected AMS units detected. Please refer to the Wiki for supported AMS combinations and adjust the current connection."
+                },
+                {
+                    "ecode": "0700860000020006",
+                    "intro": "The Filament Track Switch was connected during AMS initialization. Please unplug the Filament Track Switch and reconnect it after AMS initialization is complete."
+                },
+                {
+                    "ecode": "0500060000020035",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008D0000020008",
+                    "intro": "Abnormal coil resistance detected on the IN-A side of the Filament Track Switch. Please refer to the Wiki to replace the coil assembly."
+                },
+                {
+                    "ecode": "0500060000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700890000020004",
+                    "intro": "Abnormal switching detection sensor detected on the IN-A side of the Filament Track Switch. The cable on this side may be loose. Please reconnect or replace the sensor and try again."
+                },
+                {
+                    "ecode": "07008C0000020007",
+                    "intro": "Abnormal feed detection sensor detected on the IN-B side of the Filament Track Switch. The cable on this side may be loose. Please reconnect or replace the sensor and try again."
+                },
+                {
+                    "ecode": "0700860000020007",
+                    "intro": "The Filament Track Switch was connected during printing. Please unplug the Filament Track Switch and reconnect it after the print is finished."
+                },
+                {
+                    "ecode": "0705210000020023",
+                    "intro": "AMS F slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0703230000020023",
+                    "intro": "AMS D slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0707200000020023",
+                    "intro": "AMS H slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0702220000020023",
+                    "intro": "AMS C slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1807210000020023",
+                    "intro": "AMS-HT H slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0702230000020023",
+                    "intro": "AMS C slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1802200000020023",
+                    "intro": "AMS-HT C slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1800210000020023",
+                    "intro": "AMS-HT A slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0706200000020023",
+                    "intro": "AMS G slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1802210000020023",
+                    "intro": "AMS-HT C slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0706210000020023",
+                    "intro": "AMS G slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0701200000020023",
+                    "intro": "AMS B slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1803200000020023",
+                    "intro": "AMS-HT D slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0707230000020023",
+                    "intro": "AMS H slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0706220000020023",
+                    "intro": "AMS G slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1806200000020023",
+                    "intro": "AMS-HT G slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0704230000020023",
+                    "intro": "AMS E slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0702210000020023",
+                    "intro": "AMS C slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1800230000020023",
+                    "intro": "AMS-HT A slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0701210000020023",
+                    "intro": "AMS B slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0700200000020023",
+                    "intro": "AMS A slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1801220000020023",
+                    "intro": "AMS-HT B slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1805200000020023",
+                    "intro": "AMS-HT F slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0707220000020023",
+                    "intro": "AMS H slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0703220000020023",
+                    "intro": "AMS D slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1804200000020023",
+                    "intro": "AMS-HT E slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0700220000020023",
+                    "intro": "AMS A slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1805230000020023",
+                    "intro": "AMS-HT F slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0706230000020023",
+                    "intro": "AMS G slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1801200000020023",
+                    "intro": "AMS-HT B slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1800220000020023",
+                    "intro": "AMS-HT A slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1802230000020023",
+                    "intro": "AMS-HT C slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1806220000020023",
+                    "intro": "AMS-HT G slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0705200000020023",
+                    "intro": "AMS F slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0705220000020023",
+                    "intro": "AMS F slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0703200000020023",
+                    "intro": "AMS D slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1805210000020023",
+                    "intro": "AMS-HT F slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1806230000020023",
+                    "intro": "AMS-HT G slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0704200000020023",
+                    "intro": "AMS E slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0703210000020023",
+                    "intro": "AMS D slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0704220000020023",
+                    "intro": "AMS E slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1803230000020023",
+                    "intro": "AMS-HT D slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1807200000020023",
+                    "intro": "AMS-HT H slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0701220000020023",
+                    "intro": "AMS B slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0700210000020023",
+                    "intro": "AMS A slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0704210000020023",
+                    "intro": "AMS E slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1802220000020023",
+                    "intro": "AMS-HT C slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0702200000020023",
+                    "intro": "AMS C slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1806210000020023",
+                    "intro": "AMS-HT G slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1807220000020023",
+                    "intro": "AMS-HT H slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1805220000020023",
+                    "intro": "AMS-HT F slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1807230000020023",
+                    "intro": "AMS-HT H slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1804210000020023",
+                    "intro": "AMS-HT E slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1803210000020023",
+                    "intro": "AMS-HT D slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0700230000020023",
+                    "intro": "AMS A slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1804230000020023",
+                    "intro": "AMS-HT E slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1801210000020023",
+                    "intro": "AMS-HT B slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1800200000020023",
+                    "intro": "AMS-HT A slot 1 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0701230000020023",
+                    "intro": "AMS B slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1801230000020023",
+                    "intro": "AMS-HT B slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0707210000020023",
+                    "intro": "AMS H slot 2 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1803220000020023",
+                    "intro": "AMS-HT D slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "0705230000020023",
+                    "intro": "AMS F slot 4 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "1804220000020023",
+                    "intro": "AMS-HT E slot 3 the tube inside the AMS is broken, or feed-out hall sensor is faulty and cannot detect the filament."
+                },
+                {
+                    "ecode": "07008F0000020002",
+                    "intro": "Abnormal movement detected on the IN-B side of the Filament Track Switch. This may be caused by debris obstruction, a loose cable, or a damaged coil. Please refer to the Wiki for troubleshooting."
+                },
+                {
+                    "ecode": "0700880000020003",
+                    "intro": "Abnormal movement detected on the IN-A side of the Filament Track Switch. This may be caused by debris obstruction, a loose cable, or a damaged coil. Please refer to the Wiki for troubleshooting."
+                },
+                {
+                    "ecode": "0700860000010005",
+                    "intro": "The Filament Track Switch was connected while filament is still loaded in the extruder. Please unplug the Filament Track Switch, unload the filament, then reconnect the Filament Track Switch and try again."
+                },
+                {
+                    "ecode": "0700860000010008",
+                    "intro": "Filament was detected in the extruder when the Filament Track Switch was unplugged. Please reconnect the Filament Track Switch, unload the filament, then unplug the Filament Track Switch."
+                },
+                {
+                    "ecode": "0703230000020057",
+                    "intro": "The RFID-tag on AMS D Slot 4 cannot be identified."
+                },
+                {
+                    "ecode": "1886200000020058",
+                    "intro": "The RFID-tag on AMS-HT G cannot be identified."
+                },
+                {
+                    "ecode": "0702210000020057",
+                    "intro": "The RFID-tag on AMS C Slot 2 cannot be identified."
+                },
+                {
+                    "ecode": "1884200000020058",
+                    "intro": "The RFID-tag on AMS-HT E cannot be identified."
+                },
+                {
+                    "ecode": "1880200000020058",
+                    "intro": "The RFID-tag on AMS-HT A cannot be identified."
+                },
+                {
+                    "ecode": "1887200000020058",
+                    "intro": "The RFID-tag on AMS-HT H cannot be identified."
+                },
+                {
+                    "ecode": "0701230000020057",
+                    "intro": "The RFID-tag on AMS B Slot 4 cannot be identified."
+                },
+                {
+                    "ecode": "0700220000020057",
+                    "intro": "The RFID-tag on AMS A Slot 3 cannot be identified."
+                },
+                {
+                    "ecode": "0701210000020057",
+                    "intro": "The RFID-tag on AMS B Slot 2 cannot be identified."
+                },
+                {
+                    "ecode": "0703200000020057",
+                    "intro": "The RFID-tag on AMS D Slot 1 cannot be identified."
+                },
+                {
+                    "ecode": "1883200000020058",
+                    "intro": "The RFID-tag on AMS-HT D cannot be identified."
+                },
+                {
+                    "ecode": "0703220000020057",
+                    "intro": "The RFID-tag on AMS D Slot 3 cannot be identified."
+                },
+                {
+                    "ecode": "0702200000020057",
+                    "intro": "The RFID-tag on AMS C Slot 1 cannot be identified."
+                },
+                {
+                    "ecode": "1881200000020058",
+                    "intro": "The RFID-tag on AMS-HT B cannot be identified."
+                },
+                {
+                    "ecode": "0700210000020057",
+                    "intro": "The RFID-tag on AMS A Slot 2 cannot be identified."
+                },
+                {
+                    "ecode": "1882200000020058",
+                    "intro": "The RFID-tag on AMS-HT C cannot be identified."
+                },
+                {
+                    "ecode": "1885200000020058",
+                    "intro": "The RFID-tag on AMS-HT F cannot be identified."
+                },
+                {
+                    "ecode": "0702220000020057",
+                    "intro": "The RFID-tag on AMS C Slot 3 cannot be identified."
+                },
+                {
+                    "ecode": "0700230000020057",
+                    "intro": "The RFID-tag on AMS A Slot 4 cannot be identified."
+                },
+                {
+                    "ecode": "0703210000020057",
+                    "intro": "The RFID-tag on AMS D Slot 2 cannot be identified."
+                },
+                {
+                    "ecode": "0701220000020057",
+                    "intro": "The RFID-tag on AMS B Slot 3 cannot be identified."
+                },
+                {
+                    "ecode": "0701200000020057",
+                    "intro": "The RFID-tag on AMS B Slot 1 cannot be identified."
+                },
+                {
+                    "ecode": "0700200000020057",
+                    "intro": "The RFID-tag on AMS A Slot 1 cannot be identified."
+                },
+                {
+                    "ecode": "0702230000020057",
+                    "intro": "The RFID-tag on AMS C Slot 4 cannot be identified."
+                },
+                {
+                    "ecode": "0300910000010005",
+                    "intro": "A chamber heater temperature control issue has been detected and the heating module may be damaged. Please power off the device immediately and follow the Wiki to replace the AC board."
+                },
+                {
+                    "ecode": "0300010000010005",
+                    "intro": "A heatbed temperature control issue has been detected and the heating module may be damaged. Please power off the device immediately and follow the Wiki to replace the AC board."
+                },
+                {
+                    "ecode": "0500010000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050001000002000F",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020013",
+                    "intro": "The Liveview camera firmware update encountered an error. Please restart the printer and try to upgrade again."
+                },
+                {
+                    "ecode": "050002000003000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020014",
+                    "intro": "The Liveview camera firmware update encountered an error. Please restart the printer and try to upgrade again."
+                },
+                {
+                    "ecode": "0500010000020012",
+                    "intro": "The Liveview camera firmware update encountered an error. Please restart the printer and try to upgrade again."
                 },
                 {
                     "ecode": "0C00010000020019",
@@ -9303,10 +10027,6 @@
                     "intro": "AMS-HT E Slot 2 filament may be broken in the tool head."
                 },
                 {
-                    "ecode": "1801200000020001",
-                    "intro": "AMS-HT B Slot 1 filament has run out. Please insert a new filament."
-                },
-                {
                     "ecode": "1802230000020014",
                     "intro": "AMS-HT C slot 4 filament odometer has no signal, which may be due to poor contact in the odometer connector or a odometer fault."
                 },
@@ -11633,6 +12353,10 @@
                 {
                     "ecode": "0300220000010001",
                     "intro": "Auxiliary extruder motor current sensor error, possibly caused by a sampling circuit hardware failure."
+                },
+                {
+                    "ecode": "1801200000020001",
+                    "intro": "AMS-HT B Slot 1 filament has run out. Please insert a new filament."
                 },
                 {
                     "ecode": "0707930000020002",
@@ -17755,6 +18479,10 @@
                     "intro": "The External Exhaust Fan certification failed. Please restart the printer or reconnect the fan cable."
                 },
                 {
+                    "ecode": "0700860000010001",
+                    "intro": "The Filament Track Switch is offline. Please check for disconnected cables or loose connectors."
+                },
+                {
                     "ecode": "0705950000010002",
                     "intro": "Temperature sensor 2 on the AMS F heater has malfunctioned, resulting in abnormal temperature readings."
                 },
@@ -17885,6 +18613,10 @@
                 {
                     "ecode": "1801950000010002",
                     "intro": "Temperature sensor 2 on the AMS-HT B heater has malfunctioned, resulting in abnormal temperature readings."
+                },
+                {
+                    "ecode": "0700870000020001",
+                    "intro": "A filament jam or component damage may have occurred at the Filament Track Switch."
                 },
                 {
                     "ecode": "0C0003000002001D",
@@ -18090,6 +18822,14 @@
                 {
                     "ecode": "05004030",
                     "intro": "The device is currently upgrading. Please try again when it is idle."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
                 },
                 {
                     "ecode": "0502C011",
@@ -18540,6 +19280,62 @@
                     "intro": "No material detected. Please confirm material placement and continue."
                 },
                 {
+                    "ecode": "18058028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07028028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18048028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18018028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18008028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18078028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07008028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18028028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18038028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "18068028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07008027",
+                    "intro": "Filament track channel switching failed. Possible causes include filament jamming or component damage."
+                },
+                {
+                    "ecode": "07018028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07008026",
+                    "intro": "AMS set up failed. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07038028",
+                    "intro": "Failed to feed filament to the extruder. Possible causes include an incorrect AMS–filament track switch binding, tangled filament, a stuck spool, or a disconnected PTFE tube. Please check the assistant for details."
+                },
+                {
                     "ecode": "0500809A",
                     "intro": "Please replace the Vision Encoder board with the print plate to avoid damage during calibration."
                 },
@@ -18576,8 +19372,36 @@
                     "intro": "Using this filament with the auxiliary extruder may affect print quality."
                 },
                 {
+                    "ecode": "07028026",
+                    "intro": "AMS set up failed. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07028027",
+                    "intro": "Filament track channel switching failed. Possible causes include filament jamming or component damage."
+                },
+                {
                     "ecode": "0500809B",
                     "intro": "Build plate not properly positioned, may collide with the waste chute. Please reposition build plate and align with heatbed."
+                },
+                {
+                    "ecode": "07038027",
+                    "intro": "Filament track channel switching failed. Possible causes include filament jamming or component damage."
+                },
+                {
+                    "ecode": "07008029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "07038026",
+                    "intro": "AMS set up failed. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07018026",
+                    "intro": "AMS set up failed. Please check the assistant for details."
+                },
+                {
+                    "ecode": "07018027",
+                    "intro": "Filament track channel switching failed. Possible causes include filament jamming or component damage."
                 },
                 {
                     "ecode": "050040A8",
@@ -18602,6 +19426,126 @@
                 {
                     "ecode": "0300806E",
                     "intro": "Abnormal nozzle temperature control detected; the heating module may be damaged. Please disconnect the power immediately and stop using the device."
+                },
+                {
+                    "ecode": "0700802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "18058029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "18018029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "07018029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "0701802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "1803802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "18078029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "1800802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "18068029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "1804802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "18028029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "07028029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "1807802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "18008029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "0703802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "1805802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "1801802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "07038029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "18038029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "1802802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "1806802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "0702802A",
+                    "intro": "The Filament Track Switch was detected while the printer was not idle. Please unplug the Filament Track Switch and reconnect it after the printer enters the idle state."
+                },
+                {
+                    "ecode": "18048029",
+                    "intro": "This print requires a Filament Track Switch, but it is currently offline. Please connect the Filament Track Switch and retry."
+                },
+                {
+                    "ecode": "0502C031",
+                    "intro": "Please check and remove any printed parts or debris from the heatbed surface before continuing the cold pull."
+                },
+                {
+                    "ecode": "0502C032",
+                    "intro": "Please check and remove any printed parts or debris from the heatbed surface and underside before continuing the drying process."
+                },
+                {
+                    "ecode": "0300806F",
+                    "intro": "Abnormal temperature rise detected on the heatbed. The heating module may be damaged. Please power off the device immediately and stop using it."
+                },
+                {
+                    "ecode": "03008070",
+                    "intro": "The chamber heater temperature is rising abnormally and the heating module may be damaged. Please power off the device immediately and stop using the device."
+                },
+                {
+                    "ecode": "07FEC030",
+                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
+                },
+                {
+                    "ecode": "07FFC030",
+                    "intro": "The filament specified in the slicer has been used up. Printing is paused. Please go to the machine to replace the material and resume printing."
+                },
+                {
+                    "ecode": "0502C033",
+                    "intro": "While retracting filament on the auxiliary extruder, manually collect it promptly to prevent it from tangling on the external spool."
                 },
                 {
                     "ecode": "03004000",
@@ -20229,7 +21173,7 @@
                 },
                 {
                     "ecode": "05008072",
-                    "intro": "Live View camera is blocked"
+                    "intro": "The Live View Camera is obstructed. Please remove the obstruction before continuing."
                 },
                 {
                     "ecode": "05008073",

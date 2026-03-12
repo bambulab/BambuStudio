@@ -1,6 +1,6 @@
 {
     "result": 0,
-    "t": 1770272105,
+    "t": 1773300591,
     "ver": 202511162200,
     "data": {
         "device_hms": {
@@ -19,6 +19,14 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "1800200000020026",
+                    "intro": "AMS-HT A: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0703220000020026",
+                    "intro": "AMS D Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
                     "ecode": "0500030000020019",
                     "intro": ""
                 },
@@ -27,36 +35,276 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0701230000020026",
+                    "intro": "AMS B Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1800860000010004",
+                    "intro": "AMS-HT A ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "1803200000020027",
+                    "intro": "AMS-HT D: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0702210000020026",
+                    "intro": "AMS C Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0700230000020026",
+                    "intro": "AMS A Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0701200000020027",
+                    "intro": "AMS B Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0702210000020027",
+                    "intro": "AMS C Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0703210000020026",
+                    "intro": "AMS D Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0701210000020027",
+                    "intro": "AMS B Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0700230000020027",
+                    "intro": "AMS A Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0702200000020027",
+                    "intro": "AMS C Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0702200000020026",
+                    "intro": "AMS C Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0702230000020027",
+                    "intro": "AMS C Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0701860000010004",
+                    "intro": "AMS B ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0700220000020027",
+                    "intro": "AMS A Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0701220000020026",
+                    "intro": "AMS B Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0703200000020026",
+                    "intro": "AMS D Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
                     "ecode": "0500030000020051",
                     "intro": ""
+                },
+                {
+                    "ecode": "1802860000010004",
+                    "intro": "AMS-HT C ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0701220000020027",
+                    "intro": "AMS B Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0701230000020027",
+                    "intro": "AMS B Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0701210000020026",
+                    "intro": "AMS B Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1806200000020027",
+                    "intro": "AMS-HT G: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "1807200000020027",
+                    "intro": "AMS-HT H: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0703230000020026",
+                    "intro": "AMS D Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1804860000010004",
+                    "intro": "AMS-HT E ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "1801200000020027",
+                    "intro": "AMS-HT B: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
                 },
                 {
                     "ecode": "050002000003000A",
                     "intro": ""
                 },
                 {
+                    "ecode": "1803200000020026",
+                    "intro": "AMS-HT D: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1805200000020026",
+                    "intro": "AMS-HT F: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0700210000020027",
+                    "intro": "AMS A Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0700220000020026",
+                    "intro": "AMS A Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0700210000020026",
+                    "intro": "AMS A Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
                     "ecode": "0500020000030009",
                     "intro": ""
+                },
+                {
+                    "ecode": "1802200000020027",
+                    "intro": "AMS-HT C: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "1804200000020027",
+                    "intro": "AMS-HT E: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "1801200000020026",
+                    "intro": "AMS-HT B: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0703220000020027",
+                    "intro": "AMS D Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0702230000020026",
+                    "intro": "AMS C Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1802200000020026",
+                    "intro": "AMS-HT C: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
                 },
                 {
                     "ecode": "0500030000020052",
                     "intro": ""
                 },
                 {
+                    "ecode": "1800200000020027",
+                    "intro": "AMS-HT A: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "1807860000010004",
+                    "intro": "AMS-HT H ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "1805860000010004",
+                    "intro": "AMS-HT F ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0703230000020027",
+                    "intro": "AMS D Slot 4: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "1804200000020026",
+                    "intro": "AMS-HT E: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0702220000020026",
+                    "intro": "AMS C Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0700860000020002",
+                    "intro": "Das AMS wurde erkannt. Bitte richten Sie es ein, um zu bestätigen, an welcher Seite des Filamentweichen-Einlasses das AMS angeschlossen ist."
+                },
+                {
+                    "ecode": "0703210000020027",
+                    "intro": "AMS D Slot 2: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
                     "ecode": "050002000003000B",
                     "intro": ""
+                },
+                {
+                    "ecode": "1806200000020026",
+                    "intro": "AMS-HT G: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1807200000020026",
+                    "intro": "AMS-HT H: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0700860000010004",
+                    "intro": "AMS A ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "1806860000010004",
+                    "intro": "AMS-HT G ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
                 },
                 {
                     "ecode": "0500030000020054",
                     "intro": ""
                 },
                 {
+                    "ecode": "0702220000020027",
+                    "intro": "AMS C Slot 3: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
                     "ecode": "0500030000020053",
                     "intro": ""
                 },
                 {
+                    "ecode": "1801860000010004",
+                    "intro": "AMS-HT B ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0701200000020026",
+                    "intro": "AMS B Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "0700860000020003",
+                    "intro": "Das Filament ist am Einlass der Filamentweiche blockiert."
+                },
+                {
+                    "ecode": "0703860000010004",
+                    "intro": "AMS D ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0702860000010004",
+                    "intro": "AMS C ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0700200000020026",
+                    "intro": "AMS A Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen dem AMS und der Filamentweiche."
+                },
+                {
+                    "ecode": "1805200000020027",
+                    "intro": "AMS-HT F: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
                     "ecode": "0500030000020050",
                     "intro": ""
+                },
+                {
+                    "ecode": "1803860000010004",
+                    "intro": "AMS-HT D ist nicht korrekt mit der Filamentweiche verbunden. Bitte führen Sie das AMS-Setup erneut aus."
+                },
+                {
+                    "ecode": "0700200000020027",
+                    "intro": "AMS A Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
+                },
+                {
+                    "ecode": "0703200000020027",
+                    "intro": "AMS D Slot 1: Hilfsmotor überlastet. Zu hoher Widerstand im Filamentschlauch zwischen der Filamentweiche und dem Filamentpuffer."
                 },
                 {
                     "ecode": "0500060000020070",
@@ -100,6 +348,482 @@
                 },
                 {
                     "ecode": "03001E0000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18FE810000010006",
+                    "intro": "Die TH-Platine wurde während des Extruder-Umschaltvorgangs getrennt. Bitte überprüfen Sie, ob das Verbindungskabel locker ist."
+                },
+                {
+                    "ecode": "07FE810000010006",
+                    "intro": "Die TH-Platine wurde während des Extruder-Umschaltvorgangs getrennt. Bitte überprüfen Sie, ob das Verbindungskabel locker ist."
+                },
+                {
+                    "ecode": "07FF810000010006",
+                    "intro": "Die TH-Platine wurde während des Extruder-Umschaltvorgangs getrennt. Bitte überprüfen Sie, ob das Verbindungskabel locker ist."
+                },
+                {
+                    "ecode": "18FF810000010006",
+                    "intro": "Die TH-Platine wurde während des Extruder-Umschaltvorgangs getrennt. Bitte überprüfen Sie, ob das Verbindungskabel locker ist."
+                },
+                {
+                    "ecode": "07008A0000020005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020025",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008B0000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008E0000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020045",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700520000030001",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020035",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008D0000020008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500060000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700890000020004",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07008C0000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705210000020023",
+                    "intro": "AMS F Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0703230000020023",
+                    "intro": "AMS D Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0707200000020023",
+                    "intro": "AMS H Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0702220000020023",
+                    "intro": "AMS C Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1807210000020023",
+                    "intro": "AMS-HT H Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0702230000020023",
+                    "intro": "AMS C Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1802200000020023",
+                    "intro": "AMS-HT C Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1800210000020023",
+                    "intro": "AMS-HT A Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0706200000020023",
+                    "intro": "AMS G Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1802210000020023",
+                    "intro": "AMS-HT C Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0706210000020023",
+                    "intro": "AMS G Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0701200000020023",
+                    "intro": "AMS B Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1803200000020023",
+                    "intro": "AMS-HT D Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0707230000020023",
+                    "intro": "AMS H Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0706220000020023",
+                    "intro": "AMS G Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1806200000020023",
+                    "intro": "AMS-HT G Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0704230000020023",
+                    "intro": "AMS E Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0702210000020023",
+                    "intro": "AMS C Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1800230000020023",
+                    "intro": "AMS-HT A Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0701210000020023",
+                    "intro": "AMS B Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0700200000020023",
+                    "intro": "AMS A Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1801220000020023",
+                    "intro": "AMS-HT B Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1805200000020023",
+                    "intro": "AMS-HT F Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0707220000020023",
+                    "intro": "AMS H Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0703220000020023",
+                    "intro": "AMS D Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1804200000020023",
+                    "intro": "AMS-HT E Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0700220000020023",
+                    "intro": "AMS A Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1805230000020023",
+                    "intro": "AMS-HT F Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0706230000020023",
+                    "intro": "AMS G Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1801200000020023",
+                    "intro": "AMS-HT B Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1800220000020023",
+                    "intro": "AMS-HT A Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1802230000020023",
+                    "intro": "AMS-HT C Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1806220000020023",
+                    "intro": "AMS-HT G Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0705200000020023",
+                    "intro": "AMS F Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0705220000020023",
+                    "intro": "AMS F Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0703200000020023",
+                    "intro": "AMS D Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1805210000020023",
+                    "intro": "AMS-HT F Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1806230000020023",
+                    "intro": "AMS-HT G Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0704200000020023",
+                    "intro": "AMS E Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0703210000020023",
+                    "intro": "AMS D Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0704220000020023",
+                    "intro": "AMS E Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1803230000020023",
+                    "intro": "AMS-HT D Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1807200000020023",
+                    "intro": "AMS-HT H Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0701220000020023",
+                    "intro": "AMS B Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0700210000020023",
+                    "intro": "AMS A Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0704210000020023",
+                    "intro": "AMS E Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1802220000020023",
+                    "intro": "AMS-HT C Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0702200000020023",
+                    "intro": "AMS C Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1806210000020023",
+                    "intro": "AMS-HT G Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1807220000020023",
+                    "intro": "AMS-HT H Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1805220000020023",
+                    "intro": "AMS-HT F Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1807230000020023",
+                    "intro": "AMS-HT H Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1804210000020023",
+                    "intro": "AMS-HT E Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1803210000020023",
+                    "intro": "AMS-HT D Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0700230000020023",
+                    "intro": "AMS A Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1804230000020023",
+                    "intro": "AMS-HT E Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1801210000020023",
+                    "intro": "AMS-HT B Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1800200000020023",
+                    "intro": "AMS-HT A Slot 1: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0701230000020023",
+                    "intro": "AMS B Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1801230000020023",
+                    "intro": "AMS-HT B Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0707210000020023",
+                    "intro": "AMS H Slot 2: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1803220000020023",
+                    "intro": "AMS-HT D Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "0705230000020023",
+                    "intro": "AMS F Slot 4: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "1804220000020023",
+                    "intro": "AMS-HT E Slot 3: Der Schlauch im AMS ist beschädigt oder der Hall-Sensor im Ausgabebereich ist defekt und kann das Filament nicht erkennen."
+                },
+                {
+                    "ecode": "07008F0000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700880000020003",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1886200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1884200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1880200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1887200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1883200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1881200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1882200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1885200000020058",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703210000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701220000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700200000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702230000020057",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300910000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300010000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020010",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050001000002000F",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020011",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020013",
+                    "intro": ""
+                },
+                {
+                    "ecode": "050002000003000C",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020014",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500010000020012",
                     "intro": ""
                 },
                 {
@@ -9303,10 +10027,6 @@
                     "intro": "Das AMS-HT E Slot 2 Filament ist möglicherweise im Werkzeugkopf gebrochen."
                 },
                 {
-                    "ecode": "1801200000020001",
-                    "intro": "AMS-HT B Slot 1 Filament ist aufgebraucht. Bitte legen Sie ein neues Filament ein."
-                },
-                {
                     "ecode": "1802230000020014",
                     "intro": "AMS-HT C Slot 4: Filament-Odometer hat kein Signal, was auf einen schlechten Kontakt im Odometer-Stecker oder einen Defekt des Odometers zurückzuführen sein kann."
                 },
@@ -11633,6 +12353,10 @@
                 {
                     "ecode": "0300220000010001",
                     "intro": "Fehler des Stromsensors des Nebenextruder, möglicherweise verursacht durch einen Hardwarefehler der Abtastschaltung."
+                },
+                {
+                    "ecode": "1801200000020001",
+                    "intro": "AMS-HT B Slot 1 Filament ist aufgebraucht. Bitte legen Sie ein neues Filament ein."
                 },
                 {
                     "ecode": "0707930000020002",
@@ -17755,6 +18479,10 @@
                     "intro": "Die Zertifizierung des externen Lüfters ist fehlgeschlagen. Bitte starten Sie den Drucker neu oder schließen Sie das Lüfterkabel erneut an."
                 },
                 {
+                    "ecode": "0700860000010001",
+                    "intro": "Die Filamentweiche ist offline. Bitte überprüfen Sie, ob Kabel gelöst oder Anschlüsse locker sind."
+                },
+                {
                     "ecode": "0705950000010002",
                     "intro": "AMS F: Der Temperatursensor 2 des Heizelements ist defekt, was zu abnormalen Temperaturmesswerten führt."
                 },
@@ -17885,6 +18613,10 @@
                 {
                     "ecode": "1801950000010002",
                     "intro": "AMS-HT B: Der Temperatursensor 2 des Heizelements ist defekt, was zu abnormalen Temperaturmesswerten führt."
+                },
+                {
+                    "ecode": "0700870000020001",
+                    "intro": "Eine Filamentverstopfung oder eine Komponentenbeschädigung kann an der Filamentweiche aufgetreten sein."
                 },
                 {
                     "ecode": "0C0003000002001D",
@@ -18090,6 +18822,14 @@
                 {
                     "ecode": "05004030",
                     "intro": "Das Gerät wird derzeit aktualisiert. Bitte versuchen Sie es erneut, wenn es wieder verfügbar ist."
+                },
+                {
+                    "ecode": "07FF8030",
+                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
+                },
+                {
+                    "ecode": "07FE8030",
+                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
                 },
                 {
                     "ecode": "0502C011",
@@ -18540,6 +19280,62 @@
                     "intro": "Kein Material erkannt. Bitte bestätigen Sie die Materialplatzierung und fahren Sie fort."
                 },
                 {
+                    "ecode": "18058028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07028028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18048028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18018028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18008028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18078028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07008028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18028028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18038028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "18068028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07008027",
+                    "intro": "Der Kanalwechsel der Filamentweiche ist fehlgeschlagen. Mögliche Ursachen sind ein Filamentstau oder eine beschädigte Komponente."
+                },
+                {
+                    "ecode": "07018028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07008026",
+                    "intro": "AMS-Einrichtung fehlgeschlagen. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07038028",
+                    "intro": "Das Zuführen des Filaments zum Extruder ist fehlgeschlagen. Mögliche Ursachen sind eine falsche Zuordnung zwischen AMS und Filamentweiche, verheddertes Filament, eine klemmende Spule oder ein gelöster PTFE-Schlauch. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
                     "ecode": "0500809A",
                     "intro": "Bitte tauschen Sie die Vision-Encoder-Platine gegen die Druckplatte aus, um Schäden während der Kalibrierung zu vermeiden."
                 },
@@ -18576,8 +19372,36 @@
                     "intro": "Die Verwendung dieses Filaments mit dem Nebenextruder kann die Druckqualität beeinträchtigen."
                 },
                 {
+                    "ecode": "07028026",
+                    "intro": "AMS-Einrichtung fehlgeschlagen. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07028027",
+                    "intro": "Der Kanalwechsel der Filamentweiche ist fehlgeschlagen. Mögliche Ursachen sind ein Filamentstau oder eine beschädigte Komponente."
+                },
+                {
                     "ecode": "0500809B",
                     "intro": "Druckplatte nicht korrekt positioniert, sie könnte mit dem Auswurfschacht kollidieren. Bitte positionieren Sie die Druckplatte neu und richten Sie sie am Heizbett aus."
+                },
+                {
+                    "ecode": "07038027",
+                    "intro": "Der Kanalwechsel der Filamentweiche ist fehlgeschlagen. Mögliche Ursachen sind ein Filamentstau oder eine beschädigte Komponente."
+                },
+                {
+                    "ecode": "07008029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07038026",
+                    "intro": "AMS-Einrichtung fehlgeschlagen. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07018026",
+                    "intro": "AMS-Einrichtung fehlgeschlagen. Weitere Informationen finden Sie im Assistenten."
+                },
+                {
+                    "ecode": "07018027",
+                    "intro": "Der Kanalwechsel der Filamentweiche ist fehlgeschlagen. Mögliche Ursachen sind ein Filamentstau oder eine beschädigte Komponente."
                 },
                 {
                     "ecode": "050040A8",
@@ -18601,6 +19425,126 @@
                 },
                 {
                     "ecode": "0300806E",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18058029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18018029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07018029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0701802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18078029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "1800802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18068029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "1804802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18028029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "07028029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "1807802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18008029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0703802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07038029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "18038029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "1802802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702802A",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18048029",
+                    "intro": "Dieser Druck erfordert eine Filamentweiche, aber diese ist derzeit offline. Bitte schließen Sie die Filamentweiche an und versuchen Sie es erneut."
+                },
+                {
+                    "ecode": "0502C031",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0502C032",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300806F",
+                    "intro": ""
+                },
+                {
+                    "ecode": "03008070",
+                    "intro": ""
+                },
+                {
+                    "ecode": "07FEC030",
+                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
+                },
+                {
+                    "ecode": "07FFC030",
+                    "intro": "Das im Slicer angegebene Filament ist aufgebraucht. Der Druckvorgang wurde angehalten. Bitte ersetzen Sie das Material am Gerät und setzen Sie den Druckvorgang fort."
+                },
+                {
+                    "ecode": "0502C033",
                     "intro": ""
                 },
                 {
@@ -20229,7 +21173,7 @@
                 },
                 {
                     "ecode": "05008072",
-                    "intro": "Liveview-Kamera ist blockiert"
+                    "intro": ""
                 },
                 {
                     "ecode": "05008073",
