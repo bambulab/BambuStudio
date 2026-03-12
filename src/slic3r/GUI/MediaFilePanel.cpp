@@ -339,9 +339,16 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
             int err = fs->GetLastError();
             if (!e.GetString().IsEmpty())
                 msg = e.GetString();
+
+            // If this is an error that will be automatically retried, show a loading status
             if (err != 0) {
-                msg += " [%d]";
-                msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+                if (PrinterFileSystem::isRetryOnError(err)) {
+                    icon = m_bmp_loading;
+                    msg = _L("Loading file list...");
+                } else {
+                    msg += " [%d]";
+                    msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+                }
             }
             if (fs->GetCount() == 0 && !msg.empty())
                 m_image_grid->SetStatus(icon, msg);
