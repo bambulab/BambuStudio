@@ -1025,6 +1025,87 @@ indexed_triangle_set its_make_cylinder(double r, double h, double fa)
     facets.emplace_back(id, id - 1, 2);
 
     return mesh;
+
+}
+
+// =======================================================================
+// CUSTOM GENERATOR: 3D THREAD
+// Generates a helical cosine thread for the Advanced Cut tool
+// =======================================================================
+indexed_triangle_set its_make_thread(double radius, double height, double pitch, double fa)
+{
+    indexed_triangle_set mesh;
+    
+    // 1. Calculate the resolution (how many points per ring, and how many rings)
+    size_t n_steps = (size_t)ceil(2. * PI / fa); 
+    double angle_step = 2. * PI / n_steps;
+    
+    // We need lots of vertical slices to make the thread smooth. Let's do 12 slices per pitch.
+    size_t z_steps = (size_t)ceil((height / pitch) * 12.0); 
+    if (z_steps < 2) z_steps = 2;
+    double z_step_size = height / z_steps;
+    
+    double thread_depth = pitch * 0.4; // How deep the threads cut into the core
+    
+    auto &vertices = mesh.vertices;
+    auto &facets   = mesh.indices;
+    
+    // 2. Generate the Point Cloud (Vertices)
+    for (size_t j = 0; j <= z_steps; ++j) {
+        double z = j * z_step_size;
+        for (size_t i = 0; i < n_steps; ++i) {
+            double angle = i * angle_step;
+            
+            // The magic spiral math
+            double phase = angle - ((z / pitch) * 2.0 * PI);
+            
+            // Calculate the bulging radius for this specific point
+            double r_current = radius - thread_depth + (thread_depth * 0.5 * (1.0 + std::cos(phase)));
+            
+            double x = r_current * std::cos(angle);
+            double y = r_current * std::sin(angle);
+            vertices.emplace_back(Vec3f(float(x), float(y), float(z)));
+        }
+    }
+    
+    // 3. Stitch the Wall Triangles (Facets)
+    for (size_t j = 0; j < z_steps; ++j) {
+        for (size_t i = 0; i < n_steps; ++i) {
+            int next_i = (i + 1) % n_steps;
+            
+            // Get the 4 corners of our current "square" on the wall
+            int v0 = j * n_steps + i;               // Bottom-left
+            int v1 = j * n_steps + next_i;          // Bottom-right
+            int v2 = (j + 1) * n_steps + i;         // Top-left
+            int v3 = (j + 1) * n_steps + next_i;    // Top-right
+            
+            // Draw two triangles to fill the square
+            facets.emplace_back(v0, v1, v2);
+            facets.emplace_back(v1, v3, v2);
+        }
+    }
+    
+    // 4. Create the Top and Bottom Center Vertices
+    int bottom_center_idx = vertices.size();
+    vertices.emplace_back(Vec3f(0.f, 0.f, 0.f));
+    
+    int top_center_idx = vertices.size();
+    vertices.emplace_back(Vec3f(0.f, 0.f, float(height)));
+    
+    // 5. Stitch the Top and Bottom Caps
+    for (size_t i = 0; i < n_steps; ++i) {
+        int next_i = (i + 1) % n_steps;
+        
+        // Bottom cap triangle
+        facets.emplace_back(bottom_center_idx, next_i, i);
+        
+        // Top cap triangle
+        int top_v0 = z_steps * n_steps + i;
+        int top_v1 = z_steps * n_steps + next_i;
+        facets.emplace_back(top_center_idx, top_v0, top_v1);
+    }
+    
+    return mesh;
 }
 
 indexed_triangle_set its_make_cone(double r, double h, double fa)

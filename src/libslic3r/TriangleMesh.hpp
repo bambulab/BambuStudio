@@ -345,6 +345,7 @@ indexed_triangle_set    its_make_pyramid(float base, float height);
 indexed_triangle_set    its_make_sphere(double radius, double fa);
 indexed_triangle_set    its_make_snap(double r, double h, float space_proportion = 0.25f, float bulge_proportion = 0.125f);
 indexed_triangle_set    its_make_groove_plane(const Groove &cur_groove, float rotate_radius, std::vector<Vec3d> &cur_groove_vertices);
+indexed_triangle_set    its_make_thread(double radius, double height, double pitch, double fa = (2. * PI / 360.));
 
 indexed_triangle_set        its_convex_hull(const std::vector<Vec3f> &pts);
 inline indexed_triangle_set its_convex_hull(const indexed_triangle_set &its) { return its_convex_hull(its.vertices); }
