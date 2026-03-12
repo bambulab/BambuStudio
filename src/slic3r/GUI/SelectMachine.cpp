@@ -310,7 +310,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_saveTimeText->SetForegroundColour(wxColour("#FF6F00"));
     m_saveTimeText->SetFont(Label::Body_13);
     m_saveTimeText->Hide();
-    
+
     m_saveTimeText->Bind(wxEVT_LEFT_UP, &SelectMachineDialog::on_reselect_dialog_btn_clicked, this);
     m_saveTimeText->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) {
         m_saveTimeText->SetCursor(wxCURSOR_HAND);
@@ -4349,22 +4349,22 @@ wxString SelectMachineDialog::FormatTime(float totalSeconds)
 {
     totalSeconds = std::abs(totalSeconds);
     int secs = static_cast<int>(std::round(totalSeconds));
-    
+
     int hours = secs / 3600;
     int remaining = secs % 3600;
     int minutes = remaining / 60;
     int seconds = remaining % 60;
 
     wxString timeStr;
-    if (hours > 0) 
+    if (hours > 0)
     {
         timeStr = wxString::Format("%dm%ds", hours * 60 + minutes, seconds);
-    } 
-    else if (minutes > 0) 
+    }
+    else if (minutes > 0)
     {
         timeStr = wxString::Format("%dm%ds", minutes, seconds);
-    } 
-    else 
+    }
+    else
     {
         timeStr = wxString::Format("%ds", seconds);
     }
@@ -5525,6 +5525,13 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     };
 
+    for (const auto &iter : extruder_ams_ext_status) {
+        if (iter.second.has_ams && iter.second.has_vt_slot) {
+            show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
+            break;
+        }
+    }
+
     // if (!CheckWarningFilamentRemain(obj_)) {
     //     wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
     //     show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
@@ -5766,8 +5773,8 @@ bool SelectMachineDialog::use_dynamic_switch() const
 
 
 /**
- * @brief 
- * @param obj_ 
+ * @brief
+ * @param obj_
  * @return the estimated time gap, optional.
  */
 std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineObject* obj_) const
