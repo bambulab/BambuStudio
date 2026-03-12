@@ -2393,23 +2393,20 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std::string tmp_path, HelioQuery::RatingData rating_data)
 {
     const Vec3d origin = GUI::wxGetApp().plater()->get_partplate_list().get_current_plate_origin();
-    auto old_group_result = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_gcode_result()->nozzle_group_result;
+    auto old_result = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_gcode_result();
+    // auto old_group_result = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_gcode_result()->nozzle_group_result;
     m_gcode_processor.set_xy_offset(origin(0), origin(1));
-    if (old_group_result) {
-        m_gcode_processor.initialize_from_context(old_group_result);
+    if (old_result && old_result->nozzle_group_result) {
+        m_gcode_processor.initialize_from_context(old_result->nozzle_group_result);
     }
     m_gcode_processor.process_file(file_path);
 
-    // Carry over fields that GCodeProcessor cannot reconstruct from gcode parsing
-    if (m_gcode_result) {
-        m_gcode_processor.result().nozzle_group_result = m_gcode_result->nozzle_group_result;
-        m_gcode_processor.result().used_filaments = m_gcode_result->used_filaments;
-        m_gcode_processor.result().filament_change_sequence = m_gcode_result->filament_change_sequence;
-    }
-
     auto res       = &m_gcode_processor.result();
     m_gcode_result = res;
-    m_gcode_result->nozzle_group_result = old_group_result;
+    m_gcode_result->nozzle_group_result = old_result->nozzle_group_result;
+    m_gcode_result->used_filaments = old_result->used_filaments;
+    m_gcode_result->filament_change_sequence = old_result->filament_change_sequence;
+    m_gcode_result->nozzle_change_sequence = old_result->nozzle_change_sequence;
 
     set_state(STATE_FINISHED);
 
