@@ -81,6 +81,10 @@ void InterlockingGenerator::generate_interlocking_structure(PrintObject* print_o
     const int      boundary_avoidance = config.interlocking_boundary_avoidance;
     const coord_t  beam_width         = scaled(config.interlocking_beam_width.value);
 
+    // Zero width would cause divide-by-zero in VoxelUtils (cell_size used as divisor). Treat as disabled.
+    if (beam_width <= 0)
+        return;
+
     const DilationKernel interface_dilation(GridPoint3(interface_depth, interface_depth, interface_depth), DilationKernel::Type::PRISM);
 
     const bool           air_filtering = boundary_avoidance > 0;
