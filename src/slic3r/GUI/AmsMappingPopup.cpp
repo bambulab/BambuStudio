@@ -652,7 +652,7 @@ void MaterialSyncItem::set_material_index_str(std::string str) {
 }
 
 AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
-    PopupWindow(parent, wxBORDER_NONE), m_use_in_sync_dialog(use_in_sync_dialog)
+    PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS), m_use_in_sync_dialog(use_in_sync_dialog)
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
@@ -1016,6 +1016,7 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
             }
         }
     }
+    evt.Skip();
 }
 
 #ifdef  __APPLE__
