@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: 2023-10-18 10:45+0800\n"
 "Last-Translator: René Mošner <renemosner@seznam.cz>\n"
 "Language-Team: \n"
@@ -193,6 +193,67 @@ msgstr "Nečinný"
 
 #, c-format, boost-format
 msgid "%d ℃"
+msgstr ""
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Obnovit"
+
+msgid "Close"
+msgstr "Zavřít"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2164,8 +2225,11 @@ msgstr "Zneplatnění informací o řezu"
 msgid "Add Primitive"
 msgstr "Přidat Primitivní"
 
-msgid "Show Labels"
-msgstr "Zobrazit štítky"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Na objekty"
@@ -2301,6 +2365,9 @@ msgstr "Vyplní zbývající tiskovou plochu kopiemi vybraného objektu"
 
 msgid "Edit Plate Name"
 msgstr "Upravit název podložky"
+
+msgid "Show Labels"
+msgstr "Zobrazit štítky"
 
 msgid "Name"
 msgstr "Název"
@@ -2695,15 +2762,38 @@ msgstr ""
 msgid "Unload"
 msgstr "Vysunout"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr ""
+
+msgid "Confirm"
+msgstr "Potvrdit"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
 msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
@@ -3169,12 +3259,6 @@ msgstr "V mnoha částech tohoto softwaru jsou obsaženy příspěvky komunity, 
 msgid "AMS Materials Setting"
 msgstr "Nastavení materiálů AMS"
 
-msgid "Confirm"
-msgstr "Potvrdit"
-
-msgid "Close"
-msgstr "Zavřít"
-
 msgid "Colour"
 msgstr "Barva"
 
@@ -3475,9 +3559,6 @@ msgid "Select Filament && Hotends"
 msgstr ""
 
 msgid "Select Filament"
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -5272,8 +5353,11 @@ msgstr ""
 msgid "Reset to default window layout"
 msgstr ""
 
-msgid "Show object labels in 3D scene"
-msgstr "Zobrazit popisky objektů ve 3D scéně"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Zobrazit &Převis"
@@ -5627,9 +5711,6 @@ msgstr "Vybrat"
 
 msgid "Batch manage files."
 msgstr "Dávková správa souborů."
-
-msgid "Refresh"
-msgstr "Obnovit"
 
 msgid "Reload file list from printer."
 msgstr ""
@@ -7484,13 +7565,6 @@ msgstr ""
 msgid "Are you sure to use them? \n"
 msgstr ""
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Tisk podle objektu: \n"
-"Doporučujeme použít automatické uspořádání, aby se předešlo kolizím při tisku."
-
 msgid "Send G-code"
 msgstr "Odeslat G-kód"
 
@@ -7501,6 +7575,19 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr "Vlastní podpěry a barevné malby byly před opravou odstraněny."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Tisk podle objektu: \n"
+"Doporučujeme použít automatické uspořádání, aby se předešlo kolizím při tisku."
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
 msgstr ""
 
 #, c-format, boost-format
@@ -9824,6 +9911,9 @@ msgstr ""
 msgid "Camera view - Isometric"
 msgstr ""
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Vybrat všechny objekty"
 
@@ -11041,7 +11131,7 @@ msgstr "HTTP digest"
 msgid "Avoid crossing wall"
 msgstr "Vyhněte se přejíždění stěn"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
 msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
@@ -15560,6 +15650,9 @@ msgstr ""
 msgid "Don't remind me again"
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr ""
 
@@ -15569,6 +15662,9 @@ msgstr ""
 msgid "Convenience Mode"
 msgstr ""
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr ""
 
@@ -15576,6 +15672,9 @@ msgid "Generates filament grouping for the left and right nozzles based on the m
 msgstr ""
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
 msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
@@ -15618,10 +15717,10 @@ msgstr ""
 msgid "Right Extruder(%d)"
 msgstr ""
 
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
+msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
 msgid "Skip Objects"
@@ -16257,6 +16356,9 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Zobrazit popisky objektů ve 3D scéně"
+
 #~ msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
 #~ msgstr "Nelze přečíst informace o filamentu: filament je vložen do hlavy nástroje, prosím vyjměte filament a zkuste to znovu."
 
@@ -16581,9 +16683,6 @@ msgstr ""
 
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "Tiskárna nepodporuje odesílání na SD kartu tiskárny."
-
-#~ msgid "?"
-#~ msgstr "?"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS není připojen"

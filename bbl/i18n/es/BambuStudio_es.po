@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -188,6 +188,67 @@ msgstr "Inactivo"
 
 #, c-format, boost-format
 msgid "%d ℃"
+msgstr ""
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Actualizar"
+
+msgid "Close"
+msgstr "Cerrar"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2180,8 +2241,11 @@ msgstr "Invalidar información de corte"
 msgid "Add Primitive"
 msgstr "Añadir Primitivo"
 
-msgid "Show Labels"
-msgstr "Mostrar etiquetas"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "A los objetos"
@@ -2317,6 +2381,9 @@ msgstr "Rellenar el área restante de la cama con copias del objeto seleccionado
 
 msgid "Edit Plate Name"
 msgstr "Editar nombre de placa"
+
+msgid "Show Labels"
+msgstr "Mostrar etiquetas"
 
 msgid "Name"
 msgstr "Nombre"
@@ -2710,18 +2777,39 @@ msgstr "Cargar"
 msgid "Unload"
 msgstr "Descarga"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
-"El cambiador de consumibles no ha sido calibrado.\n"
-"Por favor, calibre en la impresora antes de usarlo."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Elija una ranura AMS y pulse el botón \"Cargar\" o \"Descargar\" para cargar o descargar automáticamente el filamento."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Se desconoce el tipo de filamento que se requiere para realizar esta acción. Establezca la información del filamento objetivo."
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr "/"
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr "Izquierda"
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr "Derecha"
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr "extrusor derecho"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Cambiar la velocidad del ventilador durante la impresión puede afectar a la calidad de impresión, elija con cuidado."
@@ -3186,12 +3274,6 @@ msgstr "Hay muchas partes del software que provienen de las contribuciones de la
 msgid "AMS Materials Setting"
 msgstr "Configuración de materiales AMS"
 
-msgid "Confirm"
-msgstr "Confirmar"
-
-msgid "Close"
-msgstr "Cerrar"
-
 msgid "Colour"
 msgstr "Color"
 
@@ -3506,9 +3588,6 @@ msgstr "Seleccionar Filamento && Hotends"
 
 msgid "Select Filament"
 msgstr "Seleccione el filamento"
-
-msgid "Ext"
-msgstr ""
 
 msgid "AMS Settings"
 msgstr "Ajustes del AMS"
@@ -5340,8 +5419,11 @@ msgstr "Restablecer el diseño de la ventana"
 msgid "Reset to default window layout"
 msgstr "Restablecer el diseño de ventana predeterminado"
 
-msgid "Show object labels in 3D scene"
-msgstr "Mostrar etiquetas de objetos en una escena 3D"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Mostrar y voladizo"
@@ -5635,7 +5717,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "La función de transmisión en vivo depende de Bambu Studio para funcionar, y la transmisión finalizará algún tiempo después de cerrar la aplicación."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Vista previa de la impresora"
 
 msgid "Playing..."
 msgstr "Reproduciendo..."
@@ -5693,9 +5775,6 @@ msgstr "Seleccionar"
 
 msgid "Batch manage files."
 msgstr "Gestion de archivos por lotes."
-
-msgid "Refresh"
-msgstr "Actualizar"
 
 msgid "Reload file list from printer."
 msgstr "Vuelva a cargar la lista de archivos desde la impresora."
@@ -6155,7 +6234,7 @@ msgid "Can't start this without storage."
 msgstr "No se puede iniciar sin almacenamiento."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "No se puede cambiar el extrusor cuando la impresora no está en modo FDM"
 
 msgid "Rate the Print Profile"
 msgstr "Valora un perfil de impresión"
@@ -6827,10 +6906,10 @@ msgid "Filament changes"
 msgstr "Cambios de filamento"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Se ha detectado el selector de filamentos. Todos los filamentos AMS están disponibles para ambos extrusores. El cortador se asignará automáticamente para una impresión óptima. "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "Se ha detectado un conmutador de filamento, pero no está calibrado y, por lo tanto, no está disponible. Por favor, calibre el conmutador en la impresora y sincronícelo antes de usarla. "
 
 msgid "Learn more"
 msgstr "Conocer más"
@@ -7602,13 +7681,6 @@ msgstr "No se recomienda utilizar filamentos de PVA con boquillas de 0,2 mm."
 msgid "Are you sure to use them? \n"
 msgstr "¿Está seguro de usarlo? \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Imprimir por objeto: \n"
-"Sugiere utilizar el auto-posicionamiento para evitar colisiones al imprimir."
-
 msgid "Send G-code"
 msgstr "Enviar código G"
 
@@ -7620,6 +7692,19 @@ msgstr "Los soportes personalizados y la pintura de color se eliminaron antes de
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Se eliminaron los soportes personalizados, las caras de costura y la pintura de color antes de reparar el nombre del modelo:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Imprimir por objeto: \n"
+"Sugiere utilizar el auto-posicionamiento para evitar colisiones al imprimir."
+
+msgid "Auto arrange"
+msgstr "Auto posicionamiento"
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -9998,6 +10083,9 @@ msgstr "Vista de la cámara - Derecha"
 msgid "Camera view - Isometric"
 msgstr "Vista de la cámara - Isométrica"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Seleccionar todos los objetos"
 
@@ -11233,8 +11321,8 @@ msgstr "Resumen HTTP"
 msgid "Avoid crossing wall"
 msgstr "Evite cruzar las paredes"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Desvíese y evite atravesar paredes para evitar la posibilidad de crear manchas en las superficies"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr "Desvíe y evite viajar a través de la pared, lo que puede causar una protuberancia en la superficie (cuando la longitud del recorrido es mayor que el umbral de distancia de viaje)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Suavizar la velocidad de la pared a lo largo de Z (experimental)"
@@ -15858,6 +15946,9 @@ msgstr "Ahorrar filamento"
 msgid "Don't remind me again"
 msgstr "No me lo vuelvas a recordar"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "No aparecerá ninguna otra ventana emergente. Puedes actualizarla en «Preferencias»"
 
@@ -15867,6 +15958,9 @@ msgstr "Modo de ahorro de filamentos"
 msgid "Convenience Mode"
 msgstr "Modo Conveniencia"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "Modo personalizado"
 
@@ -15875,6 +15969,9 @@ msgstr "Genera una agrupación de filamentos para las boquillas izquierda y dere
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "Genera grupos de filamentos para las boquillas izquierda y derecha en función del estado real del filamento de la impresora, lo que reduce la necesidad de ajustar manualmente el filamento"
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "Asigne manualmente el filamento a la boquilla izquierda o derecha"
@@ -15916,11 +16013,11 @@ msgstr "Extrusor derecho (Std: %d, HF: %d)"
 msgid "Right Extruder(%d)"
 msgstr "Extrusor derecho(%d)"
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "El método de agrupamiento de filamentos para la placa actual se determina mediante la opción desplegable del botón de la placa de corte."
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr "La agrupación de filamentos se optimiza automáticamente según principios de ahorro de filamento"
 
 msgid "Skip Objects"
 msgstr "Omitir objetos"
@@ -16584,6 +16681,22 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "El cambiador de consumibles no ha sido calibrado.\n"
+#~ "Por favor, calibre en la impresora antes de usarlo."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Mostrar etiquetas de objetos en una escena 3D"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Desvíese y evite atravesar paredes para evitar la posibilidad de crear manchas en las superficies"
+
+#~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
+#~ msgstr "La agrupación de filamentos se optimiza automáticamente según principios de ahorro de filamento"
 
 #~ msgid "Load filament to"
 #~ msgstr "Cargar filamento hasta"
@@ -17817,12 +17930,6 @@ msgstr ""
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "La impresora no admite el envío a la tarjeta MicroSD."
 
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
 #~ msgid "AMS not connected"
 #~ msgstr "AMS no conectado"
 
@@ -18238,9 +18345,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Tipo de cama Auto"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Auto posicionamiento"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Orienta automáticamente los objetos seleccionados o todos los objetos.Si hay objetos seleccionados, sólo orienta los seleccionados.En caso contrario, orienta todos los objetos del proyecto."

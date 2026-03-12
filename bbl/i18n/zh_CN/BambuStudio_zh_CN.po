@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -193,6 +193,67 @@ msgstr "空闲"
 #, c-format, boost-format
 msgid "%d ℃"
 msgstr ""
+
+msgid "Filament Inlet A"
+msgstr "进料口 A"
+
+msgid "Filament Inlet B"
+msgstr "进料口 B"
+
+msgid "Filament Track Switch"
+msgstr "耗材变轨器"
+
+msgid "Suggested rearrangement"
+msgstr "建议重新摆料"
+
+msgid "How to save time?→"
+msgstr "为何可以节省时间？→"
+
+msgid "Filament Status:"
+msgstr "耗材丝界面状态说明："
+
+msgid "Position adjustment required"
+msgstr "需要调整位置"
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr "摆放OK"
+
+msgid "Unused"
+msgstr "此次打印未匹配使用"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Close"
+msgstr "关闭"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr "请按照图示调整AMS中耗材的摆放位置，采用最优排布可节省 %s。"
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr "总结：当前已是最优摆放。"
+
+msgid "?"
+msgstr "？"
+
+msgid "Summary: "
+msgstr "总结: "
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
+
+msgid "filaments"
+msgstr "耗材"
+
+msgid "filament"
+msgstr "耗材"
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
+msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
 
 msgid "Model:"
 msgstr "型号："
@@ -2040,10 +2101,10 @@ msgid "Negative Part"
 msgstr "负零件"
 
 msgid "Support Blocker"
-msgstr "支撑去除器"
+msgstr "支撑屏蔽"
 
 msgid "Support Enforcer"
-msgstr "支撑添加器"
+msgstr "支撑生成器"
 
 msgid "Change part type"
 msgstr "选择零件类型"
@@ -2175,8 +2236,11 @@ msgstr "解除切割关系"
 msgid "Add Primitive"
 msgstr "添加标准模型"
 
-msgid "Show Labels"
-msgstr "显示标签"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "拆分到对象"
@@ -2312,6 +2376,9 @@ msgstr "用选定对象的副本填充床的剩余区域"
 
 msgid "Edit Plate Name"
 msgstr "编辑盘名"
+
+msgid "Show Labels"
+msgstr "显示标签"
 
 msgid "Name"
 msgstr "名称"
@@ -2699,18 +2766,39 @@ msgstr "进料"
 msgid "Unload"
 msgstr "退料"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
-msgstr ""
-"耗材更换器尚未校准。 \n"
-"请在使用前在打印机上进行校准。"
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS尚未初始化。请先初始化后再使用。"
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "选择1个AMS槽位，然后点击进料/退料按钮以自动进料/退料。"
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "执行此操作的耗材类型未知。请设置槽位信息。"
+
+msgid "Ext"
+msgstr ""
+
+msgid "/"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr "左边"
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr "右边"
+
+msgid "Confirm"
+msgstr "确定"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr "%s  进料至："
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr "右挤出机"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择。"
@@ -3173,12 +3261,6 @@ msgstr "软件中有很多部分来自于社区贡献，因此我们不便逐一
 msgid "AMS Materials Setting"
 msgstr "材料设置"
 
-msgid "Confirm"
-msgstr "确定"
-
-msgid "Close"
-msgstr "关闭"
-
 msgid "Colour"
 msgstr "颜色"
 
@@ -3490,9 +3572,6 @@ msgid "Select Filament && Hotends"
 msgstr "选择材料预设和喷头"
 
 msgid "Select Filament"
-msgstr ""
-
-msgid "Ext"
 msgstr ""
 
 msgid "AMS Settings"
@@ -4014,7 +4093,7 @@ msgid "Nozzle offset calibration"
 msgstr "喷嘴偏移校准"
 
 msgid "high temperature auto bed levelling"
-msgstr "高温热床校准"
+msgstr "高温热床调平"
 
 msgid "Auto Check: Quick Release Lever"
 msgstr "自动检测：快拆锁扣"
@@ -5309,8 +5388,11 @@ msgstr "重置窗口布局"
 msgid "Reset to default window layout"
 msgstr "重置为默认窗口布局"
 
-msgid "Show object labels in 3D scene"
-msgstr "在3D场景中显示对象名称"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "显示悬空高亮"
@@ -5657,9 +5739,6 @@ msgstr "选择"
 
 msgid "Batch manage files."
 msgstr "批量管理文件。"
-
-msgid "Refresh"
-msgstr "刷新"
 
 msgid "Reload file list from printer."
 msgstr "从打印机重新加载文件列表。"
@@ -6023,7 +6102,7 @@ msgid "\"Load\" or \"Unload\" is not supported for external spool while using Fi
 msgstr "使用线材轨道开关时，不支持对外部线轴执行“加载”或“卸载”操作。"
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "耗材轨道开关尚未设置。请在打印机上进行设置。"
+msgstr "耗材变轨器尚未设置。请在打印机上进行设置。"
 
 msgid "Current slot has alread been loaded"
 msgstr "当前槽位已加载"
@@ -7158,7 +7237,7 @@ msgid "⚠ Multiple Filament Materials Detected"
 msgstr "⚠ 检测到多种耗材材料"
 
 msgid " (unsupported)"
-msgstr " （不支持）"
+msgstr " (不受支持)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
 msgstr "多色仿真目前仅支持单一耗材材料。"
@@ -7548,13 +7627,6 @@ msgstr "不建议使用0.2毫米喷嘴来打印PVA材料"
 msgid "Are you sure to use them? \n"
 msgstr "您确定要使用它吗？ \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"逐件打印：\n"
-"建议使用自动摆盘避免打印时发生碰撞。"
-
 msgid "Send G-code"
 msgstr "发送 G 代码"
 
@@ -7566,6 +7638,19 @@ msgstr "自定义的支撑和涂色在模型修复之前将被清除。"
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "在修复之前，删除了支持、接缝和涂色信息,模型名字:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"逐件打印：\n"
+"建议使用自动摆盘避免打印时发生碰撞。"
+
+msgid "Auto arrange"
+msgstr "自动摆盘"
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -8558,7 +8643,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr "此打印件需要耗材轨道开关。请先安装它。"
+msgstr "此打印件需要耗材变轨器。请先安装它。"
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
 msgstr "选料器尚未初始化，请先进行初始化。"
@@ -9928,6 +10013,9 @@ msgstr ""
 msgid "Camera view - Isometric"
 msgstr "摄像机视角 - 等轴测"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "选择所有对象"
 
@@ -11160,8 +11248,8 @@ msgstr "HTTP摘要"
 msgid "Avoid crossing wall"
 msgstr "避免跨越外墙"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr "空驶时绕过外墙以避免在模型外观面产生半点（对距离大于空驶距离阈值的空驶）"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外墙速度（实验）"
@@ -15767,6 +15855,9 @@ msgstr "省料"
 msgid "Don't remind me again"
 msgstr "不再提醒"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "不再弹窗提醒。您可以在“偏好设置”中重新打开。"
 
@@ -15776,6 +15867,9 @@ msgstr "省料模式"
 msgid "Convenience Mode"
 msgstr "便捷模式"
 
+msgid "Quality Mode"
+msgstr "质量指南"
+
 msgid "Custom Mode"
 msgstr "自定义模式"
 
@@ -15784,6 +15878,9 @@ msgstr "根据最节省耗材的原则，生成左右喷嘴的耗材分组方案
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "根据打印机实际耗材状态，生成左右喷嘴的耗材分组方案，帮助减少对实际耗材的手动调整操作"
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
@@ -15825,11 +15922,11 @@ msgstr "右挤出机(标准: %d，高流量: %d)"
 msgid "Right Extruder(%d)"
 msgstr "右挤出机(%d)"
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "当前盘的耗材分组方式由切片按钮处的下拉选项决定。"
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr "耗材分组根据节省耗材原则自动优化"
 
 msgid "Skip Objects"
 msgstr "零件跳过"
@@ -16058,7 +16155,7 @@ msgid "For better drying results, remove the filament and allow it to rotate."
 msgstr "拔出耗材并旋转烘干会有更好的效果。"
 
 msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS会自动滚动已存储的耗材槽以增强烘干效果。"
+msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
 
 msgid "Alternatively, you can dry the filament without removing it."
 msgstr "或者，您可以在不取出耗材的情况下进行干燥。"
@@ -16495,6 +16592,22 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "耗材更换器尚未校准。 \n"
+#~ "请在使用前在打印机上进行校准。"
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "在3D场景中显示对象名称"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
+
+#~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
+#~ msgstr "耗材分组根据节省耗材原则自动优化"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "TPU 85A耗材不支持动态流量校准。"
@@ -18650,9 +18763,6 @@ msgstr ""
 
 #~ msgid "Set the brim type to \"painted\""
 #~ msgstr "将Brim类型设置为绘制模式"
-
-#~ msgid "?"
-#~ msgstr "?"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS未连接"
@@ -21091,9 +21201,6 @@ msgstr ""
 #~ msgid "Printer Selection"
 #~ msgstr "打印机选择"
 
-#~ msgid "Auto arrange"
-#~ msgstr "自动摆盘"
-
 #~ msgid "Spiral mode"
 #~ msgstr "旋转模式"
 
@@ -22637,9 +22744,6 @@ msgstr ""
 
 #~ msgid "%s Family"
 #~ msgstr "%s 系列"
-
-#~ msgid "filament"
-#~ msgstr "丝"
 
 #~ msgid "SLA material"
 #~ msgstr "SLA 材料"

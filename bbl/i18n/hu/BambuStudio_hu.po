@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 14:27+0800\n"
+"POT-Creation-Date: 2026-03-12 12:08+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -188,6 +188,67 @@ msgstr "Tétlen"
 
 #, c-format, boost-format
 msgid "%d ℃"
+msgstr ""
+
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Frissítés"
+
+msgid "Close"
+msgstr "Bezárás"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
+msgid "Summary: "
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
+msgstr ""
+
+msgid "filaments"
+msgstr ""
+
+msgid "filament"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2180,8 +2241,11 @@ msgstr "Vágás visszavonása"
 msgid "Add Primitive"
 msgstr "Primitív hozzáadása"
 
-msgid "Show Labels"
-msgstr "Címkék megjelenítése"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Objektumokra"
@@ -2317,6 +2381,9 @@ msgstr "Feltölti az asztalon lévő maradék helyet a kiválasztott tárgy más
 
 msgid "Edit Plate Name"
 msgstr "Tálca nevének szerkesztése"
+
+msgid "Show Labels"
+msgstr "Címkék megjelenítése"
 
 msgid "Name"
 msgstr "Név"
@@ -2710,18 +2777,39 @@ msgstr "Betöltés"
 msgid "Unload"
 msgstr "Kitöltés"
 
-msgid ""
-"The consumables changer has not been calibrated. \n"
-"Please calibrate it on the printer before using."
+msgid "AMS has not been initialized. Please initialize it before use."
 msgstr ""
-"A fogyóeszközök cserélője nem lett kalibrálva.\n"
-"Kérjük, használat előtt kalibráld a nyomtatón."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „Kitöltés” gombot az filament automatikus betöltéséhez vagy eltávolításához."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "A művelet végrehajtásához szükséges filament típusa ismeretlen. Kérjük, állítsd be a filament adatait."
+
+msgid "Ext"
+msgstr "Kül"
+
+msgid "/"
+msgstr "/"
+
+msgctxt "FilamentTrack"
+msgid "Left"
+msgstr "Bal"
+
+msgctxt "FilamentTrack"
+msgid "Right"
+msgstr "Jobb"
+
+msgid "Confirm"
+msgstr "Megerősítés"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "right extruder"
+msgstr "jobb extruder"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "A ventilátor sebességének nyomtatás közbeni megváltoztatása befolyásolhatja a nyomtatás minőségét. Kérjük, körültekintően válaszd meg."
@@ -3186,12 +3274,6 @@ msgstr "A szoftver számos része származik közösségi közreműködésből, 
 msgid "AMS Materials Setting"
 msgstr "AMS anyagok beállítása"
 
-msgid "Confirm"
-msgstr "Megerősítés"
-
-msgid "Close"
-msgstr "Bezárás"
-
 msgid "Colour"
 msgstr "Szín"
 
@@ -3506,9 +3588,6 @@ msgstr "Válassz filamentet és hotendet"
 
 msgid "Select Filament"
 msgstr "Filament kiválasztása"
-
-msgid "Ext"
-msgstr "Kül"
 
 msgid "AMS Settings"
 msgstr "AMS beállítások"
@@ -5340,8 +5419,11 @@ msgstr "Ablakelrendezés visszaállítása"
 msgid "Reset to default window layout"
 msgstr "Alapértelmezett ablakelrendezés visszaállítása"
 
-msgid "Show object labels in 3D scene"
-msgstr "Objektumcímkék megjelenítése a 3D-térben"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Túlnyúlás megjelenítése"
@@ -5635,7 +5717,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Az élő közvetítési funkció a Bambu Studio alkalmazásban fut, és a stream az alkalmazás bezárását követően meg fog szakadni."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Nyomtató előnézet"
 
 msgid "Playing..."
 msgstr "Lejátszás..."
@@ -5693,9 +5775,6 @@ msgstr "Kiválasztás"
 
 msgid "Batch manage files."
 msgstr "Fájlok kötegelt kezelése."
-
-msgid "Refresh"
-msgstr "Frissítés"
 
 msgid "Reload file list from printer."
 msgstr "Fájllista újratöltése a nyomtatóról."
@@ -6155,7 +6234,7 @@ msgid "Can't start this without storage."
 msgstr "Nem indítható el tárhely nélkül."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "Nem lehet extrudert váltani, ha a nyomtató nem FDM-módban van"
 
 msgid "Rate the Print Profile"
 msgstr "Értékeld a nyomtatási profilt"
@@ -6827,10 +6906,10 @@ msgid "Filament changes"
 msgstr "Filamentcserék"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Filamentváltó észlelve. Mostantól mindegyik AMS filamentjét használhatod mindkét extruderrel. A szeletelő automatikusan elvégzi a kiosztást a legoptimálisabb nyomtatáshoz. "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "Filamentváltó észlelve, de nincs kalibrálva, így jelenleg nem használható. Kérjük, kalibráld a nyomtatón, majd szinkronizáld a használat előtt. "
 
 msgid "Learn more"
 msgstr "Tudj meg többet"
@@ -7599,13 +7678,6 @@ msgstr "Nem ajánlott a PVA filament használata 0,2 mm-es fúvókával."
 msgid "Are you sure to use them? \n"
 msgstr "Biztos, hogy használod? \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nyomtatás tárgyanként: \n"
-"Javasoljuk, hogy használd az automatikus elrendezést az ütközések elkerülése érdekében."
-
 msgid "Send G-code"
 msgstr "G-kód küldése"
 
@@ -7617,6 +7689,19 @@ msgstr "Az egyedi támaszok és a színfestés eltávolításra került a javít
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "A javítás előtt eltávolítottuk az egyéni támaszokat, a varratokat és a festett színeket, modell neve:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nyomtatás tárgyanként: \n"
+"Javasoljuk, hogy használd az automatikus elrendezést az ütközések elkerülése érdekében."
+
+msgid "Auto arrange"
+msgstr "Automatikus elrendezés"
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -9989,6 +10074,9 @@ msgstr "Kameranézet - Jobb"
 msgid "Camera view - Isometric"
 msgstr "Kameranézet - Izometrikus"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Összes objektum kijelölése"
 
@@ -11224,8 +11312,8 @@ msgstr "HTTP digest"
 msgid "Avoid crossing wall"
 msgstr "Kerülje a falak keresztezését"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Elkerüli a falak keresztezését, ezáltal csökkentve az esetleges hibákat a felületen"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr "Kikerülés és falak keresztezésének elkerülése, ami felszíni hibákat okozhat (amikor a távolság nagyobb a „Mozgás távolságának küszöbértéke“ értéknél)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Falnyomtatás sebességének simítása (kísérleti)"
@@ -15845,6 +15933,9 @@ msgstr "Filamentmegtakarítás"
 msgid "Don't remind me again"
 msgstr "Ne emlékeztessen újra"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Nem fog több felugró ablak megjelenni. A 'Beállítások' menüpontban újra megnyithatod."
 
@@ -15854,6 +15945,9 @@ msgstr "Filament-takarékos üzemmód"
 msgid "Convenience Mode"
 msgstr "Kényelmi mód"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "Egyedi mód"
 
@@ -15862,6 +15956,9 @@ msgstr "A bal és jobb oldali fúvókák filamentjeinek csoportosítását az al
 
 msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr "A nyomtató aktuális filamentjei alapján generálja a bal és jobb oldali fúvókák csoportosítását, csökkentve ezzel a kézi filamentbeállítás szükségességét."
+
+msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+msgstr ""
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "Filamentek kézi hozzárendelése a bal vagy jobb fúvókához"
@@ -15903,11 +16000,11 @@ msgstr "Jobb extruder (Std: %d, HF: %d)"
 msgid "Right Extruder(%d)"
 msgstr "Jobb extruder(%d)"
 
+msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
+
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "A tálcához tartozó filamentcsoportosítási módszert a tálca szeletelése gombnál található legördülő opció határozza meg."
-
-msgid "Filament grouping is automatically optimized based on filament-saving principles"
-msgstr "A filament csoportosítása automatikusan optimalizált a filamentmegtakarítás figyelembevételével"
 
 msgid "Skip Objects"
 msgstr "Objektumok kihagyása"
@@ -16574,6 +16671,22 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "A fogyóeszközök cserélője nem lett kalibrálva.\n"
+#~ "Kérjük, használat előtt kalibráld a nyomtatón."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Objektumcímkék megjelenítése a 3D-térben"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Elkerüli a falak keresztezését, ezáltal csökkentve az esetleges hibákat a felületen"
+
+#~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
+#~ msgstr "A filament csoportosítása automatikusan optimalizált a filamentmegtakarítás figyelembevételével"
 
 #~ msgid "Load filament to"
 #~ msgstr "Filament betöltése ide:"
@@ -17808,12 +17921,6 @@ msgstr ""
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "A nyomtató nem támogatja a MicroSD-kártyára való mentést."
 
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
 #~ msgid "AMS not connected"
 #~ msgstr "Az AMS nincs csatlakoztatva"
 
@@ -18229,9 +18336,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto asztaltípus"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Automatikus elrendezés"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Automatikusan beállítja a kijelölt objektumok vagy az összes objektum tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, ellenkező esetben az aktuális projektben lévő összes objektumot orientálja."
