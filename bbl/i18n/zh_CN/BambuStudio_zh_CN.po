@@ -15912,7 +15912,7 @@ msgid "Fila Saving"
 msgstr "省料"
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
-msgstr ""
+msgstr "启用智能耗材分配：一个耗材可分配至多个喷嘴，以最大限度节省用料"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "不再弹窗提醒。您可以在“偏好设置”中重新打开。"
@@ -15924,7 +15924,7 @@ msgid "Convenience Mode"
 msgstr "便捷模式"
 
 msgid "Quality Mode"
-msgstr ""
+msgstr "质量模式"
 
 msgid "Custom Mode"
 msgstr "自定义模式"
@@ -15936,7 +15936,7 @@ msgid "Generates filament grouping for the left and right nozzles based on the p
 msgstr "根据打印机实际耗材状态，生成左右喷嘴的耗材分组方案，帮助减少对实际耗材的手动调整操作"
 
 msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
-msgstr ""
+msgstr "基于最优打印质量的原则，自动生成左右喷嘴的耗材分组方案"
 
 msgid "Manually assign filament to the left or right nozzle"
 msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
