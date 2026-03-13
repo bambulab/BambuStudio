@@ -369,33 +369,20 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     SetSizer(main_sizer);
     Layout();
     {
-        int target_w = FromDIP(580);
-        int manual_min_w = m_manual_map_panel ? m_manual_map_panel->GetMinSize().GetWidth() : 0;
-        if (manual_min_w > target_w)
-            target_w = manual_min_w;
+        const int target_w = std::max(FromDIP(580), m_manual_map_panel->GetMinWidth());
+        int       best_h   = std::max({m_auto_map_panel->GetBestSize().GetHeight(), m_manual_map_panel->GetBestSize().GetHeight()});
+        if (m_saving_panel) best_h = std::max(m_saving_panel->GetBestSize().GetHeight(), best_h);
 
-        int auto_h = 0;
-        if (m_auto_map_panel) {
-            int h = m_auto_map_panel->GetBestSize().GetHeight();
-            if (h > auto_h)
-                auto_h = h;
-        }
-        if (m_saving_panel) {
-            int h = m_saving_panel->GetBestSize().GetHeight();
-            if (h > auto_h)
-                auto_h = h;
-        }
-        int manual_h = m_manual_map_panel ? m_manual_map_panel->GetBestSize().GetHeight() : 0;
-        int current_panel_h = 0;
+        int current_panel_h = m_manual_map_panel->GetSize().GetHeight();
         if (m_page_type == PageType::ptAuto) {
             if (m_fila_switch_ready && m_saving_panel)
-                current_panel_h = m_saving_panel->GetSize().GetHeight();
+                current_panel_h = m_saving_panel->GetBestSize().GetHeight();
             else if (m_auto_map_panel)
-                current_panel_h = m_auto_map_panel->GetSize().GetHeight();
+                current_panel_h = m_auto_map_panel->GetBestSize().GetHeight();
         }
-        else if (m_manual_map_panel) current_panel_h = m_manual_map_panel->GetSize().GetHeight();
-        int top_bottom_extra = GetSize().GetHeight() - current_panel_h;
-        int target_h = top_bottom_extra + (auto_h > manual_h ? auto_h : manual_h);
+
+        int top_bottom_extra = GetBestSize().GetHeight() - current_panel_h;
+        int target_h         = top_bottom_extra + best_h;
 
         SetMinSize(wxSize(target_w, target_h));
         SetMaxSize(wxSize(target_w, target_h));
