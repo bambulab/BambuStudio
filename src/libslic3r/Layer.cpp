@@ -621,11 +621,6 @@ coordf_t Layer::get_sparse_infill_max_void_area()
     return max_void_area;
 }
 
-size_t Layer::get_extruder_id(unsigned int filament_id) const
-{
-    return m_object->print()->get_extruder_id(filament_id);
-}
-
 size_t Layer::get_filament_config_idx(unsigned int filament_id) const
 {
     return m_object->print()->get_filament_config_idx(filament_id);

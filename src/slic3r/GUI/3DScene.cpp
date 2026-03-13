@@ -2103,7 +2103,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     {
         const auto& project_config = Slic3r::GUI::wxGetApp().preset_bundle->project_config;
         object_results->mode = curr_plate->get_real_filament_map_mode(project_config);
-        if (object_results->mode < FilamentMapMode::fmmManual)
+        if (is_auto_filament_map_mode(object_results->mode))
         {
             std::vector<int> conflict_filament_vector;
             for (int index = 0; index < extruder_count; index++ )
