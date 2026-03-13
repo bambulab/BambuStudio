@@ -203,6 +203,7 @@ void SupportComboCard::create_ui(const std::vector<wxString>               &obje
     mainSizer->Add(rightSizer, 1, wxEXPAND);
 
     Layout();
+    GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
 SupportRecommendDialog::SupportRecommendDialog(wxWindow* parent, const wxString& title)
