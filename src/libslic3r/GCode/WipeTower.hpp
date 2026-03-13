@@ -303,8 +303,6 @@ public:
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
     int get_number_of_toolchanges() const { return m_num_tool_changes; }
 
-	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
-
 	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
 
     bool has_tpu_filament() const { return m_has_tpu_filament; }
@@ -388,7 +386,6 @@ public:
     WipeTowerBlock* get_block_by_category(int filament_adhesiveness_category, bool create);
     void add_depth_to_block(int filament_id, int filament_adhesiveness_category, float depth, bool is_nozzle_change = false);
 	int get_filament_category(int filament_id);
-	bool is_in_same_extruder(int filament_id_1, int filament_id_2);
 	void reset_block_status();
     int get_wall_filament_for_all_layer();
 	// for generate new wipe tower
@@ -407,10 +404,11 @@ public:
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
-    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id);
-    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id );
-    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id);
-    int                get_nozzle_id(int filament_id, int layer_id);
+    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id) const;
+    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id) const;
+    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id) const;
+    int                get_nozzle_id(int filament_id, int layer_id) const;
+    int                get_extruder_id(int filament_id, int layer_id) const;
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -452,7 +450,6 @@ private:
     std::pair<std::vector<double>,std::vector<double>> m_filaments_change_length;//[0]extruder change [1]nozzle change
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
-    std::vector<int>   m_filament_map;
     bool               m_has_tpu_filament{false};
     bool               m_is_multi_extruder{false};
     bool               m_use_gap_wall{false};
@@ -528,11 +525,11 @@ private:
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
-    bool                       is_valid_last_layer(int tool) const;
+    bool                       is_valid_last_layer(int tool, int layer_id, double layer_z) const;
     bool                       m_flat_ironing=false;
     bool                       m_contact_ironing = false;
     float                      m_contact_speed   = 20 * 60.f;
-
+    std::vector<int>           m_physical_extruder_map;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
 		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
