@@ -1009,7 +1009,17 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 std::istringstream str(gcode_line.substr(skips + 3)); // skip white spaces and ;VT
                 str >> fid;
                 if (!str.fail() && 0 <= fid && fid < 255) {
-                    handle_filament_change(fid, line_id);
+                    int nozzle_id = -1;
+                    char param;
+                    while (str >> param) {
+                        if (param == 'H') {
+                            if (!(str >> nozzle_id)) {
+                                BOOST_LOG_TRIVIAL(warning) << "Invalid nozzle id format in VT command: " << gcode_line;
+                            }
+                            break;
+                        }
+                    }
+                    handle_filament_change(fid, line_id, nozzle_id);
                 }
             }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, "M1020")) {
@@ -1019,7 +1029,17 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                     int fid;
                     str >> fid;
                     if (!str.fail() && 0 <= fid && fid < 255) {
-                        handle_filament_change(fid, line_id);
+                        int nozzle_id = -1;
+                        char param;
+                        while (str >> param) {
+                            if (param == 'H') {
+                                if (!(str >> nozzle_id)) {
+                                    BOOST_LOG_TRIVIAL(warning) << "Invalid nozzle id format in M1020 command: " << gcode_line;
+                                }
+                                break;
+                            }
+                        }
+                        handle_filament_change(fid, line_id, nozzle_id);
                     }
                 }
             }

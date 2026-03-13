@@ -2733,7 +2733,8 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
         file.writeln(filament_start_gcode);
         // mark the first filament used in print
-        file.write_format(";VT%d\n", initial_extruder_id);
+        int initial_nozzle_id = NOZZLE_ID_FOR_GCODE(group_result, group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id);
+        file.write_format(";VT%d H%d\n", initial_extruder_id, initial_nozzle_id);
     }
 
     // Process filament-specific gcode.
