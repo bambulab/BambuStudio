@@ -340,6 +340,10 @@ enum FilamentMapMode {
     fmmDefault
 };
 
+inline bool is_auto_filament_map_mode(FilamentMapMode mode) {
+    return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
+}
+
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
 // 最基础的参数idx查找方法，遍历varint list寻找对应的idx

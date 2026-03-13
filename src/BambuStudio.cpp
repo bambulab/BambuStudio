@@ -6343,7 +6343,7 @@ int CLI::run(int argc, char **argv)
                                 else
                                     mode = part_plate->get_real_filament_map_mode(m_print_config);
                                 BOOST_LOG_TRIVIAL(info) << boost::format("%1% :filament map mode is %2% ") % __LINE__ %(int)mode;
-                                if (mode < FilamentMapMode::fmmManual) {
+                                if (is_auto_filament_map_mode(mode)) {
                                     std::vector<int> conflict_filament_vector;
                                     for (int index = 0; index < new_extruder_count; index++)
                                     {
@@ -6580,7 +6580,7 @@ int CLI::run(int argc, char **argv)
                             if (new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode"))
                                 map_mode = new_print_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode")->value;
 
-                            if (map_mode < fmmManual) {
+                            if (is_auto_filament_map_mode(map_mode)) {
                                 //set default params for auto map
                                 std::vector<std::string> extruder_ams_count(new_extruder_count, "");
                                 std::vector<std::vector<DynamicPrintConfig>> extruder_filament_info(new_extruder_count, std::vector<DynamicPrintConfig>());

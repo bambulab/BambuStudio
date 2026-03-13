@@ -30,16 +30,11 @@ static void set_pop_up_remind_flag(bool remind)
     app_config->set_bool("pop_up_filament_map_dialog", remind);
 }
 
-static bool is_auto_mode(FilamentMapMode mode)
-{
-    return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
-}
-
 static std::vector<FilamentMapMode> normalize_auto_modes(const std::vector<FilamentMapMode>& modes)
 {
     std::vector<FilamentMapMode> result;
     for (auto mode : modes) {
-        if (!is_auto_mode(mode))
+        if (!is_auto_filament_map_mode(mode))
             continue;
         if (std::find(result.begin(), result.end(), mode) == result.end())
             result.push_back(mode);
@@ -238,7 +233,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
 
-    if (is_auto_mode(mode))
+    if (is_auto_filament_map_mode(mode))
         m_page_type = PageType::ptAuto;
     else if (mode == fmmManual)
         m_page_type = PageType::ptManual;
@@ -274,7 +269,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
     if (modes_to_use.empty())
         modes_to_use = get_default_auto_modes();
 
-    FilamentMapMode default_auto_mode = is_auto_mode(mode) ? mode : fmmAutoForFlush;
+    FilamentMapMode default_auto_mode = is_auto_filament_map_mode(mode) ? mode : fmmAutoForFlush;
     if (!machine_synced && default_auto_mode == fmmAutoForMatch)
         default_auto_mode = fmmAutoForFlush;
     if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())

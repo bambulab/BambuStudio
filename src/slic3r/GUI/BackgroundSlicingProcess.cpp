@@ -225,7 +225,7 @@ void BackgroundSlicingProcess::process_fff()
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process")%__LINE__;
 		m_print->process();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...")%__LINE__;
-		if (m_current_plate->get_real_filament_map_mode(preset_bundle.project_config) < FilamentMapMode::fmmManual) {
+		if (is_auto_filament_map_mode(m_current_plate->get_real_filament_map_mode(preset_bundle.project_config))) {
 			m_current_plate->set_filament_maps(m_fff_print->get_filament_maps());
 			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
 		}

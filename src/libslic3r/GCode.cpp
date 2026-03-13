@@ -3235,24 +3235,13 @@ void GCode::check_placeholder_parser_failed()
     }
 }
 
-size_t GCode::cur_extruder_index() const
-{
-    //TODO: check if the function is duplicated
-    //just return m_writer.filament()->extruder_id()
-    return get_extruder_id(m_writer.filament()->id());
-}
-
-size_t GCode::cur_config_index() const
-{
-    return m_config.filament_map_2.get_at(m_writer.filament()->id());
-}
-
 
 size_t GCode::get_extruder_id(unsigned int filament_id) const
 {
-    if (m_print) {
-        return m_print->get_extruder_id(filament_id);
-    }
+    // Use GCode's own m_config.filament_map which is updated per-layer by update_layer_related_config().
+    // Do NOT delegate to m_print->get_extruder_id() which reads from m_print->m_config (static, not per-layer).
+    if (filament_id < m_config.filament_map.values.size())
+        return m_config.filament_map.values[filament_id] - 1; // filament_map is 1-based
     return 0;
 }
 
