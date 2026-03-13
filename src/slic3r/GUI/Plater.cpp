@@ -19035,6 +19035,15 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     /* generate 3mf */
     set_print_job_plate_idx(plate_idx);
 
+    if (using_exported_file() && !m_3mf_path.empty()) {
+        try {
+            if (boost::filesystem::exists(m_3mf_path)) {
+                p->m_print_job_data._3mf_path = fs::path(m_3mf_path);
+                return 0;
+            }
+        } catch (const std::exception& ) { };
+    }
+
     PartPlate* plate = get_partplate_list().get_curr_plate();
     try {
         p->m_print_job_data._3mf_path = fs::path(plate->get_tmp_gcode_path());
