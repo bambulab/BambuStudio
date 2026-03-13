@@ -682,18 +682,25 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
         if (available_width <= 0)
             available_width = dialog_width;
         int panel_width = available_width / num_modes;
-        
+
         int max_width = FromDIP(160);
         panel_width = std::min(panel_width, max_width);
-        
+
         sizer->AddStretchSpacer();
+
+        int max_height = 0;
+        for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+            int best_h = m_mode_panels[i]->GetBestSize().GetHeight();
+            max_height = std::max(best_h, max_height);
+        }
+
         for (size_t i = 0; i < m_mode_panels.size(); ++i) {
             if (i > 0) {
                 sizer->AddSpacer(spacer_width);
             }
             sizer->Add(m_mode_panels[i], 1, wxEXPAND | wxFIXED_MINSIZE, 0);
-            m_mode_panels[i]->SetMinSize(wxSize(FromDIP(160), FromDIP(220)));
-            m_mode_panels[i]->SetMaxSize(wxSize(FromDIP(160), FromDIP(220)));
+            m_mode_panels[i]->SetMinSize(wxSize(FromDIP(160), max_height));
+            m_mode_panels[i]->SetMaxSize(wxSize(FromDIP(160), max_height));
         }
         sizer->AddStretchSpacer();
     }
@@ -703,7 +710,7 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
     // Set sizer and fit
     SetSizerAndFit(sizer);
     Layout();
-    
+
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 void FilamentMapAutoPanel::Hide()
