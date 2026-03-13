@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 10:53+0800\n"
+"POT-Creation-Date: 2026-03-13 16:25+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -116,20 +116,20 @@ msgid "%s is not supported by %s extruder."
 msgstr "%s 不支持在 %s 挤出机打印。"
 
 #, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr "‘%s’ 耗材在%s远程挤出机打印时，可能会出现严重打印质量问题。使用时请小心！"
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr "‘%s’ 耗材在%s挤出机打印时，可能会出现严重打印质量问题。使用时请小心！"
+
+#, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
 msgstr "‘%s’ 耗材在%s远程挤出机打印时，可能会出现打印质量问题。使用时请小心。"
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr "‘%s’ 耗材在%s挤出机打印时，可能会出现打印质量问题。使用时请小心。"
-
-#, c-format, boost-format
-msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
-msgstr "‘%s’ 耗材在%s远程挤出机打印时，可能会出现打印严重质量问题。使用时请小心！"
-
-#, c-format, boost-format
-msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
-msgstr "‘%s’ 耗材在%s挤出机打印时，可能会出现打印严重质量问题。使用时请小心！"
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "工具头和热端架可能会运动，请勿将手伸入机箱。"

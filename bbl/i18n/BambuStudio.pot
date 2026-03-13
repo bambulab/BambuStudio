@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 10:53+0800\n"
+"POT-Creation-Date: 2026-03-13 16:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -117,19 +117,19 @@ msgid "%s is not supported by %s extruder."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
@@ -215,65 +215,65 @@ msgid "%d ℃"
 msgstr ""
 
 msgid "Filament Inlet A"
-msgstr "进料口 A"
+msgstr ""
 
 msgid "Filament Inlet B"
-msgstr "进料口 B"
+msgstr ""
 
 msgid "Filament Track Switch"
-msgstr "耗材变轨器"
+msgstr ""
 
 msgid "Suggested rearrangement"
-msgstr "建议重新摆料"
+msgstr ""
 
 msgid "How to save time?→"
-msgstr "为何可以节省时间？→"
+msgstr ""
 
 msgid "Filament Status:"
-msgstr "耗材丝界面状态说明："
+msgstr ""
 
 msgid "Position adjustment required"
-msgstr "需要调整位置"
+msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "OK"
-msgstr "摆放OK"
+msgstr ""
 
 msgid "Unused"
-msgstr "此次打印未匹配使用"
+msgstr ""
 
 msgid "Refresh"
-msgstr "刷新"
+msgstr ""
 
 msgid "Close"
-msgstr "关闭"
+msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
-msgstr "请按照图示调整AMS中耗材的摆放位置，采用最优排布可节省 %s。"
+msgstr ""
 
 msgid "Summary: This is currently the most suitable position for placement."
-msgstr "总结：当前已是最优摆放。"
+msgstr ""
 
 msgid "?"
-msgstr "?"
+msgstr ""
 
 msgid "Summary: "
-msgstr "总结: "
+msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
+msgstr ""
 
 msgid "filaments"
-msgstr "耗材"
+msgstr ""
 
 msgid "filament"
-msgstr "耗材"
+msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
-msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
+msgstr ""
 
 msgid "Model:"
 msgstr ""
@@ -2769,7 +2769,7 @@ msgid "Unload"
 msgstr ""
 
 msgid "AMS has not been initialized. Please initialize it before use."
-msgstr "AMS尚未初始化。请先初始化后再使用。"
+msgstr ""
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
@@ -2782,22 +2782,22 @@ msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "Left"
-msgstr "左边"
+msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "Right"
-msgstr "右边"
+msgstr ""
 
 msgid "Confirm"
-msgstr "确定"
+msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Load %s to "
-msgstr "%s  进料至："
+msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "right extruder"
-msgstr "右挤出机"
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr ""

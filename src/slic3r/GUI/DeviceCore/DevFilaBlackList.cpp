@@ -359,9 +359,9 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
             DevFilaBlacklist::CheckResultItem item;
             item.action = "warning";
             if (is_bowden_extruder) {
-                item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."), fila_name, extruder_name);
+                item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"), fila_name, extruder_name);
             } else {
-                item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s extruder. Use with caution."), fila_name, extruder_name);
+                item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"), fila_name, extruder_name);
             }
 
             result.action_items[item.action].push_back(item);
@@ -369,9 +369,9 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
             DevFilaBlacklist::CheckResultItem item;
             item.action = "warning";
             if (is_bowden_extruder) {
-                item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"), fila_name, extruder_name);
+                item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."), fila_name, extruder_name);
             } else {
-                item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"), fila_name, extruder_name);
+                item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s extruder. Use with caution."), fila_name, extruder_name);
             }
 
             result.action_items[item.action].push_back(item);
