@@ -117,8 +117,6 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
                         info.material_remain = it->second->remain;
                     }
                 }
-
-
             } else {
                 info.can_id = it->second->id;
                 info.material_name = "";

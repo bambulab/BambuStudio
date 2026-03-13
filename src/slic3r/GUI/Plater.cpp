@@ -2603,6 +2603,82 @@ void ExtruderDialogPanel::ShowAMSDeletePopup(AMSPreview *ams_preview)
     popup->Popup();
 }
 
+void ExtruderPanel::sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams_internal, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1, std::vector<DevAmsTray> const &ext)
+{
+    if (m_ams_4.empty() && ams4.empty()
+            && m_ams_1.empty() && ams1.empty() && m_ext.empty() && ext.empty())
+        return;
+    auto sync = [obj](std::vector<AMSinfo> &infos, std::vector<DevAms *> const &ams) -> bool {
+        std::vector<AMSinfo> infos2;
+        for (auto a : ams) {
+            AMSinfo ams_info;
+            ams_info.parse_ams_info(const_cast<MachineObject*>(obj), a, obj->GetFilaSystem()->IsDetectRemainEnabled(), obj->is_support_ams_humidity);
+            infos2.push_back(ams_info);
+        }
+        if (infos == infos2)
+            return false;
+
+        for (size_t ams_index = 0; ams_index < infos2.size(); ++ams_index) {
+            auto ams_info = infos2[ams_index];
+            BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - AMS Info: "
+                                    << "ams_id = \"" << ams_info.ams_id << "\""
+                                    << ", ams_type = " << static_cast<int>(ams_info.ams_type) << ", cans_count = " << ams_info.cans.size();
+
+            for (size_t can_index = 0; can_index < ams_info.cans.size(); ++can_index) {
+                const auto &can_info = ams_info.cans[can_index];
+
+                BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Can[" << can_index << "]: "
+                                        << "can_id = \"" << can_info.can_id << "\""
+                                        << ", material_name = \"" << can_info.material_name.ToStdString() << "\""
+                                        << ", material_colour = " << can_info.material_colour.GetAsString(2).ToStdString()
+                                        << ", material_state = " << static_cast<int>(can_info.material_state) << ", multi_colours_count = " << can_info.material_cols.size();
+
+                if (can_info.material_cols.size() > 1) {
+                    std::string multi_colors_str;
+                    for (size_t i = 0; i < can_info.material_cols.size(); ++i) {
+                        if (i > 0) multi_colors_str += ",";
+                        const auto &color = can_info.material_cols[i];
+                        multi_colors_str += color.GetAsString(2).ToStdString();
+                    }
+                    BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Can[" << can_index << "] MultiColors: " << multi_colors_str;
+                }
+            }
+        }
+
+        infos.swap(infos2);
+        return true;
+    };
+
+    auto sync_ext = [obj](std::vector<AMSinfo> &infos, std::vector<DevAmsTray> const &trays) -> bool {
+        std::vector<AMSinfo> infos2;
+        for (auto tray : trays) {
+            AMSinfo ext_info;
+            ext_info.parse_ext_info(const_cast<MachineObject *>(obj), tray);
+            infos2.push_back(ext_info);
+        }
+        if (infos == infos2)
+            return false;
+
+        BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - External material count: " << infos2.size();
+        for (size_t i = 0; i < infos2.size(); ++i) {
+            const auto &ext_info = infos2[i];
+            BOOST_LOG_TRIVIAL(info) << "ExtruderPanel::sync_ams - Ext[" << i << "]: "
+                                    << "tray_id = \"" << ext_info.ams_id << "\"";
+            if (!ext_info.cans.empty()) {
+                const auto &can = ext_info.cans[0];
+                BOOST_LOG_TRIVIAL(info) << "  material_name = \"" << can.material_name.ToStdString() << "\""
+                                        << ", colour = " << can.material_colour.GetAsString(2).ToStdString();
+            }
+        }
+
+        infos.swap(infos2);
+        return true;
+    };
+
+    if (sync(m_ams_4, ams4) || sync(m_ams_1, ams1) || sync(m_ams_internal, ams_internal) || sync_ext(m_ext, ext))
+        update_ams();
+}
+
 bool Sidebar::priv::switch_diameter(bool single)
 {
     PERF_TRACE("switch diameter");
@@ -2869,12 +2945,16 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     auto clear_all_sync_status = [this, &not_synced_colour]() {
         panel_printer_preset->ShowBadge(false);
         panel_printer_bed->ShowBadge(false);
-        left_extruder->ShowBadge(false);
-        left_extruder->sync_ams(nullptr, {}, {});
-        right_extruder->ShowBadge(false);
-        right_extruder->sync_ams(nullptr, {}, {});
+        //left_extruder->ShowBadge(false);
+        //left_extruder->sync_ams(nullptr, {}, {});
+        //right_extruder->ShowBadge(false);
+        //right_extruder->sync_ams(nullptr, {}, {});
         single_extruder->ShowBadge(false);
         single_extruder->sync_ams(nullptr, {}, {});
+        l_extruder_panel->sync_ams(nullptr, {}, {}, {}, {});
+        r_extruder_panel->sync_ams(nullptr, {}, {}, {}, {});
+        dual_panel->ShowBadge(false);
+        single_panel->ShowBadge(false);
         btn_sync_printer->SetBorderColor(not_synced_colour);
         btn_sync_printer->SetIcon("printer_sync");
     };
@@ -2911,9 +2991,11 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         int   nozzle_volue_type{0};
         int   ams_4{0};
         int   ams_1{0};
+        int   ams_internal_num{0};
         int   ext{0};
         std::vector<DevAms *> ams_v4;
         std::vector<DevAms *> ams_v1;
+        std::vector<DevAms *> ams_internal;
         std::vector<DevAmsTray> ext_v;
 
         bool operator==(const ExtruderInfo &other) const
@@ -2985,7 +3067,12 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         if (extruder_id >= machine_extruder_infos.size())
             continue;
 
-        if (item.second->GetAmsType() == DevAmsType::N3S)
+        if (item.second->GetAmsType() == DevAmsType::ZMULTI_A ||
+            item.second->GetAmsType() == DevAmsType::ZMULTI_B) {
+            machine_extruder_infos[extruder_id].ams_internal_num++;
+            machine_extruder_infos[extruder_id].ams_internal.push_back(item.second);
+        }
+        else if (item.second->GetAmsType() == DevAmsType::N3S)
         { // N3S
             machine_extruder_infos[extruder_id].ams_1++;
             machine_extruder_infos[extruder_id].ams_v1.push_back(item.second);
@@ -3004,12 +3091,13 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
     }
 
     std::reverse(machine_extruder_infos.begin(), machine_extruder_infos.end());
-
     std::vector<bool> extruder_synced(extruder_nums, false);
     if (extruder_nums == 1) {
         if (this->plater->is_extruder_stat_synced()) {
             single_extruder->ShowBadge(true);
             single_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
+            single_panel->ShowBadge(true);
+            s_extruder_panel->sync_ams(obj, machine_extruder_infos[0].ams_internal, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
             extruder_synced[0] = true;
         }
         else {
@@ -3018,24 +3106,36 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         }
     }
     else if (extruder_nums == 2) {
-        if (this->plater->is_extruder_stat_synced(0)) {
-            left_extruder->ShowBadge(true);
-            left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
+        bool left_synced = this->plater->is_extruder_stat_synced(0);
+        bool right_synced = this->plater->is_extruder_stat_synced(1);
+        if (left_synced) {
+            //left_extruder->ShowBadge(true);
+            //left_extruder->sync_ams(obj, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1);
+            l_extruder_panel->sync_ams(obj, {}, machine_extruder_infos[0].ams_v4, machine_extruder_infos[0].ams_v1, machine_extruder_infos[0].ext_v);
             extruder_synced[0] = true;
         }
         else {
-            left_extruder->ShowBadge(false);
-            left_extruder->sync_ams(obj, {}, {});
+            //left_extruder->ShowBadge(false);
+            //left_extruder->sync_ams(obj, {}, {});
+            l_extruder_panel->sync_ams(obj, {}, {}, {}, {});
         }
 
-        if (this->plater->is_extruder_stat_synced(1)) {
-            right_extruder->ShowBadge(true);
-            right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
+        if (right_synced) {
+            //right_extruder->ShowBadge(true);
+            //right_extruder->sync_ams(obj, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1);
+            r_extruder_panel->sync_ams(obj, {}, machine_extruder_infos[1].ams_v4, machine_extruder_infos[1].ams_v1, machine_extruder_infos[1].ext_v);
             extruder_synced[1] = true;
         }
         else {
-            right_extruder->ShowBadge(false);
-            right_extruder->sync_ams(obj, {}, {});
+            //right_extruder->ShowBadge(false);
+            //right_extruder->sync_ams(obj, {}, {});
+            r_extruder_panel->sync_ams(obj, {}, {}, {}, {});
+        }
+
+        if (left_synced && right_synced) {
+            dual_panel->ShowBadge(true);
+        } else {
+            dual_panel->ShowBadge(false);
         }
     }
 
