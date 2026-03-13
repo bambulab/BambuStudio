@@ -1975,7 +1975,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material)
         if (tab->disable_arc_fitting()) {
             wxGetApp().sidebar().jump_to_option("enable_arc_fitting", Preset::TYPE_PRINT, L"");
             auto notification_manager = plater->get_notification_manager();
-            auto msg                  = into_u8(_L("Tips:\nYour printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."));
+            auto msg                  = into_u8(_L("Tips:\nCurve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."));
             notification_manager->push_notification(NotificationType::BBLArcFittingInfo, NotificationManager::NotificationLevel::WarningNotificationLevel, msg);
         }
     } else {
