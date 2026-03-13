@@ -684,6 +684,17 @@ float calc_filament_change_gap_for_assignment(
             float actual_time = same_group ? standard_total : selector_total;
             float sliced_time = standard_total;
             gap += (actual_time - sliced_time);
+        } 
+        else if (is_extruder_change) {
+            int nozzle_in_old_extruder = recorder.get_nozzle_in_extruder(old_extruder_id);
+            int old_filament_in_old_extruder = recorder.get_filament_in_nozzle(nozzle_in_old_extruder);
+            int old_index = get_filament_index(logical_filaments, old_filament_in_old_extruder);
+            int new_index = get_filament_index(logical_filaments, filament_id);
+            bool same_group = (old_index >= 0 && new_index >= 0 && 
+                            group_of_filament[static_cast<size_t>(old_index)] == group_of_filament[static_cast<size_t>(new_index)]);
+            float sliced_time = 0;
+            float actual_time = same_group ? standard_total : 0;
+            gap += (actual_time - sliced_time);
         }
 
         recorder.set_nozzle_status(new_nozzle_id, filament_id, new_extruder_id);
