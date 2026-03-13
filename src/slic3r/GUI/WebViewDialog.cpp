@@ -154,8 +154,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     wxBoxSizer *left_group  = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *right_group = new wxBoxSizer(wxHORIZONTAL);
-
-    m_online_back_btn    = make_online_toolbar_button("mall_control_back", _CTX("Back", "WebView"));
+    m_online_back_btn    = make_online_toolbar_button("mall_control_back", _CTX(L_CONTEXT("Back", "WebView"), "WebView"));
     m_online_refresh_btn = make_online_toolbar_button("mall_control_refresh", _L("Refresh"));
     left_group->Add(m_online_back_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
     left_group->Add(m_online_refresh_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
