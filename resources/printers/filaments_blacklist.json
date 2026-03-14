@@ -154,6 +154,15 @@
       "description": "PLA Glow may wear the AMS first stage feeder. Use an external spool instead."
     },
     {
+      "type": "PLA",
+      "name_suffix": "PLA Silk",
+      "action": "warning",
+      "slot": "ams",
+      "has_filament_switch": true,
+      "description": "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.",
+      "wiki": "https://e.bambulab.com/t?c=s0CgMOrctZiPablB"
+    },
+    {
       "name_suffix": "PC FR",
       "nozzle_flows": ["High Flow"],
       "model_id": ["C11", "C12", "BL-P001"],

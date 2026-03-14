@@ -197,6 +197,12 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 continue;
             }
 
+            // check filament switch
+            bool has_filament_switch = DevJsonValParser::GetVal<bool>(filament_item, "has_filament_switch", false);
+            if (check_info.has_filament_switch != has_filament_switch) {
+                continue;
+            }
+
             // check loc
             if (!slot.empty()) {
                 bool is_virtual_slot = devPrinterUtil::IsVirtualSlot(check_info.ams_id);
@@ -262,6 +268,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_type);
             } else if (description == "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.") {
                 result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
+            } else if (description == "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.") {
+                result_item.info_msg = wxString::Format(_L(description), check_info.fila_name);
             } else {
                 result_item.info_msg = _L(description);
             }
@@ -291,6 +299,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
+            L("%s may fail to load or unload due to the Filament Track Switch. If you wish to continue.");
         };
     }
 }

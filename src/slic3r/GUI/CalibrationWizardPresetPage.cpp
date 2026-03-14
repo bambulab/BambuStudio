@@ -1534,6 +1534,7 @@ bool CalibrationPresetPage::is_filament_in_blacklist(int tray_id, Preset* preset
         check_info.slot_id = slot_id;
         check_info.nozzle_flow = curr_obj->GetFilaSystem()->GetNozzleFlowStringByAmsId(std::to_string(ams_id)); // NOTE: to be fixed
         check_info.fila_name = preset->alias;
+        check_info.has_filament_switch = curr_obj->GetFilaSwitch()->IsInstalled();
 
         if (!curr_obj->GetNozzleRack()->IsSupported()) {
             int extruder_id = curr_obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
