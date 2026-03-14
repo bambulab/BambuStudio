@@ -3,6 +3,8 @@
 #include "Utils.hpp"
 #include "Print.hpp"
 #include <chrono>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace Slic3r { namespace MultiNozzleUtils {
 // ==================== 工具函数实现 ====================
@@ -637,60 +639,148 @@ float calc_filament_change_gap_for_assignment(
 {
     if (logical_filaments.empty() || nozzle_list.empty() || filament_change_seq.empty() || nozzle_change_seq.empty()) return 0.0f;
 
-    const auto build_nozzle_id_map = [](const std::vector<NozzleInfo>& nozzle_list) {
-        std::map<int, NozzleInfo> result;
-        for (const auto& nozzle : nozzle_list) {
-            result[nozzle.group_id] = nozzle;
-        }
-        return result;
-    };
-    const auto get_filament_index = [](const std::vector<int>& logical_filaments, int filament_id) {
-        auto it = std::find(logical_filaments.begin(), logical_filaments.end(), filament_id);
-        if (it == logical_filaments.end()) return -1;
-        return static_cast<int>(std::distance(logical_filaments.begin(), it));
-    };
-    const auto nozzle_id_map = build_nozzle_id_map(nozzle_list);
-    const size_t seq_len = std::min(filament_change_seq.size(), nozzle_change_seq.size());
+    // TODO: 当前固件所有退料都退到AMS，不支持退到选料器待机。
+    // 待固件支持后，将此开关置为 true 以启用选料器待机优化。
+    constexpr bool selector_park_enabled = false;
 
-    float gap = 0.0f;
-    float standard_total = time_params.standard_unload_time + time_params.standard_load_time;
-    float selector_total = time_params.selector_unload_time + time_params.selector_load_time;
-    int last_extruder_id = -1;
-    NozzleStatusRecorder recorder;
+    // 参数语义重新映射：
+    // 输入参数中 standard = AMS->选料器->挤出机（全程），selector = 选料器->挤出机（短程）
+    // 所以 AMS->选料器 = standard - selector
+    const float load_ams_to_selector   = time_params.standard_load_time   - time_params.selector_load_time;
+    const float unload_ams_to_selector = time_params.standard_unload_time - time_params.selector_unload_time;
+    const float load_selector_to_ext   = time_params.selector_load_time;
+    const float unload_ext_to_selector = time_params.selector_unload_time;
+
+    // nozzle_id -> extruder_id
+    std::unordered_map<int, int> nozzle_to_extruder;
+    nozzle_to_extruder.reserve(nozzle_list.size());
+    for (const auto& nozzle : nozzle_list)
+        nozzle_to_extruder[nozzle.group_id] = nozzle.extruder_id;
+
+    // filament_id -> AMS group
+    std::unordered_map<int, int> filament_to_group;
+    filament_to_group.reserve(logical_filaments.size());
+    for (size_t i = 0; i < logical_filaments.size(); ++i)
+        filament_to_group[logical_filaments[i]] = group_of_filament[i];
+
+    const auto get_group = [&](int filament_id) -> int {
+        auto it = filament_to_group.find(filament_id);
+        return it != filament_to_group.end() ? it->second : -1;
+    };
+
+    // 料的位置状态
+    enum class Location { IN_AMS, IN_SELECTOR, IN_EXTRUDER };
+    std::unordered_map<int, Location> filament_location;  // filament_id -> 当前位置
+    std::unordered_map<int, int>      filament_extruder;  // filament_id -> 所在挤出机（仅IN_EXTRUDER时有效）
+    std::unordered_map<int, int>      extruder_filament;  // extruder_id -> 当前装载的料
+    // group_id -> 当前占用了该AMS通道的料集合（IN_SELECTOR或IN_EXTRUDER），用于Step3快速查找需要让路的料
+    std::unordered_map<int, std::unordered_set<int>> ams_group_occupied;
+
+    filament_location.reserve(logical_filaments.size());
+    filament_extruder.reserve(logical_filaments.size());
+
+    // 初始状态：所有料在AMS，所有挤出机为空
+    for (int f : logical_filaments)
+        filament_location[f] = Location::IN_AMS;
+
+    // 切片预估模拟器：用NozzleStatusRecorder追踪切片时每个nozzle/extruder装的料
+    NozzleStatusRecorder sliced_recorder;
+
+    const size_t seq_len = std::min(filament_change_seq.size(), nozzle_change_seq.size());
+    float actual_time = 0.0f;
+    float sliced_time = 0.0f;
 
     for (size_t i = 0; i < seq_len; ++i) {
-        int filament_id = filament_change_seq[i];
+        int B         = filament_change_seq[i];
         int nozzle_id = nozzle_change_seq[i];
-        auto nozzle_iter = nozzle_id_map.find(nozzle_id);
-        if (nozzle_iter == nozzle_id_map.end()) continue;
 
-        int new_extruder_id = nozzle_iter->second.extruder_id;
-        int new_nozzle_id = nozzle_iter->second.group_id;
+        auto nozzle_iter = nozzle_to_extruder.find(nozzle_id);
+        if (nozzle_iter == nozzle_to_extruder.end()) continue;
 
-        int old_extruder_id = last_extruder_id;
-        int old_nozzle_in_extruder = recorder.get_nozzle_in_extruder(new_extruder_id);
-        int old_filament_in_nozzle = recorder.get_filament_in_nozzle(old_nozzle_in_extruder);
+        int E = nozzle_iter->second; // 目标挤出机
 
-        bool is_extruder_change = (old_extruder_id != new_extruder_id);
-        bool is_nozzle_change = (old_nozzle_in_extruder != new_nozzle_id);
-        bool is_flush_change = (old_filament_in_nozzle != filament_id);
+        // 切片预估时间：模拟切片视角（无选料器意识）
+        // 对应参考代码逻辑：nozzle_in_extruder_change || filament_in_nozzle_change 时计进退料
+        {
+            int old_nozzle_in_E        = sliced_recorder.get_nozzle_in_extruder(E);
+            int old_filament_in_nozzle = sliced_recorder.get_filament_in_nozzle(nozzle_id);
+            int old_filament_in_ext    = sliced_recorder.get_filament_in_nozzle(old_nozzle_in_E);
 
-        if (!is_extruder_change && (is_nozzle_change || is_flush_change)) {
-            // 挤出机切换差异为0，仅统计冲刷/热端切换差异
-            int old_index = get_filament_index(logical_filaments, old_filament_in_nozzle);
-            int new_index = get_filament_index(logical_filaments, filament_id);
-            bool same_group = (old_index >= 0 && new_index >= 0 &&
-                               group_of_filament[static_cast<size_t>(old_index)] == group_of_filament[static_cast<size_t>(new_index)]);
-            float actual_time = same_group ? standard_total : selector_total;
-            float sliced_time = standard_total;
-            gap += (actual_time - sliced_time);
+            bool nozzle_change   = (old_nozzle_in_E != nozzle_id);
+            bool filament_change = (old_filament_in_nozzle != B);
+
+            if (nozzle_change || filament_change) {
+                if (old_filament_in_ext != -1)
+                    sliced_time += time_params.standard_unload_time;
+                sliced_time += time_params.standard_load_time;
+            }
+            sliced_recorder.set_nozzle_status(nozzle_id, B, E);
         }
 
-        recorder.set_nozzle_status(new_nozzle_id, filament_id, new_extruder_id);
-        last_extruder_id = new_extruder_id;
+        // Step 1: 查目标挤出机E当前装载的料A
+        int A = -1;
+        {
+            auto it = extruder_filament.find(E);
+            if (it != extruder_filament.end())
+                A = it->second;
+        }
+
+        // Step 2: A从E退出（A不为空且A!=B时）
+        if (A != -1 && A != B) {
+            if (!selector_park_enabled || get_group(A) == get_group(B)) {
+                // 当前固件不支持选料器待机，或同AMS需让路：A完整退回AMS
+                actual_time += unload_ext_to_selector + unload_ams_to_selector;
+                filament_location[A] = Location::IN_AMS;
+                ams_group_occupied[get_group(A)].erase(A);
+            } else {
+                // 不同AMS且支持选料器待机：A只退到选料器，仍占用AMS通道
+                actual_time += unload_ext_to_selector;
+                filament_location[A] = Location::IN_SELECTOR;
+            }
+            extruder_filament.erase(E);
+            filament_extruder.erase(A);
+        }
+
+        // Step 3: 若B的AMS通道被其他料X占用（X与B同AMS，且X在选料器或挤出机里），X必须退回AMS让路
+        int group_B = get_group(B);
+        auto group_it = ams_group_occupied.find(group_B);
+        if (group_it != ams_group_occupied.end()) {
+            for (int X : group_it->second) {
+                if (X == B) continue;
+                // X 与 B 同 AMS，退回 AMS 让路
+                Location loc_X = filament_location[X];
+                if (loc_X == Location::IN_EXTRUDER) {
+                    actual_time += unload_ext_to_selector + unload_ams_to_selector;
+                    int E2 = filament_extruder[X];
+                    extruder_filament.erase(E2);
+                    filament_extruder.erase(X);
+                } else { // IN_SELECTOR
+                    actual_time += unload_ams_to_selector;
+                }
+                filament_location[X] = Location::IN_AMS;
+            }
+            group_it->second.clear();
+        }
+
+        // Step 4: B推入E（根据B当前状态）
+        auto loc_it = filament_location.find(B);
+        Location loc_B = (loc_it != filament_location.end()) ? loc_it->second : Location::IN_AMS;
+        if (loc_B == Location::IN_AMS) {
+            actual_time += load_ams_to_selector + load_selector_to_ext;
+        } else if (loc_B == Location::IN_SELECTOR) {
+            // 仅在selector_park_enabled时B才可能处于IN_SELECTOR
+            actual_time += load_selector_to_ext;
+        }
+        // IN_EXTRUDER且E==当前挤出机：B已经在目标挤出机，无需操作
+
+        // Step 5: 更新状态
+        extruder_filament[E]  = B;
+        filament_location[B]  = Location::IN_EXTRUDER;
+        filament_extruder[B]  = E;
+        ams_group_occupied[group_B].insert(B);
     }
 
-    return gap;
+    return actual_time - sliced_time;
 }
 
 std::vector<int> find_optimal_physical_assignment(
