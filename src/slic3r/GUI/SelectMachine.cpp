@@ -2097,6 +2097,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name = option ? option->filament_name : "";
         check_info.fila_vendor = option ? option->vendor : "";
+        check_info.has_filament_switch = obj_->GetFilaSwitch()->IsInstalled();
 
         // usage of filament
         if (m_print_type == PrintFromType::FROM_NORMAL) {
@@ -5574,6 +5575,7 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         auto option            = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name   = option ? option->filament_name : "";
         check_info.fila_vendor = option ? option->vendor : "";
+        check_info.has_filament_switch = obj_->GetFilaSwitch()->IsInstalled();
 
         // usage of filament
         if (m_print_type == PrintFromType::FROM_NORMAL) {

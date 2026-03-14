@@ -21,6 +21,7 @@ public:
         std::string fila_vendor;
 
         std::string calib_mode;
+        bool has_filament_switch = false;
 
         std::optional<bool> used_for_print_support;// optional
         std::optional<bool> used_for_print_object;// optional
