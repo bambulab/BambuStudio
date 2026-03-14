@@ -601,6 +601,7 @@ sCheckFilamentInfo(PresetBundle* preset_bundle,
         auto option = GUI::wxGetApp().preset_bundle->get_filament_by_filament_id(check_info.fila_id);
         check_info.fila_name = option ? option->filament_name : "";
         check_info.fila_vendor = option ? option->vendor : "";
+        check_info.has_filament_switch = obj->GetFilaSwitch()->IsInstalled();
 
         check_info.ams_id = ams_id;
         check_info.slot_id = slot_id;
