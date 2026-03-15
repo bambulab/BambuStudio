@@ -3141,8 +3141,10 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
         config.sparse_infill_density.value = 0;
     else
         config.sparse_infill_density.value = std::min(config.sparse_infill_density.value, 100.);
-    if (config.fuzzy_skin.value != FuzzySkinType::None && (config.fuzzy_skin_point_distance.value < 0.01 || config.fuzzy_skin_thickness.value < 0.001))
-        config.fuzzy_skin.value = FuzzySkinType::None;
+    // Very small fuzzy_skin_point_distance value may cause infinite recursion, and a near-zero thickness doesn't generate anything anyway.
+    // Check here even if `fuzzy_skin == None` because that setting allows painting and the type may get reset later (but `Disabled_fuzzy` will not).
+    if (config.fuzzy_skin.value != FuzzySkinType::Disabled_fuzzy && (config.fuzzy_skin_point_distance.value < 0.01 || config.fuzzy_skin_thickness.value < 0.001))
+        config.fuzzy_skin.value = FuzzySkinType::Disabled_fuzzy;
     return config;
 }
 
