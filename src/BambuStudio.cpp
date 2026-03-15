@@ -104,6 +104,15 @@ using namespace Slic3r;
 
 #define MAX_CLONEABLE_SIZE 512
 
+// Folder name for portable version configuration storage location.
+// If a directory with this name is found at startup next to the program's executable,
+// it will be used for all settings/profiles storage instead of the usual OS-dependent location.
+// This check can also be overridden using the --datadir CLI argument.
+// The folder check can be disabled entirely at build time by setting this macro to an empty _string_ value ("").
+#ifndef PORTABLE_DATA_DIR_NAME
+    #define PORTABLE_DATA_DIR_NAME  "configuration"
+#endif
+
 std::map<int, std::string> cli_errors = {
     {CLI_SUCCESS, "Success."},
     {CLI_ENVIRONMENT_ERROR, "Failed setting up server environment."},
@@ -8184,29 +8193,37 @@ bool CLI::setup(int argc, char **argv)
     }
 #endif
 
-    // See Invoking prusa-slicer from $PATH environment variable crashes #5542
-    // boost::filesystem::path path_to_binary = boost::filesystem::system_complete(argv[0]);
-    boost::filesystem::path path_to_binary = boost::dll::program_location();
+    // Fully resolved directory path of program's runtime base "installation" folder, which may be "portable" version run from any arbitrary location.
+    boost::filesystem::path install_path;
+    // Starting with the current location of the binary being executed.
+    try {
+        install_path = boost::filesystem::canonical(boost::dll::program_location()).parent_path();
+    } catch (std::exception &e) {
+        // boost log not initialized yet
+        boost::nowide::cerr << "Could not determine canonical path to application directory!" << std::endl << e.what() << std::endl << std::endl;
+        return false;
+    }
 
-    // Path from the Slic3r binary to its resources.
+    // Path from the program binary to its resources.
 #ifdef __APPLE__
-    // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
-    // The resources are packed to 'Slic3r.app/Contents/Resources'
-    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path().parent_path() / "Resources";
-#elif defined _WIN32
+    // The application is packed in the .dmg archive as 'BambuStudio.app/Contents/MacOS/BambuStudio'
+    // The resources are packed to 'BambuStudio.app/Contents/Resources'
+    const boost::filesystem::path path_resources = install_path.parent_path() / "Resources";
+    // For file system access outside the bundle, to check for datadir folder at that level.
+    install_path = install_path.parent_path().parent_path().parent_path();
+#elif defined(_WIN32)
     // The application is packed in the .zip archive in the root,
-    // The resources are packed to 'resources'
-    // Path from Slic3r binary to resources:
-    boost::filesystem::path path_resources = path_to_binary.parent_path() / "resources";
-#elif defined SLIC3R_FHS
+    // The resources are packed to 'resources' in the root.
+    const boost::filesystem::path path_resources = install_path / "resources";
+#elif defined(SLIC3R_FHS)
     // The application is packaged according to the Linux Filesystem Hierarchy Standard
     // Resources are set to the 'Architecture-independent (shared) data', typically /usr/share or /usr/local/share
-    boost::filesystem::path path_resources = SLIC3R_FHS_RESOURCES;
+    const boost::filesystem::path path_resources = SLIC3R_FHS_RESOURCES;
 #else
-    // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
-    // The resources are packed to 'resources'
-    // Path from Slic3r binary to resources:
-    boost::filesystem::path path_resources = boost::filesystem::canonical(path_to_binary).parent_path().parent_path() / "resources";
+    // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/bambu-studio',
+    // The resources are packed to 'resources' in the root.
+    install_path = install_path.parent_path();
+    const boost::filesystem::path path_resources = install_path / "resources";
 #endif
 
     set_resources_dir(path_resources.string());
@@ -8252,6 +8269,24 @@ bool CLI::setup(int argc, char **argv)
         // Don't validate existence or create it right now, should be done in GUI_App::init_app_config(), same as for default data dir.
         // We do want to store the full path in native format because that's how all other sources of the global data_dir are stored.
         set_data_dir(boost::filesystem::absolute(m_config.opt_string("datadir")).make_preferred().string());
+    }
+    // Check for special configuration folder at the same level as the installation path.
+    else if (std::strlen(PORTABLE_DATA_DIR_NAME) > 0) {
+        boost::filesystem::path local_data_dir_path = install_path / PORTABLE_DATA_DIR_NAME;
+        if (boost::filesystem::exists(local_data_dir_path)) {
+            set_data_dir(local_data_dir_path.make_preferred().string());
+        }
+#if defined(__linux__) || defined(__LINUX__)
+        // If running from an AppImage, the original package location is stored in APPIMAGE env. var.
+        // The user may have a loclal config folder at the same level as the image file, not inside the image itself.
+        else if (const char *appimage_env = std::getenv("APPIMAGE")) {
+            boost::system::error_code ec;
+            local_data_dir_path = boost::filesystem::canonical(boost::filesystem::path(appimage_env).parent_path() / PORTABLE_DATA_DIR_NAME, ec);
+            // Ignore errors, no local config folder or couldn't resolve APPIMAGE at all for some reason.
+            if (!ec)
+                set_data_dir(local_data_dir_path.string());
+        }
+#endif  // __linux__
     }
 
     return true;
