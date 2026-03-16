@@ -41,6 +41,9 @@
         "0.8",
         "0.8"
     ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "filament_wipe": [
         "1",
         "1"
