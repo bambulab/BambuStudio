@@ -1843,6 +1843,9 @@ wxBoxSizer* MainFrame::create_side_tools()
             // check if the support material is used if there is one
             Tab *tab = wxGetApp().get_tab(Preset::Type::TYPE_PRINT);
             tab->on_value_change("support_interface_filament", m_slice_select == eSliceAll ? -2 : -1);
+            if (m_plater->is_background_process_update_scheduled())
+                m_plater->update(false, true);
+
             m_plater->reset_check_status();
             if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
                 return;
