@@ -273,6 +273,10 @@ var PdfTail=['pdf','fdf','xfdf','xdp','ppdf','ofd'];
 var JpgTail=['jpg','jpeg'];
 var PngTail=['png'];
 
+function isImageFileTail(fileTail) {
+  return $.inArray(fileTail, JpgTail) >= 0 || $.inArray(fileTail, PngTail) >= 0;
+}
+
 function ConstructFileHtml( ID, pItem ){
   let fTotal=pItem.length;
 	
@@ -282,8 +286,9 @@ function ConstructFileHtml( ID, pItem ){
 		
 		let tPath=pOne['filepath'];
 		let tName=decodeURIComponent(pOne['filename']);
-		
+
 		let sTail=getFileTail(tName).toLowerCase();
+    let isImageFile=isImageFileTail(sTail);
 
     let ImgPath='img/icon_txt.svg';
     if( $.inArray( sTail, JpgTail )>=0 ){
@@ -304,7 +309,11 @@ function ConstructFileHtml( ID, pItem ){
     if (tPath) {
       onclick = ' onClick="OnClickOpenFile(\''+tPath+'\')"';
     }
-    strHtml+='<div class="attachment"'+onclick+'><img src="'+ImgPath+'">'+tName+'</div>';
+    if (isImageFile && tPath) {
+      strHtml += '<div class="attachment attachment-image"' + onclick + '><img class="attachment-thumb" src="' + tPath + '" alt="' + tName + '">' + tName + '</div>';
+    } else {
+      strHtml += '<div class="attachment"' + onclick + '><img src="' + ImgPath + '" alt="' + tName + '">' + tName + '</div>';
+    }
   }
   $("#"+ID).html( strHtml );
   if( fTotal>0 ) {$("#"+ID).show();}
