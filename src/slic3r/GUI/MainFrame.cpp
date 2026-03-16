@@ -1864,7 +1864,11 @@ wxBoxSizer* MainFrame::create_side_tools()
                 slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate, false);
             #endif
 
-            if (slice) {
+            bool model_fits     = false;
+            bool validate_error = false;
+            m_plater->validate_current_plate(model_fits, validate_error);
+
+            if (slice && model_fits && !validate_error) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
                 int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
                 if (extruder_count > 1) {
