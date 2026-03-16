@@ -31,6 +31,9 @@
         "10",
         "10"
     ],
+    "filament_tower_ironing_area": [
+        "8"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

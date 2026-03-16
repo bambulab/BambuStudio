@@ -11,9 +11,6 @@
         "0",
         "0"
     ],
-    "filament_extruder_compatibility": [
-        "24"
-    ],
     "filament_cooling_before_tower": [
         "10"
     ],
@@ -28,6 +25,9 @@
         "1",
         "1",
         "1"
+    ],
+    "filament_extruder_compatibility": [
+        "24"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
@@ -172,6 +172,9 @@
         "nil",
         "nil",
         "nil"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_wipe": [
         "nil",
