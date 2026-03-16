@@ -886,7 +886,7 @@ void WebViewPanel::get_wiki_search_result(std::string keyword)
 
 void WebViewPanel::get_academy_list()
 {
-    std::string query_params = "v1/hub-service/academy/client/course/printerList";
+    std::string query_params = "v1/hub-service/academy/client/course/categories/tree";
     std::string url = wxGetApp().get_http_url(wxGetApp().app_config->get_country_code(), query_params);
     Http http = Http::get(url);
     http.header("accept", "application/json")

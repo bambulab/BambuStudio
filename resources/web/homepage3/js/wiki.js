@@ -1,4 +1,4 @@
-var cardData = {"code":"000000","msg":"operation.successful","traceId":"71ce01ec38ce414692a88a2fd44e7330.18616.17631185286483121","data":[{"id":10,"printerType":"Bambu Lab H2D","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/H2_D_707d0aad42.jpg"},{"id":12,"printerType":"Bambu Lab H2S","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/H2_S_3a0c3a1ca4.png"},{"id":13,"printerType":"Bambu Lab P2S","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/p2s_9c0d9f2ea2.png"},{"id":6,"printerType":"Bambu Lab P1S","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/COVER_b084d22761.png"},{"id":9,"printerType":"Bambu Lab X1C","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/X1_C_f429ebb303.JPEG"},{"id":8,"printerType":"Bambu Lab A1","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/Group_47969_3x_bec3e4fd04.jpg"},{"id":3,"printerType":"Bambu Lab A1 mini","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/large_Bambu_Lab_A1_mini_8a462ea54c_21e037b9d7_9bb73390d0.png"},{"id":5,"printerType":"Bambu Studio","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/20250530_190020_7b93deceed.png"},{"id":11,"printerType":"Bambu Suite","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/suite_zh_35048b0409.png"},{"id":7,"printerType":"Bambu Handy","img":"https://bbl-cms.oss-cn-shanghai.aliyuncs.com/zh_5d9e7c4dbe.png"}]};
+var tabData = [{"id":"1083712862729134080","name":"打印机","sort":1,"childList":[{"id":13,"printerType":"Bambu Lab P2S","img":"https://cms.bblmw.cn/p2s_9c0d9f2ea2.png","sort":0},{"id":15,"printerType":"Bambu Lab H2C","img":"https://cms.bblmw.cn/Frame_112386648122222222_fa736665af.png","sort":1},{"id":10,"printerType":"Bambu Lab H2D","img":"https://cms.bblmw.cn/H2_D_707d0aad42.jpg","sort":2},{"id":12,"printerType":"Bambu Lab H2S","img":"https://cms.bblmw.cn/H2_S_3a0c3a1ca4.png","sort":3},{"id":8,"printerType":"Bambu Lab A1","img":"https://cms.bblmw.cn/Group_47969_3x_bec3e4fd04.jpg","sort":4},{"id":3,"printerType":"Bambu Lab A1 mini","img":"https://cms.bblmw.cn/large_Bambu_Lab_A1_mini_8a462ea54c_21e037b9d7_9bb73390d0.png","sort":5},{"id":6,"printerType":"Bambu Lab P1S","img":"https://cms.bblmw.cn/COVER_b084d22761.png","sort":6},{"id":9,"printerType":"Bambu Lab X1C","img":"https://cms.bblmw.cn/X1_C_f429ebb303.JPEG","sort":7}]},{"id":"1083712862729134081","name":"软件","sort":2,"childList":[{"id":5,"printerType":"Bambu Studio","img":"https://cms.bblmw.cn/20250530_190020_7b93deceed.png","sort":0},{"id":7,"printerType":"Bambu Handy","img":"https://cms.bblmw.cn/zh_5d9e7c4dbe.png","sort":1},{"id":11,"printerType":"Bambu Suite","img":"https://cms.bblmw.cn/suite_zh_b1b3e231f8.png","sort":2}]},{"id":"1083712862729134082","name":"创意工坊","sort":3,"childList":[{"id":18,"printerType":"彩色版画生成器","img":"https://cms.bblmw.cn/2_6f482b511d.png","sort":0},{"id":19,"printerType":"2026 新春模型生成器","img":"https://cms.bblmw.cn/2_ad2f55ef51.png","sort":1},{"id":20,"printerType":"印你手办生成器","img":"https://cms.bblmw.cn/printu_academy_cover1_c3c74c8a0f.png","sort":2}]},{"id":"1083712862729134083","name":"耗材","sort":4,"childList":[{"id":16,"printerType":"拓竹耗材","img":"https://cms.bblmw.cn/20251223_150528222222222_1dfb0c4dab.png","sort":0}]}];
 
 var youtubeData = [
   {
@@ -261,19 +261,19 @@ var topicData = [
 var $prev;
 var $next;
 
-var video_prev;
-var video_next;
+var $video_prev;
+var $video_next;
 
 function OnInit() {
+  $prev = $('#academy_Left_Btn');
+  $next = $('#academy_Right_Btn');
+
   getAcademyData();
   createVideoHTML();
   if (IsChinese())
     $("#tutorial_block").hide();
   createTopicHTML();
   TranslatePage();
-
-  $prev = $('#academy_Left_Btn');
-  $next = $('#academy_Right_Btn');
 
   $prev.on('click', () => scrollByStep(-1));
   $next.on('click', () => scrollByStep(+1));
@@ -347,23 +347,53 @@ function updateSearchResult(result) {
   }
 }
 
-//--------------- Academy Cards -------------------
+//--------------- Academy Tabs & Cards -------------------
+
+var currentTabIdx = 0;
+var currentTabData = [];
+
+function initAcademyTabs(data) {
+  currentTabData = data.slice().sort((a, b) => a.sort - b.sort);
+  currentTabIdx = 0;
+  $('#academy_tabs').empty();
+  $('#academy_Card_Content').empty();
+  $('#academy_content').scrollLeft(0);
+  for (let i = 0; i < currentTabData.length; i++) {
+    let activeClass = i === 0 ? 'active' : '';
+    let html = `<div class="academyTab ${activeClass}" data-idx="${i}" onclick="switchAcademyTab(${i})">${currentTabData[i].name}</div>`;
+    $('#academy_tabs').append(html);
+  }
+  renderAcademyCards(0);
+}
+
+function switchAcademyTab(idx) {
+  if (idx === currentTabIdx) return;
+  currentTabIdx = idx;
+  $('.academyTab').removeClass('active');
+  $(`.academyTab[data-idx="${idx}"]`).addClass('active');
+  $('#academy_Card_Content').empty();
+  $('#academy_content').scrollLeft(0);
+  renderAcademyCards(idx);
+}
+
+function renderAcademyCards(idx) {
+  let children = currentTabData[idx].childList.slice().sort((a, b) => a.sort - b.sort);
+  for (let i = 0; i < children.length; i++) {
+    let item = children[i];
+    let html = `<div class="card" data-idx="${i}" onclick="openAcademyUrl('${item.id}')">
+                  <img class="cardImg" src="${item.img}" />
+                  <div class="cardTitle TextS1">${item.printerType}</div>
+                </div>`;
+    $('#academy_Card_Content').append(html);
+  }
+  updateButtons();
+}
 
 function getAcademyData() {
   var tSend={};
 	tSend['sequence_id']=Math.round(new Date() / 1000);
 	tSend['command']="get_academy_list";
 	SendWXMessage( JSON.stringify(tSend) );
-}
-
-function createCardHTML(data) {
-  for (let i = 0; i < data.length; i++) {
-    let html = `<div class="card" data-idx="${i}" onclick="openAcademyUrl('${data[i].id}')">
-                  <img class="cardImg" src="${get_image_url(data[i].printerType)}" />
-                  <div class="cardTitle TextS1">${data[i].printerType}</div>
-                </div>`;
-    $('#academy_Card_Content').append(html)
-  }
 }
 
 function stepCardSize() {
@@ -387,6 +417,13 @@ function clampScroll(x) {
 function updateButtons() {
   const x = Math.round($('#academy_content').scrollLeft());
   const max = Math.round(maxScrollLeft());
+  if (max <= 0) {
+    $prev.hide();
+    $next.hide();
+    return;
+  }
+  $prev.show();
+  $next.show();
   $prev.prop('disabled', x <= 0);
   $next.prop('disabled', x >= max);
 }
@@ -577,37 +614,6 @@ function langStringTransfer()
   }
 }
 
-function get_image_url(printer_type) {
-  const raw = (printer_type || '').toLowerCase();
-  const normalized = raw.replace(/[^a-z0-9]/g, '');
-
-  const mappings = [
-    { keywords: ['h2d'], src: 'img/printer_h2d.png', useRaw: false },
-    { keywords: ['h2c'], src: 'img/printer_h2c.png', useRaw: false },
-    { keywords: ['h2s'], src: 'img/printer_h2s.png', useRaw: false },
-    { keywords: ['p2s'], src: 'img/printer_p2s.png', useRaw: false },
-    { keywords: ['p1s'], src: 'img/printer_p1s.png', useRaw: false },
-    { keywords: ['a1mini'], src: 'img/printer_a1mini.png', useRaw: false },
-    { keywords: ['a1'], src: 'img/printer_a1.png', useRaw: false },
-    { keywords: ['x1c'], src: 'img/printer_x1c.png', useRaw: false },
-    { keywords: ['studio'], src: 'img/studio.png', useRaw: false },
-    { keywords: ['suite'], src: 'img/suite.png', useRaw: false },
-    { keywords: ['handy'], src: 'img/handy.png', useRaw: false },
-    { keywords: ['拓竹耗材'], src: 'img/filament.png', useRaw: true },
-    { keywords: ['filament'], src: 'img/filament.png', useRaw: false },
-    { keywords: ['canvas'], src: 'img/canvas.png', useRaw: false },
-    { keywords: ['彩色版画生成器'], src: 'img/canvas.png', useRaw: true },
-  ];
-
-  for (const item of mappings) {
-    const haystack = item.useRaw ? raw : normalized;
-    if (item.keywords.some(keyword => haystack.includes(keyword))) {
-      return item.src;
-    }
-  }
-  return 'img/printer_a1.png';
-}
-
 function HandleStudio( pVal )
 {
   let strCmd = pVal['command'];
@@ -615,7 +621,7 @@ function HandleStudio( pVal )
 	{
 		updateSearchResult(pVal['data']);
 	}else if(strCmd=='academy_list_get') {
-    createCardHTML(pVal['data']);
+    initAcademyTabs(pVal['data']);
   }
 }
 

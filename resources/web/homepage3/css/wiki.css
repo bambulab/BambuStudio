@@ -81,6 +81,39 @@ body{
   padding-left: 48px;
 }
 
+.academyTabs{
+  display: flex;
+  gap: 32px;
+  margin-top: 24px;
+  padding-right: 48px;
+}
+
+.academyTab{
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+  padding-bottom: 8px;
+  border-bottom: 2px solid transparent;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.academyTab:hover{
+  color: #333;
+}
+
+.academyTab.active{
+  color: #1A1A1A;
+  font-weight: bold;
+  border-bottom: 2px solid #1A1A1A;
+}
+
+.academyCardArea{
+  position: relative;
+  margin-top: 20px;
+  margin-right: 48px;
+}
+
 .titleBlock{
   display: flex;
   padding-right: 48px;
@@ -96,7 +129,6 @@ body{
   cursor: pointer;
 }
 .academyContent{
-  margin-top: 20px;
   height: 268px;
   display: flex;
   align-items: center;
@@ -108,9 +140,11 @@ body{
   height: 100%;
   gap: 16px;
   align-items:center;
+  flex-shrink: 0;
 }
 .card {
   width: 240px;
+  flex-shrink: 0;
   height: 100%;
   border-radius: 12px;
   background-color: #F8F8F8;
@@ -120,7 +154,8 @@ body{
 }
 
 .cardImg {
-  width: 162px;
+  width: 160px;
+  height: 160px;
 }
 
 .cardTitle {
@@ -130,8 +165,9 @@ body{
 
 .switchBlock{
   position: absolute;
-  margin-top: 20px;
-  width: calc(100% - 48px);
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1;
   display: flex;
   justify-content: space-between;
