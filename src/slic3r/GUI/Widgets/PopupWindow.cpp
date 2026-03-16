@@ -45,6 +45,7 @@ static wxEvtHandler * HitTest(wxWindow * parent, wxMouseEvent &evt)
     auto pt = evt.GetPosition();
     const wxWindowList &children = parent->GetChildren();
     for (auto w : children) {
+        if (!w->IsShown()) continue;
         wxRect rc { w->GetPosition(), w->GetSize() };
         if (rc.Contains(pt)) {
             evt.SetPosition(pt - rc.GetTopLeft());
