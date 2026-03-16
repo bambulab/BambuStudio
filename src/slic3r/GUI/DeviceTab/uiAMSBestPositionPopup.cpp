@@ -1040,15 +1040,15 @@ wxString ReselectMachineDialog::FormatFilamentComment(const std::vector<wxString
     wxString comment = _L("Summary: ");
     
     if (!toINB.empty() && !toINA.empty()) {
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
+        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet B."), formatList(toINB));
         comment += "\n";
         comment += "        ";
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
+        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet A."), formatList(toINA));
 
     } else if (!toINB.empty()) {
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet B."), (toINB.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINB));
+        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet B."), formatList(toINB));
     } else if (!toINA.empty()) {
-        comment += wxString::Format(_L("Remove %s in %s . Insert into AMS on Filament Inlet A."), (toINA.size() > 1 ? _L("filaments") : _L("filament")), formatList(toINA));
+        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet A."), formatList(toINA));
     } else {
         return wxString::Format(_L("Summary: This is currently the most suitable position for placement."));
     }

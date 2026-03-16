@@ -5876,7 +5876,9 @@ std::map<int, DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
     std::map<int, std::set<int>> pos2group;
     const auto& optimal_assignment = m_plater->background_process().get_current_gcode_result()->optimal_assignment;
     for (int fila_idx = 0; fila_idx < optimal_assignment.size(); fila_idx++) {
-        pos2group[optimal_assignment.at(fila_idx)].insert(fila_idx);
+        if (is_used_filament(fila_idx)) {
+            pos2group[optimal_assignment.at(fila_idx)].insert(fila_idx);
+        }
     };
 
     std::set<int> in_a_fila_set;
@@ -5913,11 +5915,34 @@ std::map<int, DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
         const auto& group_1 = iter->second;
         iter++;
         const auto& group_2 = iter->second;
-        int offset_1_ina = group_1.size() - in_a_fila_set.size();
-        int offset_1_inb = group_1.size() - in_b_fila_set.size();
-        int offset_2_ina = group_2.size() - in_a_fila_set.size();
-        int offset_2_inb = group_2.size() - in_b_fila_set.size();
-        if ((offset_1_ina + offset_1_inb) <= (offset_2_ina + offset_2_inb)) {
+
+        // compute the offset place group1 to INA, group2 to INB
+        int offset_1 = 0;
+        for (const auto& g1 : group_1) {
+            if (in_a_fila_set.count(g1) == 0) {
+                offset_1++;
+            }
+        }
+        for (const auto& g2 : group_2) {
+            if (in_b_fila_set.count(g2) == 0) {
+                offset_1++;
+            }
+        }
+
+        // compute the offset place group2 to INA, group1 to INB
+        int offset_2 = 0;
+        for (const auto& g1 : group_1) {
+            if (in_b_fila_set.count(g1) == 0) {
+                offset_2++;
+            }
+        }
+        for (const auto& g2 : group_2) {
+            if (in_a_fila_set.count(g2) == 0) {
+                offset_2++;
+            }
+        }
+
+        if (offset_1 <= offset_2) {
             for (const auto& fila_idx : group_1) {
                 suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_A;
             }
@@ -5925,7 +5950,7 @@ std::map<int, DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
             for (const auto& fila_idx : group_2) {
                 suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_B;
             }
-        } else if((offset_1_ina + offset_1_inb) > (offset_2_ina + offset_2_inb)){
+        } else {
             for (const auto& fila_idx : group_1) {
                 suggest_pos_map[fila_idx] = DevFilaSwitch::POS_IN_B;
             }
@@ -5968,7 +5993,7 @@ bool SelectMachineDialog::is_at_suggested_pos(MachineObject* obj_, const std::st
 
     const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(ams_id);
     if (ams_item) {
-        return ams_item->GetSwitcherPos() != opt;
+        return ams_item->GetSwitcherPos() == opt;
     }
 
     return true;
@@ -6075,6 +6100,17 @@ void SelectMachineDialog::update_material_item_pos(MachineObject* obj_)
     m_filament_left_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
     m_filament_right_panel->Show(left_sizer_count > 0 || right_sizer_count > 0);
     Layout();
+}
+
+bool SelectMachineDialog::is_used_filament(int fila_logic_id) const
+{
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.id == fila_logic_id) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
  ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID winid, const wxPoint &pos, const wxSize &size)

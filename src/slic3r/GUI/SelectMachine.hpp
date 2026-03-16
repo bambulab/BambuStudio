@@ -554,6 +554,7 @@ private:
     ShowType get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const;
     std::optional<FilamentInfo> get_slicing_filament_info(int fila_logic_id) const;
     std::optional<FilamentInfo> get_mapped_filament_info(int fila_logic_id) const;
+    bool is_used_filament(int fila_logic_id) const;
 
     // nozzle mapping
     void clear_nozzle_mapping();
