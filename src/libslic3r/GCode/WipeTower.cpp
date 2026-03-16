@@ -3351,7 +3351,6 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
                 break;
             }
     }
-    if (nozzle_change_line_count <= 0) return m_nozzle_change_result;
     auto format_nozzle_change_line = [this](bool start, int old_filament_id, int new_filament_id) -> std::string {
         char        buff[64];
         std::string tag = start ? GCodeProcessor::reserved_tag(GCodeProcessor::ETags::NozzleChangeStart) : GCodeProcessor::reserved_tag(GCodeProcessor::ETags::NozzleChangeEnd);
@@ -3362,27 +3361,32 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
     };
 
     float nz_extrusion_flow = nozzle_change_extrusion_flow(m_layer_height);
-    float max_e_ramming_speed = extruder_change ? m_filpar[m_current_tool].max_e_ramming_speed.first : m_filpar[m_current_tool].max_e_ramming_speed.second;
-    float nozzle_change_speed = 60.0f * max_e_ramming_speed / nz_extrusion_flow;
-    if (solid_infill)
-        nozzle_change_speed = std::min( 40.f * 60.f , nozzle_change_speed);//If the contact layers belong to different categories, then reduce the speed.
-
-    float bridge_speed = std::min(60.0f * max_e_ramming_speed / nozzle_change_extrusion_flow(0.2), nozzle_change_speed); // limit the bridge speed by add flow
-
     WipeTowerWriter writer(m_layer_height, m_nozzle_change_perimeter_width, m_gcode_flavor, m_filpar);
     writer.set_extrusion_flow(nz_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
-        .set_y_shift(m_y_shift + (new_filament_id != (unsigned int) (-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth() : 0.f))
-        .append(format_nozzle_change_line(true, old_filament_id, new_filament_id));
+        .set_y_shift(m_y_shift + (new_filament_id != (unsigned int) (-1) && (m_current_shape == SHAPE_REVERSED) ? m_layer_info->depth - m_layer_info->toolchanges_depth() : 0.f));
     set_for_wipe_tower_writer(writer);
-    
-    //only for nozzle change
-    if (!extruder_change)
-    {
+
+    WipeTowerBlock* block = get_block_by_category(m_filpar[old_filament_id].category, false);
+    if (!block) {
+        assert(false);
+        return WipeTower::NozzleChangeResult();
+    }
+    m_cur_block = block;
+
+    float dy = is_first_layer() ? m_nozzle_change_perimeter_width : m_layer_info->extra_spacing * get_block_gap_width(m_current_tool, true);
+    box_coordinates cleaning_box(Vec2f(x_offset, block->cur_depth + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2),
+                                 nozzle_change_box_width,
+                                 nozzle_change_depth);
+    Vec2f initial_position = cleaning_box.ld;
+    writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
+
+    // --- Nozzle change preamble: notify firmware + precool ---
+    writer.append(format_nozzle_change_line(true, old_filament_id, new_filament_id));
+    if (!extruder_change) {
         int new_nozzle_id = m_multi_nozzle_group_result->is_support_dynamic_nozzle_map()
-                                ? get_nozzle_id(new_filament_id, m_cur_layer_id) 
-                                : -1;
+                                ? get_nozzle_id(new_filament_id, m_cur_layer_id) : -1;
         writer.append(format_line_M632(new_filament_id, new_nozzle_id));
         if (m_filpar[m_current_tool].precool_target_temp.second != 0) {
             writer.format_line_M104(m_filpar[m_current_tool].precool_target_temp.second, get_extruder_id(m_current_tool, m_cur_layer_id))
@@ -3390,116 +3394,113 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
         }
         writer.append(format_line_M633());
     }
-    WipeTowerBlock* block = get_block_by_category(m_filpar[old_filament_id].category, false);
-    if (!block) {
-        assert(false);
-        return WipeTower::NozzleChangeResult();
-    }
-    m_cur_block           = block;
-    float           dy = is_first_layer() ? m_nozzle_change_perimeter_width : m_layer_info->extra_spacing * get_block_gap_width(m_current_tool,true);
-    box_coordinates cleaning_box(Vec2f(x_offset,block->cur_depth + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2),
-                                 nozzle_change_box_width,
-                                 nozzle_change_depth); // top can not print
 
-    Vec2f initial_position = cleaning_box.ld;
-    writer.set_initial_position(initial_position, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
-
-    const float &xl          = cleaning_box.ld.x();
-    const float &xr          = cleaning_box.rd.x();
-    dy              = solid_infill ? m_nozzle_change_perimeter_width : dy;
-    if (solid_infill)
-        nozzle_change_line_count = std::floor(EPSILON + (cleaning_box.ru[1] - cleaning_box.rd[1] + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2.f) /
-                                                            m_nozzle_change_perimeter_width);
-    m_left_to_right = true;
-    bool need_change_flow              = false;
-    float ramming_length                = nozzle_change_line_count * (xr - xl);
-    int   extruder_id                   = get_extruder_id(m_current_tool, m_cur_layer_id);
-    float precool_t                     = extruder_change ? m_filpar[m_current_tool].precool_t.first[extruder_id] : m_filpar[m_current_tool].precool_t.second[extruder_id];
-    float precool_t_first_layer         = extruder_change ? m_filpar[m_current_tool].precool_t_first_layer.first[extruder_id] :
-                                                            m_filpar[m_current_tool].precool_t_first_layer.second[extruder_id];
-    float per_cooling_max_speed  = nozzle_change_speed;
-    if (extruder_change) {
-        if (is_first_layer() && precool_t_first_layer > EPSILON)
-            per_cooling_max_speed = ramming_length / precool_t_first_layer * 60.f;
-        else if (precool_t > EPSILON)
-            per_cooling_max_speed = ramming_length / precool_t * 60.f;
-    }//BBS:nozzle change does not require forcing a cooldown to a specific temperature.
-    if (nozzle_change_speed > per_cooling_max_speed) nozzle_change_speed = per_cooling_max_speed;
-    if (bridge_speed > per_cooling_max_speed) bridge_speed = per_cooling_max_speed;
-    LimitFlow LimitRamming = extruder_change ? LimitFlow::LimitRammingFlow : LimitFlow::LimitRammingFlowNC;
-    for (int i = 0; true; ++i) {
-        if (need_thick_bridge_flow(writer.pos().y())) {
-            writer.set_extrusion_flow(nozzle_change_extrusion_flow(0.2));
-            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
-            need_change_flow = true;
-        }
-        if (m_left_to_right)
-            writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed, LimitRamming);
-        else
-            writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed, LimitRamming);
-        if (i == nozzle_change_line_count - 1)
-            break;
-        if ((writer.y() + dy - cleaning_box.ru.y()+(m_nozzle_change_perimeter_width+m_perimeter_width)/2) > (float)EPSILON) break;
-        if (need_change_flow) {
-            writer.set_extrusion_flow(nozzle_change_extrusion_flow(m_layer_height));
-            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
-            need_change_flow = false;
-        }
-        writer.extrude(writer.x(), writer.y() + dy, nozzle_change_speed, LimitRamming);
-        m_left_to_right = !m_left_to_right;
-    }
-    if (need_change_flow) {
-        writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
-    }
-
-    writer.set_extrusion_flow(nz_extrusion_flow); // Reset the extrusion flow.
-    block->cur_depth += nozzle_change_depth;
-    block->last_nozzle_change_id = old_filament_id;
-    if (!extruder_change)
-    {
-        int new_nozzle_id = m_multi_nozzle_group_result->is_support_dynamic_nozzle_map()
-                                ? get_nozzle_id(new_filament_id, m_cur_layer_id) 
-                                : -1;
-        writer.append(format_line_M632(new_filament_id, new_nozzle_id));
-    }
     NozzleChangeResult result;
-    if (is_need_reverse_travel(m_current_tool,extruder_change)) {
-        bool   left_to_right     = !m_left_to_right;
-        int  tpu_line_count = nozzle_change_line_count ;
-        nozzle_change_speed *= 2; // due to nozzle change 2 perimeter
-        float ramming_travel_time     = extruder_change ? m_filpar[m_current_tool].ramming_travel_time.first : m_filpar[m_current_tool].ramming_travel_time.second;
-        float need_reverse_travel_dis = ramming_travel_time * nozzle_change_speed / 60.f;
-        float real_travel_dis         = tpu_line_count * (xr - xl - 2 * m_perimeter_width);
-        if (real_travel_dis < need_reverse_travel_dis)
-            nozzle_change_speed *= real_travel_dis / need_reverse_travel_dis;
-        writer.travel(writer.x(), writer.y() + dy/2);
 
+    if (nozzle_change_line_count > 0) {
+        float max_e_ramming_speed = extruder_change ? m_filpar[m_current_tool].max_e_ramming_speed.first : m_filpar[m_current_tool].max_e_ramming_speed.second;
+        float nozzle_change_speed = 60.0f * max_e_ramming_speed / nz_extrusion_flow;
+        if (solid_infill)
+            nozzle_change_speed = std::min(40.f * 60.f, nozzle_change_speed);
+        float bridge_speed = std::min(60.0f * max_e_ramming_speed / nozzle_change_extrusion_flow(0.2), nozzle_change_speed);
+
+        const float &xl = cleaning_box.ld.x();
+        const float &xr = cleaning_box.rd.x();
+        dy = solid_infill ? m_nozzle_change_perimeter_width : dy;
+        if (solid_infill)
+            nozzle_change_line_count = std::floor(EPSILON + (cleaning_box.ru[1] - cleaning_box.rd[1] + (m_nozzle_change_perimeter_width - m_perimeter_width) / 2.f) /
+                                                                m_nozzle_change_perimeter_width);
+        m_left_to_right = true;
+        bool need_change_flow   = false;
+        float ramming_length    = nozzle_change_line_count * (xr - xl);
+        int   extruder_id      = get_extruder_id(m_current_tool, m_cur_layer_id);
+        float precool_t         = extruder_change ? m_filpar[m_current_tool].precool_t.first[extruder_id] : m_filpar[m_current_tool].precool_t.second[extruder_id];
+        float precool_t_first_layer = extruder_change ? m_filpar[m_current_tool].precool_t_first_layer.first[extruder_id] :
+                                                        m_filpar[m_current_tool].precool_t_first_layer.second[extruder_id];
+        float per_cooling_max_speed = nozzle_change_speed;
+        if (extruder_change) {
+            if (is_first_layer() && precool_t_first_layer > EPSILON)
+                per_cooling_max_speed = ramming_length / precool_t_first_layer * 60.f;
+            else if (precool_t > EPSILON)
+                per_cooling_max_speed = ramming_length / precool_t * 60.f;
+        }//BBS:nozzle change does not require forcing a cooldown to a specific temperature.
+        if (nozzle_change_speed > per_cooling_max_speed) nozzle_change_speed = per_cooling_max_speed;
+        if (bridge_speed > per_cooling_max_speed) bridge_speed = per_cooling_max_speed;
+        LimitFlow LimitRamming = extruder_change ? LimitFlow::LimitRammingFlow : LimitFlow::LimitRammingFlowNC;
         for (int i = 0; true; ++i) {
-            need_reverse_travel_dis -= (xr - xl - 2 * m_perimeter_width);
-            float offset_dis = 0.f;
-            if (need_reverse_travel_dis < 0) {
-                offset_dis              = -need_reverse_travel_dis;
+            if (need_thick_bridge_flow(writer.pos().y())) {
+                writer.set_extrusion_flow(nozzle_change_extrusion_flow(0.2));
+                writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(0.2) + "\n");
+                need_change_flow = true;
             }
-            if (left_to_right)
-                writer.travel(xr - m_perimeter_width - offset_dis, writer.y(), nozzle_change_speed);
+            if (m_left_to_right)
+                writer.extrude(xr + wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed, LimitRamming);
             else
-                writer.travel(xl + m_perimeter_width + offset_dis , writer.y(), nozzle_change_speed);
-            if (need_reverse_travel_dis < EPSILON) break;
-            if (i == tpu_line_count - 1)
+                writer.extrude(xl - wipe_tower_wall_infill_overlap * m_perimeter_width, writer.y(), need_change_flow ? bridge_speed : nozzle_change_speed, LimitRamming);
+            if (i == nozzle_change_line_count - 1)
                 break;
+            if ((writer.y() + dy - cleaning_box.ru.y()+(m_nozzle_change_perimeter_width+m_perimeter_width)/2) > (float)EPSILON) break;
+            if (need_change_flow) {
+                writer.set_extrusion_flow(nozzle_change_extrusion_flow(m_layer_height));
+                writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+                need_change_flow = false;
+            }
+            writer.extrude(writer.x(), writer.y() + dy, nozzle_change_speed, LimitRamming);
+            m_left_to_right = !m_left_to_right;
+        }
+        if (need_change_flow) {
+            writer.append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height) + std::to_string(m_layer_height) + "\n");
+        }
 
-            writer.travel(writer.x(), writer.y() - dy);
-            left_to_right = !left_to_right;
+        writer.set_extrusion_flow(nz_extrusion_flow);
+        block->cur_depth += nozzle_change_depth;
+        block->last_nozzle_change_id = old_filament_id;
+        // --- Post-ramming: re-arm nozzle change for travel phase ---
+        if (!extruder_change) {
+            int new_nozzle_id = m_multi_nozzle_group_result->is_support_dynamic_nozzle_map()
+                                    ? get_nozzle_id(new_filament_id, m_cur_layer_id) : -1;
+            writer.append(format_line_M632(new_filament_id, new_nozzle_id));
         }
-    } else {
-        result.wipe_path.push_back(writer.pos_rotated());
-        if (m_left_to_right) {
-            result.wipe_path.push_back(Vec2f(0, writer.pos_rotated().y()));
+
+        if (is_need_reverse_travel(m_current_tool, extruder_change)) {
+            bool   left_to_right     = !m_left_to_right;
+            int  tpu_line_count = nozzle_change_line_count;
+            nozzle_change_speed *= 2; // due to nozzle change 2 perimeter
+            float ramming_travel_time     = extruder_change ? m_filpar[m_current_tool].ramming_travel_time.first : m_filpar[m_current_tool].ramming_travel_time.second;
+            float need_reverse_travel_dis = ramming_travel_time * nozzle_change_speed / 60.f;
+            float real_travel_dis         = tpu_line_count * (xr - xl - 2 * m_perimeter_width);
+            if (real_travel_dis < need_reverse_travel_dis)
+                nozzle_change_speed *= real_travel_dis / need_reverse_travel_dis;
+            writer.travel(writer.x(), writer.y() + dy/2);
+
+            for (int i = 0; true; ++i) {
+                need_reverse_travel_dis -= (xr - xl - 2 * m_perimeter_width);
+                float offset_dis = 0.f;
+                if (need_reverse_travel_dis < 0) {
+                    offset_dis              = -need_reverse_travel_dis;
+                }
+                if (left_to_right)
+                    writer.travel(xr - m_perimeter_width - offset_dis, writer.y(), nozzle_change_speed);
+                else
+                    writer.travel(xl + m_perimeter_width + offset_dis , writer.y(), nozzle_change_speed);
+                if (need_reverse_travel_dis < EPSILON) break;
+                if (i == tpu_line_count - 1)
+                    break;
+
+                writer.travel(writer.x(), writer.y() - dy);
+                left_to_right = !left_to_right;
+            }
         } else {
-            result.wipe_path.push_back(Vec2f(m_wipe_tower_width, writer.pos_rotated().y()));
+            result.wipe_path.push_back(writer.pos_rotated());
+            if (m_left_to_right) {
+                result.wipe_path.push_back(Vec2f(0, writer.pos_rotated().y()));
+            } else {
+                result.wipe_path.push_back(Vec2f(m_wipe_tower_width, writer.pos_rotated().y()));
+            }
         }
+        if (!extruder_change) writer.append(format_line_M633());
     }
-    if (!extruder_change) writer.append(format_line_M633());
+
     writer.append(format_nozzle_change_line(false, old_filament_id, new_filament_id));
 
     result.start_pos = writer.start_pos_rotated();
