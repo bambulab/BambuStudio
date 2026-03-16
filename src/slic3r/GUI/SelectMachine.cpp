@@ -1468,18 +1468,40 @@ void SelectMachineDialog::auto_supply_with_ext(std::vector<DevAmsTray> slots) {
 }
 void SelectMachineDialog::refresh_save_time(MachineObject *obj)
 {
+    if (m_print_type != FROM_NORMAL) {
+        return;
+    }
+
+    // update the total print time
     auto save_time = get_filament_change_gap_time(obj);
-    if (save_time.has_value() && use_dynamic_switch() && save_time.value() >= 1)
-    {
+    if (save_time.has_value() && save_time.value() >= 1) {
+        wxString   print_time;
+        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+        if (plate && plate->get_slice_result()) {
+            print_time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time + save_time.value())));
+        }
+
+        m_stext_time->SetLabel(print_time);
+    }
+
+
+    // update the tips of suggest pos dispaly
+    bool is_all_at_suggest_pos = true;
+    for (const auto& mapping_item : m_ams_mapping_result) {
+        is_all_at_suggest_pos = is_at_suggested_pos(obj, mapping_item.ams_id, mapping_item.slot_id);
+        if (!is_all_at_suggest_pos) {
+            break;
+        }
+    };
+
+    if (save_time.has_value() && save_time.value() >= 1 && !is_all_at_suggest_pos) {
         wxString text = wxString::Format(_L("Recommended filament arrangement saves %s->"), FormatTime(*save_time));
         m_saveTimeText->SetLabel(text);
         m_saveTimeText->Wrap(-1);
         m_saveTimeText->Show();
         m_basic_panel->Layout();
         m_basic_panel->Fit();
-    }
-    else
-    {
+    } else {
         m_saveTimeText->Hide();
     }
 }
@@ -5786,7 +5808,7 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
         return std::nullopt;;
     }
 
-    if (!m_plater || !use_dynamic_switch()) {
+    if (!m_plater || !obj_->GetFilaSwitch()->IsInstalled()) {
         return std::nullopt;
     }
 
@@ -5869,7 +5891,7 @@ std::map<int, DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
         return suggest_pos_map;
     }
 
-    if (!m_plater || !obj_ || !use_dynamic_switch() || !obj_->GetFilaSwitch()->IsInstalled()) {
+    if (!m_plater || !obj_ || !obj_->GetFilaSwitch()->IsInstalled()) {
         return suggest_pos_map;
     }
 
