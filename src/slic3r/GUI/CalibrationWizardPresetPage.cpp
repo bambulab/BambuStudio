@@ -832,7 +832,7 @@ template<typename T>
 bool switch_combox_to_target(ComboBox* combox, const T& target)
 {
     for(unsigned int i=0; i < combox->GetCount(); i++) {
-        if(target == T(*(int*)combox->GetClientData(i))) {
+        if(combox->GetClientData(i) != nullptr && target == T(*(int*)combox->GetClientData(i))) {
             combox->SetSelection(i);
             return true;
         }
@@ -852,19 +852,13 @@ void CalibrationPresetPage::init_selection_values()
         switch_combox_to_target(m_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
 
         m_comboBox_nozzle_volume->Clear();
-        auto volume_set = get_valid_nozzle_volume_type();
-        for(const auto & volume_type : volumes)
-        {
-            if(volume_set.find(volume_type) != volume_set.end() || volume_type == NozzleVolumeType::nvtHybrid)
-                m_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
+
+        auto volume_diamters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj);
+        for(const auto & [volume_type, diameters] : volume_diamters_map) {
+            m_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
 
-        for(unsigned int i=0; i < m_comboBox_nozzle_volume->GetCount(); i++) {
-            if(NozzleVolumeType::nvtStandard == NozzleVolumeType(*(int*)m_comboBox_nozzle_volume->GetClientData(i))) {
-                m_comboBox_nozzle_volume->SetSelection(i);
-                break;
-            }
-        }
+        switch_combox_to_target(m_comboBox_nozzle_volume, NozzleVolumeType::nvtStandard);
     }
 
     Preset* cur_printer_preset = get_printer_preset(curr_obj, 0.4);
@@ -910,14 +904,13 @@ void CalibrationPresetPage::init_selection_values()
         switch_combox_to_target(m_left_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
 
         m_left_comboBox_nozzle_volume->Clear();
-        const ConfigOptionDef *nozzle_volume_type_def = print_config_def.get("nozzle_volume_type");
-        if (nozzle_volume_type_def && nozzle_volume_type_def->enum_keys_map) {
-            for (auto item : nozzle_volume_type_def->enum_labels) {
-                m_left_comboBox_nozzle_volume->AppendString(_L(item));
-            }
+
+        auto volume_diameters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj);
+        for(const auto & [volume_type, diameters] : volume_diameters_map) {
+            m_left_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
 
-        m_left_comboBox_nozzle_volume->SetSelection(int(NozzleVolumeType::nvtStandard));
+        switch_combox_to_target(m_left_comboBox_nozzle_volume, NozzleVolumeType::nvtStandard);
     }
 
     // right
@@ -929,18 +922,13 @@ void CalibrationPresetPage::init_selection_values()
         switch_combox_to_target(m_right_comboBox_nozzle_dia, NozzleDiameterType::NOZZLE_DIAMETER_0_4);
 
         m_right_comboBox_nozzle_volume->Clear();
-        auto volume_set = get_valid_nozzle_volume_type();
-        for(const auto & volume_type : volumes) {
-            if(volume_set.find(volume_type) != volume_set.end() || volume_type == NozzleVolumeType::nvtHybrid)
-                m_right_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
+
+        auto volume_diameters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj);
+        for(const auto & [volume_type, diameters] : volume_diameters_map) {
+            m_right_comboBox_nozzle_volume->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
 
-        for(unsigned int i=0; i < m_right_comboBox_nozzle_volume->GetCount(); i++) {
-            if(NozzleVolumeType::nvtStandard == NozzleVolumeType(*(int*)m_right_comboBox_nozzle_volume->GetClientData(i))) {
-                m_right_comboBox_nozzle_volume->SetSelection(i);
-                break;
-            }
-        }
+        switch_combox_to_target(m_right_comboBox_nozzle_volume, NozzleVolumeType::nvtStandard);
     }
 }
 
@@ -2271,7 +2259,7 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
 
             if (obj->GetExtderSystem()->GetNozzleFlowType(i) != NozzleFlowType::NONE_FLOWTYPE) {
                 auto volume_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(i));
-                nozzle_volume_combox_map[i]->SetSelection(int(volume_type));
+                switch_combox_to_target(nozzle_volume_combox_map[i], volume_type);
             } else {
                 nozzle_volume_combox_map[i]->SetSelection(0);
             }

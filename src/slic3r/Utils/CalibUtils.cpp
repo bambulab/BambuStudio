@@ -230,6 +230,19 @@ std::vector<double> generate_max_speed_parameter_value(const std::string &key)
     return speed_values;
 }
 
+static int to_logic_extruder_id(int physic_extruder_id)
+{
+    switch (physic_extruder_id) {
+        case 0: return 1;
+        case 1: return 0;
+        default: {
+            assert(false && "unsupported physical extruder id");
+            BOOST_LOG_TRIVIAL(warning) << "unsupported physical extruder id: " << physic_extruder_id;
+            return 0;
+        }
+    }
+}
+
 static int get_physical_extruder_idx(std::vector<int> physical_extruder_maps, int extruder_id)
 {
     for (size_t index = 0; index < physical_extruder_maps.size(); ++index) {
@@ -847,16 +860,16 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
 
     Flow   infill_flow                   = Flow(nozzle_diameter * 1.2f, layer_height, nozzle_diameter);
 
-    int index = get_index_for_extruder_parameter(filament_config, "filament_max_volumetric_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    int index = get_index_for_extruder_parameter(filament_config, "filament_max_volumetric_speed", to_logic_extruder_id(calib_info.extruder_id), calib_info.extruder_type, calib_info.nozzle_volume_type);
     double filament_max_volumetric_speed = filament_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(index);
     double max_infill_speed              = filament_max_volumetric_speed / (infill_flow.mm3_per_mm() * (pass == 1 ? 1.2 : 1));
 
-    index = get_index_for_extruder_parameter(print_config, "internal_solid_infill_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    index = get_index_for_extruder_parameter(print_config, "internal_solid_infill_speed", to_logic_extruder_id(calib_info.extruder_id), calib_info.extruder_type, calib_info.nozzle_volume_type);
     double internal_solid_speed          = std::floor(std::min(print_config.opt_float_nullable("internal_solid_infill_speed", index), max_infill_speed));
     ConfigOptionFloatsNullable* internal_solid_speed_opt = print_config.option<ConfigOptionFloatsNullable>("internal_solid_infill_speed");
     internal_solid_speed_opt->values[index] = internal_solid_speed;
 
-    index = get_index_for_extruder_parameter(print_config, "top_surface_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    index = get_index_for_extruder_parameter(print_config, "top_surface_speed", to_logic_extruder_id(calib_info.extruder_id), calib_info.extruder_type, calib_info.nozzle_volume_type);
     double top_surface_speed        = std::floor(std::min(print_config.opt_float_nullable("top_surface_speed", index), max_infill_speed));
     ConfigOptionFloatsNullable *top_surface_speed_opt = print_config.option<ConfigOptionFloatsNullable>("top_surface_speed");
     top_surface_speed_opt->values[index] = top_surface_speed;
@@ -956,8 +969,8 @@ void CalibUtils::calib_pa_pattern(const CalibInfo &calib_info, Model& model)
         print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
     }
 
-    int index = get_index_for_extruder_parameter(print_config, "outer_wall_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
-    float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"), calib_info.extruder_id, 0);
+    int index = get_index_for_extruder_parameter(print_config, "outer_wall_speed", to_logic_extruder_id(calib_info.extruder_id), calib_info.extruder_type, calib_info.nozzle_volume_type);
+    float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"), to_logic_extruder_id(calib_info.extruder_id), 0);
     ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
     wall_speed_speed_opt->values[index]              = wall_speed;
 
@@ -1008,9 +1021,9 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
     });
 
     for (const CalibInfo &calib_info : calib_infos) {
-        int   index      = get_index_for_extruder_parameter(print_config, "outer_wall_speed", calib_info.extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+        int   index      = get_index_for_extruder_parameter(print_config, "outer_wall_speed", to_logic_extruder_id(calib_info.extruder_id), calib_info.extruder_type, calib_info.nozzle_volume_type);
         float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"),
-                                                                       calib_info.extruder_id, 0);
+                                                                       to_logic_extruder_id(calib_info.extruder_id), 0);
 
         ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
         std::vector<double> new_speeds = wall_speed_speed_opt->values;
@@ -1653,6 +1666,14 @@ std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_support
         {
             volume_diameters_map[volume].insert(DevNozzle::ToNozzleDiameterType(diameter));
         }
+    }
+    // O1C support hybrid
+    if (obj->GetNozzleRack()->IsSupported()) {
+        std::set<NozzleDiameterType> hybrid_diameters_set;
+        for (const auto& [volume, diameters] : volume_diameters_map) {
+            hybrid_diameters_set.insert(diameters.begin(), diameters.end());
+        }
+        volume_diameters_map[NozzleVolumeType::nvtHybrid] = hybrid_diameters_set;
     }
 
     return volume_diameters_map;
