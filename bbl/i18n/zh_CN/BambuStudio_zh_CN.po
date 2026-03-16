@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:52+0800\n"
+"POT-Creation-Date: 2026-03-16 19:27+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -261,18 +261,12 @@ msgid "Summary: "
 msgstr "总结: "
 
 #, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
-
-msgid "filaments"
-msgstr "耗材"
-
-msgid "filament"
-msgstr "耗材"
+msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet B."
+msgstr "请将 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
 
 #, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
-msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
+msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet A."
+msgstr "请将 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
 
 msgid "Model:"
 msgstr "型号："
@@ -12469,6 +12463,12 @@ msgstr "首层扫描"
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "开启这个设置将打开打印机上的摄像头用于检查首层打印质量。"
 
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr ""
+
 msgid "Enable clumping detection"
 msgstr "开启触碰裹头检测"
 
@@ -16649,6 +16649,16 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "filaments"
+#~ msgstr "耗材"
+
+#~ msgid "filament"
+#~ msgstr "耗材"
+
+#, c-format, boost-format
+#~ msgid "Remove the filaments from %s . Insert into AMS on Filament Inlet A."
+#~ msgstr "请将 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
 
 #~ msgid ""
 #~ "Tips:\n"

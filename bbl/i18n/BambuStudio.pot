@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 11:52+0800\n"
+"POT-Creation-Date: 2026-03-16 19:27+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -262,17 +262,11 @@ msgid "Summary: "
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr ""
-
-msgid "filaments"
-msgstr ""
-
-msgid "filament"
+msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet B."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
+msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -12225,6 +12219,12 @@ msgid "Scan first layer"
 msgstr ""
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
+msgstr ""
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
 msgstr ""
 
 msgid "Enable clumping detection"
