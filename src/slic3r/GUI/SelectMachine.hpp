@@ -544,9 +544,9 @@ private:
     void EnableEditing(bool enable);
     
     // printing
-    bool is_at_suggested_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const;
+    bool is_at_suggested_pos(MachineObject* obj_, int fila_logic_id) const;
     std::map<int, DevFilaSwitch::SwitchPos> get_filament_suggest_pos(MachineObject* obj_) const;
-    std::optional<DevFilaSwitch::SwitchPos> get_filament_suggest_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const;
+    std::optional<DevFilaSwitch::SwitchPos> get_filament_suggest_pos(MachineObject* obj_, int fila_logic_id) const;
     std::optional<float> get_filament_change_gap_time(MachineObject* obj_) const;
     wxString FormatTime(float totalSeconds);
 
