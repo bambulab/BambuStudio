@@ -557,7 +557,11 @@ void FilamentGroupPopup::MakeSmartFilamentSection(wxSizer *top_sizer, int horizo
 #ifdef __WXOSX__
     // wxEVT_TOGGLEBUTTON event not handled well by PopupWindow on MacOS
     // we bind a wxEVT_LEFT_DOWN event as a workaround
-    m_smart_filament_switch->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) { m_smart_filament_switch->SetValue(!m_smart_filament_switch->GetValue()); });
+    m_smart_filament_switch->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &) {
+        wxCommandEvent evt(wxEVT_TOGGLEBUTTON);
+        evt.SetInt(!m_smart_filament_switch->GetValue());
+        m_smart_filament_switch->Command(evt);
+    });
 #endif
 
     auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
