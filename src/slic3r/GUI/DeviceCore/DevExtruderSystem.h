@@ -78,6 +78,9 @@ public:
     // extuder type
     bool             IsBowdenExtuder() const;
 
+    static int to_physical_extruder_id(int total_ext_count, int logical_extruder_id);
+    static int to_logical_extruder_id(int total_ext_count, int physical_extruder_id);
+
 private:
     void SetExtId(int val) { m_ext_id = val; }
 
