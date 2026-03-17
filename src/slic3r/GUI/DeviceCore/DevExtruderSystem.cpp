@@ -12,6 +12,28 @@ using namespace nlohmann;
 
 namespace Slic3r
 {
+    int DevExtder::to_physical_extruder_id(int total_ext_count, int logical_extruder_id)
+    {
+        if (total_ext_count == 2) {
+            return logical_extruder_id == 1 ? 0 : 1;
+        } else if (total_ext_count == 1) {
+            return 0;
+        } else {
+            return logical_extruder_id - 1;
+        }
+    }
+
+    int DevExtder::to_logical_extruder_id(int total_ext_count, int physical_extruder_id)
+    {
+        if (total_ext_count == 2) {
+            return physical_extruder_id == 1 ? 0 : 1;
+        } else if (total_ext_count == 1) {
+            return 0;
+        } else {
+            return physical_extruder_id + 1;
+        }
+    }
+
     wxString DevExtder::GetDisplayLoc() const
     {
         if (system->GetTotalExtderCount() == 2)

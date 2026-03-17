@@ -29,18 +29,6 @@ void MachineObject::clear_auto_nozzle_mapping()
     }
 }
 
-
-static int s_get_physical_extruder_id(int total_ext_count, int logical_extruder_id)
-{
-    if (total_ext_count == 2) {
-        return logical_extruder_id == 1 ? 1 : 0;
-    } else if (total_ext_count == 1) {
-        return 0;
-    }
-
-    return logical_extruder_id - 1;
-}
-
 static std::string  s_get_diameter_str(float diameter)
 {
     return (boost::format("%.2f") % diameter).str();
@@ -244,7 +232,7 @@ int DevNozzleMappingCtrl::CtrlGetAutoNozzleMappingV1(Slic3r::GUI::Plater* plater
         json nozzle_info;
         nozzle_info["id"] = used_logic_nozzle.group_id;
         nozzle_info["ext"] = (used_logic_nozzle.extruder_id + 1);
-        
+
         try {
             nozzle_info["dia"] = std::stof(used_logic_nozzle.diameter);
         } catch(const std::exception& e) {

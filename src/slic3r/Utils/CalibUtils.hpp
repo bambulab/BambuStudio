@@ -60,7 +60,7 @@ public:
     static bool get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult> &flow_ratio_calib_results);
     static bool calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message);
 
-    static void calib_pa_pattern(const CalibInfo &calib_info, Model &model);
+    static void calib_pa_pattern(const MachineObject *obj, const CalibInfo &calib_info, Model &model);
 
     static void set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &calib_info, DynamicPrintConfig &full_config, Model &model);
 
