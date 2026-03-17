@@ -3185,10 +3185,9 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
             time_params.standard_load_time   = static_cast<float>(load_time);
             time_params.standard_unload_time = static_cast<float>(unload_time);
 
-            bool enable_dynamic_map = group_result->is_support_dynamic_nozzle_map();
-            bool can_compute = enable_dynamic_map && !logical_filaments.empty() && !nozzle_list.empty() && !filament_seq.empty() && !nozzle_seq.empty() && group_count > 0;
+            bool can_compute = !logical_filaments.empty() && !nozzle_list.empty() && !filament_seq.empty() && !nozzle_seq.empty() && group_count > 0;
 
-            if (enable_dynamic_map) {
+            {
                 size_t all_filaments_count = m_config.filament_map.values.size();
                 std::vector<int> final_assignment(all_filaments_count, 0);
 
@@ -3201,7 +3200,7 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
                     }
                 }
                 optimal_assignment = std::move(final_assignment);
-            } // else keep optimal_assignment empty
+            }
         }
         result->optimal_assignment = std::move(optimal_assignment);
     }
