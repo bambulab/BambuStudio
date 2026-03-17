@@ -621,6 +621,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     textPanel->SetSizer(textSizer);
     
     summaryText = new Label(this, wxEmptyString);
+    summaryText->SetFont(Label::Body_14);
     // summaryText->SetFont(wxGetApp().normal_font());
 
     filamentSwitch = new UiStyledSwitchPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, //wxSize(FromDIP(571), FromDIP(439)),
@@ -629,6 +630,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
 
     filamentTips = new wxStaticText(this, wxID_ANY, _L("Filament Status:"));
     filamentTips->SetFont(wxGetApp().normal_font());
+    filamentTips->Hide();
 
     // statusBar = new UiStatusContainer(this);
     statusBar = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -669,12 +671,14 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     statusBarSizer->Add(unusedGroupSizer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(40));
 
     statusBarSizer->AddStretchSpacer(1);
+    statusBar->Hide();
 
     btnSizer = new wxBoxSizer(wxHORIZONTAL);
     m_buttonRefresh = new Button(this, _L("Refresh"));
     m_buttonRefresh->SetMinSize(wxSize(FromDIP(80), FromDIP(32)));
     m_buttonRefresh->SetMaxSize(wxSize(FromDIP(80), FromDIP(32)));
     m_buttonRefresh->Bind(wxEVT_BUTTON, &ReselectMachineDialog::OnRefreshButton, this);
+    m_buttonRefresh->Hide();
     m_buttonClose = new Button(this, _L("Close"));
     m_buttonClose->SetMinSize(wxSize(FromDIP(80), FromDIP(32)));
     m_buttonClose->SetMaxSize(wxSize(FromDIP(80), FromDIP(32)));
@@ -689,7 +693,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     mainSizer->Add(0, FromDIP(20));
     mainSizer->Add(textPanel, 0, wxALIGN_LEFT | wxLEFT, FromDIP(26));
     mainSizer->Add(0, FromDIP(12));
-    mainSizer->Add(summaryText, 0, wxALIGN_LEFT | wxLEFT, FromDIP(30));
+    mainSizer->Add(summaryText, 0, wxALIGN_LEFT | wxLEFT | wxEXPAND, FromDIP(30));
     mainSizer->Add(0, FromDIP(15));
     mainSizer->Add(filamentSwitch, 0, wxALIGN_LEFT | wxLEFT, FromDIP(26));
     // mainSizer->Add(m_bitmapSelectMachine, 0,  wxALIGN_LEFT | wxLEFT, FromDIP(214));
@@ -729,27 +733,37 @@ void ReselectMachineDialog::Update(MachineObject* obj, const std::map<int, int>&
 
     if (summaryText)
     {
-        std::vector<wxString> toINA;
-        std::vector<wxString> toINB;
-        for (const auto& pair : best_pos_map)
-        {
-            for (auto fila : ams_mapping)
-            {
-                if (fila.id == pair.first)
-                {
-                    auto trayID = getTrayID(obj, fila.ams_id, fila.slot_id);
-                    pair.second == DevFilaSwitch::SwitchPos::POS_IN_A ? toINA.push_back(trayID) : toINB.push_back(trayID);
-                    break;
+        wxString summaryInfo;
+        if (!save_time.empty()) {
+            summaryInfo = wxString::Format(_L("Summary:"));
+
+            for (const auto& pair : best_pos_map) {
+                for (auto fila : ams_mapping) {
+                    if (fila.id == pair.first) {
+                        const auto& ams_opt = obj->GetFilaSystem()->GetAmsById(fila.ams_id);
+                        if (ams_opt && ams_opt->GetSwitcherPos() != pair.second) {
+                            summaryInfo += "\n";
+                            const auto& recommned_pos = (pair.second == DevFilaSwitch::SwitchPos::POS_IN_A) ? _L("AMS on Filament Inlet A") : _L("AMS on Filament Inlet B");
+                            summaryInfo += wxString::Format(_L("The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."),
+                                                            pair.first + 1, getTrayID(obj, fila.ams_id, fila.slot_id), recommned_pos);
+                        }
+
+                        break;
+                    }
                 }
             }
-        }
-        auto summaryInfo = FormatFilamentComment(toINB, toINA);
-        if (save_time.empty())
-        {
+
+            summaryInfo += "\n\n";
+            summaryInfo += _L("*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."); 
+
+        } else {
             summaryInfo = wxString::Format(_L("Summary: This is currently the most suitable position for placement."));
         }
+
         summaryText->SetLabel(summaryInfo);
-        summaryText->SetFont(Label::Body_14);
+        summaryText->Wrap(FromDIP(571));
+        summaryText->Layout();
+        summaryText->Fit();
     }
 
     auto switchHight = CaculateSwitcherDistribution(obj, best_pos_map, ams_mapping);
@@ -856,6 +870,8 @@ void ReselectMachineDialog::Update(MachineObject* obj, const std::map<int, int>&
 
     //FilamentInfo
     mainSizer->Layout();
+
+    Layout();
     Fit();
     Refresh(true);
     // wxDialog::Update();
@@ -1019,41 +1035,6 @@ wxString ReselectMachineDialog::getTrayID(MachineObject* obj, const std::string&
         }
     }
     return "";
-}
-
-wxString ReselectMachineDialog::FormatFilamentComment(const std::vector<wxString>& toINB, const std::vector<wxString>& toINA)
-{
-    auto formatList = [](const std::vector<wxString>& list) -> wxString {
-        if (list.empty()) return wxEmptyString;
-        
-        wxString result = list[0];
-        for (size_t i = 1; i < list.size(); ++i) {
-            if (i == list.size() - 1) {
-                result += " and " + list[i];
-            } else {
-                result += ", " + list[i];
-            }
-        }
-        return result;
-    };
-    
-    wxString comment = _L("Summary: ");
-    
-    if (!toINB.empty() && !toINA.empty()) {
-        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet B."), formatList(toINB));
-        comment += "\n";
-        comment += "        ";
-        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet A."), formatList(toINA));
-
-    } else if (!toINB.empty()) {
-        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet B."), formatList(toINB));
-    } else if (!toINA.empty()) {
-        comment += wxString::Format(_L("Remove the filaments from %s. Insert into AMS on Filament Inlet A."), formatList(toINA));
-    } else {
-        return wxString::Format(_L("Summary: This is currently the most suitable position for placement."));
-    }
-    
-    return comment;
 }
 
 
