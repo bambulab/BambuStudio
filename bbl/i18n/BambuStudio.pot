@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-16 19:27+0800\n"
+"POT-Creation-Date: 2026-03-17 11:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,6 +110,10 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -252,21 +256,26 @@ msgstr ""
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr ""
 
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr ""
 
 msgid "?"
-msgstr ""
-
-msgid "Summary: "
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet B."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"

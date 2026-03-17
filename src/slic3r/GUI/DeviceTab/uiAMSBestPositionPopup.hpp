@@ -194,7 +194,6 @@ public:
 private:
     int CaculateSwitcherDistribution(MachineObject* obj, const std::map<int, int>&  best_pos_map, const std::vector<FilamentInfo>& ams_mapping);
     wxString getTrayID(MachineObject* obj, const std::string& amsID, const std::string& slotID);
-    wxString FormatFilamentComment(const std::vector<wxString>& toINB, const std::vector<wxString>& toINA);
     void OnRefreshButton(wxCommandEvent& event);
 
 private:
@@ -205,7 +204,7 @@ private:
     Label* suggestText{nullptr};
     // wxHyperlinkCtrl* linkwiki{nullptr};
     Label* linkwiki{nullptr};
-    wxStaticText* summaryText{nullptr};
+    Label* summaryText{nullptr};
     UiStyledSwitchPanel* filamentSwitch{nullptr};
     wxStaticText* filamentTips{nullptr};
     std::vector<std::vector<DataAmsSlotInfo>> inAAMS{};
