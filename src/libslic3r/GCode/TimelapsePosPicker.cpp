@@ -487,9 +487,9 @@ namespace Slic3r {
     Point TimelapsePosPicker::pick_pos_for_curr_layer(const PosPickCtx& ctx)
     {
         float height_gap = 0;
-        if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
-            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
-                height_gap = -*m_extruder_height_gap;
+        if (m_liftable_extruder_id.has_value() && m_extruder_height_gap.has_value() &&
+            ctx.picture_extruder_id != *m_liftable_extruder_id) {
+            height_gap = -*m_extruder_height_gap;
         }
 
         bool by_object = m_print_seq == PrintSequence::ByObject;
@@ -563,9 +563,9 @@ namespace Slic3r {
             return DefaultTimelapsePos;
 
         float height_gap = 0;
-        if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
-            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
-                height_gap = *m_extruder_height_gap;
+        if (m_liftable_extruder_id.has_value() && m_extruder_height_gap.has_value() &&
+            ctx.picture_extruder_id != *m_liftable_extruder_id) {
+            height_gap = *m_extruder_height_gap;
         }
         if (ctx.curr_layer->print_z < height_gap)
             return DefaultTimelapsePos;
