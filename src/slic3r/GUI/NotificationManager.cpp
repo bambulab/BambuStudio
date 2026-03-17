@@ -2546,7 +2546,10 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 	int i = 0;
 	for (const auto& notification : m_pop_notifications) {
         if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            if (notification->get_type() != NotificationType::AssemblyInfo && notification->get_type() != NotificationType::AssemblyWarning) {
+            if (notification->get_type() != NotificationType::AssemblyInfo
+                && notification->get_type() != NotificationType::AssemblyWarning
+                && notification->get_type() != NotificationType::BBLIsolatedVolumeInfo
+                && notification->get_type() != NotificationType::BBLAssemblyFarFromOrigin) {
                 continue;
             }
         }

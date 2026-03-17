@@ -193,6 +193,12 @@ void AppConfig::set_defaults()
         set_bool("use_last_fold_state_gcodeview_option_panel", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
+    if (get("enable_assemble_view_preview").empty())
+        set("enable_assemble_view_preview", "Auto");
+    if (get("enable_bvh").empty())
+        set_bool("enable_bvh", true);
+    if (get("show_assembly_bvh_bounds").empty())
+        set_bool("show_assembly_bvh_bounds", false);
     if (get("gamma_correct_in_import_obj").empty())
         set_bool("gamma_correct_in_import_obj", false);
     if (get("enable_opengl_multi_instance").empty())

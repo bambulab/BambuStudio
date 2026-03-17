@@ -1148,7 +1148,7 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
 static std::string serialize_nozzle_config(const std::map<int, std::vector<DevNozzle>>& nozzle_cfg_map)
 {
     std::ostringstream oss;
-    
+
     std::vector<DevNozzle> deputy_nozzles;
     auto deputy_it = nozzle_cfg_map.find(1);
     if (deputy_it != nozzle_cfg_map.end()) {
@@ -7887,7 +7887,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         //always load config
                         {
                             // 避免在导入gcode的过程中触发各类流量切换的逻辑
-                           
+
                             this->q->m_loading_project = true;
                             preset_bundle->extruder_nozzle_stat.set_force_keep_flag(true);
                             auto old_printer_model = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionString>("printer_model")->value;
@@ -15627,6 +15627,7 @@ void Plater::priv::undo_redo_to(std::vector<UndoRedo::Snapshot>::const_iterator 
 
 void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bool /* temp_snapshot_was_taken */)
 {
+    this->partplate_list.reset_thumbnail_assembly_view_data();
     get_current_canvas3D()->get_canvas_type() == GLCanvas3D::CanvasAssembleView ? assemble_view->get_canvas3d()->get_selection().clear() : this->view3D->get_canvas3d()->get_selection().clear();
     // Update volumes from the deserializd model, always stop / update the background processing (for both the SLA and FFF technologies).
     this->update((unsigned int)UpdateParams::FORCE_BACKGROUND_PROCESSING_UPDATE | (unsigned int)UpdateParams::POSTPONE_VALIDATION_ERROR_MESSAGE);
@@ -16019,6 +16020,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     reset(transfer_preset_changes);
     reset_project_dirty_after_save();
     reset_project_dirty_initial_presets();
+    get_partplate_list().reset_thumbnail_assembly_view_data();
     wxGetApp().update_saved_preset_from_current_preset();
     update_project_dirty_from_presets();
 
@@ -17438,7 +17440,8 @@ void Plater::update_obj_preview_origin_thumbnail(ModelObjectPtrs &model_objects,
         }
     }
     get_view3D_canvas3D()->render_thumbnail(plate->obj_preview_origin_thumbnail_data, colors, plate->plate_thumbnail_width, plate->plate_thumbnail_height, thumbnail_params,
-                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false, GLCanvas3D::ThumbnailRenderRype::CustomMeshOrVertexColors);
+                                            model_objects, cur_volumes, Camera::EType::Ortho, (Camera::ViewAngleType) camera_view_angle_type, false, false,
+                                            {GLCanvas3D::ThumbnailRenderRype::CustomMeshOrVertexColors});
 }
 
 void Plater::update_obj_preview_thumbnail(ModelObjectPtrs &model_objects, std::vector<std::array<float, 4>> colors, int camera_view_angle_type)
@@ -17467,6 +17470,7 @@ void Plater::invalid_all_plate_thumbnails()
         plate->thumbnail_data.reset();
         plate->no_light_thumbnail_data.reset();
     }
+    get_partplate_list().reset_thumbnail_assembly_view_data();//when go to preview
     mark_plate_toolbar_image_dirty();
 }
 
@@ -18489,6 +18493,7 @@ void Plater::remove_selected()
     //BBS delete current selected
     // p->view3D->delete_selected();
     p->get_current_canvas3D()->delete_selected();
+    p->partplate_list.reset_thumbnail_assembly_view_data();
 }
 
 void Plater::increase_instances(size_t num)

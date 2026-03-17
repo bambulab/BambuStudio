@@ -6682,6 +6682,7 @@ void ObjectList::set_extruder_for_selected_items(const int extruder)
     }
 
     // update scene
+    wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
     wxGetApp().plater()->update();
 
     // BBS: update extruder/filament column

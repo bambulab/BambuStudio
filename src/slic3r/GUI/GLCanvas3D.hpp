@@ -483,6 +483,14 @@ class GLCanvas3D
         bool is_in_imgui() const { return m_in_imgui; }
     };
 
+    // Structure to hold assembly view button information
+    struct AssemblyViewButtonInfo {
+        float x;      // x position in screen coordinates
+        float y;      // y position in screen coordinates
+        float width;  // button width
+        float height; // button height
+    };
+
     class Slope
     {
         bool m_enabled{ false };
@@ -539,7 +547,8 @@ public:
     enum ECursorType : unsigned char
     {
         Standard,
-        Cross
+        Cross,
+        Hand
     };
 
     struct ArrangeSettings
@@ -609,11 +618,17 @@ private:
     //BBS: GUI refactor: GLToolbar
     mutable std::shared_ptr<GLToolbar> m_main_toolbar{ nullptr };
     mutable IMToolbar m_sel_plate_toolbar;
+    mutable IMToolbar m_assembly_view_thumbnail;
     mutable IMReturnToolbar m_return_toolbar;
     mutable Vec2i              m_fit_camrea_button_pos = {128, 5};
     mutable float              m_sc{1};
     mutable float m_paint_toolbar_width;
 
+    // assembly_view
+    Camera::ViewAngleType m_assembly_view_preview_angle{Camera::ViewAngleType::Iso};
+    bool                  m_show_assembly_view_preview_menu{false};
+    size_t                m_assembly_view_thumbnail_volume_count{static_cast<size_t>(-1)};
+    bool                  m_isolated_volumes_notified{false};
     //BBS: add canvas type for assemble view usage
     ECanvasType m_canvas_type;
     std::array<ClippingPlane, 2> m_clipping_planes;
@@ -962,13 +977,37 @@ public:
         GLVolumes,
         CustomMeshOrVertexColors,
     };
+    struct ExtraThumbData {
+        ThumbnailRenderRype render_type;
+        ECanvasType         canvas_type;
+        bool                rebuild_bvh;
+        ExtraThumbData(ThumbnailRenderRype rt = ThumbnailRenderRype::GLVolumes,
+                       ECanvasType ct = ECanvasType::CanvasView3D,
+                       bool rb = false)
+            : render_type(rt), canvas_type(ct), rebuild_bvh(rb) {}
+    };
+    struct IsolatedVolumeInfo {
+        GLVolume*     vol     = nullptr;
+        int           obj_idx = -1;
+        BoundingBoxf3 world_box_assembly;
+    };
+    static bool                            s_enable_bvh;
+    static std::vector<IsolatedVolumeInfo> s_isolated_volumes;
+    static bool                            s_isolated_notification_shown;
+    static int                             s_assemble_ratio;
+    static bool                            s_current_show_assemble_view;
+    static bool                            s_far_from_origin_notification_shown;
+    static BoundingBoxf3                   s_bvh_primary_bounds;
+    static double                          s_expand_bvh_box_dist;
+    static BoundingBoxf3                   s_bvh_expanded_bounds;
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
                                  Camera::EType           camera_type,
                                  Camera::ViewAngleType   camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                    for_picking  = false,
-                                 bool                    ban_light    = false);
+                                 bool                    ban_light    = false,
+                                 const ExtraThumbData&   extra_thumb_data = ExtraThumbData());
 
     void render_thumbnail(ThumbnailData &           thumbnail_data,
                                  std::vector<std::array<float, 4>> &extruder_colors,
@@ -981,7 +1020,7 @@ public:
                                  Camera::ViewAngleType     camera_view_angle_type = Camera::ViewAngleType::Iso,
                                  bool                      for_picking  = false,
                                  bool                      ban_light    = false,
-                                 ThumbnailRenderRype       render_type = ThumbnailRenderRype::GLVolumes);
+                                 const ExtraThumbData&     extra_thumb_data = ExtraThumbData());
 
     // render thumbnail using an off-screen framebuffer
     static void render_thumbnail_framebuffer(const std::shared_ptr<OpenGLManager>& p_ogl_manager, ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
@@ -991,7 +1030,7 @@ public:
                                              Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
                                              bool                               for_picking  = false,
                                              bool                                    ban_light              = false,
-                                             ThumbnailRenderRype                     render_type            = ThumbnailRenderRype::GLVolumes);
+                                             const ExtraThumbData&                   extra_thumb_data       = ExtraThumbData());
 
     //BBS use gcoder viewer render calibration thumbnails
     void render_calibration_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params);
@@ -1213,6 +1252,9 @@ public:
 
     Camera &                          get_active_camera();
     const Camera &                    get_active_camera() const;
+
+    // Get assembly view button information
+    AssemblyViewButtonInfo get_assembly_view_button_info() const;
     std::vector<std::array<float, 4>> get_active_colors();
 
 private:
@@ -1225,6 +1267,8 @@ private:
     bool _init_main_toolbar();
     bool _init_select_plate_toolbar();
     bool _update_imgui_select_plate_toolbar();
+    bool _init_assembly_view_thumbnail();
+    bool _update_assembly_view_thumbnail();
     bool _init_return_toolbar();
     // BBS
     //bool _init_view_toolbar();
@@ -1254,6 +1298,7 @@ private:
     void _render_gcode(int canvas_width, int canvas_height);
     //BBS: render a plane for assemble
     void _render_plane() const;
+    void _render_bvh_primary_bounds();
     void _render_selection() const;
     void _render_sequential_clearance();
 #if ENABLE_RENDER_SELECTION_CENTER
@@ -1266,6 +1311,8 @@ private:
     void _render_current_gizmo() const;
     void _render_main_toolbar();
     void _render_imgui_select_plate_toolbar();
+    void _render_assembly_view_thumbnail_toolbar();
+    void _render_assembly_view_preview_menu(float anchor_x, float anchor_y, float anchor_width, float anchor_height);
     void _render_return_toolbar();
     void _render_fit_camera_toolbar();
     void _render_collapse_toolbar() const;
@@ -1363,7 +1410,25 @@ private:
         Camera::EType                      camera_type,
         Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
         bool                               for_picking = false,
-        bool                               ban_light              = false);
+        bool                               ban_light              = false,
+        const ExtraThumbData&              extra_thumb_data       = ExtraThumbData());
+    void _show_isolated_volumes_notification();
+    static bool _move_isolated_volumes_closer(wxEvtHandler*);
+    void _check_assembly_far_from_origin();
+    static bool _reset_assembly_to_origin(wxEvtHandler*);
+    static void _filter_assembly_thumbnail_candidates_by_bvh(const std::vector<GLVolume*>& assemble_candidate_volumes,
+        const std::vector<BoundingBoxf3>&  assemble_candidate_boxes,
+        bool                               skip_single_volume_bvh,
+        bool                               rebuild_bvh,
+        std::vector<bool>&                 include_candidate_volumes);
+    static void _render_assembly_thumbnail_internal(ThumbnailData& thumbnail_data, const ThumbnailsParams& thumbnail_params, PartPlateList& partplate_list, ModelObjectPtrs& model_objects,
+        const GLVolumeCollection& volumes, std::vector<std::array<float, 4>>& extruder_colors,
+        const std::shared_ptr<GLShaderProgram>& shader,
+        Camera::EType                      camera_type,
+        Camera::ViewAngleType              camera_view_angle_type = Camera::ViewAngleType::Iso,
+        bool                               for_picking = false,
+        bool                               ban_light              = false,
+        const ExtraThumbData&              extra_thumb_data       = ExtraThumbData());
     static void _render_custom_thumbnail_internal(ThumbnailData &                         thumbnail_data,
                                            const ThumbnailsParams &                thumbnail_params,
                                            PartPlateList &                         partplate_list,
@@ -1375,7 +1440,7 @@ private:
                                            Camera::ViewAngleType                   camera_view_angle_type = Camera::ViewAngleType::Iso,
                                            bool                                    for_picking            = false,
                                            bool                                    ban_light              = false,
-                                           ThumbnailRenderRype                     render_type            = ThumbnailRenderRype::CustomMeshOrVertexColors);
+                                           const ExtraThumbData&                   extra_thumb_data       = ExtraThumbData(ThumbnailRenderRype::CustomMeshOrVertexColors));
 };
 
 const ModelVolume *get_model_volume(const GLVolume &v, const Model &model);

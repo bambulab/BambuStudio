@@ -2605,6 +2605,7 @@ int PartPlate::add_instance(int obj_id, int instance_id, bool move_position, Bou
 //remove instance from plate
 int PartPlate::remove_instance(int obj_id, int instance_id)
 {
+    if (m_partplate_list) m_partplate_list->reset_thumbnail_assembly_view_data();
 	bool result;
 	std::set<std::pair<int, int>>::iterator it;
 
@@ -2624,6 +2625,7 @@ int PartPlate::remove_instance(int obj_id, int instance_id)
 	if (it != instance_outside_set.end()) {
 		instance_outside_set.erase(it);
 	}
+
 	if (!m_ready_for_slice)
 		update_states();
 
@@ -5284,6 +5286,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 		PartPlate* plate = m_plate_list[obj_id - 1000];
 		plate->update_slice_result_valid_state( false );
 		plate->thumbnail_data.reset();
+        //m_thumbnail_assembly_view_data.reset();
         plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
@@ -5315,6 +5318,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 			plate->update_states();
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+            m_thumbnail_assembly_view_data.reset();//when modify volume 's position
             plate->no_light_thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();
 			plate->pick_thumbnail_data.reset();
@@ -5322,6 +5326,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 		}
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+        //m_thumbnail_assembly_view_data.reset();
         plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
@@ -5384,6 +5389,7 @@ int PartPlateList::notify_instance_update(int obj_id, int instance_id, bool is_n
 
 			plate->update_slice_result_valid_state();
 			plate->thumbnail_data.reset();
+            m_thumbnail_assembly_view_data.reset();//when change project //when add obj
             plate->no_light_thumbnail_data.reset();
 			plate->top_thumbnail_data.reset();
 			plate->pick_thumbnail_data.reset();
@@ -5422,6 +5428,7 @@ int PartPlateList::notify_instance_removed(int obj_id, int instance_id)
 		plate->remove_instance(obj_id, instance_to_delete);
 		plate->update_slice_result_valid_state();
 		plate->thumbnail_data.reset();
+        m_thumbnail_assembly_view_data.reset();//when delete all obj//when delete one obj
         plate->no_light_thumbnail_data.reset();
 		plate->top_thumbnail_data.reset();
 		plate->pick_thumbnail_data.reset();
