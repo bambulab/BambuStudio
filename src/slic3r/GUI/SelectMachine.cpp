@@ -1488,7 +1488,7 @@ void SelectMachineDialog::refresh_save_time(MachineObject *obj)
     // update the tips of suggest pos dispaly
     bool is_all_at_suggest_pos = true;
     for (const auto& mapping_item : m_ams_mapping_result) {
-        is_all_at_suggest_pos = is_at_suggested_pos(obj, mapping_item.ams_id, mapping_item.slot_id);
+        is_all_at_suggest_pos = is_at_suggested_pos(obj, mapping_item.id);
         if (!is_all_at_suggest_pos) {
             break;
         }
@@ -1950,9 +1950,9 @@ void SelectMachineDialog::on_reselect_dialog_btn_clicked(wxMouseEvent&)
     std::map<int, int>  best_pos_map;
     for (const auto& slot : m_ams_mapping_result)
     {
-        if (!is_at_suggested_pos(obj, slot.ams_id, slot.slot_id))
+        if (!is_at_suggested_pos(obj, slot.id))
         {
-            auto pos = get_filament_suggest_pos(obj, slot.ams_id, slot.slot_id);
+            auto pos = get_filament_suggest_pos(obj, slot.id);
             if (pos.has_value())
             {
                 best_pos_map[slot.id] = pos.value();
@@ -3188,9 +3188,9 @@ void SelectMachineDialog::update_best_pos_dialog(wxCommandEvent &evt)
     std::map<int, int>  best_pos_map;
     for (const auto& slot : m_ams_mapping_result)
     {
-        if (!is_at_suggested_pos(obj_, slot.ams_id, slot.slot_id))
+        if (!is_at_suggested_pos(obj_, slot.id))
         {
-            auto pos = get_filament_suggest_pos(obj_, slot.ams_id, slot.slot_id);
+            auto pos = get_filament_suggest_pos(obj_, slot.id);
             if (pos.has_value())
             {
                 best_pos_map[slot.id] = pos.value();
@@ -5986,7 +5986,7 @@ std::map<int, DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
     return suggest_pos_map;
 }
 
-std::optional<DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_suggest_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const
+std::optional<DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_suggest_pos(MachineObject* obj_, int filament_logic_id) const
 {
     const auto& suggest_pos_opt = get_filament_suggest_pos(obj_);
     if (suggest_pos_opt.empty()) {
@@ -5994,7 +5994,7 @@ std::optional<DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
     }
 
     for (const auto& item : m_ams_mapping_result) {
-        if (item.ams_id == ams_id && item.slot_id == slot_id) {
+        if (item.id == filament_logic_id) {
             if (suggest_pos_opt.count(item.id) != 0) {
                 return suggest_pos_opt.at(item.id);
             } else {
@@ -6006,16 +6006,19 @@ std::optional<DevFilaSwitch::SwitchPos> SelectMachineDialog::get_filament_sugges
     return std::nullopt;
 }
 
-bool SelectMachineDialog::is_at_suggested_pos(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id) const
+bool SelectMachineDialog::is_at_suggested_pos(MachineObject* obj_, int filament_logic_id) const
 {
-    auto opt = get_filament_suggest_pos(obj_, ams_id, slot_id);
+    auto opt = get_filament_suggest_pos(obj_,filament_logic_id);
     if (!opt.has_value()) {
         return true;
     }
 
-    const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(ams_id);
-    if (ams_item) {
-        return ams_item->GetSwitcherPos() == opt;
+    const auto& mapped_filament_info = get_mapped_filament_info(filament_logic_id);
+    if (mapped_filament_info.has_value()) {
+        const auto& ams_item = obj_->GetFilaSystem()->GetAmsById(mapped_filament_info->ams_id);
+        if (ams_item) {
+            return ams_item->GetSwitcherPos() == opt;
+        }
     }
 
     return true;
