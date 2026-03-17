@@ -1351,6 +1351,24 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_enable_record_gcodeviewer_option_item = create_item_checkbox(_L("Remember last used color scheme"), page,
                                                                  _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."), 50,
                                                                  "enable_record_gcodeviewer_option_item");
+
+    std::vector<wxString> assemble_view_preview_options = { _L("Auto"), _L("Always show"), _L("Always hide") };
+    auto enable_assemble_view_preview_settings = create_item_combobox(_L("Identify and display overview"), page,
+        _L("Identify and display overview"), "enable_assemble_view_preview",
+        assemble_view_preview_options, { "Auto", "Open", "Close" },
+        [](int idx) {
+            wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
+            if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto") {
+                wxGetApp().app_config->set_bool("enable_bvh", true);
+            } else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open") {
+                wxGetApp().app_config->set_bool("enable_bvh", false);
+            }
+        },FromDIP(200), FromDIP(120));
+#if !BBL_RELEASE_TO_PUBLIC
+    auto  show_assembly_bvh_bounds_settings = create_item_checkbox(_L("Show assembly BVH primary bounds"), page,
+                                                        _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
+                                                        "show_assembly_bvh_bounds");
+#endif
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
@@ -1487,6 +1505,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(enable_assemble_view_preview_settings, 0, wxTOP, FromDIP(3));
+#if !BBL_RELEASE_TO_PUBLIC
+    sizer_page->Add(show_assembly_bvh_bounds_settings, 0, wxTOP, FromDIP(3));
+#endif
 
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(enable_advanced_gcode_viewer, 0, wxTOP, FromDIP(3));

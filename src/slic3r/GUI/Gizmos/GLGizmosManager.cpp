@@ -1687,6 +1687,16 @@ void* GLGizmosManager::ensure_icon_loaded(MENU_ICON_NAME icon)
         case IC_FIT_CAMERA_HOVER:           path = "/images/fit_camera_hover.svg"; w = h = 64; break;
         case IC_FIT_CAMERA_DARK:            path = "/images/fit_camera_dark.svg"; w = h = 64; break;
         case IC_FIT_CAMERA_DARK_HOVER:      path = "/images/fit_camera_dark_hover.svg"; w = h = 64; break;
+        case IC_VIEW_BOTTOM:                path = "/images/view_bottom.svg"; w = h = 64; break;
+        case IC_VIEW_TOP:                   path = "/images/view_top.svg"; w = h = 64; break;
+        case IC_VIEW_FRONT:                 path = "/images/view_front.svg"; w = h = 64; break;
+        case IC_VIEW_REAR:                  path = "/images/view_rear.svg"; w = h = 64; break;
+        case IC_VIEW_LEFT:                  path = "/images/view_left.svg"; w = h = 64; break;
+        case IC_VIEW_OK:                    path = "/images/view_ok.svg"; w = h = 64; break;
+        case IC_VIEW_RIGHT:                 path = "/images/view_right.svg"; w = h = 64; break;
+        case IC_VIEW_ISO:                   path = "/images/view_iso.svg"; w = h = 64; break;
+        case IC_VIEW_CLOSE:                 path = "/images/view_close.svg"; w = h = 64; break;
+        case IC_VIEW_HELP:                  path = "/images/view_help.svg"; w = h = 64; break;
         case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 20; break;
         case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 20; break;
         case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 20; break;

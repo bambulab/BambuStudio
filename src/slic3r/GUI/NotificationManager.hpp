@@ -166,6 +166,8 @@ enum class NotificationType
     BBLHighShrinkageFilament,
     AssemblyWarning,
     AssemblyInfo,
+    BBLIsolatedVolumeInfo,
+    BBLAssemblyFarFromOrigin,
 	BBLArcFittingInfo,
     NotificationTypeCount
 

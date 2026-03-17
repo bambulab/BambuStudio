@@ -645,6 +645,7 @@ class PartPlateList : public ObjectBase
 
     int m_filament_count = 1;
 
+    ThumbnailData m_thumbnail_assembly_view_data;
     void init();
     //compute the origin for printable plate with index i
     Vec3d compute_origin(int index, int column_count);
@@ -819,6 +820,9 @@ public:
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
     const PartPlate *get_curr_plate() const { return m_plate_list[m_current_plate]; }
+    ThumbnailData &get_thumbnail_assembly_view_data() { return m_thumbnail_assembly_view_data; }
+    const ThumbnailData &get_thumbnail_assembly_view_data() const { return m_thumbnail_assembly_view_data; }
+    void reset_thumbnail_assembly_view_data() { m_thumbnail_assembly_view_data.reset(); }
 
     std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 
