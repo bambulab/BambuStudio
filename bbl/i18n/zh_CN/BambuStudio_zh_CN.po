@@ -6936,7 +6936,7 @@ msgstr "同步挤出机信息"
 msgid ""
 "Tips:\n"
 "Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
-msgstr ""
+msgstr "检测到您的打印机支持曲线规划增强功能。软件已自动禁用圆弧拟合，以确保该功能正常运行。"
 
 msgid "Click to edit preset"
 msgstr "点击编辑配置"
@@ -8854,7 +8854,7 @@ msgid "View all Daily tips"
 msgstr "查看所有每日贴士"
 
 msgid "Availabale Objects"
-msgstr ""
+msgstr "适用对象列表"
 
 msgid "Main Material"
 msgstr "主体耗材"
@@ -8863,10 +8863,10 @@ msgid "Support Material"
 msgstr "支撑耗材"
 
 msgid "Recommended Parameters"
-msgstr ""
+msgstr "推荐参数"
 
 msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr ""
+msgstr "检测到有模型耗材与支撑耗材的适配组合。建议使用推荐耗材打印这些对象的支撑接触面，并搭配推荐参数进行打印。"
 
 msgid "Don't remind me again"
 msgstr "不再提醒"
@@ -9003,7 +9003,7 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "点击以将所有设置还原到最后一次保存的版本。"
 
 msgid "Support interface speed"
-msgstr ""
+msgstr "支撑面速度"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "使用PLA支撑TPU时，推荐以下设置："
