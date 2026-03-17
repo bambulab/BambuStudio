@@ -16037,6 +16037,18 @@ void Plater::calib_max_vol_speed(const Calib_Params &params)
             max_lh->values[i] = layer_height;
     }
 
+    // Preserve flush volumetric speed before overriding filament_max_volumetric_speed.
+    // When filament_flush_volumetric_speed is 0, GCode generation falls back to filament_max_volumetric_speed.
+    // Without this fix, the flush speed would inherit the inflated calibration value (200), causing extruder issues.
+    {
+        auto *flush_opt = filament_config->option<ConfigOptionFloatsNullable>("filament_flush_volumetric_speed");
+        auto *max_opt   = filament_config->option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
+        if (flush_opt && max_opt) {
+            for (size_t i = 0; i < flush_opt->values.size(); ++i) {
+                if (flush_opt->values[i] == 0) flush_opt->values[i] = max_opt->get_at(i);
+            }
+        }
+    }
     set_config_values<double, ConfigOptionFloatsNullable>(filament_config, "filament_max_volumetric_speed", 200);
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
 
@@ -16167,6 +16179,19 @@ void Plater::calib_VFA(const Calib_Params &params)
     auto print_config    = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
     auto filament_config = &wxGetApp().preset_bundle->filaments.get_edited_preset().config;
     filament_config->set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
+    // Preserve flush volumetric speed before overriding filament_max_volumetric_speed.
+    // When filament_flush_volumetric_speed is 0, GCode generation falls back to filament_max_volumetric_speed.
+    // Without this fix, the flush speed would inherit the inflated calibration value (200), causing extruder issues.
+    {
+        auto *flush_opt = filament_config->option<ConfigOptionFloatsNullable>("filament_flush_volumetric_speed");
+        auto *max_opt   = filament_config->option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
+        if (flush_opt && max_opt) {
+            for (size_t i = 0; i < flush_opt->values.size(); ++i) {
+                if (flush_opt->values[i] == 0)
+                    flush_opt->values[i] = max_opt->get_at(i);
+            }
+        }
+    }
     set_config_values<double, ConfigOptionFloatsNullable>(filament_config, "filament_max_volumetric_speed", 200);
     set_config_values<bool, ConfigOptionBoolsNullable>(print_config, "enable_overhang_speed", false);
     set_config_values<bool, ConfigOptionBoolsNullable>(print_config, "enable_height_slowdown", false);

@@ -1415,6 +1415,19 @@ void CalibUtils::calib_max_vol_speed(const CalibInfo &calib_info, wxString &erro
     auto max_lh = printer_config.option<ConfigOptionFloatsNullable>("max_layer_height");
     if (max_lh->values[0] < layer_height) max_lh->values[0] = {layer_height};
 
+    // Preserve flush volumetric speed before overriding filament_max_volumetric_speed.
+    // When filament_flush_volumetric_speed is 0, GCode generation falls back to filament_max_volumetric_speed.
+    // Without this fix, the flush speed would inherit the inflated calibration value, causing extruder issues.
+    {
+        auto *flush_opt = filament_config.option<ConfigOptionFloatsNullable>("filament_flush_volumetric_speed");
+        auto *max_opt   = filament_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
+        if (flush_opt && max_opt) {
+            for (size_t i = 0; i < flush_opt->values.size(); ++i) {
+                if (flush_opt->values[i] == 0)
+                    flush_opt->values[i] = max_opt->get_at(i);
+            }
+        }
+    }
     filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{50});
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
@@ -1482,6 +1495,19 @@ void CalibUtils::calib_VFA(const CalibInfo &calib_info, wxString &error_message)
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
 
     filament_config.set_key_value("slow_down_layer_time", new ConfigOptionInts{0});
+    // Preserve flush volumetric speed before overriding filament_max_volumetric_speed.
+    // When filament_flush_volumetric_speed is 0, GCode generation falls back to filament_max_volumetric_speed.
+    // Without this fix, the flush speed would inherit the inflated calibration value (200), causing extruder issues.
+    {
+        auto *flush_opt = filament_config.option<ConfigOptionFloatsNullable>("filament_flush_volumetric_speed");
+        auto *max_opt   = filament_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed");
+        if (flush_opt && max_opt) {
+            for (size_t i = 0; i < flush_opt->values.size(); ++i) {
+                if (flush_opt->values[i] == 0)
+                    flush_opt->values[i] = max_opt->get_at(i);
+            }
+        }
+    }
     filament_config.set_key_value("filament_max_volumetric_speed", new ConfigOptionFloatsNullable{200});
     filament_config.set_key_value("curr_bed_type", new ConfigOptionEnum<BedType>(calib_info.bed_type));
 
