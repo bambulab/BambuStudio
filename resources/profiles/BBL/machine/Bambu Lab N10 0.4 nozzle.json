@@ -290,6 +290,7 @@
         "1",
         "1"
     ],
+    "default_wipe_tower_pos": "1x0",
     "wipe_distance": [
         "2",
         "2",

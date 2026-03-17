@@ -69,13 +69,6 @@ static const int PARTPLATE_TEXT_OFFSET_X2 = 1;
 static const int PARTPLATE_TEXT_OFFSET_Y = 1;
 static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 
-const float WIPE_TOWER_DEFAULT_X_POS = 165.;
-const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
-
-const float N9_WIPE_TOWER_DEFAULT_Y_POS = 160.;
-
-const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
-const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
 
 namespace {
 
@@ -101,6 +94,46 @@ std::array<Slic3r::Polygon, 2> make_heat_soak_polygons(const Slic3r::Pointfs &he
 std::array<unsigned char, 4>  PlateTextureForeground = {0x0, 0xae, 0x42, 0xff};
 
 namespace Slic3r {
+
+std::pair<float, float> get_wipe_tower_default_pos(const DynamicPrintConfig &config, int plate_width, int plate_depth)
+{
+    auto opt = config.option<ConfigOptionPoint>("default_wipe_tower_pos");
+    double nx = std::clamp(opt ? opt->value.x() : 0.644, 0.0, 1.0);
+    double ny = std::clamp(opt ? opt->value.y() : 0.977, 0.0, 1.0);
+    return {static_cast<float>(nx * plate_width), static_cast<float>(ny * plate_depth)};
+}
+
+arrangement::ArrangePolygon init_clamped_wipe_tower_pos(
+    DynamicPrintConfig &config,
+    const GUI::PartPlate *plate,
+    int plate_index,
+    int plate_width,
+    int plate_depth,
+    int extruder_count,
+    int plate_extruder_count)
+{
+    auto [x, y] = get_wipe_tower_default_pos(config, plate_width, plate_depth);
+
+    ConfigOptionFloats *wipe_x_option = config.option<ConfigOptionFloats>("wipe_tower_x", true);
+    ConfigOptionFloats *wipe_y_option = config.option<ConfigOptionFloats>("wipe_tower_y", true);
+    ConfigOptionFloat wt_x_opt(x);
+    ConfigOptionFloat wt_y_opt(y);
+    wipe_x_option->set_at(&wt_x_opt, plate_index, 0);
+    wipe_y_option->set_at(&wt_y_opt, plate_index, 0);
+
+    Vec3d wipe_tower_size, wipe_tower_pos;
+    auto ap = plate->estimate_wipe_tower_polygon(
+        config, plate_index, wipe_tower_pos, wipe_tower_size,
+        extruder_count, plate_extruder_count, true);
+
+    wt_x_opt.value = wipe_tower_pos(0);
+    wt_y_opt.value = wipe_tower_pos(1);
+    wipe_x_option->set_at(&wt_x_opt, plate_index, 0);
+    wipe_y_option->set_at(&wt_y_opt, plate_index, 0);
+
+    return ap;
+}
+
 namespace GUI {
 
 std::array<float, 4> PartPlate::SELECT_COLOR		= { 0.2666f, 0.2784f, 0.2784f, 1.0f }; //{ 0.4196f, 0.4235f, 0.4235f, 1.0f };
@@ -4944,22 +4977,9 @@ void PartPlateList::release_icon_textures()
 
 Vec2d PartPlateList::get_machine_default_wipe_tower_pos() const
 {
-    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-    float x, y;
-    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-        x = I3_WIPE_TOWER_DEFAULT_X_POS;
-        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
-    } else {
-        // Default position aligns with print config (left top).
-        x = WIPE_TOWER_DEFAULT_X_POS;
-        y = WIPE_TOWER_DEFAULT_Y_POS;
-    }
-
-    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    // This printer type overrides the default y regardless of the structure branch above.
-    if (printer_type == "N9")
-        y = N9_WIPE_TOWER_DEFAULT_Y_POS;
-
+    // Per-printer normalized default (default_wipe_tower_pos), scaled to this plate's size.
+    const DynamicPrintConfig &printer_cfg = wxGetApp().preset_bundle->printers.get_edited_preset().config;
+    auto [x, y] = get_wipe_tower_default_pos(printer_cfg, m_plate_width, m_plate_depth);
     return Vec2d((double) x, (double) y);
 }
 
@@ -4985,12 +5005,6 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
         return { (float) def.x(), (float) def.y() };
     }();
 
-    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-
-    // Applied after both branches above so it also overrides an existing kept position.
-    if (printer_type == "N9") {
-        y = N9_WIPE_TOWER_DEFAULT_Y_POS;
-    }
     PartPlate* part_plate = get_plate(plate_idx);
     Vec3d plate_origin = part_plate->get_origin();
 
@@ -5001,6 +5015,7 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
     }
     DynamicPrintConfig full_config   = wxGetApp().preset_bundle->full_config(false, filament_maps, f_volume_maps);
     const DynamicPrintConfig &print_cfg = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
     float w = dynamic_cast<const ConfigOptionFloat*>(print_cfg.option("prime_tower_width"))->value;
     std::vector<double> v = dynamic_cast<const ConfigOptionFloats*>(full_config.option("filament_prime_volume"))->values;
 	if (full_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == pvmSaving) {

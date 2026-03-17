@@ -100,6 +100,7 @@
     ],
     "printable_height": "325",
     "printer_structure": "i3",
+    "default_wipe_tower_pos": "0.0x1.0",
     "retract_lift_below": [
         "326"
     ],

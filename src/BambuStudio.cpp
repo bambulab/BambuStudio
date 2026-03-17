@@ -5426,21 +5426,8 @@ int CLI::run(int argc, char **argv)
                 {
                     //prepare the wipe tower
                     int plate_count = partplate_list.get_plate_count();
-
-                    auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-                    // set the default position, the same with print config(left top)
-                    float x = WIPE_TOWER_DEFAULT_X_POS;
-                    float y = WIPE_TOWER_DEFAULT_Y_POS;
-                    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-                        x = I3_WIPE_TOWER_DEFAULT_X_POS;
-                        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
-                    }
-                    if (x < WIPE_TOWER_MARGIN) {
-                        x = WIPE_TOWER_MARGIN;
-                    }
-                    if (y < WIPE_TOWER_MARGIN) {
-                        y = WIPE_TOWER_MARGIN;
-                    }
+                    int plate_w, plate_d, plate_h;
+                    partplate_list.get_plate_size(plate_w, plate_d, plate_h);
 
                     //create the options using default if neccessary
                     ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
@@ -5453,23 +5440,9 @@ int CLI::run(int argc, char **argv)
 
                     BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%, rib_wall %4%") % width_option->value % rotation_angle_option->value % get_max_element(wipe_volume) %prime_tower_rib_wall_option->value;
 
-                    ConfigOptionFloat wt_x_opt(x);
-                    ConfigOptionFloat wt_y_opt(y);
-
-                    wipe_x_option->set_at(&wt_x_opt, i, 0);
-                    wipe_y_option->set_at(&wt_y_opt, i, 0);
-
-                    Vec3d wipe_tower_size, wipe_tower_pos;
-                    ArrangePolygon wipe_tower_ap = cur_plate->estimate_wipe_tower_polygon(m_print_config, i, wipe_tower_pos, wipe_tower_size, new_extruder_count, assemble_plate.filaments_count, true, true);
-
-                    //update the new wp position
-                    wt_x_opt.value = wipe_tower_pos(0);
-                    wt_y_opt.value = wipe_tower_pos(1);
-                    BOOST_LOG_TRIVIAL(info) << boost::format("%1%, after estimate_wipe_tower_polygon pos {%2%, %3%}, size {%4%, %5%}")%__LINE__ % wipe_tower_pos(0) % wipe_tower_pos(1) % wipe_tower_size(0) %wipe_tower_size(1);
-
-                    wipe_x_option->set_at(&wt_x_opt, i, 0);
-                    wipe_y_option->set_at(&wt_y_opt, i, 0);
-
+                    ArrangePolygon wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(
+                        m_print_config, cur_plate, i, plate_w, plate_d,
+                        new_extruder_count, assemble_plate.filaments_count);
                     wipe_tower_ap.bed_idx = i;
                     unselected.emplace_back(wipe_tower_ap);
                 }
@@ -5566,30 +5539,11 @@ int CLI::run(int argc, char **argv)
 
                 if (!is_seq_print && (assemble_plate.filaments_count > 1) && !has_wipe_tower_position)
                 {
-                    //prepare the wipe tower
-                    auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-                    // set the default position, the same with print config(left top)
-                    float x = WIPE_TOWER_DEFAULT_X_POS;
-                    float y = WIPE_TOWER_DEFAULT_Y_POS;
-                    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-                        x = I3_WIPE_TOWER_DEFAULT_X_POS;
-                        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
-                    }
-                    if (x < WIPE_TOWER_MARGIN) {
-                        x = WIPE_TOWER_MARGIN;
-                    }
-                    if (y < WIPE_TOWER_MARGIN) {
-                        y = WIPE_TOWER_MARGIN;
-                    }
-
-                    //create the options using default if neccessary
-                    ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
-                    ConfigOptionFloats* wipe_y_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_y", true);
-                    ConfigOptionFloat wt_x_opt(x);
-                    ConfigOptionFloat wt_y_opt(y);
-
-                    wipe_x_option->set_at(&wt_x_opt, i, 0);
-                    wipe_y_option->set_at(&wt_y_opt, i, 0);
+                    int plate_w, plate_d, plate_h;
+                    partplate_list.get_plate_size(plate_w, plate_d, plate_h);
+                    Slic3r::init_clamped_wipe_tower_pos(
+                        m_print_config, cur_plate, i, plate_w, plate_d,
+                        new_extruder_count, assemble_plate.filaments_count);
                 }
             }
         }
@@ -5718,24 +5672,8 @@ int CLI::run(int argc, char **argv)
                         //prepare the wipe tower
                         int plate_count = partplate_list.get_plate_count();
                         int extruder_size = used_filament_set.size();
-
-                        auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-                        // set the default position, the same with print config(left top)
-                        float x = WIPE_TOWER_DEFAULT_X_POS;
-                        float y = WIPE_TOWER_DEFAULT_Y_POS;
-                        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-                            x = I3_WIPE_TOWER_DEFAULT_X_POS;
-                            y = I3_WIPE_TOWER_DEFAULT_Y_POS;
-                        }
-
-                        if (x < WIPE_TOWER_MARGIN) {
-                            x = WIPE_TOWER_MARGIN;
-                        }
-                        if (y < WIPE_TOWER_MARGIN) {
-                            y = WIPE_TOWER_MARGIN;
-                        }
-                        ConfigOptionFloat wt_x_opt(x);
-                        ConfigOptionFloat wt_y_opt(y);
+                        int plate_w, plate_d, plate_h;
+                        partplate_list.get_plate_size(plate_w, plate_d, plate_h);
 
                         //create the options using default if neccessary
                         ConfigOptionFloats* wipe_x_option = m_print_config.option<ConfigOptionFloats>("wipe_tower_x", true);
@@ -5747,28 +5685,20 @@ int CLI::run(int argc, char **argv)
 
                         BOOST_LOG_TRIVIAL(info) << boost::format("prime_tower_width %1% wipe_tower_rotation_angle %2% prime_volume %3%")%width_option->value %rotation_angle_option->value %get_max_element(wipe_volume);
 
-
                         for (int bedid = 0; bedid < MAX_PLATE_COUNT; bedid++) {
                             int plate_index_valid = std::min(bedid, plate_count - 1);
+                            ArrangePolygon wipe_tower_ap;
                             if (bedid < plate_count) {
-                                wipe_x_option->set_at(&wt_x_opt, plate_index_valid, 0);
-                                wipe_y_option->set_at(&wt_y_opt, plate_index_valid, 0);
+                                wipe_tower_ap = Slic3r::init_clamped_wipe_tower_pos(
+                                    m_print_config, partplate_list.get_plate(plate_index_valid),
+                                    plate_index_valid, plate_w, plate_d,
+                                    new_extruder_count, extruder_size);
+                            } else {
+                                Vec3d wipe_tower_size, wipe_tower_pos;
+                                wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(
+                                    m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size,
+                                    new_extruder_count, extruder_size, true, true);
                             }
-
-                            Vec3d wipe_tower_size, wipe_tower_pos;
-                            ArrangePolygon wipe_tower_ap = partplate_list.get_plate(plate_index_valid)->estimate_wipe_tower_polygon(m_print_config, plate_index_valid, wipe_tower_pos, wipe_tower_size, new_extruder_count, extruder_size, true, true);
-
-                            //update the new wp position
-                            if (bedid < plate_count) {
-                                wt_x_opt.value = wipe_tower_pos(0);
-                                wt_y_opt.value = wipe_tower_pos(1);
-
-                                wipe_x_option->set_at(&wt_x_opt, plate_index_valid, 0);
-                                wipe_y_option->set_at(&wt_y_opt, plate_index_valid, 0);
-
-                                BOOST_LOG_TRIVIAL(info) << boost::format("%1%, after estimate_wipe_tower_polygon,  pos {%2%, %3%}, size {%4%, %5%}, plate %6%")%__LINE__ % wipe_tower_pos(0) % wipe_tower_pos(1) % wipe_tower_size(0) %wipe_tower_size(1) %bedid;
-                            }
-
                             wipe_tower_ap.bed_idx = bedid;
                             unselected.emplace_back(wipe_tower_ap);
                         }
@@ -5819,13 +5749,9 @@ int CLI::run(int argc, char **argv)
                         float x;
                         float y;
                         if (duplicate_count > 0) {
-                            auto printer_structure_opt = m_print_config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-                            x = WIPE_TOWER_DEFAULT_X_POS;
-                            y = WIPE_TOWER_DEFAULT_Y_POS;
-                            if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-                                x = I3_WIPE_TOWER_DEFAULT_X_POS;
-                                y = I3_WIPE_TOWER_DEFAULT_Y_POS;
-                            }
+                            int plate_w, plate_d, plate_h;
+                            partplate_list.get_plate_size(plate_w, plate_d, plate_h);
+                            std::tie(x, y) = Slic3r::get_wipe_tower_default_pos(m_print_config, plate_w, plate_d);
                         }
                         else {
                             //keep the original

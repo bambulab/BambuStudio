@@ -50,15 +50,20 @@ inline int compute_colum_count(int count)
 }
 
 
-extern const float WIPE_TOWER_DEFAULT_X_POS;
-extern const float WIPE_TOWER_DEFAULT_Y_POS;  // Max y
-
-extern const float I3_WIPE_TOWER_DEFAULT_X_POS;
-extern const float I3_WIPE_TOWER_DEFAULT_Y_POS; // Max y
-
-
-
 namespace Slic3r {
+
+std::pair<float, float> get_wipe_tower_default_pos(const DynamicPrintConfig &config, int plate_width, int plate_depth);
+
+namespace GUI { class PartPlate; }
+
+arrangement::ArrangePolygon init_clamped_wipe_tower_pos(
+    DynamicPrintConfig &config,
+    const GUI::PartPlate *plate,
+    int plate_index,
+    int plate_width,
+    int plate_depth,
+    int extruder_count,
+    int plate_extruder_count);
 
 class Model;
 class ModelObject;

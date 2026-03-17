@@ -3749,6 +3749,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnum<PrinterStructure>(psUndefine));
 
+    def = this->add("default_wipe_tower_pos", coPoint);
+    def->label = L("Default wipe tower position");
+    def->tooltip = L("Normalized default position of the wipe tower, each axis in [0,1] relative to bed width/depth.");
+    def->mode = comDevelop;
+    // Legacy default for CoreXY: absolute (165, 250) on 256x256 bed → normalized (165/256, 250/256) ≈ (0.644, 0.977).
+    // I3 machines override this in their profiles (e.g. "0.0x1.0" for left-back corner).
+    def->set_default_value(new ConfigOptionPoint(Vec2d(0.644, 0.977)));
+
     def = this->add("best_object_pos", coPoint);
     def->label = L("Best object position");
     def->tooltip = L("Best auto arranging position in range [0,1] w.r.t. bed shape.");
