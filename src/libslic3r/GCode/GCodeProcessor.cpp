@@ -2457,6 +2457,7 @@ void GCodeProcessor::reset()
     m_forced_height = 0.0f;
     m_mm3_per_mm = 0.0f;
     m_fan_speed = 0.0f;
+    m_additional_fan_speed = 0.0f;
 
     m_extrusion_role = erNone;
 
@@ -5279,12 +5280,23 @@ void GCodeProcessor::process_M106(const GCodeReader::GCodeLine& line)
             m_fan_speed = (100.0f / 255.0f) * new_fan_speed;
         else
             m_fan_speed = 100.0f;
+    } else if (line.has('P') && line.p() == 2.0f) {
+        // M106 P2: additional/auxiliary cooling fan (side fan)
+        float new_fan_speed;
+        if (line.has_value('S', new_fan_speed))
+            m_additional_fan_speed = (100.0f / 255.0f) * new_fan_speed;
+        else
+            m_additional_fan_speed = 100.0f;
     }
 }
 
 void GCodeProcessor::process_M107(const GCodeReader::GCodeLine& line)
 {
-    m_fan_speed = 0.0f;
+    // M107: disable fan; without P or P1 = part fan, P2 = additional/side fan
+    if (!line.has('P') || (line.has('P') && line.p() == 1.0f))
+        m_fan_speed = 0.0f;
+    else if (line.has('P') && line.p() == 2.0f)
+        m_additional_fan_speed = 0.0f;
 }
 
 void GCodeProcessor::process_M108(const GCodeReader::GCodeLine& line)
@@ -5932,6 +5944,7 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         m_height,
         m_mm3_per_mm,
         m_fan_speed,
+        m_additional_fan_speed,
         m_extruder_temps[filament_id],
         static_cast<float>(m_layer_id), //layer_duration: set later
         m_thermal_index.min,
