@@ -707,12 +707,27 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + " ").c_str()).x, starting_y + shift_y, _u8L("More"), true);
 	}
 	else if (!m_hypertext.empty()) {
+        float available_width = m_window_width - m_window_width_offset;
         float first_hypertext_x = x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x;
-        render_hypertext(imgui, first_hypertext_x, starting_y + (m_endlines.size() - 1) * shift_y, m_hypertext);
-        if (!m_second_hypertext.empty()) {
-            float second_hypertext_x = first_hypertext_x + ImGui::CalcTextSize(m_hypertext.c_str()).x + ImGui::CalcTextSize("   ").x;
-            render_hypertext(imgui, second_hypertext_x, starting_y + (m_endlines.size() - 1) * shift_y,
-                             m_second_hypertext, false, true);
+        float first_hypertext_w = ImGui::CalcTextSize(m_hypertext.c_str()).x;
+        float hypertext_y = starting_y + (m_endlines.size() - 1) * shift_y;
+        if (first_hypertext_x + first_hypertext_w > available_width) {
+           first_hypertext_x = x_offset;
+           hypertext_y += shift_y;
+       }
+       render_hypertext(imgui, first_hypertext_x, hypertext_y, m_hypertext);
+
+       if (!m_second_hypertext.empty()) {
+            float second_hypertext_x = first_hypertext_x + first_hypertext_w + ImGui::CalcTextSize("   ").x;
+            float second_hypertext_w = ImGui::CalcTextSize(m_second_hypertext.c_str()).x;
+            float second_hypertext_y = hypertext_y;
+            if (second_hypertext_x + second_hypertext_w > available_width) {
+                second_hypertext_x = x_offset;
+                second_hypertext_y += shift_y;
+                m_lines_count = 3;
+            }
+            render_hypertext(imgui, second_hypertext_x, second_hypertext_y,
+                              m_second_hypertext, false, true);
         }
     }
 
