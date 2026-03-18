@@ -6343,6 +6343,46 @@ int CLI::run(int argc, char **argv)
                                 else
                                     mode = part_plate->get_real_filament_map_mode(m_print_config);
                                 BOOST_LOG_TRIVIAL(info) << boost::format("%1% :filament map mode is %2% ") % __LINE__ %(int)mode;
+
+                                // 所有模式通用：若 CLI 传入了 extruder_nozzle_count + extruder_nozzle_volume_type，
+                                // 以此为准构造 extruder_nozzle_stats，优先级高于 on_volume_type_switch
+                                if (m_extra_config.has("extruder_nozzle_count") && m_extra_config.has("extruder_nozzle_volume_type")) {
+                                    std::vector<std::map<NozzleVolumeType, int>> extruder_nozzle_stats_maps(new_extruder_count, std::map<NozzleVolumeType, int>{});
+                                    std::vector<int> extruder_nozzle_counts = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count")->values;
+                                    std::vector<int> extruder_nozzle_volume_types = m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")->values;
+                                    int nozzle_index = 0;
+                                    for (int e_index = 0; e_index < new_extruder_count; e_index++) {
+                                        std::map<NozzleVolumeType, int> nozzle_volume_type_maps;
+                                        for (int sub_index = 0; sub_index < extruder_nozzle_counts[e_index]; sub_index++) {
+                                            NozzleVolumeType vol_type = NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index]);
+                                            nozzle_volume_type_maps[vol_type]++;
+                                            nozzle_index++;
+                                        }
+                                        extruder_nozzle_stats_maps[e_index] = std::move(nozzle_volume_type_maps);
+                                    }
+                                    nozzle_stats_obj.set_raw_stat(extruder_nozzle_stats_maps);
+                                } else {
+                                    // 未传入精细喷嘴配置时，退回到 nozzle_volume_type 同步
+                                    for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {
+                                        nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
+                                    }
+                                }
+                                m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values =
+                                    save_extruder_nozzle_stats_to_string(nozzle_stats_obj.get_raw_stat());
+
+                                {
+                                    static const char* nvt_names[] = {"Standard", "HighFlow", "Hybrid"};
+                                    const auto& raw_stat = nozzle_stats_obj.get_raw_stat();
+                                    BOOST_LOG_TRIVIAL(info) << "[nozzle_stats_obj] extruder count: " << raw_stat.size();
+                                    for (size_t ei = 0; ei < raw_stat.size(); ++ei) {
+                                        for (const auto& kv : raw_stat[ei]) {
+                                            int type_idx = (int)kv.first;
+                                            const char* type_name = (type_idx >= 0 && type_idx <= 2) ? nvt_names[type_idx] : "Unknown";
+                                            BOOST_LOG_TRIVIAL(info) << "[nozzle_stats_obj]   extruder[" << ei << "] " << type_name << " x" << kv.second;
+                                        }
+                                    }
+                                }
+
                                 if (is_auto_filament_map_mode(mode)) {
                                     std::vector<int> conflict_filament_vector;
                                     for (int index = 0; index < new_extruder_count; index++)
@@ -6423,11 +6463,6 @@ int CLI::run(int argc, char **argv)
                                     else
                                         filament_maps = part_plate->get_real_filament_maps(m_print_config);
 
-                                   // 前面已经处理了机型切换时的extruder_nozzle_stats，此处处理可能的流量切换
-                                    for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {
-                                        nozzle_stats_obj.on_volume_type_switch(eid, new_nozzle_volume_type[eid]);
-                                    }
-
                                     if (support_multi_nozzle && (mode == fmmManual || mode == fmmNozzleManual) && (plate_to_slice != 0)) {
                                         /*
                                         1. filament_volume_map：提供给分组算法，构造分组结果
@@ -6479,28 +6514,6 @@ int CLI::run(int argc, char **argv)
                                             filament_nozzle_maps = m_extra_config.option<ConfigOptionInts>("filament_nozzle_map")->values;
                                             part_plate->set_filament_nozzle_maps(filament_nozzle_maps);
                                         }
-
-                                        // 手动构造extruder_nozzle_stats，将数据存入stats_obj，后续统一写入config
-                                        if (m_extra_config.has("extruder_nozzle_count") && m_extra_config.has("extruder_nozzle_volume_type")) {
-                                            // assemble extruder_nozzle_stats
-                                            std::vector<std::map<NozzleVolumeType, int>> extruder_nozzle_stats_maps(new_extruder_count, std::map<NozzleVolumeType, int>{});
-                                            std::vector<int> extruder_nozzle_counts = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count")->values;
-                                            std::vector<int> extruder_nozzle_volume_types = m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type")->values;
-                                            int nozzle_index = 0;
-                                            for (int e_index = 0; e_index < new_extruder_count; e_index++) {
-                                                std::map<NozzleVolumeType, int> nozzle_volume_type_maps;
-                                                for (int sub_index = 0; sub_index < extruder_nozzle_counts[e_index]; sub_index++) {
-                                                    if (nozzle_volume_type_maps.find(NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index])) !=
-                                                        nozzle_volume_type_maps.end()) {
-                                                        nozzle_volume_type_maps[NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index])]++;
-                                                    } else
-                                                        nozzle_volume_type_maps[NozzleVolumeType(extruder_nozzle_volume_types[nozzle_index])] = 1;
-                                                    nozzle_index++;
-                                                }
-                                                extruder_nozzle_stats_maps[e_index] = std::move(nozzle_volume_type_maps);
-                                            }
-                                            nozzle_stats_obj.set_raw_stat(extruder_nozzle_stats_maps);
-                                        }
                                     }
                                     else if (!support_multi_nozzle && (mode == fmmNozzleManual)) {
                                         BOOST_LOG_TRIVIAL(error)
@@ -6508,9 +6521,6 @@ int CLI::run(int argc, char **argv)
                                         record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, index + 1, cli_errors[CLI_INVALID_PARAMS], sliced_info);
                                         flush_and_exit(CLI_INVALID_PARAMS);
                                     }
-
-                                    // 保存参数到 m_print_config
-                                    m_print_config.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(nozzle_stats_obj.get_raw_stat());
 
                                     for (int index = 0; index < filament_maps.size(); index++)
                                     {
