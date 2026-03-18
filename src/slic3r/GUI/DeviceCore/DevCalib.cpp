@@ -38,15 +38,6 @@ static NozzleVolumeType convert_to_nozzle_type(const std::string &str)
         return NozzleVolumeType::nvtStandard;
 }
 
-int tray_from_ams_slot(int ams_id, int slot_id)
-{
-    if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-        return ams_id;
-    } else {
-        return ams_id * 4 + slot_id;
-    }
-}
-
 int tray_to_ams(int tray_id)
 {
     if (tray_id >= 0 && tray_id < 16) {
@@ -288,7 +279,7 @@ void DevCalib::ExtrusionCalibGetResultParse(const json &jj)
                     auto ams_id = f.value("ams_id", 0);
                     auto slot_id = f.value("slot_id", 0);
                     if(f.contains("tray_id")){
-                        f["tray_id"] = tray_from_ams_slot(ams_id, slot_id);
+                        f["tray_id"] = GetOwner()->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
                     }
                 }
             }
