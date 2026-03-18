@@ -4506,13 +4506,23 @@ GCode::LayerResult GCode::process_layer(
             config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
             timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
+        double z_before_timelapse = m_writer.get_position()(2);
         m_writer.set_current_position_clear(false);
 
         double temp_z_after_tool_change;
         if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_tool_change)) {
-            Vec3d pos = m_writer.get_position();
-            pos(2)    = temp_z_after_tool_change;
-            m_writer.set_position(pos);
+            if (std::abs(temp_z_after_tool_change - z_before_timelapse) > EPSILON) {
+                // Timelapse template changed Z externally (e.g. head wrap detect G0 Z2).
+                // Append raw G1 Z to restore; skip set_position to keep m_lifted intact
+                // so the subsequent layer-change lift logic works normally.
+                char buf[64];
+                snprintf(buf, sizeof(buf), "G1 Z%.3f\n", z_before_timelapse);
+                timepals_gcode += buf;
+            } else {
+                Vec3d pos = m_writer.get_position();
+                pos(2)    = temp_z_after_tool_change;
+                m_writer.set_position(pos);
+            }
         }
 
         // (layer_object_label_ids.size() < 64) this restriction comes from _encode_label_ids_to_base64()
