@@ -73,35 +73,35 @@
       "description": "Dynamic flow calibration is not supported for TPU 85A filament."
     },
     {
-      "types": ["TPU", "TPU-AMS"],
+      "types": ["TPU"],
       "action": "warning",
       "model_id":["N7"],
       "description": "How to feed TPU filament.",
       "wiki": "https://e.bambulab.com/t?c=blx2TDu3uoRdfyIx"
     },
     {
-      "types": ["TPU", "TPU-AMS"],
+      "types": ["TPU"],
       "action": "warning",
       "model_id":["O1D"],
       "description": "How to feed TPU filament.",
       "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
     },
     {
-      "types": ["TPU", "TPU-AMS"],
+      "types": ["TPU"],
       "action": "warning",
       "model_id":["O1E"],
       "description": "How to feed TPU filament.",
       "wiki": "https://e.bambulab.com/t?c=fwWqpBg37Liel92N"
     },
     {
-      "types": ["TPU", "TPU-AMS"],
+      "types": ["TPU"],
       "action": "warning",
       "model_id":["O1C2"],
       "description": "How to feed TPU filament.",
       "wiki": "https://e.bambulab.com/t?c=Db9YyP5qg3MHbSHD"
     },
     {
-      "types": ["TPU", "TPU-AMS"],
+      "types": ["TPU"],
       "action": "warning",
       "model_id":["O1S"],
       "description": "How to feed TPU filament.",
