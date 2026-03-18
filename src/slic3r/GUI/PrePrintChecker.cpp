@@ -233,7 +233,7 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             label->SetForegroundColour(_GetLabelColour(info));
 
             if (info.wiki_url.empty())
-{
+            {
                 label->SetLabel(info.msg);
             }
             else
