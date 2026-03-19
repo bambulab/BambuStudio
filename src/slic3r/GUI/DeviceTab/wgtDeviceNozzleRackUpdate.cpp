@@ -381,13 +381,19 @@ void wgtDeviceNozzleRackHotendUpdate::UpdateInfo(const DevNozzle& nozzle)
     }
 
     // Update used time
-    int usedSeconds = nozzle.GetNozzlePrintTime();
-    double hours = 0.0f;
-    if (!nozzle.IsEmpty())
+    int      usedSeconds = nozzle.GetNozzlePrintTime() > 0 ? nozzle.GetNozzlePrintTime() : 0;
+    wxString timeStr;
+    if (!nozzle.IsEmpty() && usedSeconds >= 3600)
     {
-        hours = static_cast<double>(usedSeconds) / 3600;
+        int hours = usedSeconds / 3600; // floor division
+        timeStr = wxString::Format("%s: %d h", _L("Used Time"), hours);
     }
-    m_used_time->SetLabel(wxString::Format("%s: %.2f h", _L("Used Time"), hours));
+    else
+    {
+        int minutes = usedSeconds / 60; // floor division, ignore remaining seconds
+        timeStr = wxString::Format("%s: %d min", _L("Used Time"), minutes);
+    }
+    m_used_time->SetLabel(timeStr);
 }
 
 void wgtDeviceNozzleRackHotendUpdate::Rescale()
