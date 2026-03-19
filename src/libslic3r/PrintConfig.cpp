@@ -2497,6 +2497,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{-1});
 
     def = this->add("enable_tower_interface_features", coBool);
+    def->label = L("Enable tower interface features");
+    def->tooltip = L("When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality.");
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS
