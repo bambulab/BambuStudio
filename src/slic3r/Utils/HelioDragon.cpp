@@ -2405,6 +2405,7 @@ void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std
     if (m_gcode_result) {
         m_gcode_processor.result().nozzle_group_result = m_gcode_result->nozzle_group_result;
         m_gcode_processor.result().used_filaments = m_gcode_result->used_filaments;
+        m_gcode_processor.result().filament_change_sequence = m_gcode_result->filament_change_sequence;
     }
 
     auto res       = &m_gcode_processor.result();
