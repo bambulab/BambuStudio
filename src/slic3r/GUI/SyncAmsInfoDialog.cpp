@@ -2656,8 +2656,9 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                 } else {
                     m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
                 }
+            } else {
+                m_mapping_popup.set_show_type(ShowType::RIGHT);
             }
-            // m_mapping_popup.set_show_type(ShowType::RIGHT);
             if (obj_) {
                 if (m_mapping_popup.IsShown())
                     return;
