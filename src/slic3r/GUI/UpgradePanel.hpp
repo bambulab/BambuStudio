@@ -146,6 +146,12 @@ protected:
     wxStaticLine*          m_amshub_line_above = nullptr;
     uiDeviceUpdateVersion* m_amshub_version = nullptr;
 
+    /* filament track switch */
+    wxBoxSizer*            m_filatrack_sizer = nullptr;
+    wxStaticBitmap*        m_filatrack_img = nullptr;
+    wxStaticLine*          m_filatrack_line_above = nullptr;
+    uiDeviceUpdateVersion* m_filatrack_version = nullptr;
+
     /* nozzle_rack*/
     wxStaticLine * m_nozzle_rack_line_above{nullptr};
     wxStaticBitmap *m_nozzle_rack_img = nullptr;
@@ -181,6 +187,7 @@ protected:
     ScalableBitmap m_img_laser;
     ScalableBitmap m_img_extinguish;
     ScalableBitmap m_img_rotary;
+    ScalableBitmap m_img_filatrack;
     ScalableBitmap upgrade_gray_icon;
     ScalableBitmap upgrade_green_icon;
     ScalableBitmap upgrade_yellow_icon;
@@ -243,6 +250,7 @@ private:
     void createCuttingWidgets(wxBoxSizer* main_left_sizer);
     void createLaserWidgets(wxBoxSizer* main_left_sizer);
     void createExtinguishWidgets(wxBoxSizer* main_left_sizer);
+    void createFilaTrackSwitchWidgets(wxBoxSizer* main_left_sizer);
     void createNozzleRackWidgets(wxBoxSizer* main_left_sizer);
     void createRotaryWidgets(wxBoxSizer *main_left_sizer);
     void createExhaustFan(wxBoxSizer *main_left_sizer);
@@ -252,7 +260,8 @@ private:
     void update_cut(MachineObject* obj);
     void update_laszer(MachineObject* obj);
     void update_extinguish(MachineObject* obj);
-    void update_rotary(MachineObject *obj);
+    void update_rotary(MachineObject* obj);
+    void update_filatrack(MachineObject* obj);
     void update_amshub(MachineObject *obj);
     void update_nozzle_rack(MachineObject *obj);
     void update_exhaustfan(MachineObject *obj);
@@ -263,6 +272,7 @@ private:
     void show_laszer(bool show = true);
     void show_rotary(bool show = true);
     void show_extinguish(bool show = true);
+    void show_filatrack(bool show = true);
     void show_amshub(bool show = true);
     void show_nozzle_rack(bool show = true);
     void show_exhaustfan(bool show = true);
