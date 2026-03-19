@@ -19,6 +19,8 @@ class FilamentMapManualPanel;
 class FilamentMapAutoPanel;
 class FilamentMapDefaultPanel;
 class FilamentMapSavingPanel;
+class SmartFilamentPanel;
+
 /**
  * @brief Try to pop up the filament map dialog before slicing.
  * 
@@ -94,7 +96,7 @@ private:
     Button   *m_ok_btn{};
     Button   *m_cancel_btn{};
     CheckBox *m_checkbox{};
-    CheckBox *m_smart_filament_checkbox{};
+    SmartFilamentPanel *smart_filament{};
 
     PageType m_page_type;
     bool     m_fila_switch_ready{false};
