@@ -171,8 +171,8 @@ public:
     virtual ExtrusionEntity* clone_move() = 0;
     virtual ~ExtrusionEntity() {}
     virtual void reverse() = 0;
-    virtual const Point& first_point() const = 0;
-    virtual const Point& last_point() const = 0;
+    virtual Point first_point() const = 0;
+    virtual Point last_point() const = 0;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     virtual void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const = 0;
@@ -212,7 +212,7 @@ typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
 class ExtrusionPath : public ExtrusionEntity
 {
 public:
-    Polyline polyline;
+    Polyline3 polyline;
     double overhang_degree = 0;
     int curve_degree = 0;
     // Volumetric velocity. mm^3 of plastic per mm of linear head motion. Used by the G-code generator.
@@ -222,6 +222,7 @@ public:
     // Height of the extrusion, used for visualization purposes.
     float height;
     double smooth_speed = 0;
+    bool z_contoured = false;
 
     ExtrusionPath() : mm3_per_mm(-1), width(-1), height(-1), m_role(erNone), m_no_extrusion(false) {}
     ExtrusionPath(ExtrusionRole role) : mm3_per_mm(-1), width(-1), height(-1), m_role(role), m_no_extrusion(false) {}
@@ -237,6 +238,7 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , z_contoured(rhs.z_contoured)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
@@ -250,11 +252,12 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , z_contoured(rhs.z_contoured)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
     {}
-    ExtrusionPath(const Polyline &polyline, const ExtrusionPath &rhs)
+    ExtrusionPath(const Polyline3 &polyline, const ExtrusionPath &rhs)
         : ExtrusionEntity(rhs)
         , polyline(polyline)
         , overhang_degree(rhs.overhang_degree)
@@ -263,11 +266,12 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , z_contoured(rhs.z_contoured)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
     {}
-    ExtrusionPath(Polyline &&polyline, const ExtrusionPath &rhs)
+    ExtrusionPath(Polyline3 &&polyline, const ExtrusionPath &rhs)
         : ExtrusionEntity(rhs)
         , polyline(std::move(polyline))
         , overhang_degree(rhs.overhang_degree)
@@ -276,6 +280,7 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , z_contoured(rhs.z_contoured)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
@@ -290,6 +295,7 @@ public:
         this->width = rhs.width;
         this->height = rhs.height;
         this->smooth_speed = rhs.smooth_speed;
+        this->z_contoured = rhs.z_contoured;
         this->overhang_degree = rhs.overhang_degree;
         this->curve_degree = rhs.curve_degree;
         this->polyline = rhs.polyline;
@@ -303,7 +309,8 @@ public:
         this->mm3_per_mm = rhs.mm3_per_mm;
         this->width = rhs.width;
         this->height = rhs.height;
-        this->smooth_speed    = rhs.smooth_speed;
+        this->smooth_speed = rhs.smooth_speed;
+        this->z_contoured = rhs.z_contoured;
         this->overhang_degree = rhs.overhang_degree;
         this->curve_degree = rhs.curve_degree;
         this->polyline = std::move(rhs.polyline);
@@ -314,8 +321,10 @@ public:
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionPath(std::move(*this)); }
     void reverse() override { this->polyline.reverse(); }
-    const Point& first_point() const override { return this->polyline.points.front(); }
-    const Point& last_point() const override { return this->polyline.points.back(); }
+    Point first_point() const override { return this->polyline.points.front().to_point(); }
+    Point3 first_point3() const { return this->polyline.points.front(); }
+    Point last_point() const override { return this->polyline.points.back().to_point(); }
+    Point3 last_point3() const { return this->polyline.points.back(); }
     size_t size() const { return this->polyline.size(); }
     bool empty() const { return this->polyline.empty(); }
     bool is_closed() const { return ! this->empty() && this->polyline.points.front() == this->polyline.points.back(); }
@@ -326,7 +335,7 @@ public:
     // Currently not used.
     void subtract_expolygons(const ExPolygons &collection, ExtrusionEntityCollection* retval) const;
     void clip_end(double distance);
-    void simplify(double tolerance);
+    virtual void simplify(double tolerance);
     double length() const override;
     ExtrusionRole role() const override { return m_role; }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
@@ -342,9 +351,10 @@ public:
         { Polygons out; this->polygons_covered_by_spacing(out, scaled_epsilon); return out; }
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const override { return this->mm3_per_mm; }
-    Polyline as_polyline() const override { return this->polyline; }
-    void   collect_polylines(Polylines &dst) const override { if (! this->polyline.empty()) dst.emplace_back(this->polyline); }
-    void   collect_points(Points &dst) const override { append(dst, this->polyline.points); }
+    Polyline as_polyline() const override { return this->polyline.to_polyline(); }
+    void   collect_polylines(Polylines &dst) const override { if (! this->polyline.empty()) dst.emplace_back(this->polyline.to_polyline()); }
+    void   collect_points(Points &dst) const override;
+    void   collect_points3(Points3 &dst) const { append(dst, this->polyline.points); }
     double total_volume() const override { return mm3_per_mm * unscale<double>(length()); }
 
     void set_overhang_degree(int overhang) {
@@ -382,6 +392,23 @@ private:
     bool m_no_extrusion = false;
 };
 
+class ExtrusionPathContoured : public ExtrusionPath {
+public:
+    std::vector<double> z_diffs;
+
+    ExtrusionPathContoured(Polyline3 &&polyline, const ExtrusionPath &rhs, std::vector<double> &&z_diffs)
+        : ExtrusionPath(std::move(polyline), rhs), z_diffs(std::move(z_diffs))
+    {}
+
+    virtual ExtrusionEntity *clone() const override;
+    virtual ExtrusionEntity *clone_move() override;
+
+    void simplify(double tolerance) override;
+    virtual void simplify_by_fitting_arc(double tolerance);
+
+    void reverse() override;
+};
+
 class ExtrusionPathSloped : public ExtrusionPath
 {
 public:
@@ -396,9 +423,9 @@ public:
     Slope slope_end;
     ExtrusionPathSloped(const ExtrusionPath &rhs, const Slope &begin, const Slope &end) : ExtrusionPath(rhs), slope_begin(begin), slope_end(end) {}
     ExtrusionPathSloped(ExtrusionPath &&rhs, const Slope &begin, const Slope &end) : ExtrusionPath(std::move(rhs)), slope_begin(begin), slope_end(end) {}
-    ExtrusionPathSloped(const Polyline &polyline, const ExtrusionPath &rhs, const Slope &begin, const Slope &end) : ExtrusionPath(polyline, rhs), slope_begin(begin), slope_end(end)
+    ExtrusionPathSloped(const Polyline3 &polyline, const ExtrusionPath &rhs, const Slope &begin, const Slope &end) : ExtrusionPath(polyline, rhs), slope_begin(begin), slope_end(end)
     {}
-    ExtrusionPathSloped(Polyline &&polyline, const ExtrusionPath &rhs, const Slope &begin, const Slope &end) : ExtrusionPath(std::move(polyline), rhs), slope_begin(begin), slope_end(end)
+    ExtrusionPathSloped(Polyline3 &&polyline, const ExtrusionPath &rhs, const Slope &begin, const Slope &end) : ExtrusionPath(std::move(polyline), rhs), slope_begin(begin), slope_end(end)
     {}
 
     Slope interpolate(const double ratio) const {
@@ -456,8 +483,8 @@ public:
     // Create a new object, initialize it with this object using the move semantics.
 	ExtrusionEntity* clone_move() override { return new ExtrusionMultiPath(std::move(*this)); }
     void reverse() override;
-    const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
-    const Point& last_point() const override { return this->paths.back().polyline.points.back(); }
+    Point first_point() const override { return this->paths.front().polyline.points.front().to_point(); }
+    Point last_point() const override { return this->paths.back().polyline.points.back().to_point(); }
     size_t size() const { return this->paths.size(); }
     bool empty() const { return this->paths.empty(); }
     double length() const override;
@@ -481,7 +508,7 @@ public:
         size_t n = std::accumulate(paths.begin(), paths.end(), 0, [](const size_t n, const ExtrusionPath &p){ return n + p.polyline.size(); });
         dst.reserve(dst.size() + n);
         for (const ExtrusionPath &p : this->paths)
-            append(dst, p.polyline.points);
+            append(dst, to_points(p.polyline.points));
     }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
 
@@ -514,8 +541,8 @@ public:
     bool is_counter_clockwise() { return this->polygon().is_counter_clockwise(); }
     void reverse() override;
     bool is_set_speed_discontinuity_area() const { return this->role() == erExternalPerimeter || this->role() == erPerimeter || this->role() == erOverhangPerimeter; }
-    const Point& first_point() const override { return this->paths.front().polyline.points.front(); }
-    const Point& last_point() const override { assert(this->first_point() == this->paths.back().polyline.points.back()); return this->first_point(); }
+    Point first_point() const override { return this->paths.front().polyline.points.front().to_point(); }
+    Point last_point() const override { assert(this->first_point() == this->paths.back().polyline.points.back().to_point()); return this->first_point(); }
     Polygon polygon() const;
     double length() const override;
     bool split_at_vertex(const Point &point, const double scaled_epsilon = scaled<double>(0.001));
@@ -554,7 +581,7 @@ public:
         size_t n = std::accumulate(paths.begin(), paths.end(), 0, [](const size_t n, const ExtrusionPath &p){ return n + p.polyline.size(); });
         dst.reserve(dst.size() + n);
         for (const ExtrusionPath &p : this->paths)
-            append(dst, p.polyline.points);
+            append(dst, to_points(p.polyline.points));
     }
     double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
     // check if the loop is smooth, angle_threshold is in radians, default is 10 degrees
@@ -598,7 +625,7 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, Ex
     for (Polyline &polyline : polylines)
         if (polyline.is_valid()) {
             dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-            dst.back().polyline = polyline;
+            dst.back().polyline = Polyline3(polyline);
         }
 }
 
@@ -608,7 +635,7 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &polylines, do
     for (Polyline &polyline : polylines)
         if (polyline.is_valid()) {
             dst.push_back(ExtrusionPath(overhang_degree, curva_degree, role, mm3_per_mm, width, height));
-            dst.back().polyline = polyline;
+            dst.back().polyline = Polyline3(polyline);
         }
 }
 
@@ -618,7 +645,7 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, E
     for (Polyline &polyline : polylines)
         if (polyline.is_valid()) {
             dst.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-            dst.back().polyline = std::move(polyline);
+            dst.back().polyline = Polyline3(std::move(polyline));
         }
     polylines.clear();
 }
@@ -629,7 +656,7 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polylines &&polylines, d
     for (Polyline &polyline : polylines)
         if (polyline.is_valid()) {
             dst.push_back(ExtrusionPath(overhang_degree, curva_degree, role, mm3_per_mm, width, height));
-            dst.back().polyline = std::move(polyline);
+            dst.back().polyline = Polyline3(std::move(polyline));
         }
     polylines.clear();
 }
@@ -639,7 +666,7 @@ inline void extrusion_paths_append(ExtrusionPaths &dst, Polyline &&polyline, dou
     dst.reserve(dst.size() + 1);
     if (polyline.is_valid()) {
         dst.push_back(ExtrusionPath(overhang_degree, curva_degree, role, mm3_per_mm, width, height));
-        dst.back().polyline = std::move(polyline);
+        dst.back().polyline = Polyline3(std::move(polyline));
     }
     polyline.clear();
 }
@@ -651,7 +678,7 @@ inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines
         if (polyline.is_valid()) {
             ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
             dst.push_back(extrusion_path);
-            extrusion_path->polyline = polyline;
+            extrusion_path->polyline = Polyline3(polyline);
         }
 }
 
@@ -662,7 +689,7 @@ inline void extrusion_entities_append_paths(ExtrusionEntitiesPtr &dst, Polylines
         if (polyline.is_valid()) {
             ExtrusionPath *extrusion_path = can_reverse ? new ExtrusionPath(role, mm3_per_mm, width, height) : new ExtrusionPathOriented(role, mm3_per_mm, width, height);
             dst.push_back(extrusion_path);
-            extrusion_path->polyline = std::move(polyline);
+            extrusion_path->polyline = Polyline3(std::move(polyline));
         }
     polylines.clear();
 }
@@ -698,10 +725,10 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
                         connect_line.points.push_back(overlap_curr_p);
                         connect_line.points.push_back(polyline.first_point());
 
-                        multi_path->paths.back().polyline = std::move(connect_line);
+                        multi_path->paths.back().polyline = Polyline3(std::move(connect_line));
                     }
                     else{
-                        multi_path->paths.back().polyline = std::move(Polyline(last_end_point, polyline.first_point()));
+                        multi_path->paths.back().polyline = Polyline3(Polyline(last_end_point, polyline.first_point()));
                     }
 
                 } else {
@@ -711,10 +738,10 @@ inline void extrusion_entities_append_paths_with_wipe(ExtrusionEntitiesPtr &dst,
             }
 
             multi_path->paths.push_back(ExtrusionPath(role, mm3_per_mm, width, height));
-            multi_path->paths.back().polyline = std::move(polyline);
+            multi_path->paths.back().polyline = Polyline3(std::move(polyline));
             last_end_point_valid = true;
-            last_end_point = multi_path->paths.back().polyline.last_point();
-            last_direction = (last_end_point - multi_path->paths.back().polyline.first_point()).cast<double>().normalized();
+            last_end_point = multi_path->paths.back().polyline.last_point().to_point();
+            last_direction = (last_end_point - multi_path->paths.back().polyline.first_point().to_point()).cast<double>().normalized();
         }
     }
     if (!multi_path->empty())
@@ -729,7 +756,9 @@ inline void extrusion_entities_append_loops(ExtrusionEntitiesPtr &dst, Polygons 
     for (Polygon &poly : loops) {
         if (poly.is_valid()) {
             ExtrusionPath path(role, mm3_per_mm, width, height);
-            path.polyline.points = std::move(poly.points);
+            path.polyline.points.reserve(poly.points.size() + 1);
+            for (const Point &pt : poly.points)
+                path.polyline.points.emplace_back(Point3(pt, 0));
             path.polyline.points.push_back(path.polyline.points.front());
             dst.emplace_back(new ExtrusionLoop(std::move(path)));
         }
@@ -744,11 +773,11 @@ inline void extrusion_entities_append_loops_and_paths(ExtrusionEntitiesPtr &dst,
         if (polyline.is_valid()) {
             if (polyline.is_closed()) {
                 ExtrusionPath extrusion_path(role, mm3_per_mm, width, height);
-                extrusion_path.polyline = std::move(polyline);
+                extrusion_path.polyline = Polyline3(std::move(polyline));
                 dst.emplace_back(new ExtrusionLoop(std::move(extrusion_path)));
             } else {
                 ExtrusionPath *extrusion_path = new ExtrusionPath(role, mm3_per_mm, width, height);
-                extrusion_path->polyline      = std::move(polyline);
+                extrusion_path->polyline = Polyline3(std::move(polyline));
                 dst.emplace_back(extrusion_path);
             }
         }

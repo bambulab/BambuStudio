@@ -2911,13 +2911,13 @@ void _3DScene::extrusionentity_to_verts(const Polyline &polyline, float width, f
 // Fill in the qverts and tverts with quads and triangles for the extrusion_path.
 void _3DScene::extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, GLVolume &volume)
 {
-	extrusionentity_to_verts(extrusion_path.polyline, extrusion_path.width, extrusion_path.height, print_z, volume);
+	extrusionentity_to_verts(extrusion_path.polyline.to_polyline(), extrusion_path.width, extrusion_path.height, print_z, volume);
 }
 
 // Fill in the qverts and tverts with quads and triangles for the extrusion_path.
 void _3DScene::extrusionentity_to_verts(const ExtrusionPath &extrusion_path, float print_z, const Point &copy, GLVolume &volume)
 {
-    Polyline            polyline = extrusion_path.polyline;
+    Polyline            polyline = extrusion_path.polyline.to_polyline();
     polyline.remove_duplicate_points();
     polyline.translate(copy);
     Lines               lines = polyline.lines();
@@ -2933,7 +2933,7 @@ void _3DScene::extrusionentity_to_verts(const ExtrusionLoop &extrusion_loop, flo
     std::vector<double> widths;
     std::vector<double> heights;
     for (const ExtrusionPath &extrusion_path : extrusion_loop.paths) {
-        Polyline            polyline = extrusion_path.polyline;
+        Polyline            polyline = extrusion_path.polyline.to_polyline();
         polyline.remove_duplicate_points();
         polyline.translate(copy);
         Lines lines_this = polyline.lines();
@@ -2951,7 +2951,7 @@ void _3DScene::extrusionentity_to_verts(const ExtrusionMultiPath &extrusion_mult
     std::vector<double> widths;
     std::vector<double> heights;
     for (const ExtrusionPath &extrusion_path : extrusion_multi_path.paths) {
-        Polyline            polyline = extrusion_path.polyline;
+        Polyline            polyline = extrusion_path.polyline.to_polyline();
         polyline.remove_duplicate_points();
         polyline.translate(copy);
         Lines lines_this = polyline.lines();

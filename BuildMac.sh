@@ -122,7 +122,8 @@ function build_deps() {
                         -DOPENSSL_ARCH="darwin64-${_ARCH}-cc" \
                         -DCMAKE_BUILD_TYPE="$BUILD_CONFIG" \
                         -DCMAKE_OSX_ARCHITECTURES:STRING="${_ARCH}" \
-                        -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}"
+                        -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_DEPLOYMENT_TARGET}" \
+                        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
                 fi
                 cmake --build . --parallel ${CMAKE_BUILD_PARALLEL_LEVEL} --config "$BUILD_CONFIG" --target deps
             )

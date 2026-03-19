@@ -1,6 +1,7 @@
 Build
 Build.bat
 /build/
+resources/nonplanar/
 /build2022/
 deps/build
 MYMETA.json

@@ -475,9 +475,9 @@ void AppConfig::set_defaults()
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
     }
-    if (get("ignore_module_cert").empty()) {
-        set_bool("ignore_module_cert", false);
-    }
+    // ZAA: Always skip module cert validation — our Developer ID cert
+    // differs from Bambu Lab's, preventing the network plugin from loading.
+    set_bool("ignore_module_cert", true);
     if (get("webview_auto_fill").empty()) {
         set_bool("webview_auto_fill", true);
     }

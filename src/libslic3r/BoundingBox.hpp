@@ -225,7 +225,20 @@ class BoundingBox3  : public BoundingBox3Base<Vec3crd>
 public:
     BoundingBox3() : BoundingBox3Base<Vec3crd>() {}
     BoundingBox3(const Vec3crd &pmin, const Vec3crd &pmax) : BoundingBox3Base<Vec3crd>(pmin, pmax) {}
-    BoundingBox3(const Points3& points) : BoundingBox3Base<Vec3crd>(points) {}
+    // ZAA fix: Points3 is now std::vector<Point3>, need custom handling
+    BoundingBox3(const Points3& points) : BoundingBox3Base<Vec3crd>() {
+        if (!points.empty()) {
+            this->min = points.front();
+            this->max = points.front();
+            for (const auto &p : points) {
+                this->min = this->min.cwiseMin(static_cast<const Vec3crd&>(p));
+                this->max = this->max.cwiseMax(static_cast<const Vec3crd&>(p));
+            }
+            this->defined = true;
+        }
+    }
+    // Backward compatibility with Vec3crd vectors
+    BoundingBox3(const std::vector<Vec3crd>& points) : BoundingBox3Base<Vec3crd>(points) {}
 };
 
 class BoundingBoxf : public BoundingBoxBase<Vec2d>

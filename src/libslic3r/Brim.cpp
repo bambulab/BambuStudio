@@ -1930,10 +1930,10 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 					auto *loop = new ExtrusionLoop();
                     brim.entities.emplace_back(loop);
 					loop->paths.emplace_back(erBrim, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height()));
-		            Points &points = loop->paths.front().polyline.points;
+		            Points3 &points = loop->paths.front().polyline.points;
 		            points.reserve(first_path.size());
 		            for (const ClipperLib_Z::IntPoint &pt : first_path)
-		            	points.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
+		                points.emplace_back(coord_t(pt.x()), coord_t(pt.y()), 0);
 		            i = j;
 				} else {
 			    	//FIXME The path chaining here may not be optimal.
@@ -1942,10 +1942,10 @@ ExtrusionEntityCollection make_brim(const Print &print, PrintTryCancel try_cance
 			    	for (; i < j; ++ i) {
 			            this_loop_trimmed.entities.emplace_back(new ExtrusionPath(erBrim, float(flow.mm3_per_mm()), float(flow.width()), float(print.skirt_first_layer_height())));
 						const ClipperLib_Z::Path &path = *loops_trimmed_order[i].first;
-			            Points &points = dynamic_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
+			            Points3 &points = dynamic_cast<ExtrusionPath*>(this_loop_trimmed.entities.back())->polyline.points;
 			            points.reserve(path.size());
 			            for (const ClipperLib_Z::IntPoint &pt : path)
-			            	points.emplace_back(coord_t(pt.x()), coord_t(pt.y()));
+			                points.emplace_back(coord_t(pt.x()), coord_t(pt.y()), 0);
 		           	}
 		           	chain_and_reorder_extrusion_entities(this_loop_trimmed.entities, &last_pt);
                     brim.entities.reserve(brim.entities.size() + this_loop_trimmed.entities.size());
