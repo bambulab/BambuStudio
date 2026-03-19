@@ -2,6 +2,7 @@
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
 #include <boost/log/trivial.hpp>
+#include <cassert>
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
 #include <map>
@@ -632,7 +633,7 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
 
     // Create mode panels based on available modes
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    
+
     // Define all possible modes with their labels and details
     std::map<FilamentMapMode, std::pair<wxString, wxString>> mode_info = {
         {fmmAutoForFlush, {_L("Filament-Saving Mode"), AutoForFlushDetail}},
@@ -643,27 +644,27 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
     // Create panels for available modes
     for (const auto& available_mode : m_available_modes) {
         auto it = mode_info.find(available_mode);
-        if (it != mode_info.end()) {
-            const auto& label = it->second.first;
-            const auto& detail = it->second.second;
-            const auto& icon = GetIconForMode(available_mode);
-
-            auto panel = new FilamentMapBtnPanel(this, label, detail, icon);
-
-            // Disable match mode if not machine synced
-            if (available_mode == fmmAutoForMatch && !m_machine_synced) {
-                panel->Enable(false);
-            }
-
-            m_mode_panels.push_back(panel);
-
-            // Bind click event
-            panel->Bind(wxEVT_LEFT_DOWN, [this, available_mode, panel](auto& event) {
-                if (panel->IsEnabled()) {
-                    this->OnModeSwitch(available_mode);
-                }
-            });
+        if (it == mode_info.end()) {
+            assert(false && "invalid auto mode");
+            BOOST_LOG_TRIVIAL(warning) << "invalid auto mode skipped: " << mode;
+            continue;
         }
+
+        const auto &label  = it->second.first;
+        const auto &detail = it->second.second;
+        const auto &icon   = GetIconForMode(available_mode);
+
+        auto panel = new FilamentMapBtnPanel(this, label, detail, icon);
+
+        // Disable match mode if not machine synced
+        if (available_mode == fmmAutoForMatch && !m_machine_synced) { panel->Enable(false); }
+
+        m_mode_panels.push_back(panel);
+
+        // Bind click event
+        panel->Bind(wxEVT_LEFT_DOWN, [this, available_mode, panel](auto &event) {
+            if (panel->IsEnabled()) { this->OnModeSwitch(available_mode); }
+        });
     }
 
     // Calculate width based on number of modes
@@ -731,17 +732,10 @@ void FilamentMapAutoPanel::Show()
 
 void FilamentMapAutoPanel::UpdateStatus()
 {
-    for (auto panel : m_mode_panels) {
-        panel->Select(false);
-    }
-    
-    // Find and select the panel corresponding to current mode
-    auto it = std::find(m_available_modes.begin(), m_available_modes.end(), m_mode);
-    if (it != m_available_modes.end()) {
-        size_t index = std::distance(m_available_modes.begin(), it);
-        if (index < m_mode_panels.size()) {
-            m_mode_panels[index]->Select(true);
-        }
+    assert(m_mode_panels.size() == m_available_modes.size());
+    for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+        bool selected = (m_mode == m_available_modes[i]);
+        m_mode_panels[i]->Select(selected);
     }
 }
 
