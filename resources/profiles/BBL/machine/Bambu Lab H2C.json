@@ -11,6 +11,6 @@
     "family": "BBL-3DP",
     "machine_tech": "FFF",
     "model_id": "O1C2",
-    "not_support_bed_type": "Cool Plate;High Temp Plate",
+    "not_support_bed_type": "Cool Plate;Smooth PEI Plate / High Temp Plate",
     "default_materials": "Bambu PLA Basic @BBL H2D;Bambu PLA-CF @BBL H2D;Bambu PETG Basic @BBL H2D;Bambu ABS @BBL H2D;Bambu PETG HF @BBL H2D;Bambu PLA Silk @BBL H2D;Bambu PLA Matte @BBL H2D;Bambu PC @BBL H2D;Bambu PA-CF @BBL H2D"
 }
