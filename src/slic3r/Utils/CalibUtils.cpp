@@ -1724,6 +1724,10 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
+        if (cali_info.extruder_type == ExtruderType::etBowden) {
+            error_message = wxString::Format(_L("The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."), name);
+            return false;
+        }
 
         if (is_approx(double(cali_info.nozzle_diameter), 0.2) && !obj->is_series_x()) {
             error_message = wxString::Format(_L("The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."), name);
@@ -1784,6 +1788,10 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
+        if (cali_info.extruder_type == ExtruderType::etBowden) {
+            error_message = wxString::Format(_L("The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."), name);
+            return false;
+        }
 
         if (is_approx(double(cali_info.nozzle_diameter), 0.2) && !obj->is_series_x()) {
             error_message = wxString::Format(_L("The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."), name);

@@ -1,5 +1,6 @@
 #include "StaticGroup.hpp"
 #include "Label.hpp"
+#include "slic3r/GUI/I18N.hpp"
 
 StaticGroup::StaticGroup(wxWindow *parent, wxWindowID id)
 #ifdef __WXOSX__
@@ -23,7 +24,6 @@ bool StaticGroup::Show(bool show)
 }
 
 void StaticGroup_layoutBadge(void * group, void * badge);
-
 
 void StaticGroup::ShowBadge(bool show)
 {

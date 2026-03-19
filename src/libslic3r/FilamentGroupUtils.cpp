@@ -328,36 +328,6 @@ namespace FilamentGroupUtils
         return ret;
     }
 
-
-    std::vector<FilamentUsageType> build_filament_usage_type_list(const PrintConfig& config, const std::vector<const PrintObject*>& objects)
-    {
-        std::vector<FilamentUsageType> filament_usage_types;
-        for(int idx = 0; idx< config.filament_type.size(); ++idx){
-            if(config.filament_is_support.values[idx])
-                filament_usage_types.push_back(FilamentUsageType::SupportOnly);
-            else{
-                bool is_support = false;
-                bool is_model = false;
-                for(auto obj : objects){
-                    if (!is_model) {
-                        auto obj_filaments = obj->object_extruders();
-                        is_model = std::find(obj_filaments.begin(), obj_filaments.end(), idx) != obj_filaments.end();
-                    }
-                    if(obj->config().support_filament - 1 == idx || obj->config().support_interface_filament - 1 == idx){
-                        is_support = true;
-                    }
-                }
-                if(is_model && is_support)
-                    filament_usage_types.emplace_back(FilamentUsageType::Hybrid);
-                else if(is_support)
-                    filament_usage_types.emplace_back(FilamentUsageType::SupportOnly);
-                else
-                    filament_usage_types.emplace_back(FilamentUsageType::ModelOnly);
-            }
-        }
-        return filament_usage_types;
-    }
-
     std::vector<int> update_used_filament_values(const std::vector<int>& old_values, const std::vector<int>& new_values, const std::vector<unsigned int>& used_filaments)
     {
         std::vector<int> res = old_values;

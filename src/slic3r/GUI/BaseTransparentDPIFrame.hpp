@@ -26,7 +26,8 @@ public:
                             wxString          win_text,
                             wxString          ok_text,
                             wxString          cancel_text        = "",
-                            DisappearanceMode disappearance_mode = DisappearanceMode::None);
+                            DisappearanceMode disappearance_mode = DisappearanceMode::None,
+                            std::string       icon_name          = "completed");
     ~BaseTransparentDPIFrame() override;
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void on_show();

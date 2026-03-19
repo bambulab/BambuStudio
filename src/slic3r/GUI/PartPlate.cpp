@@ -1513,8 +1513,7 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
     error_message.clear();
     FilamentMapMode mode = this->get_real_filament_map_mode(config);
     // only check printablity if we have explicit map result
-    if (mode != fmmManual)
-        return true;
+    if (mode != fmmManual) return true;
 
     std::vector<int> used_filaments = get_extruders(true);  // 1 base
     std::unordered_map<std::string, int> nozzle_fils;
@@ -1582,6 +1581,10 @@ bool PartPlate::check_multi_filament_without_prime_tower(const DynamicPrintConfi
 
 bool PartPlate::check_mixture_of_pla_and_petg(const DynamicPrintConfig &config)
 {
+    auto printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+	if (printer_model == "Bambu Lab X2D") {
+		return true;
+	}
     bool has_pla = false;
     bool has_petg = false;
 

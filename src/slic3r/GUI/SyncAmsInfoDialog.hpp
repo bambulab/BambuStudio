@@ -371,8 +371,49 @@ public:
     void deal_ok();
     void update_info(InputInfo &info);
 
+    void set_custom_message(const wxString &message)
+    {
+        if (m_finish_text) {
+            m_finish_text->SetLabel(message);
+            Layout();
+            Fit();
+        }
+    }
+
+    void set_disappearance_mode(DisappearanceMode mode)
+    {
+        m_timed_disappearance_mode = mode;
+    }
+
 private:
     InputInfo m_input_info;
 };
+
+class ExtruderWarningDialog : public Slic3r::GUI::BaseTransparentDPIFrame
+{
+public:
+    struct InputInfo
+    {
+        wxPoint dialog_pos{wxPoint(400, 200)};
+        wxPoint ams_btn_pos{wxPoint(400, 200)};
+    };
+    ExtruderWarningDialog(InputInfo &input_info, std::string icon_name = "warning");
+    ~ExtruderWarningDialog() override;
+    void deal_ok();
+    void update_info(InputInfo &info);
+
+    void set_custom_message(const wxString &message)
+    {
+        if (m_finish_text) {
+            m_finish_text->SetLabel(message);
+            Layout();
+            Fit();
+        }
+    }
+
+private:
+    InputInfo m_input_info;
+};
+
 }}     // namespace Slic3r::GUI
 #endif  // _STEP_MESH_DIALOG_H_

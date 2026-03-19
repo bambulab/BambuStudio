@@ -82,6 +82,28 @@ std::string DevPrinterConfigUtil::get_printer_ext_img(const std::string& type_st
     return (vec.size() > pos) ? vec[pos] : std::string();
 };
 
+std::string DevPrinterConfigUtil::get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack)
+{
+    if (has_nozzle_rack)
+    {
+        const auto &rack_vec = get_value_from_config<std::vector<std::string>>(type_str, "filament_load_image_nozzle_rack") ;
+        if (!rack_vec.empty())
+        {
+            if (ext_id >= 0 && static_cast<size_t>(ext_id) < rack_vec.size())
+            {
+                return rack_vec[ext_id];
+            }
+            return rack_vec[0];
+        }
+    }
+    const auto &vec = get_value_from_config<std::vector<std::string>>(type_str, "filament_load_image");
+    if (ext_id >= 0 && static_cast<size_t>(ext_id) < vec.size())
+    {
+        return vec[ext_id];
+    }
+    return vec.empty() ? std::string() : vec[0];
+}
+
 std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, const std::string& key)
 {
     std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
@@ -169,6 +191,36 @@ std::string DevPrinterConfigUtil::get_fan_text(const std::string& type_str, int 
         }
     }
     catch (...) {}
+    return std::string();
+}
+
+std::string DevPrinterConfigUtil::get_fan_mode_text(const std::string& type_str, int airduct_mode, const std::string& key)
+{
+    std::vector<std::string> filaments;
+    std::string              config_file = m_resource_file_path + "/printers/" + type_str + ".json";
+    boost::nowide::ifstream  json_file(config_file.c_str());
+    try {
+        json jj;
+        if (json_file.is_open()) {
+            json_file >> jj;
+            if (jj.contains("00.00.00.00")) {
+                json const& printer = jj["00.00.00.00"];
+                if (!printer.contains("fan")) {
+                    return std::string();
+                }
+
+                json const& fan_item = printer["fan"];
+                const auto& airduct_mode_str = std::to_string(airduct_mode);
+                if (!fan_item.contains(airduct_mode_str)) {
+                    return std::string();
+                }
+
+                if (fan_item[airduct_mode_str].contains(key)) {
+                    return fan_item[airduct_mode_str][key].get<std::string>();
+                }
+            }
+        }
+    } catch (...) {}
     return std::string();
 }
 

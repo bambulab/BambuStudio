@@ -36,7 +36,7 @@ public:
 
     struct CheckResultItem
     {
-        std::string action;
+        std::string action;// warning/prohibition
         wxString    info_msg;
         wxString    wiki_url;
     };

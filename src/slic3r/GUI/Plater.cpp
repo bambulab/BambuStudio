@@ -529,6 +529,7 @@ static void PositionLabelOverStaticBox(wxPoint top_left, HoverLabel *label_)
 struct ExtruderGroup : StaticGroup
 {
     ExtruderGroup(wxWindow * parent, int index, wxString const &title);
+    int m_index;
     wxBoxSizer *sizer        = nullptr;
     HoverLabel *      hover_label  = nullptr;
     ScalableButton *  btn_edit     = nullptr;
@@ -563,6 +564,7 @@ struct ExtruderGroup : StaticGroup
     void     SetTitleWithType(const int type);
     wxString GetSuffixStr();
     void     SetOnHoverClick(std::function<void()> on_click);
+    int      GetIndex() const { return m_index; }
 
     void update_ams();
 
@@ -701,6 +703,7 @@ struct Sidebar::priv
     bool sync_extruder_list(bool &only_external_material, bool is_manual = false);
     std::optional<NozzleOption> get_nozzle_options(MachineObject *obj, int extruder_count, bool support_multi_nozzle, bool is_manual);
     bool switch_diameter(bool single);
+    void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
     void adjust_filament_title_layout();
     bool is_fila_switch_ready();
@@ -1731,6 +1734,7 @@ void Sidebar::priv::reset_all_nozzle_status()
 
 ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title)
     : StaticGroup(parent, wxID_ANY)
+    , m_index(index)
 {
     SetFont(Label::Body_10);
     SetForegroundColour(wxColour("#CECECE"));
@@ -1749,6 +1753,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     label_diameter->SetForegroundColour("#262E30");
     if (index >= 0) label_diameter->SetMinSize({FromDIP(80), -1});
     auto combo_diameter = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    combo_diameter->GetDropDown().SetUseContentWidth(true);
     this->combo_diameter = combo_diameter;
     wxStaticText *label_flow = new wxStaticText(this, wxID_ANY, _L("Flow"));
     label_flow->SetFont(Label::Body_14);
@@ -2290,7 +2295,11 @@ bool Sidebar::priv::switch_diameter(bool single)
         return false;
     }
     preset->is_visible = true; // force visible
-    return wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+    bool result = wxGetApp().get_tab(Preset::TYPE_PRINTER)->select_preset(preset->name);
+    //if (result) {
+    //    update_right_extruder_group_color();
+    //}
+    return result;
 }
 
 static bool is_skip_high_flow_printer(const std::string& printer)
@@ -3505,9 +3514,19 @@ Sidebar::Sidebar(Plater *parent)
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(p->scrolled, 1, wxEXPAND);
     SetSizer(sizer);
+
+    //wxGetApp().CallAfter([this]() {
+    //    p->update_right_extruder_group_color();
+    //});
 }
 
-Sidebar::~Sidebar() {}
+Sidebar::~Sidebar() {
+    if (m_extruder_warning_dialog) {
+        m_extruder_warning_dialog->Hide();
+        m_extruder_warning_dialog->Destroy();
+        m_extruder_warning_dialog = nullptr;
+    }
+}
 
 void Sidebar::on_enter_image_printer_bed(wxMouseEvent &evt) {
     p->image_printer_bed->Bind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
@@ -3871,7 +3890,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
             extruder.combo_flow->SetSelection(select);
         };
 
-        auto update_extruder_diameter = [&diameters, &diameter](ExtruderGroup & extruder) {
+        auto update_extruder_diameter = [&diameters, &diameter, extruders](ExtruderGroup & extruder) {
             extruder.combo_diameter->Clear();
             int select = -1;
             for (size_t i = 0; i < diameters.size(); ++i) {
@@ -4693,6 +4712,7 @@ void Sidebar::reset_all_nozzle_status()
 }
 
 void Sidebar::load_ams_list(MachineObject* obj)
+
 {
     std::map<int, DynamicPrintConfig> filament_ams_list = build_filament_ams_list(obj);
 
@@ -13152,9 +13172,9 @@ void Plater::priv::on_helio_processing_complete(HelioCompletionEvent &a)
         auto       aprint_stats = wxGetApp().plater()->get_partplate_list().get_current_fff_print().print_statistics();
         PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
         if (plate) {
-            if (plate->get_slice_result()) { 
+            if (plate->get_slice_result()) {
                 time_origin_value = plate->get_slice_result()->print_statistics.modes[0].time;
-                //time_origin = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time))); 
+                //time_origin = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time)));
             }
         }
 
@@ -19814,6 +19834,15 @@ int Plater::send_gcode(int plate_idx, Export3mfProgressFn proFn)
     int result = 0;
     /* generate 3mf */
     set_print_job_plate_idx(plate_idx);
+
+    if (using_exported_file() && !m_3mf_path.empty()) {
+        try {
+            if (boost::filesystem::exists(m_3mf_path)) {
+                p->m_print_job_data._3mf_path = fs::path(m_3mf_path);
+                return 0;
+            }
+        } catch (const std::exception& ) { };
+    }
 
     PartPlate* plate = get_partplate_list().get_curr_plate();
     try {

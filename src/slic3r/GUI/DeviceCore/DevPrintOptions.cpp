@@ -302,7 +302,9 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection},
                         {PrintOptionEnum::FOD_Check_Detection, &m_fod_check_detection}
     };
-}
+};
+
+
 
 void DevPrintOptions::SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level)
 {

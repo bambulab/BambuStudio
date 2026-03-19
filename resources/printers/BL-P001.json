@@ -72,7 +72,8 @@
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": false,
-		"support_disable_cali_flow_type": true
+		"support_disable_cali_flow_type": true,
+		"filament_load_image": ["filament_load_x_series_ext0"]
 	},
 	"01.01.01.00": {
 		"print": {

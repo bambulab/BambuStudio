@@ -469,7 +469,7 @@ void BackgroundSlicingProcess::thread_proc_safe_seh_throw() throw()
 		try {
 			rethrow_seh_exception(win32_seh_catched);
 		} catch (...) {
-			wxTheApp->OnUnhandledException();
+			//wxTheApp->OnUnhandledException();
 		}
 	}
 }
@@ -480,7 +480,7 @@ void BackgroundSlicingProcess::thread_proc_safe() throw()
 	try {
 		this->thread_proc();
 	} catch (...) {
-		wxTheApp->OnUnhandledException();
+		//wxTheApp->OnUnhandledException();
    	}
 }
 

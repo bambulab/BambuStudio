@@ -64,11 +64,13 @@ public:
     static std::string get_printer_ams_img(const std::string& type_str) { return get_value_from_config<std::string>(type_str, "printer_use_ams_image"); }
     static std::string get_printer_ext_img(const std::string& type_str, int pos);//printer_ext_image
     static bool        support_ams_fila_change_abort(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_filament_change_abort"); }
+    static std::string get_filament_load_img(const std::string &type_str, int ext_id, bool has_nozzle_rack = false);
 
     /*fan*/
     static std::string              get_fan_text(const std::string& type_str, const std::string& key);
     static std::vector<std::string> get_fan_text_params(const std::string& type_str, const std::string& key);
     static std::string get_fan_text(const std::string& type_str, int airduct_mode, int airduct_func, int submode);
+    static std::string get_fan_mode_text(const std::string& type_str, int airduct_mode, const std::string& key);
 
     /*extruder*/
     static bool get_printer_can_set_nozzle(std::string type_str) { return get_value_from_config<bool>(type_str, "enable_set_nozzle_info"); }// can set nozzle from studio
@@ -115,7 +117,7 @@ public:
                 }
             }
         }
-        catch (...) { assert(0 && "get_value_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors 
+        catch (...) { assert(0 && "get_value_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors
         return T();
     };
 
@@ -167,7 +169,7 @@ public:
                 }
             }
         }
-        catch (...) { assert(0 && "get_json_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors 
+        catch (...) { assert(0 && "get_json_from_config failed"); BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " failed"; }// there are file errors
         return nlohmann::json();
     }
 
