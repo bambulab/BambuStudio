@@ -2936,6 +2936,36 @@ bool Print::get_full_filament_extruder_variants(const size_t filament_id, std::v
     return true;
 }
 
+std::vector<FilamentUsageType> Print::get_filament_usage_type() const
+{
+    std::vector<FilamentUsageType> filament_usage_types;
+
+    std::unordered_set<int> model_filaments, support_filaments; //0 base
+    for (auto& obj : this->objects().vector()) {
+        auto obj_filaments = obj->object_extruders();
+        model_filaments.insert(obj_filaments.begin(), obj_filaments.end());
+
+        int support_fil = obj->config().support_filament - 1;
+        int support_interface_fil = obj->config().support_interface_filament - 1;
+        if (support_fil >= 0) support_filaments.insert(support_fil);
+        if (support_interface_fil >= 0) support_filaments.insert(support_interface_fil);
+    }
+
+    for (int idx = 0; idx < m_config.filament_type.size(); ++idx) {
+
+        bool is_model = model_filaments.count(idx);
+        bool is_support   = support_filaments.count(idx);
+
+        if (is_model && is_support)
+            filament_usage_types.emplace_back(FilamentUsageType::Hybrid);
+        else if (is_support)
+            filament_usage_types.emplace_back(FilamentUsageType::SupportOnly);
+        else
+            filament_usage_types.emplace_back(FilamentUsageType::ModelOnly);
+    }
+    return filament_usage_types;
+}
+
 std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::vector<unsigned int>& used_filaments) const
 {
     int extruder_num = m_config.nozzle_diameter.size();
@@ -2952,7 +2982,6 @@ std::vector<std::set<int>> Print::get_physical_unprintable_filaments(const std::
         }
         return -1;
     };
-
 
     std::set<int> tpu_filaments;
     for (auto f : used_filaments) {
@@ -3319,7 +3348,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.bbx = wipe_tower.get_bbx();
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
-    // Unload the current filament over the purge tower.
+    // Unload the current filament over the purge tower. 
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.

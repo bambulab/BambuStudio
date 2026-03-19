@@ -3263,4 +3263,30 @@ void FinishSyncAmsDialog::update_info(InputInfo &info)
     SetPosition(m_input_info.dialog_pos);
 }
 
+ExtruderWarningDialog::ExtruderWarningDialog(InputInfo &input_info, std::string icon_name)
+    : BaseTransparentDPIFrame(static_cast<wxWindow *>(wxGetApp().mainframe),
+                              310,
+                              input_info.dialog_pos,
+                              68,
+                              _L("Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."),
+                              _CTX(L_CONTEXT("OK", "FinishSyncAms"), "FinishSyncAms"),
+                              "",
+                              DisappearanceMode::TimedDisappearance,
+                              icon_name)
+    , m_input_info(input_info)
+{
+    m_button_cancel->Hide();
+}
+
+ExtruderWarningDialog::~ExtruderWarningDialog() {}
+
+void ExtruderWarningDialog::deal_ok() { on_hide(); }
+
+void ExtruderWarningDialog::update_info(InputInfo &info)
+{
+    m_input_info = info;
+    restart();
+    SetPosition(m_input_info.dialog_pos);
+}
+
 }} // namespace Slic3r

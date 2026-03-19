@@ -75,6 +75,9 @@ public:
 
     static std::unordered_map<int, bool> GetBackupStatus(unsigned int fila_back_group);
 
+    // extuder type
+    bool             IsBowdenExtuder() const;
+
     static int to_physical_extruder_id(int total_ext_count, int logical_extruder_id);
     static int to_logical_extruder_id(int total_ext_count, int physical_extruder_id);
 

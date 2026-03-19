@@ -1194,7 +1194,7 @@ namespace Slic3r
             for (int gidx = 0; gidx < 2; ++gidx) {
                 if (ctx.machine_info.prefer_non_model_filament[gidx]) {
                     for (int fidx : groups[gidx]) {
-                        if (ctx.model_info.filament_info[fidx].usage_type == FilamentGroupUtils::SupportOnly)
+                        if (ctx.model_info.filament_info[used_filaments[fidx]].usage_type == SupportOnly)
                             prefer_filament_count += 1;
                     }
                 }
