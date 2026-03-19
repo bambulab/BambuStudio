@@ -3116,10 +3116,6 @@
             "sub_path": "filament/Bambu PLA Glow @BBL H2C.json"
         },
         {
-            "name": "Bambu PLA Glow @BBL H2C 0.2 nozzle",
-            "sub_path": "filament/Bambu PLA Glow @BBL H2C 0.2 nozzle.json"
-        },
-        {
             "name": "Bambu PLA Glow @BBL H2C 0.4 nozzle",
             "sub_path": "filament/Bambu PLA Glow @BBL H2C 0.4 nozzle.json"
         },
@@ -3138,10 +3134,6 @@
         {
             "name": "Bambu PLA Glow @BBL H2S",
             "sub_path": "filament/Bambu PLA Glow @BBL H2S.json"
-        },
-        {
-            "name": "Bambu PLA Glow @BBL H2S 0.2 nozzle",
-            "sub_path": "filament/Bambu PLA Glow @BBL H2S 0.2 nozzle.json"
         },
         {
             "name": "Bambu PLA Glow @BBL P1P",
