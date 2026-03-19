@@ -958,8 +958,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 }
 
                 auto extruder_variants = m_print_config->printer_extruder_variant.values;
-                std::string old_extruder_variant = extruder_variants[old_extruder_id];
-                std::string new_extruder_variant = extruder_variants[new_extruder_id];
+                std::string old_extruder_variant = (old_extruder_id >= 0 && old_extruder_id < (int)extruder_variants.size()) ? extruder_variants[old_extruder_id] : "";
+                std::string new_extruder_variant = (new_extruder_id >= 0 && new_extruder_id < (int)extruder_variants.size()) ? extruder_variants[new_extruder_id] : "";
 
                 config.set_key_value("current_extruder_id", new ConfigOptionInt(old_extruder_id));
                 config.set_key_value("next_extruder_id", new ConfigOptionInt(new_extruder_id));
@@ -8254,8 +8254,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
     auto extruder_variants = m_print->config().option<ConfigOptionStrings>("printer_extruder_variant")->values;
-    std::string old_extruder_variant = old_extruder_id >= 0 ? extruder_variants[old_extruder_id] : "";
-    std::string new_extruder_variant = extruder_variants[new_extruder_id];
+    std::string old_extruder_variant = (old_extruder_id >= 0 && old_extruder_id < (int)extruder_variants.size()) ? extruder_variants[old_extruder_id] : "";
+    std::string new_extruder_variant = (new_extruder_id >= 0 && new_extruder_id < (int)extruder_variants.size()) ? extruder_variants[new_extruder_id] : "";
 
     // set volumetric speed of outer wall ,ignore per obejct,just use default setting
     float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, *m_print, new_filament_id, get_extruder_id(new_filament_id));
