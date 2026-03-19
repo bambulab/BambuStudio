@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.9\n"
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "Das Filament ist möglicherweise nicht mit den aktuellen Maschineneinstellungen kompatibel. Es werden generische Filamentprofile verwendet."
@@ -194,7 +194,7 @@ msgid "Model:"
 msgstr "Modell:"
 
 msgid "Serial:"
-msgstr "Seriennummer:"
+msgstr "Serie:"
 
 msgid "Version:"
 msgstr "Version:"
@@ -442,7 +442,7 @@ msgid "hit face"
 msgstr "an Fläche"
 
 msgid "Shortcut Key "
-msgstr "Tastenkürzel"
+msgstr "Tastenkürzel "
 
 msgid "Triangle"
 msgstr "Dreieck"
@@ -3556,7 +3556,7 @@ msgid "click here to see more info"
 msgstr "Klicken Sie hier, um weitere Informationen zu erhalten"
 
 msgid "Please home all axes (click "
-msgstr "Bitte alle Achsen referenzieren (Klick"
+msgstr "Bitte alle Achsen referenzieren (Klick "
 
 msgid ") to locate the toolhead's position. This prevents device moving beyond the printable boundary and causing equipment wear."
 msgstr "), um die Position des Werkzeugkopfs zu ermitteln. Dadurch wird verhindert, dass sich das Gerät über die Bewegungsgrenzen bewegt und das Gerät beschädigt wird."
@@ -6057,7 +6057,7 @@ msgid "Right extruder hotend not detected. Cannot set nozzle temperature."
 msgstr "Rechtes Extruder-Hotend nicht erkannt. Düsentemperatur kann nicht eingestellt werden."
 
 msgid "Chamber temperature cannot be changed in cooling mode while printing."
-msgstr "cDie Kammertemperatur kann während des Druckvorgangs im Kühlmodus nicht geändert werden."
+msgstr "Die Kammertemperatur kann während des Druckvorgangs im Kühlmodus nicht geändert werden."
 
 msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
 msgstr "Wenn die Kammertemperatur 40 °C übersteigt, schaltet das System automatisch in den Heizmodus. Bitte bestätigen Sie, ob Sie umschalten möchten."
@@ -12024,7 +12024,7 @@ msgid "money/kg"
 msgstr "Preis/kg"
 
 msgid "Vendor"
-msgstr "Verkäufer"
+msgstr "Hersteller"
 
 msgid "Vendor of filament. For show only"
 msgstr "Filamentmarke (Nur zur Anzeige)"
@@ -13878,7 +13878,7 @@ msgid "Flow Rate"
 msgstr "Flussrate"
 
 msgid "The name cannot be empty."
-msgstr "Der Name darf nicht leer sein"
+msgstr "Der Name darf nicht leer sein."
 
 #, c-format, boost-format
 msgid "The selected preset: %s is not found."
@@ -16266,8 +16266,7 @@ msgstr ""
 "Drucke in mehrere Druckplatten aufteilen\n"
 "Wussten Sie, dass Sie ein Modell, das aus vielen Teilen besteht, in einzelne Druckplatten aufteilen können? Dadurch wird es einfacher, den Überblick über alle Teile zu behalten."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -16339,8 +16338,7 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandlinien und eine höhere Dichte der Füllung verbessern können?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -16356,29 +16354,25 @@ msgstr ""
 "Vermeiden Sie Verformungen\n"
 "Wussten Sie, dass beim Drucken von Materialien, die zu Verformungen neigen, wie z. B. ABS, die Wahrscheinlichkeit von Verformungen durch eine entsprechende Erhöhung der Heizbetttemperatur verringert werden kann?"
 
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
-#: materials) Like a Pro]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced materials) Like a Pro]
 msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
-#: (Safely)]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster (Safely)]
 msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
-#: Tuning]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
 "Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
 
-#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
-#: advanced materials]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other advanced materials]
 msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
