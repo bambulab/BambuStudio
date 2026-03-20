@@ -32,6 +32,42 @@ static const std::array<float, 4> UNIFORM_SCALE_COLOR = { 0.923f, 0.504f, 0.264f
 namespace Slic3r {
 namespace GUI {
 
+namespace {
+
+void normalize_pasted_object_filament_config(ModelObject &object, size_t filaments_count)
+{
+    auto normalize_pasted_filament_overrides = [filaments_count](auto &config) {
+        static const char *keys[] = {
+            "support_filament",
+            "support_interface_filament",
+            "wall_filament",
+            "sparse_infill_filament",
+            "solid_infill_filament"
+        };
+
+        for (const char *key : keys) {
+            if (config.has(key) && config.opt_int(key) > filaments_count)
+                config.erase(key);
+        }
+
+        if (config.has("extruder") && config.opt_int("extruder") > filaments_count)
+            config.erase("extruder");
+    };
+
+    if (!object.config.has("extruder") || object.config.extruder() < 1 || object.config.extruder() > filaments_count)
+        object.config.set_key_value("extruder", new ConfigOptionInt(1));
+
+    normalize_pasted_filament_overrides(object.config);
+
+    for (ModelVolume *volume : object.volumes)
+        normalize_pasted_filament_overrides(volume->config);
+
+    for (auto &layer_range : object.layer_config_ranges)
+        normalize_pasted_filament_overrides(layer_range.second);
+}
+
+} // namespace
+
 Selection::VolumeCache::TransformCache::TransformCache()
     : position(Vec3d::Zero())
     , rotation(Vec3d::Zero())
@@ -3371,6 +3407,8 @@ void Selection::paste_objects_from_clipboard()
     check_model_ids_validity(*m_model);
 #endif /* _DEBUG */
 
+    const auto              *filament_colors = wxGetApp().preset_bundle->project_config.option<ConfigOptionStrings>("filament_colour", false);
+    const size_t             filaments_count = filament_colors == nullptr ? 1 : std::max<size_t>(1, filament_colors->size());
     std::vector<size_t> object_idxs;
     const ModelObjectPtrs& src_objects = m_clipboard.get_objects();
     PartPlate *            plate       = wxGetApp().plater()->get_partplate_list().get_curr_plate();
@@ -3395,6 +3433,7 @@ void Selection::paste_objects_from_clipboard()
     {
         const ModelObject *src_object = src_objects[i];
         ModelObject* dst_object = m_model->add_object(*src_object);
+        normalize_pasted_object_filament_config(*dst_object, filaments_count);
 
         // BBS: find an empty cell to put the copied object
         BoundingBoxf3 bbox = src_object->instance_convex_hull_bounding_box(size_t(0));
