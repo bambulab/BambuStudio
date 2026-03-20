@@ -1200,7 +1200,7 @@ void Tab::update_extruder_switch_colors()
         check_extruder_options_status(switch_index, sys_extruder, modified_extruder, pages_to_check);
 
         StateColor default_color(std::make_pair(0x6B6B6B, (int) StateColor::NotChecked), std::make_pair(0xFFFFFE, (int) StateColor::Normal));
-        StateColor color = (modified_extruder || m_type >= Preset::TYPE_COUNT) ? StateColor(m_modified_label_clr) : default_color;
+        StateColor color = modified_extruder ? StateColor(m_modified_label_clr) : default_color;
 
         if (m_extruder_switch)
             m_extruder_switch->SetButtonTextColor(switch_index, color);
