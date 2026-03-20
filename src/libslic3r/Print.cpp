@@ -1092,6 +1092,11 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
     return HighLowCompatible;
 }
 
+bool Print::is_dynamic_group_reorder() const
+{
+    return config().enable_filament_dynamic_map && config().filament_map_mode == FilamentMapMode::fmmAutoForFlush && config().nozzle_diameter.size() > 1;
+}
+
 int Print::get_filament_config_indx(int filament_id, int layer_id)
 {
     return get_config_index(filament_id, layer_id, m_config.filament_extruder_variant.values, m_filament_self_index, m_filament_index_map);
