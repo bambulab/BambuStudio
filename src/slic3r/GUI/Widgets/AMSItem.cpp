@@ -4119,37 +4119,75 @@ std::optional<int> FeedDirectionDialog::GetExtruderID()
     return std::nullopt;
 }
 
-void FeedDirectionDialog::SetExtruderMapping(const std::vector<wxString>& extruderMapping, const wxString& filamentID)
+wxString FeedDirectionDialog::calcTrayName(MachineObject* obj, const std::string& amsID, const std::string& slotID)
 {
-    if (!filamentID.empty())
-    {
-        m_filament_id = filamentID;
-        SetTitle(wxString::Format(_L("Load %s to "), filamentID));
+    if (amsID.empty() || slotID.empty() || !obj)
+        return wxString();
 
-        if (extruderMapping[1] == filamentID) //left extruder
-        {
-            m_leftRadio->Enable(false);
-            // m_lastChecked = m_leftRadio;
-            m_confirmBtn->Enable(false);
-            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
-            m_extruderImage->setExtruderUsed("right");
-        }
-        else if (extruderMapping[0] == filamentID) //right extruder
-        {
-            m_rightRadio->Enable(false);
-            // m_lastChecked = m_rightRadio;
-            m_confirmBtn->Enable(false);
-            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
-            m_extruderImage->setExtruderUsed("left");
-        }
-        else
-        {
-            m_radioHelper->SetValue(true);
-            m_lastChecked = m_radioHelper;
-            m_confirmBtn->Enable(false);
-            m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
-            m_extruderImage->setExtruderUsed("");
-        }
+    auto filaSys = obj->GetFilaSystem();
+    if (!filaSys)
+        return wxString();
+
+    DevAms* ams = filaSys->GetAmsById(amsID);
+    if (!ams)
+        return wxString();
+
+    int ams_id_int  = std::stoi(amsID);
+    int slot_id_int = std::stoi(slotID);
+    int tray_id     = 0;
+
+    if (ams->GetAmsType() == DevAmsType::AMS || ams->GetAmsType() == DevAmsType::AMS_LITE || ams->GetAmsType() == DevAmsType::N3F) {
+        tray_id = ams_id_int * 4 + slot_id_int;
+    } else if (ams->GetAmsType() == DevAmsType::N3S) {
+        tray_id = ams_id_int + slot_id_int;
+    } else if (ams->GetAmsType() == DevAmsType::EXT_SPOOL) {
+        tray_id = slot_id_int;
+    } else {
+        return wxString();
+    }
+
+    return wxGetApp().transition_tridid(tray_id);
+}
+
+void FeedDirectionDialog::SetExtruderMapping(MachineObject* obj,
+                                             const std::string& currAmsId,
+                                             const std::string& currSlotId,
+                                             const std::vector<std::pair<std::string, std::string>>& extruderSlots)
+{
+    wxString filamentID = calcTrayName(obj, currAmsId, currSlotId);
+    if (filamentID.empty())
+        return;
+
+    m_filament_id = filamentID;
+    SetTitle(wxString::Format(_L("Load %s to "), filamentID));
+
+    std::vector<wxString> extruderMapping(extruderSlots.size());
+    for (size_t i = 0; i < extruderSlots.size(); ++i) {
+        if (!extruderSlots[i].first.empty())
+            extruderMapping[i] = calcTrayName(obj, extruderSlots[i].first, extruderSlots[i].second);
+    }
+
+    if (extruderMapping.size() > 1 && extruderMapping[1] == filamentID) //left extruder
+    {
+        m_leftRadio->Enable(false);
+        m_confirmBtn->Enable(false);
+        m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+        m_extruderImage->setExtruderUsed("right");
+    }
+    else if (!extruderMapping.empty() && extruderMapping[0] == filamentID) //right extruder
+    {
+        m_rightRadio->Enable(false);
+        m_confirmBtn->Enable(false);
+        m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+        m_extruderImage->setExtruderUsed("left");
+    }
+    else
+    {
+        m_radioHelper->SetValue(true);
+        m_lastChecked = m_radioHelper;
+        m_confirmBtn->Enable(false);
+        m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::EMPTY_LOAD);
+        m_extruderImage->setExtruderUsed("");
     }
 }
 
