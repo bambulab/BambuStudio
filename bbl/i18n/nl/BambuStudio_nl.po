@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -201,7 +201,7 @@ msgid "Temperature"
 msgstr "Temperatuur"
 
 msgid "Left Time"
-msgstr "Linkertijd"
+msgstr "Resterende tijd"
 
 msgid "Drying"
 msgstr "Drogen"
@@ -973,6 +973,9 @@ msgstr "Deuvel"
 
 msgid "Snap"
 msgstr "Snap"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerantie"
@@ -6565,6 +6568,9 @@ msgstr "Ga naar"
 msgid "Error:"
 msgstr "Fout:"
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr "Waarschuwing:"
 
@@ -6939,25 +6945,14 @@ msgstr "AMS (1 sleuf)"
 msgid "Not installed"
 msgstr "Niet geïnstalleerd"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"De software ondersteunt het gebruik van verschillende nozzle-diameters voor één print niet.\n"
-"Als de linker- en rechter nozzle niet overeenkomen, kunnen we alleen printen met één kop.\n"
-"Bevestig alstublieft welke nozzle u wilt gebruiken voor dit project."
+msgid "4-slot AMS"
+msgstr "4 slot AMS"
 
-msgid "Switch diameter"
-msgstr "Wissel van diameter"
+msgid "1-slot AMS"
+msgstr "1 slot AMS"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Linker nozzle: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Rechter nozzle: %smm"
+msgid "Remove this AMS"
+msgstr "Verwijder deze AMS"
 
 msgid "Sync printer information"
 msgstr "Printergegevens synchroniseren"
@@ -7362,6 +7357,21 @@ msgstr "Opmerking: Het gebruik van een referentiemateriaal kan leiden tot benade
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr "Wijzig je filamentselectie zodat je een ondersteund materiaal gebruikt en probeer het opnieuw."
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Een Helio-simulatie- of optimalisatietaak is bezig."
 
@@ -7386,6 +7396,67 @@ msgstr ""
 
 msgid "Helio Printer Match Confirmation"
 msgstr "Helio printer overeenkomst bevestiging"
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "De huidige printerpreset kan niet worden gesliced met Helio."
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+"Helio heeft een mogelijke materiaalovereenkomst gevonden met token-gebaseerde matching:\n"
+"\n"
+"Jouw materiaal: %s\n"
+"Gevonden materiaal: %s\n"
+"\n"
+"Wil je deze overeenkomst gebruiken, of geef je de voorkeur aan het hernoemen van je materiaalprofiel?"
+
+msgid "Helio Material Match Confirmation"
+msgstr "Helio printer overeenkomst bevestiging"
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio ondersteunt materialen %s niet"
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+"Waarschuwing: Vul-combinatie wordt momenteel niet ondersteund door Helio.\n"
+"\n"
+"Het doorgaan met deze instelling ingeschakeld kan onjuiste resultaten opleveren.\n"
+"\n"
+"Wil je toch doorgaan?"
+
+msgid "Helio Warning"
+msgstr "Helio-waarschuwing"
 
 msgid "Unsupported Printer Detected"
 msgstr "Niet-ondersteunde printer gedetecteerd"
@@ -7414,57 +7485,6 @@ msgstr "Wijzig je printerselectie zodat je een ondersteunde printer gebruikt en 
 
 msgid "See supported printers"
 msgstr "Zie ondersteunde printers"
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr "De huidige printerpreset kan niet worden gesliced met Helio."
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-"Helio heeft een mogelijke materiaalovereenkomst gevonden met token-gebaseerde matching:\n"
-"\n"
-"Jouw materiaal: %s\n"
-"Gevonden materiaal: %s\n"
-"\n"
-"Wil je deze overeenkomst gebruiken, of geef je de voorkeur aan het hernoemen van je materiaalprofiel?"
-
-msgid "Helio Material Match Confirmation"
-msgstr "Helio printer overeenkomst bevestiging"
-
-msgid "Unsupported Material Detected"
-msgstr "Niet-ondersteund materiaal gedetecteerd"
-
-msgid "⚠ Unsupported Material Detected"
-msgstr "⚠ Niet-ondersteund materiaal gedetecteerd"
-
-msgid "Choose a Reference Material"
-msgstr "Kies een referentiemateriaal"
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr "Helio ondersteunt materialen %s niet"
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-"Waarschuwing: Vul-combinatie wordt momenteel niet ondersteund door Helio.\n"
-"\n"
-"Het doorgaan met deze instelling ingeschakeld kan onjuiste resultaten opleveren.\n"
-"\n"
-"Wil je toch doorgaan?"
-
-msgid "Helio Warning"
-msgstr "Helio-waarschuwing"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Klik op de knop Optimaliseren/Verbeteren om je eerste optimalisatie te starten."
@@ -10009,6 +10029,55 @@ msgstr "Het configuratiepakket wordt gewijzigd in de vorige Configuratiegids"
 msgid "Configuration package changed"
 msgstr "Het configuratiepakket is gewijzigd"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr "Achterzijde"
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "Gereedschapsbalk"
 
@@ -10489,6 +10558,14 @@ msgstr "Bekijk en download recente optimalisaties en simulaties"
 msgid "Terms of Use"
 msgstr "Gebruiksvoorwaarden"
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr "Activatie geslaagd"
 
@@ -10548,6 +10625,9 @@ msgstr "Account beheren"
 
 msgid "Environment Settings"
 msgstr "Omgevingsinstellingen"
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "Gebruikt de kamertemperatuur uit de filamentinstellingen indien beschikbaar; anders wordt deze geschat op basis van de temperatuur van de bouwplaat."
@@ -10773,6 +10853,9 @@ msgstr "Materiaal koelt te snel af voordat de volgende laag wordt aangebracht. D
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
 msgstr "Warmte bouwt zich in kleine lagen sneller op dan het kan worden afgevoerd. Dit kan doorzakken of verlies van detail in fijne kenmerken veroorzaken."
+
+msgid "Ready to print — see suggestions"
+msgstr ""
 
 msgid "Ready to print"
 msgstr "Klaar om te printen"
@@ -15777,6 +15860,9 @@ msgstr "Kon GCodeV2 niet aanmaken"
 msgid "Failed to parse response"
 msgstr "Kon antwoord niet ontleden"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "Helio simulatie taak mislukt"
 
@@ -16000,14 +16086,14 @@ msgstr ""
 msgid "%d %s Preset will be deleted."
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "Draadgroepering"
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
-msgstr ""
+msgstr "Filament besparing"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Er verschijnt geen pop-up meer. U kunt dit bijwerken in 'Voorkeuren'"
@@ -16744,6 +16830,67 @@ msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
 
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "De software ondersteunt het gebruik van verschillende nozzle-diameters voor één print niet.\n"
+#~ "Als de linker- en rechter nozzle niet overeenkomen, kunnen we alleen printen met één kop.\n"
+#~ "Bevestig alstublieft welke nozzle u wilt gebruiken voor dit project."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Wissel van diameter"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Linker nozzle: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Rechter nozzle: %smm"
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "Tips:\n"
+#~ "Uw printer ondersteunt boogbenadering, daarom is de Boogbenaderings functie van de slicer uitgeschakeld om conflicten te voorkomen."
+
+#~ msgid "Unsupported Material Detected"
+#~ msgstr "Niet-ondersteund materiaal gedetecteerd"
+
+#~ msgid "⚠ Unsupported Material Detected"
+#~ msgstr "⚠ Niet-ondersteund materiaal gedetecteerd"
+
+#~ msgid "Choose a Reference Material"
+#~ msgstr "Kies een referentiemateriaal"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Bij gebruik van ondersteuningsmateriaal voor de ondersteuningsinterface raden we de volgende instellingen aan:\n"
+#~ "0 bovenste z-afstand, 0 interfaceafstand, verweven rechtlijnig patroon en schakel de onafhankelijke ondersteuningslaaghoogte uit"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Bij gebruik van oplosbaar materiaal voor de support interface raden we de volgende instellingen aan:\n"
+#~ "0 top z-afstand, 0 interfaceafstand, 0 support/object xy-afstand, afwisselend rectilijnair patroon, schakel onafhankelijke laaghoogte van de support uit en gebruik oplosbare materialen voor zowel support interface als supportbasis"
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "De filamentwisselaar is niet gekalibreerd.\n"
+#~ "Kalibreer deze eerst op de printer voordat u hem gebruikt."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Toon objectlabels in 3D-scène"
+
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Maak omwegen en vermijd het reizen over muren om te voorkomen dat er klodders op oppervlakken ontstaan"
 
@@ -16989,15 +17136,6 @@ msgstr ""
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF-filamenten zijn hard en bros. Ze kunnen gemakkelijk breken of vast komen te zitten in AMS."
-
-#~ msgid "4-slot AMS"
-#~ msgstr "4 slot AMS"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "1 slot AMS"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "Verwijder deze AMS"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "Er zijn geen nozzles onder de huidige diameter. Doorgaan met wisselen zal automatisch diameters van alle nozzles veranderen"

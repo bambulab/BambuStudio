@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -973,6 +973,9 @@ msgstr "은못"
 
 msgid "Snap"
 msgstr "스냅"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "공차"
@@ -5723,7 +5726,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "라이브 스트리밍 기능을 사용하려면 Bambu Studio를 실행해야 하며, 앱을 닫은 후 일정 시간이 지나면 스트리밍이 종료됩니다."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "프린터 미리보기"
 
 msgid "Playing..."
 msgstr "출력 중..."
@@ -6239,7 +6242,7 @@ msgid "Can't start this without storage."
 msgstr "스토리지 없이는 시작할 수 없습니다."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "프린터가 FDM 모드가 아닐 때 압출기를 전환할 수 없습니다"
 
 msgid "Rate the Print Profile"
 msgstr "출력 프로필 평가하기"
@@ -6552,6 +6555,9 @@ msgstr "위치로 가기"
 
 msgid "Error:"
 msgstr "오류:"
+
+msgid "Open link for more info"
+msgstr ""
 
 msgid "Warning:"
 msgstr "경고:"
@@ -6907,10 +6913,10 @@ msgid "Filament changes"
 msgstr "필라멘트 변경"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "필라멘트 스위처가 감지되었습니다. 모든 AMS 필라멘트가 두 압출기 모두에서 사용 가능합니다. 슬라이서는 최적의 프린팅을 위해 자동으로 지정합니다."
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "필라멘트 스위처가 감지되었지만 보정이 되지 않아 현재 사용할 수 없습니다. 사용 전에 프린터에서 보정하고 동기화하십시오. "
 
 msgid "Learn more"
 msgstr "더 보기"
@@ -6927,25 +6933,14 @@ msgstr "AMS(1 슬롯)"
 msgid "Not installed"
 msgstr "설치되지 않음"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"이 소프트웨어는 한 번의 출력에 서로 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
-"좌우 노즐의 직경이 다를 경우, 단일 헤드 출력만 가능합니다.\n"
-"이 프로젝트에 사용할 노즐을 확인해 주십시오."
+msgid "4-slot AMS"
+msgstr "4슬롯 AMS"
 
-msgid "Switch diameter"
-msgstr "직경 스위치 "
+msgid "1-slot AMS"
+msgstr "1슬롯 AMS"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "왼쪽 노즐: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "오른쪽 노즐: %smm"
+msgid "Remove this AMS"
+msgstr "이 AMS를 제거하세요"
 
 msgid "Sync printer information"
 msgstr "프린터 정보 동기화"
@@ -7350,6 +7345,21 @@ msgstr "참고: 참조 재료를 사용할 경우 근사치 또는 오류가 발
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr "지원되는 재료로 필라멘트 선택을 변경한 후 다시 시도하세요."
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 시뮬레이션 또는 최적화 작업이 진행 중입니다."
 
@@ -7374,6 +7384,67 @@ msgstr ""
 
 msgid "Helio Printer Match Confirmation"
 msgstr "Helio 프린터 일치 확인"
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "현재 프린터 사전 설정은 Helio를 사용하여 슬라이스할 수 없습니다."
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+"Helio가 토큰 기반 매칭을 사용하여 잠재적인 재료 일치를 찾았습니다:\n"
+"\n"
+"귀하의 재료: %s\n"
+"일치된 재료: %s\n"
+"\n"
+"이 일치를 사용하시겠습니까, 아니면 재료 프로필 이름을 변경하시겠습니까?"
+
+msgid "Helio Material Match Confirmation"
+msgstr "Helio 소재 일치 확인"
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio는 소재 %s을(를) 지원하지 않습니다"
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+"경고: Helio에서는 현재 채우기 조합을 지원하지 않습니다.\n"
+"\n"
+"이 설정을 활성화한 상태로 진행하면 오류가 발생할 수 있습니다.\n"
+"\n"
+"그래도 계속하시겠습니까?"
+
+msgid "Helio Warning"
+msgstr "Helio 경고"
 
 msgid "Unsupported Printer Detected"
 msgstr "지원되지 않는 프린터 감지됨"
@@ -7402,57 +7473,6 @@ msgstr "지원되는 프린터를 선택한 후 다시 시도하세요."
 
 msgid "See supported printers"
 msgstr "지원되는 프린터 보기"
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr "현재 프린터 사전 설정은 Helio를 사용하여 슬라이스할 수 없습니다."
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-"Helio가 토큰 기반 매칭을 사용하여 잠재적인 재료 일치를 찾았습니다:\n"
-"\n"
-"귀하의 재료: %s\n"
-"일치된 재료: %s\n"
-"\n"
-"이 일치를 사용하시겠습니까, 아니면 재료 프로필 이름을 변경하시겠습니까?"
-
-msgid "Helio Material Match Confirmation"
-msgstr "Helio 소재 일치 확인"
-
-msgid "Unsupported Material Detected"
-msgstr "지원되지 않는 재료 감지됨"
-
-msgid "⚠ Unsupported Material Detected"
-msgstr "⚠ 지원되지 않는 재료 감지됨"
-
-msgid "Choose a Reference Material"
-msgstr "참조 재료 선택"
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr "Helio는 소재 %s을(를) 지원하지 않습니다"
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-"경고: Helio에서는 현재 채우기 조합을 지원하지 않습니다.\n"
-"\n"
-"이 설정을 활성화한 상태로 진행하면 오류가 발생할 수 있습니다.\n"
-"\n"
-"그래도 계속하시겠습니까?"
-
-msgid "Helio Warning"
-msgstr "Helio 경고"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "최적화/향상 버튼을 클릭하여 첫 번째 최적화를 시작하세요."
@@ -9992,6 +10012,55 @@ msgstr "설정 패키지가 이전 설정 가이드로 변경되었습니다."
 msgid "Configuration package changed"
 msgstr "설정 패키지가 변경됨"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "툴바"
 
@@ -10474,6 +10543,14 @@ msgstr "최근 최적화 및 시뮬레이션 보기 및 다운로드"
 msgid "Terms of Use"
 msgstr "이용 약관"
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr "활성화 성공"
 
@@ -10533,6 +10610,9 @@ msgstr "계정 관리"
 
 msgid "Environment Settings"
 msgstr "환경 설정"
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "사용 가능한 경우 필라멘트 설정의 챔버 온도를 사용하며, 그렇지 않으면 빌드 플레이트 온도에서 추정합니다."
@@ -10758,6 +10838,9 @@ msgstr "재료가 다음 층이 도포되기 전에 너무 빨리 식어 약한 
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
 msgstr "미세한 층에서 열이 발산되는 속도보다 더 빠르게 축적되고 있습니다. 이로 인해 미세한 부분의 처짐이나 디테일 손실이 발생할 수 있습니다."
+
+msgid "Ready to print — see suggestions"
+msgstr ""
 
 msgid "Ready to print"
 msgstr "출력 준비 완료"
@@ -11348,7 +11431,7 @@ msgid "Avoid crossing wall"
 msgstr "벽 가로지르기 회피"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr ""
+msgstr "표면에 얼룩이 생길 수 있으므로 (이동 거리가 이동 거리 임계값보다 클 경우) 벽을 가로질러 이동하는 것을 피하고 우회하십시오"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z를 따라 벽 속도 평활화(실험적)"
@@ -15763,6 +15846,9 @@ msgstr "GCodeV2 생성 실패"
 msgid "Failed to parse response"
 msgstr "응답 구문 분석 실패"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "Helio 시뮬레이션 작업 실패"
 
@@ -15986,14 +16072,14 @@ msgstr "삭제할 프리셋을 선택하세요."
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s 프리셋이 삭제됩니다."
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "필라멘트 그룹화"
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
-msgstr ""
+msgstr "필라멘트 절약"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "더 이상 팝업이 표시되지 않습니다. '환경설정'에서 다시 열 수 있습니다"
@@ -16733,6 +16819,67 @@ msgstr ""
 #~ msgid "Ext"
 #~ msgstr "내선"
 
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "이 소프트웨어는 한 번의 출력에 서로 다른 직경의 노즐을 사용하는 것을 지원하지 않습니다.\n"
+#~ "좌우 노즐의 직경이 다를 경우, 단일 헤드 출력만 가능합니다.\n"
+#~ "이 프로젝트에 사용할 노즐을 확인해 주십시오."
+
+#~ msgid "Switch diameter"
+#~ msgstr "직경 스위치 "
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "왼쪽 노즐: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "오른쪽 노즐: %smm"
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "팁:\n"
+#~ "귀하의 프린터는 아크 피팅을 지원하므로, 충돌을 방지하기 위해 슬라이서의 아크 피팅 기능은 비활성화되었습니다."
+
+#~ msgid "Unsupported Material Detected"
+#~ msgstr "지원되지 않는 재료 감지됨"
+
+#~ msgid "⚠ Unsupported Material Detected"
+#~ msgstr "⚠ 지원되지 않는 재료 감지됨"
+
+#~ msgid "Choose a Reference Material"
+#~ msgstr "참조 재료 선택"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "지지대 인터페이스에 지지대 소재를 사용하는 경우 다음 설정을 권장합니다:\n"
+#~ "상단 Z 거리 0, 인터페이스 간격 0, 인터레이스 직선 패턴 및 독립 지지대 레이어 높이 비활성화"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "지지대 접촉에 용해성 소재를 사용할 때는 다음 설정을 권장합니다:\n"
+#~ "상단 Z 거리 0, 인터페이스 간격 0, 지지체/객체 XY 거리 0, 인터레이스 직선 패턴, 독립적인 지지대 레이어 높이 비활성화 및 지지대 접촉과 지지대 베이스 모두에 용해성 소재 사용"
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "소모품 교환기가 보정되지 않았습니다.\n"
+#~ "사용하기 전에 프린터에서 보정해 주세요."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "3D 장면에 물체 레이블 표시"
+
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "표면에 얼룩이 생기지 않도록 우회하고 벽을 가로질러 이동하지 마십시오."
 
@@ -16978,15 +17125,6 @@ msgstr ""
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF 필라멘트는 단단하고 부서지기 쉬우며, 부러지거나 AMS에 끼기 쉬우므로 주의해서 사용하세요."
-
-#~ msgid "4-slot AMS"
-#~ msgstr "4슬롯 AMS"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "1슬롯 AMS"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "이 AMS를 제거하세요"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "현재 직경에 해당하는 노즐이 없습니다. 계속 전환하면 모든 노즐의 직경이 자동으로 변경됩니다."

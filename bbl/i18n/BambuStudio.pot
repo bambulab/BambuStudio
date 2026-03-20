@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -973,6 +973,9 @@ msgid "Dowel"
 msgstr ""
 
 msgid "Snap"
+msgstr ""
+
+msgid "Thread"
 msgstr ""
 
 msgid "Tolerance"
@@ -2245,7 +2248,10 @@ msgstr ""
 msgid "Add Primitive"
 msgstr ""
 
-msgid "Show Labels"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
 msgstr ""
 
 msgid "To objects"
@@ -2381,6 +2387,9 @@ msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
 msgid "Edit Plate Name"
+msgstr ""
+
+msgid "Show Labels"
 msgstr ""
 
 msgid "Name"
@@ -5314,7 +5323,10 @@ msgstr ""
 msgid "Reset to default window layout"
 msgstr ""
 
-msgid "Show object labels in 3D scene"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
 msgstr ""
 
 msgid "Show &Overhang"
@@ -6414,6 +6426,9 @@ msgstr ""
 msgid "Error:"
 msgstr ""
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr ""
 
@@ -6786,21 +6801,13 @@ msgstr ""
 msgid "Not installed"
 msgstr ""
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
 
-msgid "Switch diameter"
+msgid "1-slot AMS"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Left nozzle: %smm"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Right nozzle: %smm"
+msgid "Remove this AMS"
 msgstr ""
 
 msgid "Sync printer information"
@@ -7194,6 +7201,21 @@ msgstr ""
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr ""
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr ""
 
@@ -7211,6 +7233,56 @@ msgid ""
 msgstr ""
 
 msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
 msgstr ""
 
 msgid "Unsupported Printer Detected"
@@ -7239,46 +7311,6 @@ msgid "Change your printer selection to use a supported printer, then try again.
 msgstr ""
 
 msgid "See supported printers"
-msgstr ""
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-
-msgid "Helio Material Match Confirmation"
-msgstr ""
-
-msgid "Unsupported Material Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Material Detected"
-msgstr ""
-
-msgid "Choose a Reference Material"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Helio does not support materials %s"
-msgstr ""
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-
-msgid "Helio Warning"
 msgstr ""
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
@@ -7494,11 +7526,6 @@ msgstr ""
 msgid "Are you sure to use them? \n"
 msgstr ""
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-
 msgid "Send G-code"
 msgstr ""
 
@@ -7509,6 +7536,17 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -9741,6 +9779,55 @@ msgstr ""
 msgid "Configuration package changed"
 msgstr ""
 
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr ""
 
@@ -9859,6 +9946,9 @@ msgid "Camera view - Right"
 msgstr ""
 
 msgid "Camera view - Isometric"
+msgstr ""
+
+msgid "Shift+E"
 msgstr ""
 
 msgid "Select all objects"
@@ -10211,6 +10301,14 @@ msgstr ""
 msgid "Terms of Use"
 msgstr ""
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr ""
 
@@ -10269,6 +10367,9 @@ msgid "Manage Account"
 msgstr ""
 
 msgid "Environment Settings"
+msgstr ""
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
 msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
@@ -10488,6 +10589,9 @@ msgid "Material is cooling too rapidly before the next layer is applied. This ca
 msgstr ""
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print — see suggestions"
 msgstr ""
 
 msgid "Ready to print"
@@ -11190,12 +11294,14 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr ""
 
+#, possible-c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Overhang threshold for participating cooling"
 msgstr ""
 
+#, possible-c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr ""
 
@@ -11566,6 +11672,7 @@ msgstr ""
 msgid "Bottom surface density"
 msgstr ""
 
+#, possible-c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
 
@@ -12019,6 +12126,7 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr ""
 
+#, possible-c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr ""
 
@@ -15361,6 +15469,9 @@ msgstr ""
 msgid "Failed to parse response"
 msgstr ""
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr ""
 
@@ -15584,13 +15695,13 @@ msgstr ""
 msgid "%d %s Preset will be deleted."
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr ""
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"

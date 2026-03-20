@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -973,6 +973,9 @@ msgstr "Dübel"
 
 msgid "Snap"
 msgstr "Çıt Çıt"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerans"
@@ -6555,6 +6558,9 @@ msgstr "Git"
 msgid "Error:"
 msgstr "Hata:"
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr "Uyarı:"
 
@@ -6929,25 +6935,14 @@ msgstr "AMS(1 slot)"
 msgid "Not installed"
 msgstr "Yüklü Değil"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"Yazılım, tek bir baskı için farklı çapta nozulların kullanılmasını desteklemez.\n"
-"Sol ve sağ nozullar tutarsızsa, yalnızca tek kafalı baskı ile devam edebiliriz.\n"
-"Lütfen bu proje için hangi nozulu kullanmak istediğinizi onaylayın."
 
-msgid "Switch diameter"
-msgstr "Anahtar çapı"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Sol nozul: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Sağ nozul: %smm"
+msgid "Remove this AMS"
+msgstr ""
 
 msgid "Sync printer information"
 msgstr "Yazıcı bilgilerini senkronize et"
@@ -7354,6 +7349,21 @@ msgstr ""
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr ""
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Bir Helio simülasyonu veya optimizasyon görevi devam ediyor."
 
@@ -7371,6 +7381,56 @@ msgid ""
 msgstr ""
 
 msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "Mevcut yazıcı ön ayarı Helio kullanılarak dilimlenemez."
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio, %s malzemelerini desteklemiyor"
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
 msgstr ""
 
 msgid "Unsupported Printer Detected"
@@ -7399,46 +7459,6 @@ msgid "Change your printer selection to use a supported printer, then try again.
 msgstr ""
 
 msgid "See supported printers"
-msgstr ""
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr "Mevcut yazıcı ön ayarı Helio kullanılarak dilimlenemez."
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-
-msgid "Helio Material Match Confirmation"
-msgstr ""
-
-msgid "Unsupported Material Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Material Detected"
-msgstr ""
-
-msgid "Choose a Reference Material"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr "Helio, %s malzemelerini desteklemiyor"
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-
-msgid "Helio Warning"
 msgstr ""
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
@@ -9970,6 +9990,55 @@ msgstr "Yapılandırma paketi önceki Config Guide ile değiştirilir"
 msgid "Configuration package changed"
 msgstr "Yapılandırma paketi değiştirildi"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "Araç Çubuğu"
 
@@ -10442,6 +10511,14 @@ msgstr ""
 msgid "Terms of Use"
 msgstr ""
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr ""
 
@@ -10500,6 +10577,9 @@ msgid "Manage Account"
 msgstr ""
 
 msgid "Environment Settings"
+msgstr ""
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
 msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
@@ -10719,6 +10799,9 @@ msgid "Material is cooling too rapidly before the next layer is applied. This ca
 msgstr ""
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print — see suggestions"
 msgstr ""
 
 msgid "Ready to print"
@@ -15705,6 +15788,9 @@ msgstr "GCodeV2 oluşturulamadı"
 msgid "Failed to parse response"
 msgstr "Yanıt ayrıştırılamadı"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "Helio simülasyon görevi başarısız oldu"
 
@@ -15928,13 +16014,13 @@ msgstr "Lütfen silinecek ön ayarı seçin"
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s Önayar silinecektir."
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "Filament gruplama"
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -16650,6 +16736,45 @@ msgstr ""
 
 #~ msgid "Ext"
 #~ msgstr "Harici"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "Yazılım, tek bir baskı için farklı çapta nozulların kullanılmasını desteklemez.\n"
+#~ "Sol ve sağ nozullar tutarsızsa, yalnızca tek kafalı baskı ile devam edebiliriz.\n"
+#~ "Lütfen bu proje için hangi nozulu kullanmak istediğinizi onaylayın."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Anahtar çapı"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Sol nozul: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Sağ nozul: %smm"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "3B sahnede nesne etiketlerini göster"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"

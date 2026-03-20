@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -973,6 +973,9 @@ msgstr "Kołek"
 
 msgid "Snap"
 msgstr "Klipsy zatrzaskowe"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerancja"
@@ -6578,6 +6581,9 @@ msgstr "Przejdź do"
 msgid "Error:"
 msgstr "Błąd:"
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr "Ostrzeżenie:"
 
@@ -6952,25 +6958,14 @@ msgstr "AMS(1 gniazdo)"
 msgid "Not installed"
 msgstr "Nie zainstalowano"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"Oprogramowanie nie obsługuje używania dysz o różnych średnicach do jednego wydruku. \n"
-"Jeśli dysze po lewej i prawej stronie różnią się, możemy kontynuować drukowanie tylko jedną głowicą. \n"
-"Proszę potwierdzić, którą dyszę chcesz wybrać do tego projektu."
+msgid "4-slot AMS"
+msgstr "AMS z 4 gniazdami"
 
-msgid "Switch diameter"
-msgstr "Zmiana średnicy"
+msgid "1-slot AMS"
+msgstr "AMS z 1 gniazdem"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Lewa dysza: %s mm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Prawa dysza: %s mm"
+msgid "Remove this AMS"
+msgstr "Usuń ten AMS"
 
 msgid "Sync printer information"
 msgstr "Synchronizacja informacji o drukarce"
@@ -7375,6 +7370,21 @@ msgstr "Uwaga: W przypadku zastosowania materiału referencyjnego wyniki mogą b
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr "Zmień wybrany filament na obsługiwany, a następnie spróbuj ponownie."
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Trwa symulacja lub zadanie optymalizacji Helio."
 
@@ -7399,6 +7409,67 @@ msgstr ""
 
 msgid "Helio Printer Match Confirmation"
 msgstr "Potwierdzenie zgodności drukarki Helio"
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "Obecny profil drukarki nie może zostać użyty do cięcia przy pomocy Helio."
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+"Helio znalazł potencjalną zgodność materiału przy użyciu dopasowania opartego na tokenach:\n"
+"\n"
+"Twój materiał: %s\n"
+"Zgodny materiał: %s\n"
+"\n"
+"Czy chcesz zastosować to dopasowanie, czy wolisz zmienić nazwę profilu materiału?"
+
+msgid "Helio Material Match Confirmation"
+msgstr "Potwierdzenie dopasowania materiału Helio"
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio nie obsługuje materiałów %s"
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+"Ostrzeżenie: Helio nie obsługuje aktualnie wybranej kombinacji wypełnienia.\n"
+"\n"
+"Pozostawienie tego ustawienia może prowadzić do niepoprawnych wyników.\n"
+"\n"
+"Czy chcesz kontynuować?"
+
+msgid "Helio Warning"
+msgstr "Ostrzeżenie Helio"
 
 msgid "Unsupported Printer Detected"
 msgstr "Wykryto nieobsługiwaną drukarkę"
@@ -7427,57 +7498,6 @@ msgstr "Zmień wybór drukarki na obsługiwaną i spróbuj ponownie."
 
 msgid "See supported printers"
 msgstr "Pokaż obsługiwane drukarki"
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr "Obecny profil drukarki nie może zostać użyty do cięcia przy pomocy Helio."
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-"Helio znalazł potencjalną zgodność materiału przy użyciu dopasowania opartego na tokenach:\n"
-"\n"
-"Twój materiał: %s\n"
-"Zgodny materiał: %s\n"
-"\n"
-"Czy chcesz zastosować to dopasowanie, czy wolisz zmienić nazwę profilu materiału?"
-
-msgid "Helio Material Match Confirmation"
-msgstr "Potwierdzenie dopasowania materiału Helio"
-
-msgid "Unsupported Material Detected"
-msgstr "Wykryto nieobsługiwany materiał"
-
-msgid "⚠ Unsupported Material Detected"
-msgstr "⚠ Wykryto nieobsługiwany materiał"
-
-msgid "Choose a Reference Material"
-msgstr "Wybierz materiał referencyjny"
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr "Helio nie obsługuje materiałów %s"
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-"Ostrzeżenie: Helio nie obsługuje aktualnie wybranej kombinacji wypełnienia.\n"
-"\n"
-"Pozostawienie tego ustawienia może prowadzić do niepoprawnych wyników.\n"
-"\n"
-"Czy chcesz kontynuować?"
-
-msgid "Helio Warning"
-msgstr "Ostrzeżenie Helio"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Kliknij przycisk Optymalizuj/Udoskonal, aby rozpocząć pierwszą optymalizację."
@@ -10028,6 +10048,55 @@ msgstr "Pakiet konfiguracyjny został zmieniony na poprzedni Przewodnik konfigur
 msgid "Configuration package changed"
 msgstr "Pakiet konfiguracyjny został zmieniony"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr "Tył"
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "Pasek narzędzi"
 
@@ -10510,6 +10579,14 @@ msgstr "Wyświetl i pobierz ostatnie optymalizacje oraz symulacje"
 msgid "Terms of Use"
 msgstr "Warunki użytkowania"
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr "Aktywacja zakończona sukcesem"
 
@@ -10569,6 +10646,9 @@ msgstr "Zarządzaj kontem"
 
 msgid "Environment Settings"
 msgstr "Konfiguracja środowiska"
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "Jeśli jest dostępna, korzysta z temperatury komory z ustawień filamentu; w przeciwnym razie szacuje ją na podstawie temperatury płyty roboczej."
@@ -10794,6 +10874,9 @@ msgstr "Materiał schładza się zbyt szybko przed nałożeniem kolejnej warstwy
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
 msgstr "W cienkich warstwach ciepło nagromadza się szybciej, niż może być odprowadzone. Może to powodować opadanie lub utratę detali na drobnych elementach."
+
+msgid "Ready to print — see suggestions"
+msgstr ""
 
 msgid "Ready to print"
 msgstr "Gotowe do druku"
@@ -15804,6 +15887,9 @@ msgstr "Nie udało się utworzyć GCodeV2"
 msgid "Failed to parse response"
 msgstr "Błąd przetwarzania odpowiedzi"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "Zadanie symulacji Helio nie powiodło się"
 
@@ -16027,14 +16113,14 @@ msgstr "Wybierz profil, który chcesz usunąć"
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s Profil zostanie usunięty."
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "Grupowanie filamentów"
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
-msgstr ""
+msgstr "Oszczędzanie filamentu"
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Nie pojawi się już żadne wyskakujące okienko. Możesz to zmienić w \"Preferencjach\""
@@ -16771,6 +16857,68 @@ msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
 
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "Oprogramowanie nie obsługuje używania dysz o różnych średnicach do jednego wydruku. \n"
+#~ "Jeśli dysze po lewej i prawej stronie różnią się, możemy kontynuować drukowanie tylko jedną głowicą. \n"
+#~ "Proszę potwierdzić, którą dyszę chcesz wybrać do tego projektu."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Zmiana średnicy"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Lewa dysza: %s mm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Prawa dysza: %s mm"
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "Wskazówki:\n"
+#~ "Twoja drukarka obsługuje dopasowywanie łuku, dlatego funkcja ta została wyłączona w slicerze, aby uniknąć konfliktów."
+
+#~ msgid "Unsupported Material Detected"
+#~ msgstr "Wykryto nieobsługiwany materiał"
+
+#~ msgid "⚠ Unsupported Material Detected"
+#~ msgstr "⚠ Wykryto nieobsługiwany materiał"
+
+#~ msgid "Choose a Reference Material"
+#~ msgstr "Wybierz materiał referencyjny"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Przy użyciu materiału podporowego do warstw łączących podpory zalecamy następujące ustawienia:\n"
+#~ "0 odległość w osi Z od góry , 0 odstęp warstwy łączącej, wzór prostoliniowy przeplatany i wyłączenie niezależnej wysokości warstwy podpory"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "W przypadku korzystania z rozpuszczalnego materiału podporowego jako warstwy łączącej zalecamy następujące ustawienia:\n"
+#~ "0 odstęp góry w osi Z, 0 odstęp warstwy łączącej, 0 odległość XY między podporą a obiektem, wzór prostoliniowy przeplatany, wyłączenie \n"
+#~ "niezależnej wysokości warstwy podpory i użycie rozpuszczalnego materiału podpory zarówno jako warstwy łączącej, jak i podstawy podpory"
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "Zmieniarka materiałów eksploatacyjnych nie została skalibrowana.\n"
+#~ "Proszę ją skalibrować na drukarce przed użyciem."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Pokaż etykiety obiektów na scenie 3D"
+
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Omijaj i unikaj przemieszczania się nad ścianą aby uniknąć powstawania grudek na powierzchni"
 
@@ -17019,15 +17167,6 @@ msgstr ""
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "Filamenty CF/GF są twarde i kruche. Łatwo się łamią lub zacinają w AMS, prosimy o ostrożne korzystanie z nich."
-
-#~ msgid "4-slot AMS"
-#~ msgstr "AMS z 4 gniazdami"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "AMS z 1 gniazdem"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "Usuń ten AMS"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "Brak dysz o aktualnej średnicy. Kontynuowanie przełączania spowoduje automatyczną zmianę średnicy wszystkich dysz."

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -976,6 +976,9 @@ msgstr "銷釘"
 
 msgid "Snap"
 msgstr "按扣"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "容差"
@@ -6519,6 +6522,9 @@ msgstr "跳轉到"
 msgid "Error:"
 msgstr "錯誤："
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr "警告："
 
@@ -6891,25 +6897,14 @@ msgstr "AMS（單槽）"
 msgid "Not installed"
 msgstr "未安裝"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"軟體暫不支援使用兩種不同直徑的噴嘴同時列印。\n"
-"由於您設定的左右噴嘴直徑不一致，我們只能採用單頭列印。\n"
-"請確認使用哪個噴嘴列印當前專案。"
+msgid "4-slot AMS"
+msgstr "4槽AMS"
 
-msgid "Switch diameter"
-msgstr "設定噴嘴直徑"
+msgid "1-slot AMS"
+msgstr "單槽AMS"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "左噴嘴：%smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "右噴嘴：%smm"
+msgid "Remove this AMS"
+msgstr "移除此AMS"
 
 msgid "Sync printer information"
 msgstr "同步印表機資訊"
@@ -7312,6 +7307,21 @@ msgstr "注意：使用參考材料可能導致結果近似或出現誤差。"
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr "將耗材更換為受支援的材料，然後重試。"
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Helio 模擬或最佳化任務正在進行中。"
 
@@ -7336,6 +7346,67 @@ msgstr ""
 
 msgid "Helio Printer Match Confirmation"
 msgstr "Helio 印表機匹配確認"
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "當前印表機預設無法使用 Helio 功能。"
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+"Helio 透過基於 token 的匹配找到了一個可能的材料匹配項：\n"
+"\n"
+"你的材料：%s\n"
+"匹配的材料：%s\n"
+"\n"
+"你想使用該匹配項，還是更希望重新命名你的材料配置檔案？"
+
+msgid "Helio Material Match Confirmation"
+msgstr "Helio 材料匹配確認"
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio 不支援材料 %s"
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+"警告：當前填充組合不受 Helio 支援。\n"
+"\n"
+"繼續啟用該設定可能導致結果錯誤。\n"
+"\n"
+"是否仍要繼續？"
+
+msgid "Helio Warning"
+msgstr "Helio 警告"
 
 msgid "Unsupported Printer Detected"
 msgstr "檢測到不支援的印表機"
@@ -7364,57 +7435,6 @@ msgstr "將印表機更換為受支援的型號，然後重試。"
 
 msgid "See supported printers"
 msgstr "檢視支援的印表機"
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr "當前印表機預設無法使用 Helio 功能。"
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-"Helio 透過基於 token 的匹配找到了一個可能的材料匹配項：\n"
-"\n"
-"你的材料：%s\n"
-"匹配的材料：%s\n"
-"\n"
-"你想使用該匹配項，還是更希望重新命名你的材料配置檔案？"
-
-msgid "Helio Material Match Confirmation"
-msgstr "Helio 材料匹配確認"
-
-msgid "Unsupported Material Detected"
-msgstr "檢測到不支援的材料"
-
-msgid "⚠ Unsupported Material Detected"
-msgstr "⚠ 檢測到不支援的材料"
-
-msgid "Choose a Reference Material"
-msgstr "選擇一份參考材料"
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr "Helio 不支援材料 %s"
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-"警告：當前填充組合不受 Helio 支援。\n"
-"\n"
-"繼續啟用該設定可能導致結果錯誤。\n"
-"\n"
-"是否仍要繼續？"
-
-msgid "Helio Warning"
-msgstr "Helio 警告"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "點選最佳化/增強按鈕開始您的第一次最佳化。"
@@ -9944,6 +9964,55 @@ msgstr "引數配置包在之前的配置嚮導中發生了變更"
 msgid "Configuration package changed"
 msgstr "引數配置包發生變更"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "工具欄"
 
@@ -10424,6 +10493,14 @@ msgstr "檢視並下載最近的最佳化與模擬"
 msgid "Terms of Use"
 msgstr "使用條款"
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr "啟用成功"
 
@@ -10483,6 +10560,9 @@ msgstr "管理賬戶"
 
 msgid "Environment Settings"
 msgstr "環境設定"
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "若可用，則使用耗材設定中的腔體溫度；否則根據熱床溫度進行估算。"
@@ -10707,6 +10787,9 @@ msgstr "在下一層鋪設前材料冷卻過快，可能導致層間粘結不足
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
 msgstr "小層區域熱量累積速度超過散熱速度，可能導致下垂或細節丟失。"
+
+msgid "Ready to print — see suggestions"
+msgstr ""
 
 msgid "Ready to print"
 msgstr "可以列印"
@@ -15695,6 +15778,9 @@ msgstr "無法建立 GCode"
 msgid "Failed to parse response"
 msgstr "解析響應失敗"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "Helio模擬任務失敗"
 
@@ -15918,13 +16004,13 @@ msgstr ""
 msgid "%d %s Preset will be deleted."
 msgstr "%d個%s預設將被刪除。"
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "耗材分組"
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -16662,6 +16748,56 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
 
+#~ msgid "filament"
+#~ msgstr "絲"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "軟體暫不支援使用兩種不同直徑的噴嘴同時列印。\n"
+#~ "由於您設定的左右噴嘴直徑不一致，我們只能採用單頭列印。\n"
+#~ "請確認使用哪個噴嘴列印當前專案。"
+
+#~ msgid "Switch diameter"
+#~ msgstr "設定噴嘴直徑"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "左噴嘴：%smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "右噴嘴：%smm"
+
+#~ msgid "Unsupported Material Detected"
+#~ msgstr "檢測到不支援的材料"
+
+#~ msgid "⚠ Unsupported Material Detected"
+#~ msgstr "⚠ 檢測到不支援的材料"
+
+#~ msgid "Choose a Reference Material"
+#~ msgstr "選擇一份參考材料"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "當支撐接觸面使用支撐材料時，我們推薦以下設定：\n"
+#~ "0頂部z距離，0接觸面間距，交疊直線圖案，並且禁用支撐獨立層高"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "當支撐接觸面使用可溶性材料時，我們推薦以下設定：\n"
+#~ "0頂部z距離，0接觸面間距，0支撐/模型XY距離，交疊直線圖案，禁用支撐獨立層高，並將可溶性材料同時用於支撐接觸面和支撐主體"
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "在3D場景中顯示物件名稱"
+
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "空駛時繞過外牆以避免在模型外觀面產生斑點"
 
@@ -17003,15 +17139,6 @@ msgstr ""
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF耗材絲又硬又脆，在AMS中很容易斷裂或卡住，請謹慎使用。"
-
-#~ msgid "4-slot AMS"
-#~ msgstr "4槽AMS"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "單槽AMS"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "移除此AMS"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "當前直徑下無噴嘴。繼續切換將自動更改所有噴嘴的直徑。"

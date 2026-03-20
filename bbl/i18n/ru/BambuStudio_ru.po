@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -994,6 +994,9 @@ msgstr "Штифт"
 
 msgid "Snap"
 msgstr "Клипса"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Допуск"
@@ -6672,6 +6675,9 @@ msgstr "Перейти к"
 msgid "Error:"
 msgstr "Ошибка:"
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr "Предупреждение:"
 
@@ -7050,24 +7056,14 @@ msgstr "АСПП (1-х слотовая)"
 msgid "Not installed"
 msgstr "Не задано"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
+msgid "4-slot AMS"
 msgstr ""
-"Программа пока не поддерживает одновременную печать с использованием двух сопел разного диаметра.\n"
-"Так как диаметры сопел не совпадают, выберите диаметр сопла, который вы хотите использовать для этого проекта."
 
-msgid "Switch diameter"
-msgstr "Выбор диаметра сопла"
+msgid "1-slot AMS"
+msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Левое сопло: %s мм"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Правое сопло: %s мм"
+msgid "Remove this AMS"
+msgstr ""
 
 # ???22 Синхронизировать инф. с принтером, Синхронизировать информацию с принтером
 msgid "Sync printer information"
@@ -7480,6 +7476,21 @@ msgstr ""
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr ""
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr ""
 
@@ -7497,6 +7508,56 @@ msgid ""
 msgstr ""
 
 msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
 msgstr ""
 
 msgid "Unsupported Printer Detected"
@@ -7525,46 +7586,6 @@ msgid "Change your printer selection to use a supported printer, then try again.
 msgstr ""
 
 msgid "See supported printers"
-msgstr ""
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-
-msgid "Helio Material Match Confirmation"
-msgstr ""
-
-msgid "Unsupported Material Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Material Detected"
-msgstr ""
-
-msgid "Choose a Reference Material"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr ""
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-
-msgid "Helio Warning"
 msgstr ""
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
@@ -10182,6 +10203,55 @@ msgstr "Пакет профилей был изменён при предыду�
 msgid "Configuration package changed"
 msgstr "Пакет профилей изменён"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "Панель инструментов"
 
@@ -10657,6 +10727,14 @@ msgstr ""
 msgid "Terms of Use"
 msgstr ""
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr ""
 
@@ -10715,6 +10793,9 @@ msgid "Manage Account"
 msgstr ""
 
 msgid "Environment Settings"
+msgstr ""
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
 msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
@@ -10934,6 +11015,9 @@ msgid "Material is cooling too rapidly before the next layer is applied. This ca
 msgstr ""
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print — see suggestions"
 msgstr ""
 
 msgid "Ready to print"
@@ -16016,6 +16100,9 @@ msgstr ""
 msgid "Failed to parse response"
 msgstr ""
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr ""
 
@@ -16243,13 +16330,13 @@ msgstr ""
 msgid "%d %s Preset will be deleted."
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "Группировка материала"
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -16970,6 +17057,39 @@ msgstr ""
 
 #~ msgid "Ext"
 #~ msgstr "Внеш."
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "Программа пока не поддерживает одновременную печать с использованием двух сопел разного диаметра.\n"
+#~ "Так как диаметры сопел не совпадают, выберите диаметр сопла, который вы хотите использовать для этого проекта."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Выбор диаметра сопла"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Левое сопло: %s мм"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Правое сопло: %s мм"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "При использовании «материалов для поддержек» в качестве связующего \n"
+#~ "слоя поддержки, мы рекомендуем следующие параметры:\n"
+#~ "зазор поддержки сверху - 0,\n"
+#~ "расстояние между связующими линиями - 0,\n"
+#~ "шаблон связующего слоя - прямолинейный,\n"
+#~ "отключение независимой высоты слоя поддержки."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Показать имена моделей в 3D-сцене"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Объезжать и избегать пересечения периметров для предотвращения образования дефектов на поверхности модели."

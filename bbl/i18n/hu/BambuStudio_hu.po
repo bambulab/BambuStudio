@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-31 16:30+0800\n"
+"POT-Creation-Date: 2026-03-20 11:52+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -973,6 +973,9 @@ msgstr "Csap"
 
 msgid "Snap"
 msgstr "Csatlakoztatás"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerancia"
@@ -6565,6 +6568,9 @@ msgstr "Ugrás ide:"
 msgid "Error:"
 msgstr "Hiba:"
 
+msgid "Open link for more info"
+msgstr ""
+
 msgid "Warning:"
 msgstr "Figyelem:"
 
@@ -6939,25 +6945,14 @@ msgstr "AMS (1 férőhely)"
 msgid "Not installed"
 msgstr "Nincs telepítve"
 
-msgid ""
-"The software does not support using different diameter of nozzles for one print.\n"
-"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-"Please confirm which nozzle you would like to use for this project."
-msgstr ""
-"A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
-"Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
-"Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
+msgid "4-slot AMS"
+msgstr "4 férőhelyes AMS"
 
-msgid "Switch diameter"
-msgstr "Átmérő váltása"
+msgid "1-slot AMS"
+msgstr "1 férőhelyes AMS"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Bal oldali fúvóka: %s mm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Jobb oldali fúvóka: %s mm"
+msgid "Remove this AMS"
+msgstr "AMS eltávolítása"
 
 msgid "Sync printer information"
 msgstr "Nyomtatóadatok szinkronizálása"
@@ -7359,6 +7354,21 @@ msgstr "Megjegyzés: Referenciaanyag használata megközelítő vagy hibás ered
 msgid "Change your filament selection to use a supported material, then try again."
 msgstr "Válassz olyan filamentet, amelyet a rendszer támogat, majd próbáld újra."
 
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
+
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Egy Helio szimulációs vagy optimalizálási feladat folyamatban van."
 
@@ -7383,6 +7393,67 @@ msgstr ""
 
 msgid "Helio Printer Match Confirmation"
 msgstr "Helio nyomtató egyezésének megerősítése"
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr "A jelenlegi nyomtatóbeállítás nem használható Helióval."
+
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+"A Helio egy lehetséges anyagegyezést talált:\n"
+"\n"
+"Az anyagod: %s\n"
+"Egyező anyag: %s\n"
+"\n"
+"Szeretnéd ezt az egyezést használni, vagy inkább átnevezed az anyagprofilod?"
+
+msgid "Helio Material Match Confirmation"
+msgstr "Helio anyagegyezés megerősítése"
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Helio does not support materials %s"
+msgstr "Helio nem támogatja a következő anyagokat: %s"
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+"Figyelmeztetés: A Helio jelenleg nem támogatja a kitöltés összevonását.\n"
+"\n"
+"Ha ezt a beállítást engedélyezed, az hibás eredményhez vezethet.\n"
+"\n"
+"Folytatod?"
+
+msgid "Helio Warning"
+msgstr "Helio figyelmeztetés"
 
 msgid "Unsupported Printer Detected"
 msgstr "Nem támogatott nyomtató észlelve"
@@ -7411,57 +7482,6 @@ msgstr "Válassz egy támogatott nyomtatót, majd próbáld újra."
 
 msgid "See supported printers"
 msgstr "Támogatott nyomtatók"
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr "A jelenlegi nyomtatóbeállítás nem használható Helióval."
-
-#, c-format, boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-"A Helio egy lehetséges anyagegyezést talált:\n"
-"\n"
-"Az anyagod: %s\n"
-"Egyező anyag: %s\n"
-"\n"
-"Szeretnéd ezt az egyezést használni, vagy inkább átnevezed az anyagprofilod?"
-
-msgid "Helio Material Match Confirmation"
-msgstr "Helio anyagegyezés megerősítése"
-
-msgid "Unsupported Material Detected"
-msgstr "Nem támogatott anyag észlelve"
-
-msgid "⚠ Unsupported Material Detected"
-msgstr "⚠ Nem támogatott anyag észlelve"
-
-msgid "Choose a Reference Material"
-msgstr "Válassz egy referenciaanyagot"
-
-#, c-format, boost-format
-msgid "Helio does not support materials %s"
-msgstr "Helio nem támogatja a következő anyagokat: %s"
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-"Figyelmeztetés: A Helio jelenleg nem támogatja a kitöltés összevonását.\n"
-"\n"
-"Ha ezt a beállítást engedélyezed, az hibás eredményhez vezethet.\n"
-"\n"
-"Folytatod?"
-
-msgid "Helio Warning"
-msgstr "Helio figyelmeztetés"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
 msgstr "Kattints az Optimalizálás/Javítás gombra az első optimalizálás elindításához."
@@ -10003,6 +10023,55 @@ msgstr "A konfigurációs csomag az előző konfigurációs útmutatóban módos
 msgid "Configuration package changed"
 msgstr "Konfigurációs csomag megváltozott"
 
+msgctxt "WebView"
+msgid "Back"
+msgstr "Hátul"
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
+
 msgid "Toolbar"
 msgstr "Eszköztár"
 
@@ -10485,6 +10554,14 @@ msgstr "Legutóbbi optimalizálások és szimulációk megtekintése és letölt
 msgid "Terms of Use"
 msgstr "Felhasználási feltételek"
 
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
 msgid "Activation Successful"
 msgstr "Sikeres aktiválás"
 
@@ -10544,6 +10621,9 @@ msgstr "Fiók kezelése"
 
 msgid "Environment Settings"
 msgstr "Környezeti beállítások"
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
 msgstr "Ha elérhető, a filamentbeállításokból veszi a kamra hőmérsékletét; egyébként a nyomtatótálca hőmérsékletéből becsüli meg."
@@ -10769,6 +10849,9 @@ msgstr "Az anyag túl gyorsan hűl a következő réteg felvitele előtt. Ez gye
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
 msgstr "A hő kisebb rétegeken gyorsabban halmozódik fel, mint ahogy el tudna oszlani. Ez a finom részletek megereszkedését vagy a részletgazdagság elvesztését okozhatja."
+
+msgid "Ready to print — see suggestions"
+msgstr ""
 
 msgid "Ready to print"
 msgstr "Nyomtatásra kész"
@@ -15771,6 +15854,9 @@ msgstr "GCodeV2 létrehozása sikertelen"
 msgid "Failed to parse response"
 msgstr "Nem sikerült értelmezni a választ"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "A Helio szimulációs feladat sikertelen"
 
@@ -15994,14 +16080,14 @@ msgstr "Kérjük, válaszd ki a törölni kívánt beállítást"
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s beállítás törlésre kerül."
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "Filamentcsoportosítás"
 
 msgid "Fila Saving"
 msgstr "Filamentmegtakarítás"
-
-msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
-msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Nem fog több felugró ablak megjelenni. A 'Beállítások' menüpontban újra megnyithatod."
@@ -16739,6 +16825,61 @@ msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
 
+#~ msgid "Ext"
+#~ msgstr "Kül"
+
+#~ msgid ""
+#~ "The software does not support using different diameter of nozzles for one print.\n"
+#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+#~ "Please confirm which nozzle you would like to use for this project."
+#~ msgstr ""
+#~ "A szoftver nem támogatja a különböző átmérőjű fúvókák használatát egy nyomtatáshoz.\n"
+#~ "Ha a bal és jobb oldali fúvókák nem egyeznek, csak egy fejjel lehet nyomtatni.\n"
+#~ "Kérjük, erősítsd meg, hogy melyik fúvókát szeretnéd használni ehhez a projekthez."
+
+#~ msgid "Switch diameter"
+#~ msgstr "Átmérő váltása"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Bal oldali fúvóka: %s mm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Jobb oldali fúvóka: %s mm"
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "Tippek:\n"
+#~ "A nyomtatód támogatja az ívillesztést, ezért a szeletelő ívillesztési funkcióját letiltottuk a problémák elkerülése érdekében."
+
+#~ msgid "Unsupported Material Detected"
+#~ msgstr "Nem támogatott anyag észlelve"
+
+#~ msgid "⚠ Unsupported Material Detected"
+#~ msgstr "⚠ Nem támogatott anyag észlelve"
+
+#~ msgid "Choose a Reference Material"
+#~ msgstr "Válassz egy referenciaanyagot"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Ha támaszanyagot használsz az érintkező felületekhez, akkor a következő beállításokat javasoljuk:\n"
+#~ "0 felső Z-távolság, 0 érintkező réteg térköz, váltottsoros vonal mintázat és kikapcsolt független támasz rétegmagasság"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Ha oldható anyagot használsz támaszanyagként, akkor a következő beállításokat javasoljuk:\n"
+#~ "0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
+#~ "független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához"
+
 #~ msgid ""
 #~ "The consumables changer has not been calibrated. \n"
 #~ "Please calibrate it on the printer before using."
@@ -17008,15 +17149,6 @@ msgstr ""
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
-
-#~ msgid "4-slot AMS"
-#~ msgstr "4 férőhelyes AMS"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "1 férőhelyes AMS"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "AMS eltávolítása"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "Nincs fúvóka, amely megegyezik a jelenlegi átmérővel. A folytatással automatikusan megváltoztatod az összes fúvóka átmérőjét"
