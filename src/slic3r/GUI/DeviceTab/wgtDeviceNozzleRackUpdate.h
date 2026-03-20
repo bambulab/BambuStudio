@@ -10,10 +10,10 @@
 
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/Widgets/StaticBox.hpp"
+#include "slic3r/GUI/Widgets/AnimaController.hpp"
 
 #include <wx/panel.h>
 #include <memory>
-#include <cmath>
 
 // Previous definitions
 class Button;
@@ -104,6 +104,11 @@ private:
 
     void UpdateInfo(const DevNozzle& nozzle);
 
+    void OnBitmapHoverEnter(wxMouseEvent& event);
+    void OnBitmapHoverLeave(wxMouseEvent& event);
+    void OnStatusIconClick(wxMouseEvent& event);
+    void updateNozzleImage(const DevNozzle& nozzle);
+
 private:
     enum NozzleStatus : int
     {
@@ -117,17 +122,35 @@ private:
 private:
     int m_ext_nozzle_id = -1;
     int m_rack_nozzle_id = -1;
+    bool m_isRefreshFinish = false;
+    bool findNozzleImage = false;
 
     NozzleStatus m_nozzle_status = NOZZLE_STATUS_DC;
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
 
+    std::vector<std::vector<ScalableBitmap*>> nozzle_hs;
+    std::vector<std::vector<ScalableBitmap*>> nozzle_hh;
     // GUI
     ScalableBitmap* m_nozzle_image = nullptr;
     ScalableBitmap* m_nozzle_empty_image = nullptr;
+    ScalableBitmap* m_scaled_nozzle_image = nullptr;
+    ScalableBitmap* m_scaled_nozzle_empty_image = nullptr;
+    ScalableBitmap* m_refresh_icon = nullptr;
+    // ScalableBitmap* m_in_refreh_icon = nullptr;
+    AnimaIcon* m_refreshing_icon = nullptr;
+    ScalableBitmap* m_error_icon = nullptr;
 
     Label* m_idx_label;
     wxStaticBitmap* m_icon_bitmap{ nullptr };
+    wxStaticBitmap* m_status_bitmap{ nullptr };
 
+    Label* m_material_label{ nullptr };
+    StaticBox* m_colour_box{ nullptr };
+    wxFrame* m_hoverFrame{ nullptr };
+
+    Label* m_status_label{ nullptr };
+    Label* m_used_time{ nullptr };
+    
     Label* m_diameter_label;
     Label* m_flowtype_label;
     Label* m_type_label;
@@ -136,9 +159,8 @@ private:
     Label* m_sn_label;
     Label* m_version_label;
     Label* m_version_new_label;
-    Label* m_used_time;
 };
 
-
+wxDECLARE_EVENT(wxEVT_NOZZLE_JUMP_UPGRADE, wxCommandEvent);
 
 };// end of namespace Slic3r::GUI
