@@ -108,7 +108,7 @@ namespace Slic3r
        std::string m_filament_clr;// main color
 
        std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
-       int m_nozzle_print_time;
+       int m_nozzle_print_time{0};
    };
 
    class DevNozzleSystem
