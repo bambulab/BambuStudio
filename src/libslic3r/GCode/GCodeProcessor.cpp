@@ -2665,7 +2665,7 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process){
-        constexpr float inject_time_threshold = 30.f;
+        constexpr float inject_time_threshold = 0.f;
         MultiNozzleUtils::LayeredNozzleGroupResult result = *std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
         TimeProcessContext context(
             m_used_filaments,
