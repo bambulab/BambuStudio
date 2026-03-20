@@ -4105,10 +4105,10 @@ GCode::LayerResult GCode::process_layer(
     bool is_multi_extruder = m_config.nozzle_diameter.size() > 1;
 
     std::string printer_model = m_config.printer_model.value;
-    bool is_n6_or_n7 = (printer_model == "Bambu Lab X2D" || printer_model == "Bambu Lab P2S");
+    bool is_farthest_timelapse_supported = (printer_model == "Bambu Lab X2D" || printer_model == "Bambu Lab P2S" || printer_model == "Bambu Lab H2C");
     bool need_insert_timelapse_gcode_for_traditional = false;
     if (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) {
-        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase) || is_multi_extruder || (is_n6_or_n7 && !m_spiral_vase));
+        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase) || is_multi_extruder || (is_farthest_timelapse_supported && !m_spiral_vase));
     }
 
     bool has_insert_timelapse_gcode = false;
@@ -4582,9 +4582,9 @@ GCode::LayerResult GCode::process_layer(
         return timepals_gcode;
     };
 
-    // N6/N7 traditional timelapse: trigger at farthest point from camera and use current pos (in-place photo)
+    // Traditional timelapse: trigger at farthest point from camera and use current pos (in-place photo)
     bool use_farthest_point_timelapse = need_insert_timelapse_gcode_for_traditional
-        && is_n6_or_n7
+        && is_farthest_timelapse_supported
         && m_config.timelapse_type.value == TimelapseType::tlTraditional;
     if(use_farthest_point_timelapse){
         Vec2d plate_offset(m_writer.get_xy_offset().x(), m_writer.get_xy_offset().y());

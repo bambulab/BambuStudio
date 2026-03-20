@@ -578,7 +578,7 @@ private:
     int m_timelapse_warning_code = 0;
     bool m_support_traditional_timelapse = true;
 
-    // N6/N7 traditional timelapse: trigger at farthest point from camera on layer path
+    // Traditional timelapse: trigger at farthest point from camera on layer path
     double m_timelapse_farthest_dist_sq = -1.0;
     bool m_timelapse_inserted_this_layer = false;
     bool m_timelapse_farthest_on_wipe_tower = false; // true if farthest point is on wipe tower path
