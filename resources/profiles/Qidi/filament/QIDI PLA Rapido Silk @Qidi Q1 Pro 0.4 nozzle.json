@@ -21,6 +21,9 @@
     "full_fan_speed_layer": [
         "3"
     ],
+    "additional_fan_full_speed_layer": [
+        "3"
+    ],
     "pressure_advance": [
         "0.034"
     ],

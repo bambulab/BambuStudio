@@ -44,8 +44,14 @@
     "full_fan_speed_layer": [
         "2"
     ],
-    "include": [
-        "fdm_filament_template_direct_bowden"
+    "additional_fan_full_speed_layer": [
+        "2"
+    ],
+    "long_retractions_when_ec": [
+        "1",
+        "1",
+        "1",
+        "1"
     ],
     "nozzle_temperature": [
         "290",

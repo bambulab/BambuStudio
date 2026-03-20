@@ -403,6 +403,9 @@ std::string GCodeEditor::write_layer_gcode(
         //BBS
         int additional_fan_speed_new = EXTRUDER_CONFIG(additional_cooling_fan_speed);
         int close_fan_the_first_x_layers = EXTRUDER_CONFIG(close_fan_the_first_x_layers);
+        int close_additional_fan_first_x_layers = EXTRUDER_CONFIG(close_additional_fan_first_x_layers);
+        int additional_fan_full_speed_layer = EXTRUDER_CONFIG(additional_fan_full_speed_layer);
+        int first_x_layer_fan_speed = EXTRUDER_CONFIG(first_x_layer_fan_speed);
         // Is the fan speed ramp enabled?
         int full_fan_speed_layer = EXTRUDER_CONFIG(full_fan_speed_layer);
         if (close_fan_the_first_x_layers <= 0 && full_fan_speed_layer > 0) {
@@ -443,8 +446,16 @@ std::string GCodeEditor::write_layer_gcode(
             ironing_fan_control  = false;
             ironing_fan_speed    = 0;
             fan_speed_new      = 0;
-            additional_fan_speed_new = EXTRUDER_CONFIG(first_x_layer_fan_speed);
         }
+
+        // BBS: Independent control for additional fan
+        if (int(layer_id) < close_additional_fan_first_x_layers) {
+            additional_fan_speed_new = first_x_layer_fan_speed;
+        } else if (int(layer_id) + 1 < additional_fan_full_speed_layer && additional_fan_full_speed_layer > close_additional_fan_first_x_layers) {
+            float factor = float(int(layer_id + 1) - close_additional_fan_first_x_layers) / float(additional_fan_full_speed_layer - close_additional_fan_first_x_layers);
+            additional_fan_speed_new = std::clamp(int(float(first_x_layer_fan_speed) * (1.0f - factor) + float(additional_fan_speed_new) * factor + 0.5f), 0, 100);
+        }
+
 #undef EXTRUDER_CONFIG
         if (fan_speed_new != m_fan_speed) {
             m_fan_speed = fan_speed_new;

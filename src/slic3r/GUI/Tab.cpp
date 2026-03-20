@@ -4512,23 +4512,14 @@ void TabFilament::build()
 
     page = add_options_page(L("Cooling"), "empty");
 
-        //line = { "", "" };
-        //line.full_width = 1;
-        //line.widget = [this](wxWindow* parent) {
-        //    return description_line_widget(parent, &m_cooling_description_line);
-        //};
-        //optgroup->append_line(line);
-        optgroup = page->new_optgroup(L("Cooling for specific layer"), L"param_cooling");
-        //optgroup->append_single_option_line("close_fan_the_first_x_layers", "auto-cooling");
-        //optgroup->append_single_option_line("full_fan_speed_layer");
-        line = {L("Special cooling settings"),
-                L("set addition fan speed before fist x layer")};
+        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
+        line = {L("Close fan"),
+                L("set fan speed before first x layer")};
         line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("close_fan_the_first_x_layers"));
-        line.append_option(optgroup->get_option("first_x_layer_fan_speed"));
+        line.append_option(optgroup->get_option("full_fan_speed_layer"));
         optgroup->append_line(line);
 
-        optgroup = page->new_optgroup(L("Part cooling fan"), L"param_cooling_fan");
         line = { L("Min fan speed threshold"), L("Part cooling fan speed will start to run at min speed when the estimated layer time is no longer than the layer time in setting. When layer time is shorter than threshold, fan speed is interpolated between the minimum and maximum fan speed according to layer printing time") };
         line.label_path = "auto-cooling";
         line.append_option(optgroup->get_option("fan_min_speed"));
@@ -4554,6 +4545,15 @@ void TabFilament::build()
         optgroup->append_single_option_line("ironing_fan_speed", "auto-cooling");
 
         optgroup = page->new_optgroup(L("Auxiliary part cooling fan"), L"param_cooling_fan");
+        
+        line = {L("First layers fan"),
+                L("set additional fan speed before first x layer")};
+        line.label_path = "auto-cooling";
+        line.append_option(optgroup->get_option("close_additional_fan_first_x_layers"));
+        line.append_option(optgroup->get_option("first_x_layer_fan_speed"));
+        optgroup->append_line(line);
+        
+        optgroup->append_single_option_line("additional_fan_full_speed_layer");
         optgroup->append_single_option_line("additional_cooling_fan_speed");
 
         optgroup = page->new_optgroup(L("Exhaust fan"),L"param_cooling_fan");

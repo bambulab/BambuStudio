@@ -39,6 +39,9 @@
     "full_fan_speed_layer": [
         "2"
     ],
+    "additional_fan_full_speed_layer": [
+        "2"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],
