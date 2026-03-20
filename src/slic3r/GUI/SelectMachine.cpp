@@ -1524,8 +1524,14 @@ void SelectMachineDialog::refresh_save_time(MachineObject *obj)
         }
 
         m_stext_time->SetLabel(print_time);
+    } else {
+        wxString   print_time;
+        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+        if (plate) {
+            print_time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time)));
+            m_stext_time->SetLabel(print_time);
+        }
     }
-
 
     // update the tips of suggest pos dispaly
     bool is_all_at_suggest_pos = true;
