@@ -215,7 +215,7 @@ private:
     Button* m_buttonRefresh{ nullptr };
     std::vector<wxColour>colourAdjust{wxColour("#675AFF")};
     std::vector<wxColour>colourOK{wxColour("#FF8181")};
-    std::vector<wxColour>colourUnused{wxColour("#FF8181")};
+    std::vector<wxColour>colourUnused{wxColour("#FF818140")};
     // wxStaticBitmap* m_bitmapSelectMachine{nullptr};
 };
 
