@@ -918,9 +918,13 @@ public:
 
     std::optional<int> GetExtruderID();
 
-    void SetExtruderMapping(const std::vector<wxString>& extruderMapping, const wxString& filamentID);
+    void SetExtruderMapping(MachineObject* obj,
+                            const std::string& currAmsId,
+                            const std::string& currSlotId,
+                            const std::vector<std::pair<std::string, std::string>>& extruderSlots);
 
 private:
+    static wxString calcTrayName(MachineObject* obj, const std::string& amsID, const std::string& slotID);
 
     int m_extruder_num{};
     wxString m_filament_id{};
@@ -931,7 +935,7 @@ private:
     DevExtruderImage* m_extruderImage{nullptr};
     Button* m_confirmBtn{nullptr};
     std::optional<int> m_load_extruder_id = std::nullopt;
-    
+
     void OnConfirm(wxCommandEvent& event);
     void OnRadioClicked(wxCommandEvent& evt);
 

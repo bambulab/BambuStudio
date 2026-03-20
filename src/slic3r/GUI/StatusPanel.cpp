@@ -4225,25 +4225,24 @@ void StatusPanel::on_ams_load_curr()
                 return;
             }
 
-            std::vector<wxString> extruder_filamentid_mapping = {"", ""};
+            std::vector<std::pair<std::string, std::string>> extruderSlots(2, {"", ""});
             if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value())
             {
                 if (ext->HasFilamentInExt())
                 {
-                    extruder_filamentid_mapping[MAIN_EXTRUDER_ID] = getTrayName(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
+                    extruderSlots[MAIN_EXTRUDER_ID] = {ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id};
                 }
             }
             if (auto ext = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID); ext.has_value())
             {
                 if (ext->HasFilamentInExt())
                 {
-                    extruder_filamentid_mapping[DEPUTY_EXTRUDER_ID] = getTrayName(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
+                    extruderSlots[DEPUTY_EXTRUDER_ID] = {ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id};
                 }
             }
 
-            auto filamentID = getTrayName(curr_ams_id, curr_can_id);
             FeedDirectionDialog dialog(nullptr, 2);
-            dialog.SetExtruderMapping(extruder_filamentid_mapping, filamentID);
+            dialog.SetExtruderMapping(obj, curr_ams_id, curr_can_id, extruderSlots);
             auto rtn = dialog.ShowModal();
 
             if (rtn != wxID_OK)
