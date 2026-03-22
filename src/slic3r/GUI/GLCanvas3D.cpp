@@ -954,6 +954,7 @@ GLCanvas3D::Mouse::Drag::Drag()
     , move_volume_idx(-1)
     , move_requires_threshold(false)
     , move_start_threshold_position_2D(Invalid_2D_Point)
+    , last_modifiers(0)
 {
 }
 
@@ -5056,7 +5057,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
         && keyCode != WXK_LEFT
         && keyCode != WXK_UP
         && keyCode != WXK_RIGHT
-        && keyCode != WXK_DOWN) {
+        && keyCode != WXK_DOWN
+        && keyCode != WXK_ALT  // prevent possible focus loss on ALT UP
+    ) {
         evt.Skip();   // Needed to have EVT_CHAR generated as well
     }
 }
@@ -5155,9 +5158,8 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         _update_camera_zoom(delta);
     }
     else {
-        auto cnv_size = get_canvas_size();
         Camera& camera = get_active_camera();
-        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
+        auto screen_center_3d_pos = _mouse_to_3d(camera, get_canvas_size().center());
         auto mouse_3d_pos = _mouse_to_3d(camera, {evt.GetX(), evt.GetY()});
         Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
         camera.translate(displacement);
@@ -5829,35 +5831,46 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         get_active_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
                     else {
 #endif
+                        Camera& camera = get_active_camera();
+                        bool rotate_limit = current_printer_technology() != ptSLA;
+                        const int mods = evt.GetModifiers();
+
                         // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
                         // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
                         // which checks an atomics (flushes CPU caches).
-                        // See GH issue #3816.
-                        Camera& camera = get_active_camera();
+                        // See https://github.com/prusa3d/PrusaSlicer/issues/3816
+                        if (rotate_limit)
+                            camera.recover_from_free_camera();
 
-                        bool rotate_limit = current_printer_technology() != ptSLA;
-                        Vec3d rotate_target = m_selection.get_bounding_box().center();
-
-                        camera.recover_from_free_camera();
-                        //BBS modify rotation
-                        if (evt.ControlDown() || evt.CmdDown()) {
-                            if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
-                                auto canvas_w = float(get_canvas_size().get_width());
-                                auto canvas_h = float(get_canvas_size().get_height());
-                                Point screen_center(canvas_w/2, canvas_h/2);
-                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
-                                m_rotation_center = _mouse_to_3d(camera, screen_center);
-                                m_rotation_center(2) = 0.f;
+                        // Update cached rotation reference point, if needed
+                        if (mods != m_mouse.drag.last_modifiers || m_rotation_center == Mouse::Drag::Invalid_3D_Point) {
+                            //BBS modify rotation
+                            if (mods & wxMOD_CONTROL) {
+                                // Rotate around center of canvas.
+                                m_rotation_center = _mouse_to_3d(camera, get_canvas_size().center());
+                                m_rotation_center(2) = .0;
                             }
-                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
-                        } else {
-                            //BBS rotate with current plate center
-                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                            if (plate)
-                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
-                            else
-                                camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                            else if (mods & wxMOD_ALT) {
+                                if (m_selection.is_empty()) {
+                                    // Rotate around current cursor position.
+                                    m_rotation_center = _mouse_to_3d(camera, pos);
+                                }
+                                else {
+                                    // Rotate around selection
+                                    m_rotation_center = m_selection.get_bounding_box().center();
+                                }
+                            }
+                            else if (PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()) {
+                                // Rotate around current plate center
+                                m_rotation_center = plate->get_bounding_box().center();
+                            }
+                            else {
+                                // Use current camera target
+                                m_rotation_center = camera.get_target();
+                            }
                         }
+
+                        camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
 #ifdef SUPPORT_FEEE_CAMERA
                     }
 #endif
@@ -5900,12 +5913,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_mouse.drag.start_position_2D = pos;
             m_mouse.drag.move_start_threshold_position_2D = pos;
         }
+
+        m_mouse.drag.last_modifiers = evt.GetModifiers();
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
 
         if (evt.LeftUp()) {
             m_selection.stop_dragging();
-            m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 
         const bool left_click_on_blank = evt.LeftUp() && !m_mouse.ignore_left_up && !m_mouse.dragging
@@ -6836,7 +6850,9 @@ void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
 void GLCanvas3D::mouse_up_cleanup()
 {
     m_moving = false;
+    m_rotation_center = Mouse::Drag::Invalid_3D_Point;
     m_mouse.drag.move_volume_idx = -1;
+    m_mouse.drag.last_modifiers = 0;
     m_mouse.set_start_position_3D_as_invalid();
     m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
