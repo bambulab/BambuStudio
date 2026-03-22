@@ -86,6 +86,8 @@ public:
 
     int get_scale_factor() const;
     void set_scale_factor(int height);
+
+    inline Point center() const { return { m_width / 2, m_height / 2 }; }
 };
 
 
@@ -349,6 +351,7 @@ class GLCanvas3D
             int move_volume_idx;
             bool move_requires_threshold;
             Point move_start_threshold_position_2D;
+            int last_modifiers;
 
         public:
             Drag();
@@ -683,7 +686,7 @@ private:
     std::vector<int> m_hover_plate_idxs;
     //BBS if explosion_ratio is changed, need to update volume bounding box
     mutable float m_explosion_ratio = 1.0;
-    mutable Vec3d m_rotation_center{ 0.0, 0.0, 0.0};
+    Vec3d m_rotation_center{ Mouse::Drag::Invalid_3D_Point };
 
     // Following variable is obsolete and it should be safe to remove it.
     // I just don't want to do it now before a release (Lukas Matena 24.3.2019)
