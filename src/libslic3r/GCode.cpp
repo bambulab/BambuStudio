@@ -974,12 +974,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 Vec3d nozzle_pos = gcode_writer.get_position();
 
                 float purge_volume = tcr.purge_volume < EPSILON ? 0 : std::max(tcr.purge_volume, g_min_purge_volume);
-                float filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_filament_id), 2));
-                float purge_length = purge_volume / filament_area;
+                float new_filament_area = float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(new_filament_id), 2));
+                float purge_length = purge_volume / new_filament_area;
 
-                int old_filament_e_feedrate = (old_filament_id != -1) ? (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(old_filament_id) / filament_area) : 200;
+                float old_filament_area = (old_filament_id != -1) ? float((M_PI / 4.f) * pow(full_config.filament_diameter.get_at(old_filament_id), 2)) : new_filament_area;
+                int old_filament_e_feedrate = (old_filament_id != -1) ? (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(old_filament_id) / old_filament_area) : 200;
                 old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
-                int new_filament_e_feedrate = (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(new_filament_id) / filament_area);
+                int new_filament_e_feedrate = (int)(60.0 * full_config.filament_max_volumetric_speed.get_at(new_filament_id) / new_filament_area);
                 new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
                 float wipe_avoid_pos_x      = 0.f;
                 {
@@ -2227,7 +2228,7 @@ namespace DoExport {
 	        //std::pair<std::string, unsigned int> out_filament_cost    ("; filament cost = ", 0);
 	        for (const Extruder &extruder : extruders) {
 	            double used_filament   = extruder.used_filament() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] : 0.f);
-	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
+	            double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? wipe_tower_data.used_filament[extruder.id()] * extruder.filament_crossection() : 0.);
 	            double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
 	            double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
                 auto append = [&extruder](std::pair<std::string, unsigned int> &dst, const char *tmpl, double value) {
@@ -8233,7 +8234,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     float old_retract_length, old_retract_length_toolchange, old_filament_retract_length_nc, wipe_volume;
     int old_filament_temp, old_filament_e_feedrate;
 
-    float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(new_filament_id), 2));
+    float new_filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(new_filament_id), 2));
     //BBS: add handling for filament change in start gcode
     int old_filament_id = -1;
     int old_nozzle_id = -1;
@@ -8255,7 +8256,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         old_filament_temp = this->on_first_layer()? m_config.nozzle_temperature_initial_layer.get_at(old_filament_id) : m_config.nozzle_temperature.get_at(old_filament_id);
 
         //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
-        float grab_purge_volume = m_config.grab_length.get_at(new_extruder_id) * 2.4;
+        float grab_purge_volume = m_config.grab_length.get_at(new_extruder_id) * new_filament_area;
 
         auto switch_to_nozzle = [&](int filament_id, int nozzle_id){
             float wipe_volume = 0;
@@ -8282,7 +8283,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         }
         wipe_volume = std::max(0.f, wipe_volume-grab_purge_volume);
 
-        old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(old_filament_id) / filament_area);
+        float old_filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(old_filament_id), 2));
+        old_filament_e_feedrate = (int) (60.0 * m_config.filament_max_volumetric_speed.get_at(old_filament_id) / old_filament_area);
         old_filament_e_feedrate = old_filament_e_feedrate == 0 ? 100 : old_filament_e_feedrate;
         //BBS: must clean m_start_gcode_filament
         m_start_gcode_filament = -1;
@@ -8294,8 +8296,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         wipe_volume = 0.f;
         old_filament_e_feedrate = 200;
     }
-    float wipe_length = wipe_volume / filament_area;
-    int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(new_filament_id) / filament_area);
+    float wipe_length = wipe_volume / new_filament_area;
+    int new_filament_e_feedrate = (int)(60.0 * m_config.filament_max_volumetric_speed.get_at(new_filament_id) / new_filament_area);
     new_filament_e_feedrate = new_filament_e_feedrate == 0 ? 100 : new_filament_e_feedrate;
 
     auto extruder_variants = m_print->config().option<ConfigOptionStrings>("printer_extruder_variant")->values;

@@ -1460,17 +1460,13 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
     }
 
     if (this->has_wipe_tower() && ! m_objects.empty()) {
-        // Make sure all extruders use same diameter filament and have the same nozzle diameter
-        // EPSILON comparison is used for nozzles and 10 % tolerance is used for filaments
+        // Make sure all extruders have the same nozzle diameter when prime tower is enabled.
+        // Different filament diameters are supported — the wipe tower handles per-filament extrusion.
         double first_nozzle_diam = m_config.nozzle_diameter.get_at(extruders.front());
-        double first_filament_diam = m_config.filament_diameter.get_at(extruders.front());
         for (const auto& extruder_idx : extruders) {
             double nozzle_diam = m_config.nozzle_diameter.get_at(extruder_idx);
-            double filament_diam = m_config.filament_diameter.get_at(extruder_idx);
-            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam
-                /*|| std::abs((filament_diam - first_filament_diam) / first_filament_diam) > 0.1*/)
-                // BBS: remove L()
-                return { L("Different nozzle diameters and different filament diameters is not allowed when prime tower is enabled.") };
+            if (nozzle_diam - EPSILON > first_nozzle_diam || nozzle_diam + EPSILON < first_nozzle_diam)
+                return { L("Different nozzle diameters are not allowed when prime tower is enabled.") };
         }
 
         if (! m_config.use_relative_e_distances)
@@ -3991,7 +3987,8 @@ void Print::_make_wipe_tower()
                 }
 
                 //During the filament change, the extruder will extrude an extra length of grab_length for the corresponding detection, so the purge can reduce this length.
-                float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * 2.4; //(diameter/2)^2*PI=2.4
+                float filament_diam = m_config.filament_diameter.get_at(filament_id);
+                float grab_purge_volume = m_config.grab_length.get_at(extruder_id) * float(M_PI / 4. * filament_diam * filament_diam);
                 volume_to_purge = std::max(0.f, volume_to_purge - grab_purge_volume);
 
                 float wipe_volume_ec = m_config.filament_prime_volume.values[filament_id];

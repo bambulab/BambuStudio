@@ -1405,7 +1405,8 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": get long_retractions_when_cut from config, value=%1%, activated=%2%")%long_retractions_when_cut_opt->values[0] %machine_activated;
     }
 
-    size_t filament_size = full_config.option<ConfigOptionFloats>("filament_diameter")->values.size();
+    const auto& filament_diameters = full_config.option<ConfigOptionFloats>("filament_diameter")->values;
+    size_t filament_size = filament_diameters.size();
     std::vector<double> filament_retraction_distance_when_cut(filament_size, 18.0f), printer_retraction_distance_when_cut(filament_size, 18.0f);
     std::vector<unsigned char> filament_long_retractions_when_cut(filament_size, 0);
     const ConfigOptionFloatsNullable* filament_retraction_distances_when_cut_opt = full_config.option<ConfigOptionFloatsNullable>("filament_retraction_distances_when_cut");
@@ -1442,7 +1443,8 @@ std::vector<int> get_min_flush_volumes(const DynamicPrintConfig &full_config, si
                 retract_length = printer_retraction_distance_when_cut[nozzle_id];
         }
 
-        extra_flush_volume -= PI * 1.75 * 1.75 / 4 * retract_length;
+        double filament_diam = filament_diameters[idx];
+        extra_flush_volume -= PI * filament_diam * filament_diam / 4 * retract_length;
         extra_flush_volumes.emplace_back(extra_flush_volume);
     }
     return extra_flush_volumes;

@@ -697,7 +697,7 @@ public:
 
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     WipeTowerWriter& change_analyzer_mm3_per_mm(float len, float e) {
-        static const float area = float(M_PI) * 1.75f * 1.75f / 4.f;
+        float area = m_filpar[m_current_tool].filament_area;
         float mm3_per_mm = (len == 0.f ? 0.f : area * e / len);
         // adds tag for processor:
         std::stringstream str;
@@ -794,7 +794,7 @@ public:
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
             // Width of a squished extrusion, corrected for the roundings of the squished extrusions.
 			// This is left zero if it is a travel move.
-            float width = e * m_filpar[0].filament_area / (len * m_layer_height);
+            float width = e * m_filpar[m_current_tool].filament_area / (len * m_layer_height);
 			// Correct for the roundings of a squished extrusion.
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
@@ -861,7 +861,7 @@ public:
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
        // Width of a squished extrusion, corrected for the roundings of the squished extrusions.
        // This is left zero if it is a travel move.
-            float width = e * m_filpar[0].filament_area / (len * m_layer_height);
+            float width = e * m_filpar[m_current_tool].filament_area / (len * m_layer_height);
             // Correct for the roundings of a squished extrusion.
             width += m_layer_height * float(1. - M_PI / 4.);
             if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos) m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
@@ -1944,24 +1944,25 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     }
 #endif
 
-    m_filpar[idx].filament_area = float((M_PI/4.f) * pow(config.filament_diameter.get_at(idx), 2)); // all extruders are assumed to have the same filament diameter at this point
+    m_filpar[idx].filament_area = float((M_PI/4.f) * pow(config.filament_diameter.get_at(idx), 2));
     float nozzle_diameter = float(config.nozzle_diameter.get_at(idx));
-    m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
+    m_filpar[idx].nozzle_diameter = nozzle_diameter;
+    const float idx_filament_area = m_filpar[idx].filament_area;
 
     float max_vol_speed = float(config.filament_max_volumetric_speed.get_at(idx));
     if (max_vol_speed!= 0.f)
-        m_filpar[idx].max_e_speed = (max_vol_speed / filament_area());
+        m_filpar[idx].max_e_speed = (max_vol_speed / idx_filament_area);
 
     //set extruder change and nozzle change ramming speed
     {
         float ramming_vol_speed = float(config.filament_ramming_volumetric_speed.get_at(idx));
         if (config.filament_ramming_volumetric_speed.is_nil(idx) || is_approx(config.filament_ramming_volumetric_speed.get_at(idx), -1.)) ramming_vol_speed = max_vol_speed;
-        m_filpar[idx].max_e_ramming_speed.first = (ramming_vol_speed / filament_area());
+        m_filpar[idx].max_e_ramming_speed.first = (ramming_vol_speed / idx_filament_area);
 
         float ramming_vol_speed_nc = float(config.filament_ramming_volumetric_speed_nc.get_at(idx));
         if (config.filament_ramming_volumetric_speed_nc.is_nil(idx) || is_approx(config.filament_ramming_volumetric_speed_nc.get_at(idx), -1.))
             ramming_vol_speed_nc = max_vol_speed;
-        m_filpar[idx].max_e_ramming_speed.second = (ramming_vol_speed_nc / filament_area());
+        m_filpar[idx].max_e_ramming_speed.second = (ramming_vol_speed_nc / idx_filament_area);
     }
 
     //set precooling time/precooling target temp during extruder change and nozzle change
@@ -2576,6 +2577,7 @@ void WipeTower::toolchange_Change(
 
 	writer.flush_planner_queue();
 	m_current_tool = new_tool;
+	m_extrusion_flow = extrusion_flow(m_layer_height);
 }
 
 void WipeTower::toolchange_Load(
@@ -2947,7 +2949,7 @@ WipeTower::WipeTowerInfo::ToolChange WipeTower::set_toolchange(int old_tool, int
     float nozzle_change_depth  = 0;
     float nozzle_change_length = 0;
     if (is_need_ramming(old_tool, new_tool, layer_id)) {
-        double e_flow                   = nozzle_change_extrusion_flow(layer_height);
+        double e_flow                   = layer_height * (m_nozzle_change_perimeter_width - layer_height * (1.f - float(M_PI) / 4.f)) / m_filpar[old_tool].filament_area;
         double length                   = filament_change_length / e_flow;
         int    nozzle_change_line_count = std::ceil(length / nozzle_change_width);
         nozzle_change_depth             = nozzle_change_line_count * nozzlechange_gap_width;
@@ -3009,7 +3011,7 @@ void WipeTower::plan_toolchange(float z_par, float layer_height_par, unsigned in
     float nozzle_change_depth = 0;
     float nozzle_change_length = 0;
     if (is_need_ramming(old_tool, new_tool, layer_id)) {
-        double e_flow                   = nozzle_change_extrusion_flow(layer_height_par);
+        double e_flow                   = layer_height_par * (m_nozzle_change_perimeter_width - layer_height_par * (1.f - float(M_PI) / 4.f)) / m_filpar[old_tool].filament_area;
         double length                   = filament_change_length / e_flow;
         int    nozzle_change_line_count = std::ceil(length / (m_wipe_tower_width - 2*m_nozzle_change_perimeter_width));
         nozzle_change_depth = nozzle_change_line_count * m_nozzle_change_perimeter_width;
@@ -3371,6 +3373,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
             }
     }
     m_current_tool        = new_tool;
+    m_extrusion_flow      = extrusion_flow(m_layer_height);
     WipeTowerBlock* block = get_block_by_category(m_filpar[new_tool].category, false);
     if (!block) {
         assert(block != nullptr);
@@ -4093,11 +4096,13 @@ WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block,
 
 WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill, WipeTowerLayerType layer_type)
 {
+    float filament_area_val = m_filpar[filament_id].filament_area;
     float layer_height = m_layer_height;
-    float e_flow = m_extrusion_flow;
-    if (m_cur_layer_id > 1 && block.layers_type[m_cur_layer_id - 1]==WipeTowerLayerType::Normal && m_extrusion_flow < extrusion_flow(0.2)) {
+    float e_flow = m_layer_height * (m_perimeter_width - m_layer_height * (1.f - float(M_PI) / 4.f)) / filament_area_val;
+    float e_flow_02 = 0.2f * (m_perimeter_width - 0.2f * (1.f - float(M_PI) / 4.f)) / filament_area_val;
+    if (m_cur_layer_id > 1 && block.layers_type[m_cur_layer_id - 1]==WipeTowerLayerType::Normal && e_flow < e_flow_02) {
         layer_height = 0.2;
-        e_flow = extrusion_flow(0.2);
+        e_flow = e_flow_02;
     }
 
     WipeTowerWriter writer(layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
