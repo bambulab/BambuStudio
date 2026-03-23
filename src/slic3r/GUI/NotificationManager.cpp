@@ -562,13 +562,28 @@ void NotificationManager::PopNotification::count_lines()
 		m_lines_count++;
 	}
 	// hypertext calculation
-	if (!m_hypertext.empty()) {
-		int prev_end = m_endlines.size() > 1 ? m_endlines[m_endlines.size() - 2] : 0; // m_endlines.size() - 2 because we are fitting hypertext instead of last endline
-		if (ImGui::CalcTextSize((escape_string_cstyle(text.substr(prev_end, last_end - prev_end)) + m_hypertext).c_str()).x > m_window_width - m_window_width_offset) {
-			m_endlines.push_back(last_end);
-			m_lines_count++;
-		}
-	}
+    if (!m_hypertext.empty()) {
+        const float available_width = m_window_width - m_window_width_offset;
+        const float x_offset = m_left_indentation;
+        const float link_spacing = ImGui::CalcTextSize("   ").x;
+        int prev_end = m_endlines.size() > 1 ? m_endlines[m_endlines.size() - 2] : 0; // m_endlines.size() - 2 because we are fitting hypertext instead of last endline
+        std::string last_line = escape_string_cstyle(text.substr(prev_end, last_end - prev_end));
+        float first_hypertext_x = x_offset + ImGui::CalcTextSize((last_line + (last_line.empty() ? "" : " ")).c_str()).x;
+        float first_hypertext_w = ImGui::CalcTextSize(m_hypertext.c_str()).x;
+        if (first_hypertext_x + first_hypertext_w > available_width) {
+            m_endlines.push_back(last_end);
+            m_lines_count++;
+            first_hypertext_x = x_offset;
+        }
+
+        if (!m_second_hypertext.empty()) {
+            float second_hypertext_x = first_hypertext_x + first_hypertext_w + link_spacing;
+            float second_hypertext_w = ImGui::CalcTextSize(m_second_hypertext.c_str()).x;
+            if (second_hypertext_x + second_hypertext_w > available_width) {
+                m_lines_count++;
+            }
+        }
+    }
 
 	// m_text_2 (text after hypertext) is not used for regular notifications right now.
 	// its caluculation is in HintNotification::count_lines()
@@ -724,7 +739,6 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
             if (second_hypertext_x + second_hypertext_w > available_width) {
                 second_hypertext_x = x_offset;
                 second_hypertext_y += shift_y;
-                m_lines_count = 3;
             }
             render_hypertext(imgui, second_hypertext_x, second_hypertext_y,
                               m_second_hypertext, false, true);
