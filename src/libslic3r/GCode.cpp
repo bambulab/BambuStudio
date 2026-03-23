@@ -6624,6 +6624,25 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //if (sloped == nullptr)
     gcode += m_writer.set_speed(F, "", comment);
 
+    // Farthest-point timelapse may trigger mid-path (retract → photo → unretract).
+    // The unretract leaves the firmware feedrate at the deretraction speed (e.g. F1800)
+    // and the retract switches acceleration to travel mode — while GCodeWriter's internal
+    // m_current_speed still holds the extrusion speed, so subsequent extrude_to_xy() calls
+    // won't re-emit F, causing the extruder to creep at retract speed.
+    // Fix: close the current cooling block, emit timelapse, then re-open a new block with
+    // the correct extrusion speed, acceleration, and cooling markers so the cooling buffer
+    // can adjust both halves independently.
+    auto try_timelapse_and_restore_speed = [&](const Point &pt) {
+        std::string tl = try_insert_timelapse_at_farthest(pt, LiftType::SpiralLift);
+        if (!tl.empty()) {
+            if (cooling_extrude)
+                gcode += ";_EXTRUDE_END\n";
+            gcode += tl;
+            gcode += m_writer.set_speed(F, "", comment);
+            m_writer.reset_last_acceleration();
+        }
+    };
+
     double path_length = 0.;
     {
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
@@ -6646,7 +6665,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         this->point_to_gcode(line.b),
                         e_per_mm * line_length,
                         comment,path.is_force_no_extrusion());
-                    gcode += try_insert_timelapse_at_farthest(line.b, LiftType::SpiralLift);
+                    try_timelapse_and_restore_speed(line.b);
                 } else {
                     // Sloped extrusion
                     auto dE = e_per_mm * line_length;
@@ -6658,7 +6677,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     //BBS: todo, should use small e at start to get good seam
                     double slope_e = dE * e_ratio;
                     gcode += m_writer.extrude_to_xyz(dest3d, slope_e);
-                    gcode += try_insert_timelapse_at_farthest(line.b, LiftType::SpiralLift);
+                    try_timelapse_and_restore_speed(line.b);
                 }
             }
         } else {
@@ -6680,7 +6699,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             this->point_to_gcode(line.b),
                             e_per_mm * line_length,
                             comment, path.is_force_no_extrusion());
-                        gcode += try_insert_timelapse_at_farthest(line.b, LiftType::SpiralLift);
+                        try_timelapse_and_restore_speed(line.b);
                     }
                     break;
                 }
@@ -6699,7 +6718,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             e_per_mm * arc_length,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
                             comment, path.is_force_no_extrusion());
-                    gcode += try_insert_timelapse_at_farthest(arc.end_point, LiftType::SpiralLift);
+                    try_timelapse_and_restore_speed(arc.end_point);
                     break;
                 }
                 default:
