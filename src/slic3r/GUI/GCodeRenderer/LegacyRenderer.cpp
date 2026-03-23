@@ -181,6 +181,7 @@ namespace Slic3r {
                     // use rounding to reduce the number of generated paths
                     return type == move.type && extruder_id == move.extruder_id && cp_color_id == move.cp_color_id && role == move.extrusion_role &&
                         move.position.z() <= sub_paths.front().first.position.z() && feedrate == move.feedrate && fan_speed == move.fan_speed &&
+                        additional_fan_speed == move.additional_fan_speed &&
                         height == round_to_bin(move.height) && width == round_to_bin(move.width) &&
                         matches_percent(volumetric_rate, move.volumetric_rate(), 0.05f) && layer_time == move.layer_duration &&
                         thermal_index_mean == move.thermal_index_mean && thermal_index_min == move.thermal_index_min && thermal_index_max == move.thermal_index_max;
@@ -217,6 +218,7 @@ namespace Slic3r {
                      round_to_bin(move.width),
                      move.feedrate,
                      move.fan_speed,
+                     move.additional_fan_speed,
                      move.temperature,
                      move.thermal_index_min,
                      move.thermal_index_max,
@@ -1781,6 +1783,7 @@ namespace Slic3r {
                     case EViewType::Width: { color = m_p_extrusions->ranges.width.get_color_at(path.width); break; }
                     case EViewType::Feedrate: { color = m_p_extrusions->ranges.feedrate.get_color_at(path.feedrate); break; }
                     case EViewType::FanSpeed: { color = m_p_extrusions->ranges.fan_speed.get_color_at(path.fan_speed); break; }
+                    case EViewType::AdditionalFanSpeed: { color = m_p_extrusions->ranges.additional_fan_speed.get_color_at(path.additional_fan_speed); break; }
                     case EViewType::Temperature: { color = m_p_extrusions->ranges.temperature.get_color_at(path.temperature); break; }
                     case EViewType::LayerTime: { color = m_p_extrusions->ranges.layer_duration.get_color_at(path.layer_time, Range::EType::Logarithmic); break; }
                     case EViewType::VolumetricRate: { color = m_p_extrusions->ranges.volumetric_rate.get_color_at(path.volumetric_rate); break; }
