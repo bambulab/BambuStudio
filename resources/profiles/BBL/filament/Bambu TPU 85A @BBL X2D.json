@@ -17,8 +17,29 @@
         "10",
         "10"
     ],
+    "filament_cooling_before_tower": [
+        "10"
+    ],
+    "filament_deretraction_speed": [
+        "nil",
+        "nil",
+        "nil",
+        "nil"
+    ],
+    "filament_enable_overhang_speed": [
+        "1",
+        "1",
+        "1",
+        "1"
+    ],
     "filament_extruder_compatibility": [
         "8"
+    ],
+    "filament_extruder_variant": [
+        "Direct Drive Standard",
+        "Direct Drive High Flow",
+        "Bowden Standard",
+        "Bowden High Flow"
     ],
     "filament_flow_ratio": [
         "1",
@@ -50,6 +71,30 @@
     "filament_retraction_speed": [
         "200",
         "200",
+        "nil",
+        "nil"
+    ],
+    "filament_wipe": [
+        "nil",
+        "nil",
+        "nil",
+        "nil"
+    ],
+    "filament_wipe_distance": [
+        "nil",
+        "nil",
+        "nil",
+        "nil"
+    ],
+    "filament_z_hop": [
+        "nil",
+        "nil",
+        "nil",
+        "nil"
+    ],
+    "filament_z_hop_types": [
+        "nil",
+        "nil",
         "nil",
         "nil"
     ],
