@@ -6542,14 +6542,15 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         auto format_line_M104 = [&](int target_temp, int target_filament, bool skippable, int next_filament_idx,  int next_nozzle_id,const std::string& comment = std::string())->std::vector<std::string> {
             std::vector<std::string> buffer;
             int target_extruder = get_valid_extruder_id(next_filament_idx, target_filament);
-            skippable &= (extruder_max_nozzle_count[target_extruder] > 1);
             if (skippable) {
-                if (this->nozzle_group_result.is_support_dynamic_nozzle_map()) {
-                    buffer.emplace_back("M632 S " + std::to_string(next_filament_idx) + " H" + std::to_string(next_nozzle_id) + " N R\n");
-                }
-                else {
-                    buffer.emplace_back("M632 S " + std::to_string(next_filament_idx) + " N R\n");
-                }
+                const bool support_dynamic_nozzle_map = this->nozzle_group_result.is_support_dynamic_nozzle_map();
+                std::string m632_line = "M632 S" + std::to_string(next_filament_idx);
+                if (support_dynamic_nozzle_map)
+                    m632_line += " H" + std::to_string(next_nozzle_id);
+                if (extruder_max_nozzle_count[target_extruder] > 1)
+                    m632_line += " N R";
+                m632_line += " W\n";
+                buffer.emplace_back(std::move(m632_line));
             }
             std::string M104_line = "M104";
             if (handle_hotend_as_extruder) {
