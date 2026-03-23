@@ -2986,8 +2986,8 @@ Sidebar::Sidebar(Plater *parent)
                     p->editing_filament = 0;
             });
         p->btn_edit_printer = edit_btn;
-        ScalableBitmap bitmap_printer(p->panel_printer_preset, "printer_placeholder", 48);
-        p->image_printer = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, bitmap_printer.bmp(), wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
+        p->image_printer    = new wxStaticBitmap(p->panel_printer_preset, wxID_ANY, wxNullBitmap, wxDefaultPosition, PRINTER_THUMBNAIL_SIZE, 0);
+        update_printer_thumbnail();
         p->image_printer->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->combo_printer->wxEvtHandler::ProcessEvent(evt);
         });
@@ -3034,8 +3034,8 @@ Sidebar::Sidebar(Plater *parent)
             }
         });
 
-        ScalableBitmap bitmap_bed(p->panel_printer_bed, "printer_placeholder", 32);
-        p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, bitmap_bed.bmp(), wxDefaultPosition, wxDefaultSize, 0);
+        p->image_printer_bed = new wxStaticBitmap(p->panel_printer_bed, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+        update_bed_thumbnail({});
         p->image_printer_bed->Bind(wxEVT_LEFT_DOWN, [this](auto &evt) {
             p->image_printer_bed->Unbind(wxEVT_LEAVE_WINDOW, &Sidebar::on_leave_image_printer_bed, this);
             if (p->big_bed_image_popup) {
@@ -5262,11 +5262,13 @@ void Sidebar::set_is_gcode_file(bool flag)
     }
 }
 
-void Sidebar::update_bed_thumbnail(const std::string &path)
+void Sidebar::update_bed_thumbnail(std::string path)
 {
+    if (path.empty()) path = "printer_placeholder";
+
     // workaround for updating icons too many times, which may casue ui flicking
     static std::string cur_path;
-    if (cur_path == path) return;
+    if (cur_path == path && p->image_printer_bed->GetBitmap().IsOk()) return;
 
     cur_path = path;
     p->image_printer_bed->SetBitmap(create_scaled_bitmap(cur_path, this, 48));
@@ -5287,7 +5289,7 @@ void Sidebar::update_printer_thumbnail()
 
     // workaround for updating icons too many times, which may casue ui flicking
     static std::string image_name;
-    if (image_name == name) return;
+    if (image_name == name && p->image_printer->GetBitmap().IsOk()) return;
 
     image_name = name;
     p->image_printer->SetBitmap(create_scaled_bitmap(image_name, this, 48));
