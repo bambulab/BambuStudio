@@ -3185,6 +3185,8 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    sync_nozzle_volume_type_to_extruder_count(m_print_config, m_extra_config.has("nozzle_volume_type"));
+
     //get nozzle_volume_type
     bool different_extruder = m_print_config.support_different_extruders(new_extruder_count);
     //new_extruder_count = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
@@ -3206,16 +3208,21 @@ int CLI::run(int argc, char **argv)
         }
     }
     else {
-        if (!machine_switch && !current_nozzle_volume_type.empty())
-            new_nozzle_volume_type = current_nozzle_volume_type;
-        new_nozzle_volume_type.resize(new_extruder_count, nvtStandard);
-        if ((new_extruder_count > 1) || different_extruder) {
-            BOOST_LOG_TRIVIAL(error) << boost::format("%1%: nozzle_volume_type not found, when different_extruder or multiple extruder, new_printer_name %2%, extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
-            //record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
-            //flush_and_exit(CLI_INVALID_PARAMS);
+        auto opt_print_nvt = dynamic_cast<const ConfigOptionEnumsGeneric *>(m_print_config.option("nozzle_volume_type"));
+        if (opt_print_nvt && opt_print_nvt->values.size() >= static_cast<size_t>(new_extruder_count)) {
+            new_nozzle_volume_type.resize(new_extruder_count);
+            for (int i = 0; i < new_extruder_count; i++)
+                new_nozzle_volume_type[i] = (NozzleVolumeType)opt_print_nvt->values[i];
+        } else {
+            if (!machine_switch && !current_nozzle_volume_type.empty())
+                new_nozzle_volume_type = current_nozzle_volume_type;
+            new_nozzle_volume_type.resize(new_extruder_count, nvtStandard);
+            if ((new_extruder_count > 1) || different_extruder) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("%1%: nozzle_volume_type not found, when different_extruder or multiple extruder, new_printer_name %2%, extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
+            }
+            else
+                BOOST_LOG_TRIVIAL(info) << boost::format("%1%: nozzle_volume_type not found, use standard by default, new_printer_name %2% extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
         }
-        else
-            BOOST_LOG_TRIVIAL(info) << boost::format("%1%: nozzle_volume_type not found, use standard by default, new_printer_name %2% extruder_count %3%")%__LINE__ %new_printer_name %new_extruder_count;
     }
     new_extruder_variants.resize(new_extruder_count, "");
     const ConfigOptionEnumsGeneric *opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(m_print_config.option("extruder_type"));
@@ -3865,9 +3872,16 @@ int CLI::run(int argc, char **argv)
     // 机型变化时要触发model change  => 原来没值或者model发生变化
     if (!has_extruder_nozzle_stats || machine_switch) {
         auto max_nozzle_count   = m_print_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count", true)->values;
-        std::vector<int> curr_volume_map_value(current_nozzle_volume_type.size());
-        for(size_t idx = 0; idx < current_nozzle_volume_type.size(); ++idx){
-            curr_volume_map_value[idx] = static_cast<int>(current_nozzle_volume_type[idx]);
+        const size_t slot_count = max_nozzle_count.size();
+        std::vector<int> curr_volume_map_value(slot_count, static_cast<int>(NozzleVolumeType::nvtStandard));
+        auto opt_nvt = dynamic_cast<const ConfigOptionEnumsGeneric *>(m_print_config.option("nozzle_volume_type"));
+        if (opt_nvt && !opt_nvt->values.empty()) {
+            for (size_t idx = 0; idx < slot_count; ++idx) {
+                if (idx < opt_nvt->values.size())
+                    curr_volume_map_value[idx] = opt_nvt->values[idx];
+                else
+                    curr_volume_map_value[idx] = opt_nvt->values.back();
+            }
         }
         nozzle_stats_obj.on_printer_model_change_cli(curr_volume_map_value, max_nozzle_count);
     }

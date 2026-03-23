@@ -399,6 +399,7 @@ static std::set<NozzleVolumeType> get_valid_nozzle_volume_type() {
 }
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type);
+
 static std::string bed_type_to_gcode_string(const BedType type)
 {
     std::string type_str;
@@ -656,6 +657,12 @@ public:
     std::string get_filament_vendor() const;
     std::string get_filament_type() const;
 };
+
+// Align nozzle_volume_type length with nozzle_diameter count for CLI / merged config.
+// When cli_specified_nozzle_volume_type is false, copy from default_nozzle_volume_type (same as GUI PresetBundle path).
+// When true but the list is shorter than extruder count, pad from default_nozzle_volume_type or Standard.
+void sync_nozzle_volume_type_to_extruder_count(DynamicPrintConfig &cfg, bool cli_specified_nozzle_volume_type);
+
 extern std::set<std::string> printer_extruder_options;
 extern std::set<std::string> print_options_with_variant;
 extern std::set<std::string> filament_options_with_variant;

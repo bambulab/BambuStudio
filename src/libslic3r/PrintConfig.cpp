@@ -569,6 +569,43 @@ std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
     return s_keys_names_NozzleVolumeType[nozzle_volume_type];
 }
 
+void sync_nozzle_volume_type_to_extruder_count(DynamicPrintConfig &cfg, bool cli_specified_nozzle_volume_type)
+{
+    auto *nd = cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!nd || nd->values.empty())
+        return;
+    const size_t ec = nd->values.size();
+
+    ConfigOptionEnumsGeneric *nvt = cfg.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
+    if (!nvt)
+        return;
+    if (nvt->values.size() >= ec)
+        return;
+
+    auto *def_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(cfg.option("default_nozzle_volume_type"));
+
+    if (!cli_specified_nozzle_volume_type) {
+        nvt->values.resize(ec);
+        for (size_t i = 0; i < ec; ++i) {
+            if (def_opt && !def_opt->values.empty())
+                nvt->values[i] = (i < def_opt->values.size()) ? def_opt->values[i] : def_opt->values.back();
+            else
+                nvt->values[i] = int(NozzleVolumeType::nvtStandard);
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("sync_nozzle_volume_type_to_extruder_count: nozzle_volume_type from default_nozzle_volume_type, extruders=%1%") % ec;
+        return;
+    }
+
+    while (nvt->values.size() < ec) {
+        const size_t i = nvt->values.size();
+        int           v  = int(NozzleVolumeType::nvtStandard);
+        if (def_opt && !def_opt->values.empty())
+            v = (i < def_opt->values.size()) ? def_opt->values[i] : def_opt->values.back();
+        nvt->values.push_back(v);
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("sync_nozzle_volume_type_to_extruder_count: padded CLI nozzle_volume_type to extruder count %1%") % ec;
+}
+
 std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string>& strs)
 {
     std::vector<std::map<int, int>> extruder_ams_counts;
