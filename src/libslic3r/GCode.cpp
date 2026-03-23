@@ -6722,14 +6722,11 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         if (cooling_extrude)
             gcode += ";_EXTRUDE_END\n";
 
-<<<<<<< HEAD   (eaf063 ENH: update the suggest dialog text)
-=======
         // Ironing fan speed control: output end marker when leaving ironing
         if (path.role() == erIroning && m_is_ironing_fan_on) {
             gcode += ";_IRONING_FAN_END\n";
             m_is_ironing_fan_on = false;
         }
->>>>>>> CHANGE (bfdbbd ENH: Add ironing fan control)
 
         if (FILAMENT_CONFIG(enable_overhang_bridge_fan)) {
             //BBS: Overhang_threshold_none means Overhang_threshold_1_4 and forcing cooling for all external perimeter
