@@ -297,7 +297,7 @@ public:
 
 private:
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
-    void  update_bed_thumbnail(const std::string &path);
+    void  update_bed_thumbnail(std::string path);
 
 private:
     struct priv;
