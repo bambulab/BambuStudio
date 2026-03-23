@@ -963,7 +963,6 @@ GLCanvas3D::Mouse::Mouse()
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
     , ignore_left_up(false)
-    , ignore_right_up(false)
 {
 }
 
@@ -5440,7 +5439,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (p_main_toolbar->on_mouse(evt, *this)) {
             if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
                 mouse_up_cleanup();
-            m_mouse.set_start_position_3D_as_invalid();
             return;
         }
     }
@@ -5448,7 +5446,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (wxGetApp().plater()->get_collapse_toolbar().on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
         return;
     }
 
@@ -5457,7 +5454,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (wxGetApp().plater()->get_view_toolbar().on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
         return;
     }
 #endif
@@ -5498,7 +5494,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
 
-        m_mouse.set_start_position_3D_as_invalid();
         m_mouse.position = pos.cast<double>();
 
         if (evt.Dragging() && current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
@@ -5534,7 +5529,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
 
 
-    if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
+    if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
         m_mouse.set_move_start_threshold_position_2D_as_invalid();
     }
@@ -5566,7 +5561,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _refresh_if_shown_on_screen();
             m_tooltip_enabled = true;
         }
-        m_mouse.set_start_position_2D_as_invalid();
 //#endif
     }
     else if (evt.Leaving()) {
@@ -5595,7 +5589,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else
             post_event(SimpleEvent(EVT_GLCANVAS_SWITCH_TO_GLOBAL));
     }
-    else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
+    else if (!m_mouse.dragging && evt.ButtonDown()) {
         m_show_assembly_view_preview_menu = false;
         //BBS: add orient deactivate logic
         if (!m_gizmos.on_mouse(evt)) {
@@ -5799,6 +5793,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.Dragging()) {
+        // Track initial drag starting position for rotate/pan hysterisis.
+        if (!m_mouse.dragging)
+            m_mouse.drag.move_start_threshold_position_2D = pos;
+
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -5807,114 +5805,91 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_mouse.position = pos.cast<double>();
             }
         }
-        // do not process the dragging if the left mouse was set down in another canvas
-        else if (evt.LeftIsDown()) {
-            // if dragging over blank area with left button, rotate
-            if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
-                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
-                if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
-                    //BBS rotate around target
+        else {
+            // Rotate if dragging over blank area with left button.
+            if (evt.LeftIsDown()) {
+                const bool can_rotate = (any_gizmo_active || m_hover_volume_idxs.empty());
+                // Always rotate around target(s) in assembly or paint tool views
+                const bool rot_assembly = this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo();
+                //BBS do not limit rotate in assembly or paint tool views
+                const bool rot_constrained = !rot_assembly && current_printer_technology() != ptSLA;  // && !wxGetApp().app_config->get_bool("use_free_camera");
+                // Do rotation if hysteresis tolerance has already been met on last drag event.
+                if (m_mouse.rotating && can_rotate) {
+                    const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
+                    const int mods = evt.GetModifiers();
                     Camera& camera = get_active_camera();
-                    Vec3d rotate_target = Vec3d::Zero();
-                    if (!m_selection.is_empty())
-                        rotate_target = m_selection.get_bounding_box().center();
-                    else
-                        rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
-                    //BBS do not limit rotate in assemble view
-                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
-                }
-                else {
-#ifdef SUPPORT_FEEE_CAMERA
-                    if (wxGetApp().app_config->get("use_free_camera") == "1")
-                        // Virtual track ball (similar to the 3DConnexion mouse).
-                        get_active_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
-                    else {
-#endif
-                        Camera& camera = get_active_camera();
-                        bool rotate_limit = current_printer_technology() != ptSLA;
-                        const int mods = evt.GetModifiers();
 
-                        // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
-                        // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
-                        // which checks an atomics (flushes CPU caches).
-                        // See https://github.com/prusa3d/PrusaSlicer/issues/3816
-                        if (rotate_limit)
-                            camera.recover_from_free_camera();
-
-                        // Update cached rotation reference point, if needed
-                        if (mods != m_mouse.drag.last_modifiers || m_rotation_center == Mouse::Drag::Invalid_3D_Point) {
-                            //BBS modify rotation
-                            if (mods & wxMOD_CONTROL) {
-                                // Rotate around center of canvas.
-                                m_rotation_center = _mouse_to_3d(camera, get_canvas_size().center());
-                                m_rotation_center(2) = .0;
-                            }
-                            else if (mods & wxMOD_ALT) {
-                                if (m_selection.is_empty()) {
-                                    // Rotate around current cursor position.
-                                    m_rotation_center = _mouse_to_3d(camera, pos);
-                                }
-                                else {
-                                    // Rotate around selection
-                                    m_rotation_center = m_selection.get_bounding_box().center();
-                                }
-                            }
-                            else if (PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()) {
-                                // Rotate around current plate center
-                                m_rotation_center = plate->get_bounding_box().center();
+                    // Update cached rotation reference point, if needed
+                    if (mods != m_mouse.drag.last_modifiers || m_rotation_center == Mouse::Drag::Invalid_3D_Point) {
+                        if (rot_assembly) {
+                            //BBS rotate around selection or center of all objects  in view
+                            if (m_selection.is_empty())
+                                m_rotation_center = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
+                            else
+                                m_rotation_center = m_selection.get_bounding_box().center();
+                        }
+                        //BBS modify rotation
+                        else if (mods & wxMOD_CONTROL) {
+                            // Rotate around center of canvas.
+                            m_rotation_center = _mouse_to_3d(camera, get_canvas_size().center());
+                            m_rotation_center(2) = .0;
+                        }
+                        else if (mods & wxMOD_ALT) {
+                            if (m_selection.is_empty()) {
+                                // Rotate around current cursor position.
+                                m_rotation_center = _mouse_to_3d(camera, pos);
                             }
                             else {
-                                // Use current camera target
-                                m_rotation_center = camera.get_target();
+                                // Rotate around selection
+                                m_rotation_center = m_selection.get_bounding_box().center();
                             }
                         }
-
-                        camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
-#ifdef SUPPORT_FEEE_CAMERA
+                        else if (PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()) {
+                            // Rotate around current plate center
+                            m_rotation_center = plate->get_bounding_box().center();
+                        }
+                        else {
+                            // Use current camera target
+                            m_rotation_center = camera.get_target();
+                        }
                     }
-#endif
+
+                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rot_constrained, m_rotation_center);
+
+                    m_dirty = true;
                 }
-
-                m_dirty = true;
-            }
-            if (m_mouse.is_move_threshold_met(pos)) {
-                m_mouse.rotating = true;
-            }
-            m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
-            m_mouse.drag.move_start_threshold_position_2D = pos;
-        }
-        else if (evt.MiddleIsDown() || evt.RightIsDown()) {
-            // If dragging over blank area with right button, pan.
-            if (m_mouse.is_start_position_2D_defined()) {
-                // get point in model space at Z = 0
-                float z = 0.0f;
-                Camera& camera = get_active_camera();
-                const Vec3d& cur_pos = _mouse_to_3d(camera, pos, &z);
-                Vec3d orig = _mouse_to_3d(camera, m_mouse.drag.start_position_2D, &z);
-#ifdef SUPPORT_FREE_CAMERA
-                if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
-                    if (wxGetApp().app_config->get("use_free_camera") != "1")
-                        // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
-                        // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
-                        // which checks an atomics (flushes CPU caches).
-                        // See GH issue #3816.
-                        camera.recover_from_free_camera();
+                else if (can_rotate && m_mouse.is_move_threshold_met(pos)) {
+                    // Start rotating on the next drag event once movement threshold is met.
+                    m_mouse.rotating = true;
+                    // Forces camera right vector to be parallel to XY plane in case it has been misaligned using free rotation.
+                    // See https://github.com/prusa3d/PrusaSlicer/issues/3816
+                    if (rot_constrained)
+                        get_active_camera().recover_from_free_camera();
                 }
-#endif
+                m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
+            }
 
-                camera.set_target(camera.get_target() + orig - cur_pos);
-                m_dirty = true;
-                m_mouse.ignore_right_up = true;
+            // Pan if dragging over blank area with right/middle button.
+            if (evt.MiddleIsDown() || evt.RightIsDown()) {
+                // Do panning if hysteresis tolerance has already been met on last drag event.
+                if (m_mouse.panning) {
+                    // get point in model space at Z = 0
+                    float z = 0.0f;
+                    Camera& camera = get_active_camera();
+                    const Vec3d cur_pos = _mouse_to_3d(camera, pos, &z);
+                    const Vec3d orig = _mouse_to_3d(camera, m_mouse.drag.start_position_2D, &z);
+                    camera.set_target(camera.get_target() + orig - cur_pos);
+                    m_dirty = true;
+                }
+                else if (m_mouse.is_move_threshold_met(pos)) {
+                    // Start panning on the next drag event once movement threshold is met.
+                    m_mouse.panning = true;
+                }
+                m_mouse.drag.start_position_2D = pos;
             }
-            if (m_mouse.is_move_threshold_met(pos)) {
-                m_mouse.panning = true;
-            }
-            m_mouse.drag.start_position_2D = pos;
-            m_mouse.drag.move_start_threshold_position_2D = pos;
+
+            m_mouse.drag.last_modifiers = evt.GetModifiers();
         }
-
-        m_mouse.drag.last_modifiers = evt.GetModifiers();
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
 
@@ -5978,7 +5953,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
         }
-        else if (evt.RightUp() && !is_layers_editing_enabled()) {
+        else if (evt.RightUp() && !is_layers_editing_enabled() && !m_mouse.rotating && !m_mouse.panning) {
             m_mouse.position = pos.cast<double>();
             // forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is already shown
@@ -6014,28 +5989,34 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 render();
             }
 
-            Vec2d logical_pos = pos.cast<double>();
-#if ENABLE_RETINA_GL
-            const float factor = m_retina_helper->get_scale_factor();
-            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif // ENABLE_RETINA_GL
-
-            if (!m_mouse.ignore_right_up && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
+            if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
                 //BBS post right click event
-                if (!m_hover_plate_idxs.empty()) {
+                Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                const float factor = m_retina_helper->get_scale_factor();
+                logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+                if (!m_hover_plate_idxs.empty())
                     post_event(RBtnPlateEvent(EVT_GLCANVAS_PLATE_RIGHT_CLICK, { logical_pos, m_hover_plate_idxs.front() }));
-                }
-                else {
-                    // do not post the event if the user is panning the scene
-                    // or if right click was done over the wipe tower
-                    bool post_right_click_event = m_hover_volume_idxs.empty() || !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower;
-                    if (post_right_click_event)
-                        post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
-                }
+                // do not post the event if right click was done over a volume or the wipe tower
+                else if (m_hover_volume_idxs.empty() || !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower)
+                    post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
             }
         }
 
-        mouse_up_cleanup();
+        // Only partially reset mouse state if still dragging (with other button(s) down)
+        if (m_mouse.dragging && (evt.LeftIsDown() || evt.MiddleIsDown() || evt.RightIsDown())) {
+            if (evt.LeftUp()) {
+                m_mouse.rotating = false;
+                m_mouse.ignore_left_up = false;
+            }
+            else if (!evt.MiddleIsDown() && !evt.RightIsDown()) {
+                m_mouse.panning = false;
+            }
+        }
+        else {
+            mouse_up_cleanup();
+        }
     }
     else if (evt.Moving()) {
         m_mouse.position = pos.cast<double>();
@@ -6853,13 +6834,10 @@ void GLCanvas3D::mouse_up_cleanup()
     m_rotation_center = Mouse::Drag::Invalid_3D_Point;
     m_mouse.drag.move_volume_idx = -1;
     m_mouse.drag.last_modifiers = 0;
-    m_mouse.set_start_position_3D_as_invalid();
-    m_mouse.set_start_position_2D_as_invalid();
     m_mouse.dragging = false;
     m_mouse.rotating = false;
     m_mouse.panning = false;
     m_mouse.ignore_left_up = false;
-    m_mouse.ignore_right_up = false;
     m_dirty = true;
 
     if (m_canvas->HasCapture())
