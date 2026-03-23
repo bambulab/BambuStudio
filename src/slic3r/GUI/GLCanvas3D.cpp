@@ -9064,6 +9064,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     const int thumb_pos_y = 4;
     const int btn_pos_x = 7;
     const int btn_pos_y = 122;
+    const int choose_btn_pos_y = 118;
     const int btn_size  = 20;
     const int choose_btn_size = 24;
     const int close_btn_pos_x = window_width - btn_size - 7;
@@ -9118,8 +9119,8 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         // Center the image in the window
         ImGui::SetCursorPos(ImVec2(thumb_pos_x, thumb_pos_y));
         ImVec2 image_pos = ImGui::GetCursorScreenPos();
-        ImRect choose_button_rect(image_pos + ImVec2(float(btn_pos_x - thumb_pos_x), float(btn_pos_y - thumb_pos_y)),
-                                  image_pos + ImVec2(float(btn_pos_x - thumb_pos_x + choose_btn_size), float(btn_pos_y - thumb_pos_y + choose_btn_size)));
+        ImRect choose_button_rect(image_pos + ImVec2(float(btn_pos_x - thumb_pos_x), float(choose_btn_pos_y - thumb_pos_y)),
+                                  image_pos + ImVec2(float(btn_pos_x - thumb_pos_x + choose_btn_size), float(choose_btn_pos_y - thumb_pos_y + choose_btn_size)));
         ImRect close_button_rect(image_pos + ImVec2(float(close_btn_pos_x - thumb_pos_x), float(close_btn_pos_y - thumb_pos_y)),
                                  image_pos + ImVec2(float(close_btn_pos_x - thumb_pos_x + btn_size), float(close_btn_pos_y - thumb_pos_y + btn_size)));
         ImRect help_button_rect(image_pos + ImVec2(float(help_btn_pos_x - thumb_pos_x), float(help_btn_pos_y - thumb_pos_y)),
@@ -9157,7 +9158,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     ImVec2 button_icon_size = ImVec2(btn_size, btn_size);
     ImVec2 choose_icon_size   = ImVec2(choose_btn_size, choose_btn_size);
     int    choose_icon_margin = 2;
-    ImGui::SetCursorPos(ImVec2(btn_pos_x, btn_pos_y));
+    ImGui::SetCursorPos(ImVec2(btn_pos_x, choose_btn_pos_y));
     ImVec2 choose_button_pos = ImGui::GetCursorScreenPos();
     ImGui::GetWindowDrawList()->AddRectFilled(choose_button_pos, ImVec2(choose_button_pos.x + choose_icon_size.x, choose_button_pos.y + choose_icon_size.y),
                                               IM_COL32(0, 0, 0, 26), 4.0f);
@@ -9244,10 +9245,11 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size          cnv_size = get_canvas_size();
-    const float   menu_width = 148.0f;
-    const float   row_height = 24.0f;
-    const float   menu_height = 50.0f + row_height * 7.0f;
-    float         menu_pos_x = anchor_x;
+    const float   menu_width = 168.0f;
+    const float   row_height = 28.0f;
+    const float   row_spacing = 2.0f;
+    const float   menu_height = 40.0f + row_height * 7.0f + row_spacing * 6.0f;
+    float         menu_pos_x = anchor_x + anchor_width - menu_width;
     float         menu_pos_y = anchor_y + anchor_height + 6.0f;
     if (menu_pos_x + menu_width > cnv_size.get_width() - 5.0f)
         menu_pos_x = cnv_size.get_width() - menu_width - 5.0f;
@@ -9276,18 +9278,20 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
         ImGui::PushID((int)item.angle);
         ImVec2 row_pos = ImGui::GetCursorScreenPos();
         if (ImGui::InvisibleButton("##assembly_view_preview_item", ImVec2(menu_width - 24.0f, row_height))) {
-            m_assembly_view_preview_angle = item.angle;
-            m_show_assembly_view_preview_menu = false;
-            wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
-            set_as_dirty();
-            request_extra_frame();
+            if (m_assembly_view_preview_angle != item.angle) {
+                m_assembly_view_preview_angle     = item.angle;
+                m_show_assembly_view_preview_menu = false;
+                wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
+                set_as_dirty();
+                request_extra_frame();
+            }
         }
         bool hovered = ImGui::IsItemHovered();
         if (hovered || selected) {
             ImU32 bg = hovered ? IM_COL32(240, 240, 240, 255) : IM_COL32(248, 248, 248, 255);
             ImGui::GetWindowDrawList()->AddRectFilled(row_pos, ImVec2(row_pos.x + menu_width - 24.0f, row_pos.y + row_height), bg, 4.0f);
         }
-        ImGui::SetCursorScreenPos(ImVec2(row_pos.x, row_pos.y + 2.0f));
+        ImGui::SetCursorScreenPos(ImVec2(row_pos.x - 4.0f, row_pos.y + 2.0f));
         if (selected)
             ImGui::Image(ok_id, icon_size);
         else
@@ -9295,8 +9299,27 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
         ImGui::SameLine(0.0f, 6.0f);
         ImGui::Image(m_gizmos.get_icon_texture_id(item.icon), icon_size);
         ImGui::SameLine(0.0f, 6.0f);
-        ImGui::TextUnformatted(item.label.c_str());
+        {
+            const char *label_begin = item.label.c_str();
+            const char *label_end   = label_begin + item.label.size();
+            const ImVec2 text_pos   = ImGui::GetCursorScreenPos();
+            const float  text_max_x = row_pos.x + menu_width - 24.0f - 8.0f;
+            const ImVec2 text_size  = ImGui::CalcTextSize(label_begin, label_end);
+            const ImVec2 text_box_size(std::max(0.0f, text_max_x - text_pos.x), icon_size.y);
+            const bool   is_truncated = text_size.x > text_box_size.x;
+
+            ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), text_pos, ImVec2(text_pos.x + text_box_size.x, text_pos.y + text_box_size.y),
+                                      text_max_x, text_max_x, label_begin, label_end, &text_size);
+            ImGui::Dummy(text_box_size);
+
+            if (is_truncated && ImGui::IsMouseHoveringRect(text_pos, ImVec2(text_pos.x + text_box_size.x, text_pos.y + text_box_size.y))) {
+                auto width = ImGui::CalcTextSize(item.label.c_str()).x + imgui.scaled(2.0f);
+                imgui.tooltip(item.label, width);
+            }
+        }
         ImGui::PopID();
+        if (item.angle != Camera::ViewAngleType::Iso)
+            ImGui::Dummy(ImVec2(0.0f, row_spacing));
     }
 
     ImGui::PopStyleVar(3);
@@ -11941,6 +11964,12 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
             backup.volume->set_offset_to_assembly(backup.offset_to_assembly);
         }
     };
+    std::vector<std::pair<GLVolume*, Vec3d>> thumbnail_offset_backups;
+    auto restore_thumbnail_offsets = [&thumbnail_offset_backups]() {
+        for (const auto& backup : thumbnail_offset_backups) {
+            backup.first->set_instance_offset(backup.second);
+        }
+    };
 
     BoundingBoxf3                     plate_build_volume;
     if (thumbnail_params.use_plate_box) {
@@ -12004,6 +12033,27 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
             }
         }
     }
+    // Translate to positive space for thumbnail rendering (same idea as ObjColorDialog).
+    BoundingBoxf3 visible_raw_box;
+    if (!visible_volumes.empty()) {
+        for (const GLVolume* vol : visible_volumes) {
+            visible_raw_box.merge(vol->transformed_bounding_box());
+        }
+    }
+    if (visible_raw_box.defined &&
+        (visible_raw_box.min.x() < 0.0 || visible_raw_box.min.y() < 0.0 || visible_raw_box.min.z() < 0.0)) {
+        const Vec3d thumbnail_offset(
+            visible_raw_box.min.x() < 0.0 ? -visible_raw_box.min.x() : 0.0,
+            visible_raw_box.min.y() < 0.0 ? -visible_raw_box.min.y() : 0.0,
+            visible_raw_box.min.z() < 0.0 ? -visible_raw_box.min.z() : 0.0);
+        thumbnail_offset_backups.reserve(visible_volumes.size());
+        for (GLVolume* vol : visible_volumes) {
+            const Vec3d old_offset = vol->get_instance_offset();
+            thumbnail_offset_backups.emplace_back(vol, old_offset);
+            vol->set_instance_offset(old_offset + thumbnail_offset);
+        }
+    }
+
     //BoundingBoxf3 volumes_box = plate_build_volume;
     BoundingBoxf3 volumes_box;
     volumes_box.min.z() = 0;
@@ -12045,6 +12095,7 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
     //GLShaderProgram* shader = wxGetApp().get_shader("gouraud_light");
     if (!shader) {
         BOOST_LOG_TRIVIAL(info) << boost::format("render_thumbnail with invalid shader");
+        restore_thumbnail_offsets();
         restore_assemble_volume_transforms();
         return;
     }
@@ -12098,6 +12149,7 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
         }
     }
     glsafe(::glDisable(GL_DEPTH_TEST));
+    restore_thumbnail_offsets();
     restore_assemble_volume_transforms();
 
     BOOST_LOG_TRIVIAL(info) << boost::format("render assembly thumbnail: finished, total=%1%ms, bvh_filter=%2%ms")

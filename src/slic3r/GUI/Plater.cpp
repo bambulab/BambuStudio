@@ -4573,6 +4573,8 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "begin pop_finsish_sync_ams_dialog";
     pop_finsish_sync_ams_dialog();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "finish pop_finsish_sync_ams_dialog";
+
+    wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
 }
 
 PlaterPresetComboBox* Sidebar::printer_combox()
