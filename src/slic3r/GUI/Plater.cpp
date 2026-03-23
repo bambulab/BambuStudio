@@ -20178,10 +20178,9 @@ bool Plater::is_same_printer_for_connected_and_selected(bool popup_warning)
     return true;
 }
 
-bool Plater::is_printer_configed_by_BBL() {
-    auto  curr_preset        = wxGetApp().preset_bundle->printers.get_edited_preset();
-    bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(curr_preset).size() > 0;
-    auto *printer_model      = curr_preset.config.opt<ConfigOptionString>("printer_model");
+bool Plater::is_preset_configed_by_BBL(const Preset& preset) {
+    bool  is_configed_by_BBL = PresetUtils::system_printer_bed_model(preset).size() > 0;
+    auto *printer_model      = preset.config.opt<ConfigOptionString>("printer_model");
     if (printer_model != nullptr && !printer_model->value.empty()) {
         auto bundle         = wxGetApp().preset_bundle;
         auto model_filename = bundle->get_stl_model_for_printer_model(printer_model->value);
@@ -20189,7 +20188,13 @@ bool Plater::is_printer_configed_by_BBL() {
             return true;
         }
     }
+
     return is_configed_by_BBL;
+}
+
+bool Plater::is_printer_configed_by_BBL() {
+    auto  curr_preset        = wxGetApp().preset_bundle->printers.get_edited_preset();
+    return is_preset_configed_by_BBL(curr_preset);
 }
 // BBS
 //void Plater::show_action_buttons(const bool ready_to_slice) const   { p->show_action_buttons(ready_to_slice); }

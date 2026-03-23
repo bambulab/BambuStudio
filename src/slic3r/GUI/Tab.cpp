@@ -6876,7 +6876,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     auto        curr_preset      = m_presets->get_edited_preset();
     std::map<std::string, std::string> extra_map;
     {
-        bool is_configed_by_BBL = PresetUtils::system_printer_bed_model(curr_preset).size() > 0;
+        bool is_configed_by_BBL =  wxGetApp().plater()->is_preset_configed_by_BBL(curr_preset);
         if (is_configed_by_BBL) {//only record svg
             if (wxGetApp().app_config->has_section("user_bbl_svg_list")) {
                 auto user_bbl_svg_list = wxGetApp().app_config->get_section("user_bbl_svg_list");

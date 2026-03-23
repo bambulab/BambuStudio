@@ -618,6 +618,7 @@ public:
     bool check_printer_initialized(MachineObject *obj, bool only_warning = false,bool popup_warning = true);
     bool is_same_printer_for_connected_and_selected(bool popup_warning = true);
     bool is_printer_configed_by_BBL();
+    bool is_preset_configed_by_BBL(const Preset& preset);
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;
 
