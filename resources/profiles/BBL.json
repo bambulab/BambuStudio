@@ -6544,6 +6544,10 @@
             "sub_path": "filament/Bambu TPU 85A @BBL X2D.json"
         },
         {
+            "name": "Bambu TPU 85A @BBL X2D 0.8 nozzle",
+            "sub_path": "filament/Bambu TPU 85A @BBL X2D 0.8 nozzle.json"
+        },
+        {
             "name": "Bambu TPU 90A @base",
             "sub_path": "filament/Bambu TPU 90A @base.json"
         },

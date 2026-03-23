@@ -17,9 +17,6 @@
         "0",
         "0"
     ],
-    "filament_extruder_compatibility": [
-        "8"
-    ],
     "filament_cooling_before_tower": [
         "10"
     ],
@@ -34,6 +31,9 @@
         "1",
         "1",
         "1"
+    ],
+    "filament_extruder_compatibility": [
+        "8"
     ],
     "filament_extruder_variant": [
         "Direct Drive Standard",
@@ -165,8 +165,8 @@
         "nil"
     ],
     "filament_retraction_length": [
-        "0.4",
-        "0.4",
+        "2",
+        "2",
         "0.4",
         "0.4"
     ],
@@ -177,8 +177,8 @@
         "nil"
     ],
     "filament_retraction_speed": [
-        "nil",
-        "nil",
+        "200",
+        "200",
         "nil",
         "nil"
     ],
@@ -246,8 +246,7 @@
         "0 0 0 0 0 0"
     ],
     "compatible_printers": [
-        "Bambu Lab X2D 0.6 nozzle",
-        "Bambu Lab X2D 0.8 nozzle"
+        "Bambu Lab X2D 0.6 nozzle"
     ],
     "filament_start_gcode": [
         "; filament start gcode\n"
