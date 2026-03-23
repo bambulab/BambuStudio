@@ -222,7 +222,7 @@ bool Bed3D::set_shape(const Pointfs& printable_area, const double printable_heig
         texture_filename.clear();
     }*/
 
-    std::string model_filename = custom_model.empty() ? model : custom_model;
+    std::string model_filename = check_model(custom_model) ? custom_model : model;
     if (! model_filename.empty() && ! check_model(model_filename)) {
         BOOST_LOG_TRIVIAL(error) << "Unable to load bed model: " << model_filename;
         model_filename.clear();
