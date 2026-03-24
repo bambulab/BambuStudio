@@ -34,6 +34,7 @@ public:
     // Inputs:
     const SurfaceCollection     *slices;
     const ExPolygons            *upper_slices;
+    const SurfaceCollection     *upper_slices_same_region;
     const ExPolygons            *lower_slices;
     double                       layer_height;
     int                          layer_id;
@@ -81,7 +82,7 @@ public:
         //BBS
         ExPolygons*                 fill_no_overlap,
         std::vector<LoopNode>       *loop_nodes)
-        : slices(slices), upper_slices(nullptr), lower_slices(nullptr), layer_height(layer_height),
+        : slices(slices), upper_slices(nullptr), upper_slices_same_region(nullptr), lower_slices(nullptr), layer_height(layer_height),
             layer_id(-1), perimeter_flow(flow), ext_perimeter_flow(flow),
             overhang_flow(flow), solid_infill_flow(flow),
             config(config), object_config(object_config), print_config(print_config),
