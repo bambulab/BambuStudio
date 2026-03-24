@@ -1577,6 +1577,27 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                         surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
                     }
 
+                    if (detect_top && upper_layer && ! top.empty()) {
+                        ExPolygons covered_by_upper = interface_shells ?
+                            intersection_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                            intersection_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                        ExPolygons top_expolygons = union_ex(top);
+                        Polygons   filled_top_holes;
+                        for (const ExPolygon &expolygon : top_expolygons) {
+                            for (const Polygon &hole : expolygon.holes) {
+                                Polygons   hole_polygon{ hole };
+                                ExPolygons hole_expolygons = to_expolygons(hole_polygon);
+                                if (! intersection_ex(hole_expolygons, covered_by_upper, ApplySafetyOffset::Yes).empty())
+                                    filled_top_holes.push_back(hole);
+                            }
+                        }
+                        if (! filled_top_holes.empty()) {
+                            top_expolygons = union_ex(top_expolygons, to_expolygons(filled_top_holes));
+                            top.clear();
+                            surfaces_append(top, std::move(top_expolygons), stTop);
+                        }
+                    }
+
         #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     {
                         static int iRun = 0;
