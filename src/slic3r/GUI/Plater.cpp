@@ -85,6 +85,7 @@
 #include "PartPlate.hpp"
 #include "Camera.hpp"
 #include "GCodeViewer.hpp"
+#include "IMSlider.hpp"
 #include "Mouse3DController.hpp"
 #include "Tab.hpp"
 #include "Jobs/OrientJob.hpp"
@@ -256,6 +257,25 @@ static void set_config_values(DynamicPrintConfig *config, const std::string &key
     else {
         BOOST_LOG_TRIVIAL(info) << "set_config_values: the key" << key << "is empty.";
     }
+}
+
+// When saving layer-slider ticks to the model, re-append entries whose print_z is above the current
+// sliced stack (the vertical slider cannot represent them). They are still ignored for G-code until the model is tall enough.
+static void merge_custom_gcodes_orphaned_above_stack(const CustomGCode::Info& prev, CustomGCode::Info& cur, double max_layer_z)
+{
+    for (const auto& item : prev.gcodes) {
+        if (item.print_z > max_layer_z + epsilon()) {
+            bool dup = false;
+            for (const auto& c : cur.gcodes)
+                if (std::abs(c.print_z - item.print_z) < epsilon() && c.type == item.type) {
+                    dup = true;
+                    break;
+                }
+            if (!dup)
+                cur.gcodes.push_back(item);
+        }
+    }
+    std::sort(cur.gcodes.begin(), cur.gcodes.end(), [](const CustomGCode::Item& a, const CustomGCode::Item& b) { return a.print_z < b.print_z; });
 }
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -5926,7 +5946,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
             CustomGCode::Type tick_event_type = (CustomGCode::Type)event.GetInt();
             Model& model = wxGetApp().plater()->model();
             //BBS: replace model custom gcode with current plate custom gcode
-            model.plates_custom_gcodes[model.curr_plate_index] = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider()->GetTicksValues();
+            IMSlider* layers_slider = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider();
+            CustomGCode::Info prev = model.plates_custom_gcodes[model.curr_plate_index];
+            CustomGCode::Info merged = layers_slider->GetTicksValues();
+            merge_custom_gcodes_orphaned_above_stack(prev, merged, layers_slider->GetMaxValueD());
+            model.plates_custom_gcodes[model.curr_plate_index] = std::move(merged);
 
             // BBS set to invalid state only
             if (tick_event_type == CustomGCode::Type::ToolChange || tick_event_type == CustomGCode::Type::Custom || tick_event_type == CustomGCode::Type::Template || tick_event_type == CustomGCode::Type::PausePrint) {
