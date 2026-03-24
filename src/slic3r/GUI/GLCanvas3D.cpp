@@ -1305,6 +1305,19 @@ void GLCanvas3D::SequentialPrintClearance::reset()
     m_perimeter.reset();
 }
 
+
+// GLCanvas3D::CameraManipulationConf
+
+void GLCanvas3D::CameraManipulationConf::update_from_app_config()
+{
+    const auto *cfg = wxGetApp().app_config;
+    free_camera = cfg->get_bool("use_free_camera");
+    zoom_to_mouse = cfg->get_bool("zoom_to_mouse");
+}
+
+
+// GLCanvas3D
+
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
@@ -1355,6 +1368,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEven
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
 const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
+
+GLCanvas3D::CameraManipulationConf GLCanvas3D::m_cam_manip_conf{ };
 
 void GLCanvas3D::load_arrange_settings()
 {
@@ -1544,6 +1559,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 
     m_render_pipeline_stage_stack.push(ERenderPipelineStage::Normal);
+
+    // init static member only once
+    if (!m_cam_manip_conf.init) {
+        m_cam_manip_conf.init = true;
+        m_cam_manip_conf.update_from_app_config();
+    }
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -5152,8 +5173,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     double direction_factor = 1.0;
 #endif
     auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
-    bool zoom_to_mouse = wxGetApp().app_config->get("zoom_to_mouse") == "true";
-    if (!zoom_to_mouse) {// zoom to center
+    if (!m_cam_manip_conf.zoom_to_mouse) {  // zoom to center
         _update_camera_zoom(delta);
     }
     else {
@@ -5812,7 +5832,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // Always rotate around target(s) in assembly or paint tool views
                 const bool rot_assembly = this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo();
                 //BBS do not limit rotate in assembly or paint tool views
-                const bool rot_constrained = !rot_assembly && current_printer_technology() != ptSLA;  // && !wxGetApp().app_config->get_bool("use_free_camera");
+                const bool rot_constrained = !rot_assembly && current_printer_technology() != ptSLA && !m_cam_manip_conf.free_camera;
                 // Do rotation if hysteresis tolerance has already been met on last drag event.
                 if (m_mouse.rotating && can_rotate) {
                     const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
@@ -5861,10 +5881,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 else if (can_rotate && m_mouse.is_move_threshold_met(pos)) {
                     // Start rotating on the next drag event once movement threshold is met.
                     m_mouse.rotating = true;
-                    // Forces camera right vector to be parallel to XY plane in case it has been misaligned using free rotation.
-                    // See https://github.com/prusa3d/PrusaSlicer/issues/3816
-                    if (rot_constrained)
-                        get_active_camera().recover_from_free_camera();
                 }
                 m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
             }
