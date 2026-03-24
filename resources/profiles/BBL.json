@@ -64,6 +64,10 @@
             "sub_path": "filament/fdm_filament_template_direct_dual.json"
         },
         {
+            "name": "fdm_filament_template_direct_bowden",
+            "sub_path": "filament/fdm_filament_template_direct_bowden.json"
+        },
+        {
             "name": "fdm_filament_common",
             "sub_path": "filament/fdm_filament_common.json"
         },
