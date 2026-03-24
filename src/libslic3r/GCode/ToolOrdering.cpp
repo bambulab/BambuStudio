@@ -2147,6 +2147,9 @@ void ToolOrdering::assign_custom_gcodes(const Print& print)
         else if (layer_it_upper == m_layer_tools.end()) {
             auto layer_it_lower = std::prev(layer_it_upper);
             int lower_layer_idx = layer_it_lower - m_layer_tools.begin();
+            // Custom G-code Z strictly above the top print layer: cannot be reached; skip (do not clamp to top).
+            if (custom_gcode_it->print_z > layer_it_lower->print_z + EPSILON)
+                continue;
             apply_custom_gcode_to_layer(*layer_it_lower, extruder_print_above_by_layer[lower_layer_idx], *custom_gcode_it);
         }
         else {
