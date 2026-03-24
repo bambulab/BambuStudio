@@ -33,6 +33,23 @@ static double random_value() {
     return dist(gen);
 }
 
+static ExPolygons clipped_top_surfaces(const SurfaceCollection &slices, const BoundingBox &bbox, const double min_width_top_surface)
+{
+    ExPolygons top_surfaces;
+    top_surfaces.reserve(slices.surfaces.size());
+    for (const Surface &surface : slices.surfaces)
+        if (surface.surface_type == stTop)
+            top_surfaces.emplace_back(surface.expolygon);
+
+    if (top_surfaces.empty())
+        return {};
+
+    ExPolygons clipped = union_ex(ClipperUtils::clip_clipper_polygons_with_subject_bbox(top_surfaces, bbox));
+    if (min_width_top_surface > 0.)
+        clipped = opening_ex(clipped, float(min_width_top_surface));
+    return clipped;
+}
+
 // Hierarchy of perimeters.
 class PerimeterGeneratorLoop {
 public:
@@ -1126,21 +1143,13 @@ void PerimeterGenerator::process_classic()
                     BoundingBox last_box   = get_extents(last);
                     last_box.offset(SCALED_EPSILON);
 
-                    // BBS: get the Polygons upper the polygon this layer
-                    Polygons upper_polygons_series_clipped;
-                    if (this->object_config->interface_shells && this->upper_slices_same_region != nullptr)
-                        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(to_expolygons(this->upper_slices_same_region->surfaces), last_box);
-                    else
-                        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
-                    upper_polygons_series_clipped = offset(upper_polygons_series_clipped, min_width_top_surface);
-
                     //set the clip to a virtual "second perimeter"
                     fill_clip = offset_ex(last, -double(ext_perimeter_spacing));
                     // get the real top surface
                     ExPolygons grown_lower_slices;
                     ExPolygons bridge_checker;
 
-                    ExPolygons top_polygons = diff_ex(last, upper_polygons_series_clipped, ApplySafetyOffset::Yes);
+                    ExPolygons top_polygons = intersection_ex(last, clipped_top_surfaces(*this->slices, last_box, min_width_top_surface), ApplySafetyOffset::Yes);
                     //get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
                     ExPolygons temp_gap        = diff_ex(top_polygons, fill_clip);
                     ExPolygons inner_polygons = diff_ex(last,
@@ -1572,14 +1581,11 @@ void PerimeterGenerator::process_arachne()
                 BoundingBox infill_bbox = get_extents(infill_contour_by_one_wall);
                 infill_bbox.offset(EPSILON);
 
-                Polygons upper_polygons_clipped;
-                if (this->upper_slices) {
-                    if (this->object_config->interface_shells && this->upper_slices_same_region != nullptr)
-                        upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(to_expolygons(this->upper_slices_same_region->surfaces), infill_bbox);
-                    else
-                        upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
-                }
-                top_expolys_by_one_wall = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
+                const double min_width_top_surface = (this->object_config->top_area_threshold / 100) * std::max(ext_perimeter_spacing / 2.0, perimeter_width / 2.0);
+                top_expolys_by_one_wall = intersection_ex(
+                    infill_contour_by_one_wall,
+                    clipped_top_surfaces(*this->slices, infill_bbox, min_width_top_surface),
+                    ApplySafetyOffset::Yes);
 
                 Polygons lower_polygons_clipped;
                 if (this->lower_slices)

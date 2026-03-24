@@ -731,6 +731,56 @@ void PrintObject::prepare_infill()
     this->combine_infill();
     m_print->throw_if_canceled();
 
+    for (size_t region_id = 0; region_id < this->num_printing_regions(); ++region_id) {
+        for (size_t layer_idx = 0; layer_idx < m_layers.size(); ++layer_idx) {
+            Layer *layer = m_layers[layer_idx];
+            if (layer->upper_layer == nullptr)
+                continue;
+            LayerRegion *layerm = layer->m_regions[region_id];
+            if (layerm->fill_surfaces.filter_by_type(stTop).empty())
+                continue;
+
+            bool promoted_internal_to_top = false;
+            for (Surface &surface : layerm->fill_surfaces.surfaces) {
+                if (surface.surface_type != stInternal && surface.surface_type != stInternalSolid)
+                    continue;
+
+                ExPolygons candidate{ surface.expolygon };
+                if (intersection_ex(candidate, layer->upper_layer->lslices, ApplySafetyOffset::Yes).empty())
+                    continue;
+                if (! diff_ex(offset_ex(candidate, float(SCALED_EPSILON)), layerm->fill_expolygons, ApplySafetyOffset::Yes).empty())
+                    continue;
+
+                surface.surface_type = stTop;
+                promoted_internal_to_top = true;
+            }
+
+            if (! promoted_internal_to_top)
+                continue;
+
+            SurfacesPtr top_surfaces = layerm->fill_surfaces.filter_by_type(stTop);
+            if (top_surfaces.empty())
+                continue;
+
+            bool need_merge_top = top_surfaces.size() > 1;
+            if (! need_merge_top) {
+                for (const Surface *surface : top_surfaces) {
+                    if (! surface->expolygon.holes.empty()) {
+                        need_merge_top = true;
+                        break;
+                    }
+                }
+            }
+            if (! need_merge_top)
+                continue;
+
+            Surface    top_template = *top_surfaces.front();
+            ExPolygons merged_top   = union_ex(to_expolygons(top_surfaces));
+            layerm->fill_surfaces.remove_type(stTop);
+            layerm->fill_surfaces.append(std::move(merged_top), top_template);
+        }
+    }
+
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
     for (size_t region_id = 0; region_id < this->num_printing_regions(); ++ region_id) {
         for (const Layer *layer : m_layers) {
