@@ -1083,10 +1083,7 @@ void SpinCtrl::BUILD() {
             // update value for the control only if it was changed in respect to the Min/max values
             if (tmp_value != (int)value) {
                 temp->SetValue(tmp_value);
-                // But after SetValue() cursor ison the first position
-                // so put it to the end of string
-                // int pos = std::to_string(tmp_value).length();
-                // temp->SetSelection(pos, pos);
+                temp->GetTextCtrl()->SetInsertionPointEnd();
             }
 #endif
         }

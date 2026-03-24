@@ -67,6 +67,10 @@ void SpinInput::Create(wxWindow *parent,
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
     text_ctrl->Bind(wxEVT_KEY_DOWN, &SpinInput::keyPressed, this);
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
+    text_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &e) {
+        e.Skip();
+        CallAfter([this]() { text_ctrl->SelectAll(); });
+    });
     button_inc = createButton(true);
     button_dec = createButton(false);
     delta      = 0;
@@ -134,6 +138,8 @@ void SpinInput::SetRange(int min, int max)
 {
     this->min = min;
     this->max = max;
+    if (min < 0)
+        text_ctrl->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
 }
 
 void SpinInput::DoSetToolTipText(wxString const &tip)
