@@ -27,7 +27,7 @@
         "21",
         "40",
         "21",
-        "30"
+        "21"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -45,7 +45,7 @@
         "nil",
         "nil",
         "3",
-        "3"
+        "nil"
     ],
     "filament_wipe": [
         "nil",

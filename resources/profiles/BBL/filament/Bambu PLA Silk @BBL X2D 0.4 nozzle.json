@@ -47,8 +47,8 @@
     "filament_retraction_length": [
         "nil",
         "nil",
-        "3",
-        "3"
+        "nil",
+        "nil"
     ],
     "filament_wipe": [
         "nil",
