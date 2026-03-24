@@ -404,14 +404,12 @@ void Camera::debug_render()
     imgui.begin(std::string("Camera statistics"), ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     std::string type = get_type_as_string();
-    if (wxGetApp().plater()->get_mouse3d_controller().connected()
-#ifdef SUPPORT_FREE_CAMERA
-        || (wxGetApp().app_config->get("use_free_camera") == "1")
-#endif
-        )
+    if (wxGetApp().app_config->get_bool("use_free_camera"))
         type += "/free";
     else
         type += "/constrained";
+    if (wxGetApp().plater()->get_mouse3d_controller().connected())
+        type += " (3D mouse)";
 
     Vec3f position = get_position().cast<float>();
     Vec3f target = m_target.cast<float>();
@@ -453,7 +451,7 @@ void Camera::debug_render()
     imgui.end();
 }
 
-void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target)
+void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, const Vec3d& target)
 {
     m_zenit += Geometry::rad2deg(delta_zenit_rad);
     if (apply_limits) {
@@ -467,8 +465,8 @@ void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_
         }
     }
 
-    Vec3d translation = m_view_matrix.translation() + m_view_rotation * target;
-    auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
+    const Vec3d translation = m_view_matrix.translation() + m_view_rotation * target;
+    const auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
     m_view_rotation *= rot_z * Eigen::AngleAxisd(delta_zenit_rad, rot_z.inverse() * get_dir_right());
     m_view_rotation.normalize();
     m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
@@ -477,37 +475,37 @@ void Camera::rotate_on_sphere_with_target(double delta_azimut_rad, double delta_
 
 void Camera::rotate_on_sphere(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits)
 {
-    m_zenit += Geometry::rad2deg(delta_zenit_rad);
-    if (apply_limits) {
-        if (m_zenit > 90.0f) {
-            delta_zenit_rad -= Geometry::deg2rad(m_zenit - 90.0f);
-            m_zenit = 90.0f;
-        }
-        else if (m_zenit < -90.0f) {
-            delta_zenit_rad -= Geometry::deg2rad(m_zenit + 90.0f);
-            m_zenit = -90.0f;
-        }
-    }
-
-    const Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
-    const auto rot_z = Eigen::AngleAxisd(delta_azimut_rad, Vec3d::UnitZ());
-    m_view_rotation *= rot_z * Eigen::AngleAxisd(delta_zenit_rad, rot_z.inverse() * get_dir_right());
-    m_view_rotation.normalize();
-    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (- m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
+    rotate_on_sphere_with_target(delta_azimut_rad, delta_zenit_rad, apply_limits, m_target);
 }
 
-//BBS rotate with target
-void Camera::rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target)
+// Virtual trackball, rotate around an axis while looking at given target, where the eucledian norm of the axis gives the rotation angle in radians.
+void Camera::rotate_local_with_target(const Vec3d& rotation_rad, const Vec3d& target)
 {
     double angle = rotation_rad.norm();
     if (std::abs(angle) > EPSILON) {
-	    Vec3d translation = m_view_matrix.translation() + m_view_rotation * target;
-	    Vec3d axis        = m_view_rotation.conjugate() * rotation_rad.normalized();
+        const Vec3d translation = m_view_matrix.translation() + m_view_rotation * target;
+        const Vec3d axis        = m_view_rotation.conjugate() * rotation_rad.normalized();
         m_view_rotation *= Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis));
         m_view_rotation.normalize();
-	    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
-	    update_zenit();
-	}
+        m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
+        update_zenit();
+    }
+}
+
+// Virtual trackball, rotate around current camera target.
+// This overload is currently only used by 3D mouse input.
+void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
+{
+    rotate_local_with_target(rotation_rad, m_target);
+
+    // If tilt exceeds constrained camera limits, automatically enable the free camera UI option.
+    // This will smooth out any future transition to a different control method, like mouse.
+    // The view and option can be reset by the user with a shortcut or menu selection.
+    if (m_update_config_on_free_rot_change && get_dir_up()(2) < -EPSILON) {
+        m_update_config_on_free_rot_change = false;
+        wxGetApp().app_config->set_bool("use_free_camera", true);
+        wxGetApp().plater()->update_camera_manipulation_settings();
+    }
 }
 
 void Camera::calc_horizontal_rotate_rad(float &rotation_rad) {
@@ -520,20 +518,6 @@ void Camera::calc_horizontal_rotate_rad(float &rotation_rad) {
         }
         rotation_rad = temp_rotation_rad;
     }
-}
-
-// Virtual trackball, rotate around an axis, where the eucledian norm of the axis gives the rotation angle in radians.
-void Camera::rotate_local_around_target(const Vec3d& rotation_rad)
-{
-    const double angle = rotation_rad.norm();
-    if (std::abs(angle) > EPSILON) {
-        const Vec3d translation = m_view_matrix.translation() + m_view_rotation * m_target;
-        const Vec3d axis = m_view_rotation.conjugate() * rotation_rad.normalized();
-        m_view_rotation *= Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis));
-        m_view_rotation.normalize();
-	    m_view_matrix.fromPositionOrientationScale(m_view_rotation * (-m_target) + translation, m_view_rotation, Vec3d(1., 1., 1.));
-	    update_zenit();
-	}
 }
 
 void Camera::set_rotation(const Transform3d &rotation)

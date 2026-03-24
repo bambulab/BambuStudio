@@ -542,6 +542,21 @@ class GLCanvas3D
         ERenderPipelineStage m_stage;
     };
 
+
+    // Stored cached app config options pertaining to camera movement, to avoid expensive lookups during active user interactions.
+    struct CameraManipulationConf
+    {
+        bool init{ false };
+        bool free_camera{ false };
+        bool zoom_to_mouse{ false };
+
+        void update_from_app_config();
+    };
+
+    // Cached runtime camera manipulation control configuration based on user button/modifier preferences.
+    // static because there is only one global app config which applies to all instances of GLCanvas3D.
+    static CameraManipulationConf m_cam_manip_conf;
+
 public:
     enum ECursorType : unsigned char
     {
@@ -1137,6 +1152,7 @@ public:
     void handle_layers_data_focus_event(const t_layer_height_range range, const EditorType type);
 
     void update_ui_from_settings();
+    static void update_camera_manipulation_settings() { m_cam_manip_conf.update_from_app_config(); }
 
     int get_move_volume_id() const { return m_mouse.drag.move_volume_idx; }
     int get_first_hover_volume_idx() const { return m_hover_volume_idxs.empty() ? -1 : m_hover_volume_idxs.front(); }

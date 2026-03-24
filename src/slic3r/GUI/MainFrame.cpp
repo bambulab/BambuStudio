@@ -754,6 +754,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
+        if (evt.CmdDown() && evt.GetKeyCode() == 'U') {
+            view_set_free_camera(!wxGetApp().app_config->get_bool("use_free_camera"));
+            return;
+        }
+
         if (!evt.HasAnyModifiers() && (evt.GetKeyCode() == 'Z' || evt.GetKeyCode() == 'z')) {
             if (!should_skip_fit_camera_shortcut(m_plater))
                 view_zoom_to_fit();
@@ -3209,19 +3214,26 @@ void MainFrame::init_menubar_as_editor()
         auto perspective_item = append_menu_radio_item(viewMenu, wxID_CAMERA_PERSPECTIVE + camera_id_base, _L("Use Perspective View"), _L("Use Perspective View"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", true);
-                wxGetApp().update_ui_from_settings();
+                m_plater->update_camera_from_settings();
             }, nullptr);
         //BBS orthogonal view
         auto orthogonal_item = append_menu_radio_item(viewMenu, wxID_CAMERA_ORTHOGONAL + camera_id_base, _L("Use Orthogonal View"), _L("Use Orthogonal View"),
             [this](wxCommandEvent&) {
                 wxGetApp().app_config->set_bool("use_perspective_camera", false);
-                wxGetApp().update_ui_from_settings();
+                m_plater->update_camera_from_settings();
             }, nullptr);
         if (wxGetApp().app_config->get("use_perspective_camera").compare("true") == 0)
             viewMenu->Check(wxID_CAMERA_PERSPECTIVE + camera_id_base, true);
         else
             viewMenu->Check(wxID_CAMERA_ORTHOGONAL + camera_id_base, true);
         viewMenu->AppendSeparator();
+
+        append_menu_check_item(
+            viewMenu, wxID_ANY, _L("Free Camera Rotation") + "\t" + ctrl + "U", _L("Allow unconstrained camera rotation in 3D views."),
+            [this](wxCommandEvent &e) { view_set_free_camera(e.GetInt() == 1); },
+            this, [this]() { return m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview; },
+            [this]() { return wxGetApp().app_config->get_bool("use_free_camera"); }, this);
+
         append_menu_check_item(
             viewMenu, wxID_ANY, _L("Show 3D Navigator"), _L("Show 3D navigator in Prepare and Preview scene"),
             [this](wxCommandEvent &) {
@@ -4148,6 +4160,16 @@ void MainFrame::view_zoom_to_fit() const
     if (GLCanvas3D *canvas = m_plater ? m_plater->canvas3D() : nullptr)
         canvas->zoom_to_fit();
 }
+
+void MainFrame::view_set_free_camera(bool enabled) const
+{
+    if (wxGetApp().app_config->get_bool("use_free_camera") != enabled) {
+        wxGetApp().app_config->set_bool("use_free_camera", enabled);
+        if (m_plater)
+            m_plater->update_camera_from_settings();
+    }
+}
+
 
 // #ys_FIXME_to_delete
 void MainFrame::on_presets_changed(SimpleEvent &event)

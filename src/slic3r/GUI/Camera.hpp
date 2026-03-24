@@ -55,6 +55,7 @@ struct Camera
 private:
     EType m_type{ EType::Perspective };
     bool m_update_config_on_type_change_enabled{ false };
+    bool m_update_config_on_free_rot_change{ true };
     Vec3d m_target{ Vec3d::Zero() };
     float m_zenit{ 45.0f };
     double m_zoom{ 1.0 };
@@ -142,8 +143,8 @@ public:
     void translate_world(const Vec3d& displacement) { set_target(m_target + displacement); }
 
     // BBS rotate the camera on a sphere having center == target
-    void rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, Vec3d target);
-    void rotate_local_with_target(const Vec3d& rotation_rad, Vec3d target);
+    void rotate_on_sphere_with_target(double delta_azimut_rad, double delta_zenit_rad, bool apply_limits, const Vec3d& target);
+    void rotate_local_with_target(const Vec3d& rotation_rad, const Vec3d& target);
     void calc_horizontal_rotate_rad(float &rotation_rad);
     // rotate the camera on a sphere having center == m_target and radius == m_distance
     // using the given variations of spherical coordinates
@@ -158,8 +159,14 @@ public:
     bool is_looking_front() const { return abs(get_dir_up().dot(Vec3d::UnitZ())-1) < 0.001; }
     // forces camera right vector to be parallel to XY plane
     void recover_from_free_camera() {
-        if (std::abs(get_dir_right()(2)) > EPSILON)
+        // First condition happens with unconstrained mouse rotations when going past the constrained stopping points.
+        // Second condition may happen after using a 3D mouse controller.
+        if (get_dir_up()(2) < -EPSILON || std::abs(get_dir_right()(2)) > EPSILON) {
+            update_target();
             look_at(get_position(), m_target, Vec3d::UnitZ());
+        }
+        // Set flag to monitor 3D mouse movements for toggling to free camera mode. \sa rotate_local_around_target()
+        m_update_config_on_free_rot_change = true;
     }
 
     void look_at(const Vec3d& position, const Vec3d& target, const Vec3d& up);
