@@ -5678,6 +5678,9 @@ void TabPrinter::on_preset_loaded()
             auto* dynamic_filament = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("enable_filament_dynamic_map");
             if(dynamic_filament) dynamic_filament->value = false;
 
+            auto* has_switcher = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("has_filament_switcher");
+            if(has_switcher) has_switcher->value = false;
+
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
             bool has_multiple_nozzle = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });

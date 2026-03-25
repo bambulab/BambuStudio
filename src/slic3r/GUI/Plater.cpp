@@ -2038,6 +2038,10 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     auto *dynamic_filament = dynamic_cast<ConfigOptionBool *>(project_config.option("enable_filament_dynamic_map"));
     if (dynamic_filament) { dynamic_filament->value = is_fila_switch_ready(); }
 
+    // set filament switcher status
+    auto *has_switcher = dynamic_cast<ConfigOptionBool *>(project_config.option("has_filament_switcher"));
+    if (has_switcher) { has_switcher->value = is_fila_switch_ready(); }
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << __LINE__ << " finish sync_extruder_list";
     return true;
 }
@@ -8020,6 +8024,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 // disable dynamic filament by default, enable when a supported machine is connected
                                 auto* dynamic_filament = proj_cfg.option<ConfigOptionBool>("enable_filament_dynamic_map");
                                 if(dynamic_filament) dynamic_filament->value = false;
+
+                                auto* has_switcher = proj_cfg.option<ConfigOptionBool>("has_filament_switcher");
+                                if(has_switcher) has_switcher->value = false;
 
                                 // 导入结束后，允许流量切换的逻辑生效
                                 preset_bundle->extruder_nozzle_stat.set_force_keep_flag(false);

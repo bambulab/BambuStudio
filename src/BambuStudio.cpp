@@ -3845,6 +3845,8 @@ int CLI::run(int argc, char **argv)
     // so old 3MFs that have it enabled are handled correctly.
     if (!m_extra_config.has("enable_filament_dynamic_map"))
         m_extra_config.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(false));
+    if (!m_extra_config.has("has_filament_switcher"))
+        m_extra_config.set_key_value("has_filament_switcher", new ConfigOptionBool(false));
     m_print_config.apply(m_extra_config, true);
     // Normalizing after importing the 3MFs / AMFs
     m_print_config.normalize_fdm();

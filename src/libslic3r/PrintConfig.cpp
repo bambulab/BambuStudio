@@ -4502,6 +4502,11 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = "Support filament map to different nozzle";
     def->set_default_value(new ConfigOptionBool{ false });
 
+    def = this->add("has_filament_switcher", coBool);
+    def->label = "Has filament switcher";
+    def->tooltip = "Whether a filament switcher is connected to the printer";
+    def->set_default_value(new ConfigOptionBool{ false });
+
     def = this->add("prime_volume_mode", coEnum);
     def->enum_values.push_back("Default");
     def->enum_values.push_back("Saving");
