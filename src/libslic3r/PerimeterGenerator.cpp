@@ -1141,6 +1141,20 @@ void PerimeterGenerator::process_classic()
                     ExPolygons bridge_checker;
 
                     ExPolygons top_polygons = diff_ex(last, upper_polygons_series_clipped, ApplySafetyOffset::Yes);
+                    // Fill holes in top areas that are covered by the upper layer to prevent
+                    // different wall counts at material transitions (e.g., text on keytags).
+                    if (this->fill_top_surface_holes && ! top_polygons.empty() && this->upper_slices) {
+                        ExPolygons top_union = union_ex(top_polygons);
+                        Polygons   filled_holes;
+                        for (const ExPolygon &ep : top_union)
+                            for (const Polygon &hole : ep.holes) {
+                                ExPolygons hole_ex = to_expolygons(Polygons{hole});
+                                if (! intersection_ex(hole_ex, *this->upper_slices, ApplySafetyOffset::Yes).empty())
+                                    filled_holes.push_back(hole);
+                            }
+                        if (! filled_holes.empty())
+                            top_polygons = union_ex(top_union, to_expolygons(filled_holes));
+                    }
                     //get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
                     ExPolygons temp_gap        = diff_ex(top_polygons, fill_clip);
                     ExPolygons inner_polygons = diff_ex(last,
@@ -1580,6 +1594,20 @@ void PerimeterGenerator::process_arachne()
                         upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
                 }
                 top_expolys_by_one_wall = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
+                // Fill holes in top areas that are covered by the upper layer to prevent
+                // different wall counts at material transitions (e.g., text on keytags).
+                if (this->fill_top_surface_holes && ! top_expolys_by_one_wall.empty() && this->upper_slices) {
+                    ExPolygons top_union = union_ex(top_expolys_by_one_wall);
+                    Polygons   filled_holes;
+                    for (const ExPolygon &ep : top_union)
+                        for (const Polygon &hole : ep.holes) {
+                            ExPolygons hole_ex = to_expolygons(Polygons{hole});
+                            if (! intersection_ex(hole_ex, *this->upper_slices, ApplySafetyOffset::Yes).empty())
+                                filled_holes.push_back(hole);
+                        }
+                    if (! filled_holes.empty())
+                        top_expolys_by_one_wall = union_ex(top_union, to_expolygons(filled_holes));
+                }
 
                 Polygons lower_polygons_clipped;
                 if (this->lower_slices)

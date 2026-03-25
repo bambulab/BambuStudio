@@ -36,6 +36,7 @@ public:
     const ExPolygons            *upper_slices;
     const SurfaceCollection     *upper_slices_same_region;
     const ExPolygons            *lower_slices;
+    bool                         fill_top_surface_holes = false;
     double                       layer_height;
     int                          layer_id;
     Flow                         perimeter_flow;
