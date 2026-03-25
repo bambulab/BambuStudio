@@ -638,7 +638,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     adjustLabel->SetForegroundColour(wxColour("#6B6B6B"));
 
     adjustGroupSizer->Add(amsSlotAdjust, 0, wxALIGN_CENTER);
-    adjustGroupSizer->Add(adjustLabel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(15));
+    adjustGroupSizer->Add(adjustLabel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
 
     wxBoxSizer* okGroupSizer = new wxBoxSizer(wxHORIZONTAL);
     UiAMSSlot* amsSlotOK= new UiAMSSlot(statusBar, colourOK, wxString("Ax\nPLA"), DataStatusType::OK, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(58), FromDIP(90)), 1.0, 1.0);
@@ -647,7 +647,7 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     okLabel->SetForegroundColour(wxColour("#6B6B6B"));
 
     okGroupSizer->Add(amsSlotOK, 0, wxALIGN_CENTER);
-    okGroupSizer->Add(okLabel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(15));
+    okGroupSizer->Add(okLabel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
 
     wxBoxSizer* unusedGroupSizer = new wxBoxSizer(wxHORIZONTAL);
     UiAMSSlot* amsSlotUnused= new UiAMSSlot(statusBar, colourUnused, wxString("Ax\nPLA"), DataStatusType::UNMATCHED, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(58), FromDIP(90)), 0.2, 1.0);
@@ -656,11 +656,11 @@ ReselectMachineDialog::ReselectMachineDialog(wxWindow* parent)
     unusedLabel->SetForegroundColour(wxColour("#6B6B6B"));
 
     unusedGroupSizer->Add(amsSlotUnused, 0, wxALIGN_CENTER);
-    unusedGroupSizer->Add(unusedLabel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(15));
+    unusedGroupSizer->Add(unusedLabel, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
 
-    statusBarSizer->Add(adjustGroupSizer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(10));
-    statusBarSizer->Add(okGroupSizer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(40));
-    statusBarSizer->Add(unusedGroupSizer, 0, wxALIGN_CENTER | wxLEFT, FromDIP(40));
+    statusBarSizer->Add(adjustGroupSizer, 1, wxALIGN_CENTER | wxLEFT, FromDIP(10));
+    statusBarSizer->Add(okGroupSizer, 1, wxALIGN_CENTER | wxLEFT, FromDIP(30));
+    statusBarSizer->Add(unusedGroupSizer, 1, wxALIGN_CENTER | wxLEFT, FromDIP(40));
 
     statusBarSizer->AddStretchSpacer(1);
 
