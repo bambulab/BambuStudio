@@ -907,6 +907,15 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 std::string value_str;
 
                 if (it.value().is_string()) {
+                    if (opt_key == "reduce_infill_retraction")
+                    {
+                        // Legacy bool: false(0) -> Disabled, true(1) bypass
+                        // New profiles that don't set this will get the default "Auto"
+                        if (it.value() == "0" || it.value() == "false") {
+                            // should disable
+                            different_settings_append.push_back("reduce_infill_retraction_mode");
+                        }
+                    }
                     //bool test1 = (it.key() == std::string("end_gcode"));
                     this->set_deserialize(opt_key, it.value(), substitution_context);
                     //some logic for special values
@@ -988,6 +997,13 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
             }
         }
         if (!different_settings_append.empty()) {
+            auto it = std::find(different_settings_append.begin(), different_settings_append.end(), "reduce_infill_retraction_mode");
+            if (it != different_settings_append.end()){
+                //should disable
+                ConfigOptionEnum<ReduceInfillRetractionMode> *opt = this->option<ConfigOptionEnum<ReduceInfillRetractionMode>>("reduce_infill_retraction_mode", true);
+                opt->value                                        = ReduceInfillRetractionMode::rirDisabled;
+            }
+
             if (!new_support_style.empty()) {
                 ConfigOptionEnum<SupportMaterialStyle>* opt = this->option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
                 opt->value = smsTreeHybrid;

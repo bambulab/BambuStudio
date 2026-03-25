@@ -159,6 +159,9 @@
     "filament_max_volumetric_speed": [
         "0"
     ],
+    "filament_metal_stickiness": [
+        "None"
+    ],
     "filament_minimal_purge_on_wipe_tower": [
         "15"
     ],
