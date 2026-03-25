@@ -3164,7 +3164,7 @@ void WipeTower::get_wall_skip_points(const WipeTowerInfo &layer, int layer_id)
         cur_block_depth[m_filpar[new_filament].category] = process_depth + wipe_depth;
 
         bool solid_toolchange = block->layers_type[layer_id] == WipeTowerLayerType::Contact;
-        if (solid_toolchange) {
+        if (solid_toolchange && m_enable_tower_interface_features) {
             for (int j = 0; j < pre_access_layer; j++) {
                 int pre_layer_id = layer_id - j;
                 if (pre_layer_id < 0) break;
