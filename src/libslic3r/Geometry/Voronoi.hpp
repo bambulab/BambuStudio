@@ -4,6 +4,8 @@
 #include "../Line.hpp"
 #include "../Polyline.hpp"
 
+#include <functional>
+
 #ifdef _MSC_VER
 // Suppress warning C4146 in OpenVDB: unary minus operator applied to unsigned type, result still unsigned
 #pragma warning(push)
@@ -83,7 +85,8 @@ public:
         typename boost::polygon::gtl_if<typename boost::polygon::is_segment_concept<
             typename boost::polygon::geometry_concept<typename std::iterator_traits<SegmentIterator>::value_type>::type>::type>::type,
         void>::type
-    construct_voronoi(SegmentIterator segment_begin, SegmentIterator segment_end, bool try_to_repair_if_needed = true);
+    construct_voronoi(SegmentIterator segment_begin, SegmentIterator segment_end, bool try_to_repair_if_needed = true,
+                      const std::function<void()> &throw_on_cancel = [](){});
 
     template<typename PointIterator>
     typename boost::polygon::enable_if<
@@ -126,14 +129,16 @@ public:
         typename boost::polygon::gtl_if<typename boost::polygon::is_segment_concept<
             typename boost::polygon::geometry_concept<typename std::iterator_traits<SegmentIterator>::value_type>::type>::type>::type,
         VoronoiDiagram::IssueType>::type
-    try_to_repair_degenerated_voronoi_diagram_by_rotation(SegmentIterator segment_begin, SegmentIterator segment_end, double fix_angle);
+    try_to_repair_degenerated_voronoi_diagram_by_rotation(SegmentIterator segment_begin, SegmentIterator segment_end, double fix_angle,
+                                                          const std::function<void()> &throw_on_cancel = [](){});
 
     template<typename SegmentIterator>
     typename boost::polygon::enable_if<
         typename boost::polygon::gtl_if<typename boost::polygon::is_segment_concept<
             typename boost::polygon::geometry_concept<typename std::iterator_traits<SegmentIterator>::value_type>::type>::type>::type,
         VoronoiDiagram::IssueType>::type
-    try_to_repair_degenerated_voronoi_diagram(SegmentIterator segment_begin, SegmentIterator segment_end);
+    try_to_repair_degenerated_voronoi_diagram(SegmentIterator segment_begin, SegmentIterator segment_end,
+                                              const std::function<void()> &throw_on_cancel = [](){});
 
 private:
     struct Segment

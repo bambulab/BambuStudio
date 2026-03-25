@@ -267,10 +267,16 @@ private:
 	// Thread, on which the background processing is executed. The thread will always be present
 	// and ready to execute the slicing process.
 	boost::thread		 		m_thread;
+	// Threads orphaned by force-cancel (stop() timeout). They continue running until
+	// their computation finishes, then exit silently. Detached in the destructor.
+	std::vector<boost::thread>	m_orphaned_threads;
 	// Mutex and condition variable to synchronize m_thread with the UI thread.
 	std::mutex 		 			m_mutex;
 	std::condition_variable		m_condition;
 	State 						m_state = STATE_INITIAL;
+	// Incremented on force-cancel (stop() timeout). The background thread checks this
+	// after completing work; if it changed, the thread skips state/event updates.
+	unsigned int				m_task_generation = 0;
 
 	// For executing tasks from the background thread on UI thread synchronously (waiting for result) using wxWidgets CallAfter().
 	// When the background proces is canceled, the UITask has to be invalidated as well, so that it will not be
