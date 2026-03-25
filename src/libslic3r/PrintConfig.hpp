@@ -360,6 +360,25 @@ enum FilamentMapMode {
     fmmDefault
 };
 
+// BBS: reduce infill retraction mode
+// NOTE: integer values are intentionally kept compatible with the old bool:
+//   0 (false) = Disabled, 1 (true) = Auto (new default, old "enabled" users get smarter behavior),
+//   2 = Enabled (force-skip retraction regardless of filament type)
+enum ReduceInfillRetractionMode {
+    rirDisabled = 0, // Always retract normally (was bool false)
+    rirAuto     = 1, // Auto: skip only for low metal-stickiness filaments (e.g. PLA) (was bool true)
+    rirEnabled  = 2  // Always skip retraction in infill area regardless of filament type
+};
+
+// BBS: filament metal stickiness level (used in Auto mode of reduce_infill_retraction)
+// None means untested/custom filament — treated as Low for backward compatibility.
+enum FilamentMetalStickiness {
+    fmsNone = 0,    // Not specified / untested — behaves like Low for reduce_infill_retraction
+    fmsLow,         // Low metal stickiness (e.g. PLA) - reduce infill retraction is beneficial
+    fmsMedium,      // Medium metal stickiness
+    fmsHigh         // High metal stickiness (e.g. PETG) - retraction should not be skipped
+};
+
 inline bool is_auto_filament_map_mode(FilamentMapMode mode) {
     return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
 }
@@ -489,6 +508,8 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PrintHostType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(AuthorizationType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -1157,6 +1178,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBoolsNullable,       filament_adaptive_volumetric_speed))
     ((ConfigOptionStrings,             volumetric_speed_coefficients))
     ((ConfigOptionInts,              filament_adhesiveness_category))
+    ((ConfigOptionEnumsGeneric,       filament_metal_stickiness))
     ((ConfigOptionFloats,              filament_density))
     ((ConfigOptionStrings,             filament_type))
     ((ConfigOptionBools,               filament_soluble))
@@ -1391,7 +1413,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionPoint,              best_object_pos))
     ((ConfigOptionFloats,             slow_down_min_speed))
     ((ConfigOptionFloatsNullable,     nozzle_diameter))
-    ((ConfigOptionBool,               reduce_infill_retraction))
+    ((ConfigOptionEnum<ReduceInfillRetractionMode>, reduce_infill_retraction_mode))
     ((ConfigOptionBool,               ooze_prevention))
     ((ConfigOptionString,             filename_format))
     ((ConfigOptionStrings,            post_process))

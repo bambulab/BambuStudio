@@ -6850,12 +6850,25 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     }
 
     //BBS: need retract when long moving to print perimeter to avoid dropping of material
-    if (!is_perimeter(role) && m_config.reduce_infill_retraction && m_layer != nullptr && m_config.sparse_infill_density.value > 0 &&
-        m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(*m_layer, travel))
-        // Skip retraction if travel is contained in an internal slice *and*
-        // internal infill is enabled (so that stringing is entirely not visible).
-        //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
-        return false;
+    // Check reduce_infill_retraction mode: Enabled=always skip, Auto=skip only for low metal stickiness, Disabled=always retract
+    {
+        ReduceInfillRetractionMode rir_mode = ReduceInfillRetractionMode(m_config.reduce_infill_retraction_mode.value);
+        bool should_reduce = false;
+        if (rir_mode == rirEnabled) {
+            should_reduce = true;
+        } else if (rir_mode == rirAuto) {
+            int metal_stickiness = FILAMENT_CONFIG(filament_metal_stickiness);
+            // fmsNone (untested/custom filament) is treated as Low for backward compatibility
+            should_reduce = (metal_stickiness == int(fmsLow) || metal_stickiness == int(fmsNone));
+        }
+        // rirDisabled: should_reduce remains false
+        if (should_reduce && !is_perimeter(role) && m_layer != nullptr && m_config.sparse_infill_density.value > 0 &&
+            m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(*m_layer, travel))
+            // Skip retraction if travel is contained in an internal slice *and*
+            // internal infill is enabled (so that stringing is entirely not visible).
+            //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
+            return false;
+    }
 
     // retract if reduce_infill_retraction is disabled or doesn't apply when role is perimeter
     if (ZHopType(FILAMENT_CONFIG(z_hop_types)) == ZHopType::zhtAuto) {

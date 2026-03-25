@@ -38,6 +38,9 @@
     "filament_type": [
         "PETG-CF"
     ],
+    "filament_metal_stickiness": [
+        "High"
+    ],
     "filament_vendor": [
         "Bambu Lab"
     ],

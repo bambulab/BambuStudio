@@ -3372,7 +3372,7 @@ void TabPrint::build()
         optgroup->append_single_option_line("wall_filament");
 
         optgroup = page->new_optgroup(L("G-code output"), L"param_gcode");
-        optgroup->append_single_option_line("reduce_infill_retraction");
+        optgroup->append_single_option_line("reduce_infill_retraction_mode");
         optgroup->append_single_option_line("gcode_add_line_number");
         optgroup->append_single_option_line("exclude_object");
         Option option = optgroup->get_option("filename_format");
@@ -4356,6 +4356,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("default_filament_colour");
         optgroup->append_single_option_line("filament_diameter");
         optgroup->append_single_option_line("filament_adhesiveness_category", "parameter/prime-tower#adhesiveness");
+        optgroup->append_single_option_line("filament_metal_stickiness");
         optgroup->append_single_option_line("filament_flow_ratio", "", 0);
         optgroup->append_single_option_line("enable_pressure_advance");
         optgroup->append_single_option_line("pressure_advance");

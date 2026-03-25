@@ -508,6 +508,21 @@ static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrimeVolumeMode)
 
+static const t_config_enum_values s_keys_map_ReduceInfillRetractionMode = {
+    { "Disabled", rirDisabled },
+    { "Auto",     rirAuto },
+    { "Enabled",  rirEnabled }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ReduceInfillRetractionMode)
+
+static const t_config_enum_values s_keys_map_FilamentMetalStickiness = {
+    { "None",   fmsNone },
+    { "Low",    fmsLow },
+    { "Medium", fmsMedium },
+    { "High",   fmsHigh }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMetalStickiness)
+
 //BBS
 std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type)
 {
@@ -2346,6 +2361,25 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
 
+    def = this->add("filament_metal_stickiness", coEnums);
+    def->label = L("Metal stickiness");
+    def->tooltip = L("Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. "
+                     "\"None\" means untested or custom filament, behaves the same as Low. "
+                     "Low: e.g. PLA - retraction can be safely skipped in infill areas. "
+                     "Medium: moderate stickiness - use with caution. "
+                     "High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls.");
+    def->enum_keys_map = &ConfigOptionEnum<FilamentMetalStickiness>::get_enum_values();
+    def->enum_values.push_back("None");
+    def->enum_values.push_back("Low");
+    def->enum_values.push_back("Medium");
+    def->enum_values.push_back("High");
+    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Low"));
+    def->enum_labels.push_back(L("Medium"));
+    def->enum_labels.push_back(L("High"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnumsGeneric{fmsNone});
+
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only");
@@ -4020,13 +4054,24 @@ void PrintConfigDef::init_fff_params()
     // start and end point is from the change_filament_gcode
     def->set_default_value(new ConfigOptionPoints{Vec2d(30, -3), Vec2d(54, 245)});
 
-    def = this->add("reduce_infill_retraction", coBool);
+    // Legacy bool parameter reduce_infill_retraction is for backward compatibility with old versions.
+    // New versions should use reduce_infill_retraction_mode instead.
+    def = this->add("reduce_infill_retraction_mode", coEnum);
     def->label = L("Reduce infill retraction");
-    def->tooltip = L("Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. "
-                     "This can reduce times of retraction for complex model and save printing time, but make slicing and "
-                     "G-code generating slower");
+    def->tooltip = L("Controls whether retraction is skipped when traveling within the infill area. "
+                     "\"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) "
+                     "and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. "
+                     "\"Enabled\" always skips retraction in infill areas regardless of filament type. "
+                     "\"Disabled\" always retracts normally.");
+    def->enum_keys_map = &ConfigOptionEnum<ReduceInfillRetractionMode>::get_enum_values();
+    def->enum_values.push_back("Disabled");
+    def->enum_values.push_back("Auto");
+    def->enum_values.push_back("Enabled");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Enabled"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<ReduceInfillRetractionMode>(rirAuto));
 
     def = this->add("ooze_prevention", coBool);
     def->label = L("Enable");
@@ -6839,7 +6884,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
-        "bed_size",
+        "bed_size", "reduce_infill_retraction",
         "print_center", "g0", "wipe_tower_per_color_wipe"
 #ifndef HAS_PRESSURE_EQUALIZER
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"

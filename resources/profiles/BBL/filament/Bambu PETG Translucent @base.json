@@ -39,6 +39,9 @@
     "filament_max_volumetric_speed": [
         "6"
     ],
+    "filament_metal_stickiness": [
+        "High"
+    ],
     "filament_vendor": [
         "Bambu Lab"
     ],
