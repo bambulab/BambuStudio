@@ -60,7 +60,8 @@ static std::vector<std::string> s_project_options {
     "filament_mixed_components",
     "filament_mixed_sublayer_ratios",
     "filament_mixed_gradient",
-    "filament_mixed_gradient_range"
+    "filament_mixed_gradient_range",
+    "has_filament_switcher"
 };
 
 //BBS: add BBL as default
