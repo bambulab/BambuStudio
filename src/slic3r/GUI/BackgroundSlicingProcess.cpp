@@ -27,6 +27,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <cctype>
+#include <chrono>
 
 #include <boost/format/format_fwd.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -119,6 +120,11 @@ BackgroundSlicingProcess::~BackgroundSlicingProcess()
 {
 	this->stop();
 	this->join_background_thread();
+	for (auto &t : m_orphaned_threads) {
+		if (t.joinable())
+			t.detach();
+	}
+	m_orphaned_threads.clear();
 	//BBS: move this logic to part plate
 	//boost::nowide::remove(m_temp_output_path.c_str());
 }
@@ -327,6 +333,7 @@ void BackgroundSlicingProcess::thread_proc()
 		m_state = STATE_RUNNING;
 		//BBS: internal cancel
 		m_internal_cancelled = false;
+		const unsigned int task_gen = m_task_generation;
 		lck.unlock();
 		std::exception_ptr exception;
 #ifdef _WIN32
@@ -336,6 +343,15 @@ void BackgroundSlicingProcess::thread_proc()
 #endif
 		m_print->finalize();
 		lck.lock();
+		if (task_gen != m_task_generation) {
+			// This task was force-canceled by stop() timeout. The thread has been
+			// orphaned and a new thread will be (or has been) created. Exit silently.
+			BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": task (gen " << task_gen
+			                           << ") was force-canceled (current gen " << m_task_generation
+			                           << "), orphaned thread exiting";
+			lck.unlock();
+			return;
+		}
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": process finished, state %1%, print cancel_status %2%")%m_state %m_print->cancel_status();
 		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
@@ -553,7 +569,25 @@ bool BackgroundSlicingProcess::stop()
 		cancel_ui_task(m_ui_task);
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
-		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
+		// Use timed wait to prevent permanent UI freeze when background thread
+		// is stuck in a long/non-interruptible computation (e.g. boost::polygon::construct_voronoi).
+		if (!m_condition.wait_for(lck, std::chrono::seconds(1), [this](){ return m_state == STATE_CANCELED; })) {
+			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop() timed out. "
+			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << "). "
+			                         << "Background thread will be orphaned until its computation completes.";
+			++m_task_generation;
+			// Orphan the stuck thread so start() can create a fresh one.
+			m_orphaned_threads.push_back(std::move(m_thread));
+			m_state = STATE_INITIAL;
+			m_print->restart();
+			m_print->set_cancel_callback([](){});
+			// Notify UI that slicing was canceled so it can clean up (hide progress bar, etc.)
+			SlicingProcessCompletedEvent evt(m_event_finished_id, 0,
+				SlicingProcessCompletedEvent::Cancelled, std::exception_ptr());
+			wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled, thread orphaned)" << std::endl;
+			return true;
+		}
 		// In the "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 		m_print->set_cancel_callback([](){});
@@ -600,7 +634,18 @@ void BackgroundSlicingProcess::stop_internal()
 		// Allow the worker thread to wake up if blocking on a milestone.
 		m_print->state_mutex().unlock();
 		// Wait until the background processing stops by being canceled.
-		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
+		// Use timed wait to prevent permanent freeze when background thread is stuck.
+		if (!m_condition.wait_for(lck, std::chrono::seconds(5), [this](){ return m_state == STATE_CANCELED; })) {
+			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop_internal() timed out. "
+			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << ").";
+			++m_task_generation;
+			m_print->state_mutex().lock();
+			m_state = STATE_IDLE;
+			m_print->restart();
+			m_print->set_cancel_callback([](){});
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled)" << std::endl;
+			return;
+		}
 		// Lock it back to be in a consistent state.
 		m_print->state_mutex().lock();
 	}
