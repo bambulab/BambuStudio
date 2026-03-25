@@ -7907,6 +7907,10 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
         //int extruder_count = opt_nozzle_diameters->size();
         auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("extruder_type"));
         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("nozzle_volume_type"));
+        if (!opt_extruder_type || !opt_nozzle_volume_type) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: extruder_type or nozzle_volume_type not found, skipping")%__LINE__;
+            return variant_index;
+        }
 
         if (extruder_id > 0 && extruder_id <= static_cast<unsigned> (extruder_count)) {
             variant_index.resize(1);
@@ -7992,6 +7996,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coStrings:
                 {
                     ConfigOptionStrings * opt = this->option<ConfigOptionStrings>(key);
+                    if (!opt) continue;
                     std::vector<std::string> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8006,6 +8011,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coInts:
                 {
                     ConfigOptionInts * opt = this->option<ConfigOptionInts>(key);
+                    if (!opt) continue;
                     std::vector<int> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8020,6 +8026,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coFloats:
                 {
                     ConfigOptionFloats * opt = this->option<ConfigOptionFloats>(key);
+                    if (!opt) continue;
                     std::vector<double> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8034,6 +8041,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coPercents:
                 {
                     ConfigOptionPercents * opt = this->option<ConfigOptionPercents>(key);
+                    if (!opt) continue;
                     std::vector<double> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8048,6 +8056,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coFloatsOrPercents:
                 {
                     ConfigOptionFloatsOrPercents * opt = this->option<ConfigOptionFloatsOrPercents>(key);
+                    if (!opt) continue;
                     std::vector<FloatOrPercent> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8062,6 +8071,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coBools:
                 {
                     ConfigOptionBools * opt = this->option<ConfigOptionBools>(key);
+                    if (!opt) continue;
                     std::vector<unsigned char> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8076,6 +8086,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 case coEnums:
                 {
                     ConfigOptionEnumsGeneric * opt = this->option<ConfigOptionEnumsGeneric>(key);
+                    if (!opt) continue;
                     std::vector<int> new_values;
 
                     new_values.resize(variant_count * stride);
@@ -8107,13 +8118,22 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
     //if (extruder_nozzle_volume_count > 1)
     {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing")%__LINE__;
-        std::vector<int> filament_maps =  printer_config.option<ConfigOptionInts>("filament_map")->values;
+        auto opt_filament_map = printer_config.option<ConfigOptionInts>("filament_map");
+        if (!opt_filament_map) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: filament_map not found, skipping")%__LINE__;
+            return;
+        }
+        std::vector<int> filament_maps = opt_filament_map->values;
         size_t filament_count = filament_maps.size();
         //apply process settings
         //auto opt_nozzle_diameters = this->option<ConfigOptionFloats>("nozzle_diameter");
         //int extruder_count = opt_nozzle_diameters->size();
         auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("extruder_type"));
         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("nozzle_volume_type"));
+        if (!opt_extruder_type || !opt_nozzle_volume_type) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: extruder_type or nozzle_volume_type not found, skipping")%__LINE__;
+            return;
+        }
 
         auto opt_filament_volume_maps = dynamic_cast<const ConfigOptionInts*>(printer_config.option("filament_volume_map"));
         std::vector<int> filament_volume_maps;
@@ -8168,6 +8188,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coStrings:
                 {
                     ConfigOptionStrings * opt = this->option<ConfigOptionStrings>(key);
+                    if (!opt) continue;
                     std::vector<std::string> new_values;
 
                     new_values.resize(filament_count);
@@ -8181,6 +8202,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coInts:
                 {
                     ConfigOptionInts * opt = this->option<ConfigOptionInts>(key);
+                    if (!opt) continue;
                     std::vector<int> new_values;
 
                     new_values.resize(filament_count);
@@ -8194,6 +8216,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coFloats:
                 {
                     ConfigOptionFloats * opt = this->option<ConfigOptionFloats>(key);
+                    if (!opt) continue;
                     std::vector<double> new_values;
 
                     new_values.resize(filament_count);
@@ -8207,6 +8230,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coPercents:
                 {
                     ConfigOptionPercents * opt = this->option<ConfigOptionPercents>(key);
+                    if (!opt) continue;
                     std::vector<double> new_values;
 
                     new_values.resize(filament_count);
@@ -8220,6 +8244,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coFloatsOrPercents:
                 {
                     ConfigOptionFloatsOrPercents * opt = this->option<ConfigOptionFloatsOrPercents>(key);
+                    if (!opt) continue;
                     std::vector<FloatOrPercent> new_values;
 
                     new_values.resize(filament_count);
@@ -8233,6 +8258,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coBools:
                 {
                     ConfigOptionBools * opt = this->option<ConfigOptionBools>(key);
+                    if (!opt) continue;
                     std::vector<unsigned char> new_values;
 
                     new_values.resize(filament_count);
@@ -8246,6 +8272,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                 case coEnums:
                 {
                     ConfigOptionEnumsGeneric * opt = this->option<ConfigOptionEnumsGeneric>(key);
+                    if (!opt) continue;
                     std::vector<int> new_values;
 
                     new_values.resize(filament_count);
