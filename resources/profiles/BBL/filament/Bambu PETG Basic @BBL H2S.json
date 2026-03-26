@@ -11,12 +11,12 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
-    ],
-    "filament_tower_ironing_area": [
-        "8"
     ],
     "filament_long_retractions_when_cut": [
         "0",
@@ -26,6 +26,13 @@
         "18",
         "21"
     ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "filament_retraction_distances_when_cut": [
         "10",
         "10"
@@ -33,6 +40,9 @@
     "filament_retraction_length": [
         "0.4",
         "0.4"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_wipe": [
         "1",
@@ -42,19 +52,9 @@
         "2",
         "2"
     ],
-    "filament_prime_volume": [
-        "30"
-    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
-    "filament_change_length": [
-        "4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -70,6 +70,9 @@
     "nozzle_temperature_initial_layer": [
         "245",
         "245"
+    ],
+    "overhang_fan_speed": [
+        "50"
     ],
     "pre_start_fan_time": [
         "2"
