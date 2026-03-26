@@ -221,6 +221,8 @@ wxString Slic3r::get_stage_string(int stage)
         return _L("Purifying the chamber air");
     case 77:
         return _L("Preparing AMS");
+    case 78:
+        return  _L("Timing belt artifacts compensation");
     default:
         BOOST_LOG_TRIVIAL(info) << "stage = " << stage;
     }
