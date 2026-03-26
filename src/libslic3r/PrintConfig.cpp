@@ -9881,7 +9881,30 @@ bool has_skirt(const DynamicPrintConfig& cfg)
         || (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled);
 }
 float get_real_skirt_dist(const DynamicPrintConfig& cfg) {
-    return has_skirt(cfg) ? cfg.opt_float("skirt_distance") : 0;
+    if (!has_skirt(cfg)) return 0.f;
+
+    float dist = cfg.opt_float("skirt_distance");
+
+    int loops = cfg.opt_int("skirt_loops");
+    auto opt_draft_shield = cfg.option("draft_shield");
+    if (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled && loops == 0) {
+        loops = 1;
+    }
+
+    float width = cfg.opt_float("initial_layer_line_width");
+    if (width <= 0.f) {
+        width = cfg.opt_float("line_width");
+    }
+    if (width <= 0.f) {
+        auto* nd = cfg.opt<ConfigOptionFloats>("nozzle_diameter");
+        if (nd && !nd->values.empty()) {
+            width = *std::max_element(nd->values.begin(), nd->values.end());
+        } else {
+            width = 0.4f;
+        }
+    }
+
+    return dist + loops * width;
 }
 } // namespace Slic3r
 
