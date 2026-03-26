@@ -975,7 +975,7 @@ void Sidebar::priv::show_fila_switch_msg(bool ready)
     long style = ready ? (wxICON_INFORMATION | wxOK) : (wxICON_WARNING | wxOK);
     MessageDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), msg, _L("Tips"), style, "", _L("Learn more"),
                       [](const wxString &url) { wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=yElVKjHwyw9o3pND"); });
-    dlg.SetSize(wxSize(FromDIP(520), FromDIP(180)));
+    // dlg.SetSize(wxSize(FromDIP(520), FromDIP(180)));
     dlg.CenterOnParent();
     dlg.ShowModal();
 }
